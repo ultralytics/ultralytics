@@ -23,6 +23,7 @@ TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
+IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 """
 
@@ -33,6 +34,7 @@ import re
 import shutil
 import time
 from pathlib import Path
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch.cuda
@@ -57,6 +59,7 @@ def benchmark(
     verbose=False,
     eps=1e-3,
     format="",
+    **kwargs,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -71,6 +74,7 @@ def benchmark(
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
         format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
+        **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
         (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
@@ -102,41 +106,41 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
+    for name, format, suffix, cpu, gpu, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
                 continue
 
             # Checks
-            if i == 7:  # TF GraphDef
+            if format == "pb":
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif i == 9:  # Edge TPU
+            elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
-            elif i in {5, 10}:  # CoreML and TF.js
+            elif format in {"coreml", "tfjs"}:
                 assert MACOS or (LINUX and not ARM64), (
                     "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
                 )
-            if i in {5}:  # CoreML
+            if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
-            if i in {6, 7, 8, 9, 10}:  # TF SavedModel, TF GraphDef, and TFLite, TF EdgeTPU and TF.js
+            if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
-            if i == 11:  # Paddle
+            if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
-            if i == 12:  # MNN
+            if format == "mnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
-            if i == 13:  # NCNN
+            if format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
-            if i == 14:  # IMX
+            if format == "imx":
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
                 assert model.task == "detect", "IMX only supported for detection task"
                 assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"  # TODO: enable for YOLO11
-            if i == 15:  # RKNN
+            if format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
                 assert LINUX, "RKNN only supported on Linux"
@@ -152,23 +156,31 @@ def benchmark(
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
 
             # Predict
-            assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
-            assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
-            assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
-            if i in {13}:
+            assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
+            assert format not in {"edgetpu", "tfjs"}, "inference not supported"
+            assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
+            if format == "ncnn":
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
             results = exported_model.val(
-                data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
+                data=data,
+                batch=1,
+                imgsz=imgsz,
+                plots=False,
+                device=device,
+                half=half,
+                int8=int8,
+                verbose=False,
+                conf=0.001,  # all the pre-set benchmark mAP values are based on conf=0.001
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
@@ -225,7 +237,7 @@ class RF100Benchmark:
         self.rf = None
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
-    def set_key(self, api_key):
+    def set_key(self, api_key: str):
         """
         Set Roboflow API key for processing.
 
@@ -242,7 +254,7 @@ class RF100Benchmark:
 
         self.rf = Roboflow(api_key=api_key)
 
-    def parse_dataset(self, ds_link_txt="datasets_links.txt"):
+    def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
         """
         Parse dataset links and download datasets.
 
@@ -280,14 +292,14 @@ class RF100Benchmark:
         return self.ds_names, self.ds_cfg_list
 
     @staticmethod
-    def fix_yaml(path):
+    def fix_yaml(path: Path):
         """Fix the train and validation paths in a given YAML file."""
         yaml_data = YAML.load(path)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
         YAML.dump(yaml_data, path)
 
-    def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
+    def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
         """
         Evaluate model performance on validation results.
 
@@ -342,6 +354,8 @@ class RF100Benchmark:
         with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
+        return float(map_val)
+
 
 class ProfileModels:
     """
@@ -360,15 +374,15 @@ class ProfileModels:
         device (torch.device): Device used for profiling.
 
     Methods:
-        profile: Profiles the models and prints the result.
-        get_files: Gets all relevant model files.
-        get_onnx_model_info: Extracts metadata from an ONNX model.
-        iterative_sigma_clipping: Applies sigma clipping to remove outliers.
-        profile_tensorrt_model: Profiles a TensorRT model.
-        profile_onnx_model: Profiles an ONNX model.
-        generate_table_row: Generates a table row with model metrics.
-        generate_results_dict: Generates a dictionary of profiling results.
-        print_table: Prints a formatted table of results.
+        run: Profile YOLO models for speed and accuracy across various formats.
+        get_files: Get all relevant model files.
+        get_onnx_model_info: Extract metadata from an ONNX model.
+        iterative_sigma_clipping: Apply sigma clipping to remove outliers.
+        profile_tensorrt_model: Profile a TensorRT model.
+        profile_onnx_model: Profile an ONNX model.
+        generate_table_row: Generate a table row with model metrics.
+        generate_results_dict: Generate a dictionary of profiling results.
+        print_table: Print a formatted table of results.
 
     Examples:
         Profile models and print results
@@ -379,14 +393,14 @@ class ProfileModels:
 
     def __init__(
         self,
-        paths: list,
-        num_timed_runs=100,
-        num_warmup_runs=10,
-        min_time=60,
-        imgsz=640,
-        half=True,
-        trt=True,
-        device=None,
+        paths: List[str],
+        num_timed_runs: int = 100,
+        num_warmup_runs: int = 10,
+        min_time: float = 60,
+        imgsz: int = 640,
+        half: bool = True,
+        trt: bool = True,
+        device: Optional[Union[torch.device, str]] = None,
     ):
         """
         Initialize the ProfileModels class for profiling models.
@@ -424,7 +438,7 @@ class ProfileModels:
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[Dict]): List of dictionaries containing profiling results for each model.
+            (List[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -436,7 +450,7 @@ class ProfileModels:
 
         if not files:
             LOGGER.warning("No matching *.pt or *.onnx files found.")
-            return
+            return []
 
         table_rows = []
         output = []
@@ -497,11 +511,11 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
+        """Extract metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
-    def iterative_sigma_clipping(data, sigma=2, max_iters=3):
+    def iterative_sigma_clipping(data: np.ndarray, sigma: float = 2, max_iters: int = 3):
         """
         Apply iterative sigma clipping to data to remove outliers.
 
@@ -626,7 +640,13 @@ class ProfileModels:
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
-    def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+    def generate_table_row(
+        self,
+        model_name: str,
+        t_onnx: Tuple[float, float],
+        t_engine: Tuple[float, float],
+        model_info: Tuple[float, float, float, float],
+    ):
         """
         Generate a table row string with model performance metrics.
 
@@ -646,7 +666,12 @@ class ProfileModels:
         )
 
     @staticmethod
-    def generate_results_dict(model_name, t_onnx, t_engine, model_info):
+    def generate_results_dict(
+        model_name: str,
+        t_onnx: Tuple[float, float],
+        t_engine: Tuple[float, float],
+        model_info: Tuple[float, float, float, float],
+    ):
         """
         Generate a dictionary of profiling results.
 
@@ -669,7 +694,7 @@ class ProfileModels:
         }
 
     @staticmethod
-    def print_table(table_rows):
+    def print_table(table_rows: List[str]):
         """
         Print a formatted table of model profiling results.
 

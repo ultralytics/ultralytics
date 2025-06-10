@@ -5,14 +5,9 @@ import subprocess
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE
-from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_9
-
-# Constants
-TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
-MODELS = [WEIGHTS_DIR / TASK2MODEL[task] for task in TASKS]
 
 
 def run(cmd: str) -> None:
@@ -44,7 +39,7 @@ def test_val(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
-    run(f"yolo predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
+    run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -55,7 +50,7 @@ def test_export(model: str) -> None:
 
 def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
-    # Warning: must use imgsz=640 (note also add coma, spaces, fraction=0.25 args to test single-image training)
+    # Warning: must use imgsz=640 (note also add comma, spaces, fraction=0.25 args to test single-image training)
     run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")  # spaces
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
     if TORCH_1_9:

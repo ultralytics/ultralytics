@@ -142,7 +142,7 @@ To train a YOLO11 model using JupyterLab:
 
 5. Visualize training results using JupyterLab's built-in plotting capabilities:
 
-    ```ipython
+    ```python
     %matplotlib inline
     from ultralytics.utils.plotting import plot_results
     plot_results(results)

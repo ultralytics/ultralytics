@@ -149,7 +149,7 @@ Before running, ensure:
 
 Modify the `main.cpp` file (or create a configuration mechanism) to set the parameters:
 
-```c++
+```cpp
 //change your param as you like
 //Pay attention to your device and the onnx model type(fp32 or fp16)
 DL_INIT_PARAM params;

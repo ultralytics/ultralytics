@@ -175,7 +175,7 @@ class PoseValidator(DetectionValidator):
         pbatch["keypoints"] = kpts
         return pbatch
 
-    def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _prepare_pred(self, pred: Dict[str, Any], pbatch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare and scale keypoints in predictions for pose processing.
 
@@ -184,15 +184,14 @@ class PoseValidator(DetectionValidator):
         to match the original image dimensions.
 
         Args:
-            pred (torch.Tensor): Raw prediction tensor from the model.
+            pred (Dict[str, Any]): Raw prediction dictionary from the model.
             pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
                 - imgsz: Image size used for inference
                 - ori_shape: Original image shape
                 - ratio_pad: Ratio and padding information for coordinate scaling
 
         Returns:
-            predn (torch.Tensor): Processed prediction boxes scaled to original image dimensions.
-            pred_kpts (torch.Tensor): Predicted keypoints scaled to original image dimensions.
+            (Dict[str, Any]): Processed prediction dictionary with keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
         kpts = pred.get("keypoints", None)

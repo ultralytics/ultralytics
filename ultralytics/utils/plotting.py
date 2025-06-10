@@ -3,7 +3,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union, Any
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import cv2
 import numpy as np
@@ -703,6 +703,7 @@ def plot_images(
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.
         conf_thres (float): Confidence threshold for displaying detections.
+
     Returns:
         (np.ndarray): Plotted image grid as a numpy array if save is False, None otherwise.
 

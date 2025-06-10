@@ -75,6 +75,7 @@ class PoseValidator(DetectionValidator):
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
+        self.metrics = PoseMetrics()
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
                 "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
@@ -111,7 +112,6 @@ class PoseValidator(DetectionValidator):
             model (torch.nn.Module): Model to validate.
         """
         super().init_metrics(model)
-        self.metrics = PoseMetrics(names=self.names)
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]

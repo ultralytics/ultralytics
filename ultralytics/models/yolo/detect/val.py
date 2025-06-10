@@ -11,7 +11,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import DetMetrics, box_iou
+from ultralytics.utils.metrics import DetMetrics, box_iou, ConfusionMatrix
 from ultralytics.utils.plotting import plot_images
 
 
@@ -57,6 +57,7 @@ class DetectionValidator(BaseValidator):
         self.args.task = "detect"
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
+        self.metrics = DetMetrics()
 
     def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -94,9 +95,9 @@ class DetectionValidator(BaseValidator):
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
-        self.metrics = DetMetrics(names=self.names)
         self.seen = 0
         self.jdict = []
+        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -196,7 +197,7 @@ class DetectionValidator(BaseValidator):
             )
             # Evaluate
             if self.args.plots:
-                self.metrics.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
 
             if no_pred:
                 continue
@@ -216,8 +217,9 @@ class DetectionValidator(BaseValidator):
         """Set final values for metrics speed and confusion matrix."""
         if self.args.plots:
             for normalize in True, False:
-                self.metrics.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
+        self.metrics.confusion_matrix = self.confusion_matrix
 
     def get_stats(self) -> Dict[str, Any]:
         """

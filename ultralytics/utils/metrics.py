@@ -952,7 +952,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
-        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -969,7 +968,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
         self.nt_per_class = None
         self.nt_per_image = None
-        self.confusion_matrix = ConfusionMatrix(names=list(names.values()))
 
     def update_stats(self, stat: Dict[str, any]) -> None:
         """
@@ -1107,7 +1105,6 @@ class SegmentMetrics(DetMetrics):
         stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
-        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1239,7 +1236,6 @@ class PoseMetrics(DetMetrics):
         stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
-        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
 
     Methods:
         process(tp_m, tp_b, conf, pred_cls, target_cls): Process metrics over the given set of predictions.
@@ -1380,7 +1376,6 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         top5 (float): The top-5 accuracy.
         speed (dict): A dictionary containing the time taken for each step in the pipeline.
         task (str): The task type, set to 'classify'.
-        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
     """
 
     def __init__(self, names: Dict[int, str]) -> None:
@@ -1389,7 +1384,6 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         self.top5 = 0
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "classify"
-        self.confusion_matrix = ConfusionMatrix(names=list(names.values()), task="classify")
 
     def process(self, targets: torch.Tensor, pred: torch.Tensor):
         """
@@ -1460,7 +1454,6 @@ class OBBMetrics(DetMetrics):
         stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
-        confusion_matrix (ConfusionMatrix): An instance of the ConfusionMatrix class for tracking classification performance.
 
     References:
         https://arxiv.org/pdf/2106.06072.pdf

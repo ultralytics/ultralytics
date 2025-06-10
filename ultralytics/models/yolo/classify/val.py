@@ -119,12 +119,13 @@ class ClassificationValidator(BaseValidator):
             >>> validator.finalize_metrics()
             >>> print(validator.metrics.confusion_matrix)  # Access the confusion matrix
         """
-        self.metrics.confusion_matrix.process_cls_preds(self.pred, self.targets)
+        self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
             for normalize in True, False:
-                self.metrics.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
         self.metrics.speed = self.speed
         self.metrics.save_dir = self.save_dir
+        self.metrics.confusion_matrix = self.confusion_matrix
 
     def postprocess(self, preds):
         """Extract the primary prediction from model output if it's in a list or tuple format."""

@@ -82,7 +82,6 @@ class BaseValidator:
         update_metrics: Update metrics based on predictions and batch.
         finalize_metrics: Finalize and return all metrics.
         get_stats: Return statistics about the model's performance.
-        check_stats: Check statistics.
         print_results: Print the results of the model's predictions.
         get_desc: Get description of the YOLO model.
         on_plot: Register plots for visualization.
@@ -226,7 +225,6 @@ class BaseValidator:
 
             self.run_callbacks("on_val_batch_end")
         stats = self.get_stats()
-        self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
         self.finalize_metrics()
         self.print_results()
@@ -333,10 +331,6 @@ class BaseValidator:
     def get_stats(self):
         """Return statistics about the model's performance."""
         return {}
-
-    def check_stats(self, stats):
-        """Check statistics."""
-        pass
 
     def print_results(self):
         """Print the results of the model's predictions."""

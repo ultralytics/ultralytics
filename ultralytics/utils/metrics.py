@@ -364,19 +364,19 @@ class ConfusionMatrix(DataExportMixin):
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
                 detections = {k: v[detections["conf"] > conf] for k, v in detections.items()}
-                detection_classes = detections["cls"].int()
+                detection_classes = detections["cls"].int().tolist()
                 for dc in detection_classes:
                     self.matrix[dc, self.nc] += 1  # false positives
             return
         if no_pred:
-            gt_classes = gt_cls.int()
+            gt_classes = gt_cls.int().tolist()
             for gc in gt_classes:
                 self.matrix[self.nc, gc] += 1  # background FN
             return
 
         detections = {k: v[detections["conf"] > conf] for k, v in detections.items()}
-        gt_classes = gt_cls.int()
-        detection_classes = detections["cls"].int()
+        gt_classes = gt_cls.int().tolist()
+        detection_classes = detections["cls"].int().tolist()
         bboxes = detections["bboxes"]
         is_obb = bboxes.shape[1] == 5  # check if detections contains angle for OBB
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)

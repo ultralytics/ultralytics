@@ -51,12 +51,15 @@ from ultralytics.nn.modules import (
     Focus,
     GhostBottleneck,
     GhostConv,
+
     GSBottleneck,
     GSBottleneckC,
     GSConv,
     GSConvE,
     GSConvE2,
     GSConvns,
+    CBAM,
+
     HGBlock,
     HGStem,
     ImagePoolingAttn,
@@ -1436,7 +1439,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             SCDown,
             C2fCIB,
             A2C2f,
-
+            CBAM
             # GSConv,
             # GSConvE,
             # GSConvE2,

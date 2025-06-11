@@ -1,0 +1,43 @@
+---
+
+# Alternative configuration for full enhancement testing
+# Save as: ultralytics/cfg/models/v8/yolov8n-enhanced-full.yaml
+
+# Parameters
+nc: 80 # number of classes
+scales: # model compound scaling constants
+  n: [0.33, 0.25, 1024]
+
+# YOLOv8.0n backbone with FULL enhancements
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, EnhancedC2f, [128, True, True, True, True, True]] # 2 - FULL enhancement
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, EnhancedC2f, [256, True, True, True, True, True]] # 4 - FULL enhancement
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, EnhancedC2f, [512, True, True, True, True, True]] # 6 - FULL enhancement
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, EnhancedC2f, [1024, True, True, True, True, True]] # 8 - FULL enhancement
+  - [-1, 1, SPPF, [1024, 5]] # 9
+
+# YOLOv8.0n head with FULL enhancements
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 3, EnhancedC2f, [512, False, True, True, True, True]] # 12 - FULL enhancement
+  
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 3, EnhancedC2f, [256, False, True, True, True, True]] # 15 (P3/8-small) - FULL enhancement
+  
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]] # cat head P4
+  - [-1, 3, EnhancedC2f, [512, False, True, True, True, True]] # 18 (P4/16-medium) - FULL enhancement
+  
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 9], 1, Concat, [1]] # cat head P5
+  - [-1, 3, EnhancedC2f, [1024, False, True, True, True, True]] # 21 (P5/32-large) - FULL enhancement
+  
+  - [[15, 18, 21], 1, Detect, [nc]] # Detect(P3, P4, P5)

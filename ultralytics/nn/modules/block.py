@@ -52,6 +52,14 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    # Add our new classes
+    "SEModule",
+    "SpatialAttention", 
+    "EnhancedBottleneck",
+    "ChannelShuffle",
+    "AdaptiveFeatureFusion",
+    "EnhancedC2f",
+    "EnhancedC2fConfig",
 )
 
 
@@ -103,6 +111,339 @@ class Proto(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass through layers using an upsampled input image."""
         return self.cv3(self.cv2(self.upsample(self.cv1(x))))
+
+########################################################################
+
+# FIXED VERSION - Add this to ultralytics/nn/modules/block.py
+
+class SEModule(nn.Module):
+    """Lightweight Squeeze-and-Excitation module for channel attention."""
+    
+    def __init__(self, channels: int, reduction: int = 16):
+        """
+        Initialize SE module.
+        
+        Args:
+            channels (int): Number of input channels.
+            reduction (int): Reduction ratio for bottleneck.
+        """
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channels, channels // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channels // reduction, channels, bias=False),
+            nn.Sigmoid()
+        )
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply SE attention to input tensor."""
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+class SpatialAttention(nn.Module):
+    """Lightweight spatial attention module."""
+    
+    def __init__(self, kernel_size: int = 7):
+        """
+        Initialize spatial attention module.
+        
+        Args:
+            kernel_size (int): Kernel size for attention convolution.
+        """
+        super().__init__()
+        self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size//2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply spatial attention to input tensor."""
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        attention = torch.cat([avg_out, max_out], dim=1)
+        attention = self.conv(attention)
+        return x * self.sigmoid(attention)
+
+
+class EnhancedBottleneck(nn.Module):
+    """Enhanced Bottleneck with SE attention."""
+    
+    def __init__(
+        self, 
+        c1: int, 
+        c2: int, 
+        shortcut: bool = True, 
+        g: int = 1, 
+        k: tuple = (3, 3), 
+        e: float = 0.5,
+        use_se: bool = True,
+        se_reduction: int = 16
+    ):
+        """
+        Initialize Enhanced Bottleneck.
+        
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            shortcut (bool): Whether to use shortcut connection.
+            g (int): Groups for convolutions.
+            k (tuple): Kernel sizes for convolutions.
+            e (float): Expansion ratio.
+            use_se (bool): Whether to use SE attention.
+            se_reduction (int): SE reduction ratio.
+        """
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.add = shortcut and c1 == c2
+        
+        # SE Module
+        self.se = SEModule(c2, se_reduction) if use_se else nn.Identity()
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply enhanced bottleneck with SE attention."""
+        out = self.cv2(self.cv1(x))
+        out = self.se(out)
+        return x + out if self.add else out
+
+
+class ChannelShuffle(nn.Module):
+    """Channel shuffle operation for better information flow."""
+    
+    def __init__(self, groups: int):
+        """
+        Initialize channel shuffle.
+        
+        Args:
+            groups (int): Number of groups for shuffling.
+        """
+        super().__init__()
+        self.groups = groups
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply channel shuffle to input tensor."""
+        b, c, h, w = x.size()
+        
+        # Ensure channels are divisible by groups
+        if c % self.groups != 0:
+            return x  # Skip shuffle if not divisible
+            
+        channels_per_group = c // self.groups
+        
+        # Reshape and transpose for shuffle
+        x = x.view(b, self.groups, channels_per_group, h, w)
+        x = torch.transpose(x, 1, 2).contiguous()
+        x = x.view(b, c, h, w)
+        
+        return x
+
+
+class AdaptiveFeatureFusion(nn.Module):
+    """FIXED: Adaptive feature fusion with learnable weights."""
+    
+    def __init__(self, num_features: int, channels: int):
+        """
+        Initialize adaptive feature fusion.
+        
+        Args:
+            num_features (int): Number of feature maps to fuse.
+            channels (int): Number of channels in EACH feature map.
+        """
+        super().__init__()
+        self.num_features = num_features
+        self.channels = channels
+        
+        # Learnable weights for each feature
+        self.feature_weights = nn.Parameter(torch.ones(num_features))
+        
+        # Global context for dynamic weighting
+        self.global_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channels, channels // 4),
+            nn.ReLU(inplace=True),
+            nn.Linear(channels // 4, num_features),
+            nn.Softmax(dim=1)
+        )
+    
+    def forward(self, features: list) -> torch.Tensor:
+        """Apply adaptive fusion to list of features."""
+        # Ensure we have the expected number of features
+        assert len(features) == self.num_features, f"Expected {self.num_features} features, got {len(features)}"
+        
+        # Get dynamic weights from the last feature (most processed)
+        global_context = self.global_pool(features[-1]).squeeze(-1).squeeze(-1)  # [B, C]
+        dynamic_weights = self.fc(global_context)  # [B, num_features]
+        
+        # Combine with learnable static weights
+        static_weights = F.softmax(self.feature_weights, dim=0)  # [num_features]
+        
+        # Apply weights and concatenate
+        weighted_features = []
+        for i, feat in enumerate(features):
+            # Combine static and dynamic weights
+            weight = static_weights[i] * dynamic_weights[:, i:i+1, None, None]  # [B, 1, 1, 1]
+            weighted_features.append(feat * weight)
+        
+        return torch.cat(weighted_features, dim=1)
+
+
+class EnhancedC2f(nn.Module):
+    """FIXED: Enhanced C2f with SE attention, spatial attention, and adaptive fusion."""
+    
+    def __init__(
+        self, 
+        c1: int, 
+        c2: int, 
+        n: int = 1, 
+        shortcut: bool = False, 
+        g: int = 1, 
+        e: float = 0.5,
+        use_se: bool = True,
+        use_spatial_attn: bool = False,
+        use_channel_shuffle: bool = False,  # Changed default to False to avoid issues
+        use_adaptive_fusion: bool = True,
+        se_reduction: int = 16
+    ):
+        """
+        Initialize Enhanced C2f block.
+        
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            n (int): Number of bottleneck blocks.
+            shortcut (bool): Whether to use shortcut connections.
+            g (int): Groups for convolutions.
+            e (float): Expansion ratio.
+            use_se (bool): Whether to use SE attention in bottlenecks.
+            use_spatial_attn (bool): Whether to use spatial attention.
+            use_channel_shuffle (bool): Whether to use channel shuffle.
+            use_adaptive_fusion (bool): Whether to use adaptive feature fusion.
+            se_reduction (int): SE reduction ratio.
+        """
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.use_spatial_attn = use_spatial_attn
+        self.use_channel_shuffle = use_channel_shuffle
+        self.use_adaptive_fusion = use_adaptive_fusion
+        
+        # Initial convolution
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        
+        # Enhanced bottleneck blocks
+        self.m = nn.ModuleList(
+            EnhancedBottleneck(
+                self.c, self.c, shortcut, g, 
+                k=((3, 3), (3, 3)), e=1.0, 
+                use_se=use_se, se_reduction=se_reduction
+            ) for _ in range(n)
+        )
+        
+        # Optional spatial attention
+        if use_spatial_attn:
+            self.spatial_attn = SpatialAttention()
+        
+        # Optional channel shuffle (only if we have multiple blocks)
+        if use_channel_shuffle and n > 1:
+            self.channel_shuffle = ChannelShuffle(groups=min(4, self.c))  # Ensure groups <= channels
+        
+        # Feature fusion setup
+        if use_adaptive_fusion:
+            # We have: initial_split (2) + bottleneck_outputs (n) = total features
+            total_features = 2 + n
+            self.feature_fusion = AdaptiveFeatureFusion(total_features, self.c)
+            # Output after fusion: total_features * self.c channels
+            self.cv2 = Conv(total_features * self.c, c2, 1)
+        else:
+            # Standard concatenation
+            self.cv2 = Conv((2 + n) * self.c, c2, 1)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through Enhanced C2f layer."""
+        # Initial split
+        y = list(self.cv1(x).chunk(2, 1))
+        
+        # Process through enhanced bottlenecks
+        for i, m in enumerate(self.m):
+            feat = m(y[-1])
+            
+            # Optional channel shuffle between blocks (not on last block)
+            if self.use_channel_shuffle and i < len(self.m) - 1 and hasattr(self, 'channel_shuffle'):
+                feat = self.channel_shuffle(feat)
+            
+            y.append(feat)
+        
+        # Optional spatial attention on final feature
+        if self.use_spatial_attn and hasattr(self, 'spatial_attn'):
+            y[-1] = self.spatial_attn(y[-1])
+        
+        # Feature fusion
+        if self.use_adaptive_fusion:
+            fused = self.feature_fusion(y)
+            return self.cv2(fused)
+        else:
+            return self.cv2(torch.cat(y, 1))
+    
+    def forward_split(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass using split() instead of chunk() - for compatibility."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        
+        for i, m in enumerate(self.m):
+            feat = m(y[-1])
+            if self.use_channel_shuffle and i < len(self.m) - 1 and hasattr(self, 'channel_shuffle'):
+                feat = self.channel_shuffle(feat)
+            y.append(feat)
+        
+        if self.use_spatial_attn and hasattr(self, 'spatial_attn'):
+            y[-1] = self.spatial_attn(y[-1])
+        
+        if self.use_adaptive_fusion:
+            fused = self.feature_fusion(y)
+            return self.cv2(fused)
+        else:
+            return self.cv2(torch.cat(y, 1))
+
+
+class EnhancedC2fConfig:
+    """Configuration presets for different use cases."""
+    
+    @staticmethod
+    def lightweight():
+        """Lightweight configuration - minimal overhead."""
+        return {
+            'use_se': True,
+            'use_spatial_attn': False,
+            'use_channel_shuffle': False,
+            'use_adaptive_fusion': False,
+            'se_reduction': 16
+        }
+    
+    @staticmethod
+    def balanced():
+        """Balanced configuration - good trade-off."""
+        return {
+            'use_se': True,
+            'use_spatial_attn': False,
+            'use_channel_shuffle': True,
+            'use_adaptive_fusion': True,
+            'se_reduction': 16
+        }
+    
+    @staticmethod
+    def full():
+        """Full enhancement configuration - maximum features."""
+        return {
+            'use_se': True,
+            'use_spatial_attn': True,
+            'use_channel_shuffle': True,
+            'use_adaptive_fusion': True,
+            'se_reduction': 16
+        }
+
+########################################################################
+
 
 
 class HGStem(nn.Module):

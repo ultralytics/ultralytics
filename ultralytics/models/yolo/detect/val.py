@@ -155,7 +155,7 @@ class DetectionValidator(BaseValidator):
         Prepare predictions for evaluation against ground truth.
 
         Args:
-            pred (Dict[str, torch.Tensor]): Model predictions.
+            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
             pbatch (Dict[str, Any]): Prepared batch information.
 
         Returns:

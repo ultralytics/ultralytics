@@ -181,7 +181,7 @@ class PoseValidator(DetectionValidator):
         to match the original image dimensions.
 
         Args:
-            pred (Dict[str, Any]): Raw prediction dictionary from the model.
+            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
             pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
                 - imgsz: Image size used for inference
                 - ori_shape: Original image shape

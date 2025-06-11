@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import torch
 
@@ -184,16 +184,17 @@ class RTDETRValidator(DetectionValidator):
 
         return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
-    def _prepare_batch(self, si, batch):
+    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare a batch for validation by applying necessary transformations.
 
         Args:
             si (int): Batch index.
-            batch (Dict[str, torch.Tensor]): Batch data containing images and annotations.
+            batch (Dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
-            (Dict[str, torch.Tensor]): Prepared batch with transformed annotations.
+            (Dict[str, Any]): Prepared batch with transformed annotations containing cls, bboxes,
+                ori_shape, imgsz, and ratio_pad.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -207,7 +208,7 @@ class RTDETRValidator(DetectionValidator):
             bbox[..., [1, 3]] *= ori_shape[0]  # native-space pred
         return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred, pbatch) -> Dict[str, torch.Tensor]:
+    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Prepare predictions by scaling bounding boxes to original image dimensions.
 

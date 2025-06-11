@@ -4,7 +4,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Any
 
 import numpy as np
 import torch
@@ -969,7 +969,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.nt_per_class = None
         self.nt_per_image = None
 
-    def update_stats(self, stat: Dict[str, any]) -> None:
+    def update_stats(self, stat: Dict[str, Any]) -> None:
         """
         Update statistics by appending new values to existing stat collections.
 
@@ -977,7 +977,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             stat (Dict[str, any]): Dictionary containing new statistical values to append.
                          Keys should match existing keys in self.stats.
         """
-        for k in stat.keys():
+        for k in self.stats.keys():
             self.stats[k].append(stat[k])
 
     def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> Dict[str, np.ndarray]:

@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import torch
 from pathlib import Path
-from typing import Dict, Any, Union, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
+
+import torch
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator

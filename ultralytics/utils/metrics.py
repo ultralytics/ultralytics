@@ -4,7 +4,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Dict, List, Tuple, Union, Any
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import torch

@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Dict, List, Any, Union, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import torch
 

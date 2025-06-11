@@ -107,11 +107,12 @@ class SegmentationValidator(DetectionValidator):
         preds = super().postprocess(preds[0])
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
         for i, pred in enumerate(preds):
-            coefficient = pred.pop("extra")  # remove extra if exists
-            if len(coefficient) == 0:
-                pred["masks"] = torch.zeros((0, imgsz[0], imgsz[1]), dtype=torch.uint8, device=pred["bboxes"].device)
-            else:
-                pred["masks"] = self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
+            coefficient = pred.pop("extra")
+            pred["masks"] = (
+                self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
+                if len(coefficient)
+                else torch.zeros((0, imgsz[0], imgsz[1]), dtype=torch.uint8, device=pred["bboxes"].device)
+            )
         return preds
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
@@ -135,7 +136,7 @@ class SegmentationValidator(DetectionValidator):
         Prepare predictions for evaluation by processing bounding boxes and masks.
 
         Args:
-            pred (Dict[str, torch.Tensor]): Raw predictions from the model.
+            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
             pbatch (Dict[str, Any]): Prepared batch information.
 
         Returns:
@@ -153,7 +154,7 @@ class SegmentationValidator(DetectionValidator):
             predn["coco_masks"] = coco_masks
         return predn
 
-    def _process_batch(self, preds: torch.Tensor, batch: torch.Tensor) -> torch.Tensor:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 

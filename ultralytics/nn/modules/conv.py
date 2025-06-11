@@ -24,13 +24,13 @@ __all__ = (
     "RepConv",
     "Index",
     "BiFPN_ConcatN",
-    "BiFPN"
+    "BiFPN",
 )
 
 
 class BiFPN_ConcatN(nn.Module):
     def __init__(self, num_inputs, dimension=1):
-        super(BiFPN_ConcatN, self).__init__()
+        super().__init__()
         self.d = dimension
         self.num_inputs = num_inputs
         self.w = nn.Parameter(torch.ones(num_inputs, dtype=torch.float32), requires_grad=True)
@@ -39,24 +39,23 @@ class BiFPN_ConcatN(nn.Module):
     def forward(self, x):
         assert isinstance(x, (list, tuple)), "Input must be a list or tuple of tensors"
         assert len(x) == self.num_inputs, f"Expected {self.num_inputs} inputs, got {len(x)}"
-        
+
         weight = self.w / (torch.sum(self.w, dim=0) + self.epsilon)  # Normalize weights
         # Fast normalized fusion
         weighted = [weight[i] * x[i] for i in range(self.num_inputs)]  # Apply weights
         return torch.cat(weighted, dim=self.d)
 
+
 class BiFPN(nn.Module):
     def __init__(self, in_channels_list, out_channels, num_layers=2):
-        super(BiFPN, self).__init__()
+        super().__init__()
         self.num_layers = num_layers
         self.out_channels = out_channels
 
         # 调整输入通道数到统一的 out_channels
         self.conv_in = nn.ModuleList()
         for in_channels in in_channels_list:
-            self.conv_in.append(
-                nn.Conv2d(in_channels, out_channels, 1, bias=False)
-            )
+            self.conv_in.append(nn.Conv2d(in_channels, out_channels, 1, bias=False))
 
         # BiFPN 权重（可学习）
         self.weights = nn.ParameterList()
@@ -70,13 +69,16 @@ class BiFPN(nn.Module):
         self.conv_layers = nn.ModuleList()
         for _ in range(num_layers):
             self.conv_layers.append(
-                nn.ModuleList([
-                    nn.Sequential(
-                        nn.Conv2d(out_channels, out_channels, 3, padding=1, bias=False),
-                        nn.BatchNorm2d(out_channels),
-                        nn.ReLU(inplace=True)
-                    ) for _ in range(5)  # P3-P7
-                ])
+                nn.ModuleList(
+                    [
+                        nn.Sequential(
+                            nn.Conv2d(out_channels, out_channels, 3, padding=1, bias=False),
+                            nn.BatchNorm2d(out_channels),
+                            nn.ReLU(inplace=True),
+                        )
+                        for _ in range(5)  # P3-P7
+                    ]
+                )
             )
 
     def forward(self, inputs):
@@ -94,25 +96,21 @@ class BiFPN(nn.Module):
             # 自顶向下路径
             P5_td = features[2]  # P5
             P4_td = self.fuse_features(
-                [features[1], F.interpolate(P5_td, scale_factor=2, mode='nearest')],
-                self.weights[layer][0]
+                [features[1], F.interpolate(P5_td, scale_factor=2, mode="nearest")], self.weights[layer][0]
             )
             P4_td = self.conv_layers[layer][1](P4_td)
             P3_out = self.fuse_features(
-                [features[0], F.interpolate(P4_td, scale_factor=2, mode='nearest')],
-                self.weights[layer][1]
+                [features[0], F.interpolate(P4_td, scale_factor=2, mode="nearest")], self.weights[layer][1]
             )
             P3_out = self.conv_layers[layer][0](P3_out)
 
             # 自底向上路径
             P4_out = self.fuse_features(
-                [features[1], P4_td, F.max_pool2d(P3_out, kernel_size=3, stride=2, padding=1)],
-                self.weights[layer][2]
+                [features[1], P4_td, F.max_pool2d(P3_out, kernel_size=3, stride=2, padding=1)], self.weights[layer][2]
             )
             P4_out = self.conv_layers[layer][3](P4_out)
             P5_out = self.fuse_features(
-                [features[2], P5_td, F.max_pool2d(P4_out, kernel_size=3, stride=2, padding=1)],
-                self.weights[layer][4]
+                [features[2], P5_td, F.max_pool2d(P4_out, kernel_size=3, stride=2, padding=1)], self.weights[layer][4]
             )
             P5_out = self.conv_layers[layer][4](P5_out)
 
@@ -129,7 +127,8 @@ class BiFPN(nn.Module):
         for i, x in enumerate(inputs):
             out += weights[i] * x
         return out
-    
+
+
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
     if d > 1:

@@ -20,7 +20,8 @@ from ultralytics.data.loaders import (
     LoadStreams,
     LoadTensor,
     SourceTypes,
-    autocast_list, download_pinterest_video,
+    autocast_list,
+    download_pinterest_video,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 from ultralytics.utils import RANK, colorstr

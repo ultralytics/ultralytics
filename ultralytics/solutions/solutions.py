@@ -3,6 +3,7 @@
 import math
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
+from functools import lru_cache
 
 import cv2
 import numpy as np
@@ -423,6 +424,7 @@ class SolutionAnnotator(Annotator):
             text_y_offset = rect_y2
 
     @staticmethod
+    @lru_cache(maxsize=512)
     def estimate_pose_angle(a: List[float], b: List[float], c: List[float]) -> float:
         """
         Calculate the angle between three points for workout monitoring.

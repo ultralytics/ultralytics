@@ -196,18 +196,18 @@ class PoseValidator(DetectionValidator):
         )
         return predn
 
-    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
         Args:
             preds (Dict[str, torch.Tensor]): Dictionary containing prediction data with keys 'cls' for class predictions
                 and 'keypoints' for keypoint predictions.
-            batch (Dict[str, torch.Tensor]): Dictionary containing ground truth data with keys 'cls' for class labels,
+            batch (Dict[str, Any]): Dictionary containing ground truth data with keys 'cls' for class labels,
                 'bboxes' for bounding boxes, and 'keypoints' for keypoint annotations.
 
         Returns:
-            (Dict[str, torch.Tensor]): Dictionary containing the correct prediction matrix including 'tp_p' for pose
+            (Dict[str, np.ndarray]): Dictionary containing the correct prediction matrix including 'tp_p' for pose
                 true positives across 10 IoU levels.
 
         Notes:
@@ -223,7 +223,7 @@ class PoseValidator(DetectionValidator):
             area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53
             iou = kpt_iou(batch["keypoints"], preds["keypoints"], sigma=self.sigma, area=area)
             tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
-        tp.update({"tp_p": tp_p})  # update tp with mask IoU
+        tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
 
     def save_one_txt(

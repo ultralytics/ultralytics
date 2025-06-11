@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union, Tuple
 
 import torch
 
@@ -153,7 +153,7 @@ class RTDETRValidator(DetectionValidator):
             data=self.data,
         )
 
-    def postprocess(self, preds) -> List[Dict[str, torch.Tensor]]:
+    def postprocess(self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]) -> List[Dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 

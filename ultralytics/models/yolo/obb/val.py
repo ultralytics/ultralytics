@@ -104,7 +104,7 @@ class OBBValidator(DetectionValidator):
         """
         preds = super().postprocess(preds)
         for pred in preds:
-            pred["bboxes"] = torch.cat([pred["bboxes"], pred.pop("extra")], dim=-1)
+            pred["bboxes"] = torch.cat([pred["bboxes"], pred.pop("extra")], dim=-1)  # concatenate angle
         return preds
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
@@ -177,7 +177,7 @@ class OBBValidator(DetectionValidator):
         """
         for p in preds:
             # TODO: fix this duplicated `xywh2xyxy`
-            p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format
+            p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format for plotting
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
     def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: Union[str, Path]) -> None:
@@ -209,9 +209,7 @@ class OBBValidator(DetectionValidator):
                 }
             )
 
-    def save_one_txt(
-        self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Union[Path, str]
-    ) -> None:
+    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
         """
         Save YOLO OBB detections to a text file in normalized coordinates.
 
@@ -220,7 +218,7 @@ class OBBValidator(DetectionValidator):
                 class predictions, and angles in format (x, y, w, h, conf, cls, angle).
             save_conf (bool): Whether to save confidence scores in the text file.
             shape (Tuple[int, int]): Original image shape in format (height, width).
-            file (Path | str): Output file path to save detections.
+            file (Path): Output file path to save detections.
 
         Examples:
             >>> validator = OBBValidator()

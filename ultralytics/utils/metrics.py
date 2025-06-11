@@ -345,12 +345,12 @@ class ConfusionMatrix(DataExportMixin):
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[p][t] += 1
 
-    def process_batch(self, detections, batch, conf: float = 0.25, iou_thres: float = 0.45):
+    def process_batch(self, detections: Dict[str, torch.Tensor], batch: Dict[str, Any], conf: float = 0.25, iou_thres: float = 0.45) -> None:
         """
         Update confusion matrix for object detection task.
 
         Args:
-            detections (Dict[str, Any]): Dictionary containing detected bounding boxes and their associated information.
+            detections (Dict[str, torch.Tensor]): Dictionary containing detected bounding boxes and their associated information.
                                        Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be
                                        Array[N, 4] for regular boxes or Array[N, 5] for OBB with angle.
             batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M, 5]) and

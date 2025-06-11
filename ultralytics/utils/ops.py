@@ -129,12 +129,12 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
-    
+
     if padding:
         boxes[..., 0] -= pad[0]  # x padding
         boxes[..., 1] -= pad[1]  # y padding
         if not xywh:
-            boxes[..., 2] -= pad[0]  # x padding  
+            boxes[..., 2] -= pad[0]  # x padding
             boxes[..., 3] -= pad[1]  # y padding
 
     boxes[..., :4] /= gain
@@ -143,13 +143,14 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
 
     if xywh and not is_obb:
         boxes = xywh2xyxy(boxes)  # convert to xyxy format as `clip_boxes` expects xyxy
-        
+
     boxes = clip_boxes(boxes, img0_shape)
 
     if xywh and not is_obb:
         boxes = xyxy2xywh(boxes)
 
     return boxes
+
 
 def make_divisible(x: int, divisor):
     """

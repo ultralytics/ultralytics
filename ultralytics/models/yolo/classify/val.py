@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
+from pathlib import Path
+from typing import Dict, Any, Union, List, Tuple
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
@@ -128,20 +130,20 @@ class ClassificationValidator(BaseValidator):
         self.metrics.save_dir = self.save_dir
         self.metrics.confusion_matrix = self.confusion_matrix
 
-    def postprocess(self, preds):
+    def postprocess(self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]) -> torch.Tensor:
         """Extract the primary prediction from model output if it's in a list or tuple format."""
         return preds[0] if isinstance(preds, (list, tuple)) else preds
 
-    def get_stats(self):
+    def get_stats(self) -> Dict[str, float]:
         """Calculate and return a dictionary of metrics by processing targets and predictions."""
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
 
-    def build_dataset(self, img_path):
+    def build_dataset(self, img_path: str) -> ClassificationDataset:
         """Create a ClassificationDataset instance for validation."""
         return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
-    def get_dataloader(self, dataset_path, batch_size):
+    def get_dataloader(self, dataset_path: Union[Path, str], batch_size: int) -> torch.utils.data.DataLoader:
         """
         Build and return a data loader for classification validation.
 
@@ -155,17 +157,17 @@ class ClassificationValidator(BaseValidator):
         dataset = self.build_dataset(dataset_path)
         return build_dataloader(dataset, batch_size, self.args.workers, rank=-1)
 
-    def print_results(self):
+    def print_results(self) -> None:
         """Print evaluation metrics for the classification model."""
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
-    def plot_val_samples(self, batch, ni):
+    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot validation image samples with their ground truth labels.
 
         Args:
-            batch (dict): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
+            batch (Dict[str, Any]): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
             ni (int): Batch index used for naming the output file.
 
         Examples:
@@ -181,12 +183,12 @@ class ClassificationValidator(BaseValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch, preds, ni):
+    def plot_predictions(self, batch: Dict[str, Any], preds: torch.Tensor, ni: int) -> None:
         """
         Plot images with their predicted class labels and save the visualization.
 
         Args:
-            batch (dict): Batch data containing images and other information.
+            batch (Dict[str, Any]): Batch data containing images and other information.
             preds (torch.Tensor): Model predictions with shape (batch_size, num_classes).
             ni (int): Batch index used for naming the output file.
 

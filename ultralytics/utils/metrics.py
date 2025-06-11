@@ -1087,8 +1087,12 @@ class DetMetrics(SimpleClass, DataExportMixin):
             "box-f1": self.box.f1,
         }
         return [
-            {"class_name": self.names[i], **{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars}
-            for i in range(len(next(iter(per_class.values()), [])))
+            {
+                "class_name": self.names[self.ap_class_index[i]],
+                **{k: round(v[i], decimals) for k, v in per_class.items()},
+                **scalars,
+            }
+            for i in range(len(per_class["box-p"]))
         ]
 
 

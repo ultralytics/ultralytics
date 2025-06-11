@@ -70,6 +70,13 @@ from ultralytics.nn.modules import (
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
+    
+    GSConv,
+    GSConvE,
+    GSConvE2,
+    GSBottleneckC,
+    GSBottleneck,
+    GSConvns,
 )
 from ultralytics.nn.modules.conv import BiFPN_ConcatN, CBAM
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
@@ -1395,6 +1402,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     base_modules = frozenset(
         {
+            
             Classify,
             Conv,
             ConvTranspose,
@@ -1430,6 +1438,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             SCDown,
             C2fCIB,
             A2C2f,
+
+            GSConv,
+            GSConvE,
+            GSConvE2,
+            GSBottleneckC,
+            GSBottleneck,
+            GSConvns,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments

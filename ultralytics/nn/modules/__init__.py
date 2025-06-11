@@ -77,6 +77,13 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    
+    GSConv,
+    GSConvE,
+    GSConvE2,
+    GSBottleneckC,
+    GSBottleneck,
+    GSConvns,
 )
 from .head import (
     OBB,
@@ -183,4 +190,11 @@ __all__ = (
     "A2C2f",
     "BiFPN_ConcatN",
     "CBAM",
+    
+    "GSConv",
+    "GSConvE",
+    "GSConvE2",
+    "GSBottleneckC",
+    "GSBottleneck",
+    "GSConvns"
 )

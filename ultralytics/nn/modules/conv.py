@@ -28,7 +28,7 @@ __all__ = (
 
 class BiFPN_ConcatN(nn.Module):
     def __init__(self, num_inputs, dimension=1):
-        super(BiFPN_ConcatN, self).__init__()
+        super().__init__()
         self.d = dimension
         self.num_inputs = num_inputs
         self.w = nn.Parameter(torch.ones(num_inputs, dtype=torch.float32), requires_grad=True)
@@ -37,7 +37,7 @@ class BiFPN_ConcatN(nn.Module):
     def forward(self, x):
         assert isinstance(x, (list, tuple)), "Input must be a list or tuple of tensors"
         assert len(x) == self.num_inputs, f"Expected {self.num_inputs} inputs, got {len(x)}"
-        
+
         weight = self.w / (torch.sum(self.w, dim=0) + self.epsilon)  # Normalize weights
         # Fast normalized fusion
         weighted = [weight[i] * x[i] for i in range(self.num_inputs)]  # Apply weights

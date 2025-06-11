@@ -63,6 +63,8 @@ from .block import (
 )
 from .conv import (
     CBAM,
+    BiFPN,
+    BiFPN_ConcatN,
     ChannelAttention,
     Concat,
     Conv,
@@ -78,7 +80,6 @@ from .conv import (
     SpatialAttention,
     BiFPN_ConcatN
 )
-
 from .head import (
     OBB,
     Classify,
@@ -183,5 +184,4 @@ __all__ = (
     "Index",
     "A2C2f",
     "BiFPN_ConcatN",
-    
 )

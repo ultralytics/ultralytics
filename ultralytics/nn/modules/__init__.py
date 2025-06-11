@@ -59,6 +59,13 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
+    EnhancedC2f,
+    SEModule,
+    SpatialAttention,
+    EnhancedBottleneck,
+    ChannelShuffle,
+    AdaptiveFeatureFusion,
+    EnhancedC2fConfig,
 )
 from .conv import (
     CBAM,
@@ -179,4 +186,11 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "EnhancedC2f",
+    "SEModule", 
+    "SpatialAttention",
+    "EnhancedBottleneck",
+    "ChannelShuffle",
+    "AdaptiveFeatureFusion",
+    "EnhancedC2fConfig",
 )

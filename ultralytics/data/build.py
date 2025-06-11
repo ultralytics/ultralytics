@@ -20,8 +20,7 @@ from ultralytics.data.loaders import (
     LoadStreams,
     LoadTensor,
     SourceTypes,
-    autocast_list,
-    download_pinterest_video,
+    autocast_list, download_pinterest_video,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
@@ -211,17 +210,17 @@ def check_source(source):
 
     Examples:
         Check a file path source
-        >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source("image.jpg")
+        >>> source, webcam, screenshot, from_img, in_memory, tensor, is_pinterest = check_source("image.jpg")
 
         Check a webcam source
-        >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source(0)
+        >>> source, webcam, screenshot, from_img, in_memory, tensor, is_pinterest = check_source(0)
     """
     webcam, screenshot, from_img, in_memory, tensor, is_pinterest = False, False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
-        is_pinterest = urllib.parse.urlparse(source_lower).hostname == "in.pinterest.com"
+        is_pinterest = urllib.parse.urlparse(source_lower).hostname == "in.pinterest.com"  # for pintrest video predict.
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://")) and not is_pinterest
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"
@@ -279,6 +278,8 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
         dataset = LoadPilAndNumpy(source, channels=channels)
     else:
         if is_pinterest:
+            # Pinterest video usually is 5-15 second clip that work better with local download Unlike YouTube video
+            # (which stream well), it's URL expire quickly, downloading and then running inference is the best option.
             source = download_pinterest_video(source)
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 

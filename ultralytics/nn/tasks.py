@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 
 
-from ultralytics.nn.modules.conv import BiFPN_ConcatN, BiFPN
+from ultralytics.nn.modules.conv import BiFPN_ConcatN
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,

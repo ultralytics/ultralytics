@@ -1525,6 +1525,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         # 添加bifpn_concat结构
         elif m in [Concat, BiFPN_ConcatN]:
             c2 = sum(ch[x] for x in f)
+        elif m in {CBAM}:
+            c1, c2 = ch[f], args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            args = [c1, *args[1:]]
         elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}):
             args.append([ch[x] for x in f])
             if m is Segment:

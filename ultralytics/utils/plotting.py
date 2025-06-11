@@ -729,7 +729,6 @@ def plot_images(
 
     if len(images) and isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
-
     if images.shape[1] > 3:
         images = images[:, :3]  # crop multispectral images to first 3 channels
 

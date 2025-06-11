@@ -103,13 +103,13 @@ export = [
     "packaging>=23.2",  # int8 export
     "nncf>=2.14.0; python_version >= '3.9'",
     # TensorFlow SavedModel
-    "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
-    "tf_keras",  # required by 'onnx2tf' package
-    "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
-    "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+    "tensorflow>=2.0.0; python_version >= '3.10'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tf_keras; python_version >= '3.10'",  # required by 'onnx2tf' package
+    "sng4onnx>=1.0.1; python_version >= '3.10'",  # required by 'onnx2tf' package
+    "onnx_graphsurgeon>=0.3.26; python_version >= '3.10'",  # required by 'onnx2tf' package
     "ai-edge-litert>=1.2.0; platform_system != 'Windows' and python_version >= '3.10'",  # required by 'onnx2tf' package
     "onnx2tf>=1.26.3; python_version >= '3.10'",
-    "protobuf>=5",
+    "protobuf>=5; python_version >= '3.10'",
     # TensorFlow.js
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports

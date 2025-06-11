@@ -76,7 +76,10 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    BiFPN,  
+    BiFPN_ConcatN
 )
+
 from .head import (
     OBB,
     Classify,
@@ -180,6 +183,7 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "BiFPN",
+    "BiFPN_ConcatN",
+    
 )
-
-from .bifpn import BiFPN

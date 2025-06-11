@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 
 
+from ultralytics.nn.modules.conv import BiFPN_ConcatN, BiFPN
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
     AIFI,
@@ -1500,6 +1501,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
+        # 添加bifpn_concat结构
+        elif m in [Concat, BiFPN_ConcatN]:
+            c2 = sum(ch[x] for x in f)
         elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}):
             args.append([ch[x] for x in f])
             if m is Segment:
@@ -1518,6 +1522,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+            
         else:
             c2 = ch[f]
 

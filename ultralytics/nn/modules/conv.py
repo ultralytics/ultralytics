@@ -23,12 +23,13 @@ __all__ = (
     "RepConv",
     "Index",
     "BiFPN_ConcatN",
-    "GSConvE2",
-    "GSConvE",
+    
     "GSConv",
-    "GSConvns",
+    "GSConvE",
+    "GSConvE2",
+    "GSBottleneckC",
     "GSBottleneck",
-    "GSBottleneckc",
+    "GSConvns"
 
 
 )

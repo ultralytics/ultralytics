@@ -191,11 +191,9 @@ class PoseValidator(DetectionValidator):
             (Dict[str, Any]): Processed prediction dictionary with keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        kpts = pred.get("keypoints")
-        if len(kpts):
-            predn["keypoints"] = ops.scale_coords(
-                pbatch["imgsz"], kpts.clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
-            )
+        predn["keypoints"] = ops.scale_coords(
+            pbatch["imgsz"], pred.get("keypoints").clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+        )
         return predn
 
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:

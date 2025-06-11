@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.nn.modules import BiFPN
 
 import contextlib
 import pickle

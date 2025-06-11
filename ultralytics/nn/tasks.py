@@ -71,7 +71,7 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
-from ultralytics.nn.modules.conv import BiFPN_ConcatN
+from ultralytics.nn.modules.conv import BiFPN_ConcatN, CBAM
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (

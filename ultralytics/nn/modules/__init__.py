@@ -182,4 +182,5 @@ __all__ = (
     "Index",
     "A2C2f",
     "BiFPN_ConcatN",
+    "CBAM",
 )

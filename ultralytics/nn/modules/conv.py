@@ -52,13 +52,15 @@ class BiFPN_ConcatN(nn.Module):
         weighted = [weight[i] * x[i] for i in range(self.num_inputs)]  # Apply weights
         return torch.cat(weighted, dim=self.d)
 
+
 # GSConvE official version released
 class GSConvE2(nn.Module):
-    '''
+    """
     GSConv enhancement for representation learning: generate various receptive-fields and
     texture-features only in one Conv module
-    https://github.com/AlanLi1997/rethinking-fpn
-    '''
+    https://github.com/AlanLi1997/rethinking-fpn.
+    """
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__()
         c_ = c2 // 4
@@ -81,19 +83,18 @@ class GSConvE2(nn.Module):
 
 
 class GSConvE(nn.Module):
-    '''
+    """
     GSConv enhancement for representation learning: generate various receptive-fields and
     texture-features only in one Conv module
-    # GSConvE1 https://github.com/AlanLi1997/rethinking-fpn
-    '''
+    # GSConvE1 https://github.com/AlanLi1997/rethinking-fpn.
+    """
+
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         super().__init__()
         c_ = c2 // 2
         self.cv1 = Conv(c1, c_, k, s, p, g, d, act)
         self.cv2 = nn.Sequential(
-            nn.Conv2d(c_, c_, 3, 1, 1, bias=False),
-            nn.Conv2d(c_, c_, 3, 1, 1, groups=c_, bias=False),
-            nn.GELU()
+            nn.Conv2d(c_, c_, 3, 1, 1, bias=False), nn.Conv2d(c_, c_, 3, 1, 1, groups=c_, bias=False), nn.GELU()
         )
 
     def forward(self, x):
@@ -143,9 +144,7 @@ class GSBottleneck(nn.Module):
         super().__init__()
         c_ = c2 // 2
         # for lighting
-        self.conv_lighting = nn.Sequential(
-            GSConv(c1, c_, 1, 1, 0),
-            GSConv(c_, c2, 3, 1, 1, act=True))
+        self.conv_lighting = nn.Sequential(GSConv(c1, c_, 1, 1, 0), GSConv(c_, c2, 3, 1, 1, act=True))
         self.shortcut = Conv(c1, c2, 1, 1, act=False)
 
     def forward(self, x):

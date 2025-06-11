@@ -50,7 +50,7 @@ class ClassificationValidator(BaseValidator):
         Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
@@ -72,11 +72,11 @@ class ClassificationValidator(BaseValidator):
         self.args.task = "classify"
         self.metrics = ClassifyMetrics()
 
-    def get_desc(self):
+    def get_desc(self) -> str:
         """Return a formatted string summarizing classification metrics."""
         return ("%22s" + "%11s" * 2) % ("classes", "top1_acc", "top5_acc")
 
-    def init_metrics(self, model):
+    def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize confusion matrix, class names, and tracking containers for predictions and targets."""
         self.names = model.names
         self.nc = len(model.names)
@@ -84,14 +84,14 @@ class ClassificationValidator(BaseValidator):
         self.targets = []
         self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
 
-    def preprocess(self, batch):
+    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 
-    def update_metrics(self, preds, batch):
+    def update_metrics(self, preds: torch.Tensor, batch: Dict[str, Any]) -> None:
         """
         Update running metrics with model predictions and batch targets.
 

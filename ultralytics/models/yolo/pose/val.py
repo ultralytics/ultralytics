@@ -226,20 +226,14 @@ class PoseValidator(DetectionValidator):
         tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
 
-    def save_one_txt(
-        self,
-        predn: torch.Tensor,
-        save_conf: bool,
-        shape: Tuple[int, int],
-        file: Path,
-    ) -> None:
+    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
         """
         Save YOLO pose detections to a text file in normalized coordinates.
 
         Args:
-            predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for (x1, y1, x2, y2, conf, cls).
+            predn (Dict[str, torch.Tensor]): Dictionary containing predictions with keys 'bboxes', 'conf', 'cls' and 'keypoints.
             save_conf (bool): Whether to save confidence scores.
-            shape (tuple): Original image shape (height, width).
+            shape (Tuple[int, int]): Shape of the original image (height, width).
             file (Path): Output file path to save detections.
 
         Notes:

@@ -47,7 +47,6 @@ class InstanceSegmentation(BaseSolution):
         self.show_conf = self.CFG.get("show_conf", True)
         self.show_labels = self.CFG.get("show_labels", True)
         self.show_boxes = self.CFG.get("show_boxes", True)
-        self.show_masks = self.CFG.get("show_masks", True)
 
     def process(self, im0):
         """
@@ -77,7 +76,6 @@ class InstanceSegmentation(BaseSolution):
             plot_im = results.plot(
                 line_width=self.line_width,
                 boxes=self.show_boxes,
-                masks=self.show_masks,
                 conf=self.show_conf,
                 labels=self.show_labels,
                 color_mode="instance",

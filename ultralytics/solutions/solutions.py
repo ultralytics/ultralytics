@@ -84,10 +84,11 @@ class BaseSolution:
         if self.__class__.__name__ != "VisualAISearch":
             check_requirements("shapely>=2.0.0")
             from shapely.geometry import LineString, Point, Polygon
-
+            from shapely.prepared import prep
             self.LineString = LineString
             self.Polygon = Polygon
             self.Point = Point
+            self.prep = prep
             self.annotator = None  # Initialize annotator
             self.tracks = None
             self.track_data = None

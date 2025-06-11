@@ -153,7 +153,9 @@ class RTDETRValidator(DetectionValidator):
             data=self.data,
         )
 
-    def postprocess(self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]) -> List[Dict[str, torch.Tensor]]:
+    def postprocess(
+        self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]
+    ) -> List[Dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 

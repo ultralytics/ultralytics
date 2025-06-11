@@ -5,6 +5,7 @@ import numpy as np
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
+
 class RegionCounter(BaseSolution):
     """
     A class for real-time counting of objects within user-defined regions in a video stream.
@@ -94,7 +95,7 @@ class RegionCounter(BaseSolution):
         # Prepare regions for containment check (only process valid ones)
         for region in self.counting_regions:
             if "prepared_polygon" not in region:
-                region["prepared_polygon"] = prep(region["polygon"])
+                region["prepared_polygon"] = self.prep(region["polygon"])
 
         # Convert bounding boxes to NumPy array for center points
         boxes_np = np.array([((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in self.boxes], dtype=np.float32)

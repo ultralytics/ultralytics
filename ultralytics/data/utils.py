@@ -435,7 +435,10 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
     path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root
     if not path.exists() and not path.is_absolute():
         # try matching 'named' datasets with custom datasets directory; /home/user/my-datasets/coco8
-        path = next((ds for s in {path, path.stem} if (ds := (DATASETS_DIR / s).resolve()).exists()), (DATASETS_DIR / path).resolve())  # path relative to DATASETS_DIR
+        path = next(
+            (ds for s in {path, path.stem} if (ds := (DATASETS_DIR / s).resolve()).exists()),
+            (DATASETS_DIR / path).resolve(),
+        )  # path relative to DATASETS_DIR
 
     # Set paths
     data["path"] = path  # download scripts

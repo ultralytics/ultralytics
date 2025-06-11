@@ -6,7 +6,6 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils._contextlib import F
 
 __all__ = (
     "Conv",
@@ -26,6 +25,7 @@ __all__ = (
     "BiFPN_ConcatN",
 )
 
+
 class BiFPN_ConcatN(nn.Module):
     def __init__(self, num_inputs, dimension=1):
         super().__init__()
@@ -42,7 +42,8 @@ class BiFPN_ConcatN(nn.Module):
         # Fast normalized fusion
         weighted = [weight[i] * x[i] for i in range(self.num_inputs)]  # Apply weights
         return torch.cat(weighted, dim=self.d)
-    
+
+
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
     if d > 1:

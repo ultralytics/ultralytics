@@ -78,7 +78,6 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
-    BiFPN_ConcatN
 )
 from .head import (
     OBB,

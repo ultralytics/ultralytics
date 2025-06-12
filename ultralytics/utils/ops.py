@@ -255,7 +255,7 @@ def non_max_suppression(
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
     nc = nc or (prediction.shape[1] - 4)  # number of classes
-    nm = prediction.shape[1] - nc - 4  # number of masks
+    extra = prediction.shape[1] - nc - 4  # number of extra info
     mi = 4 + nc  # mask start index
     xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
     xinds = torch.stack([torch.arange(len(i), device=prediction.device) for i in xc])[..., None]  # to track idxs
@@ -273,7 +273,7 @@ def non_max_suppression(
             prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
 
     t = time.time()
-    output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
+    output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
     keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
     for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
         # Apply constraints
@@ -284,7 +284,7 @@ def non_max_suppression(
         # Cat apriori labels if autolabelling
         if labels and len(labels[xi]) and not rotated:
             lb = labels[xi]
-            v = torch.zeros((len(lb), nc + nm + 4), device=x.device)
+            v = torch.zeros((len(lb), nc + extra + 4), device=x.device)
             v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
             v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
             x = torch.cat((x, v), 0)
@@ -294,7 +294,7 @@ def non_max_suppression(
             continue
 
         # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, nm), 1)
+        box, cls, mask = x.split((4, nc, extra), 1)
 
         if multi_label:
             i, j = torch.where(cls > conf_thres)
@@ -404,8 +404,12 @@ def scale_image(masks, im0_shape, ratio_pad=None):
         pad = (im1_shape[1] - im0_shape[1] * gain) / 2, (im1_shape[0] - im0_shape[0] * gain) / 2  # wh padding
     else:
         pad = ratio_pad[1]
-    top, left = int(pad[1]), int(pad[0])  # y, x
-    bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
+
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))
+    bottom, right = (
+        im1_shape[0] - int(round(pad[1] + 0.1)),
+        im1_shape[1] - int(round(pad[0] + 0.1)),
+    )
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -756,8 +760,11 @@ def scale_masks(masks, shape, padding: bool = True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
-    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
+    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
+    bottom, right = (
+        mh - int(round(pad[1] + 0.1)),
+        mw - int(round(pad[0] + 0.1)),
+    )
     masks = masks[..., top:bottom, left:right]
 
     masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW

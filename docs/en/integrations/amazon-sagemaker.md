@@ -46,15 +46,15 @@ The next step is to clone the specific AWS repository that contains the resource
 
 - Clone the GitHub Repository: Execute the following command in your terminal to clone the host-yolov8-on-sagemaker-endpoint repository:
 
-```bash
-git clone https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint.git
-```
+    ```bash
+    git clone https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint.git
+    ```
 
 - Navigate to the Cloned Directory: Change your directory to the cloned repository:
 
-```bash
-cd host-yolov8-on-sagemaker-endpoint/yolov8-pytorch-cdk
-```
+    ```bash
+    cd host-yolov8-on-sagemaker-endpoint/yolov8-pytorch-cdk
+    ```
 
 ### Step 3: Set Up the CDK Environment
 
@@ -62,47 +62,47 @@ Now that you have the necessary code, set up your environment for deploying with
 
 - Create a Python Virtual Environment: This isolates your Python environment and dependencies. Run:
 
-```bash
-python3 -m venv .venv
-```
+    ```bash
+    python3 -m venv .venv
+    ```
 
 - Activate the Virtual Environment:
 
-```bash
-source .venv/bin/activate
-```
+    ```bash
+    source .venv/bin/activate
+    ```
 
 - Install Dependencies: Install the required Python dependencies for the project:
 
-```bash
-pip3 install -r requirements.txt
-```
+    ```bash
+    pip3 install -r requirements.txt
+    ```
 
 - Upgrade AWS CDK Library: Ensure you have the latest version of the AWS CDK library:
 
-```bash
-pip install --upgrade aws-cdk-lib
-```
+    ```bash
+    pip install --upgrade aws-cdk-lib
+    ```
 
 ### Step 4: Create the AWS CloudFormation Stack
 
 - Synthesize the CDK Application: Generate the AWS CloudFormation template from your CDK code:
 
-```bash
-cdk synth
-```
+    ```bash
+    cdk synth
+    ```
 
 - Bootstrap the CDK Application: Prepare your AWS environment for CDK deployment:
 
-```bash
-cdk bootstrap
-```
+    ```bash
+    cdk bootstrap
+    ```
 
 - Deploy the Stack: This will create the necessary AWS resources and deploy your model:
 
-```bash
-cdk deploy
-```
+    ```bash
+    cdk deploy
+    ```
 
 ### Step 5: Deploy the YOLO Model
 
@@ -114,27 +114,27 @@ After creating the AWS CloudFormation Stack, the next step is to deploy YOLO11.
 
 - Access and Modify inference.py: After opening the SageMaker notebook instance in Jupyter, locate the inference.py file. Edit the output_fn function in inference.py as shown below and save your changes to the script, ensuring that there are no syntax errors.
 
-```python
-import json
+    ```python
+    import json
 
 
-def output_fn(prediction_output):
-    """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
-    print("Executing output_fn from inference.py ...")
-    infer = {}
-    for result in prediction_output:
-        if result.boxes is not None:
-            infer["boxes"] = result.boxes.numpy().data.tolist()
-        if result.masks is not None:
-            infer["masks"] = result.masks.numpy().data.tolist()
-        if result.keypoints is not None:
-            infer["keypoints"] = result.keypoints.numpy().data.tolist()
-        if result.obb is not None:
-            infer["obb"] = result.obb.numpy().data.tolist()
-        if result.probs is not None:
-            infer["probs"] = result.probs.numpy().data.tolist()
-    return json.dumps(infer)
-```
+    def output_fn(prediction_output):
+        """Formats model outputs as JSON string, extracting attributes like boxes, masks, keypoints."""
+        print("Executing output_fn from inference.py ...")
+        infer = {}
+        for result in prediction_output:
+            if result.boxes is not None:
+                infer["boxes"] = result.boxes.numpy().data.tolist()
+            if result.masks is not None:
+                infer["masks"] = result.masks.numpy().data.tolist()
+            if result.keypoints is not None:
+                infer["keypoints"] = result.keypoints.numpy().data.tolist()
+            if result.obb is not None:
+                infer["obb"] = result.obb.numpy().data.tolist()
+            if result.probs is not None:
+                infer["probs"] = result.probs.numpy().data.tolist()
+        return json.dumps(infer)
+    ```
 
 - Deploy the Endpoint Using 1_DeployEndpoint.ipynb: In the Jupyter environment, open the 1_DeployEndpoint.ipynb notebook located in the sm-notebook directory. Follow the instructions in the notebook and run the cells to download the YOLO11 model, package it with the updated inference code, and upload it to an Amazon S3 bucket. The notebook will guide you through creating and deploying a SageMaker endpoint for the YOLO11 model.
 

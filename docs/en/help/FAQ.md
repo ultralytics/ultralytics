@@ -62,16 +62,16 @@ To train a custom YOLO model:
 2. Create a YAML file describing your dataset structure and classes.
 3. Use the following Python code to start training:
 
-```python
-from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
-# Load a model
-model = YOLO("yolov8n.yaml")  # build a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+    # Load a model
+    model = YOLO("yolov8n.yaml")  # build a new model from scratch
+    model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
-# Train the model
-results = model.train(data="path/to/your/data.yaml", epochs=100, imgsz=640)
-```
+    # Train the model
+    results = model.train(data="path/to/your/data.yaml", epochs=100, imgsz=640)
+    ```
 
 For a more in-depth guide, including data preparation and advanced training options, refer to the comprehensive [training guide](https://docs.ultralytics.com/modes/train/).
 

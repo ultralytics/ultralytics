@@ -72,6 +72,60 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
         yolo classify train data=mnist160 model=yolo11n-cls.yaml pretrained=yolo11n-cls.pt epochs=100 imgsz=64
         ```
 
+!!! tip
+
+    Ultralytics YOLO classification uses [torchvision.transforms.RandomResizedCrop](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training augmentation and [torchvision.transforms.CenterCrop](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation/inference.
+    For images with extreme aspect ratios, consider using [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) instead. The example below shows how to customize augmentations for classification training.
+
+    ```python
+    import torch
+    import torchvision.transforms as T
+
+    from ultralytics import YOLO
+    from ultralytics.data.dataset import ClassificationDataset
+    from ultralytics.models.yolo.classify import ClassificationTrainer
+
+
+    class CustomizedDataset(ClassificationDataset):
+        """A customized dataset class for image classification with enhanced data augmentation transforms."""
+
+        def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
+            """Initialize a customized classification dataset with enhanced data augmentation transforms."""
+            super().__init__(root, args, augment, prefix)
+            train_transforms = T.Compose(
+                [
+                    T.Resize((args.imgsz, args.imgsz)),
+                    T.RandomHorizontalFlip(p=args.fliplr),
+                    T.RandomVerticalFlip(p=args.flipud),
+                    T.RandAugment(interpolation=T.InterpolationMode.BILINEAR),
+                    T.ColorJitter(brightness=args.hsv_v, contrast=args.hsv_v, saturation=args.hsv_s, hue=args.hsv_h),
+                    T.ToTensor(),
+                    T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
+                    T.RandomErasing(p=args.erasing, inplace=True),
+                ]
+            )
+            val_transforms = T.Compose(
+                [
+                    T.Resize((args.imgsz, args.imgsz)),
+                    T.ToTensor(),
+                    T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
+                ]
+            )
+            self.torch_transforms = train_transforms if augment else val_transforms
+
+
+    class CustomizedTrainer(ClassificationTrainer):
+        """A customized trainer class for YOLO classification models with enhanced dataset handling."""
+
+        def build_dataset(self, img_path: str, mode: str = "train", batch=None):
+            """Build a customized dataset for classification training or validation."""
+            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+
+
+    model = YOLO("yolo11n-cls.pt")
+    model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
+    ```
+
 ### Dataset format
 
 YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md).

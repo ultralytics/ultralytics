@@ -1505,7 +1505,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         # Model compatibility updates
         model.args = args  # attach args to model
         model.pt_path = w  # attach *.pt file path to model
-        model.task = guess_model_task(model)
+        model.task = getattr(model, "task", guess_model_task(model))
         if not hasattr(model, "stride"):
             model.stride = torch.tensor([32.0])
 
@@ -1553,7 +1553,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Model compatibility updates
     model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
     model.pt_path = weight  # attach *.pt file path to model
-    model.task = guess_model_task(model)
+    model.task = getattr(model, "task", guess_model_task(model))
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])
 

@@ -3,7 +3,7 @@
 import math
 import random
 from copy import copy
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import torch.nn as nn
@@ -178,19 +178,16 @@ class DetectionTrainer(BaseTrainer):
             "Size",
         )
 
-    def plot_training_samples(self, batch: Dict, ni: int):
+    def plot_training_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict): Dictionary containing batch data.
+            batch (Dict[str, Any]): Dictionary containing batch data.
             ni (int): Number of iterations.
         """
         plot_images(
-            images=batch["img"],
-            batch_idx=batch["batch_idx"],
-            cls=batch["cls"].squeeze(-1),
-            bboxes=batch["bboxes"],
+            labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,

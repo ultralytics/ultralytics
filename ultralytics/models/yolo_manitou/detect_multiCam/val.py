@@ -154,7 +154,8 @@ class ManitouValidator_MultiCam(ManitouValidator):
                                             batch=self.args.batch,
                                             data=self.data,
                                             mode="val",
-                                            stride=self.stride
+                                            stride=self.stride,
+                                            multi_cam=True,
                                         )
             
             self.dataloader = self.dataloader or build_dataloader(dataset, self.args.batch, self.args.workers, shuffle=False, rank=-1)

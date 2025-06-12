@@ -91,6 +91,7 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
                 self.run_callbacks("on_predict_postprocess_end")
 
                 # Visualize, save, write results
+                self.results = self.results["cameras"]  # get results for each camera
                 n = len(_batch)
                 for i in range(n):
                     self.seen += 1
@@ -108,7 +109,7 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
                     LOGGER.info("\n".join(s))
 
                 self.run_callbacks("on_predict_batch_end")
-                yield from self.results
+                yield self.results
 
         # Print final results
         if self.args.verbose and self.seen:
@@ -293,6 +294,8 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
         if save_feats:
             for r, f in zip(results, obj_feats):
                 r.feats = f  # add object features to results
+                
+        results = {"cameras": results, "radars": [_batch[i]["radar"] for i in range(len(_batch))]}  # add radar data to results
 
         return results
     

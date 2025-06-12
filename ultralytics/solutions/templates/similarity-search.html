@@ -126,6 +126,20 @@
       }
     </style>
   </head>
+  <script>
+    function filterResults(k) {
+      const cards = document.querySelectorAll(".grid .card");
+      cards.forEach((card, idx) => {
+        card.style.display = idx < k ? "block" : "none";
+      });
+      const buttons = document.querySelectorAll(".topk-btn");
+      buttons.forEach((btn) => btn.classList.remove("active"));
+      event.target.classList.add("active");
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      filterResults(10);
+    });
+  </script>
   <body>
     <div style="text-align: center; margin-bottom: 1rem">
       <img
@@ -146,6 +160,23 @@
         required
       />
       <button type="submit">Search</button>
+      {% if results %}
+      <div class="top-k-buttons">
+        <button type="button" class="topk-btn" onclick="filterResults(5)">
+          Top 5
+        </button>
+        <button
+          type="button"
+          class="topk-btn active"
+          onclick="filterResults(10)"
+        >
+          Top 10
+        </button>
+        <button type="button" class="topk-btn" onclick="filterResults(30)">
+          Top 30
+        </button>
+      </div>
+      {% endif %}
     </form>
 
     <!-- Search results grid -->

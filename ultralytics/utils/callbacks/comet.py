@@ -457,7 +457,7 @@ def _log_plots(experiment, trainer) -> None:
         >>> _log_plots(experiment, trainer)
     """
     plot_filenames = None
-    if isinstance(trainer.validator.metrics, SegmentMetrics) and trainer.validator.metrics.task == "segment":
+    if isinstance(trainer.validator.metrics, SegmentMetrics):
         plot_filenames = [
             trainer.save_dir / f"{prefix}{plots}.png"
             for plots in EVALUATION_PLOT_NAMES

@@ -293,7 +293,7 @@ class Model(torch.nn.Module):
 
         if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = attempt_load_one_weight(weights)
-            self.task = self.model.args["task"]
+            self.task = self.model.task
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
@@ -667,10 +667,7 @@ class Model(torch.nn.Module):
         self.metrics = validator.metrics
         return validator.metrics
 
-    def benchmark(
-        self,
-        **kwargs: Any,
-    ):
+    def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """
         Benchmark the model across various export formats to evaluate performance.
 
@@ -680,14 +677,14 @@ class Model(torch.nn.Module):
         defaults, and any additional user-provided keyword arguments.
 
         Args:
+            data (str): Path to the dataset for benchmarking.
+            verbose (bool): Whether to print detailed benchmark information.
+            format (str): Export format name for specific benchmarking.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
-                - data (str): Path to the dataset for benchmarking.
                 - imgsz (int | List[int]): Image size for benchmarking.
                 - half (bool): Whether to use half-precision (FP16) mode.
                 - int8 (bool): Whether to use int8 precision mode.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
-                - verbose (bool): Whether to print detailed benchmark information.
-                - format (str): Export format name for specific benchmarking.
 
         Returns:
             (dict): A dictionary containing the results of the benchmarking process, including metrics for
@@ -704,17 +701,21 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         from ultralytics.utils.benchmarks import benchmark
 
+        from .exporter import export_formats
+
         custom = {"verbose": False}  # method defaults
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
+        fmts = export_formats()
+        export_args = set(dict(zip(fmts["Argument"], fmts["Arguments"])).get(format, [])) - {"batch"}
+        export_kwargs = {k: v for k, v in args.items() if k in export_args}
         return benchmark(
             model=self,
-            data=kwargs.get("data"),  # if no 'data' argument passed set data=None for default datasets
+            data=data,  # if no 'data' argument passed set data=None for default datasets
             imgsz=args["imgsz"],
-            half=args["half"],
-            int8=args["int8"],
             device=args["device"],
-            verbose=kwargs.get("verbose", False),
-            format=kwargs.get("format", ""),
+            verbose=verbose,
+            format=format,
+            **export_kwargs,
         )
 
     def export(
@@ -786,7 +787,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
-                batch_size (int): Batch size for training.
+                batch (int): Batch size for training.
                 imgsz (int): Input image size.
                 device (str): Device to run training on (e.g., 'cuda', 'cpu').
                 workers (int): Number of worker threads for data loading.
@@ -1065,7 +1066,7 @@ class Model(torch.nn.Module):
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]
 
     @staticmethod
-    def _reset_ckpt_args(args: dict) -> dict:
+    def _reset_ckpt_args(args: Dict[str, Any]) -> Dict[str, Any]:
         """
         Reset specific arguments when loading a PyTorch model checkpoint.
 

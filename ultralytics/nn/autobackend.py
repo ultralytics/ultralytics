@@ -197,14 +197,9 @@ class AutoBackend(nn.Module):
         # In-memory PyTorch model
         if nn_module:
             # fuse on gpu for JetPack 5 and below
-            if IS_JETSON and check_version(PYTHON_VERSION, "<=3.8.10"):
-                model = weights.to(device)
-                if fuse:
-                    model = model.fuse(verbose=verbose)
-            else:
-                if fuse:
-                    weights = weights.fuse(verbose=verbose)  # fuse before move to gpu
-                model = weights.to(device)
+            model = weights.to(device)
+            if fuse:
+                model = model.fuse(verbose=verbose)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride

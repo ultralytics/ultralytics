@@ -325,7 +325,7 @@ To use YOLOv7 ONNX model with Ultralytics:
 
 2. Install the `TensorRT` Python package:
 
-    ```python
+    ```bash
     pip install tensorrt
     ```
 

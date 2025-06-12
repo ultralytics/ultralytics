@@ -2,7 +2,6 @@
 comments: true
 description: Learn how to deploy Ultralytics YOLO11 on Raspberry Pi with our comprehensive guide. Get performance benchmarks, setup instructions, and best practices.
 keywords: Ultralytics, YOLO11, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
-benchmark_version: 8.3.39
 ---
 
 # Quick Start Guide: Raspberry Pi with Ultralytics YOLO11
@@ -62,7 +61,8 @@ The fastest way to get started with Ultralytics YOLO11 on Raspberry Pi is to run
 Execute the below command to pull the Docker container and run on Raspberry Pi. This is based on [arm64v8/debian](https://hub.docker.com/r/arm64v8/debian) docker image which contains Debian 12 (Bookworm) in a Python3 environment.
 
 ```bash
-t=ultralytics/ultralytics:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host $t
+t=ultralytics/ultralytics:latest-arm64
+sudo docker pull $t && sudo docker run -it --ipc=host $t
 ```
 
 After this is done, skip to [Use NCNN on Raspberry Pi section](#use-ncnn-on-raspberry-pi).
@@ -144,8 +144,8 @@ YOLO11 benchmarks were run by the Ultralytics team on ten different model format
 We have only included benchmarks for YOLO11n and YOLO11s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
 
 <figure style="text-align: center;">
-    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks.avif" alt="YOLO11 benchmarks on RPi 5">
-    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics {{ benchmark_version }}</figcaption>
+    <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks-coco128.avif" alt="YOLO11 benchmarks on RPi 5">
+    <figcaption style="font-style: italic; color: gray;">Benchmarked with Ultralytics 8.3.152</figcaption>
 </figure>
 
 ### Detailed Comparison Table
@@ -158,33 +158,37 @@ The below table represents the benchmark results for two different models (YOLO1
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 5.4               | 0.6100      | 405.238                |
-        | TorchScript   | ✅      | 10.5              | 0.6082      | 526.628                |
-        | ONNX          | ✅      | 10.2              | 0.6082      | 168.082                |
-        | OpenVINO      | ✅      | 10.4              | 0.6082      | 81.192                 |
-        | TF SavedModel | ✅      | 25.8              | 0.6082      | 377.968                |
-        | TF GraphDef   | ✅      | 10.3              | 0.6082      | 487.244                |
-        | TF Lite       | ✅      | 10.3              | 0.6082      | 317.398                |
-        | PaddlePaddle  | ✅      | 20.4              | 0.6082      | 561.892                |
-        | MNN           | ✅      | 10.1              | 0.6106      | 112.554                |
-        | NCNN          | ✅      | 10.2              | 0.6106      | 88.026                 |
+        | PyTorch       | ✅      | 5.4               | 0.5101      | 387.63                |
+        | TorchScript   | ✅      | 10.5              | 0.5077      | 457.84                |
+        | ONNX          | ✅      | 10.2              | 0.5077      | 191.09                |
+        | OpenVINO      | ✅      | 10.4              | 0.5058      | 84.76                 |
+        | TF SavedModel | ✅      | 25.9              | 0.5077      | 306.94                |
+        | TF GraphDef   | ✅      | 10.3              | 0.5077      | 309.82                |
+        | TF Lite       | ✅      | 10.3              | 0.5077      | 425.77                |
+        | PaddlePaddle  | ✅      | 20.5              | 0.5077      | 463.93                |
+        | MNN           | ✅      | 10.1              | 0.5059      | 114.97                |
+        | NCNN          | ✅      | 10.2              | 0.5031      | 94.03                 |
 
     === "YOLO11s"
 
         | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
         |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 18.4              | 0.7526      | 1011.60                |
-        | TorchScript   | ✅      | 36.5              | 0.7416      | 1268.502               |
-        | ONNX          | ✅      | 36.3              | 0.7416      | 324.17                 |
-        | OpenVINO      | ✅      | 36.4              | 0.7416      | 179.324                |
-        | TF SavedModel | ✅      | 91.1              | 0.7416      | 714.382                |
-        | TF GraphDef   | ✅      | 36.4              | 0.7416      | 1019.83                |
-        | TF Lite       | ✅      | 36.4              | 0.7416      | 849.86                 |
-        | PaddlePaddle  | ✅      | 72.5              | 0.7416      | 1276.34                |
-        | MNN           | ✅      | 36.2              | 0.7409      | 273.032                |
-        | NCNN          | ✅      | 36.2              | 0.7419      | 194.858                |
+        | PyTorch       | ✅      | 18.4              | 0.5791      | 962.69                |
+        | TorchScript   | ✅      | 36.5              | 0.5782      | 1181.94               |
+        | ONNX          | ✅      | 36.3              | 0.5782      | 449.85                |
+        | OpenVINO      | ✅      | 36.4              | 0.5810      | 181.53                |
+        | TF SavedModel | ✅      | 91.0              | 0.5782      | 660.62                |
+        | TF GraphDef   | ✅      | 36.4              | 0.5782      | 669.23                |
+        | TF Lite       | ✅      | 36.3              | 0.5782      | 1093.41               |
+        | PaddlePaddle  | ✅      | 72.6              | 0.5782      | 1140.61               |
+        | MNN           | ✅      | 36.2              | 0.5805      | 274.63                |
+        | NCNN          | ✅      | 36.2              | 0.5784      | 224.20                |
 
-    Benchmarked with Ultralytics {{ benchmark_version }}
+    Benchmarked with Ultralytics 8.3.152
+
+    !!! note
+
+        Inference time does not include pre/ post-processing.
 
 ## Reproduce Our Results
 
@@ -200,18 +204,18 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
         # Load a YOLO11n PyTorch model
         model = YOLO("yolo11n.pt")
 
-        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
-        results = model.benchmark(data="coco8.yaml", imgsz=640)
+        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all all export formats
+        results = model.benchmark(data="coco128.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO8 dataset for all all export formats
-        yolo benchmark model=yolo11n.pt data=coco8.yaml imgsz=640
+        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all all export formats
+        yolo benchmark model=yolo11n.pt data=coco128.yaml imgsz=640
         ```
 
-    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco128.yaml'` (128 val images), or `data='coco.yaml'` (5000 val images).
+    Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results use a dataset with a large number of images, i.e. `data='coco.yaml'` (5000 val images).
 
 ## Use Raspberry Pi Camera
 
@@ -341,19 +345,19 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
     a. Upgrade the software
 
-    ```sh
+    ```bash
     sudo apt update && sudo apt dist-upgrade
     ```
 
     b. Open to edit the configuration file
 
-    ```sh
+    ```bash
     sudo nano /boot/firmware/config.txt
     ```
 
     c. Add the following lines at the bottom
 
-    ```sh
+    ```bash
     arm_freq=3000
     gpu_freq=1000
     force_turbo=1

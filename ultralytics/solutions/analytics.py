@@ -68,6 +68,8 @@ class Analytics(BaseSolution):
 
         self.total_counts = 0  # count variable for storing total counts i.e. for line
         self.clswise_count = {}  # dictionary for class-wise counts
+        self.update_every = kwargs.get("update_every", 30)  # Only update graph every 30 frames by default
+        self.last_plot_im = None  # Cache of the last rendered chart
 
         # Ensure line and area chart
         if self.type in {"line", "area"}:
@@ -111,16 +113,21 @@ class Analytics(BaseSolution):
         if self.type == "line":
             for _ in self.boxes:
                 self.total_counts += 1
-            plot_im = self.update_graph(frame_number=frame_number)
+            update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
+            if update_required:
+                self.last_plot_im = self.update_graph(frame_number=frame_number)
+            plot_im = self.last_plot_im
             self.total_counts = 0
         elif self.type in {"pie", "bar", "area"}:
-            self.clswise_count = {}
-            for cls in self.clss:
-                if self.names[int(cls)] in self.clswise_count:
-                    self.clswise_count[self.names[int(cls)]] += 1
-                else:
-                    self.clswise_count[self.names[int(cls)]] = 1
-            plot_im = self.update_graph(frame_number=frame_number, count_dict=self.clswise_count, plot=self.type)
+            from collections import Counter
+
+            self.clswise_count = Counter(self.names[int(cls)] for cls in self.clss)
+            update_required = frame_number % self.update_every == 0 or self.last_plot_im is None
+            if update_required:
+                self.last_plot_im = self.update_graph(
+                    frame_number=frame_number, count_dict=self.clswise_count, plot=self.type
+                )
+            plot_im = self.last_plot_im
         else:
             raise ModuleNotFoundError(f"{self.type} chart is not supported ❌")
 
@@ -187,7 +194,7 @@ class Analytics(BaseSolution):
                 self.ax.clear()
                 for key, y_data in y_data_dict.items():
                     color = next(color_cycle)
-                    self.ax.fill_between(x_data, y_data, color=color, alpha=0.7)
+                    self.ax.fill_between(x_data, y_data, color=color, alpha=0.55)
                     self.ax.plot(
                         x_data,
                         y_data,
@@ -235,6 +242,7 @@ class Analytics(BaseSolution):
 
         # Common plot settings
         self.ax.set_facecolor("#f0f0f0")  # Set to light gray or any other color you like
+        self.ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.5)  # Display grid for more data insights
         self.ax.set_title(self.title, color=self.fg_color, fontsize=self.fontsize)
         self.ax.set_xlabel(self.x_label, color=self.fg_color, fontsize=self.fontsize - 3)
         self.ax.set_ylabel(self.y_label, color=self.fg_color, fontsize=self.fontsize - 3)

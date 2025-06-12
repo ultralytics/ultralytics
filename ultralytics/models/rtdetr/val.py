@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, Dict, List, Tuple, Union
+
 import torch
 
 from ultralytics.data import YOLODataset
@@ -151,15 +153,21 @@ class RTDETRValidator(DetectionValidator):
             data=self.data,
         )
 
-    def postprocess(self, preds):
+    def postprocess(
+        self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]
+    ) -> List[Dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (list | tuple | torch.Tensor): Raw predictions from the model.
+            preds (torch.Tensor | List | Tuple): Raw predictions from the model. If tensor, should have shape
+                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
 
         Returns:
-            (list[torch.Tensor]): List of processed predictions for each image in batch.
+            (List[Dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
+                - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates
+                - 'conf': Tensor of shape (N,) with confidence scores
+                - 'cls': Tensor of shape (N,) with class indices
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
@@ -176,18 +184,19 @@ class RTDETRValidator(DetectionValidator):
             pred = pred[score.argsort(descending=True)]
             outputs[i] = pred[score > self.args.conf]
 
-        return outputs
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
-    def _prepare_batch(self, si, batch):
+    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare a batch for validation by applying necessary transformations.
 
         Args:
             si (int): Batch index.
-            batch (dict): Batch data containing images and annotations.
+            batch (Dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
-            (dict): Prepared batch with transformed annotations.
+            (Dict[str, Any]): Prepared batch with transformed annotations containing cls, bboxes,
+                ori_shape, imgsz, and ratio_pad.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -199,20 +208,23 @@ class RTDETRValidator(DetectionValidator):
             bbox = ops.xywh2xyxy(bbox)  # target boxes
             bbox[..., [0, 2]] *= ori_shape[1]  # native-space pred
             bbox[..., [1, 3]] *= ori_shape[0]  # native-space pred
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred, pbatch):
+    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Prepare predictions by scaling bounding boxes to original image dimensions.
 
         Args:
-            pred (torch.Tensor): Raw predictions.
-            pbatch (dict): Prepared batch information.
+            pred (Dict[str, torch.Tensor]): Raw predictions containing 'cls', 'bboxes', and 'conf'.
+            pbatch (Dict[str, torch.Tensor]): Prepared batch information containing 'ori_shape' and other metadata.
 
         Returns:
-            (torch.Tensor): Predictions scaled to original image dimensions.
+            (Dict[str, torch.Tensor]): Predictions scaled to original image dimensions.
         """
-        predn = pred.clone()
-        predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        return predn.float()
+        cls = pred["cls"]
+        if self.args.single_cls:
+            cls *= 0
+        bboxes = pred["bboxes"].clone()
+        bboxes[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
+        bboxes[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
+        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}

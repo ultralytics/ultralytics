@@ -241,11 +241,11 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dict[str, Any]): Dictionary containing metrics results.
         """
-        stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
+        stats = {k: (torch.cat(v, 0) if v else torch.empty(0)).cpu().numpy() for k, v in self.stats.items()}
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
         stats.pop("target_img", None)
-        if len(stats):
+        if len(stats) and len(stats["tp"]):
             self.metrics.process(**stats, on_plot=self.on_plot)
         return self.metrics.results_dict
 

@@ -80,15 +80,15 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
     ```python
     import torch
     import torchvision.transforms as T
-    
+
     from ultralytics import YOLO
     from ultralytics.data.dataset import ClassificationDataset
     from ultralytics.models.yolo.classify import ClassificationTrainer
-    
-    
+
+
     class CustomizedDataset(ClassificationDataset):
         """A customized dataset class for image classification with enhanced data augmentation transforms."""
-    
+
         def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
             """Initialize a customized classification dataset with enhanced data augmentation transforms."""
             super().__init__(root, args, augment, prefix)
@@ -112,16 +112,16 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
                 ]
             )
             self.torch_transforms = train_transforms if augment else val_transforms
-    
-    
+
+
     class CustomizedTrainer(ClassificationTrainer):
         """A customized trainer class for YOLO classification models with enhanced dataset handling."""
-    
+
         def build_dataset(self, img_path: str, mode: str = "train", batch=None):
             """Build a customized dataset for classification training or validation."""
             return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
-    
-    
+
+
     model = YOLO("yolo11n-cls.pt")
     model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
     ```

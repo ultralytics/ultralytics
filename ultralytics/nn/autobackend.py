@@ -196,7 +196,6 @@ class AutoBackend(nn.Module):
 
         # In-memory PyTorch model
         if nn_module:
-            # fuse on gpu for JetPack 5 and below
             model = weights.to(device)
             if fuse:
                 model = model.fuse(verbose=verbose)

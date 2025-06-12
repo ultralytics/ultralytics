@@ -622,7 +622,7 @@ def handle_yolo_settings(args: List[str]) -> None:
                 check_dict_alignment(SETTINGS, new)
                 SETTINGS.update(new)
                 for k, v in new.items():
-                    LOGGER.info(f"✅Successfully setting '{k}={v}'")
+                    LOGGER.info(f"✅ Updated '{k}={v}'")
 
         LOGGER.info(SETTINGS)  # print the current settings
         LOGGER.info(f"💡 Learn more about Ultralytics Settings at {url}")

@@ -19,11 +19,11 @@ class QueueManager(BaseSolution):
         track_history (Dict[int, List[Tuple[int, int]]]): Dictionary storing tracking history for each object.
 
     Methods:
-        initialize_region: Initializes the queue region.
-        process: Processes a single frame for queue management.
-        extract_tracks: Extracts object tracks from the current frame.
-        store_tracking_history: Stores the tracking history for an object.
-        display_output: Displays the processed output.
+        initialize_region: Initialize the queue region.
+        process: Process a single frame for queue management.
+        extract_tracks: Extract object tracks from the current frame.
+        store_tracking_history: Store the tracking history for an object.
+        display_output: Display the processed output.
 
     Examples:
         >>> cap = cv2.VideoCapture("path/to/video.mp4")
@@ -36,7 +36,7 @@ class QueueManager(BaseSolution):
     """
 
     def __init__(self, **kwargs):
-        """Initializes the QueueManager with parameters for tracking and counting objects in a video stream."""
+        """Initialize the QueueManager with parameters for tracking and counting objects in a video stream."""
         super().__init__(**kwargs)
         self.initialize_region()
         self.counts = 0  # Queue counts information
@@ -64,9 +64,9 @@ class QueueManager(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
         annotator.draw_region(reg_pts=self.region, color=self.rect_color, thickness=self.line_width * 2)  # Draw region
 
-        for box, track_id, cls in zip(self.boxes, self.track_ids, self.clss):
+        for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            annotator.box_label(box, label=self.names[cls], color=colors(track_id, True))
+            annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
             self.store_tracking_history(track_id, box)  # Store track history
 
             # Cache frequently accessed attributes

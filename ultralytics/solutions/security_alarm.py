@@ -46,7 +46,7 @@ class SecurityAlarm(BaseSolution):
         self.to_email = ""
         self.from_email = ""
 
-    def authenticate(self, from_email, password, to_email):
+    def authenticate(self, from_email: str, password: str, to_email: str):
         """
         Authenticate the email server for sending alert notifications.
 
@@ -69,13 +69,13 @@ class SecurityAlarm(BaseSolution):
         self.to_email = to_email
         self.from_email = from_email
 
-    def send_email(self, im0, records=5):
+    def send_email(self, im0, records: int = 5):
         """
         Send an email notification with an image attachment indicating the number of objects detected.
 
         Args:
             im0 (numpy.ndarray): The input image or frame to be attached to the email.
-            records (int): The number of detected objects to be included in the email message.
+            records (int, optional): The number of detected objects to be included in the email message.
 
         This method encodes the input image, composes the email message with details about the detection, and sends it
         to the specified recipient.
@@ -110,9 +110,9 @@ class SecurityAlarm(BaseSolution):
         # Send the email
         try:
             self.server.send_message(message)
-            LOGGER.info("✅ Email sent successfully!")
+            LOGGER.info("Email sent successfully!")
         except Exception as e:
-            LOGGER.error(f"❌ Failed to send email: {e}")
+            LOGGER.error(f"Failed to send email: {e}")
 
     def process(self, im0):
         """
@@ -143,7 +143,7 @@ class SecurityAlarm(BaseSolution):
             annotator.box_label(box, label=self.names[cls], color=colors(cls, True))
 
         total_det = len(self.clss)
-        if total_det > self.records and not self.email_sent:  # Only send email if not sent before
+        if total_det >= self.records and not self.email_sent:  # Only send email if not sent before
             self.send_email(im0, total_det)
             self.email_sent = True
 

@@ -1,11 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr, torch_utils
 
 try:
-    # WARNING: do not move SummaryWriter import due to protobuf bug https://github.com/ultralytics/ultralytics/pull/4674
-    from torch.utils.tensorboard import SummaryWriter
-
     assert not TESTS_RUNNING  # do not log pytest
     assert SETTINGS["tensorboard"] is True  # verify integration is enabled
     WRITER = None  # TensorBoard SummaryWriter instance
@@ -15,7 +12,8 @@ try:
     import warnings
     from copy import deepcopy
 
-    from ultralytics.utils.torch_utils import de_parallel, torch
+    import torch
+    from torch.utils.tensorboard import SummaryWriter
 
 except (ImportError, AssertionError, TypeError, AttributeError):
     # TypeError for handling 'Descriptors cannot not be created directly.' protobuf errors in Windows
@@ -33,7 +31,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
         step (int): Global step value to record with the scalar values. Used for x-axis in TensorBoard graphs.
 
     Examples:
-        >>> # Log training metrics
+        Log training metrics
         >>> metrics = {"loss": 0.5, "accuracy": 0.95}
         >>> _log_scalars(metrics, step=100)
     """
@@ -51,9 +49,8 @@ def _log_tensorboard_graph(trainer) -> None:
     approach for models like RTDETR that may require special handling.
 
     Args:
-        trainer (BaseTrainer): The trainer object containing the model to visualize. Must have attributes:
-            - model: PyTorch model to visualize
-            - args: Configuration arguments with 'imgsz' attribute
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing the model to visualize.
+            Must have attributes model and args with imgsz.
 
     Notes:
         This function requires TensorBoard integration to be enabled and the global WRITER to be initialized.
@@ -73,14 +70,14 @@ def _log_tensorboard_graph(trainer) -> None:
         # Try simple method first (YOLO)
         try:
             trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
-            WRITER.add_graph(torch.jit.trace(de_parallel(trainer.model), im, strict=False), [])
+            WRITER.add_graph(torch.jit.trace(torch_utils.de_parallel(trainer.model), im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             return
 
         except Exception:
             # Fallback to TorchScript export steps (RTDETR)
             try:
-                model = deepcopy(de_parallel(trainer.model))
+                model = deepcopy(torch_utils.de_parallel(trainer.model))
                 model.eval()
                 model = model.fuse(verbose=False)
                 for m in model.modules():
@@ -91,7 +88,7 @@ def _log_tensorboard_graph(trainer) -> None:
                 WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
                 LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             except Exception as e:
-                LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard graph visualization failure {e}")
+                LOGGER.warning(f"{PREFIX}TensorBoard graph visualization failure {e}")
 
 
 def on_pretrain_routine_start(trainer) -> None:
@@ -102,7 +99,7 @@ def on_pretrain_routine_start(trainer) -> None:
             WRITER = SummaryWriter(str(trainer.save_dir))
             LOGGER.info(f"{PREFIX}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
         except Exception as e:
-            LOGGER.warning(f"{PREFIX}WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}")
+            LOGGER.warning(f"{PREFIX}TensorBoard not initialized correctly, not logging this run. {e}")
 
 
 def on_train_start(trainer) -> None:
@@ -112,13 +109,13 @@ def on_train_start(trainer) -> None:
 
 
 def on_train_epoch_end(trainer) -> None:
-    """Logs scalar statistics at the end of a training epoch."""
+    """Log scalar statistics at the end of a training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
     _log_scalars(trainer.lr, trainer.epoch + 1)
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Logs epoch metrics at end of training epoch."""
+    """Log epoch metrics at end of training epoch."""
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 

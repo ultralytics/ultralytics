@@ -108,7 +108,7 @@ def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
         # Find the anchor tag and update its href attribute
         a_tag = soup.find("a", {"class": "md-content__button md-icon"})
         if a_tag and a_tag["title"] == "Edit this page":
-            a_tag["href"] = f"{docs_url}{a_tag['href'].split(subdir)[-1]}"
+            a_tag["href"] = f"{docs_url}{a_tag['href'].rpartition(subdir)[-1]}"
 
         # Write the updated HTML back to the file
         with open(html_file, "w", encoding="utf-8") as file:
@@ -166,15 +166,15 @@ def update_docs_html():
 
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0
-    for html_file in tqdm(SITE.rglob("*.html"), desc="Converting plaintext links", mininterval=1.0):
+    for html_file in tqdm(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
-        updated_content = convert_plaintext_links_to_html(content)
+        updated_content = update_docs_soup(content, html_file=html_file)
         if updated_content != content:
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
             files_modified += 1
-    print(f"Modified plaintext links in {files_modified} files.")
+    print(f"Modified bs4 soup in {files_modified} files.")
 
     # Update HTML file head section
     script = ""
@@ -188,8 +188,8 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) -> str:
-    """Convert plaintext links to HTML hyperlinks and truncate long meta titles."""
+def update_docs_soup(content: str, html_file: Path = None, max_title_length: int = 70) -> str:
+    """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     soup = BeautifulSoup(content, "html.parser")
     modified = False
 
@@ -205,14 +205,24 @@ def convert_plaintext_links_to_html(content: str, max_title_length: int = 70) ->
         return str(soup) if modified else content
 
     # Convert plaintext links to HTML hyperlinks
-    for paragraph in main_content.find_all(["p", "li"]):
+    for paragraph in main_content.select("p, li"):
         for text_node in paragraph.find_all(string=True, recursive=False):
             if text_node.parent.name not in {"a", "code"}:
                 new_text = LINK_PATTERN.sub(r'<a href="\1">\1</a>', str(text_node))
                 if "<a href=" in new_text:
-                    new_soup = BeautifulSoup(new_text, "html.parser")
-                    text_node.replace_with(new_soup)
+                    text_node.replace_with(BeautifulSoup(new_text, "html.parser"))
                     modified = True
+
+    # Remove href attributes from code line numbers in code blocks
+    for a in soup.select('a[href^="#__codelineno-"], a[id^="__codelineno-"]'):
+        if a.string:  # If the a tag has text (the line number)
+            # Check if parent is a span with class="normal"
+            if a.parent and a.parent.name == "span" and "normal" in a.parent.get("class", []):
+                del a.parent["class"]
+            a.replace_with(a.string)  # Replace with just the text
+        else:  # If it has no text
+            a.replace_with(soup.new_tag("span"))  # Replace with an empty span
+        modified = True
 
     return str(soup) if modified else content
 
@@ -247,7 +257,15 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
     """
     Remove comments and empty lines from a string of code, preserving newlines and URLs.
 
-    Typical reductions for Ultralytics Docs are:
+    Args:
+        content (str): Code content to process.
+        file_type (str): Type of file ('html', 'css', or 'js').
+
+    Returns:
+        (str): Cleaned content with comments and empty lines removed.
+
+    Notes:
+        Typical reductions for Ultralytics Docs are:
         - Total HTML reduction: 2.83% (1301.56 KB saved)
         - Total CSS reduction: 1.75% (2.61 KB saved)
         - Total JS reduction: 13.51% (99.31 KB saved)
@@ -275,7 +293,7 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         for line in lines:
             # Only remove comments if they're not part of a URL
             if "//" in line and "http://" not in line and "https://" not in line:
-                processed_lines.append(line.split("//")[0])
+                processed_lines.append(line.partition("//")[0])
             else:
                 processed_lines.append(line)
         content = "\n".join(processed_lines)
@@ -349,8 +367,12 @@ def main():
     shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
-    # Show command to serve built website
-    print('Docs built correctly ✅\nServe site at http://localhost:8000 with "python -m http.server --directory site"')
+    # Print results
+    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
+    print(
+        f"Docs built correctly ✅ ({size:.1f} MB)\n"
+        f'Serve site at http://localhost:8000 with "python -m http.server --directory site"'
+    )
 
 
 if __name__ == "__main__":

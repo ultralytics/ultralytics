@@ -4,7 +4,7 @@ description: Discover how to enhance Ultralytics YOLO model performance using In
 keywords: Ultralytics YOLO, OpenVINO optimization, deep learning, model inference, throughput optimization, latency optimization, AI deployment, Intel's OpenVINO, performance tuning
 ---
 
-# Optimizing OpenVINO Inference for Ultralytics YOLO Models: A Comprehensive Guide
+# OpenVINO Inference Optimization for YOLO
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/openvino-ecosystem.avif" alt="OpenVINO Ecosystem">
 

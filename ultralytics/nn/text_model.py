@@ -2,6 +2,7 @@
 
 from abc import abstractmethod
 from pathlib import Path
+from typing import List, Union
 
 import torch
 import torch.nn as nn
@@ -15,31 +16,17 @@ except ImportError:
     checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
     import clip
 
-try:
-    import warnings
-
-    # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=FutureWarning)
-        import mobileclip
-except ImportError:
-    # MobileCLIP repo has an incorrect version of torchvision as dependency
-    # Manually install other dependencies first and install mobileclip with "--no-deps" flag
-    checks.check_requirements(["open-clip-torch>=2.20.0", "timm>=0.9.5"])
-    checks.check_requirements("git+https://github.com/apple/ml-mobileclip.git", cmds="--no-deps")
-    import mobileclip
-
 
 class TextModel(nn.Module):
     """
     Abstract base class for text encoding models.
 
     This class defines the interface for text encoding models used in vision-language tasks. Subclasses must implement
-    the tokenize and encode_text methods.
+    the tokenize and encode_text methods to provide text tokenization and encoding functionality.
 
     Methods:
-        tokenize: Convert input texts to tokens.
-        encode_text: Encode tokenized texts into feature vectors.
+        tokenize: Convert input texts to tokens for model processing.
+        encode_text: Encode tokenized texts into normalized feature vectors.
     """
 
     def __init__(self):
@@ -47,12 +34,12 @@ class TextModel(nn.Module):
         super().__init__()
 
     @abstractmethod
-    def tokenize(texts):
+    def tokenize(self, texts):
         """Convert input texts to tokens for model processing."""
         pass
 
     @abstractmethod
-    def encode_text(texts, dtype):
+    def encode_text(self, texts, dtype):
         """Encode tokenized texts into normalized feature vectors."""
         pass
 
@@ -73,7 +60,6 @@ class CLIP(TextModel):
         encode_text: Encode tokenized texts into normalized feature vectors.
 
     Examples:
-        >>> from ultralytics.models.sam import CLIP
         >>> import torch
         >>> device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         >>> clip_model = CLIP(size="ViT-B/32", device=device)
@@ -82,7 +68,7 @@ class CLIP(TextModel):
         >>> print(text_features.shape)
     """
 
-    def __init__(self, size, device):
+    def __init__(self, size: str, device: torch.device):
         """
         Initialize the CLIP text encoder.
 
@@ -95,7 +81,6 @@ class CLIP(TextModel):
 
         Examples:
             >>> import torch
-            >>> from ultralytics.models.sam.modules.clip import CLIP
             >>> clip_model = CLIP("ViT-B/32", device=torch.device("cuda:0"))
             >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
@@ -105,7 +90,7 @@ class CLIP(TextModel):
         self.device = device
         self.eval()
 
-    def tokenize(self, texts):
+    def tokenize(self, texts: Union[str, List[str]]):
         """
         Convert input texts to CLIP tokens.
 
@@ -123,7 +108,7 @@ class CLIP(TextModel):
         return clip.tokenize(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts, dtype=torch.float32):
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32):
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -132,7 +117,7 @@ class CLIP(TextModel):
 
         Args:
             texts (torch.Tensor): Tokenized text inputs, typically created using the tokenize() method.
-            dtype (torch.dtype, optional): Data type for output features. Default is torch.float32.
+            dtype (torch.dtype, optional): Data type for output features.
 
         Returns:
             (torch.Tensor): Normalized text feature vectors with unit length (L2 norm = 1).
@@ -154,7 +139,7 @@ class MobileCLIP(TextModel):
     Implement Apple's MobileCLIP text encoder for efficient text encoding.
 
     This class implements the TextModel interface using Apple's MobileCLIP model, providing efficient text encoding
-    capabilities for vision-language tasks.
+    capabilities for vision-language tasks with reduced computational requirements compared to standard CLIP models.
 
     Attributes:
         model (mobileclip.model.MobileCLIP): The loaded MobileCLIP model.
@@ -175,7 +160,7 @@ class MobileCLIP(TextModel):
 
     config_size_map = {"s0": "s0", "s1": "s1", "s2": "s2", "b": "b", "blt": "b"}
 
-    def __init__(self, size, device):
+    def __init__(self, size: str, device: torch.device):
         """
         Initialize the MobileCLIP text encoder.
 
@@ -186,12 +171,23 @@ class MobileCLIP(TextModel):
             device (torch.device): Device to load the model on.
 
         Examples:
-            >>> from ultralytics.nn.modules import MobileCLIP
             >>> import torch
             >>> model = MobileCLIP("s0", device=torch.device("cpu"))
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
             >>> features = model.encode_text(tokens)
         """
+        try:
+            import warnings
+
+            # Suppress 'timm.models.layers is deprecated, please import via timm.layers' warning from mobileclip usage
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=FutureWarning)
+                import mobileclip
+        except ImportError:
+            # Ultralytics fork preferred since Apple MobileCLIP repo has incorrect version of torchvision
+            checks.check_requirements("git+https://github.com/ultralytics/mobileclip.git")
+            import mobileclip
+
         super().__init__()
         config = self.config_size_map[size]
         file = f"mobileclip_{size}.pt"
@@ -205,12 +201,12 @@ class MobileCLIP(TextModel):
         self.device = device
         self.eval()
 
-    def tokenize(self, texts):
+    def tokenize(self, texts: List[str]):
         """
         Convert input texts to MobileCLIP tokens.
 
         Args:
-            texts (list[str]): List of text strings to tokenize.
+            texts (List[str]): List of text strings to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
@@ -222,7 +218,7 @@ class MobileCLIP(TextModel):
         return self.tokenizer(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts, dtype=torch.float32):
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32):
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -245,7 +241,91 @@ class MobileCLIP(TextModel):
         return text_features
 
 
-def build_text_model(variant, device=None):
+class MobileCLIPTS(TextModel):
+    """
+    Load a TorchScript traced version of MobileCLIP.
+
+    This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format, providing
+    efficient text encoding capabilities for vision-language tasks with optimized inference performance.
+
+    Attributes:
+        encoder (torch.jit.ScriptModule): The loaded TorchScript MobileCLIP text encoder.
+        tokenizer (callable): Tokenizer function for processing text inputs.
+        device (torch.device): Device where the model is loaded.
+
+    Methods:
+        tokenize: Convert input texts to MobileCLIP tokens.
+        encode_text: Encode tokenized texts into normalized feature vectors.
+
+    Examples:
+        >>> device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        >>> text_encoder = MobileCLIPTS(device=device)
+        >>> tokens = text_encoder.tokenize(["a photo of a cat", "a photo of a dog"])
+        >>> features = text_encoder.encode_text(tokens)
+    """
+
+    def __init__(self, device: torch.device):
+        """
+        Initialize the MobileCLIP TorchScript text encoder.
+
+        This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for
+        efficient text encoding with optimized inference performance.
+
+        Args:
+            device (torch.device): Device to load the model on.
+
+        Examples:
+            >>> model = MobileCLIPTS(device=torch.device("cpu"))
+            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
+            >>> features = model.encode_text(tokens)
+        """
+        super().__init__()
+        from ultralytics.utils.downloads import attempt_download_asset
+
+        self.encoder = torch.jit.load(attempt_download_asset("mobileclip_blt.ts"), map_location=device)
+        self.tokenizer = clip.clip.tokenize
+        self.device = device
+
+    def tokenize(self, texts: List[str]):
+        """
+        Convert input texts to MobileCLIP tokens.
+
+        Args:
+            texts (List[str]): List of text strings to tokenize.
+
+        Returns:
+            (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
+
+        Examples:
+            >>> model = MobileCLIPTS("cpu")
+            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
+        """
+        return self.tokenizer(texts).to(self.device)
+
+    @smart_inference_mode()
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32):
+        """
+        Encode tokenized texts into normalized feature vectors.
+
+        Args:
+            texts (torch.Tensor): Tokenized text inputs.
+            dtype (torch.dtype, optional): Data type for output features.
+
+        Returns:
+            (torch.Tensor): Normalized text feature vectors with L2 normalization applied.
+
+        Examples:
+            >>> model = MobileCLIPTS(device="cpu")
+            >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
+            >>> features = model.encode_text(tokens)
+            >>> features.shape
+            torch.Size([2, 512])  # Actual dimension depends on model size
+        """
+        # NOTE: no need to do normalization here as it's embedded in the torchscript model
+        return self.encoder(texts)
+
+
+def build_text_model(variant: str, device: torch.device = None):
     """
     Build a text encoding model based on the specified variant.
 
@@ -264,6 +344,6 @@ def build_text_model(variant, device=None):
     if base == "clip":
         return CLIP(size, device)
     elif base == "mobileclip":
-        return MobileCLIP(size, device)
+        return MobileCLIPTS(device)
     else:
         raise ValueError(f"Unrecognized base model: '{base}'. Supported base models: 'clip', 'mobileclip'.")

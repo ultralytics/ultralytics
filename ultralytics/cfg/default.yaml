@@ -17,7 +17,7 @@ imgsz: 640 # (int | list) input images size as int for train and val modes, or l
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) Save checkpoint every x epochs (disabled if < 1)
 cache: False # (bool) True/ram, disk or False. Use cache for data loading
-device: # (int | str | list, optional) device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
+device: # (int | str | list) device: CUDA device=0 or [0,1,2,3] or "cpu/mps" or -1 or [-1,-1] to auto-select idle GPUs
 workers: 8 # (int) number of worker threads for data loading (per RANK if DDP)
 project: # (str, optional) project name
 name: # (str, optional) experiment name, results saved to 'project/name' directory
@@ -35,7 +35,7 @@ resume: False # (bool) resume training from last checkpoint
 amp: True # (bool) Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 fraction: 1.0 # (float) dataset fraction to train on (default is 1.0, all images in train set)
 profile: False # (bool) profile ONNX and TensorRT speeds during training for loggers
-freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
+freeze: # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
 # Segmentation
 overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
@@ -84,7 +84,7 @@ int8: False # (bool) CoreML/TF INT8 quantization
 dynamic: False # (bool) ONNX/TF/TensorRT: dynamic axes
 simplify: True # (bool) ONNX: simplify model using `onnxslim`
 opset: # (int, optional) ONNX: opset version
-workspace: None # (float, optional) TensorRT: workspace size (GiB), `None` will let TensorRT auto-allocate memory
+workspace: # (float, optional) TensorRT: workspace size (GiB), `None` will let TensorRT auto-allocate memory
 nms: False # (bool) CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
@@ -114,6 +114,7 @@ fliplr: 0.5 # (float) image flip left-right (probability)
 bgr: 0.0 # (float) image channel BGR (probability)
 mosaic: 1.0 # (float) image mosaic (probability)
 mixup: 0.0 # (float) image mixup (probability)
+cutmix: 0.0 # (float) image cutmix (probability)
 copy_paste: 0.0 # (float) segment copy-paste (probability)
 copy_paste_mode: "flip" # (str) the method to do copy_paste augmentation (flip, mixup)
 auto_augment: randaugment # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)

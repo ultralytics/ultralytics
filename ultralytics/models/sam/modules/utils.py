@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Tuple
+from typing import Any, Dict, Tuple
 
 import torch
 import torch.nn.functional as F
 
 
-def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num):
+def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: Dict[int, Any], max_cond_frame_num: int):
     """
     Select the closest conditioning frames to a given frame index.
 
@@ -16,9 +16,8 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
         max_cond_frame_num (int): Maximum number of conditioning frames to select.
 
     Returns:
-        (Tuple[Dict[int, Any], Dict[int, Any]]): A tuple containing two dictionaries:
-            - selected_outputs: Selected items from cond_frame_outputs.
-            - unselected_outputs: Items not selected from cond_frame_outputs.
+        selected_outputs (Dict[int, Any]): Selected items from cond_frame_outputs.
+        unselected_outputs (Dict[int, Any]): Items not selected from cond_frame_outputs.
 
     Examples:
         >>> frame_idx = 5
@@ -60,14 +59,14 @@ def select_closest_cond_frames(frame_idx, cond_frame_outputs, max_cond_frame_num
     return selected_outputs, unselected_outputs
 
 
-def get_1d_sine_pe(pos_inds, dim, temperature=10000):
+def get_1d_sine_pe(pos_inds: torch.Tensor, dim: int, temperature: float = 10000):
     """
     Generate 1D sinusoidal positional embeddings for given positions and dimensions.
 
     Args:
         pos_inds (torch.Tensor): Position indices for which to generate embeddings.
         dim (int): Dimension of the positional embeddings. Should be an even number.
-        temperature (float): Scaling factor for the frequency of the sinusoidal functions.
+        temperature (float, optional): Scaling factor for the frequency of the sinusoidal functions.
 
     Returns:
         (torch.Tensor): Sinusoidal positional embeddings with shape (pos_inds.shape, dim).
@@ -99,14 +98,11 @@ def init_t_xy(end_x: int, end_y: int):
         end_y (int): Height of the grid (number of rows).
 
     Returns:
-        t (torch.Tensor): Linear indices for each position in the grid, with shape (end_x * end_y).
         t_x (torch.Tensor): X-coordinates for each position, with shape (end_x * end_y).
         t_y (torch.Tensor): Y-coordinates for each position, with shape (end_x * end_y).
 
     Examples:
-        >>> t, t_x, t_y = init_t_xy(3, 2)
-        >>> print(t)
-        tensor([0., 1., 2., 3., 4., 5.])
+        >>> t_x, t_y = init_t_xy(3, 2)
         >>> print(t_x)
         tensor([0., 1., 2., 0., 1., 2.])
         >>> print(t_y)
@@ -132,18 +128,13 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
         theta (float, optional): Scaling factor for frequency computation.
 
     Returns:
-        freqs_cis_x (torch.Tensor): Complex exponential positional encodings for x-dimension with shape
-            (end_x*end_y, dim//4).
-        freqs_cis_y (torch.Tensor): Complex exponential positional encodings for y-dimension with shape
-            (end_x*end_y, dim//4).
+        (torch.Tensor): Complex exponential positional encodings with shape (end_x*end_y, dim//2).
 
     Examples:
         >>> dim, end_x, end_y = 128, 8, 8
-        >>> freqs_cis_x, freqs_cis_y = compute_axial_cis(dim, end_x, end_y)
-        >>> freqs_cis_x.shape
-        torch.Size([64, 32])
-        >>> freqs_cis_y.shape
-        torch.Size([64, 32])
+        >>> freqs_cis = compute_axial_cis(dim, end_x, end_y)
+        >>> freqs_cis.shape
+        torch.Size([64, 64])
     """
     freqs_x = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
     freqs_y = 1.0 / (theta ** (torch.arange(0, dim, 4)[: (dim // 4)].float() / dim))
@@ -226,7 +217,7 @@ def apply_rotary_enc(
     return xq_out.type_as(xq).to(xq.device), xk_out.type_as(xk).to(xk.device)
 
 
-def window_partition(x, window_size):
+def window_partition(x: torch.Tensor, window_size: int):
     """
     Partition input tensor into non-overlapping windows with padding if needed.
 
@@ -235,9 +226,8 @@ def window_partition(x, window_size):
         window_size (int): Size of each window.
 
     Returns:
-        (Tuple[torch.Tensor, Tuple[int, int]]): A tuple containing:
-            - windows (torch.Tensor): Partitioned windows with shape (B * num_windows, window_size, window_size, C).
-            - (Hp, Wp) (Tuple[int, int]): Padded height and width before partition.
+        windows (torch.Tensor): Partitioned windows with shape (B * num_windows, window_size, window_size, C).
+        padded_h_w (Tuple[int, int]): Padded height and width before partition.
 
     Examples:
         >>> x = torch.randn(1, 16, 16, 3)
@@ -258,7 +248,7 @@ def window_partition(x, window_size):
     return windows, (Hp, Wp)
 
 
-def window_unpartition(windows, window_size, pad_hw, hw):
+def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[int, int], hw: Tuple[int, int]):
     """
     Unpartition windowed sequences into original sequences and remove padding.
 

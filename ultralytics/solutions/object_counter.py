@@ -79,8 +79,7 @@ class ObjectCounter(BaseSolution):
             return
 
         if len(self.region) == 2:  # Linear region (defined as a line segment)
-            line = self.LineString(self.region)  # Check if the line intersects the trajectory of the object
-            if line.intersects(self.LineString([prev_position, current_centroid])):
+            if self.r_s.intersects(self.LineString([prev_position, current_centroid])):
                 # Determine orientation of the region (vertical or horizontal)
                 if abs(self.region[0][0] - self.region[1][0]) < abs(self.region[0][1] - self.region[1][1]):
                     # Vertical region: Compare x-coordinates to determine direction
@@ -100,8 +99,7 @@ class ObjectCounter(BaseSolution):
                 self.counted_ids.append(track_id)
 
         elif len(self.region) > 2:  # Polygonal region
-            polygon = self.Polygon(self.region)
-            if polygon.contains(self.Point(current_centroid)):
+            if self.r_s.contains(self.Point(current_centroid)):
                 # Determine motion direction for vertical or horizontal polygons
                 region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
                 region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
@@ -166,10 +164,6 @@ class ObjectCounter(BaseSolution):
 
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
-
-        is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
-        if is_obb and self.track_data and self.track_data.id is not None:
-            self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
 
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2

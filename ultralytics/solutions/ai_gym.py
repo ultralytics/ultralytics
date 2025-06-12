@@ -74,15 +74,12 @@ class AIGym(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
-        tracks = self.tracks[0]
 
-        if tracks.boxes.id is not None:
-            track_ids = tracks.boxes.id.cpu().tolist()
-            kpt_data = tracks.keypoints.data.cpu()  # Avoid repeated .cpu() calls
+        if len(self.boxes):
+            kpt_data = self.tracks.keypoints.data
 
             for i, k in enumerate(kpt_data):
-                track_id = int(track_ids[i])  # get track id
-                state = self.states[track_id]  # get state details
+                state = self.states[self.track_ids[i]]  # get state details
                 # Get keypoints and estimate the angle
                 state["angle"] = annotator.estimate_pose_angle(*[k[int(idx)] for idx in self.kpts])
                 annotator.draw_specific_kpts(k, self.kpts, radius=self.line_width * 3)

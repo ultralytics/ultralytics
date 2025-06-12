@@ -12,7 +12,7 @@ from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.plotting import plot_images
 
 
 class DetectionValidator(BaseValidator):
@@ -23,8 +23,6 @@ class DetectionValidator(BaseValidator):
     prediction processing, and visualization of results.
 
     Attributes:
-        nt_per_class (np.ndarray): Number of targets per class.
-        nt_per_image (np.ndarray): Number of targets per image.
         is_coco (bool): Whether the dataset is COCO.
         is_lvis (bool): Whether the dataset is LVIS.
         class_map (List[int]): Mapping from model class indices to dataset class indices.
@@ -53,15 +51,13 @@ class DetectionValidator(BaseValidator):
             _callbacks (List[Any], optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.nt_per_class = None
-        self.nt_per_image = None
         self.is_coco = False
         self.is_lvis = False
         self.class_map = None
         self.args.task = "detect"
-        self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
+        self.metrics = DetMetrics()
 
     def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -99,18 +95,16 @@ class DetectionValidator(BaseValidator):
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
-        self.metrics.names = self.names
-        self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc, conf=self.args.conf, names=self.names.values())
         self.seen = 0
         self.jdict = []
-        self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+        self.metrics.names = self.names
+        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
 
-    def postprocess(self, preds: torch.Tensor) -> List[torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> List[Dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 
@@ -118,9 +112,10 @@ class DetectionValidator(BaseValidator):
             preds (torch.Tensor): Raw predictions from the model.
 
         Returns:
-            (List[torch.Tensor]): Processed predictions after NMS.
+            (List[Dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains
+                'bboxes', 'conf', 'cls', and 'extra' tensors.
         """
-        return ops.non_max_suppression(
+        outputs = ops.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -131,6 +126,7 @@ class DetectionValidator(BaseValidator):
             end2end=self.end2end,
             rotated=self.args.task == "obb",
         )
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "extra": x[:, 6:]} for x in outputs]
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -152,68 +148,60 @@ class DetectionValidator(BaseValidator):
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
             ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> torch.Tensor:
+    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """
         Prepare predictions for evaluation against ground truth.
 
         Args:
-            pred (torch.Tensor): Model predictions.
+            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
             pbatch (Dict[str, Any]): Prepared batch information.
 
         Returns:
-            (torch.Tensor): Prepared predictions in native space.
+            (Dict[str, torch.Tensor]): Prepared predictions in native space.
         """
-        predn = pred.clone()
-        ops.scale_boxes(
-            pbatch["imgsz"], predn[:, :4], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+        cls = pred["cls"]
+        if self.args.single_cls:
+            cls *= 0
+        # predn = pred.clone()
+        bboxes = ops.scale_boxes(
+            pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
         )  # native-space pred
-        return predn
+        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
 
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
+    def update_metrics(self, preds: List[Dict[str, torch.Tensor]], batch: Dict[str, Any]) -> None:
         """
         Update metrics with new predictions and ground truth.
 
         Args:
-            preds (List[torch.Tensor]): List of predictions from the model.
+            preds (List[Dict[str, torch.Tensor]]): List of predictions from the model.
             batch (Dict[str, Any]): Batch data containing ground truth.
         """
         for si, pred in enumerate(preds):
             self.seen += 1
-            npr = len(pred)
-            stat = dict(
-                conf=torch.zeros(0, device=self.device),
-                pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-            )
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
-            nl = len(cls)
-            stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
-            if npr == 0:
-                if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
-                continue
-
-            # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
             predn = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
 
+            cls = pbatch["cls"].cpu().numpy()
+            no_pred = len(predn["cls"]) == 0
+            if no_pred and len(cls) == 0:
+                continue
+            self.metrics.update_stats(
+                {
+                    **self._process_batch(predn, pbatch),
+                    "target_cls": cls,
+                    "target_img": np.unique(cls),
+                    "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
+                    "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                }
+            )
             # Evaluate
-            if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
-            for k in self.stats.keys():
-                self.stats[k].append(stat[k])
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
+
+            if no_pred:
+                continue
 
             # Save
             if self.args.save_json:
@@ -241,44 +229,45 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dict[str, Any]): Dictionary containing metrics results.
         """
-        stats = {k: torch.cat(v, 0).cpu().numpy() for k, v in self.stats.items()}  # to numpy
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=self.nc)
-        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=self.nc)
-        stats.pop("target_img", None)
-        if len(stats):
-            self.metrics.process(**stats, on_plot=self.on_plot)
+        self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        self.metrics.clear_stats()
         return self.metrics.results_dict
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""
         pf = "%22s" + "%11i" * 2 + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
-        if self.nt_per_class.sum() == 0:
+        LOGGER.info(pf % ("all", self.seen, self.metrics.nt_per_class.sum(), *self.metrics.mean_results()))
+        if self.metrics.nt_per_class.sum() == 0:
             LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
 
         # Print results per class
-        if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
+        if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 LOGGER.info(
-                    pf % (self.names[c], self.nt_per_image[c], self.nt_per_class[c], *self.metrics.class_result(i))
+                    pf
+                    % (
+                        self.names[c],
+                        self.metrics.nt_per_image[c],
+                        self.metrics.nt_per_class[c],
+                        *self.metrics.class_result(i),
+                    )
                 )
 
-    def _process_batch(self, detections: torch.Tensor, gt_bboxes: torch.Tensor, gt_cls: torch.Tensor) -> torch.Tensor:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Return correct prediction matrix.
 
         Args:
-            detections (torch.Tensor): Tensor of shape (N, 6) representing detections where each detection is
-                (x1, y1, x2, y2, conf, class).
-            gt_bboxes (torch.Tensor): Tensor of shape (M, 4) representing ground-truth bounding box coordinates. Each
-                bounding box is of the format: (x1, y1, x2, y2).
-            gt_cls (torch.Tensor): Tensor of shape (M,) representing target class indices.
+            preds (Dict[str, torch.Tensor]): Dictionary containing prediction data with 'bboxes' and 'cls' keys.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' and 'cls' keys.
 
         Returns:
-            (torch.Tensor): Correct prediction matrix of shape (N, 10) for 10 IoU levels.
+            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
-        iou = box_iou(gt_bboxes, detections[:, :4])
-        return self.match_predictions(detections[:, 5], gt_cls, iou)
+        if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
+            return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
+        iou = box_iou(batch["bboxes"], preds["bboxes"])
+        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: Optional[int] = None) -> torch.utils.data.Dataset:
         """
@@ -317,42 +306,50 @@ class DetectionValidator(BaseValidator):
             ni (int): Batch index.
         """
         plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
+            labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
             names=self.names,
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
+    def plot_predictions(
+        self, batch: Dict[str, Any], preds: List[Dict[str, torch.Tensor]], ni: int, max_det: Optional[int] = None
+    ) -> None:
         """
         Plot predicted bounding boxes on input images and save the result.
 
         Args:
             batch (Dict[str, Any]): Batch containing images and annotations.
-            preds (List[torch.Tensor]): List of predictions from the model.
+            preds (List[Dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
+            max_det (Optional[int]): Maximum number of detections to plot.
         """
+        # TODO: optimize this
+        for i, pred in enumerate(preds):
+            pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
+        keys = preds[0].keys()
+        max_det = max_det or self.args.max_det
+        batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
+        # TODO: fix this
+        batched_preds["bboxes"][:, :4] = ops.xyxy2xywh(batched_preds["bboxes"][:, :4])  # convert to xywh format
         plot_images(
-            batch["img"],
-            *output_to_target(preds, max_det=self.args.max_det),
+            images=batch["img"],
+            labels=batched_preds,
             paths=batch["im_file"],
             fname=self.save_dir / f"val_batch{ni}_pred.jpg",
             names=self.names,
             on_plot=self.on_plot,
         )  # pred
 
-    def save_one_txt(self, predn: torch.Tensor, save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
+    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
         """
         Save YOLO detections to a txt file in normalized coordinates in a specific format.
 
         Args:
-            predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
+            predn (Dict[str, torch.Tensor]): Dictionary containing predictions with keys 'bboxes', 'conf', and 'cls'.
             save_conf (bool): Whether to save confidence scores.
-            shape (Tuple[int, int]): Shape of the original image.
+            shape (Tuple[int, int]): Shape of the original image (height, width).
             file (Path): File path to save the detections.
         """
         from ultralytics.engine.results import Results
@@ -361,28 +358,29 @@ class DetectionValidator(BaseValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: str) -> None:
         """
         Serialize YOLO predictions to COCO json format.
 
         Args:
-            predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
+            predn (Dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
+                with bounding box coordinates, confidence scores, and class predictions.
             filename (str): Image filename.
         """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn[:, :4])  # xywh
+        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for p, b in zip(predn.tolist(), box.tolist()):
+        for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "category_id": self.class_map[int(p[5])],
+                    "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
-                    "score": round(p[4], 5),
+                    "score": round(s, 5),
                 }
             )
 

@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Union
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.plotting import plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -106,40 +106,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
-        )
-
-    def plot_training_samples(self, batch: Dict[str, Any], ni: int):
-        """
-        Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints.
-
-        Args:
-            batch (dict): Dictionary containing batch data with the following keys:
-                - img (torch.Tensor): Batch of images
-                - keypoints (torch.Tensor): Keypoints coordinates for pose estimation
-                - cls (torch.Tensor): Class labels
-                - bboxes (torch.Tensor): Bounding box coordinates
-                - im_file (list): List of image file paths
-                - batch_idx (torch.Tensor): Batch indices for each instance
-            ni (int): Current training iteration number used for filename
-
-        The function saves the plotted batch as an image in the trainer's save directory with the filename
-        'train_batch{ni}.jpg', where ni is the iteration number.
-        """
-        images = batch["img"]
-        kpts = batch["keypoints"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(
-            images,
-            batch_idx,
-            cls,
-            bboxes,
-            kpts=kpts,
-            paths=paths,
-            fname=self.save_dir / f"train_batch{ni}.jpg",
-            on_plot=self.on_plot,
         )
 
     def plot_metrics(self):

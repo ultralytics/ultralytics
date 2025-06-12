@@ -401,7 +401,7 @@ class BasePredictor:
 
         self.device = self.model.device  # update device
         self.args.half = self.model.fp16  # update half
-        if hasattr(self.model, "imgsz"):
+        if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
 

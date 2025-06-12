@@ -12,13 +12,13 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO11](https://gi
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LGGxqLZtvuw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Ck7DW96dNok"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Workouts Monitoring using Ultralytics YOLO11 | Push-ups, Pull-ups, Ab Workouts
+  <strong>Watch:</strong> How to Monitor Workout Exercises with Ultralytics YOLO | Squats, Leg Extension, Pushups and More
 </p>
 
 ## Advantages of Workouts Monitoring

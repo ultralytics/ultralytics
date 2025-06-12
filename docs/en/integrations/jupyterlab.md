@@ -144,9 +144,10 @@ To train a YOLO11 model using JupyterLab:
 
     ```python
     import matplotlib
+
     from ultralytics.utils.plotting import plot_results
-   
-    matplotlib.use('inline')  # or 'notebook' for interactive
+
+    matplotlib.use("inline")  # or 'notebook' for interactive
     plot_results(results)
     ```
 

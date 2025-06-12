@@ -7,7 +7,7 @@ from typing import Dict, Optional, Union
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.plotting import plot_results
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
@@ -80,46 +80,6 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         self.loss_names = "box_loss", "seg_loss", "cls_loss", "dfl_loss"
         return yolo.segment.SegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
-        )
-
-    def plot_training_samples(self, batch: Dict, ni: int):
-        """
-        Plot training sample images with labels, bounding boxes, and masks.
-
-        This method creates a visualization of training batch images with their corresponding labels, bounding boxes,
-        and segmentation masks, saving the result to a file for inspection and debugging.
-
-        Args:
-            batch (dict): Dictionary containing batch data with the following keys:
-                'img': Images tensor
-                'batch_idx': Batch indices for each box
-                'cls': Class labels tensor (squeezed to remove last dimension)
-                'bboxes': Bounding box coordinates tensor
-                'masks': Segmentation masks tensor
-                'im_file': List of image file paths
-            ni (int): Current training iteration number, used for naming the output file.
-
-        Examples:
-            >>> trainer = SegmentationTrainer()
-            >>> batch = {
-            ...     "img": torch.rand(16, 3, 640, 640),
-            ...     "batch_idx": torch.zeros(16),
-            ...     "cls": torch.randint(0, 80, (16, 1)),
-            ...     "bboxes": torch.rand(16, 4),
-            ...     "masks": torch.rand(16, 640, 640),
-            ...     "im_file": ["image1.jpg", "image2.jpg"],
-            ... }
-            >>> trainer.plot_training_samples(batch, ni=5)
-        """
-        plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            masks=batch["masks"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"train_batch{ni}.jpg",
-            on_plot=self.on_plot,
         )
 
     def plot_metrics(self):

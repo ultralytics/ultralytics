@@ -1072,6 +1072,11 @@ class Ensemble(torch.nn.ModuleList):
         return y, None  # inference, train output
 
 
+class DetectionModel_MultiView(DetectionModel):
+    """Detection model for multi-view inputs."""
+
+    pass
+
 # Functions ------------------------------------------------------------------------------------------------------------
 
 

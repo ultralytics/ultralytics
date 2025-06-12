@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Tuple
 
 import numpy as np
 import torch
@@ -9,8 +9,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
-from ultralytics.utils.plotting import output_to_target, plot_images
+from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, kpt_iou
 
 
 class PoseValidator(DetectionValidator):
@@ -33,7 +32,6 @@ class PoseValidator(DetectionValidator):
         _prepare_batch: Prepare a batch for processing by converting keypoints to float and scaling to original
             dimensions.
         _prepare_pred: Prepare and scale keypoints in predictions for pose processing.
-        update_metrics: Update metrics with new predictions and ground truth data.
         _process_batch: Return correct prediction matrix by computing Intersection over Union (IoU) between
             detections and ground truth.
         plot_val_samples: Plot and save validation set samples with ground truth bounding boxes and keypoints.
@@ -77,7 +75,7 @@ class PoseValidator(DetectionValidator):
         self.sigma = None
         self.kpt_shape = None
         self.args.task = "pose"
-        self.metrics = PoseMetrics(save_dir=self.save_dir)
+        self.metrics = PoseMetrics()
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
                 "Apple MPS known Pose bug. Recommend 'device=cpu' for Pose models. "
@@ -118,7 +116,36 @@ class PoseValidator(DetectionValidator):
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
-        self.stats = dict(tp_p=[], tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
+
+    def postprocess(self, preds: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """
+        Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
+
+        This method extends the parent class postprocessing by extracting keypoints from the 'extra'
+        field of predictions and reshaping them according to the keypoint shape configuration.
+        The keypoints are reshaped from a flattened format to the proper dimensional structure
+        (typically [N, 17, 3] for COCO pose format).
+
+        Args:
+            preds (torch.Tensor): Raw prediction tensor from the YOLO pose model containing
+                bounding boxes, confidence scores, class predictions, and keypoint data.
+
+        Returns:
+            (Dict[torch.Tensor]): Dict of processed prediction dictionaries, each containing:
+                - 'bboxes': Bounding box coordinates
+                - 'conf': Confidence scores
+                - 'cls': Class predictions
+                - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
+
+        Note:
+            If no keypoints are present in a prediction (empty keypoints), that prediction
+            is skipped and continues to the next one. The keypoints are extracted from the
+            'extra' field which contains additional task-specific data beyond basic detection.
+        """
+        preds = super().postprocess(preds)
+        for pred in preds:
+            pred["keypoints"] = pred.pop("extra").reshape(-1, *self.kpt_shape)  # remove extra if exists
+        return preds
 
     def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -142,10 +169,10 @@ class PoseValidator(DetectionValidator):
         kpts[..., 0] *= w
         kpts[..., 1] *= h
         kpts = ops.scale_coords(pbatch["imgsz"], kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-        pbatch["kpts"] = kpts
+        pbatch["keypoints"] = kpts
         return pbatch
 
-    def _prepare_pred(self, pred: torch.Tensor, pbatch: Dict[str, Any]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _prepare_pred(self, pred: Dict[str, Any], pbatch: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare and scale keypoints in predictions for pose processing.
 
@@ -154,189 +181,59 @@ class PoseValidator(DetectionValidator):
         to match the original image dimensions.
 
         Args:
-            pred (torch.Tensor): Raw prediction tensor from the model.
+            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
             pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
                 - imgsz: Image size used for inference
                 - ori_shape: Original image shape
                 - ratio_pad: Ratio and padding information for coordinate scaling
 
         Returns:
-            predn (torch.Tensor): Processed prediction boxes scaled to original image dimensions.
-            pred_kpts (torch.Tensor): Predicted keypoints scaled to original image dimensions.
+            (Dict[str, Any]): Processed prediction dictionary with keypoints scaled to original image dimensions.
         """
         predn = super()._prepare_pred(pred, pbatch)
-        nk = pbatch["kpts"].shape[1]
-        pred_kpts = predn[:, 6:].view(len(predn), nk, -1)
-        ops.scale_coords(pbatch["imgsz"], pred_kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-        return predn, pred_kpts
+        predn["keypoints"] = ops.scale_coords(
+            pbatch["imgsz"], pred.get("keypoints").clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+        )
+        return predn
 
-    def update_metrics(self, preds: List[torch.Tensor], batch: Dict[str, Any]) -> None:
-        """
-        Update metrics with new predictions and ground truth data.
-
-        This method processes each prediction, compares it with ground truth, and updates various statistics
-        for performance evaluation.
-
-        Args:
-            preds (List[torch.Tensor]): List of prediction tensors from the model.
-            batch (Dict[str, Any]): Batch data containing images and ground truth annotations.
-        """
-        for si, pred in enumerate(preds):
-            self.seen += 1
-            npr = len(pred)
-            stat = dict(
-                conf=torch.zeros(0, device=self.device),
-                pred_cls=torch.zeros(0, device=self.device),
-                tp=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-                tp_p=torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device),
-            )
-            pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
-            nl = len(cls)
-            stat["target_cls"] = cls
-            stat["target_img"] = cls.unique()
-            if npr == 0:
-                if nl:
-                    for k in self.stats.keys():
-                        self.stats[k].append(stat[k])
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, gt_bboxes=bbox, gt_cls=cls)
-                continue
-
-            # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
-            predn, pred_kpts = self._prepare_pred(pred, pbatch)
-            stat["conf"] = predn[:, 4]
-            stat["pred_cls"] = predn[:, 5]
-
-            # Evaluate
-            if nl:
-                stat["tp"] = self._process_batch(predn, bbox, cls)
-                stat["tp_p"] = self._process_batch(predn, bbox, cls, pred_kpts, pbatch["kpts"])
-            if self.args.plots:
-                self.confusion_matrix.process_batch(predn, bbox, cls)
-
-            for k in self.stats.keys():
-                self.stats[k].append(stat[k])
-
-            # Save
-            if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si])
-            if self.args.save_txt:
-                self.save_one_txt(
-                    predn,
-                    pred_kpts,
-                    self.args.save_conf,
-                    pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
-                )
-
-    def _process_batch(
-        self,
-        detections: torch.Tensor,
-        gt_bboxes: torch.Tensor,
-        gt_cls: torch.Tensor,
-        pred_kpts: Optional[torch.Tensor] = None,
-        gt_kpts: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
         Args:
-            detections (torch.Tensor): Tensor with shape (N, 6) representing detection boxes and scores, where each
-                detection is of the format (x1, y1, x2, y2, conf, class).
-            gt_bboxes (torch.Tensor): Tensor with shape (M, 4) representing ground truth bounding boxes, where each
-                box is of the format (x1, y1, x2, y2).
-            gt_cls (torch.Tensor): Tensor with shape (M,) representing ground truth class indices.
-            pred_kpts (torch.Tensor, optional): Tensor with shape (N, 51) representing predicted keypoints, where
-                51 corresponds to 17 keypoints each having 3 values.
-            gt_kpts (torch.Tensor, optional): Tensor with shape (N, 51) representing ground truth keypoints.
+            preds (Dict[str, torch.Tensor]): Dictionary containing prediction data with keys 'cls' for class predictions
+                and 'keypoints' for keypoint predictions.
+            batch (Dict[str, Any]): Dictionary containing ground truth data with keys 'cls' for class labels,
+                'bboxes' for bounding boxes, and 'keypoints' for keypoint annotations.
 
         Returns:
-            (torch.Tensor): A tensor with shape (N, 10) representing the correct prediction matrix for 10 IoU levels,
-                where N is the number of detections.
+            (Dict[str, np.ndarray]): Dictionary containing the correct prediction matrix including 'tp_p' for pose
+                true positives across 10 IoU levels.
 
         Notes:
             `0.53` scale factor used in area computation is referenced from
             https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
         """
-        if pred_kpts is not None and gt_kpts is not None:
+        tp = super()._process_batch(preds, batch)
+        gt_cls = batch["cls"]
+        if len(gt_cls) == 0 or len(preds["cls"]) == 0:
+            tp_p = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
+        else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
-            area = ops.xyxy2xywh(gt_bboxes)[:, 2:].prod(1) * 0.53
-            iou = kpt_iou(gt_kpts, pred_kpts, sigma=self.sigma, area=area)
-        else:  # boxes
-            iou = box_iou(gt_bboxes, detections[:, :4])
+            area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53
+            iou = kpt_iou(batch["keypoints"], preds["keypoints"], sigma=self.sigma, area=area)
+            tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
+        tp.update({"tp_p": tp_p})  # update tp with kpts IoU
+        return tp
 
-        return self.match_predictions(detections[:, 5], gt_cls, iou)
-
-    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
-        """
-        Plot and save validation set samples with ground truth bounding boxes and keypoints.
-
-        Args:
-            batch (Dict[str, Any]): Dictionary containing batch data with keys:
-                - img (torch.Tensor): Batch of images
-                - batch_idx (torch.Tensor): Batch indices for each image
-                - cls (torch.Tensor): Class labels
-                - bboxes (torch.Tensor): Bounding box coordinates
-                - keypoints (torch.Tensor): Keypoint coordinates
-                - im_file (list): List of image file paths
-            ni (int): Batch index used for naming the output file
-        """
-        plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            kpts=batch["keypoints"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )
-
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
-        """
-        Plot and save model predictions with bounding boxes and keypoints.
-
-        Args:
-            batch (Dict[str, Any]): Dictionary containing batch data including images, file paths, and other metadata.
-            preds (List[torch.Tensor]): List of prediction tensors from the model, each containing bounding boxes,
-                confidence scores, class predictions, and keypoints.
-            ni (int): Batch index used for naming the output file.
-
-        The function extracts keypoints from predictions, converts predictions to target format, and plots them
-        on the input images. The resulting visualization is saved to the specified save directory.
-        """
-        pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape) for p in preds], 0)
-        plot_images(
-            batch["img"],
-            *output_to_target(preds, max_det=self.args.max_det),
-            kpts=pred_kpts,
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )  # pred
-
-    def save_one_txt(
-        self,
-        predn: torch.Tensor,
-        pred_kpts: torch.Tensor,
-        save_conf: bool,
-        shape: Tuple[int, int],
-        file: Path,
-    ) -> None:
+    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
         """
         Save YOLO pose detections to a text file in normalized coordinates.
 
         Args:
-            predn (torch.Tensor): Prediction boxes and scores with shape (N, 6) for (x1, y1, x2, y2, conf, cls).
-            pred_kpts (torch.Tensor): Predicted keypoints with shape (N, K, D) where K is the number of keypoints
-                and D is the dimension (typically 3 for x, y, visibility).
+            predn (Dict[str, torch.Tensor]): Dictionary containing predictions with keys 'bboxes', 'conf', 'cls' and 'keypoints.
             save_conf (bool): Whether to save confidence scores.
-            shape (tuple): Original image shape (height, width).
+            shape (Tuple[int, int]): Shape of the original image (height, width).
             file (Path): Output file path to save detections.
 
         Notes:
@@ -349,11 +246,11 @@ class PoseValidator(DetectionValidator):
             np.zeros((shape[0], shape[1]), dtype=np.uint8),
             path=None,
             names=self.names,
-            boxes=predn[:, :6],
-            keypoints=pred_kpts,
+            boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
+            keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: str) -> None:
         """
         Convert YOLO predictions to COCO JSON format.
 
@@ -361,10 +258,9 @@ class PoseValidator(DetectionValidator):
         to COCO format, and appends the results to the internal JSON dictionary (self.jdict).
 
         Args:
-            predn (torch.Tensor): Prediction tensor containing bounding boxes, confidence scores, class IDs,
-                and keypoints, with shape (N, 6+K) where N is the number of predictions and K is the flattened
-                keypoints dimension.
-            filename (str | Path): Path to the image file for which predictions are being processed.
+            predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls',
+                and 'keypoints' tensors.
+            filename (str): Path to the image file for which predictions are being processed.
 
         Notes:
             The method extracts the image ID from the filename stem (either as an integer if numeric, or as a string),
@@ -373,16 +269,21 @@ class PoseValidator(DetectionValidator):
         """
         stem = Path(filename).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn[:, :4])  # xywh
+        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for p, b in zip(predn.tolist(), box.tolist()):
+        for b, s, c, k in zip(
+            box.tolist(),
+            predn["conf"].tolist(),
+            predn["cls"].tolist(),
+            predn["keypoints"].flatten(1, 2).tolist(),
+        ):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "category_id": self.class_map[int(p[5])],
+                    "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
-                    "keypoints": p[6:],
-                    "score": round(p[4], 5),
+                    "keypoints": k,
+                    "score": round(s, 5),
                 }
             )
 

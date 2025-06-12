@@ -285,6 +285,7 @@ def test_results(model: str):
     temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
     for r in results:
+        assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)

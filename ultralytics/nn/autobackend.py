@@ -196,9 +196,9 @@ class AutoBackend(nn.Module):
 
         # In-memory PyTorch model
         if nn_module:
-            if fuse:
-                weights = weights.fuse(verbose=verbose)  # fuse before move to gpu
             model = weights.to(device)
+            if fuse:
+                model = model.fuse(verbose=verbose)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride

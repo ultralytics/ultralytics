@@ -205,7 +205,7 @@ class DataExportMixin:
         to_sql: Export results to an SQLite database.
 
     Examples:
-        >>> model = YOLO("yolov8n.pt")
+        >>> model = YOLO("yolo11n.pt")
         >>> results = model("image.jpg")
         >>> df = results.to_df()
         >>> print(df)
@@ -841,8 +841,7 @@ def is_docker() -> bool:
         (bool): True if the script is running inside a Docker container, False otherwise.
     """
     try:
-        with open("/proc/self/cgroup") as f:
-            return "docker" in f.read()
+        return os.path.exists("/.dockerenv")
     except Exception:
         return False
 

@@ -49,7 +49,6 @@ class BaseValidator:
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
         dataloader (DataLoader): Dataloader to use for validation.
-        pbar (tqdm): Progress bar to update during validation.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
@@ -83,7 +82,6 @@ class BaseValidator:
         update_metrics: Update metrics based on predictions and batch.
         finalize_metrics: Finalize and return all metrics.
         get_stats: Return statistics about the model's performance.
-        check_stats: Check statistics.
         print_results: Print the results of the model's predictions.
         get_desc: Get description of the YOLO model.
         on_plot: Register plots for visualization.
@@ -93,20 +91,18 @@ class BaseValidator:
         eval_json: Evaluate and return JSON format of prediction statistics.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
         Initialize a BaseValidator instance.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path, optional): Directory to save results.
-            pbar (tqdm.tqdm, optional): Progress bar for displaying progress.
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
         """
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
-        self.pbar = pbar
         self.stride = None
         self.data = None
         self.device = None
@@ -124,7 +120,7 @@ class BaseValidator:
         self.save_dir = save_dir or get_save_dir(self.args)
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
-            self.args.conf = 0.001  # default conf=0.001
+            self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
@@ -229,7 +225,6 @@ class BaseValidator:
 
             self.run_callbacks("on_val_batch_end")
         stats = self.get_stats()
-        self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
         self.finalize_metrics()
         self.print_results()
@@ -329,17 +324,13 @@ class BaseValidator:
         """Update metrics based on predictions and batch."""
         pass
 
-    def finalize_metrics(self, *args, **kwargs):
+    def finalize_metrics(self):
         """Finalize and return all metrics."""
         pass
 
     def get_stats(self):
         """Return statistics about the model's performance."""
         return {}
-
-    def check_stats(self, stats):
-        """Check statistics."""
-        pass
 
     def print_results(self):
         """Print the results of the model's predictions."""

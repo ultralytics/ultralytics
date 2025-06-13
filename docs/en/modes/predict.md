@@ -509,7 +509,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
     **Note**: Both devices must be on the same network (e.g., Wi-Fi or LAN) for this to work.
 
-    === "Step-1: Start Server(Receiver device code)"
+    === "Step-1: Start Server (Receiver device code)"
 
         ```python
         from ultralytics.data.utils import receive_from_peer
@@ -518,7 +518,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
         results = receive_from_peer(host="0.0.0.0", port=12345)
         ```
 
-    === "Step-2: Send Data(Sender device code)"
+    === "Step-2: Send Data (Sender device code)"
 
         ```python
         from ultralytics import YOLO

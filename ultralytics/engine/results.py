@@ -5,6 +5,8 @@ Ultralytics Results, Boxes and Masks classes for handling inference results.
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
 
+import json
+import socket
 from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
@@ -12,8 +14,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
-import socket
-import json
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops

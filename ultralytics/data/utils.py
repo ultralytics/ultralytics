@@ -824,10 +824,8 @@ def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
     try:
         while True:
             conn, addr = s.accept()  # Accept a new client connection
-            print(f"🔗 Connected by {addr}")
-
-            # Read incoming data in chunks until the connection live.
-            data = b"".join(iter(lambda: conn.recv(4096), b""))
+            LOGGER.info(f"✅ Connected by {addr}")
+            data = b"".join(iter(lambda: conn.recv(4096), b""))  # Read incoming data in chunks.
             conn.close()
             result = json.loads(data.decode('utf-8'))
             results.append(result)

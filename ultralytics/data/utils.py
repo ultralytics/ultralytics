@@ -834,7 +834,6 @@ def receive_from_peer(host="127.0.0.1", port=12345) -> List[dict]:
 
     except KeyboardInterrupt:  # Shutdown on Ctrl+C
         LOGGER.info("\nServer stopped by user.")
-
         s.close()  # Always close the socket on exit
         LOGGER.info(f"Total results received: {len(results)}")
         return results

@@ -812,8 +812,6 @@ def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
 
     Notes:
         - The server runs indefinitely until interrupted (Ctrl+C).
-        - Each connection should send one complete JSON payload.
-        - Received results are printed and stored in memory for later use.
     """
     import socket
     import json

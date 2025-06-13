@@ -503,8 +503,8 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 !!! tip "Live Result Streaming via Sockets"
 
-    You can now stream inference results from `predict` or `track` modes directly to another machine over TCP using 
-    the methods `send_to_peer()` and `receive_from_peer()`. This enables real-time result sharing between distributed 
+    You can now stream inference results from `predict` or `track` modes directly to another machine over TCP using
+    the methods `send_to_peer()` and `receive_from_peer()`. This enables real-time result sharing between distributed
     systems, which is perfect for multi-device pipelines, remote logging, or cloud dashboards.
 
     **Note**: Both devices must be on the same network (e.g., Wi-Fi or LAN) for this to work.
@@ -532,28 +532,28 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
             result.send_to_peer(ip="receiver_ip_address", port=12345)
         ```
 
-| Method        | Return Type  | Description                                                                               |
-| ------------- | ------------ |-------------------------------------------------------------------------------------------|
-| `update()`    | `None`       | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
-| `cpu()`       | `Results`    | Returns a copy of the Results object with all tensors moved to CPU memory.                |
-| `numpy()`     | `Results`    | Returns a copy of the Results object with all tensors converted to numpy arrays.          |
-| `cuda()`      | `Results`    | Returns a copy of the Results object with all tensors moved to GPU memory.                |
-| `to()`        | `Results`    | Returns a copy of the Results object with tensors moved to specified device and dtype.    |
-| `new()`       | `Results`    | Creates a new Results object with the same image, path, names, and speed attributes.      |
-| `plot()`      | `np.ndarray` | Plots detection results on an input RGB image and returns the annotated image.            |
-| `show()`      | `None`       | Displays the image with annotated inference results.                                      |
-| `save()`      | `str`        | Saves annotated inference results image to file and returns the filename.                 |
-| `verbose()`   | `str`        | Returns a log string for each task, detailing detection and classification outcomes.      |
-| `save_txt()`  | `str`        | Saves detection results to a text file and returns the path to the saved file.            |
-| `save_crop()` | `None`       | Saves cropped detection images to specified directory.                                    |
-| `summary()`   | `List[Dict]` | Converts inference results to a summarized dictionary with optional normalization.        |
-| `to_df()`     | `DataFrame`  | Converts detection results to a Pandas DataFrame.                                         |
-| `to_csv()`    | `str`        | Converts detection results to CSV format.                                                 |
-| `to_xml()`    | `str`        | Converts detection results to XML format.                                                 |
-| `to_html()`   | `str`        | Converts detection results to HTML format.                                                |
-| `to_json()`   | `str`        | Converts detection results to JSON format.                                                |
-| `to_sql()`    | `None`       | Converts detection results to SQL-compatible format and saves to database.                |
-| `send_to_peer()`| `None`      | Sends the results as a JSON payload to a remote peer over TCP using a socket.             |
+| Method           | Return Type  | Description                                                                               |
+| ---------------- | ------------ | ----------------------------------------------------------------------------------------- |
+| `update()`       | `None`       | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
+| `cpu()`          | `Results`    | Returns a copy of the Results object with all tensors moved to CPU memory.                |
+| `numpy()`        | `Results`    | Returns a copy of the Results object with all tensors converted to numpy arrays.          |
+| `cuda()`         | `Results`    | Returns a copy of the Results object with all tensors moved to GPU memory.                |
+| `to()`           | `Results`    | Returns a copy of the Results object with tensors moved to specified device and dtype.    |
+| `new()`          | `Results`    | Creates a new Results object with the same image, path, names, and speed attributes.      |
+| `plot()`         | `np.ndarray` | Plots detection results on an input RGB image and returns the annotated image.            |
+| `show()`         | `None`       | Displays the image with annotated inference results.                                      |
+| `save()`         | `str`        | Saves annotated inference results image to file and returns the filename.                 |
+| `verbose()`      | `str`        | Returns a log string for each task, detailing detection and classification outcomes.      |
+| `save_txt()`     | `str`        | Saves detection results to a text file and returns the path to the saved file.            |
+| `save_crop()`    | `None`       | Saves cropped detection images to specified directory.                                    |
+| `summary()`      | `List[Dict]` | Converts inference results to a summarized dictionary with optional normalization.        |
+| `to_df()`        | `DataFrame`  | Converts detection results to a Pandas DataFrame.                                         |
+| `to_csv()`       | `str`        | Converts detection results to CSV format.                                                 |
+| `to_xml()`       | `str`        | Converts detection results to XML format.                                                 |
+| `to_html()`      | `str`        | Converts detection results to HTML format.                                                |
+| `to_json()`      | `str`        | Converts detection results to JSON format.                                                |
+| `to_sql()`       | `None`       | Converts detection results to SQL-compatible format and saves to database.                |
+| `send_to_peer()` | `None`       | Sends the results as a JSON payload to a remote peer over TCP using a socket.             |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 

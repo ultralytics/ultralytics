@@ -812,7 +812,6 @@ def receive_from_peer(host="0.0.0.0", port=12345) -> List[dict]:
     Notes:
         - The server runs indefinitely until interrupted (Ctrl+C).
     """
-    import json
     import socket
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a TCP socket (IPv4)

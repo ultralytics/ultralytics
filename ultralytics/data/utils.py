@@ -803,8 +803,7 @@ def receive_from_peer(host="127.0.0.1", port=12345) -> List[dict]:
     inference results (e.g., from `Results.summary()`).
 
     Args:
-        host (str): IP address to bind the server to. Defaults to '127.0.0.1' (local interface only) for security.
-              Use '0.0.0.0' to bind to all interfaces (e.g., for macOS or Linux), but note the associated security risks.
+        host (str): IP address to bind the server to. Defaults to '127.0.0.1'. Use '0.0.0.0' for macOS or Linux.
         port (int): Port number to listen on. Must match the sender's port. By default, it is set to 12345.
 
     Returns:

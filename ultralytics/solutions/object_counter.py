@@ -131,7 +131,8 @@ class ObjectCounter(BaseSolution):
         """
         labels_dict = {
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
-            f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip() or "0"
+            f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip()
+            or "0"
             for key, value in self.classwise_counts.items()
             if value["IN"] != 0 or value["OUT"] != 0
         }

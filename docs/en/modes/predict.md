@@ -507,7 +507,8 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     `receive_from_peer()`. This enables real-time result sharing between distributed systems, which is perfect for
     multi-device pipelines, remote logging, or cloud dashboards.
 
-    **Note**: Both devices must be on the same network (e.g., Wi-Fi or LAN) for this to work.
+    **Note**: Both devices must be on the same network (e.g., Wi-Fi or LAN) for this to work. you can use `ifconfig` or
+    `ipconfig` to find the IP address of your device.
 
     === "Step-1: Start Server (Receiver device code)"
 

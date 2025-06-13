@@ -818,7 +818,7 @@ def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a TCP socket (IPv4)
     s.bind((host, port))  # Bind the socket to the specified host and port
     s.listen(1)  # Start listening for incoming connections (1 at a time)
-    print(f"🟢 Listening on {host}:{port}... (Press Ctrl+C to stop)\n")
+    LOGGER.info(f"Listening on {host}:{port}... (Press Ctrl+C to stop)\n")
 
     results = []  # Store all received result summaries
     try:
@@ -831,10 +831,11 @@ def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
             conn.close()
             result = json.loads(data.decode('utf-8'))
             results.append(result)
-            print(f"✅ Received: {result}\n")
+            LOGGER.info(f"Received: {result}\n")
 
     except KeyboardInterrupt:  # Shutdown on Ctrl+C
-        print("\n🛑 Server stopped by user.")
+        LOGGER.info("\nServer stopped by user.")
+
         s.close()  # Always close the socket on exit
-        print(f"📦 Total results received: {len(results)}")
+        LOGGER.info(f"Total results received: {len(results)}")
         return results

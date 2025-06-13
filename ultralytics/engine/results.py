@@ -806,7 +806,7 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             >>>     result.send_to_peer(ip="abc.ab.a.c", port=12345)  # IPV4 address and port of the receiver
         """
-        payload = json.dumps(self.summary()).encode('utf-8')  # Serialize results summary dict to JSON and encode it.
+        payload = json.dumps(self.summary()).encode("utf-8")  # Serialize results summary dict to JSON and encode it.
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a TCP socket using IPv4
         s.connect((ip, port))  # Connect to the receiver's IP and port
         s.sendall(payload)  # Send the serialized payload over the connection

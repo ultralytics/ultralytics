@@ -502,18 +502,18 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 `Results` objects have the following methods:
 
     !!! Tip: Live Result Streaming via Sockets
-    
-        You can now stream inference results (from `predict` or `track` modes) directly to another machine over TCP using 
-        the `send_to_peer()` and `receive_from_peer()` methods. This enables real-time result sharing between distributed 
-        systems — perfect for multi-device pipelines, remote logging, or cloud dashboards. 
-    
+
+        You can now stream inference results (from `predict` or `track` modes) directly to another machine over TCP using
+        the `send_to_peer()` and `receive_from_peer()` methods. This enables real-time result sharing between distributed
+        systems — perfect for multi-device pipelines, remote logging, or cloud dashboards.
+
         Note: Both devices must be on the same network (e.g., Wi-Fi or LAN) for this to work.
 
         === example "Sender device code"
 
             ```python
             from ultralytics import YOLO
-            
+
             model = YOLO("yolo11n.pt")
 
             # Run inference and send results to peer device

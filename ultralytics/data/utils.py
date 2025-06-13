@@ -797,7 +797,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")
 
 
-def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
+def receive_from_peer(host="0.0.0.0", port=12345) -> List[dict]:
     """
     Continuously listens on the specified IP and port, accepting incoming socket connections and reading JSON-encoded
     inference results (e.g., from `Results.summary()`).
@@ -827,7 +827,7 @@ def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
             LOGGER.info(f"✅ Connected by {addr}")
             data = b"".join(iter(lambda: conn.recv(4096), b""))  # Read incoming data in chunks.
             conn.close()
-            result = json.loads(data.decode('utf-8'))
+            result = json.loads(data.decode("utf-8"))
             results.append(result)
             LOGGER.info(f"Received: {result}\n")
 

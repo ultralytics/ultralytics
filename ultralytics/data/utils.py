@@ -795,3 +795,45 @@ def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")
+
+
+def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
+    """
+    Continuously listens on the specified IP and port, accepting incoming socket connections and reading JSON-encoded
+    inference results (e.g., from `Results.summary()`).
+
+    Args:
+        host (str): IP address to bind the server to. Use '0.0.0.0' for macOS or Linux and `127.0.0.1` for Windows.
+        port (int): Port number to listen on. Must match the sender's port. By default, it is set to 12345.
+
+    Returns:
+        List[dict]: A list of received result summaries (parsed JSON dicts).
+
+    Notes:
+        - The server runs indefinitely until interrupted (Ctrl+C).
+    """
+    import socket
+    import json
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a TCP socket (IPv4)
+    s.bind((host, port))  # Bind the socket to the specified host and port
+    s.listen(1)  # Start listening for incoming connections (1 at a time)
+    LOGGER.info(f"Listening on {host}:{port}... (Press Ctrl+C to stop)\n")
+
+    results = []  # Store all received result summaries
+    try:
+        while True:
+            conn, addr = s.accept()  # Accept a new client connection
+            LOGGER.info(f"✅ Connected by {addr}")
+            data = b"".join(iter(lambda: conn.recv(4096), b""))  # Read incoming data in chunks.
+            conn.close()
+            result = json.loads(data.decode('utf-8'))
+            results.append(result)
+            LOGGER.info(f"Received: {result}\n")
+
+    except KeyboardInterrupt:  # Shutdown on Ctrl+C
+        LOGGER.info("\nServer stopped by user.")
+
+        s.close()  # Always close the socket on exit
+        LOGGER.info(f"Total results received: {len(results)}")
+        return results

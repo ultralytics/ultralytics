@@ -12,6 +12,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+import socket
+import json
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
@@ -786,6 +788,29 @@ class Results(SimpleClass, DataExportMixin):
                 file=Path(save_dir) / self.names[int(d.cls)] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,
             )
+
+    def send_to_peer(self, ip: str, port: int = 12345) -> None:
+        """
+        Serializes the detection results summary into JSON, encodes it and transmits it to remote host via TCP socket.
+        It is useful for distributed inference systems where results need to be streamed to server or another PC.
+
+        Args:
+            ip (str): The IPv4 address of the receiving peer (e.g., "abc.ab.a.c").
+            port (int, optional): The port number on which the receiver is listening. Defaults to 12345.
+
+        Notes:
+            - This method uses IPv4 and requires the receiver to be actively listening on the specified port.
+
+        Examples:
+            >>> results = model.predict("Path/to/image.jpg")
+            >>> for result in results:
+            >>>     result.send_to_peer(ip="abc.ab.a.c", port=12345)  # IPV4 address and port of the receiver
+        """
+        payload = json.dumps(self.summary()).encode('utf-8')  # Serialize results summary dict to JSON and encode it.
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a TCP socket using IPv4
+        s.connect((ip, port))  # Connect to the receiver's IP and port
+        s.sendall(payload)  # Send the serialized payload over the connection
+        s.close()  # Close the socket connection
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> List[Dict[str, Any]]:
         """

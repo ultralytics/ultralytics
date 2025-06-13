@@ -514,7 +514,6 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
         ```python
         from ultralytics.data.utils import receive_from_peer
 
-        # host will be "0.0.0.0" for macOS and Linux, "localhost" or "127.0.0.1" for Windows
         results = receive_from_peer(host="0.0.0.0", port=12345)
         ```
 

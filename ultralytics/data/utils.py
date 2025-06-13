@@ -797,13 +797,13 @@ def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")
 
 
-def receive_from_peer(host="127.0.0.1", port=12345) -> List[dict]:
+def receive_from_peer(host="0.0.0.0", port=12345) -> List[dict]:
     """
     Continuously listens on the specified IP and port, accepting incoming socket connections and reading JSON-encoded
     inference results (e.g., from `Results.summary()`).
 
     Args:
-        host (str): IP address to bind the server to. Defaults to '127.0.0.1'. Use '0.0.0.0' for macOS or Linux.
+        host (str): IP address to bind the server to. Defaults to '0.0.0.0'.
         port (int): Port number to listen on. Must match the sender's port. By default, it is set to 12345.
 
     Returns:

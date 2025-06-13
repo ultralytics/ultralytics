@@ -799,9 +799,8 @@ def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
 
 def receive_from_peer(host='0.0.0.0', port=12345) -> List[dict]:
     """
-    Server function listens indefinitely on the specified IP and port, accepts incoming socket connections, and reads
-    JSON-encoded payloads sent by remote peers. Each payload is expected to be a JSON string representing an inference
-    result (e.g. `Results.summary()`).
+    Continuously listens on the specified IP and port, accepting incoming socket connections and reading JSON-encoded
+    inference results (e.g., from `Results.summary()`).
 
     Args:
         host (str): IP address to bind the server to. Use '0.0.0.0' for macOS or Linux and `127.0.0.1` for Windows.

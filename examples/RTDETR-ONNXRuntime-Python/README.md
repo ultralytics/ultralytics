@@ -23,6 +23,7 @@ pip install onnxruntime-gpu
 # or you can install requirements-gpu.txt
 pip install -r requirements-gpu.txt
 ```
+
 ## 🚀 Usage
 
 Once the dependencies are installed, you can run inference using the `main.py` script.

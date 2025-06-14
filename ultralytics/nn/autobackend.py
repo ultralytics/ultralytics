@@ -269,7 +269,6 @@ class AutoBackend(nn.Module):
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
                 session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
-                task = "detect"
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
@@ -664,8 +663,12 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
             if self.imx:
-                # boxes, conf, cls
-                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                if self.task == "detect":
+                    # boxes, conf, cls
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                elif self.task == "pose":
+                    # boxes, conf, kpts
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1)
 
         # OpenVINO
         elif self.xml:

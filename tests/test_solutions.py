@@ -4,7 +4,7 @@
 # including every solution excluding DistanceCalculation and Security Alarm System.
 
 import os
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import cv2
 import numpy as np
@@ -12,6 +12,7 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
+from ultralytics.solutions.solutions import SolutionResults
 from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, checks
 from ultralytics.utils.downloads import safe_download
 
@@ -323,8 +324,6 @@ def test_similarity_search_complete(tmp_path):
 
 def test_distance_calculation_process_method():
     """Test DistanceCalculation.process() computes distance between selected boxes."""
-    from ultralytics.solutions.solutions import SolutionResults
-
     dc = solutions.DistanceCalculation()
     dc.boxes, dc.track_ids, dc.clss, dc.confs = (
         [[100, 100, 200, 200], [300, 300, 400, 400]],
@@ -358,3 +357,56 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@patch("ultralytics.utils.LOGGER.error")
+@patch("email.mime.image.MIMEImage")
+@patch("smtplib.SMTP")
+def test_security_alarm_all(mock_smtp, mock_mime_image, mock_logger):
+    """Test security alarm system solution."""
+    dummy_frame = np.ones((100, 100, 3), dtype=np.uint8)  # Setup dummy frame
+    cv2.imencode = lambda ext, img: [True, Mock(tobytes=lambda: b"\xff\xd8\xff\xe0" + b"\x00" * 100)]  # Patch imencode
+    mock_mime_image.return_value = Mock()
+
+    # Authenticate test
+    mock_server = mock_smtp.return_value
+    alarm = solutions.SecurityAlarm()
+    alarm.authenticate("sender@example.com", "12345", "receiver@example.com")
+
+    mock_smtp.assert_called_with("smtp.gmail.com: 587")
+    mock_server.starttls.assert_called_once()
+    mock_server.login.assert_called_with("sender@example.com", "12345")
+    assert alarm.from_email == "sender@example.com"
+    assert alarm.to_email == "receiver@example.com"
+    assert alarm.server is mock_server
+
+    # Email success
+    alarm.server = Mock()
+    alarm.send_email(dummy_frame, records=5)
+    assert alarm.server.send_message.called
+    mock_mime_image.assert_called_once()
+
+    # Email failure
+    alarm.server = Mock()
+    alarm.server.send_message.side_effect = Exception("SMTP Failure")
+    alarm.send_email(dummy_frame, records=2)
+    assert alarm.server.send_message.called
+    assert mock_logger.called
+
+    # Process
+    alarm.email_sent = False
+    alarm.records = 2
+    alarm.boxes = [np.array([1, 1, 50, 50]), np.array([10, 10, 40, 40])]
+    alarm.clss = [0, 1]
+    alarm.track_ids = [1, 2]
+    alarm.names = {0: "person", 1: "car"}
+
+    # Patch internal methods
+    solutions.SecurityAlarm.extract_tracks = lambda self, x: None
+    solutions.SecurityAlarm.send_email = lambda self, im0, records: setattr(self, "email_sent", True)
+    solutions.SecurityAlarm.display_output = lambda self, x: None
+    result = alarm.process(dummy_frame)
+    assert isinstance(result, SolutionResults)
+    assert result.total_tracks == 2
+    assert result.email_sent is True
+    assert result.plot_im.shape == dummy_frame.shape

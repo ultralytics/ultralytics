@@ -804,6 +804,7 @@ class Metric(SimpleClass):
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
+        self.size_specific_metrics = [0.0, 0.0, 0.0]  # [map_small, map_medium, map_large]
 
     @property
     def ap50(self) -> Union[np.ndarray, List]:
@@ -864,6 +865,47 @@ class Metric(SimpleClass):
             (float): The mAP at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
+
+    @property
+    def map_small(self) -> float:
+        """
+        Return the mean Average Precision (mAP) for small objects at IoU threshold of 0.5-0.95.
+
+        Returns:
+            (float): The mAP for small objects, or 0.0 if not available.
+        """
+        return self.size_specific_metrics[0]
+
+    @property
+    def map_medium(self) -> float:
+        """
+        Return the mean Average Precision (mAP) for medium objects at IoU threshold of 0.5-0.95.
+
+        Returns:
+            (float): The mAP for medium objects, or 0.0 if not available.
+        """
+        return self.size_specific_metrics[1]
+
+    @property
+    def map_large(self) -> float:
+        """
+        Return the mean Average Precision (mAP) for large objects at IoU threshold of 0.5-0.95.
+
+        Returns:
+            (float): The mAP for large objects, or 0.0 if not available.
+        """
+        return self.size_specific_metrics[2]
+
+    def update_size_metrics(self, map_small: float, map_medium: float, map_large: float) -> None:
+        """
+        Update size-specific mAP metrics.
+
+        Args:
+            map_small (float): mAP for small objects.
+            map_medium (float): mAP for medium objects.
+            map_large (float): mAP for large objects.
+        """
+        self.size_specific_metrics = [map_small, map_medium, map_large]
 
     @property
     def map(self) -> float:

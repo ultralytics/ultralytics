@@ -49,7 +49,13 @@ class RegionCounter(BaseSolution):
         self.region_counts = {}
         self.counting_regions = []
 
-    def add_region(self, name: str, polygon_points: List[Tuple], region_color: Tuple[int, int, int], text_color: Tuple[int, int, int]) -> None:
+    def add_region(
+        self,
+        name: str,
+        polygon_points: List[Tuple],
+        region_color: Tuple[int, int, int],
+        text_color: Tuple[int, int, int],
+    ) -> None:
         """
         Add a new region to the counting list based on the provided template with specific attributes.
 

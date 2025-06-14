@@ -241,7 +241,7 @@ class BaseSolution:
     def process(self, *args: Any, **kwargs: Any):
         """Process method should be implemented by each Solution subclass."""
 
-    def __call__(self, *args: Any, **kwargs: Any) -> SolutionResults:
+    def __call__(self, *args: Any, **kwargs: Any):
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method

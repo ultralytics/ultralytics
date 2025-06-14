@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 from typing import Any, List
+from line_profiler_pycharm import profile
 
 from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
@@ -49,6 +50,7 @@ class Heatmap(ObjectCounter):
         self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
+    @profile
     def heatmap_effect(self, box: List[float]) -> None:
         """
         Efficiently calculate heatmap area and effect location for applying colormap.
@@ -68,8 +70,8 @@ class Heatmap(ObjectCounter):
         # Create a mask of points within the radius
         within_radius = dist_squared <= radius_squared
 
-        # Apply Gaussian-like weighting and update values within the bounding box in a single vectorized operation
-        self.heatmap[y0:y1, x0:x1][within_radius] += np.exp(-dist_squared / radius_squared)
+        # Update only the values within the bounding box in a single vectorized operation
+        self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """

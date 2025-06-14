@@ -630,6 +630,7 @@ nav:
           - tasks: reference/nn/tasks.md
           - text_model: reference/nn/text_model.md
       - solutions:
+          - __init__: reference/solutions/__init__.md
           - ai_gym: reference/solutions/ai_gym.md
           - analytics: reference/solutions/analytics.md
           - config: reference/solutions/config.md

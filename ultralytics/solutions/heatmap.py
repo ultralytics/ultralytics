@@ -3,7 +3,6 @@
 import cv2
 import numpy as np
 from typing import Any, List
-from line_profiler_pycharm import profile
 
 from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
@@ -50,7 +49,6 @@ class Heatmap(ObjectCounter):
         self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
-    @profile
     def heatmap_effect(self, box: List[float]) -> None:
         """
         Efficiently calculate heatmap area and effect location for applying colormap.

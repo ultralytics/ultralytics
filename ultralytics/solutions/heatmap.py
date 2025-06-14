@@ -2,6 +2,7 @@
 
 import cv2
 import numpy as np
+from typing import Any, List
 
 from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
@@ -31,7 +32,7 @@ class Heatmap(ObjectCounter):
         >>> processed_frame = heatmap.process(frame)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the Heatmap class for real-time video stream heatmap generation based on object tracks.
 
@@ -48,7 +49,7 @@ class Heatmap(ObjectCounter):
         self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
-    def heatmap_effect(self, box):
+    def heatmap_effect(self, box: List[float]) -> None:
         """
         Efficiently calculate heatmap area and effect location for applying colormap.
 
@@ -67,10 +68,10 @@ class Heatmap(ObjectCounter):
         # Create a mask of points within the radius
         within_radius = dist_squared <= radius_squared
 
-        # Update only the values within the bounding box in a single vectorized operation
-        self.heatmap[y0:y1, x0:x1][within_radius] += 2
+        # Apply Gaussian-like weighting and update values within the bounding box in a single vectorized operation
+        self.heatmap[y0:y1, x0:x1][within_radius] += np.exp(-dist_squared / radius_squared)
 
-    def process(self, im0):
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """
         Generate heatmap for each frame using Ultralytics tracking.
 

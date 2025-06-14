@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.engine.results import Results
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 
@@ -33,7 +35,7 @@ class InstanceSegmentation(BaseSolution):
         >>> print(f"Total segmented instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
@@ -48,7 +50,7 @@ class InstanceSegmentation(BaseSolution):
         self.show_labels = self.CFG.get("show_labels", True)
         self.show_boxes = self.CFG.get("show_boxes", True)
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Perform instance segmentation on the input image and annotate the results.
 

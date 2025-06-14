@@ -424,7 +424,7 @@ class SolutionAnnotator(Annotator):
             text_y_offset = rect_y2
 
     @staticmethod
-    @lru_cache(maxsize=512)
+    @lru_cache(maxsize=256)
     def estimate_pose_angle(a: List[float], b: List[float], c: List[float]) -> float:
         """
         Calculate the angle between three points for workout monitoring.

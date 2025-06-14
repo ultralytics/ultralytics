@@ -10,6 +10,17 @@ keywords: CLIP, FAISS, Flask, semantic search, image retrieval, OpenAI, Ultralyt
 
 This guide walks you through building a **semantic image search** engine using [OpenAI CLIP](https://openai.com/blog/clip), [Meta FAISS](https://github.com/facebookresearch/faiss), and [Flask](https://flask.palletsprojects.com/). By combining CLIP's powerful visual-language embeddings with FAISS's efficient nearest-neighbor search, you can create a fully functional web interface where you can retrieve relevant images using natural language queries.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zplKRlX3sLg"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How Similarity Search Works | Visual Search Using OpenAI CLIP, META FAISS and Ultralytics Package 🎉
+</p>
+
 ## Semantic Image Search Visual Preview
 
 ![Flask webpage with semantic search results overview](https://github.com/ultralytics/docs/releases/download/0/flask-ui.avif)

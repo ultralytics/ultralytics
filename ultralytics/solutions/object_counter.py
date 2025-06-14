@@ -138,6 +138,28 @@ class ObjectCounter(BaseSolution):
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
+    def process_track(self, box, track_id, cls, conf=None):
+        """
+        Draw the bounding box for the detected object, updates the object's track history, determines motion direction
+        based on the previous position, and updates classwise object counts (IN/OUT) based on region crossing logic.
+
+        Args:
+            box (List[float]): Bounding box coordinates [x0, y0, x1, y1] for the tracked object.
+            track_id (int): Unique identifier assigned to the tracked object.
+            cls (int): Integer class index representing the object category.
+            conf (float, optional): Confidence score (ignored in heatmap).
+        """
+        if conf is not None:  # Draw bounding box and counting region
+            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
+
+        self.store_tracking_history(track_id, box)  # Store track history
+
+        # Store previous position of track for object counting
+        prev_position = None
+        if len(self.track_history[track_id]) > 1:
+            prev_position = self.track_history[track_id][-2]
+        self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
+
     def process(self, im0):
         """
         Process input data (frames or object tracks) and update object counts.
@@ -171,15 +193,7 @@ class ObjectCounter(BaseSolution):
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-            # Draw bounding box and counting region
-            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
-            self.store_tracking_history(track_id, box)  # Store track history
-
-            # Store previous position of track for object counting
-            prev_position = None
-            if len(self.track_history[track_id]) > 1:
-                prev_position = self.track_history[track_id][-2]
-            self.count_objects(self.track_history[track_id][-1], track_id, prev_position, cls)  # object counting
+            self.process_track(box, track_id, cls, conf)  # Process each track
 
         plot_im = self.annotator.result()
         self.display_counts(plot_im)  # Display the counts on the frame

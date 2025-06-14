@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from typing import Any
+
 from ultralytics.engine.results import Results
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 

@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import List, Any
+from typing import Any, List
 
 import numpy as np
 import torch

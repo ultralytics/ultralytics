@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple, Any
+from typing import Any, List, Optional, Tuple
 
 import cv2
 

@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, List
+
 import cv2
 import numpy as np
-from typing import Any, List
 
 from ultralytics.solutions.object_counter import ObjectCounter
 from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults

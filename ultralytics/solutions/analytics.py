@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from itertools import cycle
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 import cv2
 import numpy as np

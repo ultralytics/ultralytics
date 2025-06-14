@@ -2,6 +2,10 @@
 comments: true
 description: Explore the Caltech-256 dataset, featuring 30,000 images across 257 categories, ideal for training and testing object recognition algorithms.
 keywords: Caltech-256 dataset, object classification, image dataset, machine learning, computer vision, deep learning, YOLO, training dataset
+model_name: yolo11n-cls.pt
+dataset: caltech256
+task: classify
+imgsz: 416
 ---
 
 # Caltech-256 Dataset
@@ -43,26 +47,7 @@ The Caltech-256 dataset is extensively used for training and evaluating [deep le
 
 To train a YOLO model on the Caltech-256 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="caltech256", epochs=100, imgsz=416)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=caltech256 model=yolo11n-cls.pt epochs=100 imgsz=416
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -100,26 +85,7 @@ The [Caltech-256](https://data.caltech.edu/records/nyy15-4j048) dataset is a lar
 
 To train a YOLO model on the Caltech-256 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch), you can use the following code snippets. Refer to the model [Training](../../modes/train.md) page for additional options.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model
-
-        # Train the model
-        results = model.train(data="caltech256", epochs=100, imgsz=416)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=caltech256 model=yolo11n-cls.pt epochs=100 imgsz=416
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ### What are the most common use cases for the Caltech-256 dataset?
 

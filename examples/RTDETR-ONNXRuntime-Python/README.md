@@ -8,10 +8,10 @@ To get started, you'll need to install the necessary dependencies. Follow the st
 
 ### Installing Required Dependencies
 
-Install the core requirements using [pip](https://pip.pypa.io/en/stable/) and the provided `requirements.txt` file:
+Install the core requirements-cpu using [pip](https://pip.pypa.io/en/stable/) and the provided `requirements-cpu.txt` file this will install CPU-based inference, install the standard **`onnxruntime`** package. This version utilizes CPU resources for model execution. See the [ONNX Runtime Execution Providers documentation](https://onnxruntime.ai/docs/execution-providers/) for more information on different execution options.
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-cpu.txt
 ```
 
 ### Installing `onnxruntime-gpu` (Optional)
@@ -20,16 +20,9 @@ For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`**
 
 ```bash
 pip install onnxruntime-gpu
+# or you can install requirements-gpu.txt
+pip install -r requirements-gpu.txt
 ```
-
-### Installing `onnxruntime` (CPU)
-
-If you don't have a compatible GPU or prefer CPU-based inference, install the standard **`onnxruntime`** package. This version utilizes CPU resources for model execution. See the [ONNX Runtime Execution Providers documentation](https://onnxruntime.ai/docs/execution-providers/) for more information on different execution options.
-
-```bash
-pip install onnxruntime
-```
-
 ## 🚀 Usage
 
 Once the dependencies are installed, you can run inference using the `main.py` script.

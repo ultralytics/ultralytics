@@ -994,7 +994,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = {k: (torch.cat(v, 0) if v else torch.empty(0)).cpu().numpy() for k, v in self.stats.items()}
+        stats = {k: np.concatenate(v, 0) if v else np.empty(0) for k, v in self.stats.items()}
         self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
         self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
         if len(stats) == 0 or len(stats["tp"]) == 0:

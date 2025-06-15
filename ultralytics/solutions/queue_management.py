@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -35,7 +37,7 @@ class QueueManager(BaseSolution):
         >>>     results = queue_manager.process(im0)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the QueueManager with parameters for tracking and counting objects in a video stream."""
         super().__init__(**kwargs)
         self.initialize_region()
@@ -43,7 +45,7 @@ class QueueManager(BaseSolution):
         self.rect_color = (255, 255, 255)  # Rectangle color for visualization
         self.region_length = len(self.region)  # Store region length for further usage
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Process queue management for a single frame of video.
 

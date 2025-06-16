@@ -11,7 +11,6 @@ import requests
 import yaml
 
 
-
 def download_file(url: str, local_path: str) -> str:
     """
     Download a file from a URL to a local path.

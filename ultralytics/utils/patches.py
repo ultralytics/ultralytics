@@ -41,7 +41,8 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
 
 
 def imread_unicode(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:
-    """Read an image from a file.
+    """
+    Read an image from a file.
 
     Args:
         filename (str): Path to the file to read.

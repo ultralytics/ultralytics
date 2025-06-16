@@ -183,7 +183,7 @@ def export_engine(
                 self.dataset = dataset
                 self.data_iter = iter(dataset)
                 self.algo = (
-                    trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2
+                    trt.CalibrationAlgoType.ENTROPY_CALIBRATION_2  # DLA quantization needs ENTROPY_CALIBRATION_2
                     if dla is not None
                     else trt.CalibrationAlgoType.MINMAX_CALIBRATION
                 )

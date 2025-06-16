@@ -1,0 +1,8 @@
+tracker_type: mvtrack
+track_high_thresh: 0.7 # threshold for the first association
+track_low_thresh: 0.25 # threshold for the second association
+new_track_thresh: 0.25 # threshold for init new track if the detection does not match any tracks
+max_time_lost: 30 # maximum number of frames a track can be lost before it is removed
+match_thresh: 0.8 # threshold for matching tracks
+fuse_score: True # Whether to fuse confidence scores with the iou distances before matching
+# min_box_area: 10  # threshold for min box areas(for tracker evaluation, not used for now)

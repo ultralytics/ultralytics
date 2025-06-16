@@ -5,8 +5,8 @@
 # For ByteTrack source code see https://github.com/ifzhang/ByteTrack
 
 tracker_type: bytetrack # tracker type, ['botsort', 'bytetrack']
-track_high_thresh: 0.25 # threshold for the first association
-track_low_thresh: 0.1 # threshold for the second association
+track_high_thresh: 0.7 # threshold for the first association  # 0.25
+track_low_thresh: 0.25 # threshold for the second association  # 0.1
 new_track_thresh: 0.25 # threshold for init new track if the detection does not match any tracks
 track_buffer: 30 # buffer to calculate the time when to remove tracks
 match_thresh: 0.8 # threshold for matching tracks

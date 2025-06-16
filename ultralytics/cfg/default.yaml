@@ -48,7 +48,7 @@ val: True # (bool) validate/test during training
 split: val # (str) dataset split to use for validation, i.e. 'val', 'test' or 'train'
 save_json: False # (bool) save results to JSON file
 conf: # (float, optional) object confidence threshold for detection (default 0.25 predict, 0.001 val)
-iou: 0.7 # (float) intersection over union (IoU) threshold for NMS
+iou: 0.5 # (float) intersection over union (IoU) threshold for NMS  0.7
 max_det: 300 # (int) maximum number of detections per image
 half: False # (bool) use half precision (FP16)
 dnn: False # (bool) use OpenCV DNN for ONNX inference
@@ -74,11 +74,11 @@ save_crop: False # (bool) save cropped images with results
 show_labels: True # (bool) show prediction labels, i.e. 'person'
 show_conf: True # (bool) show prediction confidence, i.e. '0.99'
 show_boxes: True # (bool) show prediction boxes
-line_width: # (int, optional) line width of the bounding boxes. Scaled to image size if None.
+line_width: 2 # (int, optional) line width of the bounding boxes. Scaled to image size if None.
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript # (str) format to export to, choices at https://docs.ultralytics.com/modes/export/#export-formats
-keras: False # (bool) use Kera=s
+keras: False # (bool) use Keras
 optimize: False # (bool) TorchScript: optimize for mobile
 int8: False # (bool) CoreML/TF INT8 quantization
 dynamic: False # (bool) ONNX/TF/TensorRT: dynamic axes

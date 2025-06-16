@@ -26,8 +26,9 @@ names:
 radar_prefix: radars
 calib_prefix: calibration  # prefix to access calibration files
 radar_filter:
-  range: [0, 25, -15, 15, -1, 6]  # [x_min, x_max, y_min, y_max, z_min, z_max]
+  range: [0, 45, -45, 45, -1, 6]  # [x_min, x_max, y_min, y_max, z_min, z_max]
   rcs: -15
   vel: 
+  
   elevation_angle: [-1, 12]  # [min, max] in degrees
-accumulation: 1  # number of frames to accumulate for radar data
+accumulation: 2  # number of frames to accumulate for radar data

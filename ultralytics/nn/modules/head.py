@@ -115,6 +115,11 @@ class Detect(nn.Module):
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
         """
         # Inference path
+        # if not hasattr(self, "box_tensors"):
+        #     self.box_tensors = []
+        # for i in x:
+        #     box_tensor = self.dfl(i[:, :4 * self.reg_max].view(i.shape[0], 4 * self.reg_max, -1))
+        #     self.box_tensors.append(box_tensor.mean().item())
         shape = x[0].shape  # BCHW
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         if self.format != "imx" and (self.dynamic or self.shape != shape):

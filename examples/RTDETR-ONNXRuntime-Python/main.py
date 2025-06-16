@@ -1,15 +1,35 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import argparse
-from typing import List
+import os
+from typing import List, Optional
 
 import cv2
 import numpy as np
 import onnxruntime as ort
-import torch
+import requests
+import yaml
 
-from ultralytics.utils import ASSETS, YAML
-from ultralytics.utils.checks import check_requirements, check_yaml
+
+def download_file(url: str, local_path: str) -> str:
+    """
+    Download a file from a URL to a local path.
+
+    Args:
+        url (str): URL of the file to download.
+        local_path (str): Local path where the file will be saved.
+    """
+    # Check if the local path already exists
+    if os.path.exists(local_path):
+        print(f"File already exists at {local_path}. Skipping download.")
+        return local_path
+    # Download the file from the URL
+    print(f"Downloading {url} to {local_path}...")
+    response = requests.get(url)
+    with open(local_path, "wb") as f:
+        f.write(response.content)
+
+    return local_path
 
 
 class RTDETR:
@@ -48,7 +68,14 @@ class RTDETR:
         >>> cv2.imshow("Detections", output_image)
     """
 
-    def __init__(self, model_path: str, img_path: str, conf_thres: float = 0.5, iou_thres: float = 0.5):
+    def __init__(
+        self,
+        model_path: str,
+        img_path: str,
+        conf_thres: float = 0.5,
+        iou_thres: float = 0.5,
+        class_names: Optional[str] = None,
+    ):
         """
         Initialize the RT-DETR object detection model.
 
@@ -57,23 +84,41 @@ class RTDETR:
             img_path (str): Path to the input image.
             conf_thres (float, optional): Confidence threshold for filtering detections.
             iou_thres (float, optional): IoU threshold for non-maximum suppression.
+            class_names (Optional[str], optional): Path to a YAML file containing class names.
+                If None, uses COCO dataset classes.
         """
         self.model_path = model_path
         self.img_path = img_path
         self.conf_thres = conf_thres
         self.iou_thres = iou_thres
+        self.classes = class_names
 
         # Set up the ONNX runtime session with CUDA and CPU execution providers
         self.session = ort.InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+
         self.model_input = self.session.get_inputs()
         self.input_width = self.model_input[0].shape[2]
         self.input_height = self.model_input[0].shape[3]
 
-        # Load class names from the COCO dataset YAML file
-        self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]
+        if self.classes is None:
+            # Load class names from the COCO dataset YAML file
+            self.classes = download_file(
+                "https://raw.githubusercontent.com/ultralytics/"
+                "ultralytics/refs/heads/main/ultralytics/cfg/datasets/coco8.yaml",
+                "coco8.yaml",
+            )
+
+        # Parse the YAML file to get class names
+        with open(self.classes) as f:
+            class_data = yaml.safe_load(f)
+            self.classes = list(class_data["names"].values())
+
+        # Ensure the classes are a list
+        if not isinstance(self.classes, list):
+            raise ValueError("Classes should be a list of class names.")
 
         # Generate a color palette for drawing bounding boxes
-        self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
+        self.color_palette: np.ndarray = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
     def draw_detections(self, box: np.ndarray, score: float, class_id: int) -> None:
         """Draw bounding box and label on the input image for a detected object."""
@@ -231,13 +276,10 @@ if __name__ == "__main__":
     # Set up argument parser for command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="rtdetr-l.onnx", help="Path to the ONNX model file.")
-    parser.add_argument("--img", type=str, default=str(ASSETS / "bus.jpg"), help="Path to the input image.")
+    parser.add_argument("--img", type=str, default="bus.jpg", help="Path to the input image.")
     parser.add_argument("--conf-thres", type=float, default=0.5, help="Confidence threshold for object detection.")
     parser.add_argument("--iou-thres", type=float, default=0.5, help="IoU threshold for non-maximum suppression.")
     args = parser.parse_args()
-
-    # Check for dependencies and set up ONNX runtime
-    check_requirements("onnxruntime-gpu" if torch.cuda.is_available() else "onnxruntime")
 
     # Create the detector instance with specified parameters
     detection = RTDETR(args.model, args.img, args.conf_thres, args.iou_thres)

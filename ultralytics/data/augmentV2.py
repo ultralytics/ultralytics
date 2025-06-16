@@ -242,6 +242,7 @@ class FormatManitou_MultiImg(Format):
         return nb
 
 class Debug_Radar:
+    """Debug radar data by projecting it onto camera images and saving the overlay images."""
     
     def __init__(self, calib_params, filter_cfg={}):
         self.calib_params = calib_params

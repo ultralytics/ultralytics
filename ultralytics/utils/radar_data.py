@@ -30,6 +30,28 @@ import matplotlib.colors as mcolors
 import cv2
 
 
+def apply_clustering(radars, eps=0.5, min_samples=1):
+    """ Apply clustering to radar points.
+    Args:
+        radars: (N, 19) array of radar points.
+    Returns:
+        means: List of mean points for each cluster. (x,y,z,radial_distance)
+    """
+    def apply_dbscan(xyz, eps, min_samples=1, **kwargs):
+        db = DBSCAN(eps=eps, min_samples=min_samples, **kwargs).fit(xyz)
+        labels = db.labels_
+        return labels
+        
+    points = radars[:, :3].copy()
+    points[:, 2] = points[:, 2] / 5  # scale z-axis
+    labels = apply_dbscan(points, eps=eps, min_samples=min_samples, n_jobs=3, metric='l2')
+    means = []
+    for label in np.unique(labels):
+        if label != -1:
+            means.append(np.mean(radars[:, :4][labels == label], axis=0))
+    return np.array(means, dtype=np.float32)
+
+
 def equidistance_projection(points, K, D):
     """
     Project points to the camera image using equidistance projection.
@@ -93,7 +115,7 @@ class FilterParam(dict):
         # add keys to the dictionary
         self['range'] = args_dict.get('range', None)
         if self['range'] is None:
-            self['range'] = [0, 25, -25, 25, -1, 6]
+            self['range'] = [0, 45, -45, 45, -1, 6]
         self['rcs'] = args_dict.get('rcs', -15)
         self['snr'] = args_dict.get('snr', 10)
         self['vel'] = args_dict.get('vel', None)
@@ -101,14 +123,14 @@ class FilterParam(dict):
         self['azimuth_var'] = args_dict.get('azimuth_var', 0.4)
         self['elevation_var'] = args_dict.get('elevation_var', 0.4)
         self['elevation_angle'] = args_dict.get('elevation_angle', [-1, 12])
-        self['measurement_status'] = args_dict.get('measurement_status', 30)
+        self['measurement_status'] = args_dict.get('measurement_status', 10)
         
 
 class ManitouRadarPC:
     """
     Radar Point Cloud class for processing and managing radar point cloud data.
     """
-    def __init__(self, radar1, radar2, radar3, radar4, calib_params, filter_cfg, to_centimeter=True):
+    def __init__(self, radar1, radar2, radar3, radar4, calib_params, filter_cfg):
         self._raw_radar1 = radar1
         self._raw_radar2 = radar2
         self._raw_radar3 = radar3
@@ -220,19 +242,23 @@ class ManitouRadarPC:
         global_pcs = np.hstack((global_pcs, np.arange(global_pcs.shape[0]).reshape(-1, 1)))
         return global_pcs
     
-    def _project_points(self, points, T, K, D):
+    def _project_points(self, points, T, K, D, HFOV=195):
         if points.shape[0] == 0:
             return np.zeros((0, 2)), np.array([], dtype=bool)
         # Transform points to camera frame
         points_cam = self._transform_pc(points[:, :3].copy(), T)
-        mask = points_cam[:, 2] > 0  # Only keep points in front of the camera
+        # mask_z = points_cam[:, 2] > 0  #  points in front of the camera
+        angles = np.arctan2(points_cam[:, 0], points_cam[:, 2])
+        hfov_rad = np.deg2rad(HFOV)
+        mask_hfov = np.abs(angles) <= (hfov_rad / 2)  # points within the horizontal FOV
+        mask = mask_hfov
         points_cam = points_cam[mask]
         # Project points to image plane
         pix_cam = equidistance_projection(points_cam[:, :3], K, D)        
         
         return pix_cam, mask
         
-    def _project_to_camera(self, cam_idx):
+    def project_to_camera(self, cam_idx):
         assert cam_idx in [1, 2, 3, 4], "Camera index must be 1, 2, 3, or 4."
         if cam_idx == 1:
             K = self._camera1_K
@@ -277,7 +303,7 @@ class ManitouRadarPC:
         else:
             raise TypeError("Image must be a file path or a 3-channel RGB numpy array.")
         
-        projected_points, mask = self._project_to_camera(cam_idx)
+        projected_points, mask = self.project_to_camera(cam_idx)
         colors = self._global_colors[mask]
         for p, c in zip(projected_points, colors):
             cv2.circle(img, tuple(p.astype(np.int32)), 4, [int(i) for i in c], -1)
@@ -317,11 +343,30 @@ class ManitouRadarPC:
     
     @property
     def global_radar(self):
-        return self._global_radar
+        return self._global_radar.copy()
+    
+    def update_camera_intrinsics(self, cam_idx, new_K):
+        """
+        Update camera intrinsic parameters.
+        Args:
+            cam_idx: Camera index (1, 2, 3, or 4).
+            new_K: New camera intrinsic matrix (3, 3).
+        """
+        assert cam_idx in [1, 2, 3, 4], "Camera index must be 1, 2, 3, or 4."
+        assert new_K.shape == (3, 3), "New camera intrinsic matrix must be of shape (3, 3)."
+        if cam_idx == 1:
+            self._camera1_K = new_K
+        elif cam_idx == 2:
+            self._camera2_K = new_K
+        elif cam_idx == 3:
+            self._camera3_K = new_K
+        elif cam_idx == 4:
+            self._camera4_K = new_K
         
         
 if __name__ == "__main__":
     import os
+    from pathlib import Path
     import json
     from ultralytics.data.manitou_api import ManitouAPI
     
@@ -398,12 +443,12 @@ if __name__ == "__main__":
     radar_dir = 'radars'
     cam_dir = 'key_frames'
     
-    annotations_path = os.path.join(data_root, 'annotations_multi_view', 'manitou_coco_train.json')
+    annotations_path = os.path.join(data_root, 'annotations_multi_view_mini', 'manitou_coco_val_remap.json')
     manitou = ManitouAPI(annotations_path)
     manitou.info()
     
     # get bag ids
-    video_ids = manitou.get_vid_ids(bagIds=[1])
+    video_ids = manitou.get_vid_ids(bagIds=[2])
     
     cam1_ids = []
     cam2_ids = []
@@ -423,6 +468,34 @@ if __name__ == "__main__":
     
     assert len(cam1_ids) == len(cam2_ids) == len(cam3_ids) == len(cam4_ids), "Camera IDs must be of the same length."
     
+    # Manitou 
+    import math
+    from ultralytics.data.augmentV1 import ManitouResizeCrop
+    pre_crop_cfg = {"is_crop": False, "scale": 1, "target_size": (1552, 1936), "original_size": (1552, 1936)}
+    h = 1552 // 32 * 32
+    w = math.ceil(1936 / 32) * 32
+    pre_crop_cfg["is_crop"] = True
+    pre_crop_cfg["scale"] = w / 1936
+    pre_crop_cfg["target_size"] = (h, w)
+    imgsz = (h, w)
+    print(f"Image size {(1552, 1936)} is not divisible by stride {32}, resizing and cropping to {(h, w)}")
+    pre_crop = ManitouResizeCrop(pre_crop_cfg['scale'], pre_crop_cfg['target_size'], pre_crop_cfg["original_size"], p=1.0)
+    
+    # update camera intrinsics for MaintouResizeCrop
+    h, w = pre_crop_cfg["original_size"]
+    crop_h, crop_w = pre_crop_cfg["target_size"]
+    new_h, new_w = int(h *pre_crop_cfg["scale"]), int(w * pre_crop_cfg["scale"])
+    y_off = new_h - crop_h
+    for cam_idx in range(1, 5):
+        calib_params[f"camera{cam_idx}_K"] = pre_crop.update_camera_intrinsics(
+            calib_params[f"camera{cam_idx}_K"])
+
+    # # update camera intrinsics for left-right flipped images
+    # for cam_idx in range(1, 5):
+    #     calib_params[f"camera{cam_idx}_K"] = np.array([[-1, 0, w-1],
+    #                                                   [0, 1, 0],
+    #                                                   [0, 0, 1]]) @ calib_params[f"camera{cam_idx}_K"]
+        
     for idx in range(0, 60):
         cam1_name = manitou.imgs[cam1_ids[idx]]['file_name']
         cam1_path = os.path.join(data_root, cam_dir, cam1_name)
@@ -445,6 +518,33 @@ if __name__ == "__main__":
         radar2 = np.loadtxt(radar2_path, delimiter=' ', dtype=np.float64)
         radar3 = np.loadtxt(radar3_path, delimiter=' ', dtype=np.float64)
         radar4 = np.loadtxt(radar4_path, delimiter=' ', dtype=np.float64)
+        
+        accumulation = 1
+        for _ in range(accumulation-1):
+            radar1_frame_name = radar1_name.split('/')[-1].split('.')[0]
+            if int(radar1_frame_name) - 1 < 0:
+                break
+            radar1_frame_name = str(Path(radar1_path).parent / f"{int(radar1_frame_name) - 1:06d}.txt")
+            radar1 = np.concatenate((np.loadtxt(radar1_frame_name, delimiter=' ', dtype=np.float64), radar1), axis=0)    
+        for _ in range(accumulation-1):
+            radar2_frame_name = radar2_name.split('/')[-1].split('.')[0]
+            if int(radar2_frame_name) - 1 < 0:
+                break
+            radar2_frame_name = str(Path(radar2_path).parent / f"{int(radar2_frame_name) - 1:06d}.txt")
+            radar2 = np.concatenate((np.loadtxt(radar2_frame_name, delimiter=' ', dtype=np.float64), radar2), axis=0)
+        for _ in range(accumulation-1):
+            radar3_frame_name = radar3_name.split('/')[-1].split('.')[0]
+            if int(radar3_frame_name) - 1 < 0:
+                break
+            radar2_frame_name = str(Path(radar3_path).parent / f"{int(radar3_frame_name) - 1:06d}.txt")
+            radar3 = np.concatenate((np.loadtxt(radar2_frame_name, delimiter=' ', dtype=np.float64), radar3), axis=0)
+        for _ in range(accumulation-1):
+            radar4_frame_name = radar4_name.split('/')[-1].split('.')[0]
+            if int(radar4_frame_name) - 1 < 0:
+                break
+            radar4_frame_name = str(Path(radar4_path).parent / f"{int(radar4_frame_name) - 1:06d}.txt")
+            radar4 = np.concatenate((np.loadtxt(radar4_frame_name, delimiter=' ', dtype=np.float64), radar4), axis=0)
+            
         name = cam1_name.split('/')[-1].split('.')[0]  # Get the name from the camera path
         
         filter_cfg = {
@@ -453,12 +553,46 @@ if __name__ == "__main__":
             # 'vel': None,  # Velocity threshold
             # 'elevation_angle': [3, 12]  # Elevation angle range
         }
+            
+        radar_pc = ManitouRadarPC(radar1, radar2, radar3, radar4, calib_params, filter_cfg)
         
-        radar_pc = ManitouRadarPC(radar1, radar2, radar3, radar4, calib_params, filter_cfg, to_centimeter=True)
         print(f'Global radar point cloud shape: {radar_pc.global_radar.shape}')
+        # clean the saved directory
+        os.makedirs('/home/shu/Documents/test_radar_data/cam1', exist_ok=True)
+        os.makedirs('/home/shu/Documents/test_radar_data/cam2', exist_ok=True)
+        os.makedirs('/home/shu/Documents/test_radar_data/cam3', exist_ok=True)
+        os.makedirs('/home/shu/Documents/test_radar_data/cam4', exist_ok=True)
+        os.makedirs('/home/shu/Documents/test_radar_data/radar_bev', exist_ok=True)
+        
         # get radar points on camera 1 image
-        img_with_radar = radar_pc.get_overlay_image(1, cam1_path)
+        img1 = cv2.imread(cam1_path)
+        img1 = pre_crop(image=img1)
+        # left-right flip the image
+        # img1 = cv2.flip(img1, 1)  # flip horizontally
+        img_with_radar = radar_pc.get_overlay_image(1, img1)
         cv2.imwrite(f'/home/shu/Documents/test_radar_data/cam1/{name}_radar_overlay.jpg', img_with_radar)
+        
+        img2 = cv2.imread(cam2_path)
+        img2 = pre_crop(image=img2)
+        # left-right flip the image
+        # img2 = cv2.flip(img2, 1)
+        img_with_radar = radar_pc.get_overlay_image(2, img2)
+        cv2.imwrite(f'/home/shu/Documents/test_radar_data/cam2/{name}_radar_overlay.jpg', img_with_radar)
+        
+        img3 = cv2.imread(cam3_path)
+        img3 = pre_crop(image=img3)
+        # left-right flip the image
+        # img3 = cv2.flip(img3, 1)  # flip horizontally
+        img_with_radar = radar_pc.get_overlay_image(3, img3)
+        cv2.imwrite(f'/home/shu/Documents/test_radar_data/cam3/{name}_radar_overlay.jpg', img_with_radar)
+        
+        img4 = cv2.imread(cam4_path)
+        img4 = pre_crop(image=img4)
+        # left-right flip the image
+        # img4 = cv2.flip(img4, 1)
+        img_with_radar = radar_pc.get_overlay_image(4, img4)
+        cv2.imwrite(f'/home/shu/Documents/test_radar_data/cam4/{name}_radar_overlay.jpg', img_with_radar)
+        
         # get the radar BEV
         radar_bev = radar_pc.get_radar_bev(rangeX=(-20, 20), rangeY=(-20, 20))
-        cv2.imwrite(f'/home/shu/Documents/test_radar_data/radar1/{name}_radar_bev.jpg', radar_bev)
+        cv2.imwrite(f'/home/shu/Documents/test_radar_data/radar_bev/{name}_radar_bev.jpg', radar_bev)

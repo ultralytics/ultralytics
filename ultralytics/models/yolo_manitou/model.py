@@ -127,11 +127,11 @@ class YOLOManitou_MultiCam(Model):
     ) -> List[Results]:
 
         if not hasattr(self.predictor, "trackers"):
-            from ultralytics.trackers import register_tracker_manitou
+            from ultralytics.trackers import register_tracker_manitou_multiview
 
-            register_tracker_manitou(self, persist)
+            register_tracker_manitou_multiview(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
-        kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
+        kwargs["batch"] = 1  # batch-size 1 for tracking
         kwargs["mode"] = "track"
         return self.predict(data_cfg=data_cfg, **kwargs)
     

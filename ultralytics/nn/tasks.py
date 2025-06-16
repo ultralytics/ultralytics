@@ -316,8 +316,7 @@ class BaseModel(torch.nn.Module):
             c1, c2, h, w = state_dict[first_conv].shape
             cc1, cc2, ch, cw = csd[first_conv].shape
             if ch == h and cw == w:
-                indices = torch.arange(c2) % cc2
-                first_weight = csd[first_conv][:, indices]
+                first_weight = csd[first_conv][:, torch.arange(c2) % cc2]
                 c1 = min(c1, cc1)
                 state_dict[first_conv][:c1] = first_weight[:c1]
                 len_updated_csd += 1

@@ -154,7 +154,7 @@ def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, s
     )
 
 
-def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1, drop_last=False):
+def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1, drop_last: bool = False):
     """
     Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
@@ -164,6 +164,7 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         workers (int): Number of worker threads for loading data.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
+        drop_last (bool, optional): Whether to drop the last incomplete batch.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.

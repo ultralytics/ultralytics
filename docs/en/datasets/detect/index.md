@@ -111,15 +111,7 @@ Remember to double-check if the dataset you want to use is compatible with your 
 The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
 
 ```yaml
-path: coco8 # dataset root directory
-train: images/train # training images (relative to 'path')
-val: images/val # validation images (relative to 'path')
-test: # optional test images
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
+--8<-- "ultralytics/cfg/datasets/coco8.yaml"
 ```
 
 Labels are saved in `*.txt` files with one file per image, formatted as `class x_center y_center width height` with normalized coordinates. For a detailed guide, see the [COCO8 dataset example](coco8.md).

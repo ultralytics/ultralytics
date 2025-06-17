@@ -324,8 +324,6 @@ class Exporter:
             LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.int8 and engine:
-            self.args.dynamic = True  # enforce dynamic to export TensorRT INT8
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -534,8 +532,6 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-        # TensorRT INT8 calibration should use 2x batch size
-        batch = self.args.batch * (2 if self.args.format == "engine" else 1)
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
@@ -543,7 +539,7 @@ class Exporter:
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=batch,
+            batch_size=self.args.batch,
         )
         n = len(dataset)
         if n < self.args.batch:
@@ -553,7 +549,7 @@ class Exporter:
             )
         elif n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
+        return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):

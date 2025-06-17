@@ -118,13 +118,13 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
         """A customized trainer class for YOLO classification models with enhanced dataset handling."""
 
         def build_dataset(self, img_path: str, mode: str = "train", batch=None):
-            """Build a customized dataset for classification training or validation."""
+            """Build a customized dataset for classification training and the validation during training."""
             return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
 
     class CustomizedValidator(ClassificationValidator):
         """A customized validator class for YOLO classification models with enhanced dataset handling."""
         def build_dataset(self, img_path: str, mode: str = "train"):
-            """Build a customized dataset for classification validation."""
+            """Build a customized dataset for classification standalone validation."""
             return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=self.args.split)
 
 

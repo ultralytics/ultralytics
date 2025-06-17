@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -36,7 +36,7 @@ class ObjectCounter(BaseSolution):
         >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the ObjectCounter class for real-time object counting in video streams."""
         super().__init__(**kwargs)
 
@@ -56,7 +56,7 @@ class ObjectCounter(BaseSolution):
         track_id: int,
         prev_position: Optional[Tuple[float, float]],
         cls: int,
-    ):
+    ) -> None:
         """
         Count objects within a polygonal or linear region based on their tracks.
 
@@ -117,7 +117,7 @@ class ObjectCounter(BaseSolution):
                     self.classwise_counts[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
-    def display_counts(self, plot_im):
+    def display_counts(self, plot_im) -> None:
         """
         Display object counts on the input image or frame.
 
@@ -138,7 +138,7 @@ class ObjectCounter(BaseSolution):
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Process input data (frames or object tracks) and update object counts.
 

@@ -42,7 +42,7 @@ jobs:
             --scheme https \
             --timeout 60 \
             --insecure \
-            --accept 401,403,429,500,502,999 \
+            --accept 100..=103,200..=299,401,403,429,500,502,999 \
             --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path docs/zh \
@@ -56,7 +56,7 @@ jobs:
             --exclude-path docs/hi \
             --exclude-path docs/ar \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            --header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
+            --header "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
             './**/*.md' \
             './**/*.html' | tee -a $GITHUB_STEP_SUMMARY
 
@@ -77,7 +77,7 @@ jobs:
             --scheme https \
             --timeout 60 \
             --insecure \
-            --accept 401,403,429,500,502,999 \
+            --accept 100..=103,200..=299,401,403,429,500,502,999 \
             --exclude-all-private \
             --exclude 'https?://(www\.)?(linkedin\.com|twitter\.com|instagram\.com|kaggle\.com|fonts\.gstatic\.com|url\.com)' \
             --exclude-path '**/ci.yml' \
@@ -92,7 +92,7 @@ jobs:
             --exclude-path docs/hi \
             --exclude-path docs/ar \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-            --header "User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
+            --header "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.183 Safari/537.36" \
             './**/*.md' \
             './**/*.html' \
             './**/*.yml' \

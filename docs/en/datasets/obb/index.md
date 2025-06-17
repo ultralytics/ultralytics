@@ -30,7 +30,7 @@ An example of a `*.txt` label file for the above image, which contains an object
 
 ### Dataset YAML format
 
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a OBB dataset:
+The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training OBB Models. Here is an example of the YAML format used for defining a OBB dataset:
 
 ```yaml
 --8<-- "ultralytics/cfg/datasets/dota8.yaml"

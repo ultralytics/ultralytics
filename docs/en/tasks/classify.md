@@ -121,6 +121,7 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
             """Build a customized dataset for classification training and the validation during training."""
             return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
 
+
     class CustomizedValidator(ClassificationValidator):
         """A customized validator class for YOLO classification models with enhanced dataset handling."""
 

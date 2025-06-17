@@ -53,12 +53,12 @@ class ClassificationPredictor(BasePredictor):
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""
         super().setup_source(source)
-        updated = (
-            self.model.model.transforms.transforms[0].size != max(self.imgsz)
-            if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size")
-            else False
+        updated = False
+        if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size"):
+            updated = self.model.model.transforms.transforms[0].size != max(self.imgsz)
+        self.transforms = (
+            classify_transforms(self.imgsz) if updated or not self.model.pt else self.model.model.transforms
         )
-        self.transforms = self.model.model.transforms if not updated else classify_transforms(self.imgsz)
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""

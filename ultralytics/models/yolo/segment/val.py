@@ -244,7 +244,8 @@ class SegmentationValidator(DetectionValidator):
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
-        from faster_coco_eval.core.mask import encode # noqa
+        from faster_coco_eval.core.mask import encode  # noqa
+
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
             rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]
@@ -273,9 +274,9 @@ class SegmentationValidator(DetectionValidator):
         """Return COCO-style instance segmentation evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             if check_requirements("faster-coco-eval>=1.6.5", install=False):
-                pkg = "faster-coco-eval"
+                pass
             elif check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3"):
-                pkg = "pycocotools" if self.is_coco else "lvis"
+                pass
             pred_json = self.save_dir / "predictions.json"  # predictions
 
             anno_json = (
@@ -296,7 +297,7 @@ class SegmentationValidator(DetectionValidator):
 
                 anno = COCO(anno_json)  # init annotations api
                 pred = anno.loadRes(pred_json)  # init predictions api (must pass string, not Path)
-                kwargs = {"lvis_style" : self.is_lvis, "print_function" : LOGGER.info}
+                kwargs = {"lvis_style": self.is_lvis, "print_function": LOGGER.info}
                 vals = [COCOeval_faster(anno, pred, "bbox", **kwargs), COCOeval_faster(anno, pred, "segm", **kwargs)]
 
                 for i, eval in enumerate(vals):
@@ -308,7 +309,7 @@ class SegmentationValidator(DetectionValidator):
                     # update mAP50-95 and mAP50
                     stats[self.metrics.keys[idx + 1]] = eval.stats_as_dict["AP_all"]
                     stats[self.metrics.keys[idx]] = eval.stats_as_dict["AP_50"]
-                    
+
                     if self.is_lvis:
                         tag = "B" if i == 0 else "M"
                         stats[f"metrics/APr({tag})"] = eval.stats_as_dict["APr"]

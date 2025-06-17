@@ -291,14 +291,14 @@ class PoseValidator(DetectionValidator):
         """Evaluate object detection model using COCO JSON format."""
         if self.args.save_json and self.is_coco and len(self.jdict):
             if check_requirements("faster-coco-eval>=1.6.5", install=False):
-                pkg = "faster-coco-eval"
+                pass
             elif check_requirements("pycocotools>=2.0.6"):
-                pkg = "pycocotools"
+                pass
 
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             LOGGER.info(f"\nEvaluating faster_coco_eval mAP using {pred_json} and {anno_json}...")
-            try:  
+            try:
                 # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
                 # https://mixaill76.github.io/faster_coco_eval/examples/ced_example.html
                 check_requirements("faster_coco_eval>=1.6.7")
@@ -308,8 +308,10 @@ class PoseValidator(DetectionValidator):
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(anno_json)  # init annotations api
                 pred = anno.loadRes(pred_json)  # init predictions api (must pass string, not Path)
-                kwargs = {"print_function" : LOGGER.info}
-                for i, eval in enumerate([COCOeval_faster(anno, pred, "bbox", **kwargs), COCOeval_faster(anno, pred, "keypoints", **kwargs)]):
+                kwargs = {"print_function": LOGGER.info}
+                for i, eval in enumerate(
+                    [COCOeval_faster(anno, pred, "bbox", **kwargs), COCOeval_faster(anno, pred, "keypoints", **kwargs)]
+                ):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()

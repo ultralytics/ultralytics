@@ -396,14 +396,12 @@ class DetectionValidator(BaseValidator):
         """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             if check_requirements("faster-coco-eval>=1.6.5", install=False):
-                pkg = "faster-coco-eval"
+                pass
             else:
                 if self.is_lvis:
                     check_requirements("lvis>=0.5.3")
-                    pkg = "lvis"
                 elif self.is_coco:
                     check_requirements("pycocotools>=2.0.6")
-                    pkg = "pycocotools"
 
             pred_json = self.save_dir / "predictions.json"  # predictions
             anno_json = (
@@ -417,7 +415,7 @@ class DetectionValidator(BaseValidator):
             from faster_coco_eval import COCO, COCOeval_faster
 
             LOGGER.info(f"\nEvaluating faster_coco_eval mAP using {pred_json} and {anno_json}...")
-            try:  
+            try:
                 # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
                 # https://mixaill76.github.io/faster_coco_eval/examples/lvis_example.html
                 for x in pred_json, anno_json:
@@ -425,7 +423,7 @@ class DetectionValidator(BaseValidator):
 
                 anno = COCO(anno_json)
                 pred = anno.loadRes(pred_json)
-                kwargs = {"lvis_style": self.is_lvis, "print_function" : LOGGER.info}
+                kwargs = {"lvis_style": self.is_lvis, "print_function": LOGGER.info}
                 val = COCOeval_faster(anno, pred, iouType="bbox", **kwargs)
                 val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 val.evaluate()

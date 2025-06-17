@@ -251,9 +251,7 @@ def convert_coco(
         >>> convert_coco("coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
 
         Convert LVIS annotations to YOLO format
-        >>> convert_coco(
-        ...     "lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
-        ... )
+        >>> convert_coco("lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
     """
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists

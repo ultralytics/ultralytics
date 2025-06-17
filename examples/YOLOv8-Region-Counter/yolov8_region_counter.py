@@ -19,7 +19,7 @@ track_history = defaultdict(list)
 current_region = None
 counting_regions = [
     {
-        "name": "YOLOv8 Polygon Region",
+        "name": "Ultralytics YOLO Polygon Region",
         "polygon": Polygon([(50, 80), (250, 20), (450, 80), (400, 350), (100, 350)]),  # Polygon points
         "counts": 0,
         "dragging": False,
@@ -27,7 +27,7 @@ counting_regions = [
         "text_color": (255, 255, 255),  # Region Text Color
     },
     {
-        "name": "YOLOv8 Rectangle Region",
+        "name": "Ultralytics YOLO Rectangle Region",
         "polygon": Polygon([(200, 250), (440, 250), (440, 550), (200, 550)]),  # Polygon points
         "counts": 0,
         "dragging": False,
@@ -39,24 +39,21 @@ counting_regions = [
 
 def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
     """
-    Handle mouse events for region manipulation.
+    Handle mouse events for region manipulation in the video frame.
+
+    This function enables interactive region selection and dragging functionality for counting regions. It responds to
+    mouse button down, move, and up events to allow users to select and reposition counting regions in real-time.
 
     Args:
-        event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN).
+        event (int): The mouse event type (e.g., cv2.EVENT_LBUTTONDOWN, cv2.EVENT_MOUSEMOVE).
         x (int): The x-coordinate of the mouse pointer.
         y (int): The y-coordinate of the mouse pointer.
         flags (int): Additional flags passed by OpenCV.
         param (Any): Additional parameters passed to the callback.
 
-    Global Variables:
-        current_region (dict): A dictionary representing the current selected region.
-
-    Notes:
-        This function is intended to be used as a callback for OpenCV mouse events.
-        It allows for selecting and dragging counting regions within the video frame.
-
     Examples:
-        >>> cv2.setMouseCallback(window_name, mouse_callback)
+        Set up mouse callback for interactive region manipulation
+        >>> cv2.setMouseCallback("window_name", mouse_callback)
     """
     global current_region
 
@@ -99,24 +96,30 @@ def run(
     region_thickness: int = 2,
 ) -> None:
     """
-    Run region counting on a video using YOLOv8 and ByteTrack.
+    Run object detection and counting within specified regions using YOLO and ByteTrack.
+
+    This function performs real-time object detection, tracking, and counting within user-defined polygonal or
+    rectangular regions. It supports interactive region manipulation, multiple counting areas, and both live viewing
+    and video saving capabilities.
 
     Args:
-        weights (str): Model weights path.
-        source (str): Video file path.
-        device (str): Processing device: 'cpu', '0', '1', etc.
-        view_img (bool): Show results in a window.
-        save_img (bool): Save results to a video file.
-        exist_ok (bool): Overwrite existing files.
-        classes (List[int]): Classes to detect and track.
-        line_thickness (int): Bounding box thickness.
-        track_thickness (int): Tracking line thickness.
-        region_thickness (int): Region thickness.
+        weights (str): Path to the YOLO model weights file.
+        source (str): Path to the input video file.
+        device (str): Processing device specification ('cpu', '0', '1', etc.).
+        view_img (bool): Display results in a live window.
+        save_img (bool): Save processed video to file.
+        exist_ok (bool): Overwrite existing output files without incrementing.
+        classes (List[int], optional): Specific class IDs to detect and track.
+        line_thickness (int): Thickness of bounding box lines.
+        track_thickness (int): Thickness of object tracking lines.
+        region_thickness (int): Thickness of counting region boundaries.
 
-    Notes:
-        - Supports movable regions for real-time counting inside specific areas.
-        - Supports multiple regions counting.
-        - Regions can be Polygons or rectangles in shape.
+    Examples:
+        Run region counting with default settings
+        >>> run(source="video.mp4", view_img=True)
+
+        Run with custom model and specific classes
+        >>> run(weights="yolo11s.pt", source="traffic.mp4", classes=[0, 2, 3], device="0")
     """
     vid_frame_count = 0
 
@@ -153,7 +156,7 @@ def run(
         # Extract the results
         results = model.track(frame, persist=True, classes=classes)
 
-        if results[0].boxes.id is not None:
+        if results[0].boxes.is_track:
             boxes = results[0].boxes.xyxy.cpu()
             track_ids = results[0].boxes.id.int().cpu().tolist()
             clss = results[0].boxes.cls.cpu().tolist()
@@ -204,9 +207,9 @@ def run(
 
         if view_img:
             if vid_frame_count == 1:
-                cv2.namedWindow("Ultralytics YOLOv8 Region Counter Movable")
-                cv2.setMouseCallback("Ultralytics YOLOv8 Region Counter Movable", mouse_callback)
-            cv2.imshow("Ultralytics YOLOv8 Region Counter Movable", frame)
+                cv2.namedWindow("Ultralytics YOLO Region Counter Movable")
+                cv2.setMouseCallback("Ultralytics YOLO Region Counter Movable", mouse_callback)
+            cv2.imshow("Ultralytics YOLO Region Counter Movable", frame)
 
         if save_img:
             video_writer.write(frame)

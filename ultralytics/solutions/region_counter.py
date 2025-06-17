@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, List, Tuple
+
 import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -22,12 +24,19 @@ class RegionCounter(BaseSolution):
         region_counts (dict): Dictionary storing the count of objects for each named region.
 
     Methods:
-        add_region: Adds a new counting region with specified attributes.
-        process: Processes video frames to count objects in each region.
+        add_region: Add a new counting region with specified attributes.
+        process: Process video frames to count objects in each region.
+
+    Examples:
+        Initialize a RegionCounter and add a counting region
+        >>> counter = RegionCounter()
+        >>> counter.add_region("Zone1", [(100, 100), (200, 100), (200, 200), (100, 200)], (255, 0, 0), (255, 255, 255))
+        >>> results = counter.process(frame)
+        >>> print(f"Total tracks: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
-        """Initializes the RegionCounter class for real-time counting in different regions of video streams."""
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the RegionCounter for real-time object counting in user-defined regions."""
         super().__init__(**kwargs)
         self.region_template = {
             "name": "Default Region",
@@ -40,15 +49,21 @@ class RegionCounter(BaseSolution):
         self.region_counts = {}
         self.counting_regions = []
 
-    def add_region(self, name, polygon_points, region_color, text_color):
+    def add_region(
+        self,
+        name: str,
+        polygon_points: List[Tuple],
+        region_color: Tuple[int, int, int],
+        text_color: Tuple[int, int, int],
+    ) -> None:
         """
         Add a new region to the counting list based on the provided template with specific attributes.
 
         Args:
             name (str): Name assigned to the new region.
             polygon_points (List[Tuple]): List of (x, y) coordinates defining the region's polygon.
-            region_color (tuple): BGR color for region visualization.
-            text_color (tuple): BGR color for the text within the region.
+            region_color (Tuple[int, int, int]): BGR color for region visualization.
+            text_color (Tuple[int, int, int]): BGR color for the text within the region.
         """
         region = self.region_template.copy()
         region.update(
@@ -61,7 +76,7 @@ class RegionCounter(BaseSolution):
         )
         self.counting_regions.append(region)
 
-    def process(self, im0):
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """
         Process the input frame to detect and count objects within each defined region.
 
@@ -96,8 +111,8 @@ class RegionCounter(BaseSolution):
 
         # Process bounding boxes & check containment
         if points:
-            for (point, cls), box in zip(zip(points, self.clss), self.boxes):
-                annotator.box_label(box, label=self.names[cls], color=colors(cls))
+            for point, cls, track_id, box, conf in zip(points, self.clss, self.track_ids, self.boxes, self.confs):
+                annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
 
                 for region in self.counting_regions:
                     if region["prepared_polygon"].contains(point):
@@ -111,6 +126,7 @@ class RegionCounter(BaseSolution):
                 label=str(region["counts"]),
                 color=region["region_color"],
                 txt_color=region["text_color"],
+                margin=self.line_width * 4,
             )
             region["counts"] = 0  # Reset for next frame
         plot_im = annotator.result()

@@ -2,6 +2,7 @@
 """Convolution modules."""
 
 import math
+from typing import List
 
 import numpy as np
 import torch
@@ -314,7 +315,7 @@ class Focus(nn.Module):
         """
         Apply Focus operation and convolution to input tensor.
 
-        Input shape is (b,c,w,h) and output shape is (b,4c,w/2,h/2).
+        Input shape is (B, C, W, H) and output shape is (B, 4C, W/2, H/2).
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -337,7 +338,7 @@ class GhostConv(nn.Module):
         cv2 (Conv): Cheap operation convolution.
 
     References:
-        https://github.com/huawei-noah/ghostnet
+        https://github.com/huawei-noah/Efficient-AI-Backbones
     """
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
@@ -447,9 +448,8 @@ class RepConv(nn.Module):
         Calculate equivalent kernel and bias by fusing convolutions.
 
         Returns:
-            (tuple): Tuple containing:
-                - Equivalent kernel (torch.Tensor)
-                - Equivalent bias (torch.Tensor)
+            (torch.Tensor): Equivalent kernel
+            (torch.Tensor): Equivalent bias
         """
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.conv1)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)
@@ -480,9 +480,8 @@ class RepConv(nn.Module):
             branch (Conv | nn.BatchNorm2d | None): Branch to fuse.
 
         Returns:
-            (tuple): Tuple containing:
-                - Fused kernel (torch.Tensor)
-                - Fused bias (torch.Tensor)
+            kernel (torch.Tensor): Fused kernel.
+            bias (torch.Tensor): Fused bias.
         """
         if branch is None:
             return 0, 0
@@ -670,7 +669,7 @@ class Concat(nn.Module):
         super().__init__()
         self.d = dimension
 
-    def forward(self, x):
+    def forward(self, x: List[torch.Tensor]):
         """
         Concatenate input tensors along specified dimension.
 
@@ -701,7 +700,7 @@ class Index(nn.Module):
         super().__init__()
         self.index = index
 
-    def forward(self, x):
+    def forward(self, x: List[torch.Tensor]):
         """
         Select and return a particular index from input.
 

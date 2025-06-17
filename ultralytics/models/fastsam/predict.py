@@ -26,14 +26,24 @@ class FastSAMPredictor(SegmentationPredictor):
         clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.
 
     Methods:
-        postprocess: Applies box postprocessing for FastSAM predictions.
-        prompt: Performs image segmentation inference based on various prompt types.
-        _clip_inference: Performs CLIP inference to calculate similarity between images and text prompts.
-        set_prompts: Sets prompts to be used during inference.
+        postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
+        prompt: Perform image segmentation inference based on various prompt types.
+        set_prompts: Set prompts to be used during inference.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize the FastSAMPredictor with configuration and callbacks."""
+        """
+        Initialize the FastSAMPredictor with configuration and callbacks.
+
+        This initializes a predictor specialized for Fast SAM (Segment Anything Model) segmentation tasks. The predictor
+        extends SegmentationPredictor with custom post-processing for mask prediction and non-maximum suppression
+        optimized for single-class segmentation.
+
+        Args:
+            cfg (dict): Configuration for the predictor.
+            overrides (dict, optional): Configuration overrides.
+            _callbacks (list, optional): List of callback functions.
+        """
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
 
@@ -109,7 +119,7 @@ class FastSAMPredictor(SegmentationPredictor):
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(points), (
-                    f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
+                    f"Expected `labels` with same size as `point`, but got {len(labels)} and {len(points)}"
                 )
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)

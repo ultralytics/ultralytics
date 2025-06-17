@@ -3,7 +3,7 @@
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.utils.torch_utils import de_parallel
 
 
@@ -18,6 +18,14 @@ class WorldTrainerFromScratch(WorldTrainer):
         cfg (dict): Configuration dictionary with default parameters for model training.
         overrides (dict): Dictionary of parameter overrides to customize the configuration.
         _callbacks (list): List of callback functions to be executed during different stages of training.
+        data (dict): Final processed data configuration containing train/val paths and metadata.
+        training_data (dict): Dictionary mapping training dataset paths to their configurations.
+
+    Methods:
+        build_dataset: Build YOLO Dataset for training or validation with mixed dataset support.
+        get_dataset: Get train and validation paths from data dictionary.
+        plot_training_labels: Skip label plotting for YOLO-World training.
+        final_eval: Perform final evaluation and validation for the YOLO-World model.
 
     Examples:
         >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
@@ -43,7 +51,35 @@ class WorldTrainerFromScratch(WorldTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize a WorldTrainerFromScratch object with given configuration and callbacks."""
+        """
+        Initialize a WorldTrainerFromScratch object.
+
+        This initializes a trainer for YOLO-World models from scratch, supporting mixed datasets including both
+        object detection and grounding datasets for vision-language capabilities.
+
+        Args:
+            cfg (dict): Configuration dictionary with default parameters for model training.
+            overrides (dict, optional): Dictionary of parameter overrides to customize the configuration.
+            _callbacks (list, optional): List of callback functions to be executed during different stages of training.
+
+        Examples:
+            >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
+            >>> from ultralytics import YOLOWorld
+            >>> data = dict(
+            ...     train=dict(
+            ...         yolo_data=["Objects365.yaml"],
+            ...         grounding_data=[
+            ...             dict(
+            ...                 img_path="../datasets/flickr30k/images",
+            ...                 json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+            ...             ),
+            ...         ],
+            ...     ),
+            ...     val=dict(yolo_data=["lvis.yaml"]),
+            ... )
+            >>> model = YOLOWorld("yolov8s-worldv2.yaml")
+            >>> model.train(data=data, trainer=WorldTrainerFromScratch)
+        """
         if overrides is None:
             overrides = {}
         super().__init__(cfg, overrides, _callbacks)
@@ -65,14 +101,15 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         if mode != "train":
-            return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
-        dataset = [
-            build_yolo_dataset(self.args, im_path, batch, self.data, stride=gs, multi_modal=True)
+            return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs)
+        datasets = [
+            build_yolo_dataset(self.args, im_path, batch, self.training_data[im_path], stride=gs, multi_modal=True)
             if isinstance(im_path, str)
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
-        return YOLOConcatDataset(dataset) if len(dataset) > 1 else dataset[0]
+        self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
+        return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def get_dataset(self):
         """
@@ -82,8 +119,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         handling both YOLO detection datasets and grounding datasets.
 
         Returns:
-            (str): Train dataset path.
-            (str): Validation dataset path.
+            train_path (str): Train dataset path.
+            val_path (str): Validation dataset path.
 
         Raises:
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
@@ -109,14 +146,28 @@ class WorldTrainerFromScratch(WorldTrainer):
             for g in grounding_data:
                 assert isinstance(g, dict), f"Grounding data should be provided in dict format, but got {type(g)}"
             final_data[s] += grounding_data
+        data["val"] = data["val"][0]  # assign the first val dataset as currently only one validation set is supported
         # NOTE: to make training work properly, set `nc` and `names`
-        final_data["nc"] = data["val"][0]["nc"]
-        final_data["names"] = data["val"][0]["names"]
+        final_data["nc"] = data["val"]["nc"]
+        final_data["names"] = data["val"]["names"]
+        # NOTE: add path with lvis path
+        final_data["path"] = data["val"]["path"]
+        final_data["channels"] = data["val"]["channels"]
         self.data = final_data
-        return final_data["train"], final_data["val"][0]
+        if self.args.single_cls:  # consistent with base trainer
+            LOGGER.info("Overriding class names with single class.")
+            self.data["names"] = {0: "object"}
+            self.data["nc"] = 1
+        self.training_data = {}
+        for d in data["train"]:
+            if self.args.single_cls:
+                d["names"] = {0: "object"}
+                d["nc"] = 1
+            self.training_data[d["train"]] = d
+        return final_data
 
     def plot_training_labels(self):
-        """Do not plot labels for YOLO-World training."""
+        """Skip label plotting for YOLO-World training."""
         pass
 
     def final_eval(self):

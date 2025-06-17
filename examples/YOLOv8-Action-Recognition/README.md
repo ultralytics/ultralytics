@@ -73,7 +73,7 @@ python action_recognition.py --source "https://www.youtube.com/watch?v=dQw4w9WgX
 - `--num-video-sequence-samples`: Number of video frames sampled from a sequence to feed into the classifier (default: `8`).
 - `--skip-frame`: Number of frames to skip between detections to speed up processing (default: `1`).
 - `--video-cls-overlap-ratio`: Overlap ratio between consecutive video sequences sent for classification (default: `0.25`).
-- `--fp16`: Use [FP16 (half-precision)](https://www.ultralytics.com/glossary/half-precision) for inference, potentially speeding it up on compatible hardware (only applicable to Hugging Face models). Check [Ultralytics Hugging Face integration](https://docs.ultralytics.com/integrations/hugging-face/).
+- `--fp16`: Use [FP16 (half-precision)](https://www.ultralytics.com/glossary/half-precision) for inference, potentially speeding it up on compatible hardware (only applicable to Hugging Face models).
 - `--video-classifier-model`: Name or path of the video classifier model (default: `"microsoft/xclip-base-patch32"`). Can be a Hugging Face model name or a [TorchVision model](https://pytorch.org/vision/stable/models.html) name.
 - `--labels`: A list of text labels for zero-shot video classification (default: `["dancing", "singing a song"]`).
 

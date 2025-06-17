@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
-from ultralytics.utils.plotting import colors
+from typing import Any
+
+from ultralytics.engine.results import Results
+from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 
 
 class InstanceSegmentation(BaseSolution):
@@ -18,6 +20,9 @@ class InstanceSegmentation(BaseSolution):
         clss (List[int]): List of detected class indices.
         track_ids (List[int]): List of track IDs for detected instances.
         masks (List[numpy.ndarray]): List of segmentation masks for detected instances.
+        show_conf (bool): Whether to display confidence scores.
+        show_labels (bool): Whether to display class labels.
+        show_boxes (bool): Whether to display bounding boxes.
 
     Methods:
         process: Process the input image to perform instance segmentation and annotate results.
@@ -26,11 +31,11 @@ class InstanceSegmentation(BaseSolution):
     Examples:
         >>> segmenter = InstanceSegmentation()
         >>> frame = cv2.imread("frame.jpg")
-        >>> results = segmenter.segment(frame)
-        >>> print(f"Total segmented instances: {results['total_tracks']}")
+        >>> results = segmenter.process(frame)
+        >>> print(f"Total segmented instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
@@ -41,7 +46,11 @@ class InstanceSegmentation(BaseSolution):
         kwargs["model"] = kwargs.get("model", "yolo11n-seg.pt")
         super().__init__(**kwargs)
 
-    def process(self, im0):
+        self.show_conf = self.CFG.get("show_conf", True)
+        self.show_labels = self.CFG.get("show_labels", True)
+        self.show_boxes = self.CFG.get("show_boxes", True)
+
+    def process(self, im0) -> SolutionResults:
         """
         Perform instance segmentation on the input image and annotate the results.
 
@@ -54,21 +63,26 @@ class InstanceSegmentation(BaseSolution):
         Examples:
             >>> segmenter = InstanceSegmentation()
             >>> frame = cv2.imread("image.jpg")
-            >>> summary = segmenter.segment(frame)
+            >>> summary = segmenter.process(frame)
             >>> print(summary)
         """
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
-        annotator = SolutionAnnotator(im0, self.line_width)
+        self.masks = getattr(self.tracks, "masks", None)
 
         # Iterate over detected classes, track IDs, and segmentation masks
         if self.masks is None:
-            self.LOGGER.warning("⚠️ No masks detected! Ensure you're using a supported Ultralytics segmentation model.")
+            self.LOGGER.warning("No masks detected! Ensure you're using a supported Ultralytics segmentation model.")
+            plot_im = im0
         else:
-            for cls, t_id, mask in zip(self.clss, self.track_ids, self.masks):
-                # Annotate the image with segmentation mask, mask color, and label
-                annotator.segmentation_mask(mask=mask, mask_color=colors(t_id, True), label=self.names[cls])
+            results = Results(im0, path=None, names=self.names, boxes=self.track_data.data, masks=self.masks.data)
+            plot_im = results.plot(
+                line_width=self.line_width,
+                boxes=self.show_boxes,
+                conf=self.show_conf,
+                labels=self.show_labels,
+                color_mode="instance",
+            )
 
-        plot_im = annotator.result()
         self.display_output(plot_im)  # Display the annotated output using the base class function
 
         # Return SolutionResults

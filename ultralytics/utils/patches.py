@@ -31,7 +31,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
     if filename.endswith((".tiff", ".tif")):
-        success, frames = cv2.imreadmulti(filename, cv2.IMREAD_UNCHANGED)
+        success, frames = cv2.imreadmulti(filename, flags=cv2.IMREAD_UNCHANGED)
         if success:
             # Handle RGB images in tif/tiff format
             return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)

@@ -2171,7 +2171,7 @@ class Format:
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels["keypoints"] = (
-                torch.empty(0, 2) if instances.keypoints is None else torch.from_numpy(instances.keypoints)
+                torch.empty(0, 3) if instances.keypoints is None else torch.from_numpy(instances.keypoints)
             )
             if self.normalize:
                 labels["keypoints"][..., 0] /= w

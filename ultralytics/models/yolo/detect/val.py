@@ -395,6 +395,16 @@ class DetectionValidator(BaseValidator):
             (Dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.5", install=False):
+                pkg = "faster-coco-eval"
+            else:
+                if self.is_lvis:
+                    check_requirements("lvis>=0.5.3")
+                    pkg = "lvis"
+                elif self.is_coco:
+                    check_requirements("pycocotools>=2.0.6")
+                    pkg = "pycocotools"
+
             pred_json = self.save_dir / "predictions.json"  # predictions
             anno_json = (
                 self.data["path"]

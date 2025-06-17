@@ -245,7 +245,6 @@ class SegmentationValidator(DetectionValidator):
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
         from faster_coco_eval.core.mask import encode # noqa
-        
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""
             rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]
@@ -273,6 +272,10 @@ class SegmentationValidator(DetectionValidator):
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
+            if check_requirements("faster-coco-eval>=1.6.5", install=False):
+                pkg = "faster-coco-eval"
+            elif check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3"):
+                pkg = "pycocotools" if self.is_coco else "lvis"
             pred_json = self.save_dir / "predictions.json"  # predictions
 
             anno_json = (
@@ -281,7 +284,6 @@ class SegmentationValidator(DetectionValidator):
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
 
-            
             LOGGER.info(f"\nEvaluating faster_coco_eval mAP using {pred_json} and {anno_json}...")
             try:
                 for x in anno_json, pred_json:
@@ -302,9 +304,7 @@ class SegmentationValidator(DetectionValidator):
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
-                    
-                    idx = i * 4 + 2
-                    
+
                     # update mAP50-95 and mAP50
                     stats[self.metrics.keys[idx + 1]] = eval.stats_as_dict["AP_all"]
                     stats[self.metrics.keys[idx]] = eval.stats_as_dict["AP_50"]

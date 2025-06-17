@@ -16,7 +16,7 @@ The Ultralytics YOLO format is a dataset configuration format that allows you to
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8 # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
+path: coco8 # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
 train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
@@ -125,7 +125,7 @@ Remember to double-check if the dataset you want to use is compatible with your 
 The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
 
 ```yaml
-path: ../datasets/coco8 # dataset root directory
+path: coco8 # dataset root directory
 train: images/train # training images (relative to 'path')
 val: images/val # validation images (relative to 'path')
 test: # optional test images

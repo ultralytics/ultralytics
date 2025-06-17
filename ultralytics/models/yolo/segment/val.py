@@ -112,7 +112,7 @@ class SegmentationValidator(DetectionValidator):
                 self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
                 if len(coefficient)
                 else torch.zeros(
-                    (0, *(imgsz if self.args.save_json or self.args.save_txt else proto.shape[2:])),
+                    (0, *(imgsz if self.process is ops.process_mask_native else proto.shape[2:])),
                     dtype=torch.uint8,
                     device=pred["bboxes"].device,
                 )

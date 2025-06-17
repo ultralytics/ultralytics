@@ -42,7 +42,7 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 ### Dataset YAML format
 
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a segmentation dataset:
+The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Segmentation Models. Here is an example of the YAML format used for defining a segmentation dataset:
 
 ```yaml
 --8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"

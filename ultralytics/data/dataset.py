@@ -472,7 +472,8 @@ class GroundingDataset(YOLODataset):
         elif "final_flickr_separateGT_train" in self.json_file:
             assert instance_count == 640704
         else:
-            assert False
+            # For datasets where expected instance counts are unknown, skip strict verification.
+            LOGGER.debug("Skipping instance count verification for unrecognized dataset '%s'.", self.json_file)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> Dict:
         """
@@ -581,7 +582,7 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        # self.verify_labels(labels)
+        self.verify_labels(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")

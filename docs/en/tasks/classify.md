@@ -131,7 +131,7 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
     model = YOLO("yolo11n-cls.pt")
     model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
     # For standalone validation process you need to specify the "CustomizedValidator" class to correctly handle the dataset
-    model.val(data="/home/laughing/codes/datasets/classify-test", validator=CustomizedValidator, imgsz=224, batch=64)
+    model.val(data="imagenet1000", validator=CustomizedValidator, imgsz=224, batch=64)
     ```
 
 ### Dataset format

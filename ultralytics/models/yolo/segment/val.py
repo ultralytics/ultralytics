@@ -307,7 +307,7 @@ class SegmentationValidator(DetectionValidator):
                     eval.summarize()
 
                     idx = i * 4 + 2
-                    
+
                     # update mAP50-95 and mAP50
                     stats[self.metrics.keys[idx + 1]] = eval.stats_as_dict["AP_all"]
                     stats[self.metrics.keys[idx]] = eval.stats_as_dict["AP_50"]

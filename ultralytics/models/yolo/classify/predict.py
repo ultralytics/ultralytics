@@ -56,7 +56,7 @@ class ClassificationPredictor(BasePredictor):
         updated = (
             self.model.model.transforms.transforms[0].size != max(self.imgsz)
             if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size")
-            else True
+            else False
         )
         self.transforms = self.model.model.transforms if not updated else classify_transforms(self.imgsz)
 

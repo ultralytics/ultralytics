@@ -2,6 +2,7 @@
 
 from collections import deque
 from math import sqrt
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -40,7 +41,7 @@ class SpeedEstimator(BaseSolution):
         >>> cv2.imshow("Speed Estimation", results.plot_im)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the SpeedEstimator object with speed estimation parameters and data structures.
 
@@ -59,7 +60,7 @@ class SpeedEstimator(BaseSolution):
         self.meter_per_pixel = self.CFG["meter_per_pixel"]  # Scene scale, depends on camera details
         self.max_speed = self.CFG["max_speed"]  # Maximum speed adjustment
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Process an input frame to estimate object speeds based on tracking data.
 

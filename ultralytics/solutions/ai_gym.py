@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 
@@ -30,7 +31,7 @@ class AIGym(BaseSolution):
         >>> cv2.waitKey(0)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize AIGym for workout monitoring using pose estimation and predefined angles.
 
@@ -47,7 +48,7 @@ class AIGym(BaseSolution):
         self.down_angle = float(self.CFG["down_angle"])  # Pose down predefined angle to consider down pose
         self.kpts = self.CFG["kpts"]  # User selected kpts of workouts storage for further usage
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Monitor workouts using Ultralytics YOLO Pose Model.
 

@@ -243,7 +243,7 @@ class AutoBackend(nn.Module):
         # ONNX Runtime and IMX
         elif onnx or imx:
             LOGGER.info(f"Loading {w} for ONNX Runtime inference...")
-            check_requirements(("onnx", "onnxruntime-gpu" if cuda else "onnxruntime"))
+            check_requirements(("onnx", "onnxruntime-gpu" if platform.system() in ["Windows","Linux"] and platform.machine() == "x86_64" else "onnxruntime"))
             import onnxruntime
 
             providers = ["CPUExecutionProvider"]

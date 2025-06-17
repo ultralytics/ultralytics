@@ -180,7 +180,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        kwargs.setdefault("dynamic_ncols", True) # set to True to use dynamic width defaultly
+        kwargs.setdefault("dynamic_ncols", True)  # set to True to use dynamic width defaultly
         super().__init__(*args, **kwargs)
 
     def __iter__(self):

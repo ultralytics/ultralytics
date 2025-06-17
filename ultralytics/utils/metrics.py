@@ -994,11 +994,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = {k: np.concatenate(v, 0) if v else np.empty(0) for k, v in self.stats.items()}
-        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
-        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
-        if len(stats) == 0 or len(stats["tp"]) == 0:
-            self.box.update([[]] * 10)  # reset stored metrics
+        stats = {k: np.concatenate(v, 0) for k, v in self.stats.items()}  # to numpy
+        if len(stats) == 0:
             return stats
         results = ap_per_class(
             stats["tp"],
@@ -1012,6 +1009,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
+        self.nt_per_class = np.bincount(stats["target_cls"].astype(int), minlength=len(self.names))
+        self.nt_per_image = np.bincount(stats["target_img"].astype(int), minlength=len(self.names))
         return stats
 
     def clear_stats(self):
@@ -1139,9 +1138,6 @@ class SegmentMetrics(DetMetrics):
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
-        if len(stats["tp_m"]) == 0:
-            self.seg.update([[]] * 10)  # reset stored metrics
-            return stats
         results_mask = ap_per_class(
             stats["tp_m"],
             stats["conf"],
@@ -1282,9 +1278,6 @@ class PoseMetrics(DetMetrics):
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
-        if len(stats["tp_p"]) == 0:
-            self.pose.update([[]] * 10)  # reset stored metrics
-            return stats
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],

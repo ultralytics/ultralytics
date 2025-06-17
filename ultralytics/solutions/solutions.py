@@ -70,7 +70,7 @@ class BaseSolution:
         >>> solution.display_output(image)
     """
 
-    def __init__(self, is_cli: bool = False, **kwargs):
+    def __init__(self, is_cli: bool = False, **kwargs: Any) -> None:
         """
         Initialize the BaseSolution class with configuration settings and YOLO model.
 
@@ -155,7 +155,7 @@ class BaseSolution:
         name = ("" if track_id is None else f"{track_id} ") + self.names[cls]
         return (f"{name} {conf:.2f}" if self.show_conf else name) if self.show_labels else None
 
-    def extract_tracks(self, im0: np.ndarray):
+    def extract_tracks(self, im0: np.ndarray) -> None:
         """
         Apply object tracking and extract tracks from an input image or frame.
 
@@ -183,7 +183,7 @@ class BaseSolution:
             self.LOGGER.warning("no tracks found!")
             self.boxes, self.clss, self.track_ids, self.confs = [], [], [], []
 
-    def store_tracking_history(self, track_id: int, box):
+    def store_tracking_history(self, track_id: int, box) -> None:
         """
         Store the tracking history of an object.
 
@@ -204,7 +204,7 @@ class BaseSolution:
         if len(self.track_line) > 30:
             self.track_line.pop(0)
 
-    def initialize_region(self):
+    def initialize_region(self) -> None:
         """Initialize the counting region and line segment based on configuration settings."""
         if self.region is None:
             self.region = [(10, 200), (540, 200), (540, 180), (10, 180)]
@@ -212,7 +212,7 @@ class BaseSolution:
             self.Polygon(self.region) if len(self.region) >= 3 else self.LineString(self.region)
         )  # region or line
 
-    def display_output(self, plot_im: np.ndarray):
+    def display_output(self, plot_im: np.ndarray) -> None:
         """
         Display the results of the processing, which could involve showing frames, printing counts, or saving results.
 
@@ -238,10 +238,10 @@ class BaseSolution:
                 cv2.destroyAllWindows()  # Closes current frame window
                 return
 
-    def process(self, *args, **kwargs):
+    def process(self, *args: Any, **kwargs: Any):
         """Process method should be implemented by each Solution subclass."""
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any):
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method

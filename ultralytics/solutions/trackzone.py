@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 import cv2
 import numpy as np
 
@@ -34,7 +36,7 @@ class TrackZone(BaseSolution):
         >>> cv2.imshow("Tracked Frame", results.plot_im)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the TrackZone class for tracking objects within a defined region in video streams.
 
@@ -46,7 +48,7 @@ class TrackZone(BaseSolution):
         self.region = cv2.convexHull(np.array(self.region or default_region, dtype=np.int32))
         self.mask = None
 
-    def process(self, im0):
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """
         Process the input frame to track objects within a defined region.
 

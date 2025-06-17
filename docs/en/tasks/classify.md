@@ -123,6 +123,7 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
     class CustomizedValidator(ClassificationValidator):
         """A customized validator class for YOLO classification models with enhanced dataset handling."""
+
         def build_dataset(self, img_path: str, mode: str = "train"):
             """Build a customized dataset for classification standalone validation."""
             return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=self.args.split)
@@ -130,7 +131,6 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
     model = YOLO("yolo11n-cls.pt")
     model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
-    # For standalone validation process you need to specify the "CustomizedValidator" class to correctly handle the dataset
     model.val(data="imagenet1000", validator=CustomizedValidator, imgsz=224, batch=64)
     ```
 

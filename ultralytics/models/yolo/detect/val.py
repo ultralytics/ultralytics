@@ -464,6 +464,7 @@ class DetectionValidator(BaseValidator):
                     self.metrics.box.map_small = val.stats[3]
                     self.metrics.box.map_medium = val.stats[4]
                     self.metrics.box.map_large = val.stats[5]
+                    self.metrics.box.coco_map = val.stats[0]  # get mAP@0.5:0.95 from coco for consistency 
                     stats["metrics/mAP_small(B)"] = val.stats[3]
                     stats["metrics/mAP_medium(B)"] = val.stats[4]
                     stats["metrics/mAP_large(B)"] = val.stats[5]

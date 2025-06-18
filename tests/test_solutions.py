@@ -193,6 +193,10 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
         safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
     elif name == "StreamlitInference":
+        try:
+            import streamlit
+        except ImportError:
+            pytest.skip("streamlit not available")
         if checks.check_imshow():  # do not merge with elif above
             solution_class(**kwargs).inference()  # requires interactive GUI environment
         return

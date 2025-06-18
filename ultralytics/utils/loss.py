@@ -91,9 +91,12 @@ class BboxLoss(nn.Module):
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
 
-    def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
+    def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask, feature_weight=None):
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
+        if feature_weight is not None:
+            feature_weight = feature_weight.squeeze(-1).repeat(len(target_scores), 1)[fg_mask].unsqueeze(-1)
+            weight = weight * feature_weight
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -250,16 +253,17 @@ class v8DetectionLoss:
 
         # Bbox loss
         if fg_mask.sum():
-            # target_bboxes /= stride_tensor
+            target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(
                 pred_distri,
-                # pred_bboxes,
-                pred_bboxes * stride_tensor,
+                pred_bboxes,
+                # pred_bboxes * stride_tensor,
                 anchor_points,
                 target_bboxes,
                 target_scores,
                 target_scores_sum,
                 fg_mask,
+                # stride_tensor / 8.0,
             )
 
         loss[0] *= self.hyp.box  # box gain

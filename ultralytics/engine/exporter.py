@@ -57,6 +57,7 @@ TensorFlow.js:
 
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -573,7 +574,7 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<1.18.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.56", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.56", "onnxruntime" + ("-gpu" if platform.system() in ["Windows", "Linux"] and platform.machine() == "x86_64" else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -945,7 +946,7 @@ class Exporter:
                 "onnx>=1.12.0,<1.18.0",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.56",
-                "onnxruntime-gpu" if cuda else "onnxruntime",
+                "onnxruntime-gpu" if platform.system() in ["Windows", "Linux"] and platform.machine() == "x86_64" else "onnxruntime",
                 "protobuf>=5",
             ),
             cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA

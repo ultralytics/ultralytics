@@ -435,6 +435,9 @@ class DetectionValidator(BaseValidator):
                     assert x.is_file(), f"{x} file not found"
                 check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
                 if self.is_coco:
+                    if check_requirements("faster-coco-eval", install=False):
+                        import faster_coco_eval
+                        faster_coco_eval.init_as_pycocotools()
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa
 

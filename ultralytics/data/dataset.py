@@ -464,16 +464,15 @@ class GroundingDataset(YOLODataset):
         """Verify the number of instances in the dataset matches expected counts."""
         instance_count = sum(label["bboxes"].shape[0] for label in labels)
         if "final_mixed_train_no_coco_segm" in self.json_file:
-            assert instance_count == 3662344
+            assert instance_count == 3662344, f"{self.json_file} has {instance_count} instances, expected 3662344"
         elif "final_mixed_train_no_coco" in self.json_file:
-            assert instance_count == 3681235
+            assert instance_count == 3681235, f"{self.json_file} has {instance_count} instances, expected 3681235"
         elif "final_flickr_separateGT_train_segm" in self.json_file:
-            assert instance_count == 638214
+            assert instance_count == 638214, f"{self.json_file} has {instance_count} instances, expected 638214"
         elif "final_flickr_separateGT_train" in self.json_file:
-            assert instance_count == 640704
+            assert instance_count == 640704, f"{self.json_file} has {instance_count} instances, expected 640704"
         else:
-            # For datasets where expected instance counts are unknown, skip strict verification.
-            LOGGER.debug("Skipping instance count verification for unrecognized dataset '%s'.", self.json_file)
+            LOGGER.warning(f"Skipping instance count verification for unrecognized dataset '{self.json_file}'")
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> Dict:
         """

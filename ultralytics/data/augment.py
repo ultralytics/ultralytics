@@ -631,10 +631,15 @@ class Mosaic(BaseMixTransform):
                             col = i % 3
                             keypoints[..., 0] = keypoints[..., 0] * 0.33 + col * 0.33
                             keypoints[..., 1] = keypoints[..., 1] * 0.33 + row * 0.33
-                
+
                 # 更新可见性
                 h, w = labels["img"].shape[:2]
-                out_mask = (keypoints[..., 0] < 0) | (keypoints[..., 1] < 0) | (keypoints[..., 0] > w) | (keypoints[..., 1] > h)
+                out_mask = (
+                    (keypoints[..., 0] < 0)
+                    | (keypoints[..., 1] < 0)
+                    | (keypoints[..., 0] > w)
+                    | (keypoints[..., 1] > h)
+                )
                 keypoints[..., 2] = np.where(out_mask, 0, keypoints[..., 2])
                 labels["keypoints"] = keypoints
 
@@ -993,7 +998,7 @@ class MixUp(BaseMixTransform):
         labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
         labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
 
-         # 处理姿态点
+        # 处理姿态点
         if "keypoints" in labels and "keypoints" in labels2:
             keypoints1 = labels["keypoints"]
             keypoints2 = labels2["keypoints"]
@@ -1002,7 +1007,12 @@ class MixUp(BaseMixTransform):
                 mixed_keypoints = np.concatenate([keypoints1, keypoints2], axis=0)
                 # 更新可见性
                 h, w = labels["img"].shape[:2]
-                out_mask = (mixed_keypoints[..., 0] < 0) | (mixed_keypoints[..., 1] < 0) | (mixed_keypoints[..., 0] > w) | (mixed_keypoints[..., 1] > h)
+                out_mask = (
+                    (mixed_keypoints[..., 0] < 0)
+                    | (mixed_keypoints[..., 1] < 0)
+                    | (mixed_keypoints[..., 0] > w)
+                    | (mixed_keypoints[..., 1] > h)
+                )
                 mixed_keypoints[..., 2] = np.where(out_mask, 0, mixed_keypoints[..., 2])
                 labels["keypoints"] = mixed_keypoints
 
@@ -1914,7 +1924,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_range=(75,99), p=0.0),
+                A.ImageCompression(quality_range=(75, 99), p=0.0),
             ]
 
             # Compose transforms
@@ -2394,7 +2404,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             LOGGER.warning("WARNING ⚠️ No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
         elif flip_idx and (len(flip_idx) != kpt_shape[0]):
             raise ValueError(f"data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}")
-    
+
         if len(flipu_idx) == 0 and hyp.flipud > 0.0:
             hyp.flipud = 0.0
             LOGGER.warning("WARNING ⚠️ No 'flipu_idx' array defined in data.yaml, setting augmentation 'flipud=0.0'")
@@ -2407,7 +2417,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
             Albumentations(p=1.0),
             RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
-            RandomFlip(direction="vertical", p=hyp.flipud,flipu_idx=flipu_idx),
+            RandomFlip(direction="vertical", p=hyp.flipud, flipu_idx=flipu_idx),
             RandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]
     )  # transforms

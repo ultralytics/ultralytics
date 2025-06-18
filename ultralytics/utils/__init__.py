@@ -180,7 +180,8 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        kwargs.setdefault("dynamic_ncols", True)  # auto-adjust progress bar width to terminal size
+        if not TQDM_RICH:  # Only set dynamic_ncols for standard tqdm
+            kwargs.setdefault("dynamic_ncols", True)  # auto-adjust progress bar width to terminal size
         super().__init__(*args, **kwargs)
 
     def __iter__(self):

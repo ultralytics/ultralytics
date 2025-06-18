@@ -464,6 +464,9 @@ class DetectionValidator(BaseValidator):
                     self.metrics.box.map_small = val.stats[3]
                     self.metrics.box.map_medium = val.stats[4]
                     self.metrics.box.map_large = val.stats[5]
+                    stats["metrics/mAP_small"] = val.stats[3]
+                    stats["metrics/mAP_medium"] = val.stats[4]
+                    stats["metrics/mAP_large"] = val.stats[5]
                 if self.is_lvis:
                     stats["metrics/APr(B)"] = val.results["APr"]
                     stats["metrics/APc(B)"] = val.results["APc"]

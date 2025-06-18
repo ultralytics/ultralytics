@@ -49,7 +49,7 @@ class Inference:
         >>> inf.inference()
     """
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
@@ -77,7 +77,7 @@ class Inference:
 
         LOGGER.info(f"Ultralytics Solutions: ✅ {self.temp_dict}")
 
-    def web_ui(self):
+    def web_ui(self) -> None:
         """Set up the Streamlit web interface with custom HTML elements."""
         menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""  # Hide main menu style
 
@@ -96,7 +96,7 @@ class Inference:
         self.st.markdown(main_title_cfg, unsafe_allow_html=True)
         self.st.markdown(sub_title_cfg, unsafe_allow_html=True)
 
-    def sidebar(self):
+    def sidebar(self) -> None:
         """Configure the Streamlit sidebar for model and inference settings."""
         with self.st.sidebar:  # Add Ultralytics LOGO
             logo = "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg"
@@ -117,7 +117,7 @@ class Inference:
         self.org_frame = col1.empty()  # Container for original frame
         self.ann_frame = col2.empty()  # Container for annotated frame
 
-    def source_upload(self):
+    def source_upload(self) -> None:
         """Handle video file uploads through the Streamlit interface."""
         self.vid_file_name = ""
         if self.source == "video":
@@ -130,7 +130,7 @@ class Inference:
         elif self.source == "webcam":
             self.vid_file_name = 0  # Use webcam index 0
 
-    def configure(self):
+    def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
         # Add dropdown menu for model selection
         available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
@@ -150,7 +150,7 @@ class Inference:
         if not isinstance(self.selected_ind, list):  # Ensure selected_options is a list
             self.selected_ind = list(self.selected_ind)
 
-    def inference(self):
+    def inference(self) -> None:
         """Perform real-time object detection inference on video or webcam feed."""
         self.web_ui()  # Initialize the web interface
         self.sidebar()  # Create the sidebar

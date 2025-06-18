@@ -456,6 +456,7 @@ class BaseTrainer:
 
                 # Validation
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+                    self._clear_memory(threshold=0.5)  # prevent VRAM spike
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
@@ -478,8 +479,7 @@ class BaseTrainer:
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
-            if self._get_memory(fraction=True) > 0.5:
-                self._clear_memory()  # clear if memory utilization > 50%
+            self._clear_memory(0.5)  # clear if memory utilization > 50%
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -525,8 +525,12 @@ class BaseTrainer:
                 total = torch.cuda.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
-    def _clear_memory(self):
+    def _clear_memory(self, threshold: float = None):
         """Clear accelerator memory by calling garbage collector and emptying cache."""
+        if threshold:
+            assert 0 <= threshold <= 1, "Threshold must be between 0 and 1."
+            if self._get_memory(fraction=True) <= threshold:
+                return
         gc.collect()
         if self.device.type == "mps":
             torch.mps.empty_cache()

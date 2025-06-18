@@ -39,17 +39,3 @@ __all__ = (
     "SearchApp",
     "VisualAISearch",
 )
-
-
-# Patch Streamlit's module watcher to safely skip torch.classes and avoid __path__ crashes.
-try:
-    import streamlit.watcher.local_sources_watcher as lsw
-
-    lsw._orig_get_module_paths = getattr(lsw, "_orig_get_module_paths", lsw.get_module_paths)
-    lsw.get_module_paths = (
-        lambda m: []
-        if getattr(m, "__name__", "").startswith("torch.classes")
-        else (lsw._orig_get_module_paths(m) if callable(lsw._orig_get_module_paths) else [])
-    )
-except Exception:
-    pass

@@ -4,12 +4,14 @@ import io
 from typing import Any, List
 
 import cv2
+import torch
 
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
+torch.classes.__path__ = [] # Torch class issue: https://github.com/datalab-to/marker/issues/442
 
 class Inference:
     """

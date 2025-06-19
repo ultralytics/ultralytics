@@ -71,7 +71,7 @@ class VisualAISearch(BaseSolution):
             self.data_dir = Path("images")
 
         self.LOGGER.info(
-            f"Loading CLIP model '{self.model_name}' on {self.device}. This may download the model if not cached...")
+            f"Loading CLIP model '{self.model_name}' on {self.device}. This may download the model if not cached")
         self.model, self.preprocess = self.clip.load(self.model_name, device=self.device)
 
         self.index = None

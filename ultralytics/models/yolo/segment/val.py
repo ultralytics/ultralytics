@@ -273,10 +273,6 @@ class SegmentationValidator(DetectionValidator):
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
-            if check_requirements("faster-coco-eval>=1.6.5", install=False):
-                pass
-            elif check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3"):
-                pass
             pred_json = self.save_dir / "predictions.json"  # predictions
 
             anno_json = (

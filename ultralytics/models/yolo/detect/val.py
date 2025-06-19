@@ -400,11 +400,11 @@ class DetectionValidator(BaseValidator):
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
 
-            check_requirements("faster_coco_eval>=1.6.7")
+            check_requirements("faster-coco-eval>=1.6.7")
 
             from faster_coco_eval import COCO, COCOeval_faster
 
-            LOGGER.info(f"\nEvaluating faster_coco_eval mAP using {pred_json} and {anno_json}...")
+            LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:
                 # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
                 # https://mixaill76.github.io/faster_coco_eval/examples/lvis_example.html
@@ -430,5 +430,5 @@ class DetectionValidator(BaseValidator):
                     stats["metrics/APf(B)"] = val.stats_as_dict["APf"]
                     stats["fitness"] = val.stats_as_dict["AP_all"]
             except Exception as e:
-                LOGGER.warning(f"faster_coco_eval unable to run: {e}")
+                LOGGER.warning(f"faster-coco-eval unable to run: {e}")
         return stats

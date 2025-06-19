@@ -73,7 +73,7 @@ class SegmentationValidator(DetectionValidator):
         """
         super().init_metrics(model)
         if self.args.save_json:
-            check_requirements("faster_coco_eval>=1.6.7")
+            check_requirements("faster-coco-eval>=1.6.7")
         # More accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
 
@@ -281,14 +281,14 @@ class SegmentationValidator(DetectionValidator):
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
 
-            LOGGER.info(f"\nEvaluating faster_coco_eval mAP using {pred_json} and {anno_json}...")
+            LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
 
                 # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
                 # https://mixaill76.github.io/faster_coco_eval/examples/ced_example.html
-                check_requirements("faster_coco_eval>=1.6.7")
+                check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json)  # init annotations api
@@ -318,5 +318,5 @@ class SegmentationValidator(DetectionValidator):
                     stats["fitness"] = stats["metrics/mAP50-95(B)"]
 
             except Exception as e:
-                LOGGER.warning(f"faster_coco_eval unable to run: {e}")
+                LOGGER.warning(f"faster-coco-eval unable to run: {e}")
         return stats

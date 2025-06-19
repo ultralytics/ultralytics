@@ -292,11 +292,11 @@ class PoseValidator(DetectionValidator):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
-            LOGGER.info(f"\nEvaluating faster_coco_eval mAP using {pred_json} and {anno_json}...")
+            LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:
                 # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
                 # https://mixaill76.github.io/faster_coco_eval/examples/ced_example.html
-                check_requirements("faster_coco_eval>=1.6.7")
+                check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 for x in anno_json, pred_json:
@@ -317,5 +317,5 @@ class PoseValidator(DetectionValidator):
                         :2
                     ]  # update mAP50-95 and mAP50
             except Exception as e:
-                LOGGER.warning(f"faster_coco_eval unable to run: {e}")
+                LOGGER.warning(f"faster-coco-eval unable to run: {e}")
         return stats

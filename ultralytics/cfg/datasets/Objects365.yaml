@@ -393,7 +393,7 @@ download: |
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywhn
 
-  check_requirements(("faster_coco_eval",))
+  check_requirements("faster-coco-eval")
   from faster_coco_eval import COCO
 
   # Make Directories

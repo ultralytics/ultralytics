@@ -631,7 +631,7 @@ class Exporter:
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
         """Export YOLO model to OpenVINO format."""
         # OpenVINO <= 2025.1.0 error on macOS 15.4+: https://github.com/openvinotoolkit/openvino/issues/30023"
-        check_requirements("openvino==2025.0.0" if MACOS and MACOS_VERSION>="15.4" else "openvino>=2024.0.0")
+        check_requirements("openvino==2024.6.0" if MACOS and MACOS_VERSION>="15.4" else "openvino>=2024.0.0")
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")

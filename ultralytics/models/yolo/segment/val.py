@@ -274,7 +274,6 @@ class SegmentationValidator(DetectionValidator):
         """Return COCO-style instance segmentation evaluation metrics."""
         if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
             pred_json = self.save_dir / "predictions.json"  # predictions
-
             anno_json = (
                 self.data["path"]
                 / "annotations"
@@ -285,9 +284,6 @@ class SegmentationValidator(DetectionValidator):
             try:
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-
-                # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
-                # https://mixaill76.github.io/faster_coco_eval/examples/ced_example.html
                 check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
@@ -301,9 +297,7 @@ class SegmentationValidator(DetectionValidator):
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
-
                     idx = i * 4 + 2
-
                     # update mAP50-95 and mAP50
                     stats[self.metrics.keys[idx + 1]] = eval.stats_as_dict["AP_all"]
                     stats[self.metrics.keys[idx]] = eval.stats_as_dict["AP_50"]

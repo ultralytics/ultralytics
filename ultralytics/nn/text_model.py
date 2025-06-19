@@ -85,7 +85,7 @@ class CLIP(TextModel):
             >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
         super().__init__()
-        self.model = clip.load(size, device=device)[0]
+        self.model, self.preprocess = clip.load(size, device=device)
         self.to(device)
         self.device = device
         self.eval()
@@ -132,6 +132,34 @@ class CLIP(TextModel):
         txt_feats = self.model.encode_text(texts).to(dtype)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         return txt_feats
+
+    def encode_image(self, image_tensor: torch.Tensor, dtype: torch.dtype = torch.float32):
+        """
+        Encode preprocessed images into normalized feature vectors.
+
+        This method processes preprocessed image inputs through the CLIP model to generate feature vectors, which are then
+        normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
+
+        Args:
+            image (torch.Tensor): Preprocessed image input, typically created using the preprocess() method.
+            dtype (torch.dtype, optional): Data type for output features.
+
+        Returns:
+            (torch.Tensor): Normalized image feature vectors with unit length (L2 norm = 1).
+
+        Examples:
+            >>> from PIL import Image
+            >>> clip_model = CLIP("ViT-B/32", device="cuda")
+            >>> image = Image.open("cat.jpg")
+            >>> image_tensor = clip_model.preprocess(image).unsqueeze(0).to("cuda")
+            >>> features = clip_model.encode_image(image_tensor)
+            >>> features.shape
+            torch.Size([1, 512])
+        """
+        with torch.no_grad():
+            img_feats = self.model.encode_image(image_tensor).to(dtype)
+            img_feats = img_feats / img_feats.norm(p=2, dim=-1, keepdim=True)
+            return img_feats
 
 
 class MobileCLIP(TextModel):

@@ -12,6 +12,7 @@ from ultralytics.data.utils import IMG_FORMATS
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
+from ultralytics.nn.text_model import build_text_model
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
@@ -29,10 +30,8 @@ class VisualAISearch(BaseSolution):
         device (str): Computation device, e.g., 'cpu' or 'cuda'.
         faiss_index (str): Path to the FAISS index file.
         data_path_npy (str): Path to the numpy file storing image paths.
-        model_name (str): Name of the CLIP model to use.
         data_dir (Path): Path object for the data directory.
         model: Loaded CLIP model.
-        preprocess: CLIP preprocessing function.
         index: FAISS index for similarity search.
         image_paths (List[str]): List of image file paths.
 
@@ -57,7 +56,6 @@ class VisualAISearch(BaseSolution):
         self.clip = __import__("clip")
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
-        self.model_name = "ViT-B/32"
         self.data_dir = Path(self.CFG["data"])
         self.device = select_device(self.CFG["device"])
 
@@ -70,7 +68,7 @@ class VisualAISearch(BaseSolution):
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.model, self.preprocess = self.clip.load(self.model_name, device=self.device)
+        self.model = build_text_model("clip:ViT-B/32", device=self.device)
 
         self.index = None
         self.image_paths = []
@@ -80,7 +78,7 @@ class VisualAISearch(BaseSolution):
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
         image = Image.open(path)
-        tensor = self.preprocess(image).unsqueeze(0).to(self.device)
+        tensor = self.model.preprocess(image).unsqueeze(0).to(self.device)
         with torch.no_grad():
             return self.model.encode_image(tensor).cpu().numpy()
 

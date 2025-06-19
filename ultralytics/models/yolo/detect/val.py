@@ -400,21 +400,16 @@ class DetectionValidator(BaseValidator):
                 / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
             )  # annotations
 
-            check_requirements("faster-coco-eval>=1.6.7")
-
-            from faster_coco_eval import COCO, COCOeval_faster
-
             LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:
-                # https://mixaill76.github.io/faster_coco_eval/examples/eval_example.html
-                # https://mixaill76.github.io/faster_coco_eval/examples/lvis_example.html
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
+                check_requirements("faster-coco-eval>=1.6.7")
+                from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json)
                 pred = anno.loadRes(pred_json)
-                kwargs = {"lvis_style": self.is_lvis, "print_function": LOGGER.info}
-                val = COCOeval_faster(anno, pred, iouType="bbox", **kwargs)
+                val = COCOeval_faster(anno, pred, iouType="bbox", lvis_style=self.is_lvis, print_function=LOGGER.info)
                 val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                 val.evaluate()
                 val.accumulate()

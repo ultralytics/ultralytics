@@ -86,7 +86,6 @@ from ultralytics.utils import (
     LINUX,
     LOGGER,
     MACOS,
-    MACOS_VERSION,
     RKNN_CHIPS,
     ROOT,
     SETTINGS,

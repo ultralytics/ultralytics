@@ -156,7 +156,7 @@ class CLIP(TextModel):
             >>> features.shape
             torch.Size([1, 512])
         """
-        img_feats = self.model.encode_image(image_tensor).to(dtype)
+        img_feats = self.model.encode_image(image).to(dtype)
         img_feats = img_feats / img_feats.norm(p=2, dim=-1, keepdim=True)
         return img_feats
 

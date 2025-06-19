@@ -301,11 +301,9 @@ class PoseValidator(DetectionValidator):
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(anno_json)  # init annotations api
                 pred = anno.loadRes(pred_json)  # init predictions api (must pass string, not Path)
+                kwargs = dict(cocoGt=anno, cocoDt=pred, print_function=LOGGER.info)
                 for i, eval in enumerate(
-                    [
-                        COCOeval_faster(anno, pred, "bbox", print_function=LOGGER.info),
-                        COCOeval_faster(anno, pred, "keypoints", print_function=LOGGER.info),
-                    ]
+                    [COCOeval_faster(iouType="bbox", **kwargs), COCOeval_faster(iouType="keypoints", **kwargs)]
                 ):
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()

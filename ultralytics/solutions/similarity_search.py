@@ -9,10 +9,10 @@ import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.nn.text_model import build_text_model
 from ultralytics.solutions.solutions import BaseSolution
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
-from ultralytics.nn.text_model import build_text_model
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 

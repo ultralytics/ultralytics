@@ -150,7 +150,7 @@ class CLIP(TextModel):
         Examples:
             >>> from PIL import Image
             >>> clip_model = CLIP("ViT-B/32", device="cuda")
-            >>> image = Image.open("cat.jpg")
+            >>> image = Image.open("path/to/image.jpg")
             >>> image_tensor = clip_model.preprocess(image).unsqueeze(0).to("cuda")
             >>> features = clip_model.encode_image(image_tensor)
             >>> features.shape

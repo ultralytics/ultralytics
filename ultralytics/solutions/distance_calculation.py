@@ -33,7 +33,7 @@ class DistanceCalculation(BaseSolution):
         >>> cv2.waitKey(0)
     """
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 

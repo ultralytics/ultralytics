@@ -3,7 +3,7 @@
 import math
 import random
 from copy import copy
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import torch.nn as nn
@@ -13,6 +13,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
@@ -178,19 +179,16 @@ class DetectionTrainer(BaseTrainer):
             "Size",
         )
 
-    def plot_training_samples(self, batch: Dict, ni: int):
+    def plot_training_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict): Dictionary containing batch data.
+            batch (Dict[str, Any]): Dictionary containing batch data.
             ni (int): Number of iterations.
         """
         plot_images(
-            images=batch["img"],
-            batch_idx=batch["batch_idx"],
-            cls=batch["cls"].squeeze(-1),
-            bboxes=batch["bboxes"],
+            labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
@@ -213,6 +211,8 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (int): Optimal batch size.
         """
-        train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        with override_configs(self.args, overrides={"cache": False}) as self.args:
+            train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
+        del train_dataset  # free memory
         return super().auto_batch(max_num_obj)

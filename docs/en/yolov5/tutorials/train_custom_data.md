@@ -180,7 +180,7 @@ YOLOv5 seamlessly integrates with various tools for visualizing training progres
 
 Getting started is straightforward:
 
-```shell
+```bash
 pip install comet_ml                                                          # 1. Install Comet library
 export COMET_API_KEY=YOUR_API_KEY_HERE                                        # 2. Set your Comet API key (create a free account at Comet.ml)
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 3. Train your model - Comet automatically logs everything!

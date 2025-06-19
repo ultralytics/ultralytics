@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from itertools import cycle
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import cv2
 import numpy as np
@@ -45,7 +45,7 @@ class Analytics(BaseSolution):
         >>> cv2.imshow("Analytics", results.plot_im)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)
 

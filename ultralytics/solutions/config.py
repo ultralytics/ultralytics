@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import cv2
 
@@ -94,7 +94,7 @@ class SolutionConfig:
     verbose: bool = True
     data: str = "images"
 
-    def update(self, **kwargs):
+    def update(self, **kwargs: Any):
         """Update configuration parameters with new values provided as keyword arguments."""
         for key, value in kwargs.items():
             if hasattr(self, key):

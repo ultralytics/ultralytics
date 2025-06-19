@@ -203,13 +203,20 @@ def test_track_stream(model):
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
-    metrics = YOLO(model).val(data=data, imgsz=32)
-    metrics.to_df()
-    metrics.to_csv()
-    metrics.to_xml()
-    metrics.to_html()
-    metrics.to_json()
-    metrics.to_sql()
+    for plots in [True, False]:  # Test both cases i.e. plots=True and plots=False
+        metrics = YOLO(model).val(data=data, imgsz=32, plots=plots)
+        metrics.to_df()
+        metrics.to_csv()
+        metrics.to_xml()
+        metrics.to_html()
+        metrics.to_json()
+        metrics.to_sql()
+        metrics.confusion_matrix.to_df()  # Tests for confusion matrix export
+        metrics.confusion_matrix.to_csv()
+        metrics.confusion_matrix.to_xml()
+        metrics.confusion_matrix.to_html()
+        metrics.confusion_matrix.to_json()
+        metrics.confusion_matrix.to_sql()
 
 
 def test_train_scratch():
@@ -278,6 +285,7 @@ def test_results(model: str):
     temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
     for r in results:
+        assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)

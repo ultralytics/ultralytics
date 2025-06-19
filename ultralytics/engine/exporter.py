@@ -62,7 +62,6 @@ import shutil
 import subprocess
 import time
 import warnings
-from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -106,6 +105,7 @@ from ultralytics.utils.downloads import attempt_download_asset, get_github_asset
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated
+from ultralytics.utils.patches import arange_patch
 from ultralytics.utils.torch_utils import TORCH_1_13, get_cpu_info, get_latest_opset, select_device
 
 
@@ -196,27 +196,6 @@ def try_export(inner_func):
             raise e
 
     return outer_func
-
-
-@contextmanager
-def arange_patch(args):
-    """
-    Workaround for ONNX torch.arange incompatibility with FP16.
-
-    https://github.com/pytorch/pytorch/issues/148041.
-    """
-    if args.dynamic and args.half and args.format == "onnx":
-        func = torch.arange
-
-        def arange(*args, dtype=None, **kwargs):
-            """Return a 1-D tensor of size with values from the interval and common difference."""
-            return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
-
-        torch.arange = arange  # patch
-        yield
-        torch.arange = func  # unpatch
-    else:
-        yield
 
 
 class Exporter:
@@ -344,8 +323,6 @@ class Exporter:
             LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if self.args.int8 and engine:
-            self.args.dynamic = True  # enforce dynamic to export TensorRT INT8
         if self.args.optimize:
             assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
             assert self.device.type == "cpu", "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
@@ -554,8 +531,6 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         data = (check_cls_dataset if self.model.task == "classify" else check_det_dataset)(self.args.data)
-        # TensorRT INT8 calibration should use 2x batch size
-        batch = self.args.batch * (2 if self.args.format == "engine" else 1)
         dataset = YOLODataset(
             data[self.args.split or "val"],
             data=data,
@@ -563,7 +538,7 @@ class Exporter:
             task=self.model.task,
             imgsz=self.imgsz[0],
             augment=False,
-            batch_size=batch,
+            batch_size=self.args.batch,
         )
         n = len(dataset)
         if n < self.args.batch:
@@ -573,7 +548,7 @@ class Exporter:
             )
         elif n < 300:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
-        return build_dataloader(dataset, batch=batch, workers=0)  # required for batch loading
+        return build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)  # required for batch loading
 
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
@@ -597,7 +572,7 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0,<1.18.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.53", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.56", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -965,7 +940,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0,<1.18.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.53",
+                "onnxslim>=0.1.56",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
@@ -1019,7 +994,7 @@ class Exporter:
             custom_input_op_name_np_data_path=np_data,
             enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
             output_signaturedefs=True,  # fix error with Attention block group convolution
-            disable_group_convolution=self.args.format == "tfjs",  # fix TF.js error with group convolution
+            disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},  # fix error with group convolution
             optimization_for_gpu_delegate=True,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

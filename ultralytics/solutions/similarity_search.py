@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 import numpy as np
 import torch
@@ -48,7 +48,7 @@ class VisualAISearch(BaseSolution):
         >>> results = searcher.search("a cat sitting on a chair", k=10)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
         super().__init__(**kwargs)
         check_requirements(["git+https://github.com/ultralytics/CLIP.git", "faiss-cpu"])
@@ -90,7 +90,7 @@ class VisualAISearch(BaseSolution):
         with torch.no_grad():
             return self.model.encode_text(tokens).cpu().numpy()
 
-    def load_or_build_index(self):
+    def load_or_build_index(self) -> None:
         """
         Load existing FAISS index or build a new one from image features.
 
@@ -195,7 +195,7 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data: str = "images", device: str = None):
+    def __init__(self, data: str = "images", device: str = None) -> None:
         """
         Initialize the SearchApp with VisualAISearch backend.
 
@@ -217,7 +217,7 @@ class SearchApp:
         )
         self.app.add_url_rule("/", view_func=self.index, methods=["GET", "POST"])
 
-    def index(self):
+    def index(self) -> str:
         """Process user query and display search results in the web interface."""
         results = []
         if self.request.method == "POST":
@@ -225,6 +225,6 @@ class SearchApp:
             results = self.searcher(query)
         return self.render_template("similarity-search.html", results=results)
 
-    def run(self, debug: bool = False):
+    def run(self, debug: bool = False) -> None:
         """Start the Flask web application server."""
         self.app.run(debug=debug)

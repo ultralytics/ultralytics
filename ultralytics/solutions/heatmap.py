@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, List
+
 import cv2
 import numpy as np
 
@@ -31,7 +33,7 @@ class Heatmap(ObjectCounter):
         >>> processed_frame = heatmap.process(frame)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the Heatmap class for real-time video stream heatmap generation based on object tracks.
 
@@ -48,7 +50,7 @@ class Heatmap(ObjectCounter):
         self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
-    def heatmap_effect(self, box):
+    def heatmap_effect(self, box: List[float]) -> None:
         """
         Efficiently calculate heatmap area and effect location for applying colormap.
 
@@ -70,7 +72,7 @@ class Heatmap(ObjectCounter):
         # Update only the values within the bounding box in a single vectorized operation
         self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
-    def process(self, im0):
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """
         Generate heatmap for each frame using Ultralytics tracking.
 

@@ -491,7 +491,7 @@ class GroundingDataset(YOLODataset):
         instance_count = sum(label["bboxes"].shape[0] for label in labels)
         for data_name, count in expected_counts.items():
             if data_name in self.json_file:
-                assert instance_count == count, f"{self.json_file} has {instance_count} instances, expected {count}"
+                assert instance_count == count, f"'{self.json_file}' has {instance_count} instances, expected {count}."
                 return
         LOGGER.warning(f"Skipping instance count verification for unrecognized dataset '{self.json_file}'")
 

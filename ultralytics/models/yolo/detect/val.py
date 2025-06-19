@@ -185,8 +185,6 @@ class DetectionValidator(BaseValidator):
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = len(predn["cls"]) == 0
-            if no_pred and len(cls) == 0:
-                continue
             self.metrics.update_stats(
                 {
                     **self._process_batch(predn, pbatch),

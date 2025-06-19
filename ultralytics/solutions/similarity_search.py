@@ -76,14 +76,13 @@ class VisualAISearch(BaseSolution):
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
-        image = Image.open(path)
-        tensor = self.model.preprocess(image).unsqueeze(0).to(self.device)
+        tensor = self.model.preprocess(Image.open(path)).unsqueeze(0).to(self.device)
         with torch.no_grad():
             return self.model.encode_image(tensor).cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
-        tokens = self.clip.tokenize([text]).to(self.device)
+        tokens = self.model.tokenize([text]).to(self.device)
         with torch.no_grad():
             return self.model.encode_text(tokens).cpu().numpy()
 

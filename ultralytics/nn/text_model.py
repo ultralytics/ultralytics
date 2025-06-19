@@ -133,7 +133,7 @@ class CLIP(TextModel):
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         return txt_feats
 
-    def encode_image(self, image_tensor: torch.Tensor, dtype: torch.dtype = torch.float32):
+    def encode_image(self, image: torch.Tensor, dtype: torch.dtype = torch.float32):
         """
         Encode preprocessed images into normalized feature vectors.
 

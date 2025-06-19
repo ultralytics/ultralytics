@@ -289,10 +289,13 @@ class SegmentationValidator(DetectionValidator):
 
                 anno = COCO(anno_json)  # init annotations api
                 pred = anno.loadRes(pred_json)  # init predictions api (must pass string, not Path)
-                kwargs = {"lvis_style": self.is_lvis, "print_function": LOGGER.info}
-                vals = [COCOeval_faster(anno, pred, "bbox", **kwargs), COCOeval_faster(anno, pred, "segm", **kwargs)]
 
-                for i, eval in enumerate(vals):
+                for i, eval in enumerate(
+                    [
+                        COCOeval_faster(anno, pred, "bbox", lvis_style=self.is_lvis, print_function=LOGGER.info),
+                        COCOeval_faster(anno, pred, "segm", lvis_style=self.is_lvis, print_function=LOGGER.info),
+                    ]
+                ):
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()

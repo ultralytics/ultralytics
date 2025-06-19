@@ -237,6 +237,10 @@ class BaseDataset(Dataset):
             if im is None:
                 raise FileNotFoundError(f"Image Not Found {f}")
 
+            # 16bit tif normalization
+            if im.dtype == np.uint16:
+                im = im.astype(np.float32) / 65535.0 * 255.0
+
             h0, w0 = im.shape[:2]  # orig hw
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 r = self.imgsz / max(h0, w0)  # ratio
@@ -260,7 +264,6 @@ class BaseDataset(Dataset):
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
-
     def cache_images(self) -> None:
         """Cache images to memory or disk for faster training."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes

@@ -50,7 +50,7 @@ class ClassificationPredictor(BasePredictor):
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "classify"
-        self._legacy_transform_name = "ultralytics.yolo.data.augment.ToTensor"
+        self._legacy_transform_name = "ultralytics.data.augment.ToTensor"
 
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""

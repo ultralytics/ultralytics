@@ -5,7 +5,7 @@ from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -460,21 +460,42 @@ class GroundingDataset(YOLODataset):
         """
         return []
 
-    def verify_labels(self, labels: List[Dict]) -> None:
-        """Verify the number of instances in the dataset matches expected counts."""
-        instance_count = sum(label["bboxes"].shape[0] for label in labels)
-        if "final_mixed_train_no_coco_segm" in self.json_file:
-            assert instance_count == 3662344
-        elif "final_mixed_train_no_coco" in self.json_file:
-            assert instance_count == 3681235
-        elif "final_flickr_separateGT_train_segm" in self.json_file:
-            assert instance_count == 638214
-        elif "final_flickr_separateGT_train" in self.json_file:
-            assert instance_count == 640704
-        else:
-            assert False
+    def verify_labels(self, labels: List[Dict[str, Any]]) -> None:
+        """
+        Verify the number of instances in the dataset matches expected counts.
 
-    def cache_labels(self, path: Path = Path("./labels.cache")) -> Dict:
+        This method checks if the total number of bounding box instances in the provided
+        labels matches the expected count for known datasets. It performs validation
+        against a predefined set of datasets with known instance counts.
+
+        Args:
+            labels (List[Dict[str, Any]]): List of label dictionaries, where each dictionary
+                contains dataset annotations. Each label dict must have a 'bboxes' key with
+                a numpy array or tensor containing bounding box coordinates.
+
+        Raises:
+            AssertionError: If the actual instance count doesn't match the expected count
+                for a recognized dataset.
+
+        Note:
+            For unrecognized datasets (those not in the predefined expected_counts),
+            a warning is logged and verification is skipped.
+        """
+        expected_counts = {
+            "final_mixed_train_no_coco_segm": 3662344,
+            "final_mixed_train_no_coco": 3681235,
+            "final_flickr_separateGT_train_segm": 638214,
+            "final_flickr_separateGT_train": 640704,
+        }
+
+        instance_count = sum(label["bboxes"].shape[0] for label in labels)
+        for data_name, count in expected_counts.items():
+            if data_name in self.json_file:
+                assert instance_count == count, f"'{self.json_file}' has {instance_count} instances, expected {count}."
+                return
+        LOGGER.warning(f"Skipping instance count verification for unrecognized dataset '{self.json_file}'")
+
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> Dict[str, Any]:
         """
         Load annotations from a JSON file, filter, and normalize bounding boxes for each image.
 
@@ -482,7 +503,7 @@ class GroundingDataset(YOLODataset):
             path (Path): Path where to save the cache file.
 
         Returns:
-            (dict): Dictionary containing cached labels and related information.
+            (Dict[str, Any]): Dictionary containing cached labels and related information.
         """
         x = {"labels": []}
         LOGGER.info("Loading annotation file...")
@@ -581,7 +602,7 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        # self.verify_labels(labels)
+        self.verify_labels(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")

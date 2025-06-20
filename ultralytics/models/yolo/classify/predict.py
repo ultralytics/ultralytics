@@ -53,9 +53,11 @@ class ClassificationPredictor(BasePredictor):
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""
         super().setup_source(source)
-        updated = False
-        if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size"):
-            updated = self.model.model.transforms.transforms[0].size != max(self.imgsz)
+        updated = (
+            self.model.model.transforms.transforms[0].size != max(self.imgsz)
+            if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size")
+            else False
+        )
         self.transforms = (
             classify_transforms(self.imgsz) if updated or not self.model.pt else self.model.model.transforms
         )

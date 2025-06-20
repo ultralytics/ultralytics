@@ -263,7 +263,7 @@ class v8DetectionLoss:
                 target_scores,
                 target_scores_sum,
                 fg_mask,
-                stride_tensor / 16.0,
+                stride_tensor / 8.0,
             )
 
         loss[0] *= self.hyp.box  # box gain

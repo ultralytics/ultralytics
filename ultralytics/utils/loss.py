@@ -253,17 +253,17 @@ class v8DetectionLoss:
 
         # Bbox loss
         if fg_mask.sum():
-            # target_bboxes /= stride_tensor
+            target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(
                 pred_distri,
-                # pred_bboxes,
-                pred_bboxes * stride_tensor,
+                pred_bboxes,
+                # pred_bboxes * stride_tensor,
                 anchor_points,
                 target_bboxes,
                 target_scores,
                 target_scores_sum,
                 fg_mask,
-                # stride_tensor / 8.0,
+                stride_tensor / 16.0,
             )
 
         loss[0] *= self.hyp.box  # box gain

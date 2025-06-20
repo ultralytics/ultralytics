@@ -82,9 +82,8 @@ class VisualAISearch(BaseSolution):
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
-        tokens = self.model.tokenize([text]).to(self.device)
         with torch.no_grad():
-            return self.model.encode_text(tokens).cpu().numpy()
+            return self.model.encode_text(self.model.tokenize(text)).cpu().numpy()
 
     def load_or_build_index(self) -> None:
         """

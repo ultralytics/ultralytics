@@ -393,8 +393,8 @@ download: |
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywhn
 
-  check_requirements(("pycocotools>=2.0",))
-  from pycocotools.coco import COCO
+  check_requirements("faster-coco-eval")
+  from faster_coco_eval import COCO
 
   # Make Directories
   dir = Path(yaml["path"])  # dataset root dir

@@ -41,19 +41,7 @@ In this format, `<class-index>` is the index of the class for the object,`<x> <y
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training pose estimation models. Here is an example of the YAML format used for defining a pose dataset:
 
 ```yaml
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-pose # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
-train: images/train # train images (relative to 'path') 4 images
-val: images/val # val images (relative to 'path') 4 images
-test: # test images (optional)
-
-# Keypoints
-kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
-flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
-
-# Classes dictionary
-names:
-    0: person
+--8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -208,11 +196,7 @@ To add your dataset:
 The dataset YAML file in Ultralytics YOLO defines the dataset and model configuration for training. It specifies paths to training, validation, and test images, keypoint shapes, class names, and other configuration options. This structured format helps streamline [dataset management](https://docs.ultralytics.com/datasets/explorer/) and model training. Here is an example YAML format:
 
 ```yaml
-path: ../datasets/coco8-pose
-train: images/train
-val: images/val
-names:
-    0: person
+--8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
 ```
 
 Read more about creating YAML configuration files in [Dataset YAML format](#dataset-yaml-format).

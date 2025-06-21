@@ -384,6 +384,8 @@ class Pose(Detect):
         if self.training:
             return x, kpt
         pred_kpt = self.kpts_decode(bs, kpt)
+        if self.export and self.format == "imx":
+            return (*x, pred_kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
     def kpts_decode(self, bs: int, kpts: torch.Tensor) -> torch.Tensor:
@@ -400,12 +402,17 @@ class Pose(Detect):
                 grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
                 norm = self.strides / (self.stride[0] * grid_size)
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
+            elif self.format == "imx":
+                y = kpts.view(bs, *self.kpt_shape, -1)
+                a = (y[:, :, :2] * 2.0 + (copy.copy(self.anchors) - 0.5)) * copy.copy(self.strides)
             else:
                 # NCNN fix
                 y = kpts.view(bs, *self.kpt_shape, -1)
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
+            if self.format == "imx":
+                return a.reshape((bs, self.nk, -1))
             return a.view(bs, self.nk, -1)
         else:
             y = kpts.clone()

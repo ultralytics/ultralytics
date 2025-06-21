@@ -125,7 +125,7 @@ class BboxLoss(nn.Module):
             pred_dist[..., 0::2] /= imgsz[1]
             pred_dist[..., 1::2] /= imgsz[0]
             loss_dfl = (
-                F.smooth_l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True)
+                F.smooth_l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").sum(-1, keepdim=True)
                 * weight
             )
             loss_dfl = loss_dfl.sum() / target_scores_sum

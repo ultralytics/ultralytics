@@ -2928,7 +2928,7 @@ class ToTensor:
         the color channels are reversed from BGR to RGB.
 
         Args:
-            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in BGR order.
+            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
 
         Returns:
             (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized
@@ -2941,7 +2941,7 @@ class ToTensor:
             >>> print(tensor_img.shape, tensor_img.dtype)
             torch.Size([3, 640, 640]) torch.float16
         """
-        im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
+        im = np.ascontiguousarray(im.transpose((2, 0, 1)))  # HWC to CHW -> contiguous
         im = torch.from_numpy(im)  # to torch
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255.0  # 0-255 to 0.0-1.0

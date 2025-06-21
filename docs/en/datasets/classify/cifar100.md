@@ -2,6 +2,10 @@
 comments: true
 description: Explore the CIFAR-100 dataset, consisting of 60,000 32x32 color images across 100 classes. Ideal for machine learning and computer vision tasks.
 keywords: CIFAR-100, dataset, machine learning, computer vision, image classification, deep learning, YOLO, training, testing, Alex Krizhevsky
+model_name: yolo11n-cls.pt
+dataset: cifar100
+task: classify
+imgsz: 32
 ---
 
 # CIFAR-100 Dataset
@@ -42,26 +46,7 @@ The CIFAR-100 dataset is extensively used for training and evaluating deep learn
 
 To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="cifar100", epochs=100, imgsz=32)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=cifar100 model=yolo11n-cls.pt epochs=100 imgsz=32
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -100,26 +85,7 @@ The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large 
 
 You can train a YOLO model on the CIFAR-100 dataset using either Python or CLI commands. Here's how:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="cifar100", epochs=100, imgsz=32)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=cifar100 model=yolo11n-cls.pt epochs=100 imgsz=32
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a comprehensive list of available arguments, please refer to the model [Training](../../modes/train.md) page.
 

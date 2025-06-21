@@ -91,12 +91,23 @@ class BboxLoss(nn.Module):
         super().__init__()
         self.dfl_loss = DFLoss(reg_max) if reg_max > 1 else None
 
-    def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask, feature_weight=None):
+    def forward(
+        self,
+        pred_dist,
+        pred_bboxes,
+        anchor_points,
+        target_bboxes,
+        target_scores,
+        target_scores_sum,
+        fg_mask,
+        imgsz,
+        feature_weight=None,
+    ):
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        if feature_weight is not None:
-            feature_weight = feature_weight.squeeze(-1).repeat(len(target_scores), 1)[fg_mask].unsqueeze(-1)
-            weight = weight * feature_weight
+        # if feature_weight is not None:
+        #     feature_weight = feature_weight.squeeze(-1).repeat(len(target_scores), 1)[fg_mask].unsqueeze(-1)
+        #     weight = weight * feature_weight
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -106,12 +117,19 @@ class BboxLoss(nn.Module):
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
-            # target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            # loss_dfl = (
-            #     F.smooth_l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
-            # )
-            # loss_dfl = loss_dfl.sum() / target_scores_sum
-            loss_dfl = torch.tensor(0.0).to(pred_dist.device)
+            target_ltrb = bbox2dist(anchor_points, target_bboxes)
+            target_ltrb = target_ltrb * feature_weight
+            target_ltrb[..., 0::2] /= imgsz[1]
+            target_ltrb[..., 1::2] /= imgsz[0]
+            pred_dist = pred_dist * feature_weight
+            pred_dist[..., 0::2] /= imgsz[1]
+            pred_dist[..., 1::2] /= imgsz[0]
+            loss_dfl = (
+                F.smooth_l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True)
+                * weight
+            )
+            loss_dfl = loss_dfl.sum() / target_scores_sum
+            # loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
         return loss_iou, loss_dfl
 
@@ -263,7 +281,8 @@ class v8DetectionLoss:
                 target_scores,
                 target_scores_sum,
                 fg_mask,
-                # stride_tensor / 8.0,
+                imgsz,
+                stride_tensor,
             )
 
         loss[0] *= self.hyp.box  # box gain

@@ -497,7 +497,6 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary mapping class indices to class names.                                       |
 | `path`       | `str`                 | The path to the image file.                                                              |
-| `save_dir`   | `str, optional`       | Directory to save results.                                                               |
 
 `Results` objects have the following methods:
 

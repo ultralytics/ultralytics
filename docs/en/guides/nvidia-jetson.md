@@ -454,7 +454,7 @@ The below table represents the benchmark results for five different models (YOLO
         | NCNN            | ✅      | 217.3             | 0.6849      | 298.58                 |
 
     Benchmarked with Ultralytics 8.3.157
-    
+
     !!! note
 
         Inference time does not include pre/ post-processing.

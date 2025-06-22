@@ -1577,7 +1577,6 @@ def set_default_data_path(args: dict, kwargs: dict) -> None:
         args (dict): The full argument dictionary constructed from overrides, custom settings, and kwargs.
         kwargs (dict): The original keyword arguments passed to the method or CLI.
     """
-
     if kwargs.get("data") is None:
         model = args.get("model", "")
         if model.startswith("yolo11") and model.endswith(".pt"):

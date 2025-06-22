@@ -37,6 +37,7 @@ class Model(torch.nn.Module):
         predictor (BasePredictor): The predictor object used for making predictions.
         model (torch.nn.Module): The underlying PyTorch model.
         trainer (BaseTrainer): The trainer object used for training the model.
+        validator (BaseValidator): The validator object used for validating the model.
         ckpt (dict): The checkpoint data if the model is loaded from a *.pt file.
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.

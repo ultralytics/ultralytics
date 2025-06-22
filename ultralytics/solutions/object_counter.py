@@ -133,7 +133,7 @@ class ObjectCounter(BaseSolution):
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
             f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip()
             for key, value in self.classwise_counts.items()
-            if value["IN"] != 0 or value["OUT"] != 0
+            if value["IN"] != 0 or value["OUT"] != 0 and (self.show_in or self.show_out)
         }
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)

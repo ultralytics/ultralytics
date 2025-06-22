@@ -197,26 +197,24 @@ while cap.isOpened():
         if result.boxes and result.boxes.is_track:
             boxes = result.boxes.xywh.cpu()
             track_ids = result.boxes.id.int().cpu().tolist()
-        else:
-            pass
 
-        # Visualize the result on the frame
-        annotated_frame = result.plot()
+            # Visualize the result on the frame
+            frame = result.plot()
 
-        # Plot the tracks
-        for box, track_id in zip(boxes, track_ids):
-            x, y, w, h = box
-            track = track_history[track_id]
-            track.append((float(x), float(y)))  # x, y center point
-            if len(track) > 30:  # retain 30 tracks for 30 frames
-                track.pop(0)
+            # Plot the tracks
+            for box, track_id in zip(boxes, track_ids):
+                x, y, w, h = box
+                track = track_history[track_id]
+                track.append((float(x), float(y)))  # x, y center point
+                if len(track) > 30:  # retain 30 tracks for 30 frames
+                    track.pop(0)
 
-            # Draw the tracking lines
-            points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-            cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
+                # Draw the tracking lines
+                points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                cv2.polylines(frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
         # Display the annotated frame
-        cv2.imshow("YOLO11 Tracking", annotated_frame)
+        cv2.imshow("YOLO11 Tracking", frame)
 
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -252,51 +250,35 @@ import cv2
 
 from ultralytics import YOLO
 
+# Define model names and video sources
+MODEL_NAMES = ["yolo11n.pt", "yolo11n-seg.pt"]
+SOURCES = ["path/to/video.mp4", "0"]  # local video, 0 for webcam
 
-def run_tracker_in_thread(filename, model, file_index):
+
+def run_tracker_in_thread(model_name, filename):
     """
-    Runs tracking on a video file using the specified model.
+    Run YOLO tracker in its own thread for concurrent processing.
 
     Args:
-        filename (str): The path to the video file.
-        model (YOLO): The YOLO model to use for tracking.
-        file_index (int): An index to identify the video thread.
+        model_name (str): The YOLO11 model object.
+        filename (str): The path to the video file or the identifier for the webcam/external camera source.
     """
-    video = cv2.VideoCapture(filename)  # Read the video file
-    while True:
-        ret, frame = video.read()  # Read the video frames
-        if not ret:
-            break  # Exit the loop if no more frames are available
-        results = model.track(frame, persist=True)  # Track objects in the frame
-        res_plotted = results[0].plot()  # Visualize the results
-        cv2.imshow(f"Tracking_Stream_{file_index}", res_plotted)  # Display the results
-
-        key = cv2.waitKey(1)  # Wait for a key event
-        if key == ord("q"):  # Check if the 'q' key was pressed
-            break  # Exit the loop if 'q' is pressed
-
-    video.release()  # Release the video capture object
+    model = YOLO(model_name)
+    results = model.track(filename, save=True, stream=True)
+    for r in results:
+        pass
 
 
-# Load the models
-model1 = YOLO("yolo11n.pt")
-model2 = YOLO("yolo11n-seg.pt")
+# Create and start tracker threads using a for loop
+tracker_threads = []
+for video_file, model_name in zip(SOURCES, MODEL_NAMES):
+    thread = threading.Thread(target=run_tracker_in_thread, args=(model_name, video_file), daemon=True)
+    tracker_threads.append(thread)
+    thread.start()
 
-# Define the video files for the trackers
-video_file1 = "path/to/video1.mp4"  # Path to video file 1
-video_file2 = "path/to/video2.mp4"  # Path to video file 2
-
-# Create the tracker threads
-tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1), daemon=True)
-tracker_thread2 = threading.Thread(target=run_tracker_in_thread, args=(video_file2, model2, 2), daemon=True)
-
-# Start the tracker threads
-tracker_thread1.start()
-tracker_thread2.start()
-
-# Wait for the tracker threads to finish
-tracker_thread1.join()
-tracker_thread2.join()
+# Wait for all tracker threads to finish
+for thread in tracker_threads:
+    thread.join()
 
 # Clean up and close windows
 cv2.destroyAllWindows()

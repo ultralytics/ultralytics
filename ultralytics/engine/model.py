@@ -786,7 +786,6 @@ class Model(torch.nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
-
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         set_default_data_path(args, kwargs)  # set data.yaml for YOLO11 pretrained models if data is not provided
         if args.get("resume"):

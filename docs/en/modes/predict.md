@@ -500,7 +500,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 
 !!! tip "Access `save_dir`"
 
-    Starting from `ultralytics>=8.3.154, you can directly access the `save_dir` using the model object. i.e
+    As of `ultralytics>=8.3.154`, you can access the `save_dir` directly through the model object. For example:
 
     ```python
     from ultralytics import YOLO
@@ -510,13 +510,12 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     results = model.train(data="coco8.yaml")  # Train the model on COCO8 dataset
     # print(model.trainer.save_dir)  # Access the training output directory
 
-    results = model.val(data="coco8.yaml")  # Train the model on COCO8 dataset
+    results = model.val(data="coco8.yaml")  # Validate the model on COCO8 dataset
     # print(model.validator.save_dir)  # Access the validation output directory
 
     results = model.predict(source="path/to/image.jpg")  # Run inference on an image
     print(model.predictor.save_dir)  # Access the inference output directory
     ```
-
 
 `Results` objects have the following methods:
 

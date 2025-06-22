@@ -497,25 +497,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
 | `names`      | `dict`                | A dictionary mapping class indices to class names.                                       |
 | `path`       | `str`                 | The path to the image file.                                                              |
-
-!!! tip "Access `save_dir`"
-
-    As of `ultralytics>=8.3.154`, you can access the `save_dir` directly through the model object. For example:
-
-    ```python
-    from ultralytics import YOLO
-
-    model = YOLO("yolo11n.pt")
-
-    results = model.train(data="coco8.yaml")  # Train the model on COCO8 dataset
-    # print(model.trainer.save_dir)  # Access the training output directory
-
-    results = model.val(data="coco8.yaml")  # Validate the model on COCO8 dataset
-    # print(model.validator.save_dir)  # Access the validation output directory
-
-    results = model.predict(source="path/to/image.jpg")  # Run inference on an image
-    # print(model.predictor.save_dir)  # Access the inference output directory
-    ```
+| `save_dir`   | `str, optional`       | Directory to save results.                                                               |
 
 `Results` objects have the following methods:
 

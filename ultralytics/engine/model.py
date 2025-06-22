@@ -628,7 +628,15 @@ class Model(torch.nn.Module):
         """
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
-
+        if kwargs.get("data") is None:  # Fix hardcoded data.yaml in PyTorch files for YOLO11 models.
+            model = args["model"]
+            if model.startswith("yolo11") and model.endswith(".pt"):
+                if "-pose" in model:
+                    args["data"] = "coco-pose.yaml"
+                elif "-obb" in model:
+                    args["data"] = "DOTAv1.yaml"
+                else:
+                    args["data"] = "coco.yaml"
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
@@ -784,6 +792,17 @@ class Model(torch.nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
+
+        if kwargs.get("data") is None:  # Fix hardcoded data.yaml in PyTorch files for YOLO11 models .
+            model = custom["model"]
+            if model.startswith("yolo11") and model.endswith(".pt"):
+                if "-pose" in model:
+                    kwargs["data"] = "coco-pose.yaml"
+                elif "-obb" in model:
+                    kwargs["data"] = "DOTAv1.yaml"
+                else:
+                    kwargs["data"] = "coco.yaml"
+
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
         if args.get("resume"):
             args["resume"] = self.ckpt_path

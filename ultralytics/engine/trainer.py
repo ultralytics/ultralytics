@@ -467,6 +467,10 @@ class BaseTrainer:
                 if self.args.save or final_epoch:
                     self.save_model()
                     self.run_callbacks("on_model_save")
+                    
+                # Plot metrics at the end of any epoch
+                if self.args.plots:
+                    self.plot_metrics()
 
             # Scheduler
             t = time.time()

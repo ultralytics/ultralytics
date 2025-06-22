@@ -1563,6 +1563,31 @@ def url2file(url):
     return Path(clean_url(url)).name
 
 
+def set_default_data_path(args: dict, kwargs: dict) -> None:
+    """
+    Set the default 'data' field in `args` for Ultralytics YOLO11 models to avoid calling model.train and model.val without
+    data argument. This function modifies the `args` dictionary in-place. If 'data' is not present in `kwargs`,
+    and the model belongs to the YOLO11 family, it assigns a default dataset path based on the model type:
+
+    - For detection and segmentation models: "coco.yaml"
+    - For pose models (with '-pose' in name): "coco-pose.yaml"
+    - For oriented bounding box models (with '-obb' in name): "DOTAv1.yaml"
+
+    Args:
+        args (dict): The full argument dictionary constructed from overrides, custom settings, and kwargs.
+        kwargs (dict): The original keyword arguments passed to the method or CLI.
+    """
+    if kwargs.get("data") is None:
+        model = args.get("model", "")
+        if model.startswith("yolo11") and model.endswith(".pt"):
+            if "-pose" in model:
+                args["data"] = "coco-pose.yaml"
+            elif "-obb" in model:
+                args["data"] = "DOTAv1.yaml"
+            else:
+                args["data"] = "coco.yaml"
+
+
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
     path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"

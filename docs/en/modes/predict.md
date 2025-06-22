@@ -506,7 +506,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     from ultralytics import YOLO
 
     model = YOLO("yolo11n.pt")
-    
+
     results = model.train(data="coco8.yaml")  # Train the model on COCO8 dataset
     # print(model.trainer.save_dir)  # Access the training output directory
 

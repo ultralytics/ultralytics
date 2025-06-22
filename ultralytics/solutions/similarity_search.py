@@ -203,7 +203,7 @@ class SearchApp:
             data (str, optional): Path to directory containing images to index and search.
             device (str, optional): Device to run inference on (e.g. 'cpu', 'cuda').
         """
-        check_requirements("flask")
+        check_requirements("flask>=3.0.1")
         from flask import Flask, render_template, request
 
         self.render_template = render_template

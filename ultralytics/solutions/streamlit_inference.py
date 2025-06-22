@@ -4,11 +4,14 @@ import io
 from typing import Any, List
 
 import cv2
+import torch
 
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
+
+torch.classes.__path__ = []  # Torch module __path__._path issue: https://github.com/datalab-to/marker/issues/442
 
 
 class Inference:
@@ -133,7 +136,15 @@ class Inference:
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
         # Add dropdown menu for model selection
-        available_models = [x.replace("yolo", "YOLO") for x in GITHUB_ASSETS_STEMS if x.startswith("yolo11")]
+        M_ORD, T_ORD = ["yolo11n", "yolo11s", "yolo11m", "yolo11l", "yolo11x"], ["", "-seg", "-pose", "-obb", "-cls"]
+        available_models = sorted(
+            [
+                x.replace("yolo", "YOLO")
+                for x in GITHUB_ASSETS_STEMS
+                if any(x.startswith(b) for b in M_ORD) and "grayscale" not in x
+            ],
+            key=lambda x: (M_ORD.index(x[:7].lower()), T_ORD.index(x[7:].lower() or "")),
+        )
         if self.model_path:  # If user provided the custom model, insert model without suffix as *.pt is added later
             available_models.insert(0, self.model_path.split(".pt", 1)[0])
         selected_model = self.st.sidebar.selectbox("Model", available_models)

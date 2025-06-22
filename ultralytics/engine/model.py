@@ -116,6 +116,7 @@ class Model(torch.nn.Module):
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
+        self.validator = None  # validator object
         self.ckpt = {}  # if loaded from *.pt
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
@@ -629,10 +630,10 @@ class Model(torch.nn.Module):
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
-        validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
-        validator(model=self.model)
-        self.metrics = validator.metrics
-        return validator.metrics
+        self.validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
+        self.validator(model=self.model)
+        self.metrics = self.validator.metrics
+        return self.validator.metrics
 
     def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """

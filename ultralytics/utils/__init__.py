@@ -1566,7 +1566,9 @@ def url2file(url):
 def set_default_data_path(args: dict, kwargs: dict) -> None:
     """
     Set the default 'data.yaml' path in `args` for Ultralytics YOLO11 models to avoid calling model.train and model.val
-    without data argument. It will directly modify the `args` dictionary in-place. If 'data' is not present in `kwargs`,
+    without data argument.
+
+    It will directly modify the `args` dictionary in-place. If 'data' is not present in `kwargs`,
     and the model belongs to the YOLO11 family, it assigns a default dataset path based on the model type:
 
     - For detection and segmentation models: "coco.yaml"

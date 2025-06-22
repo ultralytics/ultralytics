@@ -21,6 +21,7 @@ from ultralytics.utils import (
     YAML,
     callbacks,
     checks,
+    set_default_data_path,
 )
 
 
@@ -628,7 +629,7 @@ class Model(torch.nn.Module):
         """
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
-
+        set_default_data_path(args, kwargs)  # set data.yaml for YOLO11 pretrained models if data is not provided
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.metrics = validator.metrics
@@ -784,7 +785,9 @@ class Model(torch.nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
+
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
+        set_default_data_path(args, kwargs)  # set data.yaml for YOLO11 pretrained models if data is not provided
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 

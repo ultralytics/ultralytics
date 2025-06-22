@@ -514,7 +514,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     # print(model.validator.save_dir)  # Access the validation output directory
 
     results = model.predict(source="path/to/image.jpg")  # Run inference on an image
-    print(model.predictor.save_dir)  # Access the inference output directory
+    # print(model.predictor.save_dir)  # Access the inference output directory
     ```
 
 `Results` objects have the following methods:

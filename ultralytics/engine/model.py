@@ -37,7 +37,6 @@ class Model(torch.nn.Module):
         predictor (BasePredictor): The predictor object used for making predictions.
         model (torch.nn.Module): The underlying PyTorch model.
         trainer (BaseTrainer): The trainer object used for training the model.
-        validator (BaseValidator): The validator object used for validating the model.
         ckpt (dict): The checkpoint data if the model is loaded from a *.pt file.
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.
@@ -117,7 +116,6 @@ class Model(torch.nn.Module):
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
-        self.validator = None  # validator object
         self.ckpt = {}  # if loaded from *.pt
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
@@ -631,10 +629,10 @@ class Model(torch.nn.Module):
         custom = {"rect": True}  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
-        self.validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
-        self.validator(model=self.model)
-        self.metrics = self.validator.metrics
-        return self.validator.metrics
+        validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
+        validator(model=self.model)
+        self.metrics = validator.metrics
+        return validator.metrics
 
     def benchmark(self, data=None, format="", verbose=False, **kwargs: Any):
         """

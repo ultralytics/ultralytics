@@ -55,6 +55,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     # Plot inference results
     plot = results[0].plot()  # (1)!
     ```
+
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
 4. Now, use [OpenCV](https://www.ultralytics.com/glossary/opencv) to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
@@ -73,6 +74,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
     # Image bytes as a file-like object
     mem_file = io.BytesIO(im_bytes)
     ```
+
     1. It's possible to use other image extensions as well.
     2. Only the object at index `1` that is returned is needed.
 

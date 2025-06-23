@@ -85,7 +85,7 @@ class CLIP(TextModel):
             >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
         super().__init__()
-        self.model, self.preprocess = clip.load(size, device=device)
+        self.model, self.image_preprocess = clip.load(size, device=device)
         self.to(device)
         self.device = device
         self.eval()

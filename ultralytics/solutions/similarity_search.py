@@ -50,7 +50,7 @@ class VisualAISearch(BaseSolution):
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
         super().__init__(**kwargs)
-        check_requirements(["faiss-cpu"])
+        check_requirements("faiss-cpu")
 
         self.faiss = __import__("faiss")
         self.faiss_index = "faiss.index"
@@ -83,7 +83,7 @@ class VisualAISearch(BaseSolution):
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
         with torch.no_grad():
-            return self.model.encode_text(self.model.tokenize(text)).cpu().numpy()
+            return self.model.encode_text(self.model.tokenize([text])).cpu().numpy()
 
     def load_or_build_index(self) -> None:
         """

@@ -19,7 +19,6 @@ class ClassificationPredictor(BasePredictor):
 
     Attributes:
         args (dict): Configuration arguments for the predictor.
-        _legacy_transform_name (str): Name of the legacy transform class for backward compatibility.
 
     Methods:
         preprocess: Convert input images to model-compatible format.
@@ -50,7 +49,6 @@ class ClassificationPredictor(BasePredictor):
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "classify"
-        self._legacy_transform_name = "ultralytics.yolo.data.augment.ToTensor"
 
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""
@@ -58,22 +56,18 @@ class ClassificationPredictor(BasePredictor):
         updated = (
             self.model.model.transforms.transforms[0].size != max(self.imgsz)
             if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size")
-            else True
+            else False
         )
-        self.transforms = self.model.model.transforms if not updated else classify_transforms(self.imgsz)
+        self.transforms = (
+            classify_transforms(self.imgsz) if updated or not self.model.pt else self.model.model.transforms
+        )
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""
         if not isinstance(img, torch.Tensor):
-            is_legacy_transform = any(
-                self._legacy_transform_name in str(transform) for transform in self.transforms.transforms
+            img = torch.stack(
+                [self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img], dim=0
             )
-            if is_legacy_transform:  # Handle legacy transforms
-                img = torch.stack([self.transforms(im) for im in img], dim=0)
-            else:
-                img = torch.stack(
-                    [self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img], dim=0
-                )
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         return img.half() if self.model.fp16 else img.float()  # Convert uint8 to fp16/32
 

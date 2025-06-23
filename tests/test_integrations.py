@@ -32,7 +32,7 @@ def test_model_ray_tune():
 
 @pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
 def test_mlflow():
-    """Test training with MLflow tracking enabled (see https://mlflow.org/ for details)."""
+    """Test training with MLflow tracking enabled."""
     SETTINGS["mlflow"] = True
     YOLO("yolo11n-cls.yaml").train(data="imagenet10", imgsz=32, epochs=3, plots=False, device="cpu")
     SETTINGS["mlflow"] = False
@@ -122,9 +122,9 @@ def test_triton():
     subprocess.call(f"docker kill {container_id}", shell=True)
 
 
-@pytest.mark.skipif(not check_requirements("pycocotools", install=False), reason="pycocotools not installed")
-def test_pycocotools():
-    """Validate YOLO model predictions on COCO dataset using pycocotools."""
+@pytest.mark.skipif(not check_requirements("faster-coco-eval", install=False), reason="faster-coco-eval not installed")
+def test_faster_coco_eval():
+    """Validate YOLO model predictions on COCO dataset using faster-coco-eval."""
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator

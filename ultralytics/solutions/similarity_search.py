@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, List
 
 import numpy as np
-import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS

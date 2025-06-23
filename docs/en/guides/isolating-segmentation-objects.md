@@ -115,7 +115,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     - The value `-1` specified for the `drawContours()` parameter instructs the function to draw all contours present in the image.
     - The `tuple` `(255, 255, 255)` represents the color white, which is the desired color for drawing the contour in this binary mask.
     - The addition of `cv2.FILLED` will color all pixels enclosed by the contour boundary the same, in this case, all enclosed pixels will be white.
-
     - See [OpenCV Documentation on `drawContours()`](https://docs.opencv.org/4.8.0/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc) for more information.
 
     </details>

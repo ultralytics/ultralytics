@@ -134,6 +134,7 @@ class CLIP(TextModel):
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         return txt_feats
 
+    @smart_inference_mode()
     def encode_image(self, image: Union[Image.Image, torch.Tensor], dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode preprocessed images into normalized feature vectors.

@@ -20,18 +20,22 @@ from .utils import bias_init_with_prob, linear_init
 
 __all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
 
+
 class DepthwiseConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=None):
-        super(DepthwiseConv, self).__init__()
+        super().__init__()
         if padding is None:
             padding = (kernel_size - 1) // 2
-        self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, groups=in_channels, bias=False)
+        self.depthwise = nn.Conv2d(
+            in_channels, in_channels, kernel_size, stride, padding, groups=in_channels, bias=False
+        )
         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
         self.act = nn.SiLU()
 
     def forward(self, x):
         return self.act(self.bn(self.pointwise(self.depthwise(x))))
+
 
 class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
@@ -46,7 +50,7 @@ class Detect(nn.Module):
     xyxy = False  # xyxy or xywh output
 
     def __init__(self, nc: int = 80, ch: Tuple = ()):
-        super(Detect, self).__init__()
+        super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
         self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
@@ -56,19 +60,12 @@ class Detect(nn.Module):
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0] // 2, min(self.nc, 100))  # channels
 
         self.cv2 = nn.ModuleList(
-            nn.Sequential(
-                DepthwiseConv(x, c2, 3),
-                DepthwiseConv(c2, c2, 3),
-                nn.Conv2d(c2, 4 * self.reg_max, 1)
-            ) for x in ch
+            nn.Sequential(DepthwiseConv(x, c2, 3), DepthwiseConv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1))
+            for x in ch
         )
 
         self.cv3 = nn.ModuleList(
-            nn.Sequential(
-                DepthwiseConv(x, c3, 3),
-                DepthwiseConv(c3, c3, 3),
-                nn.Conv2d(c3, self.nc, 1)
-            ) for x in ch
+            nn.Sequential(DepthwiseConv(x, c3, 3), DepthwiseConv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch
         )
 
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
@@ -156,6 +153,7 @@ class Detect(nn.Module):
         i = torch.arange(batch_size)[..., None]
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
 
+
 class Segment(Detect):
     def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: Tuple = ()):
         super().__init__(nc, ch)
@@ -175,6 +173,7 @@ class Segment(Detect):
         if self.training:
             return x, mc, p
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
+
 
 class OBB(Detect):
     def __init__(self, nc: int = 80, ne: int = 1, ch: Tuple = ()):
@@ -197,6 +196,7 @@ class OBB(Detect):
 
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor) -> torch.Tensor:
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
+
 
 class Pose(Detect):
     def __init__(self, nc: int = 80, kpt_shape: Tuple = (17, 3), ch: Tuple = ()):
@@ -239,6 +239,7 @@ class Pose(Detect):
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
 
+
 class Classify(nn.Module):
     export = False
 
@@ -258,6 +259,7 @@ class Classify(nn.Module):
             return x
         y = x.softmax(1)
         return y if self.export else (y, x)
+
 
 class WorldDetect(Detect):
     def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: Tuple = ()):
@@ -280,6 +282,7 @@ class WorldDetect(Detect):
         for a, b, s in zip(m.cv2, m.cv3, m.stride):
             a[-1].bias.data[:] = 1.0
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)
+
 
 class LRPCHead(nn.Module):
     def __init__(self, vocab: nn.Module, pf: nn.Module, loc: nn.Module, enabled: bool = True):
@@ -309,6 +312,7 @@ class LRPCHead(nn.Module):
             return (loc_feat, cls_feat.flatten(2)), torch.ones(
                 cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool
             )
+
 
 class YOLOEDetect(Detect):
     is_fused = False
@@ -449,6 +453,7 @@ class YOLOEDetect(Detect):
             b[-1].bias.data[:] = 0.0
             c.bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)
 
+
 class YOLOESegment(YOLOEDetect):
     def __init__(
         self, nc: int = 80, nm: int = 32, npr: int = 256, embed: int = 512, with_bn: bool = False, ch: Tuple = ()
@@ -480,6 +485,7 @@ class YOLOESegment(YOLOEDetect):
             mc = (mc * mask.int()) if self.export and not self.dynamic else mc[..., mask]
 
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
+
 
 class RTDETRDecoder(nn.Module):
     export = False
@@ -660,6 +666,7 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
 
 class v10Detect(Detect):
     end2end = True

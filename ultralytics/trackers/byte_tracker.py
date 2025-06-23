@@ -144,7 +144,7 @@ class STrack(BaseTrack):
         self.tracklet_len = 0
         self.is_activated = True
 
-    def update(self, new_track: "STrack", frame_id: int, new_id: bool=False):
+    def update(self, new_track: "STrack", frame_id: int, new_id: bool = False):
         """
         Update the state of a matched track.
 

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.engine.results import Results
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 
@@ -18,6 +20,9 @@ class InstanceSegmentation(BaseSolution):
         clss (List[int]): List of detected class indices.
         track_ids (List[int]): List of track IDs for detected instances.
         masks (List[numpy.ndarray]): List of segmentation masks for detected instances.
+        show_conf (bool): Whether to display confidence scores.
+        show_labels (bool): Whether to display class labels.
+        show_boxes (bool): Whether to display bounding boxes.
 
     Methods:
         process: Process the input image to perform instance segmentation and annotate results.
@@ -26,11 +31,11 @@ class InstanceSegmentation(BaseSolution):
     Examples:
         >>> segmenter = InstanceSegmentation()
         >>> frame = cv2.imread("frame.jpg")
-        >>> results = segmenter.segment(frame)
-        >>> print(f"Total segmented instances: {results['total_tracks']}")
+        >>> results = segmenter.process(frame)
+        >>> print(f"Total segmented instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
@@ -45,7 +50,7 @@ class InstanceSegmentation(BaseSolution):
         self.show_labels = self.CFG.get("show_labels", True)
         self.show_boxes = self.CFG.get("show_boxes", True)
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Perform instance segmentation on the input image and annotate the results.
 
@@ -58,11 +63,11 @@ class InstanceSegmentation(BaseSolution):
         Examples:
             >>> segmenter = InstanceSegmentation()
             >>> frame = cv2.imread("image.jpg")
-            >>> summary = segmenter.segment(frame)
+            >>> summary = segmenter.process(frame)
             >>> print(summary)
         """
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
-        self.masks = getattr(self.tracks[0], "masks", None)
+        self.masks = getattr(self.tracks, "masks", None)
 
         # Iterate over detected classes, track IDs, and segmentation masks
         if self.masks is None:

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
 
@@ -19,11 +21,11 @@ class QueueManager(BaseSolution):
         track_history (Dict[int, List[Tuple[int, int]]]): Dictionary storing tracking history for each object.
 
     Methods:
-        initialize_region: Initializes the queue region.
-        process: Processes a single frame for queue management.
-        extract_tracks: Extracts object tracks from the current frame.
-        store_tracking_history: Stores the tracking history for an object.
-        display_output: Displays the processed output.
+        initialize_region: Initialize the queue region.
+        process: Process a single frame for queue management.
+        extract_tracks: Extract object tracks from the current frame.
+        store_tracking_history: Store the tracking history for an object.
+        display_output: Display the processed output.
 
     Examples:
         >>> cap = cv2.VideoCapture("path/to/video.mp4")
@@ -35,15 +37,15 @@ class QueueManager(BaseSolution):
         >>>     results = queue_manager.process(im0)
     """
 
-    def __init__(self, **kwargs):
-        """Initializes the QueueManager with parameters for tracking and counting objects in a video stream."""
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the QueueManager with parameters for tracking and counting objects in a video stream."""
         super().__init__(**kwargs)
         self.initialize_region()
         self.counts = 0  # Queue counts information
         self.rect_color = (255, 255, 255)  # Rectangle color for visualization
         self.region_length = len(self.region)  # Store region length for further usage
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Process queue management for a single frame of video.
 

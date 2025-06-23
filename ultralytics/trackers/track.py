@@ -19,14 +19,10 @@ def on_predict_start(predictor: object) -> None:
     Initialize trackers for object tracking during prediction.
 
     Args:
-        predictor (object): The predictor object to initialize trackers for.
-
-    Raises:
-        AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
-        ValueError: If the task is 'classify' as classification doesn't support tracking.
+        predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
 
     Examples:
-        Initialize trackers for a predictor object:
+        Initialize trackers for a predictor object
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor)
     """
@@ -94,8 +90,6 @@ def on_predict_postprocess_end(predictor: object) -> None:
             predictor.vid_path[i if is_stream else 0] = vid_path
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
-        if len(det) == 0:
-            continue
         tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
         if len(tracks) == 0:
             continue

@@ -20,7 +20,7 @@ Track and visualize model metrics in real time, save your hyperparameters, datas
 
 ### Install Comet
 
-```shell
+```bash
 pip install comet_ml
 ```
 
@@ -32,7 +32,7 @@ You can either set your credentials through environment variables:
 
 **Environment Variables**
 
-```shell
+```bash
 export COMET_API_KEY=YOUR_API_KEY
 export COMET_PROJECT_NAME=YOUR_COMET_PROJECT_NAME # This will default to 'yolov5'
 ```
@@ -49,7 +49,7 @@ project_name=YOUR_COMET_PROJECT_NAME # This will default to 'yolov5'
 
 ### Run the Training Script
 
-```shell
+```bash
 # Train YOLOv5s on COCO128 for 5 epochs
 python train.py --img 640 --batch 16 --epochs 5 --data coco128.yaml --weights yolov5s.pt
 ```
@@ -91,7 +91,7 @@ By default, Comet will log the following items:
 
 Comet can be configured to log additional data either through command line flags passed to the training script or through environment variables:
 
-```shell
+```bash
 export COMET_MODE=online                           # Set whether to run Comet in 'online' or 'offline' mode. Defaults to online
 export COMET_MODEL_NAME="yolov5"                   # Set the name for the saved model. Defaults to yolov5
 export COMET_LOG_CONFUSION_MATRIX=false            # Set to disable logging a Comet Confusion Matrix. Defaults to true
@@ -106,7 +106,7 @@ export COMET_LOG_PREDICTIONS=true                  # Set this to false to disabl
 
 Logging Models to Comet is disabled by default. To enable it, pass the `save-period` argument to the training script. This will save the logged checkpoints to Comet based on the interval value provided by `save-period`:
 
-```shell
+```bash
 python train.py \
   --img 640 \
   --batch 16 \
@@ -126,7 +126,7 @@ You can control the frequency of logged predictions and the associated images by
 
 Here is an [example project using the Panel](https://www.comet.com/examples/comet-example-yolov5?shareable=YcwMiJaZSXfcEXpGOHDD12vA1&utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 
-```shell
+```bash
 python train.py \
   --img 640 \
   --batch 16 \
@@ -140,7 +140,7 @@ python train.py \
 
 When logging predictions from YOLOv5, Comet will log the images associated with each set of predictions. By default, a maximum of 100 validation images are logged. You can increase or decrease this number using the `COMET_MAX_IMAGE_UPLOADS` environment variable:
 
-```shell
+```bash
 env COMET_MAX_IMAGE_UPLOADS=200 python train.py \
   --img 640 \
   --batch 16 \
@@ -154,7 +154,7 @@ env COMET_MAX_IMAGE_UPLOADS=200 python train.py \
 
 Use the `COMET_LOG_PER_CLASS_METRICS` environment variable to log mAP, precision, recall, f1 for each class:
 
-```shell
+```bash
 env COMET_LOG_PER_CLASS_METRICS=true python train.py \
   --img 640 \
   --batch 16 \
@@ -169,7 +169,7 @@ If you would like to store your data using [Comet Artifacts](https://www.comet.c
 
 The dataset should be organized as described in the [YOLOv5 documentation](train_custom_data.md). The dataset config `yaml` file must follow the same format as that of the `coco128.yaml` file.
 
-```shell
+```bash
 python train.py \
   --img 640 \
   --batch 16 \
@@ -202,7 +202,7 @@ path: "comet://WORKSPACE_NAME>/ARTIFACT_NAME:ARTIFACT_VERSION_OR_ALIAS"
 
 Then pass this file to your training script in the following way:
 
-```shell
+```bash
 python train.py \
   --img 640 \
   --batch 16 \
@@ -223,7 +223,7 @@ The Run Path has the following format `comet://WORKSPACE_NAME/PROJECT_NAME/EXPER
 
 This will restore the run to its state before the interruption, which includes restoring the model from a checkpoint, restoring all hyperparameters and training arguments, and downloading Comet dataset Artifacts if they were used in the original run. The resumed run will continue logging to the existing Experiment in the Comet UI:
 
-```shell
+```bash
 python train.py \
   --resume "comet://YOUR_RUN_PATH"
 ```
@@ -236,14 +236,14 @@ YOLOv5 is also integrated with [Comet's Optimizer](https://www.comet.com/docs/v2
 
 To configure the Comet Optimizer, you will have to create a JSON file with the information about the sweep. An example file has been provided in `utils/loggers/comet/optimizer_config.json`:
 
-```shell
+```bash
 python utils/loggers/comet/hpo.py \
   --comet_optimizer_config "utils/loggers/comet/optimizer_config.json"
 ```
 
 The `hpo.py` script accepts the same arguments as `train.py`. If you wish to pass additional arguments to your sweep simply add them after the script:
 
-```shell
+```bash
 python utils/loggers/comet/hpo.py \
   --comet_optimizer_config "utils/loggers/comet/optimizer_config.json" \
   --save-period 1 \

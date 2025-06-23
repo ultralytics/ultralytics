@@ -44,7 +44,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
 RUN pip install uv
-RUN uv pip install --system -e ".[export]" albumentations pycocotools "onnxruntime-gpu" tensorrt wandb
+RUN uv pip install --system -e ".[export]" albumentations faster-coco-eval "onnxruntime-gpu" tensorrt wandb
 
 # Run exports to AutoInstall packages
 RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32

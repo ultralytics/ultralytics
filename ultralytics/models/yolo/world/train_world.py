@@ -18,6 +18,14 @@ class WorldTrainerFromScratch(WorldTrainer):
         cfg (dict): Configuration dictionary with default parameters for model training.
         overrides (dict): Dictionary of parameter overrides to customize the configuration.
         _callbacks (list): List of callback functions to be executed during different stages of training.
+        data (dict): Final processed data configuration containing train/val paths and metadata.
+        training_data (dict): Dictionary mapping training dataset paths to their configurations.
+
+    Methods:
+        build_dataset: Build YOLO Dataset for training or validation with mixed dataset support.
+        get_dataset: Get train and validation paths from data dictionary.
+        plot_training_labels: Skip label plotting for YOLO-World training.
+        final_eval: Perform final evaluation and validation for the YOLO-World model.
 
     Examples:
         >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
@@ -100,6 +108,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
+        self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 
     def get_dataset(self):
@@ -110,8 +119,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         handling both YOLO detection datasets and grounding datasets.
 
         Returns:
-            (str): Train dataset path.
-            (str): Validation dataset path.
+            train_path (str): Train dataset path.
+            val_path (str): Validation dataset path.
 
         Raises:
             AssertionError: If train or validation datasets are not found, or if validation has multiple datasets.
@@ -137,12 +146,13 @@ class WorldTrainerFromScratch(WorldTrainer):
             for g in grounding_data:
                 assert isinstance(g, dict), f"Grounding data should be provided in dict format, but got {type(g)}"
             final_data[s] += grounding_data
+        data["val"] = data["val"][0]  # assign the first val dataset as currently only one validation set is supported
         # NOTE: to make training work properly, set `nc` and `names`
-        final_data["nc"] = data["val"][0]["nc"]
-        final_data["names"] = data["val"][0]["names"]
+        final_data["nc"] = data["val"]["nc"]
+        final_data["names"] = data["val"]["names"]
         # NOTE: add path with lvis path
-        final_data["path"] = data["val"][0]["path"]
-        final_data["channels"] = data["val"][0]["channels"]
+        final_data["path"] = data["val"]["path"]
+        final_data["channels"] = data["val"]["channels"]
         self.data = final_data
         if self.args.single_cls:  # consistent with base trainer
             LOGGER.info("Overriding class names with single class.")
@@ -154,10 +164,10 @@ class WorldTrainerFromScratch(WorldTrainer):
                 d["names"] = {0: "object"}
                 d["nc"] = 1
             self.training_data[d["train"]] = d
-        return final_data["train"], final_data["val"][0]
+        return final_data
 
     def plot_training_labels(self):
-        """Do not plot labels for YOLO-World training."""
+        """Skip label plotting for YOLO-World training."""
         pass
 
     def final_eval(self):

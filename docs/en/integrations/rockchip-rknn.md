@@ -94,14 +94,13 @@ For detailed instructions and best practices related to the installation process
 
 ### Export Arguments
 
-| Argument | Type             | Default    | Description                                                                                                                                   |
-| -------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `'rknn'`   | Target format for the exported model, defining compatibility with various deployment environments.                                            |
-| `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.             |
-| `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.       |
-| `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                               |
-| `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                     |
-| `int8`   | `bool`           | `False`    | If set to `True`, the model will be quantized to INT8 format, which can reduce model size and improve inference speed on compatible hardware. |
+| Argument | Type             | Default    | Description                                                                                                                             |
+| -------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'rknn'`   | Target format for the exported model, defining compatibility with various deployment environments.                                      |
+| `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
+| `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                         |
+| `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                               |
 
 !!! tip
 
@@ -169,17 +168,21 @@ Rockchip-powered devices with YOLO11 RKNN models can be used in various applicat
 
 YOLO11 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based on Rockchip RK3588 with `rknn` model format measuring speed and accuracy.
 
-| Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-| YOLO11n | `rknn` | ✅     | 7.4       | 0.61        | 99.5                   |
-| YOLO11s | `rknn` | ✅     | 20.7      | 0.741       | 122.3                  |
-| YOLO11m | `rknn` | ✅     | 41.9      | 0.764       | 298.0                  |
-| YOLO11l | `rknn` | ✅     | 53.3      | 0.72        | 319.6                  |
-| YOLO11x | `rknn` | ✅     | 114.6     | 0.828       | 632.1                  |
+!!! tip "Performance"
 
-!!! note
+    | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+    | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
+    | YOLO11n | `rknn` | ✅     | 7.4       | 0.505       | 71.5                   |
+    | YOLO11s | `rknn` | ✅     | 20.7      | 0.578       | 98.9                   |
+    | YOLO11m | `rknn` | ✅     | 41.9      | 0.629       | 235.3                  |
+    | YOLO11l | `rknn` | ✅     | 53.3      | 0.633       | 282.0                  |
+    | YOLO11x | `rknn` | ✅     | 114.6     | 0.687       | 679.2                  |
 
-    Validation for the above benchmark was done using coco8 dataset
+    Benchmarked with `ultralytics 8.3.152`
+
+    !!! note
+
+        Validation for the above benchmarks were done using COCO128 dataset. Inference time does not include pre/ post-processing.
 
 ## Summary
 

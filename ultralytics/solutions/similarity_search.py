@@ -76,7 +76,7 @@ class VisualAISearch(BaseSolution):
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
-        tensor = self.model.preprocess(Image.open(path)).unsqueeze(0).to(self.device)
+        tensor = self.model.image_preprocess(Image.open(path)).unsqueeze(0).to(self.device)
         with torch.no_grad():
             return self.model.encode_image(tensor).cpu().numpy()
 

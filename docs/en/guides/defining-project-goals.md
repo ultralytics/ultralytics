@@ -74,11 +74,9 @@ Other tasks, like [object detection](../tasks/detect.md), are not suitable as th
 The order of model selection, dataset preparation, and training approach depends on the specifics of your project. Here are a few tips to help you decide:
 
 - **Clear Understanding of the Problem**: If your problem and objectives are well-defined, start with model selection. Then, prepare your dataset and decide on the training approach based on the model's requirements.
-
     - **Example**: Start by selecting a model for a traffic monitoring system that estimates vehicle speeds. Choose an object tracking model, gather and annotate highway videos, and then train the model with techniques for real-time video processing.
 
 - **Unique or Limited Data**: If your project is constrained by unique or limited data, begin with dataset preparation. For instance, if you have a rare dataset of medical images, annotate and prepare the data first. Then, select a model that performs well on such data, followed by choosing a suitable training approach.
-
     - **Example**: Prepare the data first for a facial recognition system with a small dataset. Annotate it, then select a model that works well with limited data, such as a pre-trained model for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning). Finally, decide on a training approach, including [data augmentation](https://www.ultralytics.com/glossary/data-augmentation), to expand the dataset.
 
 - **Need for Experimentation**: In projects where experimentation is crucial, start with the training approach. This is common in research projects where you might initially test different training techniques. Refine your model selection after identifying a promising method and prepare the dataset based on your findings.

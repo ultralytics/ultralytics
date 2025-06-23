@@ -250,7 +250,7 @@ class MobileCLIP(TextModel):
         return self.tokenizer(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32)-> torch.Tensor:
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -318,7 +318,7 @@ class MobileCLIPTS(TextModel):
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
-    def tokenize(self, texts: List[str])-> torch.Tensor:
+    def tokenize(self, texts: List[str]) -> torch.Tensor:
         """
         Convert input texts to MobileCLIP tokens.
 
@@ -335,7 +335,7 @@ class MobileCLIPTS(TextModel):
         return self.tokenizer(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32)-> torch.Tensor:
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -354,7 +354,7 @@ class MobileCLIPTS(TextModel):
             torch.Size([2, 512])  # Actual dimension depends on model size
         """
         # NOTE: no need to do normalization here as it's embedded in the torchscript model
-        return self.encoder(texts)
+        return self.encoder(texts).to(dtype)
 
 
 def build_text_model(variant: str, device: torch.device = None) -> TextModel:

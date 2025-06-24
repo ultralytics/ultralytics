@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -393,38 +393,53 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
-        if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
-            pred_json = self.save_dir / "predictions.json"  # predictions
-            anno_json = (
-                self.data["path"]
-                / "annotations"
-                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
-            )  # annotations
+        pred_json = self.save_dir / "predictions.json"  # predictions
+        anno_json = (
+            self.data["path"]
+            / "annotations"
+            / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+        )  # annotations
+        return self.coco_evaluate(stats, pred_json, anno_json, iou_type="bbox")
 
+    def coco_evaluate(
+        self,
+        stats: Dict[str, Any],
+        pred_json: str,
+        anno_json: str,
+        iou_type: Union[str, List[str]] = "bbox",
+    ) -> Dict[str, Any]:
+        if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
+                iou_type = [iou_type] if isinstance(iou_type, str) else iou_type
                 check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json)
                 pred = anno.loadRes(pred_json)
-                val = COCOeval_faster(anno, pred, iouType="bbox", lvis_style=self.is_lvis, print_function=LOGGER.info)
-                val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
-                val.evaluate()
-                val.accumulate()
-                val.summarize()
+                for iou_type in iou_type:
+                    val = COCOeval_faster(
+                        anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=LOGGER.info
+                    )
+                    val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                    val.evaluate()
+                    val.accumulate()
+                    val.summarize()
 
-                # update mAP50-95 and mAP50
-                stats[self.metrics.keys[-1]] = val.stats_as_dict["AP_all"]
-                stats[self.metrics.keys[-2]] = val.stats_as_dict["AP_50"]
+                    # update mAP50-95 and mAP50
+                    suffix = iou_type[0].upper()
+                    stats[f"metrics/mAP50({suffix})"] = val.stats_as_dict["AP_all"]
+                    stats[f"metrics/mAP50-95({suffix})"] = val.stats_as_dict["AP_50"]
+
+                    if self.is_lvis:
+                        stats[f"metrics/APr({suffix})"] = val.stats_as_dict["APr"]
+                        stats[f"metrics/APc({suffix})"] = val.stats_as_dict["APc"]
+                        stats[f"metrics/APf({suffix})"] = val.stats_as_dict["APf"]
 
                 if self.is_lvis:
-                    stats["metrics/APr(B)"] = val.stats_as_dict["APr"]
-                    stats["metrics/APc(B)"] = val.stats_as_dict["APc"]
-                    stats["metrics/APf(B)"] = val.stats_as_dict["APf"]
-                    stats["fitness"] = val.stats_as_dict["AP_all"]
+                    stats["fitness"] = stats["metrics/mAP50-95(B)"]  # always use box mAP50-95 for fitness
             except Exception as e:
                 LOGGER.warning(f"faster-coco-eval unable to run: {e}")
         return stats

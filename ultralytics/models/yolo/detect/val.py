@@ -431,13 +431,13 @@ class DetectionValidator(BaseValidator):
                     val.summarize()
 
                     # update mAP50-95 and mAP50
-                    stats[f"metrics/mAP50({suffix[i]})"] = val.stats_as_dict["AP_all"]
-                    stats[f"metrics/mAP50-95({suffix[i]})"] = val.stats_as_dict["AP_50"]
+                    stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
+                    stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
 
                     if self.is_lvis:
-                        stats[f"metrics/APr({suffix[i]})"] = val.stats_as_dict["APr"]
-                        stats[f"metrics/APc({suffix[i]})"] = val.stats_as_dict["APc"]
-                        stats[f"metrics/APf({suffix[i]})"] = val.stats_as_dict["APf"]
+                        stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
+                        stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]
+                        stats[f"metrics/APf({suffix[i][0]})"] = val.stats_as_dict["APf"]
 
                 if self.is_lvis:
                     stats["fitness"] = stats["metrics/mAP50-95(B)"]  # always use box mAP50-95 for fitness

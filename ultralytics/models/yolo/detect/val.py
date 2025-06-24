@@ -399,7 +399,7 @@ class DetectionValidator(BaseValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
-        return self.coco_evaluate(stats, pred_json, anno_json, iou_types="bbox")
+        return self.coco_evaluate(stats, pred_json, anno_json)
 
     def coco_evaluate(
         self,
@@ -407,7 +407,7 @@ class DetectionValidator(BaseValidator):
         pred_json: str,
         anno_json: str,
         iou_types: Union[str, List[str]] = "bbox",
-        suffix: str = "B",
+        suffix: Union[str, List[str]] = "Box",
     ) -> Dict[str, Any]:
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
@@ -415,12 +415,13 @@ class DetectionValidator(BaseValidator):
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
+                suffix = [suffix] if isinstance(suffix, str) else suffix
                 check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json)
                 pred = anno.loadRes(pred_json)
-                for iou_type in iou_types:
+                for i, iou_type in enumerate(iou_types):
                     val = COCOeval_faster(
                         anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=LOGGER.info
                     )
@@ -430,14 +431,13 @@ class DetectionValidator(BaseValidator):
                     val.summarize()
 
                     # update mAP50-95 and mAP50
-                    suffix = iou_type[0].upper()
-                    stats[f"metrics/mAP50({suffix})"] = val.stats_as_dict["AP_all"]
-                    stats[f"metrics/mAP50-95({suffix})"] = val.stats_as_dict["AP_50"]
+                    stats[f"metrics/mAP50({suffix[i]})"] = val.stats_as_dict["AP_all"]
+                    stats[f"metrics/mAP50-95({suffix[i]})"] = val.stats_as_dict["AP_50"]
 
                     if self.is_lvis:
-                        stats[f"metrics/APr({suffix})"] = val.stats_as_dict["APr"]
-                        stats[f"metrics/APc({suffix})"] = val.stats_as_dict["APc"]
-                        stats[f"metrics/APf({suffix})"] = val.stats_as_dict["APf"]
+                        stats[f"metrics/APr({suffix[i]})"] = val.stats_as_dict["APr"]
+                        stats[f"metrics/APc({suffix[i]})"] = val.stats_as_dict["APc"]
+                        stats[f"metrics/APf({suffix[i]})"] = val.stats_as_dict["APf"]
 
                 if self.is_lvis:
                     stats["fitness"] = stats["metrics/mAP50-95(B)"]  # always use box mAP50-95 for fitness

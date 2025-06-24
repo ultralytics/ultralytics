@@ -409,6 +409,24 @@ class DetectionValidator(BaseValidator):
         iou_types: Union[str, List[str]] = "bbox",
         suffix: Union[str, List[str]] = "Box",
     ) -> Dict[str, Any]:
+        """Evaluate COCO/LVIS metrics using faster-coco-eval library.
+        
+        Performs evaluation using the faster-coco-eval library to compute mAP metrics
+        for object detection. Updates the provided stats dictionary with computed metrics
+        including mAP50, mAP50-95, and LVIS-specific metrics if applicable.
+        
+        Args:
+            stats (Dict[str, Any]): Dictionary to store computed metrics and statistics.
+            pred_json (Union[str, Path]): Path to JSON file containing predictions in COCO format.
+            anno_json (Union[str, Path]): Path to JSON file containing ground truth annotations in COCO format.
+            iou_types (Union[str, List[str]]): IoU type(s) for evaluation. Can be single string or list of strings.
+                Common values include "bbox", "segm", "keypoints". Defaults to "bbox".
+            suffix (Union[str, List[str]]): Suffix to append to metric names in stats dictionary. Should correspond
+                to iou_types if multiple types provided. Defaults to "Box".
+        
+        Returns:
+            (Dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
+        """
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:

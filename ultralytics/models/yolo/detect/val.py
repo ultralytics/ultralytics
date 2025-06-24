@@ -418,11 +418,11 @@ class DetectionValidator(BaseValidator):
 
         Args:
             stats (Dict[str, Any]): Dictionary to store computed metrics and statistics.
-            pred_json (Union[str, Path]): Path to JSON file containing predictions in COCO format.
-            anno_json (Union[str, Path]): Path to JSON file containing ground truth annotations in COCO format.
-            iou_types (Union[str, List[str]]): IoU type(s) for evaluation. Can be single string or list of strings.
+            pred_json (str | Path]): Path to JSON file containing predictions in COCO format.
+            anno_json (str | Path]): Path to JSON file containing ground truth annotations in COCO format.
+            iou_types (str | List[str]]): IoU type(s) for evaluation. Can be single string or list of strings.
                 Common values include "bbox", "segm", "keypoints". Defaults to "bbox".
-            suffix (Union[str, List[str]]): Suffix to append to metric names in stats dictionary. Should correspond
+            suffix (str | List[str]]): Suffix to append to metric names in stats dictionary. Should correspond
                 to iou_types if multiple types provided. Defaults to "Box".
 
         Returns:

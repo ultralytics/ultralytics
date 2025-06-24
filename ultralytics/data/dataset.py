@@ -154,7 +154,73 @@ class YOLODataset(BaseDataset):
         x["msgs"] = msgs  # warnings
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
+    def cache_labels_seg(self, path: Path = Path("./labels.cache")) -> Dict:
+        """
+        Cache dataset labels, check images and read shapes.
 
+        Args:
+            path (Path): Path where to save the cache file.
+
+        Returns:
+            (dict): Dictionary containing cached labels and related information.
+        """
+        x = {"labels": []}
+        nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
+        desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
+        total = len(self.im_files)
+        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
+            raise ValueError(
+                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+            )
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(
+                func=verify_image_label,
+                iterable=zip(
+                    self.im_files,
+                    self.label_files_seg,
+                    repeat(self.prefix),
+                    repeat(self.use_keypoints),
+                    repeat(len(self.data["names"])),
+                    repeat(nkpt),
+                    repeat(ndim),
+                    repeat(self.single_cls),
+                ),
+            )
+            pbar = TQDM(results, desc=desc, total=total)
+            for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+                nm += nm_f
+                nf += nf_f
+                ne += ne_f
+                nc += nc_f
+                if im_file:
+                    x["labels"].append(
+                        {
+                            "im_file": im_file,
+                            "shape": shape,
+                            "cls": lb[:, 0:1],  # n, 1
+                            "bboxes": lb[:, 1:],  # n, 4
+                            "segments": segments,
+                            "keypoints": keypoint,
+                            "normalized": True,
+                            "bbox_format": "xywh",
+                        }
+                    )
+                if msg:
+                    msgs.append(msg)
+                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            pbar.close()
+
+        if msgs:
+            LOGGER.info("\n".join(msgs))
+        if nf == 0:
+            LOGGER.warning(f"{self.prefix}No labels found in {path}. {HELP_URL}")
+        x["hash"] = get_hash(self.label_files_seg + self.im_files)
+        x["results"] = nf, nm, ne, nc, len(self.im_files)
+        x["msgs"] = msgs  # warnings
+        save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
+        return x
     def get_labels(self) -> List[Dict]:
         """
         Return dictionary of labels for YOLO training.
@@ -164,14 +230,19 @@ class YOLODataset(BaseDataset):
         Returns:
             (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
-        self.label_files = img2label_paths(self.im_files)
+        self.label_files, self.label_files_seg = img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
+        cache_path_seg = Path(self.label_files_seg[0]).parent.with_suffix(".cache")
         try:
-            cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
+            cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache
+            cache_seg, exists_seg = load_dataset_cache_file(cache_path_seg), True  # attempt to load a *.cache file
+
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
         except (FileNotFoundError, AssertionError, AttributeError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
+            cache_seg, exists_seg = self.cache_labels_seg(cache_path_seg), False  # run cache ops
+
 
         # Display cache
         nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
@@ -184,6 +255,8 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+        labels_seg = cache_seg["labels"]
+
         if not labels:
             raise RuntimeError(
                 f"No valid images found in {cache_path}. Images with incorrectly formatted labels are ignored. {HELP_URL}"
@@ -192,8 +265,12 @@ class YOLODataset(BaseDataset):
 
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
+        lengths_seg = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels_seg)
+
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
-        if len_segments and len_boxes != len_segments:
+        len_cls_seg, len_boxes_seg, len_segments_seg = (sum(x) for x in zip(*lengths_seg))
+
+        if len_segments and len_boxes != len_segments or len_segments_seg and len_boxes_seg != len_segments_seg:
             LOGGER.warning(
                 f"Box and segment counts should be equal, but got len(segments) = {len_segments}, "
                 f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
@@ -203,7 +280,7 @@ class YOLODataset(BaseDataset):
                 lb["segments"] = []
         if len_cls == 0:
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
-        return labels
+        return labels, labels_seg
 
     def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
         """
@@ -250,7 +327,7 @@ class YOLODataset(BaseDataset):
         hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
-    def update_labels_info(self, label: Dict) -> Dict:
+    def update_labels_info(self, label: Dict, label_seg: Dict) -> Dict:
         """
         Update label format for different tasks.
 
@@ -265,7 +342,8 @@ class YOLODataset(BaseDataset):
             Can also support classification and semantic segmentation by adding or removing dict keys there.
         """
         bboxes = label.pop("bboxes")
-        segments = label.pop("segments", [])
+        # segments = label.pop("segments", [])
+        segments = label_seg.pop("segments", [])
         keypoints = label.pop("keypoints", None)
         bbox_format = label.pop("bbox_format")
         normalized = label.pop("normalized")

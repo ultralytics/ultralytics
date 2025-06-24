@@ -44,7 +44,9 @@ FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID
 def img2label_paths(img_paths: List[str]) -> List[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
-    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+    sa_seg, sb_seg = f"{os.sep}images{os.sep}", f"{os.sep}labels-seg{os.sep}"  # /images/, /labels/ substrings
+
+    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths], [sb_seg.join(x.rsplit(sa_seg, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
 def check_file_speeds(

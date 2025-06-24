@@ -409,12 +409,13 @@ class DetectionValidator(BaseValidator):
         iou_types: Union[str, List[str]] = "bbox",
         suffix: Union[str, List[str]] = "Box",
     ) -> Dict[str, Any]:
-        """Evaluate COCO/LVIS metrics using faster-coco-eval library.
-        
+        """
+        Evaluate COCO/LVIS metrics using faster-coco-eval library.
+
         Performs evaluation using the faster-coco-eval library to compute mAP metrics
         for object detection. Updates the provided stats dictionary with computed metrics
         including mAP50, mAP50-95, and LVIS-specific metrics if applicable.
-        
+
         Args:
             stats (Dict[str, Any]): Dictionary to store computed metrics and statistics.
             pred_json (Union[str, Path]): Path to JSON file containing predictions in COCO format.
@@ -423,7 +424,7 @@ class DetectionValidator(BaseValidator):
                 Common values include "bbox", "segm", "keypoints". Defaults to "bbox".
             suffix (Union[str, List[str]]): Suffix to append to metric names in stats dictionary. Should correspond
                 to iou_types if multiple types provided. Defaults to "Box".
-        
+
         Returns:
             (Dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
         """

@@ -399,27 +399,28 @@ class DetectionValidator(BaseValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
-        return self.coco_evaluate(stats, pred_json, anno_json, iou_type="bbox")
+        return self.coco_evaluate(stats, pred_json, anno_json, iou_types="bbox")
 
     def coco_evaluate(
         self,
         stats: Dict[str, Any],
         pred_json: str,
         anno_json: str,
-        iou_type: Union[str, List[str]] = "bbox",
+        iou_types: Union[str, List[str]] = "bbox",
+        suffix: str = "B",
     ) -> Dict[str, Any]:
         if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
             LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
             try:
                 for x in pred_json, anno_json:
                     assert x.is_file(), f"{x} file not found"
-                iou_type = [iou_type] if isinstance(iou_type, str) else iou_type
+                iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 check_requirements("faster-coco-eval>=1.6.7")
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json)
                 pred = anno.loadRes(pred_json)
-                for iou_type in iou_type:
+                for iou_type in iou_types:
                     val = COCOeval_faster(
                         anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=LOGGER.info
                     )

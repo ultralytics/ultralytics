@@ -32,8 +32,12 @@ class Inference {
 	void PostProcessing(cv::Mat &frame);
 	cv::Rect GetBoundingBox(const cv::Rect &src) const;
 	void DrawDetectedObject(cv::Mat &frame, const Detection &detections) const;
+	cv::Mat Letterbox(const cv::Mat& image, const cv::Size& new_shape,
+                             cv::Scalar color, bool auto_pad, bool scale_fill,
+                             float* scale, int* pad_w, int* pad_h);
 
 	cv::Point2f scale_factor_;			// Scaling factor for the input frame
+	cv::Point2f padding_;
 	cv::Size2f model_input_shape_;	// Input shape of the model
 	cv::Size model_output_shape_;		// Output shape of the model
 

@@ -12,7 +12,7 @@ from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
-from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.plotting import plot_images, plot_matches
 
 
 class DetectionValidator(BaseValidator):
@@ -98,7 +98,9 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.metrics.names = self.names
-        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
+        if self.args.plots and self.args.visualize:
+            (self.save_dir / "visualizations").mkdir(exist_ok=True)
+        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()), save_matches=self.args.plots and self.args.visualize)
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -196,12 +198,14 @@ class DetectionValidator(BaseValidator):
             )
             # Evaluate
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf, im_name=Path(batch["im_file"][si]).name)
 
             if no_pred:
                 continue
 
             # Save
+            if self.args.plots and self.args.visualize:
+                plot_matches(self, batch, preds, si)
             if self.args.save_json:
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:

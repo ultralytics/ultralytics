@@ -1011,7 +1011,6 @@ def plot_matches(validator, batch, preds, ni):
         preds (torch.Tensor | list): Model predictions
         ni (int): Batch index
     """
-    # TODO: Fix
     if not validator.confusion_matrix.matches:
         return
 
@@ -1023,13 +1022,13 @@ def plot_matches(validator, batch, preds, ni):
     idx = batch["batch_idx"] == ni
 
     if task == "segment":
-        pred, pred_mask = preds[0][ni], preds[1][ni]
+        pred, pred_mask = preds[ni], preds[ni]["masks"]
     elif task == "pose":
-        pred_kpts = [p[:, 6:].view(-1, *validator.kpt_shape) for p in preds]
-        pred, pred_kpt = preds[ni], pred_kpts[ni]
+        pred, pred_kpt = preds[ni], preds[ni]["keypoints"]
     else:
-        pred = preds[ni]["bboxes"]
+        pred = preds[ni]
 
+    pred = torch.stack([torch.hstack(t) for t in zip(*list(pred.values())[:3])])
     # format the gt_box for output_to_targets
     box_dims = 7 if task == "obb" else 6
     if task == "obb":
@@ -1042,6 +1041,7 @@ def plot_matches(validator, batch, preds, ni):
             ],
             dim=-1,
         ).view(-1, box_dims)
+        pred = torch.cat([pred[:, :4], pred[:, 5:], pred[:, 4:5]], dim=1)
     else:
         gt_box = torch.cat(
             [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
@@ -1073,14 +1073,8 @@ def plot_matches(validator, batch, preds, ni):
                     pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *validator.kpt_shape), device=device)
                 )
             elif task == "segment":
-                extra = (
-                    validator.process(
-                        pred_mask,
-                        boxes[:, 6:].view(-1, pred_mask.shape[0]),
-                        boxes[:, :4].view(-1, 4),
-                        shape=img.shape[1:],
-                    )  # process mask
-                )
+                # TODO: Fix masks
+                extra = pred_mask
         box_batch.append(boxes)
         if extra_batch is not None:
             extra_batch.append(extra)
@@ -1093,18 +1087,15 @@ def plot_matches(validator, batch, preds, ni):
         "max_subplots": 4,
         "conf_thres": 0.001,
     }
+    keys = ["batch_idx", "cls", "bboxes", "conf"]
     output_func = output_to_rotated_target if task == "obb" else output_to_target
+    labels = dict(zip(keys, output_func(box_batch, max_det=validator.args.max_det)))
     if extra_batch is not None:
         if task == "pose":
-            plot_args["kpts"] = torch.cat(extra_batch, 0)
+            labels["keypoints"] = torch.cat(extra_batch, 0)
         elif task == "segment":
-            plot_args["masks"] = torch.cat(extra_batch, 0)
-    max_det = validator.args.max_det
-    breakpoint()
-    box_batch = torch.cat([x[:max_det] for x in box_batch], 0)
-    # TODO: fix this
-    box_batch[:, :4] = ops.xyxy2xywh(box_batch[:, :4])  # convert to xywh format
-    plot_images(img.repeat(4, 1, 1, 1), *output_func(box_batch, max_det=validator.args.max_det), **plot_args)
+            labels["masks"] = torch.cat(extra_batch, 0)
+    plot_images(labels, img.repeat(4, 1, 1, 1), **plot_args)
 
 
 def output_to_target(output, max_det=300):

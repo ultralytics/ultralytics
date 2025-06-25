@@ -106,7 +106,7 @@ jobs:
       fail-fast: false
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
-        os: [ubuntu-latest, macos-14, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-latest, ubuntu-24.04-arm]
         python-version: ["3.12"]
         model: [yolo11n]
     steps:
@@ -167,7 +167,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm]
         python-version: ["3.12"]
         torch: [latest]
         include:
@@ -189,7 +189,7 @@ jobs:
               torch="torch==1.8.0 torchvision==0.9.0"
           fi
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-              slow="pycocotools mlflow"
+              slow="faster-coco-eval mlflow"
           fi
           uv pip install --system -e ".[export,solutions]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
@@ -256,7 +256,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -270,7 +270,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install -e ".[export]" pytest mlflow pycocotools --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks

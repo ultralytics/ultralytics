@@ -52,7 +52,6 @@ Without further ado, let's dive in!
     - Scikit-learn, pandas, and PyYAML: `pip install -U scikit-learn pandas pyyaml`.
 
 2. Verify that your annotations are in the [YOLO detection format](../datasets/detect/index.md).
-
     - For this tutorial, all annotation files are found in the `Fruit-Detection/labels` directory.
 
 ## Generating Feature Vectors for Object Detection Dataset

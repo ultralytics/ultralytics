@@ -137,7 +137,6 @@ By clicking on the URL link to the ClearML results page in the output of the usa
     - Key to optimizing training efficiency and costs.
 
 - **Model Artifacts Management**
-
     - View, download, and share model artifacts like trained models and checkpoints.
     - Enhances collaboration and streamlines [model deployment](https://www.ultralytics.com/glossary/model-deployment) and sharing.
 

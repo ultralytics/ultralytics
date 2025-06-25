@@ -125,7 +125,6 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
     - **FlashAttention**: Incorporates FlashAttention to reduce memory access overhead.
 
 3. **Architectural Efficiency**:
-
     - **Reduced Parameters**: Achieves a lower parameter count while maintaining or improving accuracy compared to many previous models.
     - **Streamlined Attention**: Uses a simplified attention implementation, avoiding positional encoding.
     - **Optimized MLP Ratios**: Adjusts MLP ratios to more effectively allocate computational resources.

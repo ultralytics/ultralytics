@@ -372,6 +372,7 @@ class ConfusionMatrix(DataExportMixin):
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            im_name (str, optional): Name of the image file. Used to aggregate matches dict for each image.
         """
         if self.matches is not None:  # only if visualization is enabled
             self.matches[im_name] = {"TP": [], "FP": [], "FN": []}

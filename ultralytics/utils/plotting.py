@@ -1029,23 +1029,14 @@ def plot_matches(validator, batch, preds, ni):
         pred = preds[ni]
 
     pred = torch.stack([torch.hstack(t) for t in zip(*list(pred.values())[:3])])
-    # format the gt_box for output_to_targets
-    box_dims = 7 if task == "obb" else 6
     if task == "obb":
-        gt_box = torch.cat(
-            [
-                batch["bboxes"][idx][:, :-1],
-                torch.ones_like(batch["cls"][idx]),
-                batch["cls"][idx],
-                batch["bboxes"][idx][:, -1:],
-            ],
-            dim=-1,
-        ).view(-1, box_dims)
-        pred = torch.cat([pred[:, :4], pred[:, 5:], pred[:, 4:5]], dim=1)
+        box_dims = 7
     else:
-        gt_box = torch.cat(
-            [ops.xywh2xyxy(batch["bboxes"][idx]), torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
-        ).view(-1, box_dims)
+        box_dims =  6
+        pred[:, :4] = ops.xyxy2xywh(pred[:, :4])
+    gt_box = torch.cat(
+        [batch["bboxes"][idx], torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
+    ).view(-1, box_dims)
 
     # Create batch of 4 (GT, TP, FP, FN)
     # add the first element in batch, i.e. GT
@@ -1073,8 +1064,7 @@ def plot_matches(validator, batch, preds, ni):
                     pred_kpt[matches[k]] if matches[k] else torch.empty(size=(0, *validator.kpt_shape), device=device)
                 )
             elif task == "segment":
-                # TODO: Fix masks
-                extra = pred_mask
+                extra = pred_mask[matches[k]]
         box_batch.append(boxes)
         if extra_batch is not None:
             extra_batch.append(extra)
@@ -1088,8 +1078,7 @@ def plot_matches(validator, batch, preds, ni):
         "conf_thres": 0.001,
     }
     keys = ["batch_idx", "cls", "bboxes", "conf"]
-    output_func = output_to_rotated_target if task == "obb" else output_to_target
-    labels = dict(zip(keys, output_func(box_batch, max_det=validator.args.max_det)))
+    labels = dict(zip(keys, output_to_target(box_batch, max_det=validator.args.max_det)))
     if extra_batch is not None:
         if task == "pose":
             labels["keypoints"] = torch.cat(extra_batch, 0)
@@ -1099,23 +1088,13 @@ def plot_matches(validator, batch, preds, ni):
 
 
 def output_to_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, (angle,) conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
-        box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)
+        box_dims = 5 if o.shape[1] == 7 else 4
+        box, conf, cls = o[:max_det].cpu().split((box_dims, 1, 1), 1)
         j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
-    targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
-
-
-def output_to_rotated_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, angle, conf] for plotting."""
-    targets = []
-    for i, o in enumerate(output):
-        box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)
-        j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, box, angle, conf), 1))
+        targets.append(torch.cat((j, cls, box, conf), 1))
     targets = torch.cat(targets, 0).numpy()
     return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
 

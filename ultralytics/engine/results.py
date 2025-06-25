@@ -1180,12 +1180,11 @@ class Keypoints(BaseTensor):
     information.
 
     Attributes:
-        data (torch.Tensor): The raw tensor containing keypoint data (unmodified from input).
+        data (torch.Tensor): The raw tensor containing keypoint data.
         orig_shape (Tuple[int, int]): The original image dimensions (height, width).
         has_visible (bool): Indicates whether visibility information is available for keypoints.
-        xy (torch.Tensor): Keypoint coordinates in [x, y] format with low-confidence keypoints zeroed.
-        xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape,
-            with low-confidence keypoints zeroed.
+        xy (torch.Tensor): Keypoint coordinates in [x, y] format.
+        xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape.
         conf (torch.Tensor): Confidence values for each keypoint, if available.
 
     Methods:
@@ -1200,19 +1199,17 @@ class Keypoints(BaseTensor):
         >>> keypoints_data = torch.rand(1, 17, 3)  # 1 detection, 17 keypoints, (x, y, conf)
         >>> orig_shape = (480, 640)  # Original image shape (height, width)
         >>> keypoints = Keypoints(keypoints_data, orig_shape)
-        >>> print(keypoints.xy.shape)  # Access xy coordinates (low-confidence points zeroed)
+        >>> print(keypoints.xy.shape)  # Access xy coordinates
         >>> print(keypoints.conf)  # Access confidence values
         >>> keypoints_cpu = keypoints.cpu()  # Move keypoints to CPU
     """
 
-    @smart_inference_mode()
     def __init__(self, keypoints: Union[torch.Tensor, np.ndarray], orig_shape: Tuple[int, int]) -> None:
         """
         Initialize the Keypoints object with detection keypoints and original image dimensions.
 
-        This method processes the input keypoints tensor, handling both 2D and 3D formats. The original
-        keypoints data is stored unmodified in self.data. Low-confidence keypoint filtering is applied
-        in the xy and xyn properties.
+        This method processes the input keypoints tensor, handling both 2D and 3D formats. For 3D tensors
+        (x, y, confidence), it masks out low-confidence keypoints by setting their coordinates to zero.
 
         Args:
             keypoints (torch.Tensor): A tensor containing keypoint data. Shape can be either:
@@ -1234,15 +1231,11 @@ class Keypoints(BaseTensor):
     @lru_cache(maxsize=1)
     def xy(self) -> Union[torch.Tensor, np.ndarray]:
         """
-        Return x, y coordinates of keypoints with low-confidence points zeroed.
-
-        For keypoints with confidence values, coordinates of keypoints with confidence < 0.5
-        are set to zero to indicate they are not visible/reliable.
+        Return x, y coordinates of keypoints.
 
         Returns:
             (torch.Tensor): A tensor containing the x, y coordinates of keypoints with shape (N, K, 2), where N is
-                the number of detections and K is the number of keypoints per detection. Low-confidence keypoints
-                have coordinates set to [0, 0].
+                the number of detections and K is the number of keypoints per detection.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1253,25 +1246,16 @@ class Keypoints(BaseTensor):
 
         Notes:
             - The returned coordinates are in pixel units relative to the original image dimensions.
-            - If keypoints have confidence values, keypoints with confidence < 0.5 have coordinates set to [0, 0].
+            - If keypoints were initialized with confidence values, only keypoints with confidence >= 0.5 are returned.
             - This property uses LRU caching to improve performance on repeated access.
         """
-        xy_coords = self.data[..., :2].clone() if isinstance(self.data, torch.Tensor) else np.copy(self.data[..., :2])
-
-        # Apply confidence-based masking if confidence values are available
-        if self.has_visible:
-            mask = self.data[..., 2] < 0.5  # points with conf < 0.5 (not visible)
-            xy_coords[mask] = 0
-
-        return xy_coords
+        return self.data[..., :2]
 
     @property
     @lru_cache(maxsize=1)
     def xyn(self) -> Union[torch.Tensor, np.ndarray]:
         """
         Return normalized coordinates (x, y) of keypoints relative to the original image size.
-
-        Low-confidence keypoints (confidence < 0.5) are set to [0, 0] before normalization.
 
         Returns:
             (torch.Tensor | numpy.ndarray): A tensor or array of shape (N, K, 2) containing normalized keypoint

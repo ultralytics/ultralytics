@@ -1495,7 +1495,7 @@ class NMSModel(torch.nn.Module):
         scores, classes = scores.max(dim=-1)
         self.args.max_det = min(pred.shape[1], self.args.max_det)  # in case num_anchors < max_det
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
-        out = torch.zeros(self.args.batch, self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
+        out = torch.zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
@@ -1543,4 +1543,4 @@ class NMSModel(torch.nn.Module):
             # Zero-pad to max_det size to avoid reshape error
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
-        return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]
+        return (out, preds[1]) if self.model.task == "segment" else out

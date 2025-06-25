@@ -354,7 +354,12 @@ class ConfusionMatrix(DataExportMixin):
             self.matrix[p][t] += 1
 
     def process_batch(
-        self, detections: Dict[str, torch.Tensor], batch: Dict[str, Any], conf: float = 0.25, iou_thres: float = 0.45, im_name=""
+        self,
+        detections: Dict[str, torch.Tensor],
+        batch: Dict[str, Any],
+        conf: float = 0.25,
+        iou_thres: float = 0.45,
+        im_name="",
     ) -> None:
         """
         Update confusion matrix for object detection task.

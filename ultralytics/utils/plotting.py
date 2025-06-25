@@ -1032,11 +1032,11 @@ def plot_matches(validator, batch, preds, ni):
     if task == "obb":
         box_dims = 7
     else:
-        box_dims =  6
+        box_dims = 6
         pred[:, :4] = ops.xyxy2xywh(pred[:, :4])
-    gt_box = torch.cat(
-        [batch["bboxes"][idx], torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1
-    ).view(-1, box_dims)
+    gt_box = torch.cat([batch["bboxes"][idx], torch.ones_like(batch["cls"][idx]), batch["cls"][idx]], dim=-1).view(
+        -1, box_dims
+    )
 
     # Create batch of 4 (GT, TP, FP, FN)
     # add the first element in batch, i.e. GT

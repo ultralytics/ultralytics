@@ -6,8 +6,9 @@ from numbers import Number
 from typing import List
 
 import numpy as np
+import cv2
 
-from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh, xyxyxyxy2xywhr
 
 
 def _ntuple(n):
@@ -220,7 +221,7 @@ class Instances:
         ... )
     """
 
-    def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
+    def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True, obbData=None) -> None:
         """
         Initialize the Instances object with bounding boxes, segments, and keypoints.
 
@@ -235,6 +236,17 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments
+        self.obbData = obbData
+
+    def initOrientedBoundingBoxes(self, w, h):
+        if not len(self.segments):
+            self.obbData = np.zeros((0, 5), dtype=np.float32)
+            return
+        # get the segment data in denormalized data
+        denormSegments = self.segments * np.array([w, h], dtype=np.float32).reshape((1, 1, 2))
+        self.obbData = xyxyxyxy2xywhr(denormSegments)
+        # Convert back to degrees
+        self.obbData[:, 4] = self.obbData[:, 4]*180.0/np.pi
 
     def convert_bbox(self, format):
         """
@@ -320,6 +332,102 @@ class Instances:
             self.keypoints[..., 0] += padw
             self.keypoints[..., 1] += padh
 
+    def add_padding_obb(self, padw, padh):
+        """
+        Add padding to coordinates.
+
+        Args:
+            padw (int): Padding width.
+            padh (int): Padding height.
+        """
+        if len(self.obbData):
+            self.obbData[:, 0:2] = self.obbData[:, 0:2]+np.array([padw, padh], dtype=np.float32).reshape(1, 2)
+
+    def get_obb_boxes(self, imgw, imgh):
+        if not len(self.obbData):
+            return np.zeros((0, 5), dtype=np.float32)
+        boxes = []
+        for idx, obb_box_data in enumerate(self.obbData):
+            M = self.translate(obb_box_data[0], obb_box_data[1])
+            M = M @ self.rotationMatrix(obb_box_data[4]*np.pi/180.0)
+            M = M @ self.translate(-obb_box_data[2]/2.0, -obb_box_data[3]/2.0)
+            Minv = np.linalg.inv(M)
+            pointsSegment = self.segments[idx]
+            pointsSegment = np.concatenate((pointsSegment, np.ones((pointsSegment.shape[0], 1), dtype=np.float32)), axis=-1)
+            #print(pointsSegment)
+            alignedPoints = pointsSegment @ Minv.T
+            #print(alignedPoints)
+            (xmin, ymin, xmax, ymax) = np.min(alignedPoints[:, 0]), np.min(alignedPoints[:, 1]), np.max(alignedPoints[:, 0]), np.max(alignedPoints[:, 1])
+            # get the 4 corners
+            P1 = np.array([xmin, ymin, 1.0], dtype=np.float32)
+            P2 = np.array([xmax, ymin, 1.0], dtype=np.float32)
+            P3 = np.array([xmax, ymax, 1.0], dtype=np.float32)
+            P4 = np.array([xmin, ymax, 1.0], dtype=np.float32)
+            #print(P1)
+            #print(P2)
+            #print(P3)
+            #print(P4)
+
+            # get the points back in image coordinates
+            pointsInImage = np.array([P1, P2, P3, P4], dtype=np.float32) @ M.T
+            #print(pointsInImage)
+            #print(pointsInImage.dtype)
+            #print(pointsInImage[:, 0:2])
+            pointsInImage = np.ascontiguousarray(pointsInImage[:, 0:2])
+            # get the OBB data
+            (cx, cy), (w, h), angle = cv2.minAreaRect(pointsInImage)
+            boxes.append([cx, cy, w, h, angle / 180 * np.pi])
+            #boxes.append([cx, cy, w, h, angle])
+        #print(self.obbData)
+        #print(boxes)
+        boxesarray = np.array(boxes)
+        np.clip(boxesarray[:, 0:1], a_min=0, a_max=imgw)
+        np.clip(boxesarray[:, 1:2], a_min=0, a_max=imgh)
+
+        return boxesarray
+
+    def apply_affine_obb(self, M, scale, rotation):
+        if not len(self.obbData):
+            return
+        #print()
+        #print(M)
+        #print(scale)
+        #print(rotation)
+        centers = self.obbData[:, 0:2]
+        #print(centers)
+        centers = np.concatenate((centers, np.ones((centers.shape[0], 1), dtype=np.float32)), axis=-1)
+        #print(centers)
+
+        self.obbData[:, 0:2] = (centers @ M.T)[:, 0:2]
+        #print(self.obbData)
+        self.obbData[:, 2:4] *= scale
+        self.obbData[:, 4] -= rotation
+        # regularize the OBB again
+        for box in self.obbData:
+            angle = box[4]
+            angle = angle % 180
+            if (angle > 90):
+                w,h = box[2], box[3]
+                box[2] = h
+                box[3] = w
+                box[4] = angle % 90
+            if (angle == 0.0):
+                w,h = box[2], box[3]
+                box[2] = h
+                box[3] = w
+                box[4] = 90
+
+            
+
+    def rotationMatrix(self, angle):
+        return np.array([[np.cos(angle), -np.sin(angle), 0.0], [np.sin(angle), np.cos(angle), 0.0], [0.0, 0.0, 1.0]], dtype=np.float32)
+
+    def translate(self, tx, ty):
+        return np.array([[1.0, 0.0, tx], [0.0, 1.0, ty], [0.0, 0.0, 1.0]], dtype=np.float32)
+
+
+
+
     def __getitem__(self, index) -> "Instances":
         """
         Retrieve a specific instance or a set of instances using indexing.
@@ -338,12 +446,20 @@ class Instances:
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
+        obbData = None
+        if not self.obbData is None:
+            if len(self.obbData):
+                obbData = self.obbData[index]
+            else:
+                obbData = self.obbData
+
         return Instances(
             bboxes=bboxes,
             segments=segments,
             keypoints=keypoints,
             bbox_format=bbox_format,
             normalized=self.normalized,
+            obbData=obbData
         )
 
     def flipud(self, h):
@@ -364,6 +480,25 @@ class Instances:
         if self.keypoints is not None:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
+    def flipud_obb(self, h):
+        if self.obbData is None:
+            return
+        if len(self.obbData) == 0:
+            return
+        self.obbData[:, 1] = h-self.obbData[:, 1]
+        for box in self.obbData:
+            if box[4] == 90:
+                continue
+            # change angle
+            box[4] = 90 - box[4]
+            # flip wh
+            boxw, boxh = box[2], box[3]
+            box[2] = boxh
+            box[3] = boxw
+
+
+
+
     def fliplr(self, w):
         """
         Flip coordinates horizontally.
@@ -381,6 +516,24 @@ class Instances:
         self.segments[..., 0] = w - self.segments[..., 0]
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
+
+    def fliplr_obb(self, w):
+        if self.obbData is None:
+            return
+        if len(self.obbData) == 0:
+            return
+        self.obbData[:, 0] = w-self.obbData[:, 1]
+        for box in self.obbData:
+            if box[4] == 90:
+                continue
+            # change angle
+            box[4] = 90 - box[4]
+            # flip wh
+            boxw, boxh = box[2], box[3]
+            box[2] = boxh
+            box[3] = boxw
+
+
 
     def clip(self, w, h):
         """
@@ -421,6 +574,9 @@ class Instances:
                 self.segments = self.segments[good]
             if self.keypoints is not None:
                 self.keypoints = self.keypoints[good]
+            if self.obbData is not None:
+                self.obbData = self.obbData[good]
+
         return good
 
     def update(self, bboxes, segments=None, keypoints=None):
@@ -487,7 +643,11 @@ class Instances:
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        obbBoxes = None
+        if not instances_list[0].obbData is None:
+            obbBoxes = np.concatenate([b.obbData for b in instances_list],axis=axis)
+        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized, obbBoxes)
+
 
     @property
     def bboxes(self):

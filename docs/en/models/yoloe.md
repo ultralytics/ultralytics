@@ -757,7 +757,6 @@ Quickly set up YOLOE with Ultralytics by following these steps:
    Pre-trained YOLOE models (e.g., YOLOE-v8-S/L, YOLOE-11 variants) are available from the YOLOE GitHub releases. Simply download your desired `.pt` file to load into the Ultralytics YOLO class.
 
 3. **Hardware Requirements**:
-
     - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., [Jetson](../guides/nvidia-jetson.md)) or CPUs at lower resolutions.
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
@@ -765,7 +764,6 @@ Quickly set up YOLOE with Ultralytics by following these steps:
    YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-11s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
-
     - **Quick inference** (prompt-free):
         ```bash
         yolo predict model=yoloe-11s-seg-pf.pt source="image.jpg"

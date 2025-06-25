@@ -168,7 +168,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
         ```
 !!! tip
 
-    Just like the [training step](#train), for images with extreme aspect ratios, consider creating a custom `ClassificationValidator` when using the `val`() method:
+    Just like the [training step](#train), for images with extreme aspect ratios, consider creating a custom `ClassificationValidator` when calling the `val`() method:
 
     ```python
     import torch
@@ -220,7 +220,7 @@ Use a trained YOLO11n-cls model to run predictions on images.
 
         # Load a model
         model = YOLO("yolo11n-cls.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a cuxstom model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image

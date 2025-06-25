@@ -318,20 +318,28 @@ class ConfusionMatrix(DataExportMixin):
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
         nc (int): The number of category.
         names (List[str]): The names of the classes, used as labels on the plot.
+        matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
-    def __init__(self, names: List[str] = [], task: str = "detect"):
+    def __init__(self, names: List[str] = [], task: str = "detect", save_matches: bool = False):
         """
         Initialize a ConfusionMatrix instance.
 
         Args:
             names (List[str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
+            save_matches (bool, optional): Save the indices of GTs, FPs, FNs for visualization.
         """
         self.task = task
         self.nc = len(names)  # number of classes
         self.matrix = np.zeros((self.nc + 1, self.nc + 1)) if self.task == "detect" else np.zeros((self.nc, self.nc))
         self.names = names  # name of classes
+        self.matches = {} if save_matches else None
+
+    def _append_match_idx(self, im_name, key, idx):
+        """Append the index to TP, FP or FN list for the last batch."""
+        if self.matches is not None:
+            self.matches[im_name][key].append(idx)
 
     def process_cls_preds(self, preds, targets):
         """
@@ -346,7 +354,12 @@ class ConfusionMatrix(DataExportMixin):
             self.matrix[p][t] += 1
 
     def process_batch(
-        self, detections: Dict[str, torch.Tensor], batch: Dict[str, Any], conf: float = 0.25, iou_thres: float = 0.45
+        self,
+        detections: Dict[str, torch.Tensor],
+        batch: Dict[str, Any],
+        conf: float = 0.25,
+        iou_thres: float = 0.45,
+        im_name="",
     ) -> None:
         """
         Update confusion matrix for object detection task.
@@ -359,7 +372,10 @@ class ConfusionMatrix(DataExportMixin):
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            im_name (str, optional): Name of the image file. Used to aggregate matches dict for each image.
         """
+        if self.matches is not None:  # only if visualization is enabled
+            self.matches[im_name] = {"TP": [], "FP": [], "FN": []}
         conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         no_pred = len(detections["cls"]) == 0
@@ -367,13 +383,15 @@ class ConfusionMatrix(DataExportMixin):
             if not no_pred:
                 detections = {k: detections[k][detections["conf"] > conf] for k in {"cls", "bboxes"}}
                 detection_classes = detections["cls"].int().tolist()
-                for dc in detection_classes:
-                    self.matrix[dc, self.nc] += 1  # false positives
+                for i, dc in enumerate(detection_classes):
+                    self.matrix[dc, self.nc] += 1  # FP
+                    self._append_match_idx(im_name, "FP", i)
             return
         if no_pred:
             gt_classes = gt_cls.int().tolist()
-            for gc in gt_classes:
-                self.matrix[self.nc, gc] += 1  # background FN
+            for i, gc in enumerate(gt_classes):
+                self.matrix[self.nc, gc] += 1  # FN
+                self._append_match_idx(im_name, "FN", i)
             return
 
         detections = {k: detections[k][detections["conf"] > conf] for k in {"cls", "bboxes"}}
@@ -399,13 +417,21 @@ class ConfusionMatrix(DataExportMixin):
         for i, gc in enumerate(gt_classes):
             j = m0 == i
             if n and sum(j) == 1:
-                self.matrix[detection_classes[m1[j].item()], gc] += 1  # correct
+                dc = detection_classes[m1[j].item()]
+                self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
+                if dc == gc:
+                    self._append_match_idx(im_name, "TP", m1[j].item())
+                else:
+                    self._append_match_idx(im_name, "FP", m1[j].item())
+                    self._append_match_idx(im_name, "FN", i)
             else:
-                self.matrix[self.nc, gc] += 1  # true background
+                self.matrix[self.nc, gc] += 1  # FN
+                self._append_match_idx(im_name, "FN", i)
 
         for i, dc in enumerate(detection_classes):
             if not any(m1 == i):
-                self.matrix[dc, self.nc] += 1  # predicted background
+                self.matrix[dc, self.nc] += 1  # FP
+                self._append_match_idx(im_name, "FP", i)
 
     def matrix(self):
         """Return the confusion matrix."""

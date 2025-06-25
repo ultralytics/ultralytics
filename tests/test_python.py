@@ -14,7 +14,7 @@ from PIL import Image
 
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import TASK2DATA, TASKS
+from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.utils import (
     ARM64,
@@ -217,6 +217,12 @@ def test_val(task: str, model: str, data: str) -> None:
         metrics.confusion_matrix.to_html()
         metrics.confusion_matrix.to_json()
         metrics.confusion_matrix.to_sql()
+
+
+@pytest.mark.parametrize("task", [task for task in TASKS if task != "classify"])
+def test_val_visualize(task):
+    """Test the visualization during validation."""
+    YOLO(TASK2MODEL[task]).val(data=TASK2DATA[task], imgsz=32, visualize=True)
 
 
 def test_train_scratch():

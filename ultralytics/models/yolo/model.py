@@ -408,15 +408,15 @@ class YOLOE(Model):
             )
         if not self.predictor or predictor:
             self.predictor = (predictor or self._smart_load("predictor"))(
-            overrides={
-                "task": self.model.task,
-                "mode": "predict",
-                "save": False,
-                "verbose": refer_image is None,
-                "batch": 1,
-            },
-            _callbacks=self.callbacks,
-        )
+                overrides={
+                    "task": self.model.task,
+                    "mode": "predict",
+                    "save": False,
+                    "verbose": refer_image is None,
+                    "batch": 1,
+                },
+                _callbacks=self.callbacks,
+            )
 
         if len(visual_prompts):
             num_cls = (
@@ -428,7 +428,7 @@ class YOLOE(Model):
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
         if not self.predictor.done_warmup:
-           self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model)
 
         if refer_image is None and source is not None:
             dataset = load_inference_source(source)

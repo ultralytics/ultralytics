@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(yolov11_openvino_example)
+project(yolo11_openvino_example)
 
 find_package(OpenVINO REQUIRED)
 find_package(OpenCV REQUIRED)

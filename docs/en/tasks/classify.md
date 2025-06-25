@@ -166,6 +166,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
         yolo classify val model=yolo11n-cls.pt  # val official model
         yolo classify val model=path/to/best.pt # val custom model
         ```
+
 !!! tip
 
     Just like the [training step](#train), for images with extreme aspect ratios, consider creating a custom `ClassificationValidator` when calling the `val`() method:
@@ -177,6 +178,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
     from ultralytics import YOLO
     from ultralytics.data.dataset import ClassificationDataset
     from ultralytics.models.yolo.classify import ClassificationValidator
+
 
     class CustomizedDataset(ClassificationDataset):
         """A customized dataset class for image classification with enhanced data augmentation transforms."""
@@ -193,16 +195,17 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
             )
             self.torch_transforms = val_transforms
 
+
     class CustomizedValidator(ClassificationValidator):
         """A customized validator class for YOLO classification models with enhanced dataset handling."""
+
         def build_dataset(self, img_path: str, mode: str = "test", batch=None):
-            return CustomizedDataset(
-                root=img_path, args=self.args, augment=mode == "train", prefix=mode
-            )
+            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+
 
     model = YOLO("yolo11n-cls.pt")
     model.train(data="imagenet1000", epochs=10, imgsz=224, batch=64)
-    
+
     # Example: validate the model on the test split
     metrics = model.val(validator=CustomizedValidator, split="test")
     ```

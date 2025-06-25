@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to run inference using the Ultralytics HUB Inference API. Includes examples in Python and cURL for quick integration.
-keywords: Ultralytics, HUB, Inference API, Python, cURL, REST API, YOLO, image processing, machine learning, AI integration
+description: Learn how to run inference using the Ultralytics HUB Inference API. Includes examples in Python and Curl for quick integration.
+keywords: Ultralytics, HUB, Inference API, Python, Curl, REST API, YOLO, image processing, machine learning, AI integration
 ---
 
 # Ultralytics HUB Inference API
@@ -83,9 +83,9 @@ print(response.json())
 
     If you are using our [Dedicated Inference API](#dedicated-inference-api), replace the `url` as well.
 
-## cURL
+## Curl
 
-To access the [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API using cURL, use the following code:
+To access the [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API using Curl, use the following code:
 
 ```bash
 curl -X POST "https://predict.ultralytics.com" \
@@ -137,7 +137,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         print(results[0].to_json())
         ```
 
-    === "cURL"
+    === "Curl"
 
         ```bash
         curl -X POST "https://predict.ultralytics.com" \
@@ -218,7 +218,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         print(results[0].to_json())
         ```
 
-    === "cURL"
+    === "Curl"
 
         ```bash
         curl -X POST "https://predict.ultralytics.com" \
@@ -305,7 +305,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         print(results[0].tojson())
         ```
 
-    === "cURL"
+    === "Curl"
 
         ```bash
         curl -X POST "https://predict.ultralytics.com" \
@@ -396,7 +396,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         print(results[0].tojson())
         ```
 
-    === "cURL"
+    === "Curl"
 
         ```bash
         curl -X POST "https://predict.ultralytics.com" \
@@ -497,7 +497,7 @@ The [Ultralytics HUB](https://www.ultralytics.com/hub) Inference API returns a J
         print(results[0].tojson())
         ```
 
-    === "cURL"
+    === "Curl"
 
         ```bash
         curl -X POST "https://predict.ultralytics.com" \

@@ -740,7 +740,10 @@ class Results(SimpleClass, DataExportMixin):
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(),)
-                line += (conf,) * save_conf + (() if id is None else (id,))
+                if save_conf:
+                    line += (conf,)
+                if id is not None:
+                    line += (id,)
                 texts.append(("%g " * len(line)).rstrip() % line)
 
         if texts:

@@ -85,6 +85,8 @@ Each of these settings plays a vital role in the validation process, allowing fo
 
 ### Example Validation with Arguments
 
+<a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-export-the-validation-results-into-dataframe-csv-sql-and-other-formats.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Explore model validation and different export methods in Google Colab"></a>
+
 The below examples showcase YOLO model validation with custom arguments in Python and CLI.
 
 !!! example

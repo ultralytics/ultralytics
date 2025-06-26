@@ -434,11 +434,11 @@ class YOLOE(Model):
             # self.model.names = [f"object{i}" for i in range(num_cls)]
             # self.predictor.set_prompts(visual_prompts.copy())
 
-            # if refer_image is not None:
+            if refer_image is not None:
             #     vpe = self.predictor.get_vpe(refer_image)
             #     self.model.set_classes(self.model.names, vpe)
             #     self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-            #     self.predictor = None  # reset predictor
+                self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
 

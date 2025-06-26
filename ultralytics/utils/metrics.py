@@ -1078,23 +1078,21 @@ class DetMetrics(SimpleClass, DataExportMixin):
            >>> detection_summary = results.summary()
            >>> print(detection_summary)
         """
-        scalars = {
-            "box-map": round(self.box.map, decimals),
-            "box-map50": round(self.box.map50, decimals),
-            "box-map75": round(self.box.map75, decimals),
-        }
         per_class = {
-            "box-p": self.box.p,
-            "box-r": self.box.r,
-            "box-f1": self.box.f1,
+            "Box-P": self.box.p,
+            "Box-R": self.box.r,
+            "Box-F1": self.box.f1,
         }
         return [
             {
-                "class_name": self.names[self.ap_class_index[i]],
+                "Class": self.names[self.ap_class_index[i]],
+                "Images": self.nt_per_image[self.ap_class_index[i]],
+                "Instances": self.nt_per_class[self.ap_class_index[i]],
                 **{k: round(v[i], decimals) for k, v in per_class.items()},
-                **scalars,
+                "mAP50": round(self.class_result(i)[2], decimals),
+                "mAP50-95": round(self.class_result(i)[3], decimals),
             }
-            for i in range(len(per_class["box-p"]))
+            for i in range(len(per_class["Box-P"]))
         ]
 
 
@@ -1213,19 +1211,14 @@ class SegmentMetrics(DetMetrics):
             >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
         """
-        scalars = {
-            "mask-map": round(self.seg.map, decimals),
-            "mask-map50": round(self.seg.map50, decimals),
-            "mask-map75": round(self.seg.map75, decimals),
-        }
         per_class = {
-            "mask-p": self.seg.p,
-            "mask-r": self.seg.r,
-            "mask-f1": self.seg.f1,
+            "Mask-P": self.seg.p,
+            "Mask-R": self.seg.r,
+            "Mask-F1": self.seg.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
         return summary
 
 
@@ -1357,19 +1350,14 @@ class PoseMetrics(DetMetrics):
             >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
         """
-        scalars = {
-            "pose-map": round(self.pose.map, decimals),
-            "pose-map50": round(self.pose.map50, decimals),
-            "pose-map75": round(self.pose.map75, decimals),
-        }
         per_class = {
-            "pose-p": self.pose.p,
-            "pose-r": self.pose.r,
-            "pose-f1": self.pose.f1,
+            "Pose-P": self.pose.p,
+            "Pose-R": self.pose.r,
+            "Pose-F1": self.pose.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
         return summary
 
 
@@ -1445,7 +1433,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             >>> classify_summary = results.summary(decimals=4)
             >>> print(classify_summary)
         """
-        return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
+        return [{"top1_acc": round(self.top1, decimals), "top5_acc": round(self.top5, decimals)}]
 
 
 class OBBMetrics(DetMetrics):

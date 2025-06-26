@@ -74,8 +74,13 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
 !!! tip
 
-    Ultralytics YOLO classification uses [torchvision.transforms.RandomResizedCrop](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training augmentation and [torchvision.transforms.CenterCrop](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation/inference.
-    For images with extreme aspect ratios, consider using [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) instead. The example below shows how to customize augmentations for classification training using a custom `ClassificationDataset` and `ClassificationTrainer`.
+    Ultralytics YOLO classification uses [`torchvision.transforms.RandomResizedCrop`](https://pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training and [`torchvision.transforms.CenterCrop`](https://pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation and inference.
+    These cropping-based transforms assume square inputs and may crop out important parts of images with extreme aspect ratios, resulting in loss of relevant content during training.
+    To preserve the full image while maintaining its proportions, consider using a letterbox-style resizing approach instead. This resizes the image while keeping its aspect ratio and adds padding as needed.
+    
+    
+    To apply this, customize your augmentation pipeline using a custom `ClassificationDataset` and `ClassificationTrainer`. Refer to the training step code sample for implementation guidance.
+    
 
     ```python
     import torch
@@ -92,6 +97,8 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
         def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
             """Initialize a customized classification dataset with enhanced data augmentation transforms."""
             super().__init__(root, args, augment, prefix)
+
+            # Add your custom training transforms here
             train_transforms = T.Compose(
                 [
                     T.Resize((args.imgsz, args.imgsz)),
@@ -104,6 +111,8 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
                     T.RandomErasing(p=args.erasing, inplace=True),
                 ]
             )
+
+            # Add your custom validation transforms here
             val_transforms = T.Compose(
                 [
                     T.Resize((args.imgsz, args.imgsz)),
@@ -169,46 +178,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
 
 !!! tip
 
-    Just like the [training step](#train), for images with extreme aspect ratios, consider creating a custom `ClassificationValidator` when calling the `val`() method:
-
-    ```python
-    import torch
-    import torchvision.transforms as T
-
-    from ultralytics import YOLO
-    from ultralytics.data.dataset import ClassificationDataset
-    from ultralytics.models.yolo.classify import ClassificationValidator
-
-
-    class CustomizedDataset(ClassificationDataset):
-        """A customized dataset class for image classification with enhanced data augmentation transforms."""
-
-        def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
-            """Initialize a customized classification dataset with enhanced data augmentation transforms."""
-            super().__init__(root, args, augment, prefix)
-            val_transforms = T.Compose(
-                [
-                    T.Resize((args.imgsz, args.imgsz)),
-                    T.ToTensor(),
-                    T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
-                ]
-            )
-            self.torch_transforms = val_transforms
-
-
-    class CustomizedValidator(ClassificationValidator):
-        """A customized validator class for YOLO classification models with enhanced dataset handling."""
-
-        def build_dataset(self, img_path: str, mode: str = "test", batch=None):
-            return CustomizedDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
-
-
-    model = YOLO("yolo11n-cls.pt")
-    model.train(data="imagenet1000", epochs=10, imgsz=224, batch=64)
-
-    # Example: validate the model on the test split
-    metrics = model.val(validator=CustomizedValidator, split="test")
-    ```
+    As mentioned in the [training step](#train), where a custom `ClassificationTrainer` is used to handle extreme aspect ratios, you can apply a similar approach during validation. Refer to the code sample in that section and consider using a custom `ClassificationValidator` when calling the `val()` method.
 
 ## Predict
 

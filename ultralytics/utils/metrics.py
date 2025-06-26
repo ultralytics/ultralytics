@@ -1079,9 +1079,9 @@ class DetMetrics(SimpleClass, DataExportMixin):
            >>> print(detection_summary)
         """
         per_class = {
-            "Box (P)": self.box.p,
-            "Box (R)": self.box.r,
-            "Box (F1)": self.box.f1,
+            "Box-P": self.box.p,
+            "Box-R": self.box.r,
+            "Box-F1": self.box.f1,
         }
         return [
             {
@@ -1212,9 +1212,9 @@ class SegmentMetrics(DetMetrics):
             >>> print(seg_summary)
         """
         per_class = {
-            "Mask (P)": self.seg.p,
-            "Mask (R)": self.seg.r,
-            "Mask (F1)": self.seg.f1,
+            "Mask-P": self.seg.p,
+            "Mask-R": self.seg.r,
+            "Mask-F1": self.seg.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
@@ -1351,9 +1351,9 @@ class PoseMetrics(DetMetrics):
             >>> print(pose_summary)
         """
         per_class = {
-            "Pose (P)": self.pose.p,
-            "Pose (R)": self.pose.r,
-            "Pose (F1)": self.pose.f1,
+            "Pose-P": self.pose.p,
+            "Pose-R": self.pose.r,
+            "Pose-F1": self.pose.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):

@@ -1350,19 +1350,14 @@ class PoseMetrics(DetMetrics):
             >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
         """
-        scalars = {
-            "pose-map": round(self.pose.map, decimals),
-            "pose-map50": round(self.pose.map50, decimals),
-            "pose-map75": round(self.pose.map75, decimals),
-        }
         per_class = {
-            "pose-p": self.pose.p,
-            "pose-r": self.pose.r,
-            "pose-f1": self.pose.f1,
+            "Pose (P)": self.pose.p,
+            "Pose (R)": self.pose.r,
+            "Pose (F1)": self.pose.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
         return summary
 
 

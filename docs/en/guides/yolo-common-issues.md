@@ -39,6 +39,7 @@ Installation errors can arise due to various reasons, such as incompatible versi
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
 
 - Import Errors or Dependency Issues - If you're getting errors during the import of YOLO11, or you're having issues related to dependencies, consider the following troubleshooting steps:
+
     - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
 
     - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
@@ -50,6 +51,7 @@ Additionally, here are some common installation issues users have encountered, a
     - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
 
 - Running YOLO11 on GPU - If you're having trouble running YOLO11 on GPU, consider the following troubleshooting steps:
+
     - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
 
     - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.

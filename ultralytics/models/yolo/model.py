@@ -406,7 +406,6 @@ class YOLOE(Model):
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"
             )
-        if not self.predictor or predictor:
             self.predictor = (predictor or self._smart_load("predictor"))(
                 overrides={
                     "task": self.model.task,
@@ -429,15 +428,15 @@ class YOLOE(Model):
                 self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=self.model)
 
-        if refer_image is None and source is not None:
-            dataset = load_inference_source(source)
-            if dataset.mode in {"video", "stream"}:
-                # NOTE: set the first frame as refer image for videos/streams inference
-                refer_image = next(iter(dataset))[1][0]
-        if refer_image is not None and len(visual_prompts):
-            vpe = self.predictor.get_vpe(refer_image)
-            self.model.set_classes(self.model.names, vpe)
-            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-            self.predictor = None  # reset predictor
+            if refer_image is None and source is not None:
+                dataset = load_inference_source(source)
+                if dataset.mode in {"video", "stream"}:
+                    # NOTE: set the first frame as refer image for videos/streams inference
+                    refer_image = next(iter(dataset))[1][0]
+            if refer_image is not None:
+                vpe = self.predictor.get_vpe(refer_image)
+                self.model.set_classes(self.model.names, vpe)
+                self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
+                self.predictor = None  # reset predictor
 
         return super().predict(source, stream, **kwargs)

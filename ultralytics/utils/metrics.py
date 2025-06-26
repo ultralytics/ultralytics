@@ -1211,19 +1211,14 @@ class SegmentMetrics(DetMetrics):
             >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
         """
-        scalars = {
-            "mask-map": round(self.seg.map, decimals),
-            "mask-map50": round(self.seg.map50, decimals),
-            "mask-map75": round(self.seg.map75, decimals),
-        }
         per_class = {
-            "mask-p": self.seg.p,
-            "mask-r": self.seg.r,
-            "mask-f1": self.seg.f1,
+            "Mask (P)": self.seg.p,
+            "Mask (R)": self.seg.r,
+            "Mask (F1)": self.seg.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
         return summary
 
 

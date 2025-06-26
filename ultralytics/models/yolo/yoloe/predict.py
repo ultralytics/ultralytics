@@ -39,7 +39,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         super().setup_model(model, verbose=verbose)
         self.done_warmup = True
 
-    def set_prompts(self, prompts):
+    def set_prompts(self, prompts, source=None, refer_image=None):
         """
         Set the visual prompts for the model.
 
@@ -47,7 +47,21 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             prompts (dict): Dictionary containing class indices and bounding boxes or masks.
                 Must include a 'cls' key with class indices.
         """
-        self.prompts = prompts
+        self.prompts = prompts.copy()
+        num_cls = (
+            max(len(set(c)) for c in prompts["cls"])
+            if isinstance(source, list) and refer_image is None  # means multiple images
+            else len(set(prompts["cls"]))
+        )
+        self.model.model.model[-1].nc = num_cls
+        self.model.names = [f"object{i}" for i in range(num_cls)]
+
+        if refer_image is not None:
+            vpe = self.get_vpe(refer_image)
+            self.model.model.set_classes(self.model.names, vpe)
+
+    def reset_prompts(self):
+        self.prompts = {}
 
     def pre_transform(self, im):
         """
@@ -66,12 +80,14 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
-        bboxes = self.prompts.pop("bboxes", None)
-        masks = self.prompts.pop("masks", None)
+        bboxes = self.prompts["bboxes"]
+        masks = self.prompts.get("masks", None)
         category = self.prompts["cls"]
+        if self.prompts.get("visuals", None) is not None:
+            return img
         if len(img) == 1:
             visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
-            self.prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+            visuals = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
         else:
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
@@ -89,7 +105,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                 self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i])
                 for i in range(len(img))
             ]
-            self.prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)
+            visuals = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)
+        self.prompts["visuals"] = visuals
 
         return img
 
@@ -142,7 +159,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        return super().inference(im, vpe=self.prompts, *args, **kwargs)
+        return super().inference(im, vpe=self.prompts["visuals"], *args, **kwargs)
 
     def get_vpe(self, source):
         """
@@ -160,7 +177,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            return self.model(im, vpe=self.prompts["visuals"], return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

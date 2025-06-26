@@ -1092,7 +1092,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 "mAP50": round(self.class_result(i)[2], decimals),
                 "mAP50-95": round(self.class_result(i)[3], decimals),
             }
-            for i in range(len(per_class["Box (P)"]))
+            for i in range(len(per_class["Box-P"]))
         ]
 
 

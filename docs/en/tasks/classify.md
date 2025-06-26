@@ -77,10 +77,10 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
     Ultralytics YOLO classification uses [`torchvision.transforms.RandomResizedCrop`](https://pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training and [`torchvision.transforms.CenterCrop`](https://pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation and inference.
     These cropping-based transforms assume square inputs and may crop out important parts of images with extreme aspect ratios, resulting in loss of relevant content during training.
     To preserve the full image while maintaining its proportions, consider using a letterbox-style resizing approach instead. This resizes the image while keeping its aspect ratio and adds padding as needed.
-    
-    
+
+
     To apply this, customize your augmentation pipeline using a custom `ClassificationDataset` and `ClassificationTrainer`. Refer to the training step code sample for implementation guidance.
-    
+
 
     ```python
     import torch

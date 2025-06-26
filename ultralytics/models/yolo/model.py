@@ -418,16 +418,15 @@ class YOLOE(Model):
                 _callbacks=self.callbacks,
             )
 
-        if len(visual_prompts):
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts.copy())
-        if not self.predictor.done_warmup:
+            if len(visual_prompts):
+                num_cls = (
+                    max(len(set(c)) for c in visual_prompts["cls"])
+                    if isinstance(source, list) and refer_image is None  # means multiple images
+                    else len(set(visual_prompts["cls"]))
+                )
+                self.model.model[-1].nc = num_cls
+                self.model.names = [f"object{i}" for i in range(num_cls)]
+                self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=self.model)
 
         if refer_image is None and source is not None:

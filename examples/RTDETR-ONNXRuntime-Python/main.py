@@ -97,8 +97,8 @@ class RTDETR:
         self.session = ort.InferenceSession(model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
 
         self.model_input = self.session.get_inputs()
-        self.input_width = self.model_input[0].shape[2]
-        self.input_height = self.model_input[0].shape[3]
+        self.input_height = self.model_input[0].shape[2]
+        self.input_width = self.model_input[0].shape[3]
 
         if self.classes is None:
             # Load class names from the COCO dataset YAML file

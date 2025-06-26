@@ -1078,23 +1078,21 @@ class DetMetrics(SimpleClass, DataExportMixin):
            >>> detection_summary = results.summary()
            >>> print(detection_summary)
         """
-        scalars = {
-            "box-map": round(self.box.map, decimals),
-            "box-map50": round(self.box.map50, decimals),
-            "box-map75": round(self.box.map75, decimals),
-        }
         per_class = {
-            "box-p": self.box.p,
-            "box-r": self.box.r,
-            "box-f1": self.box.f1,
+            "Box (P)": self.box.p,
+            "Box (R)": self.box.r,
+            "Box (F1)": self.box.f1,
         }
         return [
             {
-                "class_name": self.names[self.ap_class_index[i]],
+                "Class": self.names[self.ap_class_index[i]],
+                "Images": self.nt_per_image[self.ap_class_index[i]],
+                "Instances": self.nt_per_class[self.ap_class_index[i]],
                 **{k: round(v[i], decimals) for k, v in per_class.items()},
-                **scalars,
+                "mAP50": round(self.class_result(i)[2], decimals),
+                "mAP50-95": round(self.class_result(i)[3], decimals),
             }
-            for i in range(len(per_class["box-p"]))
+            for i in range(len(per_class["Box (P)"]))
         ]
 
 

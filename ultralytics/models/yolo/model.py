@@ -437,5 +437,7 @@ class YOLOE(Model):
                 self.model.set_classes(self.model.names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
+        elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
+            self.predictor = None # reset predictor if no visual prompts
 
         return super().predict(source, stream, **kwargs)

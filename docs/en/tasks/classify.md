@@ -177,7 +177,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
 
 !!! tip
 
-    As mentioned in the [training section](#train), you can handle extreme aspect ratios during training by using a custom `ClassificationTrainer`. You can apply the same approach during validation by implementing a custom `ClassificationValidator` when calling the `val()` method. Refer to the complete code example in the training section for implementation details.
+    As mentioned in the [training section](#train), you can handle extreme aspect ratios during training by using a custom `ClassificationTrainer`. You need to apply the same approach for consistent validation results by implementing a custom `ClassificationValidator` when calling the `val()` method. Refer to the complete code example in the [training section](#train) for implementation details.
 
 ## Predict
 

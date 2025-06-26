@@ -406,16 +406,17 @@ class YOLOE(Model):
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"
             )
-            self.predictor = (predictor or self._smart_load("predictor"))(
-                overrides={
-                    "task": self.model.task,
-                    "mode": "predict",
-                    "save": False,
-                    "verbose": refer_image is None,
-                    "batch": 1,
-                },
-                _callbacks=self.callbacks,
-            )
+            if not isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
+                self.predictor = (predictor or yolo.yoloe.YOLOEVPDetectPredictor)(
+                    overrides={
+                        "task": self.model.task,
+                        "mode": "predict",
+                        "save": False,
+                        "verbose": refer_image is None,
+                        "batch": 1,
+                    },
+                    _callbacks=self.callbacks,
+                )
 
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
@@ -438,6 +439,6 @@ class YOLOE(Model):
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-            self.predictor = None # reset predictor if no visual prompts
+            self.predictor = None  # reset predictor if no visual prompts
 
         return super().predict(source, stream, **kwargs)

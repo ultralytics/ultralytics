@@ -75,11 +75,10 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 !!! tip
 
     Ultralytics YOLO classification uses [`torchvision.transforms.RandomResizedCrop`](https://pytorch.org/vision/stable/generated/torchvision.transforms.RandomResizedCrop.html) for training and [`torchvision.transforms.CenterCrop`](https://pytorch.org/vision/stable/generated/torchvision.transforms.CenterCrop.html) for validation and inference.
-    These cropping-based transforms assume square inputs and may crop out important parts of images with extreme aspect ratios, resulting in loss of relevant content during training.
-    To preserve the full image while maintaining its proportions, consider using a letterbox-style resizing approach instead. This resizes the image while keeping its aspect ratio and adds padding as needed.
+    These cropping-based transforms assume square inputs and may inadvertently crop out important regions from images with extreme aspect ratios, potentially causing loss of critical visual information during training.
+    To preserve the full image while maintaining its proportions, consider using [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) instead of cropping transforms.
 
-
-    To apply this, customize your augmentation pipeline using a custom `ClassificationDataset` and `ClassificationTrainer`. Refer to the training step code sample for implementation guidance.
+    You can implement this by customizing your augmentation pipeline through a custom `ClassificationDataset` and `ClassificationTrainer`.
 
 
     ```python
@@ -178,7 +177,7 @@ Validate trained YOLO11n-cls model [accuracy](https://www.ultralytics.com/glossa
 
 !!! tip
 
-    As mentioned in the [training step](#train), where a custom `ClassificationTrainer` is used to handle extreme aspect ratios, you can apply a similar approach during validation. Refer to the code sample in that section and consider using a custom `ClassificationValidator` when calling the `val()` method.
+    As mentioned in the [training section](#train), you can handle extreme aspect ratios during training by using a custom `ClassificationTrainer`. You can apply the same approach during validation by implementing a custom `ClassificationValidator` when calling the `val()` method. Refer to the complete code example in the training section for implementation details.
 
 ## Predict
 

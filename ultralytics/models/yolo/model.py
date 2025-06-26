@@ -418,26 +418,27 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model)
-
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)
                 if dataset.mode in {"video", "stream"}:
                     # NOTE: set the first frame as refer image for videos/streams inference
                     refer_image = next(iter(dataset))[1][0]
-            if refer_image is not None:
-                vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
-                self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-                self.predictor = None  # reset predictor
+            self.predictor.setup_model(model=self.model)
+            self.predictor.set_prompts(visual_prompts, source, refer_image=refer_image)
+            # num_cls = (
+            #     max(len(set(c)) for c in visual_prompts["cls"])
+            #     if isinstance(source, list) and refer_image is None  # means multiple images
+            #     else len(set(visual_prompts["cls"]))
+            # )
+            # self.model.model[-1].nc = num_cls
+            # self.model.names = [f"object{i}" for i in range(num_cls)]
+            # self.predictor.set_prompts(visual_prompts.copy())
+
+            # if refer_image is not None:
+            #     vpe = self.predictor.get_vpe(refer_image)
+            #     self.model.set_classes(self.model.names, vpe)
+            #     self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
+            #     self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
 

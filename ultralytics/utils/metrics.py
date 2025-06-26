@@ -1433,7 +1433,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             >>> classify_summary = results.summary(decimals=4)
             >>> print(classify_summary)
         """
-        return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
+        return [{"top1_acc": round(self.top1, decimals), "top5_acc": round(self.top5, decimals)}]
 
 
 class OBBMetrics(DetMetrics):

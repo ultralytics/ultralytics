@@ -406,6 +406,8 @@ class Instances:
                 | (self.keypoints[..., 1] < 0)
                 | (self.keypoints[..., 1] > h)
             ] = 0.0
+            self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
+            self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
     def remove_zero_area_boxes(self):
         """

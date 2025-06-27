@@ -54,6 +54,7 @@ RUN uv pip install --system \
     tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl
+# lxml latest version not supported: https://github.com/ultralytics/ultralytics/actions/runs/15919317342/job/44904645988
 RUN uv pip install --system -e ".[export]" "lxml<6.0.0"
 
 # Remove extra build files

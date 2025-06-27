@@ -62,6 +62,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
             # (1) Get detection class name
             label = c.names[c.boxes.cls.tolist().pop()]
     ```
+
     1. To learn more about working with detection results, see [Boxes Section for Predict Mode](../modes/predict.md#boxes).
     2. To learn more about `predict()` results see [Working with Results for Predict Mode](../modes/predict.md#working-with-results)
 
@@ -92,6 +93,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     # Draw contour onto mask
     _ = cv2.drawContours(b_mask, [contour], -1, (255, 255, 255), cv2.FILLED)
     ```
+
     1. For more info on `c.masks.xy` see [Masks Section from Predict Mode](../modes/predict.md#masks).
 
     2. Here the values are cast into `np.int32` for compatibility with `drawContours()` function from [OpenCV](https://www.ultralytics.com/glossary/opencv).

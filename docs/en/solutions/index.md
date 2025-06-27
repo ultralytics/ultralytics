@@ -115,25 +115,25 @@ Except [`Similarity Search`](https://docs.ultralytics.com/guides/similarity-sear
 
 `SolutionResults` object have the following attributes:
 
-| Attribute            | Type                  | Description                                                                                   |
-|----------------------|-----------------------|-----------------------------------------------------------------------------------------------|
-| `plot_im`            | `np.ndarray`          | Processed image with visual overlays like counts, blur effects, or other solution effects.    |
-| `in_count`           | `int`                 | Total number of "in" direction crossings detected in the video stream.                        |
-| `out_count`          | `int`                 | Total number of "out" direction crossings detected in the video stream.                       |
-| `classwise_count`    | `Dict[str, int]`      | Dictionary mapping object classes to their respective detected counts.                        |
-| `queue_count`        | `int`                 | Number of objects detected within a predefined queue or waiting zone.                         |
-| `workout_count`      | `int`                 | Total count of completed workout repetitions.                                                 |
-| `workout_angle`      | `float`               | Angle measurement relevant to form analysis during workout exercises.                         |
-| `workout_stage`      | `str`                 | Current stage of the workout (e.g., 'up', 'down', 'rest').                                    |
-| `pixels_distance`    | `float`               | Distance measured in pixels between two key points or objects.                                |
-| `available_slots`    | `int`                 | Number of unoccupied slots in a parking or storage area.                                      |
-| `filled_slots`       | `int`                 | Number of occupied slots in a parking or storage area.                                        |
-| `email_sent`         | `bool`                | Flag indicating whether an alert or notification email has been successfully sent.            |
-| `total_tracks`       | `int`                 | Total number of distinct objects being tracked across frames.                                 |
-| `region_counts`      | `Dict`                | Dictionary holding object counts for defined spatial regions in the scene.                    |
-| `speed_dict`         | `Dict[str, float]`    | Dictionary mapping object IDs or classes to their computed speeds.                            |
-| `total_crop_objects` | `int`                 | Total number of cropped object images generated using the ObjectCropper solution.             |
-| `speed`              | `Dict`                | Dictionary capturing timing/performance stats for tracking and processing operations.         |
+| Attribute            | Type               | Description                                                                                |
+| -------------------- | ------------------ | ------------------------------------------------------------------------------------------ |
+| `plot_im`            | `np.ndarray`       | Processed image with visual overlays like counts, blur effects, or other solution effects. |
+| `in_count`           | `int`              | Total number of "in" direction crossings detected in the video stream.                     |
+| `out_count`          | `int`              | Total number of "out" direction crossings detected in the video stream.                    |
+| `classwise_count`    | `Dict[str, int]`   | Dictionary mapping object classes to their respective detected counts.                     |
+| `queue_count`        | `int`              | Number of objects detected within a predefined queue or waiting zone.                      |
+| `workout_count`      | `int`              | Total count of completed workout repetitions.                                              |
+| `workout_angle`      | `float`            | Angle measurement relevant to form analysis during workout exercises.                      |
+| `workout_stage`      | `str`              | Current stage of the workout (e.g., 'up', 'down', 'rest').                                 |
+| `pixels_distance`    | `float`            | Distance measured in pixels between two key points or objects.                             |
+| `available_slots`    | `int`              | Number of unoccupied slots in a parking or storage area.                                   |
+| `filled_slots`       | `int`              | Number of occupied slots in a parking or storage area.                                     |
+| `email_sent`         | `bool`             | Flag indicating whether an alert or notification email has been successfully sent.         |
+| `total_tracks`       | `int`              | Total number of distinct objects being tracked across frames.                              |
+| `region_counts`      | `Dict`             | Dictionary holding object counts for defined spatial regions in the scene.                 |
+| `speed_dict`         | `Dict[str, float]` | Dictionary mapping object IDs or classes to their computed speeds.                         |
+| `total_crop_objects` | `int`              | Total number of cropped object images generated using the ObjectCropper solution.          |
+| `speed`              | `Dict`             | Dictionary capturing timing/performance stats for tracking and processing operations.      |
 
 For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
 

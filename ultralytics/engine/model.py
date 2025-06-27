@@ -128,7 +128,9 @@ class Model(torch.nn.Module):
         self.session = None  # HUB session
         self.task = task  # task type
         self.model_name = None  # model name
-	    self.fuse_layers = fuse
+	    
+        self.fuse_layers = fuse
+        
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

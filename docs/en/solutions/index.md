@@ -116,7 +116,7 @@ Except [`Similarity Search`](https://docs.ultralytics.com/guides/similarity-sear
 `SolutionResults` object have the following attributes:
 
 | Attribute            | Type               | Description                                                                                                   |
-|----------------------|--------------------|---------------------------------------------------------------------------------------------------------------|
+| -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `plot_im`            | `numpy.ndarray`    | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
 | `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
 | `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |

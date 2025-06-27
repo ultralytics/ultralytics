@@ -59,6 +59,7 @@ Follow these steps to run inference with your exported YOLOv8 TFLite model.
       --iou 0.45 \
       --metadata yolov8n_saved_model/metadata.yaml
     ```
+
     - `--model`: Path to the exported `.tflite` model file.
     - `--img`: Path to the input image for detection.
     - `--conf`: Minimum [confidence threshold](https://www.ultralytics.com/glossary/confidence) for detections (e.g., 0.25).

@@ -554,7 +554,7 @@ class Model(torch.nn.Module):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             
             import inspect
-            inspect.signature(self.predictor.setup_model)
+            sig = inspect.signature(self.predictor.setup_model)
             if "fuse_layers" in sig.parameters:
                 self.predictor.setup_model(model=self.model, verbose=is_cli, fuse_layers=self.fuse_layers)
             else:

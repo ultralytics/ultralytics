@@ -251,8 +251,7 @@ class Compose:
             >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomPerspective
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
-        index = [index] if isinstance(index, int) else index
-        return Compose([self.transforms[i] for i in index])
+        return Compose([self.transforms[i] for i in index]) if isinstance(index, list) else self.transforms[index]
 
     def __setitem__(self, index: Union[list, int], value: Union[list, int]) -> None:
         """

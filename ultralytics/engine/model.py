@@ -82,6 +82,7 @@ class Model(torch.nn.Module):
         model: Union[str, Path, "Model"] = "yolo11n.pt",
         task: str = None,
         verbose: bool = False,
+	fuse: bool = True,
     ) -> None:
         """
         Initialize a new instance of the YOLO model class.
@@ -124,6 +125,7 @@ class Model(torch.nn.Module):
         self.session = None  # HUB session
         self.task = task  # task type
         self.model_name = None  # model name
+	self.fuse_layers = fuse
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
@@ -545,7 +547,7 @@ class Model(torch.nn.Module):
 
         if not self.predictor:
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
-            self.predictor.setup_model(model=self.model, verbose=is_cli)
+            self.predictor.setup_model(model=self.model, verbose=is_cli, fuse_layers=self.fuse_layers)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, args)
             if "project" in args or "name" in args:

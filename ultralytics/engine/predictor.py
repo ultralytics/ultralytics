@@ -380,7 +380,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
 
-    def setup_model(self, model, verbose: bool = True):
+    def setup_model(self, model, verbose: bool = True, fuse_layers: bool = True):
         """
         Initialize YOLO model with given parameters and set it to evaluation mode.
 
@@ -395,7 +395,7 @@ class BasePredictor:
             data=self.args.data,
             fp16=self.args.half,
             batch=self.args.batch,
-            fuse=True,
+            fuse=fuse_layers,
             verbose=verbose,
         )
 

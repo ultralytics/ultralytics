@@ -1,11 +1,16 @@
-from collections import defaultdict
 import os
+from collections import defaultdict
+
 import cv2
 import numpy as np
+from tqdm import tqdm
+
 from ultralytics import YOLO
-from tqdm import tqdm  
+
 os.environ["LD_LIBRARY_PATH"] = "/home/anting555/local_libs/usr/lib/x86_64-linux-gnu"
-os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = "/home/anting555/yolo/yolo_env/lib/python3.8/site-packages/qt5_applications/Qt/plugins/platforms"
+os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = (
+    "/home/anting555/yolo/yolo_env/lib/python3.8/site-packages/qt5_applications/Qt/plugins/platforms"
+)
 
 model = YOLO("yolo11n.pt")
 video_path = "/home/anting555/yolo/ultralytics/multimodal_senator/Bob_Casey_C_eRKK1vFyz.mp4"
@@ -16,7 +21,7 @@ fps = cap.get(cv2.CAP_PROP_FPS)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-out = cv2.VideoWriter('output_10frame_tqdm.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+out = cv2.VideoWriter("output_10frame_tqdm.mp4", cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height))
 
 track_history = defaultdict(lambda: [])
 

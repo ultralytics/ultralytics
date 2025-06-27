@@ -47,7 +47,13 @@ class YOLO(Model):
         >>> model = YOLO("yolo11n.yaml")
     """
 
-    def __init__(self, model: Union[str, Path] = "yolo11n.pt", task: Optional[str] = None, verbose: bool = False, fuse: bool = True):
+    def __init__(
+        self,
+        model: Union[str, Path] = "yolo11n.pt",
+        task: Optional[str] = None,
+        verbose: bool = False,
+        fuse: bool = True,
+    ):
         """
         Initialize a YOLO model.
 

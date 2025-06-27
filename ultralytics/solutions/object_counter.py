@@ -43,7 +43,7 @@ class ObjectCounter(BaseSolution):
         self.in_count = 0  # Counter for objects moving inward
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
-        self.classwise_counts = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
+        self.classwise_count = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 
         self.show_in = self.CFG["show_in"]
@@ -85,17 +85,17 @@ class ObjectCounter(BaseSolution):
                     # Vertical region: Compare x-coordinates to determine direction
                     if current_centroid[0] > prev_position[0]:  # Moving right
                         self.in_count += 1
-                        self.classwise_counts[self.names[cls]]["IN"] += 1
+                        self.classwise_count[self.names[cls]]["IN"] += 1
                     else:  # Moving left
                         self.out_count += 1
-                        self.classwise_counts[self.names[cls]]["OUT"] += 1
+                        self.classwise_count[self.names[cls]]["OUT"] += 1
                 # Horizontal region: Compare y-coordinates to determine direction
                 elif current_centroid[1] > prev_position[1]:  # Moving downward
                     self.in_count += 1
-                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                    self.classwise_count[self.names[cls]]["IN"] += 1
                 else:  # Moving upward
                     self.out_count += 1
-                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                    self.classwise_count[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
         elif len(self.region) > 2:  # Polygonal region
@@ -111,10 +111,10 @@ class ObjectCounter(BaseSolution):
                     and current_centroid[1] > prev_position[1]
                 ):  # Moving right or downward
                     self.in_count += 1
-                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                    self.classwise_count[self.names[cls]]["IN"] += 1
                 else:  # Moving left or upward
                     self.out_count += 1
-                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                    self.classwise_count[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
     def display_counts(self, plot_im) -> None:
@@ -132,7 +132,7 @@ class ObjectCounter(BaseSolution):
         labels_dict = {
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
             f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip()
-            for key, value in self.classwise_counts.items()
+            for key, value in self.classwise_count.items()
             if value["IN"] != 0 or value["OUT"] != 0 and (self.show_in or self.show_out)
         }
         if labels_dict:
@@ -190,6 +190,6 @@ class ObjectCounter(BaseSolution):
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
-            classwise_count=dict(self.classwise_counts),
+            classwise_count=dict(self.classwise_count),
             total_tracks=len(self.track_ids),
         )

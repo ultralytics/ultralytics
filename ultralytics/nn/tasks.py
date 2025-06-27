@@ -11,25 +11,34 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
-
-# Find this import section near the top of tasks.py (around line 20-30)
 from ultralytics.nn.modules import (
     AIFI,
     C1,
     C2,
+    C2PSA,
     C3,
-    C2f,
-    C2fAttn,
-    C3Ghost,
     C3TR,
-    C3x,
+    ELAN1,
+    OBB,
+    PSA,
     SPP,
+    SPPELAN,
     SPPF,
+    A2C2f,
+    AConv,
+    ADown,
     Bottleneck,
     BottleneckCSP,
+    C2f,
+    C2fAttn,
     C2fCIB,
     C2fPSA,
+    C3Ghost,
     C3k2,
+    C3x,
+    CBFuse,
+    CBLinear,
+    Classify,
     Concat,
     Conv,
     Conv2,
@@ -42,12 +51,22 @@ from ultralytics.nn.modules import (
     GhostConv,
     HGBlock,
     HGStem,
+    ImagePoolingAttn,
+    Index,
+    LRPCHead,
     Pose,
     RepC3,
     RepConv,
+    RepNCSPELAN4,
+    RepVGGDW,
+    ResNetLayer,
     RTDETRDecoder,
+    SCDown,
     Segment,
+    TorchVision,
     WorldDetect,
+    YOLOEDetect,
+    YOLOESegment,
     v10Detect,
     EnhancedC2f,
     SEModule,
@@ -57,7 +76,6 @@ from ultralytics.nn.modules import (
     AdaptiveFeatureFusion,
     EnhancedC2fConfig,
 )
-
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -1631,6 +1649,7 @@ def parse_model(d, ch, verbose=True):
             SCDown,
             C2fCIB,
             A2C2f,
+            EnhancedC2f,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1650,6 +1669,7 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             C2PSA,
             A2C2f,
+            EnhancedC2f,
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args

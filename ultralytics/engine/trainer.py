@@ -625,6 +625,8 @@ class BaseTrainer:
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
+
+
         cfg, weights = self.model, None
         ckpt = None
         if str(self.model).endswith(".pt"):

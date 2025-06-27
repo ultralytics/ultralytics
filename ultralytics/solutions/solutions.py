@@ -811,7 +811,7 @@ class SolutionResults:
         region_counts (Dict[str, int]): The count of objects within a specific region.
         speed_dict (Dict[str, float]): A dictionary containing speed information for tracked objects.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
-        speed (Dict): Performance timing information for tracking and solution processing.
+        speed (Dict[str, float]): Performance timing information for tracking and solution processing.
     """
 
     def __init__(self, **kwargs):

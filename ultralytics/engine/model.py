@@ -22,7 +22,6 @@ from ultralytics.utils import (
     callbacks,
     checks,
 )
-from ultralytics import YOLO
 
 
 class Model(torch.nn.Module):
@@ -554,7 +553,9 @@ class Model(torch.nn.Module):
         if not self.predictor:
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             
-            if isinstance(self, YOLO):
+            import inspect
+            inspect.signature(self.predictor.setup_model)
+            if "fuse_layers" in sig.parameters:
                 self.predictor.setup_model(model=self.model, verbose=is_cli, fuse_layers=self.fuse_layers)
             else:
                 self.predictor.setup_model(model=self.model, verbose=is_cli)

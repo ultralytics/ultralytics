@@ -59,6 +59,7 @@ class YOLO(Model):
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
+            fuse (bool): fuse layers during forward inference
 
         Examples:
             >>> from ultralytics import YOLO

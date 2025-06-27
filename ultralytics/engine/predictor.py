@@ -387,6 +387,7 @@ class BasePredictor:
         Args:
             model (str | Path | torch.nn.Module, optional): Model to load or use.
             verbose (bool): Whether to print verbose output.
+            fuse_layers (bool): Pass in True or False for fuse for AutoBackend
         """
         self.model = AutoBackend(
             weights=model or self.args.model,

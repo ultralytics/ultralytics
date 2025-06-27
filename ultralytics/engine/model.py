@@ -45,6 +45,7 @@ class Model(torch.nn.Module):
         session (HUBTrainingSession): The Ultralytics HUB session, if applicable.
         task (str): The type of task the model is intended for.
         model_name (str): The name of the model.
+        fuse_layers (bool): fuse batch norm and convolutional layers.
 
     Methods:
         __call__: Alias for the predict method, enabling the model instance to be callable.
@@ -82,7 +83,7 @@ class Model(torch.nn.Module):
         model: Union[str, Path, "Model"] = "yolo11n.pt",
         task: str = None,
         verbose: bool = False,
-	fuse: bool = True,
+	    fuse: bool = True,
     ) -> None:
         """
         Initialize a new instance of the YOLO model class.
@@ -98,6 +99,7 @@ class Model(torch.nn.Module):
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
+            fuse (bool): If true set fuse to true in autobackend during forward inference
 
         Raises:
             FileNotFoundError: If the specified model file does not exist or is inaccessible.
@@ -108,6 +110,7 @@ class Model(torch.nn.Module):
             >>> model = Model("yolo11n.pt")
             >>> model = Model("path/to/model.yaml", task="detect")
             >>> model = Model("hub_model", verbose=True)
+            >>> model = Model("checkpoint.pt", fuse=False)
         """
         if isinstance(model, Model):
             self.__dict__ = model.__dict__  # accepts an already initialized Model
@@ -125,7 +128,7 @@ class Model(torch.nn.Module):
         self.session = None  # HUB session
         self.task = task  # task type
         self.model_name = None  # model name
-	self.fuse_layers = fuse
+	    self.fuse_layers = fuse
         model = str(model).strip()
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

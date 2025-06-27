@@ -9,6 +9,7 @@ from pathlib import Path
 
 import thop
 import torch
+import torch.nn as nn
 
 from ultralytics.nn.modules import (
     AIFI,
@@ -85,8 +86,9 @@ from ultralytics.utils.torch_utils import (
     scale_img,
     time_sync,
 )
-from ultralytics.mefa.mefa import MEFA
-from ultralytics.rsr.rsr import RSR
+from ultralytics.mefa.mefa_ca import MEFA
+from ultralytics.rsr.rsr_v6 import RSR
+# from ultralytics.crossAttn.crossAttn_v5 import CrossModalAttentionFusion
 
 class BaseModel(torch.nn.Module):
     """The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family."""
@@ -320,11 +322,12 @@ class DetectionModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml["nc"] = nc  # override YAML value
         # MODIFICATION HERE: Insert MEFA before the rest of the model
+        self.alpha_rsr = nn.Parameter(torch.tensor(0.2))  # Start with alpha = 0.5
         self.RSR = RSR()
         self.MEFA = MEFA()
+        # self.CMAF = CrossModalAttentionFusion()
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=3, verbose=verbose)  # model, savelist
-        # MODIFICATION HERE: Insert MEFA as the first layer in the model
-        # self.model.insert(0, self.early_attention)  # Add as the first layer
+
 
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
@@ -368,8 +371,14 @@ class DetectionModel(BaseModel):
         if isinstance(x, dict):  # Expected input format during training
             x = x["img"]  # Extract only the image tensor
         
-        X = self.RSR(x)  # Apply redundant spectrum removal
-        x = self.MEFA(x)  # Apply early attention
+        filtered_x = self.RSR(x)  # Apply redundant spectrum removal
+        alpha_rsr = torch.clamp(self.alpha_rsr, 0, 1)  # Clamp alpha_rsr to [0, 1]
+        mixed_input = alpha_rsr * filtered_x + (1 - alpha_rsr) * x  # Mix original and filtered input
+
+        # print the alpha_rsr value
+        print(f"👾 Alpha RSR: {alpha_rsr.item():.4f}")
+        x = self.MEFA(mixed_input)  # Apply early attention
+        # x = self.CMAF(x)  # Apply cross-modal attention fusion
 
         if self.training:
             out = self._predict_once(x)  # Run YOLO
@@ -378,29 +387,6 @@ class DetectionModel(BaseModel):
         # During inference, use `predict()` like in `BaseModel` for the augment flag to work normally
         return self.predict(x, *args, **kwargs)
 
-    # def forward(self, x):
-    #     batch = x  # Keep original batch
-
-    #     if isinstance(x, dict):
-    #         x = x["img"]  # Extract image batch from YOLO's dataset dictionary
-    #     # print(f"Before MEFA: {x.shape}")
-    #     x = self.MEFA(x)
-    #     # print(f"After MEFA: {x.shape}")
-
-    #     out = self._predict_once(x)  # Run YOLO
-
-    #     # if self.training:
-    #     #     print(f"🟢 Debug in forward the batch type: {type(x)}")  # Check if batch is tensor or dict
-    #     #     print(f"🟢 Debug in forward the out type: {type(out)}")  # Check what YOLO is returning
-
-    #     #     loss = self.loss(x, out)  # Compute loss
-    #     #     return loss, out
-
-    #     if self.training:
-    #         return self.loss(batch, out)
-
-    #     return out  # During inference, return only predictions
-        
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
         if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
@@ -995,7 +981,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     if scales:
         scale = d.get("scale")
         if not scale:
-            scale = tuple(scales.keys())[2] # HERE CHANGE THE SCALE
+            scale = tuple(scales.keys())[4] # HERE CHANGE THE SCALE
             LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 

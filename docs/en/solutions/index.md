@@ -115,25 +115,25 @@ Except [`Similarity Search`](https://docs.ultralytics.com/guides/similarity-sear
 
 `SolutionResults` object have the following attributes:
 
-| Attribute            | Type                  | Description                                                                                   |
-|----------------------|-----------------------|-----------------------------------------------------------------------------------------------|
-| `plot_im`            | `np.ndarray`          | Processed image with visual overlays like counts, blur effects, or other solution effects.    |
-| `in_count`           | `int`                 | Total number of "in" direction crossings detected in the video stream.                        |
-| `out_count`          | `int`                 | Total number of "out" direction crossings detected in the video stream.                       |
-| `classwise_count`    | `Dict[str, int]`      | Dictionary mapping object classes to their respective detected counts.                        |
-| `queue_count`        | `int`                 | Number of objects detected within a predefined queue or waiting zone.                         |
-| `workout_count`      | `int`                 | Total count of completed workout repetitions.                                                 |
-| `workout_angle`      | `float`               | Angle measurement relevant to form analysis during workout exercises.                         |
-| `workout_stage`      | `str`                 | Current stage of the workout (e.g., 'up', 'down', 'rest').                                    |
-| `pixels_distance`    | `float`               | Distance measured in pixels between two key points or objects.                                |
-| `available_slots`    | `int`                 | Number of unoccupied slots in a parking or storage area.                                      |
-| `filled_slots`       | `int`                 | Number of occupied slots in a parking or storage area.                                        |
-| `email_sent`         | `bool`                | Flag indicating whether an alert or notification email has been successfully sent.            |
-| `total_tracks`       | `int`                 | Total number of distinct objects being tracked across frames.                                 |
-| `region_counts`      | `Dict`                | Dictionary holding object counts for defined spatial regions in the scene.                    |
-| `speed_dict`         | `Dict[str, float]`    | Dictionary mapping object IDs or classes to their computed speeds.                            |
-| `total_crop_objects` | `int`                 | Total number of cropped object images generated using the ObjectCropper solution.             |
-| `speed`              | `Dict`                | Dictionary capturing timing/performance stats for tracking and processing operations.         |
+| Attribute            | Type               | Description                                                                                                   |
+|----------------------|--------------------|---------------------------------------------------------------------------------------------------------------|
+| `plot_im`            | `numpy.ndarray`    | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
+| `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
+| `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |
+| `classwise_count`    | `Dict[str, int]`   | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
+| `queue_count`        | `int`              | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
+| `workout_count`      | `int`              | Total number of workout repetitions completed during exercise tracking.                                       |
+| `workout_angle`      | `float`            | Calculated joint or pose angle during workout for form assessment.                                            |
+| `workout_stage`      | `str`              | Current workout stage or movement phase (e.g., 'up', 'down').                                                 |
+| `pixels_distance`    | `float`            | Pixel-based distance between two objects or points e.g., bounding boxes. (Suitable for distance calculation). |
+| `available_slots`    | `int`              | Number of unoccupied slots in a monitored area (suitable for parking management).                             |
+| `filled_slots`       | `int`              | Number of occupied slots in a monitored area. (suitable for parking management)                               |
+| `email_sent`         | `bool`             | Indicates whether a notification or alert email has been successfully sent (suitable for security alarm).     |
+| `total_tracks`       | `int`              | Total number of unique object tracks observed during video analysis.                                          |
+| `region_counts`      | `Dict[str, int]`   | Object counts within user-defined regions or zones.                                                           |
+| `speed_dict`         | `Dict[str, float]` | Track-wise dictionary of calculated object speeds, useful for velocity analysis.                              |
+| `total_crop_objects` | `int`              | Total number of cropped object images generated by the ObjectCropper solution.                                |
+| `speed`              | `Dict`             | Dictionary containing performance metrics for tracking and solution processing.                               |
 
 For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
 

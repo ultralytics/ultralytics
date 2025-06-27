@@ -808,7 +808,7 @@ class SolutionResults:
         filled_slots (int): The number of filled slots in a monitored area.
         email_sent (bool): A flag indicating whether an email notification was sent.
         total_tracks (int): The total number of tracked objects.
-        region_counts (Dict): The count of objects within a specific region.
+        region_counts (Dict[str, int]): The count of objects within a specific region.
         speed_dict (Dict[str, float]): A dictionary containing speed information for tracked objects.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
         speed (Dict): Performance timing information for tracking and solution processing.

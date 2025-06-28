@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad , CBAM
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -168,7 +168,7 @@ class SpatialAttention(nn.Module):
 
 
 class EnhancedBottleneck(nn.Module):
-    """An enhanced bottleneck block that now uses Spatial Attention."""
+    """An enhanced bottleneck block that now uses CBAM."""
     def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, e: float = 0.5):
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
@@ -176,13 +176,8 @@ class EnhancedBottleneck(nn.Module):
         self.cv2 = Conv(c_, c2, 3, 1, g=g)
         self.add = shortcut and c1 == c2
         # --- MODIFICATION ---
-        # Replaced SEModule with SpatialAttention, which is better suited for small objects.
-        self.attn = SpatialAttention()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.cv2(self.cv1(x))
-        out = self.attn(out) # Apply spatial attention
-        return x + out if self.add else out
+        # Replaced SpatialAttention with the more advanced CBAM module.
+        self.attn = CBAM(c2)
 
 class ChannelShuffle(nn.Module):
     """Channel shuffle operation for better information flow."""
@@ -250,13 +245,13 @@ class AdaptiveFeatureFusion(nn.Module):
 
 
 class EnhancedC2f(nn.Module):
-    """The C2f block using our new EnhancedBottleneck."""
+    """The C2f block using our new EnhancedBottleneck with CBAM."""
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
         super().__init__()
         self.c = int(c2 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)
-        # It now creates a series of bottlenecks with Spatial Attention
+        # It now creates a series of bottlenecks with CBAM Attention
         self.m = nn.ModuleList(EnhancedBottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -168,23 +168,21 @@ class SpatialAttention(nn.Module):
 
 
 class EnhancedBottleneck(nn.Module):
-    """
-    An enhanced bottleneck block that can optionally include a Squeeze-and-Excitation layer.
-    """
-    def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, e: float = 0.5, use_se: bool = True, se_reduction: int = 16):
+    """An enhanced bottleneck block that now uses Spatial Attention."""
+    def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, e: float = 0.5):
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, 3, 1)
         self.cv2 = Conv(c_, c2, 3, 1, g=g)
         self.add = shortcut and c1 == c2
-        self.se = SEModule(c2, se_reduction) if use_se else nn.Identity()
+        # --- MODIFICATION ---
+        # Replaced SEModule with SpatialAttention, which is better suited for small objects.
+        self.attn = SpatialAttention()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass applying convolutions and optional SE attention."""
         out = self.cv2(self.cv1(x))
-        out = self.se(out)
+        out = self.attn(out) # Apply spatial attention
         return x + out if self.add else out
-
 
 class ChannelShuffle(nn.Module):
     """Channel shuffle operation for better information flow."""
@@ -252,20 +250,16 @@ class AdaptiveFeatureFusion(nn.Module):
 
 
 class EnhancedC2f(nn.Module):
-    """The final, working version of the EnhancedC2f module with a debug print statement."""
+    """The C2f block using our new EnhancedBottleneck."""
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
         super().__init__()
-        # --- DEBUG PRINT STATEMENT ---
-        # This will show us the exact channel values being passed by the framework's parser.
-        # print(f"DEBUG: Initializing EnhancedC2f with c1={c1}, c2={c2}")
-        
         self.c = int(c2 * e)
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        # It now creates a series of bottlenecks with Spatial Attention
         self.m = nn.ModuleList(EnhancedBottleneck(self.c, self.c, shortcut, g, e=1.0) for _ in range(n))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # This is the correct forward pass logic
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))

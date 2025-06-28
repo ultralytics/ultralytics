@@ -167,6 +167,7 @@ class SpatialAttention(nn.Module):
         return x * self.sigmoid(attention)
 
 
+
 class EnhancedBottleneck(nn.Module):
     """An enhanced bottleneck block that now uses CBAM."""
     def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, e: float = 0.5):
@@ -178,6 +179,11 @@ class EnhancedBottleneck(nn.Module):
         # --- MODIFICATION ---
         # Replaced SpatialAttention with the more advanced CBAM module.
         self.attn = CBAM(c2)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.cv2(self.cv1(x))
+        out = self.attn(out) # Apply CBAM attention
+        return x + out if self.add else out
 
 class ChannelShuffle(nn.Module):
     """Channel shuffle operation for better information flow."""

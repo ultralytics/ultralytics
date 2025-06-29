@@ -188,12 +188,12 @@ YOLOv8 and YOLO11n benchmarks below were run by the Ultralytics team on Raspberr
 
 | Model   | Format | Status | Size of `RPK` (MB) | mAP50-95(B) | Inference time (ms/im) |
 | ------- | ------ | ------ | ------------------ | ----------- | ---------------------- |
-| YOLOv8n | imx    | ✅     | 3.1                | 0.602       | 58.82                  |
-| YOLO11n | imx    | ✅     | 3.2                | 0.644       | 62.50                  |
+| YOLOv8n | imx    | ✅     | 3.1                | 0.433       | 58.82                  |
+| YOLO11n | imx    | ✅     | 3.2                | 0.492       | 62.50                  |
 
 !!! note
 
-    Validation for the above benchmark was done using coco8 dataset on a Raspberry Pi 5
+    Validation for the above benchmark was done using coco128 dataset on a Raspberry Pi 5
 
 ## What's Under the Hood?
 
@@ -307,9 +307,9 @@ Software:
 
 Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 
-- YOLO11n achieves 58.82ms inference time per image
-- mAP50-95 of 0.522 on COCO8 dataset
-- Model size of only 2.9MB after quantization
+- YOLO11n achieves 62.50ms inference time per image
+- mAP50-95 of 0.492 on COCO128 dataset
+- Model size of only 3.2MB after quantization
 
 This demonstrates that IMX500 format provides efficient real-time inference while maintaining good accuracy for edge AI applications.
 

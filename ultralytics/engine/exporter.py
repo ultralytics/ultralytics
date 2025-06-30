@@ -372,7 +372,10 @@ class Exporter:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
-            if "intel" in get_cpu_info().lower() or subprocess.run(["xpu-smi", "discovery"], shell=True).returncode == 0:
+            if (
+                "intel" in get_cpu_info().lower()
+                or subprocess.run(["xpu-smi", "discovery"], shell=True).returncode == 0
+            ):
                 LOGGER.info(
                     "💡 ProTip: Export to OpenVINO format for best performance on Intel hardware."
                     " Learn more at https://docs.ultralytics.com/integrations/openvino/"

@@ -1061,7 +1061,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes shared
         scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1071,7 +1071,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-           (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+           (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
            >>> results = model.val(data="coco8.yaml")
@@ -1194,7 +1194,7 @@ class SegmentMetrics(DetMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class segmentation metrics as a list of dictionaries. Includes both
         box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1204,7 +1204,7 @@ class SegmentMetrics(DetMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-seg.yaml")
@@ -1333,7 +1333,7 @@ class PoseMetrics(DetMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box and
         pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1343,7 +1343,7 @@ class PoseMetrics(DetMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-pose.yaml")

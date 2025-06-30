@@ -487,7 +487,7 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0")
+            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle==3.0.0")
             import paddle.inference as pdi  # noqa
 
             w = Path(w)

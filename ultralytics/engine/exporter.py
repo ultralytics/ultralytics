@@ -706,7 +706,7 @@ class Exporter:
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
         """Export YOLO model to PaddlePaddle format."""
         assert not IS_JETSON, "Jetson Paddle exports not supported yet"
-        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle>=3.0.0", "x2paddle"))
+        check_requirements(("paddlepaddle-gpu" if torch.cuda.is_available() else "paddlepaddle==3.0.0", "x2paddle"))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 

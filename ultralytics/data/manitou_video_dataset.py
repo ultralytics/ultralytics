@@ -228,7 +228,7 @@ class ManitouVideoDataset(Dataset):
             segments.append(s)
             
             classes.append(self.data["cat2label"][ann['category_id']])
-            ins_ids.append(ann['instance_id'])
+            ins_ids.append(ann['mot_instance_id'])
             mot_confs.append(ann['mot_conf'])
             visibilities.append(ann['visibility'])
         

@@ -124,7 +124,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
 | Method      | Return Type                          | Description                                                                      |
 | ----------- | ------------------------------------ | -------------------------------------------------------------------------------- |
-| `summary()` | `List[Dict[str, Union[str, float]]]` | Converts validation results to a summarized dictionary.                          |
+| `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                          |
 | `to_df()`   | `DataFrame`                          | Returns the validation results as a structured Pandas DataFrame.                 |
 | `to_csv()`  | `str`                                | Exports the validation results in CSV format and returns the CSV string.         |
 | `to_xml()`  | `str`                                | Exports the validation results in XML format and returns the XML string.         |

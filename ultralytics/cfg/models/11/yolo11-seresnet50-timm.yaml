@@ -1,0 +1,35 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+# Parameters
+nc: 80 # number of classes
+scales: # there is no scaling for this model; the following scales are used only to bypass errors in model parsing
+  # [depth, width, max_channels]
+  n: [1.00, 1.00, 2048]
+
+backbone:
+  # [from, number, module, args]
+  - [-1, 1, Timm, [2048, 'seresnet50', True, True, 0, True]]  # - 0
+  - [0, 1, Index, [512, 2]]   # selects 2nd output (1, 512, 80, 80) - 1
+  - [0, 1, Index, [1024, 3]]  # selects 3rd output (1, 1024, 40, 40) - 2
+  - [0, 1, Index, [2048, 4]]  # selects 4th output (1, 2048, 20, 20) - 3
+  - [-1, 1, SPPF, [1024, 5]] # SPFF - 4
+  - [-1, 2, C2PSA, [1024]]   # C2PSA - 5  
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 2], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [512, False]] # 8
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 1], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [256, False]] # 11 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 8], 1, Concat, [1]] # cat head P4
+  - [-1, 2, C3k2, [512, False]] # 14 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 5], 1, Concat, [1]] # cat head P5
+  - [-1, 2, C3k2, [1024, True]] # 17 (P5/32-large)
+
+  - [[11, 14, 17], 1, Detect, [nc]] # Detect(P3, P4, P5)

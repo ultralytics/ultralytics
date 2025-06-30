@@ -119,6 +119,7 @@ copy_paste: 0.0 # (float) segment copy-paste (probability)
 copy_paste_mode: "flip" # (str) the method to do copy_paste augmentation (flip, mixup)
 auto_augment: randaugment # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)
 erasing: 0.4 # (float) probability of random erasing during classification training (0-0.9), 0 means no erasing, must be less than 1.0.
+lovasz_weight: 0.0 # (float) Weighting factor for combining Lovasz hinge loss with binary cross-entropy in the total basic segmentation loss.
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) for overriding defaults.yaml

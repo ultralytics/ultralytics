@@ -412,12 +412,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -469,12 +469,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -550,12 +550,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),

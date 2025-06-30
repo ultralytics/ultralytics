@@ -22,7 +22,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import RANK, colorstr, handle_errors
 from ultralytics.utils.checks import check_file
 
 
@@ -51,6 +51,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         >>>     train_step(batch)
     """
 
+    @handle_errors
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
         super().__init__(*args, **kwargs)

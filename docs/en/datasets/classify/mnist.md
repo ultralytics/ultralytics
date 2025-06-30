@@ -2,6 +2,10 @@
 comments: true
 description: Explore the MNIST dataset, a cornerstone in machine learning for handwritten digit recognition. Learn about its structure, features, and applications.
 keywords: MNIST, dataset, handwritten digits, image classification, deep learning, machine learning, training set, testing set, NIST
+model_name: yolo11n-cls.pt
+dataset: mnist
+task: classify
+imgsz: 32
 ---
 
 # MNIST Dataset
@@ -43,26 +47,7 @@ Some common applications include:
 
 To train a CNN model on the MNIST dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 32×32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="mnist", epochs=100, imgsz=32)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=mnist model=yolo11n-cls.pt epochs=100 imgsz=28
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 ## Sample Images and Annotations
 
@@ -102,26 +87,7 @@ The [MNIST](https://en.wikipedia.org/wiki/MNIST_database) dataset, or Modified N
 
 To train a model on the MNIST dataset using Ultralytics YOLO, you can follow these steps:
 
-!!! example "Train Example"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-cls.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="mnist", epochs=100, imgsz=32)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo classify train data=mnist model=yolo11n-cls.pt epochs=100 imgsz=28
-        ```
+{% include "macros/dataset-train-example.md" %}
 
 For a detailed list of available training arguments, refer to the [Training](../../modes/train.md) page.
 

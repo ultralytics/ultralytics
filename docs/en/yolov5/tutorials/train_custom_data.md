@@ -64,7 +64,7 @@ Below is the structure for `coco128.yaml` ([view on GitHub](https://github.com/u
 
 ```yaml
 # Dataset root directory relative to the yolov5 directory
-path: ../datasets/coco128
+path: coco128
 
 # Train/val/test sets: specify directories, *.txt files, or lists
 train: images/train2017 # 128 images for training

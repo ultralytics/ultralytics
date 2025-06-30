@@ -16,6 +16,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
+from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -720,7 +721,7 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     if task == "classify":  # not support grayscale classification yet
         return
     grayscale_data = Path(TMP) / f"{Path(data).stem}-grayscale.yaml"
-    data = YAML.load(checks.check_file(data))
+    data = check_det_dataset(data)
     data["channels"] = 1  # add additional channels key for grayscale
     YAML.save(grayscale_data, data)
     # remove npy files in train/val splits if exists, might be created by previous tests

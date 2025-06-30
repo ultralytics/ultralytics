@@ -15,21 +15,7 @@ Training a robust and accurate [object detection](https://www.ultralytics.com/gl
 The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or `*.txt` files containing image paths, and a dictionary of class names. Here is an example:
 
 ```yaml
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8 # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
-train: images/train # train images (relative to 'path') 4 images
-val: images/val # val images (relative to 'path') 4 images
-test: # test images (optional)
-
-# Classes (80 COCO classes)
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
-    77: teddy bear
-    78: hair drier
-    79: toothbrush
+--8<-- "ultralytics/cfg/datasets/coco8.yaml"
 ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
@@ -125,15 +111,7 @@ Remember to double-check if the dataset you want to use is compatible with your 
 The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
 
 ```yaml
-path: ../datasets/coco8 # dataset root directory
-train: images/train # training images (relative to 'path')
-val: images/val # validation images (relative to 'path')
-test: # optional test images
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
+--8<-- "ultralytics/cfg/datasets/coco8.yaml"
 ```
 
 Labels are saved in `*.txt` files with one file per image, formatted as `class x_center y_center width height` with normalized coordinates. For a detailed guide, see the [COCO8 dataset example](coco8.md).

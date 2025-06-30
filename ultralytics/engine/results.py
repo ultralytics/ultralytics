@@ -800,7 +800,7 @@ class Results(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict]): A list of dictionaries, each containing summarized information for a single detection
+            (List[Dict[str, Any]]): A list of dictionaries, each containing summarized information for a single detection
                 or classification result. The structure of each dictionary varies based on the task type
                 (classification or detection) and available information (boxes, masks, keypoints).
 

@@ -81,60 +81,59 @@ class BaseSolution:
         self.CFG = vars(SolutionConfig().update(**kwargs))
         self.LOGGER = LOGGER  # Store logger object to be used in multiple solution classes
 
-        if self.__class__.__name__ != "VisualAISearch":
-            check_requirements("shapely>=2.0.0")
-            from shapely.geometry import LineString, Point, Polygon
-            from shapely.prepared import prep
+        check_requirements("shapely>=2.0.0")
+        from shapely.geometry import LineString, Point, Polygon
+        from shapely.prepared import prep
 
-            self.LineString = LineString
-            self.Polygon = Polygon
-            self.Point = Point
-            self.prep = prep
-            self.annotator = None  # Initialize annotator
-            self.tracks = None
-            self.track_data = None
-            self.boxes = []
-            self.clss = []
-            self.track_ids = []
-            self.track_line = None
-            self.masks = None
-            self.r_s = None
-            self.frame_no = -1  # Only for logging
+        self.LineString = LineString
+        self.Polygon = Polygon
+        self.Point = Point
+        self.prep = prep
+        self.annotator = None  # Initialize annotator
+        self.tracks = None
+        self.track_data = None
+        self.boxes = []
+        self.clss = []
+        self.track_ids = []
+        self.track_line = None
+        self.masks = None
+        self.r_s = None
+        self.frame_no = -1  # Only for logging
 
-            self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
-            self.region = self.CFG["region"]  # Store region data for other classes usage
-            self.line_width = self.CFG["line_width"]
+        self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
+        self.region = self.CFG["region"]  # Store region data for other classes usage
+        self.line_width = self.CFG["line_width"]
 
-            # Load Model and store additional information (classes, show_conf, show_label)
-            if self.CFG["model"] is None:
-                self.CFG["model"] = "yolo11n.pt"
-            self.model = YOLO(self.CFG["model"])
-            self.names = self.model.names
-            self.classes = self.CFG["classes"]
-            self.show_conf = self.CFG["show_conf"]
-            self.show_labels = self.CFG["show_labels"]
-            self.device = self.CFG["device"]
+        # Load Model and store additional information (classes, show_conf, show_label)
+        if self.CFG["model"] is None:
+            self.CFG["model"] = "yolo11n.pt"
+        self.model = YOLO(self.CFG["model"])
+        self.names = self.model.names
+        self.classes = self.CFG["classes"]
+        self.show_conf = self.CFG["show_conf"]
+        self.show_labels = self.CFG["show_labels"]
+        self.device = self.CFG["device"]
 
-            self.track_add_args = {  # Tracker additional arguments for advance configuration
-                k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker"]
-            }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
+        self.track_add_args = {  # Tracker additional arguments for advance configuration
+            k: self.CFG[k] for k in ["iou", "conf", "device", "max_det", "half", "tracker"]
+        }  # verbose must be passed to track method; setting it False in YOLO still logs the track information.
 
-            if is_cli and self.CFG["source"] is None:
-                d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
-                self.LOGGER.warning(f"source not provided. using default source {ASSETS_URL}/{d_s}")
-                from ultralytics.utils.downloads import safe_download
+        if is_cli and self.CFG["source"] is None:
+            d_s = "solutions_ci_demo.mp4" if "-pose" not in self.CFG["model"] else "solution_ci_pose_demo.mp4"
+            self.LOGGER.warning(f"source not provided. using default source {ASSETS_URL}/{d_s}")
+            from ultralytics.utils.downloads import safe_download
 
-                safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
-                self.CFG["source"] = d_s  # set default source
+            safe_download(f"{ASSETS_URL}/{d_s}")  # download source from ultralytics assets
+            self.CFG["source"] = d_s  # set default source
 
-            # Initialize environment and region setup
-            self.env_check = check_imshow(warn=True)
-            self.track_history = defaultdict(list)
+        # Initialize environment and region setup
+        self.env_check = check_imshow(warn=True)
+        self.track_history = defaultdict(list)
 
-            self.profilers = (
-                ops.Profile(device=self.device),  # track
-                ops.Profile(device=self.device),  # solution
-            )
+        self.profilers = (
+            ops.Profile(device=self.device),  # track
+            ops.Profile(device=self.device),  # solution
+        )
 
     def adjust_box_label(self, cls: int, conf: float, track_id: Optional[int] = None) -> Optional[str]:
         """

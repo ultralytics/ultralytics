@@ -19,13 +19,14 @@ from ultralytics.utils.radar_data import ManitouRadarPC
 class LoadManitouImagesAndRadar:
     """Load images and radar data from a directory for Manitou dataset."""
     
-    def __init__(self, data_cfg, radar_accumulation=1, batch=1, pre_transform=None):
+    def __init__(self, data_cfg, radar_accumulation=1, batch=1, pre_transform=None, use_radar=True):
         """
         Args:
             data_cfg (dict): Configuration dictionary containing dataset paths and calibration parameters.
             radar_accumulation (int): Number of radar frames to accumulate. Default is 1.
             batch (int): Batch size for loading data.
             pre_transform (list of callable, optional): List of pre-transform functions to apply to the images.
+            use_radar (bool): Whether to use (load) radar data. Default is True.
         """
         self._check_data_cfg(data_cfg)
         self.cam1 = data_cfg['camera1']
@@ -40,20 +41,26 @@ class LoadManitouImagesAndRadar:
         self.filter_cfg = data_cfg['filter_cfg']
         self.radar_accumulation = radar_accumulation
         self.pre_transform = pre_transform if pre_transform is not None else []
-        
+        self.use_radar = use_radar
+
         # Check if the paths is a directory or a file
         self.cam1 = self._check_path(self.cam1)
         self.cam2 = self._check_path(self.cam2)
         self.cam3 = self._check_path(self.cam3)
         self.cam4 = self._check_path(self.cam4)
-        self.radar1 = self._check_path(self.radar1)
-        self.radar2 = self._check_path(self.radar2)
-        self.radar3 = self._check_path(self.radar3)
-        self.radar4 = self._check_path(self.radar4)
-        
-        assert len(self.cam1) == len(self.cam2) == len(self.cam3) == len(self.cam4) \
-                == len(self.radar1) == len(self.radar2) == len(self.radar3) == len(self.radar4), \
-            "The number of images in each camera and radar should be the same."
+        if self.use_radar:
+            self.radar1 = self._check_path(self.radar1)
+            self.radar2 = self._check_path(self.radar2)
+            self.radar3 = self._check_path(self.radar3)
+            self.radar4 = self._check_path(self.radar4)
+
+        if self.use_radar:
+            assert len(self.cam1) == len(self.cam2) == len(self.cam3) == len(self.cam4) \
+                    == len(self.radar1) == len(self.radar2) == len(self.radar3) == len(self.radar4), \
+                "The number of images in each camera and radar should be the same."
+        else:
+            assert len(self.cam1) == len(self.cam2) == len(self.cam3) == len(self.cam4), \
+                "The number of images in each camera should be the same."
             
         self.nf = len(self.cam1)  # number of frames
         self.bs = batch
@@ -108,10 +115,11 @@ class LoadManitouImagesAndRadar:
             cam2_pth = self.cam2[self.count]
             cam3_pth = self.cam3[self.count]
             cam4_pth = self.cam4[self.count]
-            radar1_pth = self.radar1[self.count]
-            radar2_pth = self.radar2[self.count]
-            radar3_pth = self.radar3[self.count]
-            radar4_pth = self.radar4[self.count]
+            if self.use_radar:
+                radar1_pth = self.radar1[self.count]
+                radar2_pth = self.radar2[self.count]
+                radar3_pth = self.radar3[self.count]
+                radar4_pth = self.radar4[self.count]
             frame_name = os.path.basename(cam1_pth).split('.')[0]
             
             # Load images and radar data
@@ -133,17 +141,18 @@ class LoadManitouImagesAndRadar:
                 cam1_img, cam2_img, cam3_img, cam4_img = \
                     transform(images=(cam1_img, cam2_img, cam3_img, cam4_img))
             
-            radar1_pc = self._load_radar(radar1_pth, self.radar_accumulation)
-            radar2_pc = self._load_radar(radar2_pth, self.radar_accumulation)
-            radar3_pc = self._load_radar(radar3_pth, self.radar_accumulation)
-            radar4_pc = self._load_radar(radar4_pth, self.radar_accumulation)
-            
-            radar_pc = ManitouRadarPC(radar1=radar1_pc, 
-                                      radar2=radar2_pc, 
-                                      radar3=radar3_pc, 
-                                      radar4=radar4_pc,
-                                      calib_params= self.calib_params,
-                                      filter_cfg=self.filter_cfg)
+            if self.use_radar:
+                radar1_pc = self._load_radar(radar1_pth, self.radar_accumulation)
+                radar2_pc = self._load_radar(radar2_pth, self.radar_accumulation)
+                radar3_pc = self._load_radar(radar3_pth, self.radar_accumulation)
+                radar4_pc = self._load_radar(radar4_pth, self.radar_accumulation)
+                
+                radar_pc = ManitouRadarPC(radar1=radar1_pc, 
+                                        radar2=radar2_pc, 
+                                        radar3=radar3_pc, 
+                                        radar4=radar4_pc,
+                                        calib_params= self.calib_params,
+                                        filter_cfg=self.filter_cfg)
             
             # Create a dictionary for the batch
             paths.append({
@@ -151,17 +160,17 @@ class LoadManitouImagesAndRadar:
                 'cam2': cam2_pth,
                 'cam3': cam3_pth,
                 'cam4': cam4_pth,
-                'radar1': radar1_pth,
-                'radar2': radar2_pth,
-                'radar3': radar3_pth,
-                'radar4': radar4_pth
+                'radar1': radar1_pth if self.use_radar else None,
+                'radar2': radar2_pth if self.use_radar else None,
+                'radar3': radar3_pth if self.use_radar else None,
+                'radar4': radar4_pth if self.use_radar else None
             })
             batch.append({
                 'cam1': cam1_img,
                 'cam2': cam2_img,
                 'cam3': cam3_img,
                 'cam4': cam4_img,
-                'radar': radar_pc,
+                'radar': radar_pc if self.use_radar else None,
                 'orig_images': orig_images,
                 'frame_name': frame_name,
             })
@@ -175,16 +184,35 @@ class LoadManitouImagesAndRadar:
     
     def _load_radar(self, path, accumulation):
         radar_pc = np.loadtxt(path, delimiter=' ', dtype=np.float32)
+        # # load only previous frames if accumulation > 1
+        # if accumulation > 1:
+        #     for _ in range(accumulation - 1):
+        #         frame_name = os.path.basename(path).split('.')[0]
+        #         frame_name = int(frame_name)
+        #         if frame_name - 1 < 0:
+        #             break
+        #         prev_name = f"{frame_name - 1:06d}.{path.split('.')[-1]}"
+        #         path = str(Path(path).parent / f"{prev_name}")
+        #         radar_pc = np.concatenate((radar_pc, np.loadtxt(path, delimiter=' ', dtype=np.float32)), axis=0)
+        
+        # load from previous and future frames if accumulation > 1 (half of accumulation frames before and after)
         if accumulation > 1:
-            for _ in range(accumulation - 1):
-                frame_name = os.path.basename(path).split('.')[0]
-                frame_name = int(frame_name)
-                if frame_name - 1 < 0:
-                    break
-                prev_name = f"{frame_name - 1:06d}.{path.split('.')[-1]}"
-                path = str(Path(path).parent / f"{prev_name}")
-                radar_pc = np.concatenate((radar_pc, np.loadtxt(path, delimiter=' ', dtype=np.float32)), axis=0)
-                
+            half_accum = accumulation // 2
+            frame_name = os.path.basename(path).split('.')[0]
+            frame_name = int(frame_name)
+            for i in range(-half_accum, half_accum + 1):
+                if i == 0:
+                    continue  
+                # if frame_name + i < 0 or frame_name + i >= self.nf:
+                #     continue
+                try:
+                    new_name = f"{frame_name + i:06d}.{path.split('.')[-1]}"
+                    new_path = str(Path(path).parent / f"{new_name}")
+                    radar_pc = np.concatenate((radar_pc, np.loadtxt(new_path, delimiter=' ', dtype=np.float32)), axis=0)
+                    # print(f"Loading radar data from {new_path} for accumulation. (current frame: {frame_name}, accumulation: {accumulation})")
+                except FileNotFoundError:
+                    continue  # Skip if the file does not exist
+
         return radar_pc
             
 

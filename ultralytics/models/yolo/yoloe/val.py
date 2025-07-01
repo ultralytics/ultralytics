@@ -139,6 +139,16 @@ class YOLOEDetectValidator(DetectionValidator):
         )
 
     def add_prefix_for_metric(self, stats, prefix):
+        """ Add a prefix to the keys of the stats dictionary for better organization.
+        
+        Args:
+            stats (dict): The original stats dictionary.
+            prefix (str): The prefix to add to the keys.
+
+        Returns:
+            dict: A new dictionary with prefixed keys.
+        
+        """
         prefix_stats = {}
         for k, v in stats.items():
             if k.startswith("metrics"):

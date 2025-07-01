@@ -9,11 +9,11 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
+from ultralytics.hub.utils import events
 from ultralytics.solutions.config import SolutionConfig
-from ultralytics.utils import ASSETS_URL, LOGGER, ops, DEFAULT_CFG_KEYS, DEFAULT_CFG, SimpleNamespace
+from ultralytics.utils import ASSETS_URL, DEFAULT_CFG, DEFAULT_CFG_KEYS, LOGGER, SimpleNamespace, ops
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
-from ultralytics.hub.utils import events
 
 
 class BaseSolution:

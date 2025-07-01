@@ -272,45 +272,10 @@ class SegmentationValidator(DetectionValidator):
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""
-        if self.args.save_json and (self.is_lvis or self.is_coco) and len(self.jdict):
-            pred_json = self.save_dir / "predictions.json"  # predictions
-            anno_json = (
-                self.data["path"]
-                / "annotations"
-                / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
-            )  # annotations
-
-            LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
-            try:
-                for x in anno_json, pred_json:
-                    assert x.is_file(), f"{x} file not found"
-                check_requirements("faster-coco-eval>=1.6.7")
-                from faster_coco_eval import COCO, COCOeval_faster
-
-                anno = COCO(anno_json)  # init annotations api
-                pred = anno.loadRes(pred_json)  # init predictions api (must pass string, not Path)
-                kwargs = dict(cocoGt=anno, cocoDt=pred, lvis_style=self.is_lvis, print_function=LOGGER.info)
-                for i, eval in enumerate(
-                    [COCOeval_faster(iouType="bbox", **kwargs), COCOeval_faster(iouType="segm", **kwargs)]
-                ):
-                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
-                    eval.evaluate()
-                    eval.accumulate()
-                    eval.summarize()
-                    idx = i * 4 + 2
-                    # update mAP50-95 and mAP50
-                    stats[self.metrics.keys[idx + 1]] = eval.stats_as_dict["AP_all"]
-                    stats[self.metrics.keys[idx]] = eval.stats_as_dict["AP_50"]
-
-                    if self.is_lvis:
-                        tag = "B" if i == 0 else "M"
-                        stats[f"metrics/APr({tag})"] = eval.stats_as_dict["APr"]
-                        stats[f"metrics/APc({tag})"] = eval.stats_as_dict["APc"]
-                        stats[f"metrics/APf({tag})"] = eval.stats_as_dict["APf"]
-
-                if self.is_lvis:
-                    stats["fitness"] = stats["metrics/mAP50-95(B)"]
-
-            except Exception as e:
-                LOGGER.warning(f"faster-coco-eval unable to run: {e}")
-        return stats
+        pred_json = self.save_dir / "predictions.json"  # predictions
+        anno_json = (
+            self.data["path"]
+            / "annotations"
+            / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
+        )  # annotations
+        return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])

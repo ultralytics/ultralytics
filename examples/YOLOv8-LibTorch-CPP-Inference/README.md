@@ -1,6 +1,6 @@
 # YOLOv8 LibTorch Inference C++
 
-This example demonstrates how to perform inference using [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models in C++ with the [LibTorch (PyTorch C++ API)](https://pytorch.org/cppdocs/). This allows for deploying YOLOv8 models in C++ environments for efficient execution.
+This example demonstrates how to perform inference using [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models in C++ with the [LibTorch (PyTorch C++ API)](https://docs.pytorch.org/cppdocs/). This allows for deploying YOLOv8 models in C++ environments for efficient execution.
 
 ## ⚙️ Dependencies
 
@@ -59,7 +59,7 @@ Follow these steps to run the C++ inference example:
 
 ## ✨ Exporting Ultralytics YOLOv8
 
-To use an Ultralytics YOLOv8 model with LibTorch, you first need to export it to the [TorchScript](https://pytorch.org/docs/stable/jit.html) format. TorchScript is a way to create serializable and optimizable models from PyTorch code.
+To use an Ultralytics YOLOv8 model with LibTorch, you first need to export it to the [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) format. TorchScript is a way to create serializable and optimizable models from PyTorch code.
 
 Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) provided by the `ultralytics` package to export the model. For example, to export the `yolov8s.pt` model with an input image size of 640x640:
 

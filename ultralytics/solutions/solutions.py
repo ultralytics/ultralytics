@@ -249,11 +249,15 @@ class BaseSolution:
         # Solution events
         events(
             SimpleNamespace(
-                **{**{k: getattr(DEFAULT_CFG, k) for k in DEFAULT_CFG_KEYS},
-                   "task": type(self).__name__.lower(),
-                   "mode": "solution",
-                   "device": self.device,
-                   "model": self.CFG["model"]}))
+                **{
+                    **{k: getattr(DEFAULT_CFG, k) for k in DEFAULT_CFG_KEYS},
+                    "task": type(self).__name__.lower(),
+                    "mode": "solution",
+                    "device": self.device,
+                    "model": self.CFG["model"],
+                }
+            )
+        )
 
         track_or_predict = "predict" if type(self).__name__ == "ObjectCropper" else "track"
         track_or_predict_speed = self.profilers[0].dt * 1e3

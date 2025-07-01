@@ -248,12 +248,10 @@ def convert_coco(
         >>> from ultralytics.data.converter import convert_coco
 
         Convert COCO annotations to YOLO format
-        >>> convert_coco("../datasets/coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
+        >>> convert_coco("coco/annotations/", use_segments=True, use_keypoints=False, cls91to80=False)
 
         Convert LVIS annotations to YOLO format
-        >>> convert_coco(
-        ...     "../datasets/lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True
-        ... )
+        >>> convert_coco("lvis/annotations/", use_segments=True, use_keypoints=False, cls91to80=False, lvis=True)
     """
     # Create dataset directory
     save_dir = increment_path(save_dir)  # increment if save directory already exists
@@ -724,7 +722,7 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
         >>> convert_to_multispectral("path/to/image.jpg", n_channels=10)
 
         Convert a dataset
-        >>> convert_to_multispectral("../datasets/coco8", n_channels=10)
+        >>> convert_to_multispectral("coco8", n_channels=10)
     """
     from scipy.interpolate import interp1d
 

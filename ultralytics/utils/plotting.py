@@ -694,7 +694,7 @@ def plot_images(
 
     Args:
         labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
-        images (Union[torch.Tensor, np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
+        images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
         paths (Optional[List[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
         names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.

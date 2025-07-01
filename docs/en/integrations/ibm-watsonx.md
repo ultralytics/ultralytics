@@ -12,7 +12,7 @@ You can train [Ultralytics YOLO11 models](https://github.com/ultralytics/ultraly
 
 ## What is IBM Watsonx?
 
-[Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
+[Watsonx](https://www.ibm.com/products/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-ibm-watsonx.avif" alt="Overview of IBM Watsonx">
@@ -318,7 +318,7 @@ You can measure the prediction [accuracy](https://www.ultralytics.com/glossary/a
 
 We explored IBM Watsonx key features, and how to train a YOLO11 model using IBM Watsonx. We also saw how IBM Watsonx can enhance your AI workflows with advanced tools for model building, data management, and compliance.
 
-For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/watsonx).
+For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 
 Also, be sure to check out the [Ultralytics integration guide page](./index.md), to learn more about different exciting integrations.
 
@@ -345,7 +345,7 @@ IBM Watsonx offers several key features for AI model training:
 - **Watsonx.data**: Supports cloud and on-premises deployments, offering centralized data access, efficient query engines like Presto and Spark, and an AI-powered semantic layer.
 - **Watsonx.governance**: Automates compliance, manages risk with alerts, and provides tools for detecting issues like bias and drift. It also includes dashboards and reporting tools for collaboration.
 
-For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/watsonx).
+For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 
 ### Why should I use IBM Watsonx for training Ultralytics YOLO11 models?
 

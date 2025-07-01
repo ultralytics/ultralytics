@@ -256,7 +256,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
         class_label_map = {class_map[k]: v for k, v in class_label_map.items()}
     try:
         # import pycotools utilities to decompress annotations for various tasks, e.g. segmentation
-        from pycocotools.mask import decode  # noqa
+        from faster_coco_eval.core.mask import decode  # noqa
     except ImportError:
         decode = None
 

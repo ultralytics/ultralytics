@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 import cv2
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
@@ -31,7 +33,7 @@ class ObjectBlurrer(BaseSolution):
         >>> print(f"Total blurred objects: {processed_results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the ObjectBlurrer class for applying a blur effect to objects detected in video streams or images.
 
@@ -46,7 +48,7 @@ class ObjectBlurrer(BaseSolution):
             blur_ratio = 0.5
         self.blur_ratio = int(blur_ratio * 100)
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Apply a blurring effect to detected objects in the input image.
 

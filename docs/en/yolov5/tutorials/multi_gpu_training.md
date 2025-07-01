@@ -24,7 +24,7 @@ pip install -r requirements.txt # install
 
 !!! tip "ProTip!"
 
-    `torch.distributed.run` replaces `torch.distributed.launch` in **[PyTorch](https://www.ultralytics.com/glossary/pytorch)>=1.9**. See [PyTorch distributed documentation](https://pytorch.org/docs/stable/distributed.html) for details.
+    `torch.distributed.run` replaces `torch.distributed.launch` in **[PyTorch](https://www.ultralytics.com/glossary/pytorch)>=1.9**. See [PyTorch distributed documentation](https://docs.pytorch.org/docs/stable/distributed.html) for details.
 
 ## Training
 
@@ -38,7 +38,7 @@ Select a pretrained model to start training from. Here we select [YOLOv5s](https
 python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0
 ```
 
-### Multi-GPU [DataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) Mode (⚠️ not recommended)
+### Multi-GPU [DataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.DataParallel) Mode (⚠️ not recommended)
 
 You can increase the `device` to use Multiple GPUs in DataParallel mode.
 
@@ -48,7 +48,7 @@ python train.py --batch 64 --data coco.yaml --weights yolov5s.pt --device 0,1
 
 This method is slow and barely speeds up training compared to using just 1 GPU.
 
-### Multi-GPU [DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) Mode (✅ recommended)
+### Multi-GPU [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) Mode (✅ recommended)
 
 You will have to pass `python -m torch.distributed.run --nproc_per_node`, followed by the usual arguments.
 
@@ -75,7 +75,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 <details>
   <summary>Use SyncBatchNorm (click to expand)</summary>
 
-[SyncBatchNorm](https://pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase [accuracy](https://www.ultralytics.com/glossary/accuracy) for multiple GPU training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training.
+[SyncBatchNorm](https://docs.pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase [accuracy](https://www.ultralytics.com/glossary/accuracy) for multiple GPU training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training.
 
 It is best used when the batch-size on **each** GPU is small (<= 8).
 
@@ -155,7 +155,7 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 | 4x           | 64         | 26GB                         | 5:57               | 0:55             |
 | 8x           | 128        | 26GB                         | 3:09               | 0:57             |
 
-As shown in the results, using [DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
+As shown in the results, using [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
 
 ## FAQ
 

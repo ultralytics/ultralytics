@@ -146,7 +146,7 @@ class YOLOEDetectValidator(DetectionValidator):
             else:
                 prefix_stats[k] = v
         return prefix_stats
-    
+
     @smart_inference_mode()
     def __call__(
         self,
@@ -190,9 +190,9 @@ class YOLOEDetectValidator(DetectionValidator):
                 model.set_classes(names, tpe)
                 stats = super().__call__(trainer, model)
                 stats = self.add_prefix_for_metric(stats, "tp")
-                
+
             return stats
-        
+
         else:
             if refer_data is not None:
                 assert load_vp, "Refer data is only used for visual prompt validation."

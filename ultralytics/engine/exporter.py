@@ -100,6 +100,7 @@ from ultralytics.utils.checks import (
     check_is_path_safe,
     check_requirements,
     check_version,
+    is_intel,
     is_sudo_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
@@ -107,7 +108,7 @@ from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.ops import Profile, nms_rotated
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_13, get_cpu_info, get_latest_opset, select_device
+from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
 
 def export_formats():
@@ -372,9 +373,9 @@ class Exporter:
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
-            if "intel" in get_cpu_info().lower():
+            if is_intel():
                 LOGGER.info(
-                    "💡 ProTip: Export to OpenVINO format for best performance on Intel CPUs."
+                    "💡 ProTip: Export to OpenVINO format for best performance on Intel hardware."
                     " Learn more at https://docs.ultralytics.com/integrations/openvino/"
                 )
             SETTINGS["openvino_msg"] = False

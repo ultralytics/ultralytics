@@ -5,18 +5,18 @@ from pathlib import Path
 from typing import Any, List
 
 import numpy as np
-import torch
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.solutions.solutions import BaseSolution
+from ultralytics.nn.text_model import build_text_model
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
 
-class VisualAISearch(BaseSolution):
+class VisualAISearch:
     """
     A semantic image search system that leverages OpenCLIP for generating high-quality image and text embeddings and
     FAISS for fast similarity-based retrieval.
@@ -29,10 +29,8 @@ class VisualAISearch(BaseSolution):
         device (str): Computation device, e.g., 'cpu' or 'cuda'.
         faiss_index (str): Path to the FAISS index file.
         data_path_npy (str): Path to the numpy file storing image paths.
-        model_name (str): Name of the CLIP model to use.
         data_dir (Path): Path object for the data directory.
         model: Loaded CLIP model.
-        preprocess: CLIP preprocessing function.
         index: FAISS index for similarity search.
         image_paths (List[str]): List of image file paths.
 
@@ -50,27 +48,24 @@ class VisualAISearch(BaseSolution):
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
-        super().__init__(**kwargs)
-        check_requirements(["git+https://github.com/ultralytics/CLIP.git", "faiss-cpu"])
+        check_requirements("faiss-cpu")
 
         self.faiss = __import__("faiss")
-        self.clip = __import__("clip")
         self.faiss_index = "faiss.index"
         self.data_path_npy = "paths.npy"
-        self.model_name = "ViT-B/32"
-        self.data_dir = Path(self.CFG["data"])
-        self.device = select_device(self.CFG["device"])
+        self.data_dir = Path(kwargs.get("data", "images"))
+        self.device = select_device(kwargs.get("device", "cpu"))
 
         if not self.data_dir.exists():
             from ultralytics.utils import ASSETS_URL
 
-            self.LOGGER.warning(f"{self.data_dir} not found. Downloading images.zip from {ASSETS_URL}/images.zip")
+            LOGGER.warning(f"{self.data_dir} not found. Downloading images.zip from {ASSETS_URL}/images.zip")
             from ultralytics.utils.downloads import safe_download
 
             safe_download(url=f"{ASSETS_URL}/images.zip", unzip=True, retry=3)
             self.data_dir = Path("images")
 
-        self.model, self.preprocess = self.clip.load(self.model_name, device=self.device)
+        self.model = build_text_model("clip:ViT-B/32", device=self.device)
 
         self.index = None
         self.image_paths = []
@@ -79,16 +74,11 @@ class VisualAISearch(BaseSolution):
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
-        image = Image.open(path)
-        tensor = self.preprocess(image).unsqueeze(0).to(self.device)
-        with torch.no_grad():
-            return self.model.encode_image(tensor).cpu().numpy()
+        return self.model.encode_image(Image.open(path)).cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
-        tokens = self.clip.tokenize([text]).to(self.device)
-        with torch.no_grad():
-            return self.model.encode_text(tokens).cpu().numpy()
+        return self.model.encode_text(self.model.tokenize([text])).cpu().numpy()
 
     def load_or_build_index(self) -> None:
         """
@@ -100,13 +90,13 @@ class VisualAISearch(BaseSolution):
         """
         # Check if the FAISS index and corresponding image paths already exist
         if Path(self.faiss_index).exists() and Path(self.data_path_npy).exists():
-            self.LOGGER.info("Loading existing FAISS index...")
+            LOGGER.info("Loading existing FAISS index...")
             self.index = self.faiss.read_index(self.faiss_index)  # Load the FAISS index from disk
             self.image_paths = np.load(self.data_path_npy)  # Load the saved image path list
             return  # Exit the function as the index is successfully loaded
 
         # If the index doesn't exist, start building it from scratch
-        self.LOGGER.info("Building FAISS index from images...")
+        LOGGER.info("Building FAISS index from images...")
         vectors = []  # List to store feature vectors of images
 
         # Iterate over all image files in the data directory
@@ -119,7 +109,7 @@ class VisualAISearch(BaseSolution):
                 vectors.append(self.extract_image_feature(file))
                 self.image_paths.append(file.name)  # Store the corresponding image name
             except Exception as e:
-                self.LOGGER.warning(f"Skipping {file.name}: {e}")
+                LOGGER.warning(f"Skipping {file.name}: {e}")
 
         # If no vectors were successfully created, raise an error
         if not vectors:
@@ -133,7 +123,7 @@ class VisualAISearch(BaseSolution):
         self.faiss.write_index(self.index, self.faiss_index)  # Save the newly built FAISS index to disk
         np.save(self.data_path_npy, np.array(self.image_paths))  # Save the list of image paths to disk
 
-        self.LOGGER.info(f"Indexed {len(self.image_paths)} images.")
+        LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
     def search(self, query: str, k: int = 30, similarity_thresh: float = 0.1) -> List[str]:
         """
@@ -161,9 +151,9 @@ class VisualAISearch(BaseSolution):
         ]
         results.sort(key=lambda x: x[1], reverse=True)
 
-        self.LOGGER.info("\nRanked Results:")
+        LOGGER.info("\nRanked Results:")
         for name, score in results:
-            self.LOGGER.info(f"  - {name} | Similarity: {score:.4f}")
+            LOGGER.info(f"  - {name} | Similarity: {score:.4f}")
 
         return [r[0] for r in results]
 

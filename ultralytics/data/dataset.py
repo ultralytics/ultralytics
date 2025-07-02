@@ -482,7 +482,7 @@ class GroundingDataset(YOLODataset):
             a warning is logged and verification is skipped.
         """
         expected_counts = {
-            "final_mixed_train_no_coco_segm": 3662344,
+            "final_mixed_train_no_coco_segm": 3662412,
             "final_mixed_train_no_coco": 3681235,
             "final_flickr_separateGT_train_segm": 638214,
             "final_flickr_separateGT_train": 640704,

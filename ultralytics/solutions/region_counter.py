@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Dict
 
 import numpy as np
 
@@ -48,6 +48,9 @@ class RegionCounter(BaseSolution):
         }
         self.region_counts = {}
         self.counting_regions = []
+        if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
+            self.region = {"Region#01": self.region or self.initialize_region()}
+        self.initialize_regions()
 
     def add_region(
         self,
@@ -55,7 +58,7 @@ class RegionCounter(BaseSolution):
         polygon_points: List[Tuple],
         region_color: Tuple[int, int, int],
         text_color: Tuple[int, int, int],
-    ) -> None:
+    ) -> Dict[str, Any]:
         """
         Add a new region to the counting list based on the provided template with specific attributes.
 
@@ -75,6 +78,14 @@ class RegionCounter(BaseSolution):
             }
         )
         self.counting_regions.append(region)
+        return region
+
+    def initialize_regions(self):
+        """Initialize regions only once."""
+        for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
+            color = colors(idx, True)
+            region = self.add_region(region_name, reg_pts, color, (255, 255, 255))
+            region["prepared_polygon"] = self.prep(region["polygon"])
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """
@@ -90,26 +101,15 @@ class RegionCounter(BaseSolution):
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
-        # Ensure self.region is initialized and structured as a dictionary
-        if not isinstance(self.region, dict):
-            self.region = {"Region#01": self.region or self.initialize_region()}
-
         # Draw only valid regions
         for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
             color = colors(idx, True)
             annotator.draw_region(reg_pts, color, self.line_width * 2)
-            self.add_region(region_name, reg_pts, color, annotator.get_txt_color())
-
-        # Prepare regions for containment check (only process valid ones)
-        for region in self.counting_regions:
-            if "prepared_polygon" not in region:
-                region["prepared_polygon"] = self.prep(region["polygon"])
 
         # Convert bounding boxes to NumPy array for center points
         boxes_np = np.array([((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in self.boxes], dtype=np.float32)
         points = [self.Point(pt) for pt in boxes_np]  # Convert centers to Point objects
 
-        # Process bounding boxes & check containment
         if points:
             for point, cls, track_id, box, conf in zip(points, self.clss, self.track_ids, self.boxes, self.confs):
                 annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))

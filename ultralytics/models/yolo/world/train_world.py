@@ -1,11 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from pathlib import Path
+
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
-from ultralytics.utils import DEFAULT_CFG, LOGGER, DATASETS_DIR
+from ultralytics.utils import DATASETS_DIR, DEFAULT_CFG, LOGGER
 from ultralytics.utils.torch_utils import de_parallel
-from pathlib import Path
 
 
 class WorldTrainerFromScratch(WorldTrainer):

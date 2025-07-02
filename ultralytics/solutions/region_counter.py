@@ -110,6 +110,7 @@ class RegionCounter(BaseSolution):
         boxes_np = np.array([((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in self.boxes], dtype=np.float32)
         points = [self.Point(pt) for pt in boxes_np]  # Convert centers to Point objects
 
+        # Process bounding boxes & check containment
         if points:
             for point, cls, track_id, box, conf in zip(points, self.clss, self.track_ids, self.boxes, self.confs):
                 annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))

@@ -67,7 +67,7 @@ class RegionCounter(BaseSolution):
             text_color (Tuple[int, int, int]): BGR color for the text within the region.
 
         Returns:
-            (Dict[str, any]): Returns a dictionary including the region information i.e. name, region colors etc.
+            (Dict[str, any]): Returns a dictionary including the region information i.e. name, region_color etc.
         """
         region = self.region_template.copy()
         region.update(

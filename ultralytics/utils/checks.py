@@ -47,7 +47,7 @@ from ultralytics.utils import (
     is_github_action_running,
     url2file,
 )
-from ultralytics.utils.torch_utils import get_cpu_info
+
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -904,7 +904,7 @@ def is_intel():
     Returns:
         (bool): True if Intel hardware is detected, False otherwise.
     """
-    
+    from ultralytics.utils.torch_utils import get_cpu_info
     # Check CPU
     if "intel" in get_cpu_info().lower():
         return True

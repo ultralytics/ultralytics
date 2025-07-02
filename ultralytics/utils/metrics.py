@@ -1006,6 +1006,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             save_dir=save_dir,
             names=self.names,
             on_plot=on_plot,
+            prefix="Box",
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
@@ -1135,7 +1136,7 @@ class SegmentMetrics(DetMetrics):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
         results_mask = ap_per_class(
             stats["tp_m"],
             stats["conf"],
@@ -1270,7 +1271,7 @@ class PoseMetrics(DetMetrics):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],

@@ -138,25 +138,6 @@ class YOLOEDetectValidator(DetectionValidator):
             rank=-1,
         )
 
-    def add_prefix_for_metric(self, stats, prefix):
-        """
-        Add a prefix to the keys of the stats dictionary for better organization.
-
-        Args:
-            stats (dict): The original stats dictionary.
-            prefix (str): The prefix to add to the keys.
-
-        Returns:
-            dict: A new dictionary with prefixed keys.
-        """
-        prefix_stats = {}
-        for k, v in stats.items():
-            if k.startswith("metrics"):
-                prefix_stats[f"{prefix}_{k}"] = v
-            else:
-                prefix_stats[k] = v
-        return prefix_stats
-
     @smart_inference_mode()
     def __call__(
         self,
@@ -192,17 +173,11 @@ class YOLOEDetectValidator(DetectionValidator):
                 # Directly use the same dataloader for visual embeddings extracted during training
                 vpe = self.get_visual_pe(self.dataloader, model)
                 model.set_classes(names, vpe)
-                stats = super().__call__(trainer, model)
-                stats = self.add_prefix_for_metric(stats, "vp")
             else:
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
-                stats = super().__call__(trainer, model)
-                stats = self.add_prefix_for_metric(stats, "tp")
-
-            return stats
-
+            stats = super().__call__(trainer, model)
         else:
             if refer_data is not None:
                 assert load_vp, "Refer data is only used for visual prompt validation."
@@ -225,7 +200,6 @@ class YOLOEDetectValidator(DetectionValidator):
                 vpe = self.get_visual_pe(dataloader, model)
                 model.set_classes(names, vpe)
                 stats = super().__call__(model=deepcopy(model))
-                stats = self.add_prefix_for_metric(stats, "vp")
             elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
                 return super().__call__(trainer, model)
             else:
@@ -233,7 +207,6 @@ class YOLOEDetectValidator(DetectionValidator):
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
                 stats = super().__call__(model=deepcopy(model))
-                stats = self.add_prefix_for_metric(stats, "tp")
         return stats
 
 

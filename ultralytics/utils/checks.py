@@ -47,6 +47,7 @@ from ultralytics.utils import (
     is_github_action_running,
     url2file,
 )
+from ultralytics.utils.torch_utils import get_cpu_info
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
@@ -894,6 +895,14 @@ def is_rockchip():
             return False
     else:
         return False
+    
+def is_intel():
+    if "intel" in get_cpu_info().lower():
+        return True
+    cmd = subprocess.run(["xpu-smi", "discovery"], shell=True, capture_output=True)
+    if "intel" in str(cmd.stdout): 
+        return True
+    return False
 
 
 def is_sudo_available() -> bool:

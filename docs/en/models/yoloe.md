@@ -448,7 +448,6 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
 
         from ultralytics import YOLOE
         from ultralytics.utils.patches import torch_load
@@ -533,7 +532,6 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
 
         from ultralytics import YOLOE
         from ultralytics.utils.patches import torch_load

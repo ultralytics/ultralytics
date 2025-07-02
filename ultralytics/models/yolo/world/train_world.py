@@ -3,8 +3,9 @@
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
-from ultralytics.utils import DEFAULT_CFG, LOGGER
+from ultralytics.utils import DEFAULT_CFG, LOGGER, DATASETS_DIR
 from ultralytics.utils.torch_utils import de_parallel
+from pathlib import Path
 
 
 class WorldTrainerFromScratch(WorldTrainer):
@@ -145,6 +146,10 @@ class WorldTrainerFromScratch(WorldTrainer):
             grounding_data = grounding_data if isinstance(grounding_data, list) else [grounding_data]
             for g in grounding_data:
                 assert isinstance(g, dict), f"Grounding data should be provided in dict format, but got {type(g)}"
+                for k in ["img_path", "json_file"]:
+                    path = Path(g[k])
+                    if not path.exists() and not path.is_absolute():
+                        g[k] = str((DATASETS_DIR / g[k]).resolve())  # path relative to DATASETS_DIR
             final_data[s] += grounding_data
         data["val"] = data["val"][0]  # assign the first val dataset as currently only one validation set is supported
         # NOTE: to make training work properly, set `nc` and `names`

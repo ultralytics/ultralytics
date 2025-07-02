@@ -80,6 +80,7 @@ from ultralytics.utils.loss import (
     v8SegmentationLoss,
 )
 from ultralytics.utils.ops import make_divisible
+from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
     fuse_conv_and_bn,
@@ -1441,9 +1442,9 @@ def torch_safe_load(weight, safe_only=False):
                 safe_pickle.Unpickler = SafeUnpickler
                 safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
                 with open(file, "rb") as f:
-                    ckpt = torch.load(f, pickle_module=safe_pickle)
+                    ckpt = torch_load(f, pickle_module=safe_pickle)
             else:
-                ckpt = torch.load(file, map_location="cpu")
+                ckpt = torch_load(file, map_location="cpu")
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":
@@ -1469,7 +1470,7 @@ def torch_safe_load(weight, safe_only=False):
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
         )
         check_requirements(e.name)  # install missing module
-        ckpt = torch.load(file, map_location="cpu")
+        ckpt = torch_load(file, map_location="cpu")
 
     if not isinstance(ckpt, dict):
         # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")

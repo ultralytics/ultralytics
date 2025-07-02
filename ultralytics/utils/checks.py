@@ -49,6 +49,7 @@ from ultralytics.utils import (
 )
 
 
+
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     """
     Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
@@ -893,6 +894,31 @@ def is_rockchip():
         except OSError:
             return False
     else:
+        return False
+
+
+def is_intel():
+    """
+    Check if the system has Intel hardware (CPU or GPU).
+    
+    Returns:
+        (bool): True if Intel hardware is detected, False otherwise.
+    """
+    from ultralytics.utils.torch_utils import get_cpu_info
+    # Check CPU
+    if "intel" in get_cpu_info().lower():
+        return True
+    
+    # Check GPU via xpu-smi
+    try:
+        result = subprocess.run(
+            ["xpu-smi", "discovery"], 
+            capture_output=True, 
+            text=True,
+            timeout=5
+        )
+        return "intel" in result.stdout.lower()
+    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         return False
 
 

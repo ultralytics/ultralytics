@@ -146,7 +146,9 @@ class WorldTrainerFromScratch(WorldTrainer):
             for g in grounding_data:
                 assert isinstance(g, dict), f"Grounding data should be provided in dict format, but got {type(g)}"
             final_data[s] += grounding_data
-        data["val"] = data["val"][0]  # assign the first val dataset as currently only one validation set is supported
+        # assign the first val dataset as currently only one validation set is supported
+        data["val"] = data["val"][0]
+        final_data["val"] = final_data["val"][0]
         # NOTE: to make training work properly, set `nc` and `names`
         final_data["nc"] = data["val"]["nc"]
         final_data["names"] = data["val"]["names"]

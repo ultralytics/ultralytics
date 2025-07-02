@@ -100,8 +100,8 @@ from ultralytics.utils.checks import (
     check_is_path_safe,
     check_requirements,
     check_version,
+    is_intel,
     is_sudo_available,
-    is_intel
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx

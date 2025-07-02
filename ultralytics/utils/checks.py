@@ -895,12 +895,13 @@ def is_rockchip():
             return False
     else:
         return False
-    
+
+
 def is_intel():
     if "intel" in get_cpu_info().lower():
         return True
     cmd = subprocess.run(["xpu-smi", "discovery"], shell=True, capture_output=True)
-    if "intel" in str(cmd.stdout): 
+    if "intel" in str(cmd.stdout):
         return True
     return False
 

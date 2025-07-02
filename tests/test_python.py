@@ -204,7 +204,7 @@ def test_track_stream(model):
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
-    for plots in [True, False]:  # Test both cases i.e. plots=True and plots=False
+    for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
         metrics = YOLO(model).val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
         metrics.to_csv()
@@ -390,7 +390,7 @@ def test_cfg_init():
         check_dict_alignment({"a": 1}, {"b": 2})
     copy_default_cfg()
     (Path.cwd() / DEFAULT_CFG_PATH.name.replace(".yaml", "_copy.yaml")).unlink(missing_ok=False)
-    [smart_value(x) for x in ["none", "true", "false"]]
+    [smart_value(x) for x in {"none", "true", "false"}]
 
 
 def test_utils_init():

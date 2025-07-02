@@ -1804,7 +1804,7 @@ class CopyPaste(BaseMixTransform):
 
     def _transform(self, labels1, labels2={}):
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
-        im = labels1["img"]
+        im = labels1["img"].copy()
         cls = labels1["cls"]
         h, w = im.shape[:2]
         instances = labels1.pop("instances")

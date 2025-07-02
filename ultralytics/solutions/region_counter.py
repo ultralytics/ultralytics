@@ -48,6 +48,8 @@ class RegionCounter(BaseSolution):
         }
         self.region_counts = {}
         self.counting_regions = []
+        if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
+            self.region = {"Region#01": self.region or self.initialize_region()}
 
     def add_region(
         self,
@@ -89,10 +91,6 @@ class RegionCounter(BaseSolution):
         """
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
-
-        # Ensure self.region is initialized and structured as a dictionary
-        if not isinstance(self.region, dict):
-            self.region = {"Region#01": self.region or self.initialize_region()}
 
         # Draw only valid regions
         for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):

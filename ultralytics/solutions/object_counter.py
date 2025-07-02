@@ -44,7 +44,7 @@ class ObjectCounter(BaseSolution):
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
         self.classwise_count = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
-        self.region_initialized = False  # Flag indicating whether the region has been initialized
+        self.initialize_region()  # Initialize region
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
@@ -158,10 +158,6 @@ class ObjectCounter(BaseSolution):
             >>> frame = cv2.imread("path/to/image.jpg")
             >>> results = counter.process(frame)
         """
-        if not self.region_initialized:
-            self.initialize_region()
-            self.region_initialized = True
-
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 

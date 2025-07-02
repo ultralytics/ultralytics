@@ -49,7 +49,6 @@ from ultralytics.utils import (
 )
 
 
-
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     """
     Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.

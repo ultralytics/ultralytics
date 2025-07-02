@@ -496,7 +496,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str):
                 formatted_coords = [f"{coord:.6g}" for coord in normalized_coords]
                 g.write(f"{class_idx} {' '.join(formatted_coords)}\n")
 
-    for phase in ["train", "val"]:
+    for phase in {"train", "val"}:
         image_dir = dota_root_path / "images" / phase
         orig_label_dir = dota_root_path / "labels" / f"{phase}_original"
         save_dir = dota_root_path / "labels" / phase
@@ -684,7 +684,7 @@ def create_synthetic_coco_dataset():
     # Create synthetic images
     shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed
     with ThreadPoolExecutor(max_workers=NUM_THREADS) as executor:
-        for subset in ["train2017", "val2017"]:
+        for subset in {"train2017", "val2017"}:
             subset_dir = dir / "images" / subset
             subset_dir.mkdir(parents=True, exist_ok=True)
 

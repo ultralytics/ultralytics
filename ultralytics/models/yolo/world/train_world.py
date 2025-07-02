@@ -152,7 +152,9 @@ class WorldTrainerFromScratch(WorldTrainer):
                     if not path.exists() and not path.is_absolute():
                         g[k] = str((DATASETS_DIR / g[k]).resolve())  # path relative to DATASETS_DIR
             final_data[s] += grounding_data
-        data["val"] = data["val"][0]  # assign the first val dataset as currently only one validation set is supported
+        # assign the first val dataset as currently only one validation set is supported
+        data["val"] = data["val"][0]
+        final_data["val"] = final_data["val"][0]
         # NOTE: to make training work properly, set `nc` and `names`
         final_data["nc"] = data["val"]["nc"]
         final_data["names"] = data["val"]["names"]

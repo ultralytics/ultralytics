@@ -204,7 +204,7 @@ def test_track_stream(model):
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
-    for plots in [True, False]:  # Test both cases i.e. plots=True and plots=False
+    for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
         metrics = YOLO(model).val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
         metrics.to_csv()
@@ -594,7 +594,7 @@ def test_model_embeddings():
     model_detect = YOLO(MODEL)
     model_segment = YOLO(WEIGHTS_DIR / "yolo11n-seg.pt")
 
-    for batch in [SOURCE], [SOURCE, SOURCE]:  # test batch size 1 and 2
+    for batch in {[SOURCE], [SOURCE, SOURCE]}:  # test batch size 1 and 2
         assert len(model_detect.embed(source=batch, imgsz=32)) == len(batch)
         assert len(model_segment.embed(source=batch, imgsz=32)) == len(batch)
 

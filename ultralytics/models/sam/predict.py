@@ -198,7 +198,7 @@ class Predictor(BasePredictor):
         masks = self.prompts.pop("masks", masks)
         labels = self.prompts.pop("labels", labels)
 
-        if all(i is None for i in [bboxes, points, masks]):
+        if all(i is None for i in {bboxes, points, masks}):
             return self.generate(im, *args, **kwargs)
 
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)

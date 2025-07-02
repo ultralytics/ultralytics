@@ -390,7 +390,7 @@ def test_cfg_init():
         check_dict_alignment({"a": 1}, {"b": 2})
     copy_default_cfg()
     (Path.cwd() / DEFAULT_CFG_PATH.name.replace(".yaml", "_copy.yaml")).unlink(missing_ok=False)
-    [smart_value(x) for x in ["none", "true", "false"]]
+    [smart_value(x) for x in {"none", "true", "false"}]
 
 
 def test_utils_init():

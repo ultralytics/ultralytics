@@ -10,8 +10,8 @@ from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.torch_utils import de_parallel
 from ultralytics.utils.patches import torch_load
+from ultralytics.utils.torch_utils import de_parallel
 
 
 def on_pretrain_routine_end(trainer) -> None:

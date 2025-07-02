@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, List, Tuple, Dict
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 

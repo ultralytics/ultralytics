@@ -448,12 +448,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -532,12 +531,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```

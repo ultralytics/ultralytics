@@ -179,3 +179,7 @@ calibration_*.npy
 ./datasets/
 
 test_results
+
+# Output results
+tools/outputs/
+tools/sample_outputs/

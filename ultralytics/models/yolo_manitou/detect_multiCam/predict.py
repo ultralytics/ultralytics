@@ -40,7 +40,7 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
 
         Yields:
             (ultralytics.engine.results.Results): Results objects.
-        """
+        """  
         if self.args.verbose:
             LOGGER.info("")
 
@@ -73,21 +73,20 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
             for self.batch in self.dataset:
                 self.run_callbacks("on_predict_batch_start")
                 paths, _batch, s = self.batch
-
                 # Preprocess
                 with profilers[0]:
                     im = self.preprocess(_batch)
 
                 # Inference
                 with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs)
+                    preds, features = self.inference(im, *args, **kwargs)
                     if self.args.embed:
                         yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
                         continue
-
                 # Postprocess
                 with profilers[2]:
-                    self.results = self.postprocess(preds, _batch)
+                    #self.results = self.postprocess(preds, _batch)
+                    self.results = self.postprocess_forReid(preds, features, _batch)
                 self.run_callbacks("on_predict_postprocess_end")
 
                 # Visualize, save, write results
@@ -241,7 +240,8 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
         self.dataset = LoadManitouImagesAndRadar(data_cfg=data_cfg,
                                                  radar_accumulation=radar_accumulation,
                                                  batch=1,
-                                                 pre_transform=self.get_pre_transform())
+                                                 pre_transform=self.get_pre_transform(),
+                                                 use_radar=self.use_radar)
         
 
     def postprocess(self, preds, _batch):
@@ -284,7 +284,6 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
-
         if save_feats:
             obj_feats = self.get_obj_feats(self._feats, preds[1])
             preds = preds[0]
@@ -298,6 +297,64 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
         results = {"cameras": results, "radars": [_batch[i]["radar"] for i in range(len(_batch))]}  # add radar data to results
 
         return results
+
+    def postprocess_forReid(self, preds, features, _batch):
+        """
+        Post-process predictions and return a list of Results objects.
+
+        This method applies non-maximum suppression to raw model predictions and prepares them for visualization and
+        further analysis.
+
+        Args:
+            preds (torch.Tensor): Raw predictions from the model.
+            orig_imgs (torch.Tensor | list): Original input images before preprocessing.
+            **kwargs (Any): Additional keyword arguments.
+
+        Returns:
+            (list): List of Results objects containing the post-processed predictions.
+
+        Examples:
+            >>> predictor = DetectionPredictor(overrides=dict(model="yolo11n.pt"))
+            >>> results = predictor.predict("path/to/image.jpg")
+            >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
+        """
+        save_feats = getattr(self, "save_feats", False)
+        orig_imgs = [_batch[i]["orig_images"][f"cam{j}"] for i in range(len(_batch)) for j in range(1, 5)]  # get original images from batch
+        paths = [self.batch[0][i][f"cam{j}"] for i in range(len(self.batch[0])) for j in range(1, 5)]  # get paths from batch
+        
+        save_feats = True
+
+        preds = ops.non_max_suppression_forReid(
+            preds,
+            features,
+            self.args.conf,
+            self.args.iou,
+            self.args.classes,
+            self.args.agnostic_nms,
+            max_det=self.args.max_det,
+            nc=0 if self.args.task == "detect" else len(self.model.names),
+            end2end=getattr(self.model, "end2end", False),
+            rotated=self.args.task == "obb",
+            return_idxs=save_feats,
+        )
+
+        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
+            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
+
+
+        if save_feats:
+            obj_feats = preds[0][2]
+            preds = preds[0][0]
+
+        results = self.construct_results(preds, orig_imgs, paths)
+
+        if save_feats:
+            for r, f in zip(results, obj_feats):
+                r.feats = f  # add object features to results
+                
+        results = {"cameras": results, "radars": [_batch[i]["radar"] for i in range(len(_batch))]}  # add radar data to results
+
+        return results        
     
     def construct_results(self, preds, orig_imgs, paths):
         """
@@ -339,10 +396,10 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
         
         radar = batch[i]["radar"]
         # draw radar on cameras
-        cam1 = radar.get_overlay_image(1, cam1)
-        cam2 = radar.get_overlay_image(2, cam2)
-        cam3 = radar.get_overlay_image(3, cam3)
-        cam4 = radar.get_overlay_image(4, cam4)
+        #cam1 = radar.get_overlay_image(1, cam1)
+        #cam2 = radar.get_overlay_image(2, cam2)
+        #cam3 = radar.get_overlay_image(3, cam3)
+        #cam4 = radar.get_overlay_image(4, cam4)
         
         cams = [cam1, cam2, cam3, cam4]
         string = ""  # print string
@@ -407,3 +464,11 @@ class ManitouPredictor_MultiCam(ManitouPredictor):
         cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im) 
 
 
+    def inference(self, im, *args, **kwargs):
+        """Run inference on a given image using the specified model and arguments."""
+        visualize = (
+            increment_path(self.save_dir / Path(self.batch[0][0]).stem, mkdir=True)
+            if self.args.visualize and (not self.source_type.tensor)
+            else False
+        )
+        return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.model.model.featmap_idxs, *args, **kwargs)

@@ -85,7 +85,6 @@ class YOLOManitou(Model):
     
 class YOLOManitou_MultiCam(Model):
     """YOLO (You Only Look Once) object detection model for multi-camera scenarios."""
-
     @property
     def task_map(self):
         """Map head to model, trainer, validator, and predictor classes."""

@@ -75,6 +75,7 @@ from ultralytics.utils.loss import (
     E2EDetectLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
+    v8DetectionReidLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
@@ -1073,9 +1074,120 @@ class Ensemble(torch.nn.ModuleList):
 
 
 class DetectionModel_MultiView(DetectionModel):
-    """Detection model for multi-view inputs."""
+    """Detection model for multi-view inputs. With Reid embeddings training"""
 
-    pass
+    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize the YOLO detection model with the given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg)
+        print("Initialisation detect + reid Model")
+        self.is_train = None
+
+        self.featmap_idxs = None
+        for layer in reversed(self.yaml.get("head", [])):
+            if isinstance(layer[0], list) and isinstance(layer[2], str) and "Detect" in layer[2]:
+                self.featmap_idxs = layer[0]
+                break
+        if self.featmap_idxs is None:
+            raise ValueError("Detect layer with multiple input indices not found in YAML head.")
+
+        dummy_input = torch.zeros(1, ch, 256, 256)  # entrée factice
+        featmap_shapes = {}
+        x = dummy_input
+        outs = []
+        # Forward partiel pour récupérer les dimensions de sortie des couches 15, 18, 21
+        for i, m in enumerate(self.model):
+            if isinstance(m.f, int):
+                xi = outs[m.f] if m.f != -1 else x
+            else:
+                xi = [outs[j] if j != -1 else x for j in m.f]
+            
+            x = m(xi)
+            outs.append(x)
+
+            if i in self.featmap_idxs:
+                featmap_shapes[i] = x.shape  # (1, C, H, W)
+
+        # Récupère les dimensions des canaux (C) pour chaque couche
+        detect_feat_dims = [featmap_shapes[i][1] for i in self.featmap_idxs]
+
+        self.featmap_projectors = nn.ModuleList([
+            nn.Conv2d(detect_feat_dims[0], detect_feat_dims[1], kernel_size=1),
+            nn.Conv2d(detect_feat_dims[1], detect_feat_dims[1], kernel_size=1),
+            nn.Conv2d(detect_feat_dims[2], detect_feat_dims[1], kernel_size=1)
+        ])
+
+    def loss(self, batch, preds=None, features=None):
+        if getattr(self, "criterion", None) is None:
+            self.criterion = self.init_criterion()
+        if self.is_train == True:
+            self.criterion.is_train = True
+            img = torch.cat([batch['key_frames']['img'], batch['ref_frames']['img']], dim=0)
+            preds, features = self.forward(img, embed=self.featmap_idxs) if preds is None else preds
+
+            B = batch['key_frames']['img'].shape[0]
+            preds_key = [p[:B] for p in preds]  # liste de 3 tenseurs (4B, 144, H, W)
+            preds_ref = [p[B:] for p in preds]
+
+        if self.is_train == False:
+            self.criterion.is_train = False
+
+            preds, features = self.forward(batch['key_frames']['img'], embed=self.featmap_idxs) if preds is None else preds, features
+
+            B = batch['key_frames']['img'].shape[0]
+            preds_key = [p[:B] for p in preds[1]]  # liste de 3 tenseurs (4B, 144, H, W)
+            preds_ref = None
+        
+        return self.criterion(preds_key, preds_ref, features, batch)
+
+    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+        y, dt, embeddings = [], [], []  # outputs
+        feature_maps = [] 
+        for m in self.model:
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            x = m(x)  # run
+            y.append(x if m.i in self.save else None)  # save output
+
+            if embed and m.i in embed:
+                #print(f"Layer {m.i}: shape={x.shape}")
+                feature_maps.append(x)
+
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+
+        if embed==None:
+            return x
+        else:
+            features_flat = self.featmap_flatten(feature_maps)
+            return x, features_flat
+
+    def featmap_flatten(self, feature_maps):
+        """
+        feature_maps : liste de 3 tenseurs [B, C, H, W]
+        Retourne : [B, total_pixels, 128]
+        """
+        projected = []
+
+        for fmap, proj in zip(feature_maps, self.featmap_projectors):
+            fmap_proj = proj(fmap)  # [B, 128, H, W]
+            fmap_flat = fmap_proj.flatten(2).transpose(1, 2)  # [B, H*W, 128]
+            projected.append(fmap_flat)
+
+        return torch.cat(projected, dim=1)  # [B, N, 128]
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the DetectionModel."""
+        return v8DetectionReidLoss(self)
 
 # Functions ------------------------------------------------------------------------------------------------------------
 

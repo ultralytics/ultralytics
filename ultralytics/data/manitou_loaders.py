@@ -121,7 +121,6 @@ class LoadManitouImagesAndRadar:
                 radar3_pth = self.radar3[self.count]
                 radar4_pth = self.radar4[self.count]
             frame_name = os.path.basename(cam1_pth).split('.')[0]
-            
             # Load images and radar data
             cam1_img = imread(cam1_pth)
             cam2_img = imread(cam2_pth)

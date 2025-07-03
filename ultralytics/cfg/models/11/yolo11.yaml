@@ -5,7 +5,7 @@
 # Task docs: https://docs.ultralytics.com/tasks/detect
 
 # Parameters
-nc: 80 # number of classes
+nc: 4 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call yolo11.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 181 layers, 2624080 parameters, 2624064 gradients, 6.6 GFLOPs

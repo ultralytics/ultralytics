@@ -10,6 +10,17 @@ keywords: YOLO11, deployment options, export formats, PyTorch, TensorRT, OpenVIN
 
 You've come a long way on your journey with YOLO11. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLO11 model. Now, it's time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/QkCsj2SvZc4"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Choose the Best Ultralytics YOLO11 Deployment Format for Your Project | TensorRT | OpenVINO 🚀
+</p>
+
 This guide walks you through YOLO11's deployment options and the essential factors to consider to choose the right option for your project.
 
 ## How to Select the Right Deployment Option for Your YOLO11 Model

@@ -4,6 +4,7 @@ import itertools
 from glob import glob
 from math import ceil
 from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -14,17 +15,17 @@ from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
 
 
-def bbox_iof(polygon1, bbox2, eps=1e-6):
+def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.ndarray:
     """
     Calculate Intersection over Foreground (IoF) between polygons and bounding boxes.
 
     Args:
-        polygon1 (np.ndarray): Polygon coordinates with shape (n, 8).
-        bbox2 (np.ndarray): Bounding boxes with shape (n, 4).
+        polygon1 (np.ndarray): Polygon coordinates with shape (N, 8).
+        bbox2 (np.ndarray): Bounding boxes with shape (N, 4).
         eps (float, optional): Small value to prevent division by zero.
 
     Returns:
-        (np.ndarray): IoF scores with shape (n, 1) or (n, m) if bbox2 is (m, 4).
+        (np.ndarray): IoF scores with shape (N, 1) or (N, M) if bbox2 is (M, 4).
 
     Notes:
         Polygon format: [x1, y1, x2, y2, x3, y3, x4, y4].
@@ -61,16 +62,16 @@ def bbox_iof(polygon1, bbox2, eps=1e-6):
     return outputs
 
 
-def load_yolo_dota(data_root, split="train"):
+def load_yolo_dota(data_root: str, split: str = "train") -> List[Dict[str, Any]]:
     """
-    Load DOTA dataset.
+    Load DOTA dataset annotations and image information.
 
     Args:
         data_root (str): Data root directory.
-        split (str): The split data set, could be `train` or `val`.
+        split (str, optional): The split data set, could be 'train' or 'val'.
 
     Returns:
-        (List[Dict]): List of annotation dictionaries containing image information.
+        (List[Dict[str, Any]]): List of annotation dictionaries containing image information.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -97,19 +98,25 @@ def load_yolo_dota(data_root, split="train"):
     return annos
 
 
-def get_windows(im_size, crop_sizes=(1024,), gaps=(200,), im_rate_thr=0.6, eps=0.01):
+def get_windows(
+    im_size: Tuple[int, int],
+    crop_sizes: Tuple[int, ...] = (1024,),
+    gaps: Tuple[int, ...] = (200,),
+    im_rate_thr: float = 0.6,
+    eps: float = 0.01,
+) -> np.ndarray:
     """
-    Get the coordinates of windows.
+    Get the coordinates of sliding windows for image cropping.
 
     Args:
-        im_size (tuple): Original image size, (h, w).
-        crop_sizes (List[int]): Crop size of windows.
-        gaps (List[int]): Gap between crops.
-        im_rate_thr (float): Threshold of windows areas divided by image areas.
-        eps (float): Epsilon value for math operations.
+        im_size (Tuple[int, int]): Original image size, (H, W).
+        crop_sizes (Tuple[int, ...], optional): Crop size of windows.
+        gaps (Tuple[int, ...], optional): Gap between crops.
+        im_rate_thr (float, optional): Threshold of windows areas divided by image areas.
+        eps (float, optional): Epsilon value for math operations.
 
     Returns:
-        (np.ndarray): Array of window coordinates with shape (n, 4) where each row is [x_start, y_start, x_stop, y_stop].
+        (np.ndarray): Array of window coordinates with shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
     """
     h, w = im_size
     windows = []
@@ -144,8 +151,8 @@ def get_windows(im_size, crop_sizes=(1024,), gaps=(200,), im_rate_thr=0.6, eps=0
     return windows[im_rates > im_rate_thr]
 
 
-def get_window_obj(anno, windows, iof_thr=0.7):
-    """Get objects for each window."""
+def get_window_obj(anno: Dict[str, Any], windows: np.ndarray, iof_thr: float = 0.7) -> List[np.ndarray]:
+    """Get objects for each window based on IoF threshold."""
     h, w = anno["ori_size"]
     label = anno["label"]
     if len(label):
@@ -158,17 +165,24 @@ def get_window_obj(anno, windows, iof_thr=0.7):
         return [np.zeros((0, 9), dtype=np.float32) for _ in range(len(windows))]  # window_anns
 
 
-def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_images=True):
+def crop_and_save(
+    anno: Dict[str, Any],
+    windows: np.ndarray,
+    window_objs: List[np.ndarray],
+    im_dir: str,
+    lb_dir: str,
+    allow_background_images: bool = True,
+) -> None:
     """
-    Crop images and save new labels.
+    Crop images and save new labels for each window.
 
     Args:
-        anno (dict): Annotation dict, including `filepath`, `label`, `ori_size` as its keys.
-        windows (np.ndarray): Array of windows coordinates with shape (n, 4).
-        window_objs (list): A list of labels inside each window.
+        anno (Dict[str, Any]): Annotation dict, including 'filepath', 'label', 'ori_size' as its keys.
+        windows (np.ndarray): Array of windows coordinates with shape (N, 4).
+        window_objs (List[np.ndarray]): A list of labels inside each window.
         im_dir (str): The output directory path of images.
         lb_dir (str): The output directory path of labels.
-        allow_background_images (bool): Whether to include background images without labels.
+        allow_background_images (bool, optional): Whether to include background images without labels.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -203,16 +217,22 @@ def crop_and_save(anno, windows, window_objs, im_dir, lb_dir, allow_background_i
                     f.write(f"{int(lb[0])} {' '.join(formatted_coords)}\n")
 
 
-def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024,), gaps=(200,)):
+def split_images_and_labels(
+    data_root: str,
+    save_dir: str,
+    split: str = "train",
+    crop_sizes: Tuple[int, ...] = (1024,),
+    gaps: Tuple[int, ...] = (200,),
+) -> None:
     """
-    Split both images and labels.
+    Split both images and labels for a given dataset split.
 
     Args:
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
-        split (str): The split data set, could be `train` or `val`.
-        crop_sizes (tuple): Tuple of crop sizes.
-        gaps (tuple): Tuple of gaps between crops.
+        split (str, optional): The split data set, could be 'train' or 'val'.
+        crop_sizes (Tuple[int, ...], optional): Tuple of crop sizes.
+        gaps (Tuple[int, ...], optional): Tuple of gaps between crops.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -240,16 +260,18 @@ def split_images_and_labels(data_root, save_dir, split="train", crop_sizes=(1024
         crop_and_save(anno, windows, window_objs, str(im_dir), str(lb_dir))
 
 
-def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
+def split_trainval(
+    data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: Tuple[float, ...] = (1.0,)
+) -> None:
     """
-    Split train and val set of DOTA.
+    Split train and val sets of DOTA dataset with multiple scaling rates.
 
     Args:
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
-        crop_size (int): Base crop size.
-        gap (int): Base gap between crops.
-        rates (tuple): Scaling rates for crop_size and gap.
+        crop_size (int, optional): Base crop size.
+        gap (int, optional): Base gap between crops.
+        rates (Tuple[float, ...], optional): Scaling rates for crop_size and gap.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -273,20 +295,22 @@ def split_trainval(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
     for r in rates:
         crop_sizes.append(int(crop_size / r))
         gaps.append(int(gap / r))
-    for split in ["train", "val"]:
+    for split in {"train", "val"}:
         split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 
-def split_test(data_root, save_dir, crop_size=1024, gap=200, rates=(1.0,)):
+def split_test(
+    data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: Tuple[float, ...] = (1.0,)
+) -> None:
     """
-    Split test set of DOTA, labels are not included within this set.
+    Split test set of DOTA dataset, labels are not included within this set.
 
     Args:
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
-        crop_size (int): Base crop size.
-        gap (int): Base gap between crops.
-        rates (tuple): Scaling rates for crop_size and gap.
+        crop_size (int, optional): Base crop size.
+        gap (int, optional): Base gap between crops.
+        rates (Tuple[float, ...], optional): Scaling rates for crop_size and gap.
 
     Notes:
         The directory structure assumed for the DOTA dataset:

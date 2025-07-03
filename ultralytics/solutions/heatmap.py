@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any, List
+
 import cv2
 import numpy as np
 
@@ -31,7 +33,7 @@ class Heatmap(ObjectCounter):
         >>> processed_frame = heatmap.process(frame)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the Heatmap class for real-time video stream heatmap generation based on object tracks.
 
@@ -48,7 +50,7 @@ class Heatmap(ObjectCounter):
         self.colormap = self.CFG["colormap"]
         self.heatmap = None
 
-    def heatmap_effect(self, box):
+    def heatmap_effect(self, box: List[float]) -> None:
         """
         Efficiently calculate heatmap area and effect location for applying colormap.
 
@@ -70,9 +72,9 @@ class Heatmap(ObjectCounter):
         # Update only the values within the bounding box in a single vectorized operation
         self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
-    def process(self, im0):
+    def process(self, im0: np.ndarray) -> SolutionResults:
         """
-        Generate heatmap for each frame using Ultralytics.
+        Generate heatmap for each frame using Ultralytics tracking.
 
         Args:
             im0 (np.ndarray): Input image array for processing.
@@ -110,7 +112,7 @@ class Heatmap(ObjectCounter):
             self.display_counts(plot_im)  # Display the counts on the frame
 
         # Normalize, apply colormap to heatmap and combine with original image
-        if self.track_data.id is not None:
+        if self.track_data.is_track:
             normalized_heatmap = cv2.normalize(self.heatmap, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
             colored_heatmap = cv2.applyColorMap(normalized_heatmap, self.colormap)
             plot_im = cv2.addWeighted(plot_im, 0.5, colored_heatmap, 0.5, 0)
@@ -122,6 +124,6 @@ class Heatmap(ObjectCounter):
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
-            classwise_count=dict(self.classwise_counts),
+            classwise_count=dict(self.classwise_count),
             total_tracks=len(self.track_ids),
         )

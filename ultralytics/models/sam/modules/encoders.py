@@ -35,7 +35,7 @@ class ImageEncoderViT(nn.Module):
         neck (nn.Sequential): Neck module to further process the output.
 
     Methods:
-        forward: Processes input through patch embedding, positional embedding, blocks, and neck.
+        forward: Process input through patch embedding, positional embedding, blocks, and neck.
 
     Examples:
         >>> import torch
@@ -103,7 +103,7 @@ class ImageEncoderViT(nn.Module):
 
         self.pos_embed: Optional[nn.Parameter] = None
         if use_abs_pos:
-            # Initialize absolute positional embedding with pretrain image size.
+            # Initialize absolute positional embedding with pretrain image size
             self.pos_embed = nn.Parameter(torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim))
 
         self.blocks = nn.ModuleList()
@@ -157,7 +157,7 @@ class ImageEncoderViT(nn.Module):
 
 class PromptEncoder(nn.Module):
     """
-    Encodes different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
+    Encode different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
@@ -172,8 +172,8 @@ class PromptEncoder(nn.Module):
         no_mask_embed (nn.Embedding): Embedding for cases where no mask is provided.
 
     Methods:
-        get_dense_pe: Returns the positional encoding used to encode point prompts.
-        forward: Embeds different types of prompts, returning both sparse and dense embeddings.
+        get_dense_pe: Return the positional encoding used to encode point prompts.
+        forward: Embed different types of prompts, returning both sparse and dense embeddings.
 
     Examples:
         >>> prompt_encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
@@ -321,9 +321,8 @@ class PromptEncoder(nn.Module):
             masks (torch.Tensor | None): Masks to embed with shape (B, 1, H, W).
 
         Returns:
-            (Tuple[torch.Tensor, torch.Tensor]): A tuple containing:
-                - sparse_embeddings (torch.Tensor): Sparse embeddings for points and boxes with shape (B, N, embed_dim).
-                - dense_embeddings (torch.Tensor): Dense embeddings for masks of shape (B, embed_dim, embed_H, embed_W).
+            sparse_embeddings (torch.Tensor): Sparse embeddings for points and boxes with shape (B, N, embed_dim).
+            dense_embeddings (torch.Tensor): Dense embeddings for masks of shape (B, embed_dim, embed_H, embed_W).
 
         Examples:
             >>> encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
@@ -394,7 +393,7 @@ class MemoryEncoder(nn.Module):
 
         Args:
             out_dim (int): Output dimension of the encoded features.
-            in_dim (int): Input dimension of the pixel features. Default is 256.
+            in_dim (int): Input dimension of the pixel features.
 
         Examples:
             >>> encoder = MemoryEncoder(out_dim=256, in_dim=256)
@@ -420,7 +419,7 @@ class MemoryEncoder(nn.Module):
         pix_feat: torch.Tensor,
         masks: torch.Tensor,
         skip_mask_sigmoid: bool = False,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> dict:
         """Process pixel features and masks to generate encoded memory representations for segmentation."""
         if not skip_mask_sigmoid:
             masks = F.sigmoid(masks)
@@ -499,7 +498,7 @@ class ImageEncoder(nn.Module):
         )
 
     def forward(self, sample: torch.Tensor):
-        """Encode input through patch embedding, positional embedding, transformer blocks, and neck module."""
+        """Encode input through trunk and neck networks, returning multiscale features and positional encodings."""
         features, pos = self.neck(self.trunk(sample))
         if self.scalp > 0:
             # Discard the lowest resolution features
@@ -552,7 +551,7 @@ class FpnNeck(nn.Module):
         fpn_top_down_levels: Optional[List[int]] = None,
     ):
         """
-        Initializes a modified Feature Pyramid Network (FPN) neck.
+        Initialize a modified Feature Pyramid Network (FPN) neck.
 
         This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
         similar to ViT positional embedding interpolation.
@@ -594,18 +593,18 @@ class FpnNeck(nn.Module):
         assert fuse_type in {"sum", "avg"}
         self.fuse_type = fuse_type
 
-        # levels to have top-down features in its outputs
+        # Levels to have top-down features in its outputs
         # e.g. if fpn_top_down_levels is [2, 3], then only outputs of level 2 and 3
         # have top-down propagation, while outputs of level 0 and level 1 have only
-        # lateral features from the same backbone level.
+        # lateral features from the same backbone level
         if fpn_top_down_levels is None:
-            # default is to have top-down features on all levels
+            # Default is to have top-down features on all levels
             fpn_top_down_levels = range(len(self.convs))
         self.fpn_top_down_levels = list(fpn_top_down_levels)
 
     def forward(self, xs: List[torch.Tensor]):
         """
-        Performs forward pass through the Feature Pyramid Network (FPN) neck.
+        Perform forward pass through the Feature Pyramid Network (FPN) neck.
 
         This method processes a list of input tensors from the backbone through the FPN, applying lateral connections
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
@@ -614,10 +613,9 @@ class FpnNeck(nn.Module):
             xs (List[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
 
         Returns:
-            (Tuple[List[torch.Tensor], List[torch.Tensor]]): A tuple containing:
-                - out (List[torch.Tensor]): List of output feature maps after FPN processing, each with shape
-                  (B, d_model, H, W).
-                - pos (List[torch.Tensor]): List of positional encodings corresponding to each output feature map.
+            out (List[torch.Tensor]): List of output feature maps after FPN processing, each with shape
+                (B, d_model, H, W).
+            pos (List[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:
             >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
@@ -629,10 +627,10 @@ class FpnNeck(nn.Module):
         out = [None] * len(self.convs)
         pos = [None] * len(self.convs)
         assert len(xs) == len(self.convs)
-        # fpn forward pass
+        # FPN forward pass
         # see https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/fpn.py
         prev_features = None
-        # forward in top-down order (from low to high resolution)
+        # Forward in top-down order (from low to high resolution)
         n = len(self.convs) - 1
         for i in range(n, -1, -1):
             x = xs[i]
@@ -763,7 +761,7 @@ class Hiera(nn.Module):
             stride=(4, 4),
             padding=(3, 3),
         )
-        # Which blocks have global att?
+        # Which blocks have global attention?
         self.global_att_blocks = global_att_blocks
 
         # Windowed positional embedding (https://arxiv.org/abs/2311.05613)
@@ -778,8 +776,7 @@ class Hiera(nn.Module):
 
         for i in range(depth):
             dim_out = embed_dim
-            # lags by a block, so first block of
-            # next stage uses an initial window size
+            # Lags by a block, so first block of next stage uses an initial window size
             # of previous stage and final window size of current stage
             window_size = self.window_spec[cur_stage - 1]
 
@@ -841,7 +838,7 @@ class Hiera(nn.Module):
         x = self.patch_embed(x)
         # x: (B, H, W, C)
 
-        # Add pos embed
+        # Add positional embedding
         x = x + self._get_pos_embed(x.shape[1:3])
 
         outputs = []

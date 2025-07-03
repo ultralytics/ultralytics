@@ -90,7 +90,7 @@ Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco/) J
 from ultralytics.data.converter import convert_coco
 
 convert_coco(
-    "../datasets/coco/annotations/",
+    "coco/annotations/",
     use_segments=False,
     use_keypoints=False,
     cls91to80=True,
@@ -436,7 +436,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
                 cv2.namedWindow(window_name)
                 cv2.setMouseCallback(window_name, drag_line)
 
-            if results.boxes.id is not None:
+            if results.boxes.is_track:
                 if results.masks is not None:
                     masks = results.masks
                 boxes = results.boxes
@@ -723,7 +723,7 @@ To convert COCO JSON annotations into YOLO format for object detection, you can 
 from ultralytics.data.converter import convert_coco
 
 convert_coco(
-    "../datasets/coco/annotations/",
+    "coco/annotations/",
     use_segments=False,
     use_keypoints=False,
     cls91to80=True,

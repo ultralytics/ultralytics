@@ -179,9 +179,9 @@ def get_default_callbacks():
     Get the default callbacks for Ultralytics training, validation, prediction, and export processes.
 
     Returns:
-        (dict): Dictionary of default callbacks for various training events. Each key in the dictionary represents an
-            event during the training process, and the corresponding value is a list of callback functions that are
-            executed when that event occurs.
+        (dict): Dictionary of default callbacks for various training events. Each key represents an event during the
+            training process, and the corresponding value is a list of callback functions executed when that event
+            occurs.
 
     Examples:
         >>> callbacks = get_default_callbacks()

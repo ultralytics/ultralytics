@@ -3,6 +3,7 @@
 import math
 import random
 from copy import copy
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import torch.nn as nn
@@ -12,6 +13,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
@@ -21,12 +23,12 @@ class DetectionTrainer(BaseTrainer):
     A class extending the BaseTrainer class for training based on a detection model.
 
     This trainer specializes in object detection tasks, handling the specific requirements for training YOLO models
-    for object detection.
+    for object detection including dataset building, data loading, preprocessing, and model configuration.
 
     Attributes:
         model (DetectionModel): The YOLO detection model being trained.
-        data (dict): Dictionary containing dataset information including class names and number of classes.
-        loss_names (Tuple[str]): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
+        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        loss_names (tuple): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
 
     Methods:
         build_dataset: Build YOLO dataset for training or validation.
@@ -49,14 +51,14 @@ class DetectionTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-            batch (int, optional): Size of batches, this is for `rect`.
+            mode (str): 'train' mode or 'val' mode, users are able to customize different augmentations for each mode.
+            batch (int, optional): Size of batches, this is for 'rect' mode.
 
         Returns:
             (Dataset): YOLO dataset object configured for the specified mode.
@@ -64,7 +66,7 @@ class DetectionTrainer(BaseTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """
         Construct and return dataloader for the specified mode.
 
@@ -87,15 +89,15 @@ class DetectionTrainer(BaseTrainer):
         workers = self.args.workers if mode == "train" else self.args.workers * 2
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
-    def preprocess_batch(self, batch):
+    def preprocess_batch(self, batch: Dict) -> Dict:
         """
         Preprocess a batch of images by scaling and converting to float.
 
         Args:
-            batch (dict): Dictionary containing batch data with 'img' tensor.
+            batch (Dict): Dictionary containing batch data with 'img' tensor.
 
         Returns:
-            (dict): Preprocessed batch with normalized images.
+            (Dict): Preprocessed batch with normalized images.
         """
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         if self.args.multi_scale:
@@ -125,7 +127,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg: Optional[str] = None, weights: Optional[str] = None, verbose: bool = True):
         """
         Return a YOLO detection model.
 
@@ -149,7 +151,7 @@ class DetectionTrainer(BaseTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items: Optional[List[float]] = None, prefix: str = "train"):
         """
         Return a loss dict with labeled training loss items tensor.
 
@@ -177,19 +179,16 @@ class DetectionTrainer(BaseTrainer):
             "Size",
         )
 
-    def plot_training_samples(self, batch, ni):
+    def plot_training_samples(self, batch: Dict[str, Any], ni: int) -> None:
         """
         Plot training samples with their annotations.
 
         Args:
-            batch (dict): Dictionary containing batch data.
+            batch (Dict[str, Any]): Dictionary containing batch data.
             ni (int): Number of iterations.
         """
         plot_images(
-            images=batch["img"],
-            batch_idx=batch["batch_idx"],
-            cls=batch["cls"].squeeze(-1),
-            bboxes=batch["bboxes"],
+            labels=batch,
             paths=batch["im_file"],
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
@@ -212,6 +211,8 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (int): Optimal batch size.
         """
-        train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
+        with override_configs(self.args, overrides={"cache": False}) as self.args:
+            train_dataset = self.build_dataset(self.data["train"], mode="train", batch=16)
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
+        del train_dataset  # free memory
         return super().auto_batch(max_num_obj)

@@ -30,19 +30,32 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
-    file_bytes = np.fromfile(filename, np.uint8)
     if filename.endswith((".tiff", ".tif")):
-        success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
+        success, frames = cv2.imreadmulti(filename, flags=cv2.IMREAD_UNCHANGED)
         if success:
             # Handle RGB images in tif/tiff format
             return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)
         return None
     else:
-        im = cv2.imdecode(file_bytes, flags)
+        im = cv2.imread(filename, flags)
         return im[..., None] if im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
-def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
+def imread_unicode(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray:
+    """
+    Read an image from a file.
+
+    Args:
+        filename (str): Path to the file to read.
+        flags (int, optional): Flag that can take values of cv2.IMREAD_*. Defaults to cv2.IMREAD_COLOR.
+
+    Returns:
+        (np.ndarray): The read image.
+    """
+    return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
+
+
+def imwrite_unicode(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
     """
     Write an image to a file with multilanguage filename support.
 
@@ -68,7 +81,7 @@ def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) 
         return False
 
 
-def imshow(winname: str, mat: np.ndarray) -> None:
+def imshow_unicode(winname: str, mat: np.ndarray) -> None:
     """
     Display an image in the specified window with multilanguage window name support.
 

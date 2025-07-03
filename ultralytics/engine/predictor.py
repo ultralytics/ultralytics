@@ -466,29 +466,35 @@ class BasePredictor:
         """
         im = self.plotted_img
 
+        video_stem = Path(save_path).stem  # filename without extension
+        frames_path = Path(save_path).parent / f"{video_stem}_frames"
+
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            frames_path = f"{save_path.split('.', 1)[0]}_frames/"
+
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
-                    Path(frames_path).mkdir(parents=True, exist_ok=True)
+                    frames_path.mkdir(parents=True, exist_ok=True)
                 suffix, fourcc = (".mp4", "avc1") if MACOS else (".avi", "WMV2") if WINDOWS else (".avi", "MJPG")
                 self.vid_writer[save_path] = cv2.VideoWriter(
                     filename=str(Path(save_path).with_suffix(suffix)),
                     fourcc=cv2.VideoWriter_fourcc(*fourcc),
-                    fps=fps,  # integer required, floats produce error in MP4 codec
-                    frameSize=(im.shape[1], im.shape[0]),  # (width, height)
+                    fps=fps,
+                    frameSize=(im.shape[1], im.shape[0]),
                 )
-
             # Save video
             self.vid_writer[save_path].write(im)
-            if self.args.save_frames:
-                cv2.imwrite(f"{frames_path}{frame}.jpg", im)
 
-        # Save images
+            if self.args.save_frames:
+                # Save frame image with full video_stem prefix
+                frame_filename = f"{video_stem}_{frame}.jpg"
+                cv2.imwrite(str(frames_path / frame_filename), im)
         else:
-            cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
+            # Save images: save in the same folder under frames_path with consistent naming
+            frames_path.mkdir(parents=True, exist_ok=True)
+            frame_filename = f"{video_stem}_{frame}.jpg"
+            cv2.imwrite(str(frames_path / frame_filename), im)
 
     def show(self, p: str = ""):
         """Display an image in a window."""

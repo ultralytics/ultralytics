@@ -108,6 +108,24 @@ class BboxLoss(nn.Module):
         # if feature_weight is not None:
         #     feature_weight = feature_weight.squeeze(-1).repeat(len(target_scores), 1)[fg_mask].unsqueeze(-1)
         #     weight = weight * feature_weight
+        # xyxy
+        # target_bboxes_l = target_bboxes[fg_mask].long()
+        # target_bboxes_r = target_bboxes_l + 1
+
+        # xywh
+        # target_bboxes_ = xyxy2xywh(target_bboxes[fg_mask])
+        # target_bboxes_l = target_bboxes_.clone()
+        # target_bboxes_l[..., 2:4] = target_bboxes_[..., 2:4].long()
+        # target_bboxes_r = target_bboxes_l.clone()
+        # target_bboxes_r[..., 2:4] += 1
+        # wl = (target_bboxes_r[..., 2:4] - target_bboxes_[..., 2:4]).mean(-1, keepdims=True)  # weight left
+        # # wr = (target_bboxes_[..., 2:4] - target_bboxes_l[..., 2:4]).mean(-1, keepdims=True)  # weight left
+        # wr = 1 - wl
+        # target_bboxes_l = xywh2xyxy(target_bboxes_l)
+        # target_bboxes_r = xywh2xyxy(target_bboxes_r)
+
+        # iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes_l, xywh=False, CIoU=True) * wl + bbox_iou(pred_bboxes[fg_mask], target_bboxes_r, xywh=False, CIoU=True) * wr
+        # iou = (bbox_iou(pred_bboxes[fg_mask], target_bboxes_l, xywh=False, CIoU=True) + bbox_iou(pred_bboxes[fg_mask], target_bboxes_r, xywh=False, CIoU=True)) / 2.0
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 

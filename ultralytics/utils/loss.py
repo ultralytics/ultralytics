@@ -198,6 +198,7 @@ class v8DetectionLoss:
         self.updates = 0
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
+        # self.total_assignments = 0
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocess targets by converting to tensor format and scaling coordinates."""
@@ -261,6 +262,7 @@ class v8DetectionLoss:
             gt_bboxes,
             mask_gt,
         )
+        # self.total_assignments += fg_mask.sum().item()
 
         target_scores_sum = max(target_scores.sum(), 1)
 

@@ -119,6 +119,10 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.checks.is_intel
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.checks.is_sudo_available
 
 <br><br>

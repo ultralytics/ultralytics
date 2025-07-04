@@ -251,10 +251,10 @@ class BaseModel(torch.nn.Module):
                     m.fuse()  # remove one2many head
                 # YOLOE update forward
                 device = next(self.model.parameters()).device
-                if isinstance(m, YOLOEDetect) and hasattr(self, 'pe'):
-                    assert(isinstance(self, YOLOEModel))
+                if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
+                    assert isinstance(self, YOLOEModel)
                     m.fuse(self.pe.to(device))
-                
+
             self.info(verbose=verbose)
 
         return self

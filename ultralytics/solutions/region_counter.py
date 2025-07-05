@@ -26,6 +26,7 @@ class RegionCounter(BaseSolution):
     Methods:
         add_region: Add a new counting region with specified attributes.
         process: Process video frames to count objects in each region.
+        initialize_regions: Initialize zones to count the objects in each one. Zones could be multiple as well.
 
     Examples:
         Initialize a RegionCounter and add a counting region

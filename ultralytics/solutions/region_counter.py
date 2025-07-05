@@ -47,6 +47,7 @@ class RegionCounter(BaseSolution):
         }
         self.region_counts = {}
         self.counting_regions = []
+        self.total_regions = 0
         self.initialize_regions()
 
     def add_region(
@@ -86,9 +87,11 @@ class RegionCounter(BaseSolution):
             self.initialize_region()
         if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
             self.region = {"Region#01": self.region}
-        for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
-            region = self.add_region(region_name, reg_pts, colors(idx, True), (255, 255, 255))
+        self.total_regions = list(self.region.items())  # Length of regions
+        for i, (name, pts) in enumerate(self.total_regions):
+            region = self.add_region(name, pts, colors(i, True), (255, 255, 255))
             region["prepared_polygon"] = self.prep(region["polygon"])
+
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """
@@ -105,12 +108,12 @@ class RegionCounter(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
         # Draw only valid regions
-        for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
-            color = colors(idx, True)
-            annotator.draw_region(reg_pts, color, self.line_width * 2)
+        for i, (name, pts) in enumerate(self.total_regions):
+            annotator.draw_region(pts, self.counting_regions[i]["region_color"], self.line_width * 2)
 
         for box, cls, track_id, conf in zip(self.boxes, self.clss, self.track_ids, self.confs):
-            center = self.Point(((box[0] + box[2]) / 2, (box[1] + box[3]) / 2))
+            x1, y1, x2, y2 = box
+            center = self.Point(((x1 + x2) / 2, (y1 + y2) / 2))
             annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
 
             for region in self.counting_regions:

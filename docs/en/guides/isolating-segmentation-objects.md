@@ -103,13 +103,9 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     <details>
     <summary> Expand to understand what is happening when defining the <code>contour</code> variable.</summary>
     <p>
-
     - `c.masks.xy` :: Provides the coordinates of the mask contour points in the format `(x, y)`. For more details, refer to the [Masks Section from Predict Mode](../modes/predict.md#masks).
-
     - `.pop()` :: As `masks.xy` is a list containing a single element, this element is extracted using the `pop()` method.
-
     - `.astype(np.int32)` :: Using `masks.xy` will return with a data type of `float32`, but this won't be compatible with the OpenCV `drawContours()` function, so this will change the data type to `int32` for compatibility.
-
     - `.reshape(-1, 1, 2)` :: Reformats the data into the required shape of `[N, 1, 2]` where `N` is the number of contour points, with each point represented by a single entry `1`, and the entry is composed of `2` values. The `-1` denotes that the number of values along this dimension is flexible.
 
     </details>
@@ -117,15 +113,10 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     <details>
     <summary> Expand for an explanation of the <code>drawContours()</code> configuration.</summary>
     <p>
-
     - Encapsulating the `contour` variable within square brackets, `[contour]`, was found to effectively generate the desired contour mask during testing.
-
     - The value `-1` specified for the `drawContours()` parameter instructs the function to draw all contours present in the image.
-
     - The `tuple` `(255, 255, 255)` represents the color white, which is the desired color for drawing the contour in this binary mask.
-
     - The addition of `cv2.FILLED` will color all pixels enclosed by the contour boundary the same, in this case, all enclosed pixels will be white.
-
     - See [OpenCV Documentation on `drawContours()`](https://docs.opencv.org/4.8.0/d6/d6e/group__imgproc__draw.html#ga746c0625f1781f1ffc9056259103edbc) for more information.
 
     </details>
@@ -243,7 +234,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ***
 
 6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
-
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
     ??? example "Example Final Step"

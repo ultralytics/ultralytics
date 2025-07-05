@@ -9,8 +9,9 @@ import cv2
 import numpy as np
 
 from ultralytics import YOLO
+from ultralytics.hub.utils import events
 from ultralytics.solutions.config import SolutionConfig
-from ultralytics.utils import ASSETS_URL, LOGGER, ops
+from ultralytics.utils import ASSETS_URL, DEFAULT_CFG, DEFAULT_CFG_KEYS, LOGGER, SimpleNamespace, ops
 from ultralytics.utils.checks import check_imshow, check_requirements
 from ultralytics.utils.plotting import Annotator
 
@@ -244,6 +245,20 @@ class BaseSolution:
         """Allow instances to be called like a function with flexible arguments."""
         with self.profilers[1]:
             result = self.process(*args, **kwargs)  # Call the subclass-specific process method
+
+        # Solution events
+        events(
+            SimpleNamespace(
+                **{
+                    **{k: getattr(DEFAULT_CFG, k) for k in DEFAULT_CFG_KEYS},
+                    "task": type(self).__name__.lower(),
+                    "mode": "solution",
+                    "device": self.device,
+                    "model": self.CFG["model"],
+                }
+            )
+        )
+
         track_or_predict = "predict" if type(self).__name__ == "ObjectCropper" else "track"
         track_or_predict_speed = self.profilers[0].dt * 1e3
         solution_speed = (self.profilers[1].dt - self.profilers[0].dt) * 1e3  # solution time = process - track

@@ -47,7 +47,6 @@ class RegionCounter(BaseSolution):
         }
         self.region_counts = {}
         self.counting_regions = []
-        self.total_regions = 0
         self.initialize_regions()
 
     def add_region(
@@ -87,8 +86,7 @@ class RegionCounter(BaseSolution):
             self.initialize_region()
         if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
             self.region = {"Region#01": self.region}
-        self.total_regions = list(self.region.items())  # Length of regions
-        for i, (name, pts) in enumerate(self.total_regions):
+        for i, (name, pts) in enumerate(self.region.items()):
             region = self.add_region(name, pts, colors(i, True), (255, 255, 255))
             region["prepared_polygon"] = self.prep(region["polygon"])
 
@@ -108,7 +106,7 @@ class RegionCounter(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
         # Draw only valid regions
-        for i, (name, pts) in enumerate(self.total_regions):
+        for i, (name, pts) in enumerate(self.region.items()):
             annotator.draw_region(pts, self.counting_regions[i]["region_color"], self.line_width * 2)
 
         for box, cls, track_id, conf in zip(self.boxes, self.clss, self.track_ids, self.confs):

@@ -302,6 +302,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ${{ matrix.runner }}
     strategy:
+      fail-fast: false
       matrix:
         name: [JetPack6.2, JetPack5.1.2]
         include:

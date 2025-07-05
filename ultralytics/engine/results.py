@@ -493,6 +493,7 @@ class Results(SimpleClass, DataExportMixin):
         filename: Optional[str] = None,
         color_mode: str = "class",
         txt_color: Tuple[int, int, int] = (255, 255, 255),
+        probs_decimals: int = 2,
     ) -> np.ndarray:
         """
         Plot detection results on an input RGB image.
@@ -516,6 +517,7 @@ class Results(SimpleClass, DataExportMixin):
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
             txt_color (tuple[int, int, int]): Specify the RGB text color for classification task.
+            probs_decimals (int): Number of decimal places to round probabilities.
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.
@@ -569,7 +571,7 @@ class Results(SimpleClass, DataExportMixin):
             for i, d in enumerate(reversed(pred_boxes)):
                 c, d_conf, id = int(d.cls), float(d.conf) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
-                label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
+                label = (f"{name} {round(d_conf, probs_decimals)}" if conf else name) if labels else None
                 box = d.xyxyxyxy.squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,

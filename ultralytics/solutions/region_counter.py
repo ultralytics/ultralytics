@@ -105,8 +105,7 @@ class RegionCounter(BaseSolution):
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
         for box, cls, track_id, conf in zip(self.boxes, self.clss, self.track_ids, self.confs):
-            x1, y1, x2, y2 = box
-            center = self.Point(((x1 + x2) / 2, (y1 + y2) / 2))
+            center = self.Point(((box[0] + box[2]) / 2, (box[1] + box[3]) / 2))
             annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(track_id, True))
 
             for region in self.counting_regions:

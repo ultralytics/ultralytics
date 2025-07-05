@@ -589,7 +589,7 @@ class Mosaic(BaseMixTransform):
         """
         assert labels.get("rect_shape", None) is None, "rect and mosaic are mutually exclusive."
         assert len(labels.get("mix_labels", [])), "There are no other images for mosaic augment."
-        self.dtype = np.float32 if labels['img'].dtype==np.float32 else np.uint8
+        self.dtype = np.float32 if labels["img"].dtype == np.float32 else np.uint8
         return (
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
         )  # This code is modified for mosaic3 method.

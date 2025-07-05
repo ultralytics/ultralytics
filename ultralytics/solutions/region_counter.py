@@ -47,6 +47,7 @@ class RegionCounter(BaseSolution):
         }
         self.region_counts = {}
         self.counting_regions = []
+        self.initialize_regions()
 
     def add_region(
         self,
@@ -83,8 +84,8 @@ class RegionCounter(BaseSolution):
         """Initialize regions only once."""
         if self.region is None:
             self.initialize_region()
-        # Ensure self.region is initialized and structured as a dictionary
-        self.region = {"Region#01": self.region} if not isinstance(self.region, dict) else self.region
+        if not isinstance(self.region, dict):  # Ensure self.region is initialized and structured as a dictionary
+            self.region = {"Region#01": self.region}
         for idx, (region_name, reg_pts) in enumerate(self.region.items(), start=1):
             region = self.add_region(region_name, reg_pts, colors(idx, True), (255, 255, 255))
             region["prepared_polygon"] = self.prep(region["polygon"])

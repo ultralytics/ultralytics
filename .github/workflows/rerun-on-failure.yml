@@ -1,0 +1,50 @@
+name: Re-run Failed Jobs
+
+permissions:
+  contents: read
+  actions: write
+
+on:
+  workflow_run:
+    workflows: ["Ultralytics CI"]
+    types:
+      - completed
+
+jobs:
+  rerun-or-notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if this run has already been retried
+        id: check_reruns
+        run: |
+          curl -s -H "Authorization: Bearer ${{ secrets._GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/attempts \
+            > attempts.json
+
+          ATTEMPT_COUNT=$(jq '.total_count' attempts.json)
+          echo "Total attempts: $ATTEMPT_COUNT"
+          echo "attempt_count=$ATTEMPT_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Rerun failed jobs if first failure
+        if: steps.check_reruns.outputs.attempt_count == '1'
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:owner/:repo/actions/runs/:run_id/rerun-failed-jobs
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          run_id: ${{ github.event.workflow_run.id }}
+        env:
+          GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
+
+      # - name: Notify Slack if re-run already attempted
+      #   if: steps.check_reruns.outputs.attempt_count != '1'
+      #   uses: slackapi/slack-github-action@v2.1.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": ":warning: Ultralytics CI failed even after re-running jobs. Manual intervention needed.\n\n*Workflow:* https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}\n*Author:* ${{ github.event.workflow_run.actor.login }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

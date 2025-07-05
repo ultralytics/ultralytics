@@ -30,7 +30,9 @@ class RegionCounter(BaseSolution):
     Examples:
         Initialize a RegionCounter and add a counting region
         >>> counter = RegionCounter()
-        >>> counter.add_region("Region#01", [(100, 100), (200, 100), (200, 200), (100, 200)], (255, 0, 0), (255, 255, 255))
+        >>> counter.add_region(
+        ...     "Region#01", [(100, 100), (200, 100), (200, 200), (100, 200)], (255, 0, 0), (255, 255, 255)
+        ... )
         >>> results = counter.process(frame)
         >>> print(f"Total tracks: {results.total_tracks}")
     """

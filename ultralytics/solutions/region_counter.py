@@ -104,10 +104,6 @@ class RegionCounter(BaseSolution):
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
-        # Draw only valid regions
-        for i, (name, pts) in enumerate(self.region.items()):
-            annotator.draw_region(pts, self.counting_regions[i]["region_color"], self.line_width * 2)
-
         for box, cls, track_id, conf in zip(self.boxes, self.clss, self.track_ids, self.confs):
             x1, y1, x2, y2 = box
             center = self.Point(((x1 + x2) / 2, (y1 + y2) / 2))
@@ -120,8 +116,11 @@ class RegionCounter(BaseSolution):
 
         # Display region counts
         for region in self.counting_regions:
+            x1, y1, x2, y2 = map(int, region["polygon"].bounds)
+            pts = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
+            annotator.draw_region(pts, region["region_color"], self.line_width * 2)
             annotator.text_label(
-                region["polygon"].bounds,
+                [x1, y1, x2, y2],
                 label=str(region["counts"]),
                 color=region["region_color"],
                 txt_color=region["text_color"],

@@ -187,7 +187,7 @@ class DetectionValidator(BaseValidator):
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred, pbatch)
             idx = batch["batch_idx"] == si
-            bbox = pbatch.pop("bbox")
+            bbox = pbatch["bboxes"]
             labelsn = torch.cat((batch["cls"][idx], bbox), 1)  # native-space labels
             cls = pbatch["cls"].cpu().numpy()
             no_pred = len(predn["cls"]) == 0
@@ -203,7 +203,7 @@ class DetectionValidator(BaseValidator):
             # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
-                self.output_bad_cases(predn, labelsn, batch, si)
+                self.output_bad_cases(predn, labelsn, batch, si, conf=self.args.conf)
             if no_pred:
                 continue
 
@@ -258,18 +258,31 @@ class DetectionValidator(BaseValidator):
                     )
                 )
 
-    def output_bad_cases(self, detections, labels, batch, si):
+    def output_bad_cases(self, detections, labels, batch, si, conf: float = 0.25, iou_thres: float = 0.45):
         """Out the images with overkill and underkill result
         Args:
-            detections (Array[N, 6]): Detected bounding boxes and their associated information.
-                                      Each row should contain (x1, y1, x2, y2, conf, class).
-            labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
-                                  Each row should contain (class, x1, y1, x2, y2).
+            # detections (Array[N, 6]): Detected bounding boxes and their associated information.
+            #                           Each row should contain (x1, y1, x2, y2, conf, class).
+            # labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
+            #                       Each row should contain (class, x1, y1, x2, y2).
+            detections (Dict[str, torch.Tensor]): Dictionary containing detected bounding boxes and their associated information.
+                                       Should contain 'cls', 'conf', and 'bboxes' keys, where 'bboxes' can be
+                                       Array[N, 4] for regular boxes or Array[N, 5] for OBB with angle.
+            batch (Dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M, 5]) and
+                'cls' (Array[M]) keys, where M is the number of ground truth objects.
+            conf (float, optional): Confidence threshold for detections.
+            iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
-        if detections is None:
+        conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
+        gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
+        no_pred = len(detections["cls"]) == 0
+        if no_pred:
             detections = torch.empty((0, 6), device=self.device)  # Output all labels
 
-        detections = detections[detections[:, 4] > self.confusion_matrix.conf]
+
+        detections = torch.cat([detections['bboxes'], detections['conf'].reshape(-1, 1), detections['cls'].reshape(-1, 1)], 1)
+
+        detections = detections[detections[:, 4] > conf]
         # gt_classes = labels[:, 0].int()
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
@@ -278,7 +291,7 @@ class DetectionValidator(BaseValidator):
             [detections[:, :4], detections[:, 4].reshape(-1, 1), detection_classes.reshape(-1, 1)], dim=1
         ).cpu()
 
-        x = torch.where(iou > self.confusion_matrix.iou_thres)
+        x = torch.where(iou > iou_thres)
         if x[0].shape[0]:
             matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
             if x[0].shape[0] > 1:
@@ -295,8 +308,8 @@ class DetectionValidator(BaseValidator):
         #  [          2           2      0.9422]]
         # We need to find the pairs not in matches here. That is iou < iou_thres
         # Find the ground truth box without prediction box, and prediction box without ground truth
-        x = torch.where(iou > self.confusion_matrix.iou_thres)
-        torch.where(iou <= self.confusion_matrix.iou_thres)  # y[0] is label, y[1] is predict
+        x = torch.where(iou > iou_thres)
+        torch.where(iou <= iou_thres)  # y[0] is label, y[1] is predict
         labels_matches = matches[:, 0]
         pred_matches = matches[:, 1]
 

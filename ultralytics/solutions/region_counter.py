@@ -92,7 +92,6 @@ class RegionCounter(BaseSolution):
             region = self.add_region(name, pts, colors(i, True), (255, 255, 255))
             region["prepared_polygon"] = self.prep(region["polygon"])
 
-
     def process(self, im0: np.ndarray) -> SolutionResults:
         """
         Process the input frame to detect and count objects within each defined region.

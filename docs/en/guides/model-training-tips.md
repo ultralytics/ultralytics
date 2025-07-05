@@ -145,12 +145,10 @@ You can also fine-tune optimizer parameters to improve model performance. Adjust
 Different optimizers have various strengths and weaknesses. Let's take a glimpse at a few common optimizers.
 
 - **SGD (Stochastic Gradient Descent)**:
-
     - Updates model parameters using the gradient of the loss function with respect to the parameters.
     - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
 - **[Adam](https://www.ultralytics.com/glossary/adam-optimizer) (Adaptive Moment Estimation)**:
-
     - Combines the benefits of both SGD with momentum and RMSProp.
     - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
     - Well-suited for noisy data and sparse gradients.
@@ -197,7 +195,7 @@ Multiscale training enhances model performance by training on images of varying 
 
 ### How can I use pre-trained weights to speed up training in YOLO11?
 
-Using pre-trained weights can significantly reduce training times and improve model performance by starting from a model that already understands basic features. In YOLO11, you can set the `pretrained` parameter to `True` or specify a path to custom pre-trained weights in your training configuration. This approach, known as transfer learning, leverages knowledge from large datasets to adapt to your specific task. Learn more about pre-trained weights and their advantages [here](../modes/train.md).
+Using pre-trained weights can greatly accelerate training and enhance model accuracy by leveraging a model already familiar with foundational visual features. In YOLO11, simply set the `pretrained` parameter to `True` or provide a path to your custom pre-trained weights in the training configuration. This method, called transfer learning, allows models trained on large datasets to be effectively adapted to your specific application. Learn more about how to use pre-trained weights and their benefits in the [training configuration guide](../modes/train.md).
 
 ### What is the recommended number of epochs for training a model, and how do I set this in YOLO11?
 

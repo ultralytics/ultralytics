@@ -51,7 +51,6 @@ class BaseValidator:
     Attributes:
         args (SimpleNamespace): Configuration for the validator.
         dataloader (DataLoader): Dataloader to use for validation.
-        pbar (tqdm): Progress bar to update during validation.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
@@ -69,6 +68,8 @@ class BaseValidator:
         save_dir (Path): Directory to save results.
         plots (dict): Dictionary to store plots for visualization.
         callbacks (dict): Dictionary to store various callback functions.
+        stride (int): Model stride for padding calculations.
+        loss (torch.Tensor): Accumulated loss during training validation.
 
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
@@ -83,30 +84,27 @@ class BaseValidator:
         update_metrics: Update metrics based on predictions and batch.
         finalize_metrics: Finalize and return all metrics.
         get_stats: Return statistics about the model's performance.
-        check_stats: Check statistics.
         print_results: Print the results of the model's predictions.
         get_desc: Get description of the YOLO model.
-        on_plot: Register plots (e.g. to be consumed in callbacks).
+        on_plot: Register plots for visualization.
         plot_val_samples: Plot validation samples during training.
         plot_predictions: Plot YOLO model predictions on batch images.
         pred_to_json: Convert predictions to JSON format.
         eval_json: Evaluate and return JSON format of prediction statistics.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
         Initialize a BaseValidator instance.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path, optional): Directory to save results.
-            pbar (tqdm.tqdm, optional): Progress bar for displaying progress.
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
         """
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
-        self.pbar = pbar
         self.stride = None
         self.data = None
         self.device = None
@@ -124,7 +122,7 @@ class BaseValidator:
         self.save_dir = save_dir or get_save_dir(self.args)
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
-            self.args.conf = 0.001  # default conf=0.001
+            self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
         self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
@@ -140,7 +138,7 @@ class BaseValidator:
             model (nn.Module, optional): Model to validate if not using a trainer.
 
         Returns:
-            stats (dict): Dictionary containing validation statistics.
+            (dict): Dictionary containing validation statistics.
         """
         # Clear the false negative and false positive folder to avoid conflict of final val and prev val
         if os.path.exists(str(self.save_dir / "false_negative_underkill")):
@@ -158,13 +156,12 @@ class BaseValidator:
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             model = model.half() if self.args.half else model.float()
-            # self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
             if str(self.args.model).endswith(".yaml") and model is None:
-                LOGGER.warning("WARNING ⚠️ validating an untrained model YAML will result in 0 mAP.")
+                LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
                 weights=model or self.args.model,
@@ -173,18 +170,17 @@ class BaseValidator:
                 data=self.args.data,
                 fp16=self.args.half,
             )
-            # self.model = model
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if engine:
                 self.args.batch = model.batch_size
-            elif not pt and not jit:
+            elif not (pt or jit or getattr(model, "dynamic", False)):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
-            if str(self.args.data).split(".")[-1] in {"yaml", "yml"}:
+            if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
                 self.data = check_det_dataset(self.args.data)
             elif self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
@@ -193,13 +189,13 @@ class BaseValidator:
 
             if self.device.type in {"cpu", "mps"}:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
-            if not pt:
+            if not (pt or (getattr(model, "dynamic", False) and not model.imx)):
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
-            model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (
@@ -238,7 +234,6 @@ class BaseValidator:
 
             self.run_callbacks("on_val_batch_end")
         stats = self.get_stats()
-        self.check_stats(stats)
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
         self.finalize_metrics()
         self.print_results()
@@ -272,7 +267,7 @@ class BaseValidator:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
-            use_scipy (bool): Whether to use scipy for matching (more precise).
+            use_scipy (bool, optional): Whether to use scipy for matching (more precise).
 
         Returns:
             (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
@@ -301,7 +296,6 @@ class BaseValidator:
                     if matches.shape[0] > 1:
                         matches = matches[iou[matches[:, 0], matches[:, 1]].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
-                        # matches = matches[matches[:, 2].argsort()[::-1]]
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=pred_classes.device)
@@ -339,17 +333,13 @@ class BaseValidator:
         """Update metrics based on predictions and batch."""
         pass
 
-    def finalize_metrics(self, *args, **kwargs):
+    def finalize_metrics(self):
         """Finalize and return all metrics."""
         pass
 
     def get_stats(self):
         """Return statistics about the model's performance."""
         return {}
-
-    def check_stats(self, stats):
-        """Check statistics."""
-        pass
 
     def print_results(self):
         """Print the results of the model's predictions."""
@@ -369,10 +359,9 @@ class BaseValidator:
         return []
 
     def on_plot(self, name, data=None):
-        """Register plots (e.g. to be consumed in callbacks)."""
+        """Register plots for visualization."""
         self.plots[Path(name)] = {"data": data, "timestamp": time.time()}
 
-    # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):
         """Plot validation samples during training."""
         pass

@@ -8,16 +8,16 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-from ultralytics.utils import ASSETS, yaml_load
+from ultralytics.utils import ASSETS, YAML
 from ultralytics.utils.checks import check_requirements, check_yaml
 
 
 class YOLOv8:
     """
-    YOLOv8 object detection model class for handling inference and visualization.
+    YOLOv8 object detection model class for handling ONNX inference and visualization.
 
     This class provides functionality to load a YOLOv8 ONNX model, perform inference on images,
-    and visualize the detection results.
+    and visualize the detection results with bounding boxes and labels.
 
     Attributes:
         onnx_model (str): Path to the ONNX model file.
@@ -31,6 +31,18 @@ class YOLOv8:
         img (np.ndarray): The loaded input image.
         img_height (int): Height of the input image.
         img_width (int): Width of the input image.
+
+    Methods:
+        letterbox: Resize and reshape images while maintaining aspect ratio by adding padding.
+        draw_detections: Draw bounding boxes and labels on the input image based on detected objects.
+        preprocess: Preprocess the input image before performing inference.
+        postprocess: Perform post-processing on the model's output to extract and visualize detections.
+        main: Perform inference using an ONNX model and return the output image with drawn detections.
+
+    Examples:
+        Initialize YOLOv8 detector and run inference
+        >>> detector = YOLOv8("yolov8n.onnx", "image.jpg", 0.5, 0.5)
+        >>> output_image = detector.main()
     """
 
     def __init__(self, onnx_model: str, input_image: str, confidence_thres: float, iou_thres: float):
@@ -49,7 +61,7 @@ class YOLOv8:
         self.iou_thres = iou_thres
 
         # Load the class names from the COCO dataset
-        self.classes = yaml_load(check_yaml("coco8.yaml"))["names"]
+        self.classes = YAML.load(check_yaml("coco8.yaml"))["names"]
 
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
@@ -63,8 +75,8 @@ class YOLOv8:
             new_shape (Tuple[int, int]): Target shape (height, width) for the image.
 
         Returns:
-            (np.ndarray): Resized and padded image.
-            (Tuple[int, int]): Padding values (top, left) applied to the image.
+            img (np.ndarray): Resized and padded image.
+            pad (Tuple[int, int]): Padding values (top, left) applied to the image.
         """
         shape = img.shape[:2]  # current shape [height, width]
 
@@ -84,15 +96,7 @@ class YOLOv8:
         return img, (top, left)
 
     def draw_detections(self, img: np.ndarray, box: List[float], score: float, class_id: int) -> None:
-        """
-        Draw bounding boxes and labels on the input image based on the detected objects.
-
-        Args:
-            img (np.ndarray): The input image to draw detections on.
-            box (List[float]): Detected bounding box coordinates [x, y, width, height].
-            score (float): Confidence score of the detection.
-            class_id (int): Class ID for the detected object.
-        """
+        """Draw bounding boxes and labels on the input image based on the detected objects."""
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
 
@@ -128,8 +132,8 @@ class YOLOv8:
         normalizes pixel values, and prepares the image data for model input.
 
         Returns:
-            (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
-            (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
+            image_data (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
+            pad (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -181,7 +185,7 @@ class YOLOv8:
         class_ids = []
 
         # Calculate the scaling factors for the bounding box coordinates
-        gain = min(self.input_height / self.img_height, self.input_width / self.img_height)
+        gain = min(self.input_height / self.img_height, self.input_width / self.img_width)
         outputs[:, 0] -= pad[1]
         outputs[:, 1] -= pad[0]
 
@@ -252,8 +256,8 @@ class YOLOv8:
         # Run inference using the preprocessed image data
         outputs = session.run(None, {model_inputs[0].name: img_data})
 
-        # Perform post-processing on the outputs to obtain output image.
-        return self.postprocess(self.img, outputs, pad)  # output image
+        # Perform post-processing on the outputs to obtain output image
+        return self.postprocess(self.img, outputs, pad)
 
 
 if __name__ == "__main__":

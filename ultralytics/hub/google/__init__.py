@@ -31,7 +31,7 @@ class GCPRegions:
     """
 
     def __init__(self):
-        """Initializes the GCPRegions class with predefined Google Cloud Platform regions and their details."""
+        """Initialize the GCPRegions class with predefined Google Cloud Platform regions and their details."""
         self.regions = {
             "asia-east1": (1, "Taiwan", "China"),
             "asia-east2": (2, "Hong Kong", "China"),
@@ -74,23 +74,40 @@ class GCPRegions:
         }
 
     def tier1(self) -> List[str]:
-        """Returns a list of GCP regions classified as tier 1 based on predefined criteria."""
+        """Return a list of GCP regions classified as tier 1 based on predefined criteria."""
         return [region for region, info in self.regions.items() if info[0] == 1]
 
     def tier2(self) -> List[str]:
-        """Returns a list of GCP regions classified as tier 2 based on predefined criteria."""
+        """Return a list of GCP regions classified as tier 2 based on predefined criteria."""
         return [region for region, info in self.regions.items() if info[0] == 2]
 
     @staticmethod
     def _ping_region(region: str, attempts: int = 1) -> Tuple[str, float, float, float, float]:
-        """Pings a specified GCP region and returns latency statistics: mean, min, max, and standard deviation."""
+        """
+        Ping a specified GCP region and measure network latency statistics.
+
+        Args:
+            region (str): The GCP region identifier to ping (e.g., 'us-central1').
+            attempts (int, optional): Number of ping attempts to make for calculating statistics.
+
+        Returns:
+            region (str): The GCP region identifier that was pinged.
+            mean_latency (float): Mean latency in milliseconds, or infinity if all pings failed.
+            std_dev (float): Standard deviation of latencies in milliseconds, or infinity if all pings failed.
+            min_latency (float): Minimum latency in milliseconds, or infinity if all pings failed.
+            max_latency (float): Maximum latency in milliseconds, or infinity if all pings failed.
+
+        Examples:
+            >>> region, mean, std, min_lat, max_lat = GCPRegions._ping_region("us-central1", attempts=3)
+            >>> print(f"Region {region} has mean latency: {mean:.2f}ms")
+        """
         url = f"https://{region}-docker.pkg.dev"
         latencies = []
         for _ in range(attempts):
             try:
                 start_time = time.time()
                 _ = requests.head(url, timeout=5)
-                latency = (time.time() - start_time) * 1000  # convert latency to milliseconds
+                latency = (time.time() - start_time) * 1000  # Convert latency to milliseconds
                 if latency != float("inf"):
                     latencies.append(latency)
             except requests.RequestException:
@@ -109,17 +126,17 @@ class GCPRegions:
         attempts: int = 1,
     ) -> List[Tuple[str, float, float, float, float]]:
         """
-        Determines the GCP regions with the lowest latency based on ping tests.
+        Determine the GCP regions with the lowest latency based on ping tests.
 
         Args:
-            top (int): Number of top regions to return.
-            verbose (bool): If True, prints detailed latency information for all tested regions.
-            tier (int | None): Filter regions by tier (1 or 2). If None, all regions are tested.
-            attempts (int): Number of ping attempts per region.
+            top (int, optional): Number of top regions to return.
+            verbose (bool, optional): If True, prints detailed latency information for all tested regions.
+            tier (int | None, optional): Filter regions by tier (1 or 2). If None, all regions are tested.
+            attempts (int, optional): Number of ping attempts per region.
 
         Returns:
             (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and
-            latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
+                latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:
             >>> regions = GCPRegions()

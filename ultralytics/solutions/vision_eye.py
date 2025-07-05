@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -25,7 +26,7 @@ class VisionEye(BaseSolution):
         >>> print(f"Total detected instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the VisionEye class for detecting objects and applying vision mapping.
 
@@ -34,9 +35,9 @@ class VisionEye(BaseSolution):
         """
         super().__init__(**kwargs)
         # Set the vision point where the system will view objects and draw tracks
-        self.vision_point = kwargs.get("vision_point", (30, 30))
+        self.vision_point = self.CFG["vision_point"]
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Perform object detection, vision mapping, and annotation on the input image.
 
@@ -57,9 +58,9 @@ class VisionEye(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks (bounding boxes, classes, and masks)
         annotator = SolutionAnnotator(im0, self.line_width)
 
-        for cls, t_id, box in zip(self.clss, self.track_ids, self.boxes):
+        for cls, t_id, box, conf in zip(self.clss, self.track_ids, self.boxes, self.confs):
             # Annotate the image with bounding boxes, labels, and vision mapping
-            annotator.box_label(box, label=self.names[cls], color=colors(int(t_id), True))
+            annotator.box_label(box, label=self.adjust_box_label(cls, conf, t_id), color=colors(int(t_id), True))
             annotator.visioneye(box, self.vision_point)
 
         plot_im = annotator.result()

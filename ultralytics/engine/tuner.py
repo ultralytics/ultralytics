@@ -18,12 +18,13 @@ import random
 import shutil
 import subprocess
 import time
+from typing import Dict, List, Optional
 
 import numpy as np
-import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, remove_colorstr, yaml_print, yaml_save
+from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
+from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import plot_tune_results
 
 
@@ -35,7 +36,7 @@ class Tuner:
     search space and retraining the model to evaluate their performance.
 
     Attributes:
-        space (dict): Hyperparameter search space containing bounds and scaling factors for mutation.
+        space (Dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
         args (dict): Configuration arguments for the tuning process.
@@ -43,8 +44,8 @@ class Tuner:
         prefix (str): Prefix string for logging messages.
 
     Methods:
-        _mutate: Mutates the given hyperparameters within the specified bounds.
-        __call__: Executes the hyperparameter evolution across multiple iterations.
+        _mutate: Mutate hyperparameters based on bounds and scaling factors.
+        __call__: Execute the hyperparameter evolution across multiple iterations.
 
     Examples:
         Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
@@ -58,13 +59,13 @@ class Tuner:
         >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks=None):
+    def __init__(self, args=DEFAULT_CFG, _callbacks: Optional[List] = None):
         """
         Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (list, optional): Callback functions to be executed during tuning.
+            _callbacks (List, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -88,13 +89,15 @@ class Tuner:
             "flipud": (0.0, 1.0),  # image flip up-down (probability)
             "fliplr": (0.0, 1.0),  # image flip left-right (probability)
             "bgr": (0.0, 1.0),  # image channel bgr (probability)
-            "mosaic": (0.0, 1.0),  # image mixup (probability)
+            "mosaic": (0.0, 1.0),  # image mosaic (probability)
             "mixup": (0.0, 1.0),  # image mixup (probability)
+            "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
         self.args = get_cfg(overrides=args)
+        self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
-        self.args.name = None  # reset to not affect training directory
+        self.args.name, self.args.exist_ok, self.args.resume = (None, False, False)  # reset to not affect training
         self.tune_csv = self.tune_dir / "tune_results.csv"
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr("Tuner: ")
@@ -104,7 +107,9 @@ class Tuner:
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
         )
 
-    def _mutate(self, parent="single", n=5, mutation=0.8, sigma=0.2):
+    def _mutate(
+        self, parent: str = "single", n: int = 5, mutation: float = 0.8, sigma: float = 0.2
+    ) -> Dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
@@ -115,7 +120,7 @@ class Tuner:
             sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
-            (dict): A dictionary containing mutated hyperparameters.
+            (Dict[str, float]): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
             # Select parent(s)
@@ -150,14 +155,14 @@ class Tuner:
 
         return hyp
 
-    def __call__(self, model=None, iterations=10, cleanup=True):
+    def __call__(self, model=None, iterations: int = 10, cleanup: bool = True):
         """
         Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the number of iterations, performing the following steps in each iteration:
 
         1. Load the existing hyperparameters or initialize new ones.
-        2. Mutate the hyperparameters using the `mutate` method.
+        2. Mutate the hyperparameters using the `_mutate` method.
         3. Train a YOLO model with the mutated hyperparameters.
         4. Log the fitness score and mutated hyperparameters to a CSV file.
 
@@ -173,7 +178,12 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
-        for i in range(iterations):
+        start = 0
+        if self.tune_csv.exists():
+            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            start = x.shape[0]
+            LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
+        for i in range(start, iterations):
             # Mutate hyperparameters
             mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")
@@ -188,11 +198,11 @@ class Tuner:
                 cmd = [*launch, "train", *(f"{k}={v}" for k, v in train_args.items())]
                 return_code = subprocess.run(cmd, check=True).returncode
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
-                metrics = torch.load(ckpt_file)["train_metrics"]
+                metrics = torch_load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"
 
             except Exception as e:
-                LOGGER.warning(f"WARNING ❌️ training failure for hyperparameter tuning iteration {i + 1}\n{e}")
+                LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
 
             # Save results and mutated_hyp to CSV
             fitness = metrics.get("fitness", 0.0)
@@ -228,9 +238,9 @@ class Tuner:
             )
             LOGGER.info("\n" + header)
             data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}
-            yaml_save(
+            YAML.save(
                 self.tune_dir / "best_hyperparameters.yaml",
                 data=data,
                 header=remove_colorstr(header.replace(self.prefix, "# ")) + "\n",
             )
-            yaml_print(self.tune_dir / "best_hyperparameters.yaml")
+            YAML.print(self.tune_dir / "best_hyperparameters.yaml")

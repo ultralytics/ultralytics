@@ -9,7 +9,7 @@
 #     └── Objects365  ← downloads here (712 GB = 367G data + 345G zips)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/Objects365 # dataset root dir
+path: Objects365 # dataset root dir
 train: images/train # train images (relative to 'path') 1742289 images
 val: images/val # val images (relative to 'path') 80000 images
 test: # test images (optional)
@@ -393,8 +393,8 @@ download: |
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywhn
 
-  check_requirements(("pycocotools>=2.0",))
-  from pycocotools.coco import COCO
+  check_requirements("faster-coco-eval")
+  from faster_coco_eval import COCO
 
   # Make Directories
   dir = Path(yaml["path"])  # dataset root dir

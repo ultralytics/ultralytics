@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils import LOGGER
 from ultralytics.utils.plotting import colors
@@ -32,7 +34,7 @@ class SecurityAlarm(BaseSolution):
         >>> results = security.process(frame)
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the SecurityAlarm class with parameters for real-time object monitoring.
 
@@ -46,7 +48,7 @@ class SecurityAlarm(BaseSolution):
         self.to_email = ""
         self.from_email = ""
 
-    def authenticate(self, from_email: str, password: str, to_email: str):
+    def authenticate(self, from_email: str, password: str, to_email: str) -> None:
         """
         Authenticate the email server for sending alert notifications.
 
@@ -69,7 +71,7 @@ class SecurityAlarm(BaseSolution):
         self.to_email = to_email
         self.from_email = from_email
 
-    def send_email(self, im0, records: int = 5):
+    def send_email(self, im0, records: int = 5) -> None:
         """
         Send an email notification with an image attachment indicating the number of objects detected.
 
@@ -114,7 +116,7 @@ class SecurityAlarm(BaseSolution):
         except Exception as e:
             LOGGER.error(f"Failed to send email: {e}")
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
 

@@ -252,7 +252,6 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, YOLOEDetect) and hasattr(self, "pe"):
                     assert isinstance(self, YOLOEModel)
                     m.fuse(self.pe.to(next(self.model.parameters()).device))
-
             self.info(verbose=verbose)
 
         return self

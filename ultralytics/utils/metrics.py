@@ -488,7 +488,7 @@ class ConfusionMatrix(DataExportMixin):
         if ticklabels != "auto":
             ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
             ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-        for s in ["left", "right", "bottom", "top", "outline"]:
+        for s in {"left", "right", "bottom", "top", "outline"}:
             if s != "outline":
                 ax.spines[s].set_visible(False)  # Confusion matrix plot don't have outline
             cbar.ax.spines[s].set_visible(False)
@@ -1006,6 +1006,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             save_dir=save_dir,
             names=self.names,
             on_plot=on_plot,
+            prefix="Box",
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
@@ -1061,7 +1062,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes shared
         scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1071,7 +1072,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-           (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+           (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
            >>> results = model.val(data="coco8.yaml")
@@ -1135,7 +1136,7 @@ class SegmentMetrics(DetMetrics):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
         results_mask = ap_per_class(
             stats["tp_m"],
             stats["conf"],
@@ -1194,7 +1195,7 @@ class SegmentMetrics(DetMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class segmentation metrics as a list of dictionaries. Includes both
         box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1204,7 +1205,7 @@ class SegmentMetrics(DetMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-seg.yaml")
@@ -1270,7 +1271,7 @@ class PoseMetrics(DetMetrics):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],
@@ -1333,7 +1334,7 @@ class PoseMetrics(DetMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box and
         pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1343,7 +1344,7 @@ class PoseMetrics(DetMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-pose.yaml")

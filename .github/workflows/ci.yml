@@ -302,6 +302,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ${{ matrix.runner }}
     strategy:
+      fail-fast: false
       matrix:
         name: [JetPack6.2, JetPack5.1.2]
         include:
@@ -411,7 +412,7 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, Conda]
+    needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify

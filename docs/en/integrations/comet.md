@@ -45,7 +45,7 @@ After installing the required packages, you'll need to sign up, get a [Comet API
 
         ```bash
         # Set your Comet Api Key
-        export COMET_API_KEY=<Your API Key>
+        export COMET_API_KEY=YOUR_API_KEY
         ```
 
 Then, you can initialize your Comet project. Comet will automatically detect the API key and proceed with the setup.
@@ -196,7 +196,7 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
 2. **Set up your Comet API Key**:
 
     ```bash
-    export COMET_API_KEY=<Your API Key>
+    export COMET_API_KEY=YOUR_API_KEY
     ```
 
 3. **Initialize your Comet project in your Python code**:

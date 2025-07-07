@@ -24,7 +24,7 @@ This document presents an overview of three closely related object detection mod
 
 ## Supported Tasks and Modes
 
-YOLOv3 is designed specifically for object detection tasks. Ultralytics supports three variants of YOLOv3: `yolov3u`, `yolov3-tinyu` and `yolov3-sppu`. The `u` in the name signifies that these utilize the anchor-free head of YOLOv8, unlike their original architecture which is anchor-based. These models are renowned for their effectiveness in various real-world scenarios, balancing accuracy and speed. Each variant offers unique features and optimizations, making them suitable for a range of applications.
+YOLOv3 is designed specifically for [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Ultralytics supports three variants of YOLOv3: `yolov3u`, `yolov3-tinyu` and `yolov3-sppu`. The `u` in the name signifies that these utilize the anchor-free head of YOLOv8, unlike their original architecture which is anchor-based. These models are renowned for their effectiveness in various real-world scenarios, balancing accuracy and speed. Each variant offers unique features and optimizations, making them suitable for a range of applications.
 
 All three models support a comprehensive set of modes, ensuring versatility in various stages of [model deployment](https://www.ultralytics.com/glossary/model-deployment) and development. These modes include [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), providing users with a complete toolkit for effective object detection.
 
@@ -34,7 +34,7 @@ All three models support a comprehensive set of modes, ensuring versatility in v
 | YOLOv3-Tiny(u) | `yolov3-tinyu.pt`   | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 | YOLOv3u-SPP(u) | `yolov3-sppu.pt`    | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
 
-## This table provides an at-a-glance view of the capabilities of each YOLOv3 variant, highlighting their versatility and suitability for various tasks and operational modes in object detection workflows.
+This table provides an at-a-glance view of the capabilities of each YOLOv3 variant, highlighting their versatility and suitability for various tasks and operational modes in object detection workflows.
 
 ## Usage Examples
 
@@ -128,7 +128,7 @@ For more comprehensive training options and guidelines, visit our [Train mode do
 
 ### What makes YOLOv3u more accurate for object detection tasks?
 
-YOLOv3u improves upon YOLOv3 and YOLOv3-Ultralytics by incorporating the anchor-free, objectness-free split head used in YOLOv8 models. This upgrade eliminates the need for pre-defined anchor boxes and objectness scores, enhancing its capability to detect objects of varying sizes and shapes more precisely. This makes YOLOv3u a better choice for complex and diverse object detection tasks. For more information, refer to the [Why YOLOv3u](#overview) section.
+YOLOv3u improves upon YOLOv3 and YOLOv3-Ultralytics by incorporating the anchor-free, objectness-free split head used in YOLOv8 models. This upgrade eliminates the need for pre-defined anchor boxes and objectness scores, enhancing its capability to detect objects of varying sizes and shapes more precisely. This makes YOLOv3u a better choice for complex and diverse object detection tasks. For more information, refer to the [Key Features](#key-features) section.
 
 ### How can I use YOLOv3 models for inference?
 

@@ -14,12 +14,12 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_debug_samples(files, title="Debug Samples") -> None:
+def _log_debug_samples(files, title: str = "Debug Samples") -> None:
     """
     Log files (images) as debug samples in the ClearML task.
 
     Args:
-        files (list): A list of file paths in PosixPath format.
+        files (List[Path]): A list of file paths in PosixPath format.
         title (str): A title that groups together images with the same values.
     """
     import re
@@ -34,7 +34,7 @@ def _log_debug_samples(files, title="Debug Samples") -> None:
                 )
 
 
-def _log_plot(title, plot_path) -> None:
+def _log_plot(title: str, plot_path: str) -> None:
     """
     Log an image as a plot in the plot section of ClearML.
 
@@ -55,8 +55,8 @@ def _log_plot(title, plot_path) -> None:
     )
 
 
-def on_pretrain_routine_start(trainer):
-    """Runs at start of pretraining routine; initializes and connects/ logs task to ClearML."""
+def on_pretrain_routine_start(trainer) -> None:
+    """Initialize and connect ClearML task at the start of pretraining routine."""
     try:
         if task := Task.current_task():
             # WARNING: make sure the automatic pytorch and matplotlib bindings are disabled!
@@ -81,13 +81,13 @@ def on_pretrain_routine_start(trainer):
             )
         task.connect(vars(trainer.args), name="General")
     except Exception as e:
-        LOGGER.warning(f"WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}")
+        LOGGER.warning(f"ClearML installed but not initialized correctly, not logging this run. {e}")
 
 
-def on_train_epoch_end(trainer):
-    """Logs debug samples for the first epoch of YOLO training and report current training progress."""
+def on_train_epoch_end(trainer) -> None:
+    """Log debug samples for the first epoch and report current training progress."""
     if task := Task.current_task():
-        # Log debug samples
+        # Log debug samples for first epoch only
         if trainer.epoch == 1:
             _log_debug_samples(sorted(trainer.save_dir.glob("train_batch*.jpg")), "Mosaic")
         # Report the current training progress
@@ -97,10 +97,10 @@ def on_train_epoch_end(trainer):
             task.get_logger().report_scalar("lr", k, v, iteration=trainer.epoch)
 
 
-def on_fit_epoch_end(trainer):
-    """Reports model information to logger at the end of an epoch."""
+def on_fit_epoch_end(trainer) -> None:
+    """Report model information and metrics to logger at the end of an epoch."""
     if task := Task.current_task():
-        # You should have access to the validation bboxes under jdict
+        # Report epoch time and validation metrics
         task.get_logger().report_scalar(
             title="Epoch Time", series="Epoch Time", value=trainer.epoch_time, iteration=trainer.epoch
         )
@@ -113,24 +113,24 @@ def on_fit_epoch_end(trainer):
                 task.get_logger().report_single_value(k, v)
 
 
-def on_val_end(validator):
-    """Logs validation results including labels and predictions."""
+def on_val_end(validator) -> None:
+    """Log validation results including labels and predictions."""
     if Task.current_task():
-        # Log val_labels and val_pred
+        # Log validation labels and predictions
         _log_debug_samples(sorted(validator.save_dir.glob("val*.jpg")), "Validation")
 
 
-def on_train_end(trainer):
-    """Logs final model and its name on training completion."""
+def on_train_end(trainer) -> None:
+    """Log final model and training results on training completion."""
     if task := Task.current_task():
-        # Log final results, CM matrix + PR plots
+        # Log final results, confusion matrix and PR plots
         files = [
             "results.png",
             "confusion_matrix.png",
             "confusion_matrix_normalized.png",
             *(f"{x}_curve.png" for x in ("F1", "PR", "P", "R")),
         ]
-        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
+        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter existing files
         for f in files:
             _log_plot(title=f.stem, plot_path=f)
         # Report final metrics

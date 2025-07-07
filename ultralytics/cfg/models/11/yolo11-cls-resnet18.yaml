@@ -5,7 +5,7 @@
 # Task docs: https://docs.ultralytics.com/tasks/classify
 
 # Parameters
-nc: 10 # number of classes
+nc: 1000 # number of classes
 
 # ResNet18 backbone
 backbone:

@@ -15,21 +15,7 @@ Training a robust and accurate [object detection](https://www.ultralytics.com/gl
 The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or `*.txt` files containing image paths, and a dictionary of class names. Here is an example:
 
 ```yaml
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8 # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
-train: images/train # train images (relative to 'path') 4 images
-val: images/val # val images (relative to 'path') 4 images
-test: # test images (optional)
-
-# Classes (80 COCO classes)
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
-    77: teddy bear
-    78: hair drier
-    79: toothbrush
+--8<-- "ultralytics/cfg/datasets/coco8.yaml"
 ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
@@ -74,14 +60,17 @@ Here's how you can use these formats to train your model:
 Here is a list of the supported datasets and a brief description for each:
 
 - [Argoverse](argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
-- [COCO](coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [COCO](coco.md): Common Objects in Context (COCO) is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset with 80 object categories.
 - [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
 - [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
-- [COCO128](coco.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
+- [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
+- [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
+- [COCO128](coco128.md): A smaller subset of the first 128 images from COCO train and COCO val, suitable for tests.
 - [Global Wheat 2020](globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
-- [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million bounding boxes.
+- [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
+- [HomeObjects-3K](homeobjects-3k.md) New 🚀: A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
@@ -99,7 +88,7 @@ If you have your own dataset and would like to use it for training detection mod
 
 ### COCO Dataset Format to YOLO Format
 
-You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
+You can easily convert labels from the popular [COCO dataset](coco.md) format to the YOLO format using the following code snippet:
 
 !!! example
 
@@ -111,7 +100,7 @@ You can easily convert labels from the popular COCO dataset format to the YOLO f
         convert_coco(labels_dir="path/to/coco/annotations/")
         ```
 
-This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
+This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo11.md).
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
 
@@ -122,22 +111,14 @@ Remember to double-check if the dataset you want to use is compatible with your 
 The Ultralytics YOLO format is a structured configuration for defining datasets in your training projects. It involves setting paths to your training, validation, and testing images and corresponding labels. For example:
 
 ```yaml
-path: ../datasets/coco8 # dataset root directory
-train: images/train # training images (relative to 'path')
-val: images/val # validation images (relative to 'path')
-test: # optional test images
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
+--8<-- "ultralytics/cfg/datasets/coco8.yaml"
 ```
 
 Labels are saved in `*.txt` files with one file per image, formatted as `class x_center y_center width height` with normalized coordinates. For a detailed guide, see the [COCO8 dataset example](coco8.md).
 
 ### How do I convert a COCO dataset to the YOLO format?
 
-You can convert a COCO dataset to the YOLO format using the Ultralytics conversion tools. Here's a quick method:
+You can convert a COCO dataset to the YOLO format using the [Ultralytics conversion tools](../../reference/data/converter.md). Here's a quick method:
 
 ```python
 from ultralytics.data.converter import convert_coco

@@ -256,7 +256,7 @@ When using large datasets, you can also create a dedicated vector index for fast
 table.create_index(num_partitions=..., num_sub_vectors=...)
 ```
 
-Find more details on the type vector indices available and parameters [here](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index) In the future, we will add support for creating vector indices directly from Explorer API.
+Find more details on the available vector index types and configuration parameters in the [LanceDB indexing documentation](https://lancedb.github.io/lancedb/ann_indexes/#types-of-index). In the future, we plan to support creating vector indices directly through the Explorer API.
 
 ## 5. Embeddings Applications
 
@@ -326,11 +326,11 @@ ax.set_zlabel("Component 3")
 plt.show()
 ```
 
-Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the
+Start creating your own CV dataset exploration reports using the Explorer API. For inspiration, check out the [VOC Exploration Example](explorer.md).
 
 ## Apps Built Using Ultralytics Explorer
 
-Try our GUI Demo based on Explorer API
+Try our [GUI Demo](dashboard.md) based on Explorer API
 
 ## Coming Soon
 

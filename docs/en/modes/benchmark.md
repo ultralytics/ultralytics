@@ -98,7 +98,7 @@ Arguments such as `model`, `data`, `imgsz`, `half`, `device`, `verbose` and `for
 | `half`    | `False`       | Enables FP16 (half-precision) inference, reducing memory usage and possibly increasing speed on compatible hardware. Use `half=True` to enable.                                                         |
 | `int8`    | `False`       | Activates INT8 quantization for further optimized performance on supported devices, especially useful for edge devices. Set `int8=True` to use.                                                         |
 | `device`  | `None`        | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
-| `verbose` | `False`       | Controls the level of detail in logging output. A boolean value; set `verbose=True` for detailed logs or a float for thresholding errors.                                                               |
+| `verbose` | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
 | `format`  | `''`          | Benchmark the model on a single export format. i.e `format=onnx`                                                                                                                                        |
 
 ## Export Formats
@@ -136,7 +136,7 @@ For more details on benchmark arguments, visit the [Arguments](#arguments) secti
 
 ### What are the benefits of exporting YOLO11 models to different formats?
 
-Exporting YOLO11 models to different formats such as ONNX, TensorRT, and OpenVINO allows you to optimize performance based on your deployment environment. For instance:
+Exporting YOLO11 models to different formats such as [ONNX](https://docs.ultralytics.com/integrations/onnx/), [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/), and [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) allows you to optimize performance based on your deployment environment. For instance:
 
 - **ONNX:** Provides up to 3x CPU speedup.
 - **TensorRT:** Offers up to 5x GPU speedup.

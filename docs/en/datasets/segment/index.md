@@ -6,6 +6,8 @@ keywords: Ultralytics, YOLO, instance segmentation, dataset formats, auto-annota
 
 # Instance Segmentation Datasets Overview
 
+Instance segmentation is a computer vision task that involves identifying and delineating individual objects within an image. This guide provides an overview of dataset formats supported by Ultralytics YOLO for instance segmentation tasks, along with instructions on how to prepare, convert, and use these datasets for training your models.
+
 ## Supported Dataset Formats
 
 ### Ultralytics YOLO format
@@ -40,24 +42,10 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 ### Dataset YAML format
 
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
+The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Segmentation Models. Here is an example of the YAML format used for defining a segmentation dataset:
 
 ```yaml
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-seg # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
-train: images/train # train images (relative to 'path') 4 images
-val: images/val # val images (relative to 'path') 4 images
-test: # test images (optional)
-
-# Classes (80 COCO classes)
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
-    77: teddy bear
-    78: hair drier
-    79: toothbrush
+--8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -89,7 +77,7 @@ The `train` and `val` fields specify the paths to the directories containing the
 
 ## Supported Datasets
 
-## Supported Datasets
+Ultralytics YOLO supports various datasets for instance segmentation tasks. Here's a list of the most commonly used ones:
 
 - [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.
 - [COCO8-seg](coco8-seg.md): A compact, 8-image subset of COCO designed for quick testing of segmentation model training, ideal for CI checks and workflow validation in the `ultralytics` repository.
@@ -146,6 +134,41 @@ The `auto_annotate` function takes the path to your images, along with optional 
 
 By leveraging the power of pre-trained models, auto-annotation can significantly reduce the time and effort required for creating high-quality segmentation datasets. This feature is particularly useful for researchers and developers working with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 
+### Visualize Dataset Annotations
+
+Before training your model, it's often helpful to visualize your dataset annotations to ensure they're correct. Ultralytics provides a utility function for this purpose:
+
+```python
+from ultralytics.data.utils import visualize_image_annotations
+
+label_map = {  # Define the label map with all annotated class labels.
+    0: "person",
+    1: "car",
+}
+
+# Visualize
+visualize_image_annotations(
+    "path/to/image.jpg",  # Input image path.
+    "path/to/annotations.txt",  # Annotation file path for the image.
+    label_map,
+)
+```
+
+This function draws bounding boxes, labels objects with class names, and adjusts text color for better readability, helping you identify and correct any annotation errors before training.
+
+### Converting Segmentation Masks to YOLO Format
+
+If you have segmentation masks in binary format, you can convert them to the YOLO segmentation format using:
+
+```python
+from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+# For datasets like COCO with 80 classes
+convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
+```
+
+This utility converts binary mask images into the YOLO segmentation format and saves them in the specified output directory.
+
 ## FAQ
 
 ### What dataset formats does Ultralytics YOLO support for instance segmentation?
@@ -169,15 +192,7 @@ This script converts your COCO dataset annotations to the required YOLO format, 
 To prepare a YAML file for training YOLO models with Ultralytics, you need to define the dataset paths and class names. Here's an example YAML configuration:
 
 ```yaml
-path: ../datasets/coco8-seg # dataset root dir
-train: images/train # train images (relative to 'path')
-val: images/val # val images (relative to 'path')
-
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
+--8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
 ```
 
 Ensure you update the paths and class names according to your dataset. For more information, check the [Dataset YAML Format](#dataset-yaml-format) section.

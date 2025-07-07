@@ -1,14 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
-import platform
 import random
 import threading
 import time
 from pathlib import Path
+from typing import Any, Optional
 
 import requests
 
+from ultralytics import __version__
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
@@ -17,16 +18,17 @@ from ultralytics.utils import (
     IS_PIP_PACKAGE,
     LOGGER,
     ONLINE,
+    PYTHON_VERSION,
     RANK,
     SETTINGS,
     TESTS_RUNNING,
     TQDM,
     TryExcept,
-    __version__,
     colorstr,
     get_git_origin_url,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
+from ultralytics.utils.torch_utils import get_cpu_info
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")
@@ -35,7 +37,7 @@ PREFIX = colorstr("Ultralytics HUB: ")
 HELP_MSG = "If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance."
 
 
-def request_with_credentials(url: str) -> any:
+def request_with_credentials(url: str) -> Any:
     """
     Make an AJAX request with cookies attached in a Google Colab environment.
 
@@ -43,7 +45,7 @@ def request_with_credentials(url: str) -> any:
         url (str): The URL to make the request to.
 
     Returns:
-        (any): The response data from the AJAX request.
+        (Any): The response data from the AJAX request.
 
     Raises:
         OSError: If the function is not run in a Google Colab environment.
@@ -76,21 +78,21 @@ def request_with_credentials(url: str) -> any:
     return output.eval_js("_hub_tmp")
 
 
-def requests_with_progress(method, url, **kwargs):
+def requests_with_progress(method: str, url: str, **kwargs) -> requests.Response:
     """
     Make an HTTP request using the specified method and URL, with an optional progress bar.
 
     Args:
         method (str): The HTTP method to use (e.g. 'GET', 'POST').
         url (str): The URL to send the request to.
-        **kwargs (any): Additional keyword arguments to pass to the underlying `requests.request` function.
+        **kwargs (Any): Additional keyword arguments to pass to the underlying `requests.request` function.
 
     Returns:
         (requests.Response): The response object from the HTTP request.
 
-    Note:
+    Notes:
         - If 'progress' is set to True, the progress bar will display the download progress for responses with a known
-        content length.
+          content length.
         - If 'progress' is a number then progress bar will display assuming content length = progress.
     """
     progress = kwargs.pop("progress", False)
@@ -108,23 +110,34 @@ def requests_with_progress(method, url, **kwargs):
     return response
 
 
-def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbose=True, progress=False, **kwargs):
+def smart_request(
+    method: str,
+    url: str,
+    retry: int = 3,
+    timeout: int = 30,
+    thread: bool = True,
+    code: int = -1,
+    verbose: bool = True,
+    progress: bool = False,
+    **kwargs,
+) -> Optional[requests.Response]:
     """
-    Makes an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
+    Make an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 
     Args:
         method (str): The HTTP method to use for the request. Choices are 'post' and 'get'.
         url (str): The URL to make the request to.
-        retry (int, optional): Number of retries to attempt before giving up. Default is 3.
-        timeout (int, optional): Timeout in seconds after which the function will give up retrying. Default is 30.
-        thread (bool, optional): Whether to execute the request in a separate daemon thread. Default is True.
-        code (int, optional): An identifier for the request, used for logging purposes. Default is -1.
-        verbose (bool, optional): A flag to determine whether to print out to console or not. Default is True.
-        progress (bool, optional): Whether to show a progress bar during the request. Default is False.
-        **kwargs (any): Keyword arguments to be passed to the requests function specified in method.
+        retry (int, optional): Number of retries to attempt before giving up.
+        timeout (int, optional): Timeout in seconds after which the function will give up retrying.
+        thread (bool, optional): Whether to execute the request in a separate daemon thread.
+        code (int, optional): An identifier for the request, used for logging purposes.
+        verbose (bool, optional): A flag to determine whether to print out to console or not.
+        progress (bool, optional): Whether to show a progress bar during the request.
+        **kwargs (Any): Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
-        (requests.Response): The HTTP response object. If the request is executed in a separate thread, returns None.
+        (requests.Response | None): The HTTP response object. If the request is executed in a separate thread, returns
+            None.
     """
     retry_codes = (408, 500)  # retry only these codes
 
@@ -169,12 +182,16 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 
 class Events:
     """
-    A class for collecting anonymous event analytics. Event analytics are enabled when sync=True in settings and
-    disabled when sync=False. Run 'yolo settings' to see and update settings.
+    A class for collecting anonymous event analytics.
+
+    Event analytics are enabled when sync=True in settings and disabled when sync=False. Run 'yolo settings' to see and
+    update settings.
 
     Attributes:
         url (str): The URL to send anonymous events.
+        events (list): List of collected events to be sent.
         rate_limit (float): The rate limit in seconds for sending events.
+        t (float): Rate limit timer in seconds.
         metadata (dict): A dictionary containing metadata about the environment.
         enabled (bool): A flag to enable or disable Events based on certain conditions.
     """
@@ -182,14 +199,16 @@ class Events:
     url = "https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw"
 
     def __init__(self):
-        """Initializes the Events object with default values for events, rate_limit, and metadata."""
+        """Initialize the Events object with default values for events, rate_limit, and metadata."""
         self.events = []  # events list
         self.rate_limit = 30.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
-            "python": ".".join(platform.python_version_tuple()[:2]),  # i.e. 3.10
+            "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.13
+            "CPU": get_cpu_info(),
+            # "GPU": get_gpu_info(index=0) if cuda else None,
             "version": __version__,
             "env": ENVIRONMENT,
             "session_id": round(random.random() * 1e15),
@@ -203,12 +222,13 @@ class Events:
             and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg):
+    def __call__(self, cfg, device=None):
         """
-        Attempts to add a new event to the events list and send events if the rate limit is reached.
+        Attempt to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
+            device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing
@@ -220,6 +240,7 @@ class Events:
                 **self.metadata,
                 "task": cfg.task,
                 "model": cfg.model if cfg.model in GITHUB_ASSETS_NAMES else "custom",
+                "device": str(device),
             }
             if cfg.mode == "export":
                 params["format"] = cfg.format

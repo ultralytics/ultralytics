@@ -93,6 +93,7 @@ dev = [
 ]
 export = [
     "onnx>=1.12.0,<1.18.0", # ONNX export
+    "onnxslim>=0.1.59", # ONNX model optimization
     "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     "openvino>=2024.0.0",  # OpenVINO export
@@ -100,7 +101,6 @@ export = [
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
-    "onnxslim", # onnx model optimization
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

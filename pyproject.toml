@@ -93,7 +93,6 @@ dev = [
 ]
 export = [
     "onnx>=1.12.0,<1.18.0", # ONNX export
-    "onnxslim>=0.1.59", # ONNX model optimization
     "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     "openvino>=2024.0.0",  # OpenVINO export

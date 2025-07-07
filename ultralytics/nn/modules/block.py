@@ -199,7 +199,8 @@ class HGStem(nn.Module):
     """
 
     def __init__(self, c1: int, cm: int, c2: int):
-        """Initializes PPHGNetV2 StemBlock with channel configurations.
+        """
+        Initializes PPHGNetV2 StemBlock with channel configurations.
 
         Args:
             c1 (int): Input channels.
@@ -1400,7 +1401,8 @@ class C2fAttn(nn.Module):
         self.attn = MaxSigmoidAttnBlock(self.c, self.c, gc=gc, ec=ec, nh=nh)
 
     def forward(self, x: torch.Tensor, guide: torch.Tensor) -> torch.Tensor:
-        """Processes features through multi-stage pipeline with attention.
+        """
+        Processes features through multi-stage pipeline with attention.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -1615,7 +1617,8 @@ class BNContrastiveHead(nn.Module):
         self.logit_scale = nn.Parameter(-1.0 * torch.ones([]))
 
     def forward(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
-        """Computes region-text similarity with batch-normalized image features.
+        """
+        Computes region-text similarity with batch-normalized image features.
 
         Args:
             x (torch.Tensor): Image features.
@@ -2738,7 +2741,8 @@ class PSA(nn.Module):
         self.ffn = nn.Sequential(Conv(self.c, 2 * self.c, 1), Conv(2 * self.c, self.c, 1, act=False))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Processes input through partial self-attention and FFN with residuals.
+        """
+        Processes input through partial self-attention and FFN with residuals.
 
         Args:
             x (torch.Tensor): Input tensor.

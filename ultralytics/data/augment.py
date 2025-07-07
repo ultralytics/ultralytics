@@ -1805,6 +1805,8 @@ class CopyPaste(BaseMixTransform):
     def _transform(self, labels1, labels2={}):
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         im = labels1["img"]
+        if "mosaic_border" not in labels1:
+            im = im.copy()  # avoid modifying original non-mosaic image
         cls = labels1["cls"]
         h, w = im.shape[:2]
         instances = labels1.pop("instances")

@@ -416,7 +416,11 @@ jobs:
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: >
+          github.repository == 'ultralytics/ultralytics' &&
+          (github.event_name == 'schedule' || github.event_name == 'push') &&
+          github.run_attempt == '1' &&
+          (failure() || cancelled())
         uses: slackapi/slack-github-action@v2.1.0
         with:
           webhook-type: incoming-webhook

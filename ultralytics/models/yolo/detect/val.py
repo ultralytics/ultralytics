@@ -278,9 +278,8 @@ class DetectionValidator(BaseValidator):
         no_pred = len(detections["cls"]) == 0
         if no_pred:
             detections = torch.empty((0, 6), device=self.device)  # Output all labels
-
-
-        detections = torch.cat([detections['bboxes'], detections['conf'].reshape(-1, 1), detections['cls'].reshape(-1, 1)], 1)
+        else:
+            detections = torch.cat([detections['bboxes'], detections['conf'].reshape(-1, 1), detections['cls'].reshape(-1, 1)], 1)
 
         detections = detections[detections[:, 4] > conf]
         # gt_classes = labels[:, 0].int()

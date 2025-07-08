@@ -75,6 +75,8 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    Permute,
+    Reshape,
 )
 from .head import (
     OBB,

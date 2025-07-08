@@ -1450,7 +1450,7 @@ class ImagePoolingAttn(nn.Module):
     Shape:
         - Input:
             x (List[Tensor]): Multi-scale image features [(B, ch[i], H, W), ...].
-            text (Tensor): Text embeddings (B, seq_len, ct).
+            text (torch.Tensor): Text embeddings (B, seq_len, ct).
         - Output: (B, seq_len, ct)  # Enhanced text embeddings
 
     Attributes:
@@ -2023,7 +2023,7 @@ class CBLinear(nn.Module):
         Routes features to multiple downstream backbones.
 
         Args:
-            x (Tensor): Features from upstream backbone (B, c1, H, W).
+            x (torch.Tensor): Features from upstream backbone (B, c1, H, W).
 
         Returns:
             (tuple[Tensor]): Split features for downstream backbones.
@@ -2045,11 +2045,11 @@ class CBFuse(nn.Module):
           ICCV 2019. https://arxiv.org/abs/1909.03625
 
     Args:
-        idx (list[int]): Indices specifying which feature maps to select from
+        idx (List[int]): Indices specifying which feature maps to select from
                          each upstream backbone.
 
     Attributes:
-        idx (list[int]): Feature selection indices for upstream backbones.
+        idx (List[int]): Feature selection indices for upstream backbones.
 
     Example:
         >>> # Example with 3 backbones
@@ -2348,10 +2348,10 @@ class RepVGGDW(torch.nn.Module):
         Single-branch forward pass for fused weights.
 
         Args:
-            x (Tensor): Input tensor of shape (B, ed, H, W).
+            x (torch.Tensor): Input tensor of shape (B, ed, H, W).
 
         Returns:
-            (Tensor): Output using fused 7x7 convolution weights.
+            (torch.Tensor): Output using fused 7x7 convolution weights.
         """
         return self.act(self.conv(x))
 
@@ -2455,10 +2455,10 @@ class CIB(nn.Module):
         Executes forward pass with optional residual connection.
 
         Args:
-            x (Tensor): Input tensor (B, c1, H, W).
+            x (torch.Tensor): Input tensor (B, c1, H, W).
 
         Returns:
-            (Tensor): Output tensor (B, c2, H, W) preserving spatial dimensions.
+            (torch.Tensor): Output tensor (B, c2, H, W) preserving spatial dimensions.
         """
         return x + self.cv1(x) if self.add else self.cv1(x)
 
@@ -2588,10 +2588,10 @@ class Attention(nn.Module):
         6. Project to output space.
 
         Args:
-            x (Tensor): Input tensor of shape (B, dim, H, W).
+            x (torch.Tensor): Input tensor of shape (B, dim, H, W).
 
         Returns:
-            (Tensor): Output tensor of same shape (B, dim, H, W).
+            (torch.Tensor): Output tensor of same shape (B, dim, H, W).
         """
         B, C, H, W = x.shape
         N = H * W
@@ -2680,10 +2680,10 @@ class PSABlock(nn.Module):
         Residuals skipped when shortcut=False
 
         Args:
-            x (Tensor): Input tensor of shape (B, c, H, W).
+            x (torch.Tensor): Input tensor of shape (B, c, H, W).
 
         Returns:
-            (Tensor): Enhanced output of same shape (B, c, H, W).
+            (torch.Tensor): Enhanced output of same shape (B, c, H, W).
         """
         x = x + self.attn(x) if self.add else self.attn(x)
         x = x + self.ffn(x) if self.add else self.ffn(x)

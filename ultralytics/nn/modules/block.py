@@ -100,10 +100,10 @@ class DFL(nn.Module):
         and computes the weighted sum using fixed convolution weights.
 
         Args:
-            x (torch.Tensor): Input tensor with shape (batch_size, 4 * c1, num_anchors)
+            x (torch.Tensor): Input tensor with shape (batch_size, 4 * c1, num_anchors).
 
         Returns:
-            (torch.Tensor): Output tensor with shape (batch_size, 4, num_anchors)
+            (torch.Tensor): Output tensor with shape (batch_size, 4, num_anchors).
         """
         b, _, a = x.shape  # batch, channels, anchors
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
@@ -126,10 +126,10 @@ class Proto(nn.Module):
         - Output: (batch_size, c2, 2H, 2W)  # Spatial dimensions doubled by upsampling
 
     Attributes:
-        cv1 (Conv): First convolution layer reducing channel depth to c_
-        upsample (nn.ConvTranspose2d): 2x upsampling layer using transposed convolution
-        cv2 (Conv): Intermediate convolution layer
-        cv3 (Conv): Final convolution layer producing c2 output channels
+        cv1 (Conv): First convolution layer reducing channel depth to c_.
+        upsample (nn.ConvTranspose2d): 2x upsampling layer using transposed convolution.
+        cv2 (Conv): Intermediate convolution layer.
+        cv3 (Conv): Final convolution layer producing c2 output channels.
 
     Example:
         >>> model = Proto(c1=128)  # Create Proto module with 128 input channels
@@ -159,10 +159,10 @@ class Proto(nn.Module):
         Performs feature processing and upsampling to generate segmentation masks.
 
         Args:
-            x (torch.Tensor): Input features with shape (batch_size, c1, H, W)
+            x (torch.Tensor): Input features with shape (batch_size, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output masks with shape (batch_size, c2, 2H, 2W)
+            (torch.Tensor): Output masks with shape (batch_size, c2, 2H, 2W).
         """
         return self.cv3(self.cv2(self.upsample(self.cv1(x))))
 
@@ -183,12 +183,12 @@ class HGStem(nn.Module):
         - Output: (batch_size, c2, H//4, W//4)  # Typical spatial reduction
 
     Attributes:
-        stem1 (Conv): Initial 3x3 convolution with stride 2
-        stem2a (Conv): First 2x2 convolution in parallel path
-        stem2b (Conv): Second 2x2 convolution in parallel path
-        stem3 (Conv): 3x3 convolution after feature concatenation
-        stem4 (Conv): Final 1x1 projection convolution
-        pool (nn.MaxPool2d): Pooling layer for parallel path
+        stem1 (Conv): Initial 3x3 convolution with stride 2.
+        stem2a (Conv): First 2x2 convolution in parallel path.
+        stem2b (Conv): Second 2x2 convolution in parallel path.
+        stem3 (Conv): 3x3 convolution after feature concatenation.
+        stem4 (Conv): Final 1x1 projection convolution.
+        pool (nn.MaxPool2d): Pooling layer for parallel path.
 
     Example:
         >>> model = HGStem(c1=3, cm=64, c2=128)
@@ -220,10 +220,10 @@ class HGStem(nn.Module):
         Processes input through multi-path stem architecture with feature fusion.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (batch, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with spatial dimensions reduced by 4x
+            (torch.Tensor): Output tensor with spatial dimensions reduced by 4x.
         """
         x = self.stem1(x)
         x = F.pad(x, [0, 1, 0, 1])  # Add right+bottom padding
@@ -258,10 +258,10 @@ class HGBlock(nn.Module):
         - Output: (batch_size, c2, H, W)  # Maintains spatial dimensions
 
     Attributes:
-        m (nn.ModuleList): Sequence of Conv/LightConv blocks
-        sc (Conv): Squeeze convolution reducing channels to c2//2
-        ec (Conv): Excitation convolution expanding to final c2 channels
-        add (bool): Indicates if shortcut connection is active
+        m (nn.ModuleList): Sequence of Conv/LightConv blocks.
+        sc (Conv): Squeeze convolution reducing channels to c2//2.
+        ec (Conv): Excitation convolution expanding to final c2 channels.
+        add (bool): Indicates if shortcut connection is active.
 
     Example:
         >>> block = HGBlock(c1=64, cm=32, c2=128)
@@ -314,7 +314,7 @@ class HGBlock(nn.Module):
         Processes input through multi-stage convolutions with optional residual connection.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (batch, c1, H, W).
 
         Returns:
             (torch.Tensor): Output tensor where:
@@ -344,9 +344,9 @@ class SPP(nn.Module):
         - Output: (batch_size, c2, H, W)  # Spatial dimensions preserved
 
     Attributes:
-        cv1 (Conv): 1x1 convolution for channel reduction
-        cv2 (Conv): 1x1 convolution for channel expansion
-        m (nn.ModuleList): Max pooling layers with different kernel sizes
+        cv1 (Conv): 1x1 convolution for channel reduction.
+        cv2 (Conv): 1x1 convolution for channel expansion.
+        m (nn.ModuleList): Max pooling layers with different kernel sizes.
 
     Example:
         >>> spp = SPP(c1=64, c2=128)
@@ -376,10 +376,10 @@ class SPP(nn.Module):
         Applies multi-scale pooling and concatenates features.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (batch, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with concatenated pooled features
+            (torch.Tensor): Output tensor with concatenated pooled features.
         """
         x = self.cv1(x)
         return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
@@ -401,9 +401,9 @@ class SPPF(nn.Module):
         - Output: (batch_size, c2, H, W)  # Spatial dimensions preserved
 
     Attributes:
-        cv1 (Conv): 1x1 convolution for channel reduction
-        cv2 (Conv): 1x1 convolution for channel expansion
-        m (nn.MaxPool2d): Single max pooling layer reused for multiple pooling operations
+        cv1 (Conv): 1x1 convolution for channel reduction.
+        cv2 (Conv): 1x1 convolution for channel expansion.
+        m (nn.MaxPool2d): Single max pooling layer reused for multiple pooling operations.
 
     Example:
         >>> sppf = SPPF(c1=64, c2=128)
@@ -436,10 +436,10 @@ class SPPF(nn.Module):
         Applies sequential max pooling operations and concatenates features.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (batch, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (batch, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with concatenated pooled features (batch, c2, H, W)
+            (torch.Tensor): Output tensor with concatenated pooled features (batch, c2, H, W).
         """
         y = [self.cv1(x)]
         y.extend(self.m(y[-1]) for _ in range(3))  # 3 repeated pool operations
@@ -463,8 +463,8 @@ class C1(nn.Module):
         - Output: (batch_size, c2, H, W)
 
     Attributes:
-        cv1 (Conv): Initial 1x1 convolution (channel transformation)
-        m (nn.Sequential): Main computational block containing sequential 3x3 convolutions
+        cv1 (Conv): Initial 1x1 convolution (channel transformation).
+        m (nn.Sequential): Main computational block containing sequential 3x3 convolutions.
 
     Example:
         >>> model = C1(c1=64, c2=64, n=3)  # CSP Bottleneck with 3 convs
@@ -496,10 +496,10 @@ class C1(nn.Module):
         3. Residual connection with initial transformed features
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor where output = main_computational_block(cv1(x)) + cv1(x)
+            (torch.Tensor): Output tensor where output = main_computational_block(cv1(x)) + cv1(x).
         """
         y = self.cv1(x)  # Initial transformation
         return self.m(y) + y  # CSP-style partial residual connection
@@ -524,10 +524,10 @@ class C2(nn.Module):
         - Output: (batch_size, c2, H, W)
 
     Attributes:
-        cv1 (Conv): Initial 1x1 convolution that doubles hidden channels
-        cv2 (Conv): Final 1x1 convolution for channel adjustment
-        m (nn.Sequential): Main computational block containing sequential Bottleneck modules
-        c (int): Hidden channels calculated as int(c2 * e)
+        cv1 (Conv): Initial 1x1 convolution that doubles hidden channels.
+        cv2 (Conv): Final 1x1 convolution for channel adjustment.
+        m (nn.Sequential): Main computational block containing sequential Bottleneck modules.
+        c (int): Hidden channels calculated as int(c2 * e).
 
     Example:
         >>> model = C2(c1=64, c2=64, n=3)
@@ -569,10 +569,10 @@ class C2(nn.Module):
         4. Final channel adjustment
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with shape (B, c2, H, W)
+            (torch.Tensor): Output tensor with shape (B, c2, H, W).
         """
         a, b = self.cv1(x).chunk(2, 1)  # Split channels
         return self.cv2(torch.cat((self.m(a), b), 1))  # Process through main block and concat
@@ -597,10 +597,10 @@ class C2f(nn.Module):
         - Output: (batch_size, c2, H, W)
 
     Attributes:
-        cv1 (Conv): Initial 1x1 convolution that doubles hidden channels
-        cv2 (Conv): Final 1x1 convolution for channel compression
-        m (nn.ModuleList): Main computational block containing n Bottleneck modules
-        c (int): Hidden channels calculated as int(c2 * e)
+        cv1 (Conv): Initial 1x1 convolution that doubles hidden channels.
+        cv2 (Conv): Final 1x1 convolution for channel compression.
+        m (nn.ModuleList): Main computational block containing n Bottleneck modules.
+        c (int): Hidden channels calculated as int(c2 * e).
 
     Example:
         >>> model = C2f(c1=64, c2=128, n=3)
@@ -646,10 +646,10 @@ class C2f(nn.Module):
         4. Final channel compression
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor of shape (B, c2, H, W)
+            (torch.Tensor): Output tensor of shape (B, c2, H, W).
         """
         y = list(self.cv1(x).chunk(2, 1))  # Initial split [c, c]
         y.extend(m(y[-1]) for m in self.m)  # Extend with processed features
@@ -665,10 +665,10 @@ class C2f(nn.Module):
         - Required for Google Coral Edge TPU compatibility
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor of shape (B, c2, H, W)
+            (torch.Tensor): Output tensor of shape (B, c2, H, W).
         """
         y = self.cv1(x).split((self.c, self.c), 1)  # Precise channel split
         y = [y[0], y[1]]  # Initialize feature list
@@ -723,7 +723,7 @@ class C3x(C3):
         - Output: (batch_size, c2, H, W)  # Maintains input spatial dimensions
 
     Attributes:
-        m (nn.Sequential): Main computational block with cross-convolution Bottlenecks
+        m (nn.Sequential): Main computational block with cross-convolution Bottlenecks.
 
     Example:
         >>> model = C3x(c1=64, c2=64, n=3)
@@ -767,10 +767,10 @@ class RepC3(nn.Module):
         - Output: (batch_size, c2, H, W)  # Spatial dimensions preserved
 
     Attributes:
-        cv1 (Conv): First 1x1 convolution branch
-        cv2 (Conv): Second 1x1 convolution branch (identity when c1=c2)
-        m (nn.Sequential): Main computational block containing n RepConv modules
-        cv3 (Conv | nn.Identity): Final projection convolution
+        cv1 (Conv): First 1x1 convolution branch.
+        cv2 (Conv): Second 1x1 convolution branch (identity when c1=c2).
+        m (nn.Sequential): Main computational block containing n RepConv modules.
+        cv3 (Conv | nn.Identity): Final projection convolution.
 
     Example:
         >>> model = RepC3(c1=64, c2=128, n=3)
@@ -807,10 +807,10 @@ class RepC3(nn.Module):
         4. Final projection with cv3 (if needed)
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor of shape (B, c2, H, W)
+            (torch.Tensor): Output tensor of shape (B, c2, H, W).
         """
         return self.cv3(self.m(self.cv1(x)) + self.cv2(x))
 
@@ -835,7 +835,7 @@ class C3TR(C3):
         - Output: (batch_size, c2, H, W)  # Maintains spatial dimensions
 
     Attributes:
-        m (TransformerBlock): Transformer-based computational block replacing Bottleneck
+        m (TransformerBlock): Transformer-based computational block replacing Bottleneck.
 
     Example:
         >>> model = C3TR(c1=64, c2=64, n=3)
@@ -873,19 +873,19 @@ class C3Ghost(C3):
     - https://arxiv.org/abs/1911.11907
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        n (int, optional): Number of GhostBottleneck blocks. Defaults to 1
-        shortcut (bool, optional): Enable residual connections. Defaults to True
-        g (int, optional): Groups for grouped convolutions. Defaults to 1
-        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int, optional): Number of GhostBottleneck blocks. Defaults to 1.
+        shortcut (bool, optional): Enable residual connections. Defaults to True.
+        g (int, optional): Groups for grouped convolutions. Defaults to 1.
+        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5.
 
     Shape:
         - Input: (batch_size, c1, H, W)
         - Output: (batch_size, c2, H, W)  # Maintains spatial dimensions
 
     Attributes:
-        m (nn.Sequential): Sequence of GhostBottleneck modules
+        m (nn.Sequential): Sequence of GhostBottleneck modules.
 
     Example:
         >>> model = C3Ghost(64, 64)
@@ -918,18 +918,18 @@ class GhostBottleneck(nn.Module):
     Original implementation: https://github.com/huawei-noah/ghostnet
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        k (int, optional): Kernel size for depthwise convolution. Defaults to 3
-        s (int, optional): Stride for depthwise convolution. Defaults to 1
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        k (int, optional): Kernel size for depthwise convolution. Defaults to 3.
+        s (int, optional): Stride for depthwise convolution. Defaults to 1.
 
     Shape:
         - Input: (batch_size, c1, H, W)
         - Output: (batch_size, c2, H//s, W//s)  # Spatial downsampling when s=2
 
     Attributes:
-        conv (nn.Sequential): Main processing path with GhostConv and DWConv
-        shortcut (nn.Sequential): Skip connection path with optional downsampling
+        conv (nn.Sequential): Main processing path with GhostConv and DWConv.
+        shortcut (nn.Sequential): Skip connection path with optional downsampling.
 
 
     Example:
@@ -975,10 +975,10 @@ class GhostBottleneck(nn.Module):
         3. Element-wise addition of both paths
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with combined features
+            (torch.Tensor): Output tensor with combined features.
         """
         return self.conv(x) + self.shortcut(x)
 
@@ -988,21 +988,21 @@ class Bottleneck(nn.Module):
     Standard bottleneck block with optional residual connection.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        shortcut (bool, optional): Enable residual connection. Defaults to True
-        g (int, optional): Groups for grouped convolution. Defaults to 1
-        k (tuple, optional): Kernel sizes for two convolutional layers. Defaults to (3, 3)
-        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        shortcut (bool, optional): Enable residual connection. Defaults to True.
+        g (int, optional): Groups for grouped convolution. Defaults to 1.
+        k (tuple, optional): Kernel sizes for two convolutional layers. Defaults to (3, 3).
+        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5.
 
     Shape:
         - Input: (batch_size, c1, H, W)
         - Output: (batch_size, c2, H, W)  # Maintains spatial dimensions when c1 == c2
 
     Attributes:
-        cv1 (Conv): First convolutional layer with kernel size k[0]
-        cv2 (Conv): Second convolutional layer with kernel size k[1]
-        add (bool): Indicates if residual connection is active
+        cv1 (Conv): First convolutional layer with kernel size k[0].
+        cv2 (Conv): Second convolutional layer with kernel size k[1].
+        add (bool): Indicates if residual connection is active.
 
     Example:
         >>> bottleneck = Bottleneck(64, 64)
@@ -1046,10 +1046,10 @@ class Bottleneck(nn.Module):
         2. Residual connection with input if conditions met
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with combined features
+            (torch.Tensor): Output tensor with combined features.
         """
         return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
@@ -1059,21 +1059,21 @@ class BottleneckCSP(nn.Module):
     CSP Bottleneck from Cross-Stage Partial Networks (CSPNet).
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        n (int, optional): Number of Bottleneck blocks. Defaults to 1
-        shortcut (bool, optional): Enable residual connection. Defaults to True
-        g (int, optional): Groups for grouped convolution. Defaults to 1
-        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int, optional): Number of Bottleneck blocks. Defaults to 1.
+        shortcut (bool, optional): Enable residual connection. Defaults to True.
+        g (int, optional): Groups for grouped convolution. Defaults to 1.
+        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5.
 
     Shape:
         - Input: (batch_size, c1, H, W)
         - Output: (batch_size, c2, H, W)  # Maintains spatial dimensions
 
     Attributes:
-        cv1-4 (Conv | nn.Conv2d): Convolution layers
-        bn (nn.BatchNorm2d): Batch normalization after feature concatenation
-        m (nn.Sequential): Sequence of Bottleneck blocks
+        cv1-4 (Conv | nn.Conv2d): Convolution layers.
+        bn (nn.BatchNorm2d): Batch normalization after feature concatenation.
+        m (nn.Sequential): Sequence of Bottleneck blocks.
 
     Example:
         >>> csp = BottleneckCSP(64, 64)
@@ -1114,10 +1114,10 @@ class BottleneckCSP(nn.Module):
         3. Concatenate and normalize → cv4
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with merged features
+            (torch.Tensor): Output tensor with merged features.
         """
         y1 = self.cv3(self.m(self.cv1(x)))
         y2 = self.cv2(x)
@@ -1132,18 +1132,18 @@ class ResNetBlock(nn.Module):
     - https://arxiv.org/abs/1512.03385
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Base output channels
-        s (int, optional): Stride for 3x3 convolution. Defaults to 1
-        e (int, optional): Channel expansion ratio. Defaults to 4
+        c1 (int): Input channels.
+        c2 (int): Base output channels.
+        s (int, optional): Stride for 3x3 convolution. Defaults to 1.
+        e (int, optional): Channel expansion ratio. Defaults to 4.
 
     Shape:
         - Input: (batch_size, c1, H, W)
         - Output: (batch_size, c2*e, H//s, W//s)  # Spatial downsampling when s>1
 
     Attributes:
-        cv1-3 (Conv): Convolution layers (1x1-3x3-1x1)
-        shortcut (nn.Sequential): Skip connection path
+        cv1-3 (Conv): Convolution layers (1x1-3x3-1x1).
+        shortcut (nn.Sequential): Skip connection path.
 
     Example:
         >>> block = ResNetBlock(64, 64, s=2)
@@ -1174,10 +1174,10 @@ class ResNetBlock(nn.Module):
         Processes input through bottleneck with residual connection.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor with residual connection
+            (torch.Tensor): Output tensor with residual connection.
         """
         return F.relu(self.cv3(self.cv2(self.cv1(x))) + self.shortcut(x))
 
@@ -1187,19 +1187,19 @@ class ResNetLayer(nn.Module):
     ResNet Layer containing multiple ResNet blocks.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Base output channels
-        s (int, optional): Stride for first block. Defaults to 1
-        is_first (bool, optional): If first layer in network. Defaults to False
-        n (int, optional): Number of blocks in layer. Defaults to 1
-        e (int, optional): Channel expansion ratio. Defaults to 4
+        c1 (int): Input channels.
+        c2 (int): Base output channels.
+        s (int, optional): Stride for first block. Defaults to 1.
+        is_first (bool, optional): If first layer in network. Defaults to False.
+        n (int, optional): Number of blocks in layer. Defaults to 1.
+        e (int, optional): Channel expansion ratio. Defaults to 4.
 
     Shape:
         - Input: (batch_size, c1, H, W)
         - Output: (batch_size, c2*e, H//(s*2 if is_first else s), W//(s*2 if is_first else s))
 
     Attributes:
-        layer (nn.Sequential): Sequence of Conv/MaxPool or ResNet blocks
+        layer (nn.Sequential): Sequence of Conv/MaxPool or ResNet blocks.
 
     Example:
         >>> # Initial layer
@@ -1245,10 +1245,10 @@ class ResNetLayer(nn.Module):
         Processes input through initial conv+pool or block sequence.
 
         Args:
-            x (torch.Tensor): Input tensor
+            x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor): Processed output tensor
+            (torch.Tensor): Processed output tensor.
         """
         return self.layer(x)
 
@@ -1258,12 +1258,12 @@ class MaxSigmoidAttnBlock(nn.Module):
     Multi-head Max Sigmoid Attention Block for guided feature enhancement.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        nh (int, optional): Number of attention heads. Defaults to 1
-        ec (int, optional): Embedding channels. Defaults to 128
-        gc (int, optional): Guide vector channels. Defaults to 512
-        scale (bool, optional): Enable learnable scale parameter. Defaults to False
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        nh (int, optional): Number of attention heads. Defaults to 1.
+        ec (int, optional): Embedding channels. Defaults to 128.
+        gc (int, optional): Guide vector channels. Defaults to 512.
+        scale (bool, optional): Enable learnable scale parameter. Defaults to False.
 
     Shape:
         - Input: (batch_size, c1, H, W)
@@ -1271,10 +1271,10 @@ class MaxSigmoidAttnBlock(nn.Module):
         - Output: (batch_size, c2, H, W)
 
     Attributes:
-        ec (Conv | None): Embedding convolution
-        gl (nn.Linear): Guide linear projection
-        proj_conv (Conv): Final projection convolution
-        scale (nn.Parameter | float): Attention scaling factor
+        ec (Conv | None): Embedding convolution.
+        gl (nn.Linear): Guide linear projection.
+        proj_conv (Conv): Final projection convolution.
+        scale (nn.Parameter | float): Attention scaling factor.
 
     Example:
         >>> attn = MaxSigmoidAttnBlock(256, 256, nh=2)
@@ -1310,11 +1310,11 @@ class MaxSigmoidAttnBlock(nn.Module):
         Processes features through attention mechanism with guidance vector.
 
         Args:
-            x (torch.Tensor): Input features (B, c1, H, W)
-            guide (torch.Tensor): Guidance vector (B, gc)
+            x (torch.Tensor): Input features (B, c1, H, W).
+            guide (torch.Tensor): Guidance vector (B, gc).
 
         Returns:
-            (torch.Tensor): Attention-weighted features (B, c2, H, W)
+            (torch.Tensor): Attention-weighted features (B, c2, H, W).
         """
         bs, _, h, w = x.shape
         # Process guide vector
@@ -1334,15 +1334,15 @@ class C2fAttn(nn.Module):
     C2f module with integrated attention mechanism for enhanced feature interaction.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        n (int, optional): Number of Bottleneck blocks. Defaults to 1
-        ec (int, optional): Attention embedding channels. Defaults to 128
-        nh (int, optional): Number of attention heads. Defaults to 1
-        gc (int, optional): Guide vector channels. Defaults to 512
-        shortcut (bool, optional): Enable residual connections. Defaults to False
-        g (int, optional): Groups for convolution. Defaults to 1
-        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int, optional): Number of Bottleneck blocks. Defaults to 1.
+        ec (int, optional): Attention embedding channels. Defaults to 128.
+        nh (int, optional): Number of attention heads. Defaults to 1.
+        gc (int, optional): Guide vector channels. Defaults to 512.
+        shortcut (bool, optional): Enable residual connections. Defaults to False.
+        g (int, optional): Groups for convolution. Defaults to 1.
+        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5.
 
     Shape:
         - Input: (batch_size, c1, H, W)
@@ -1350,10 +1350,10 @@ class C2fAttn(nn.Module):
         - Output: (batch_size, c2, H, W)
 
     Attributes:
-        cv1 (Conv): Initial feature split convolution
-        cv2 (Conv): Final feature fusion convolution
-        m (nn.ModuleList): Bottleneck blocks
-        attn (MaxSigmoidAttnBlock): Attention module
+        cv1 (Conv): Initial feature split convolution.
+        cv2 (Conv): Final feature fusion convolution.
+        m (nn.ModuleList): Bottleneck blocks.
+        attn (MaxSigmoidAttnBlock): Attention module.
 
     Example:
         >>> model = C2fAttn(64, 128, n=3)
@@ -1440,25 +1440,25 @@ class ImagePoolingAttn(nn.Module):
     Enhances text embeddings with spatially pooled image features using multi-head attention.
 
     Args:
-        ec (int, optional): Embedding channels. Defaults to 256
-        ch (tuple): Input channel tuple from different feature levels
-        ct (int, optional): Text embedding dimension. Defaults to 512
-        nh (int, optional): Number of attention heads. Defaults to 8
-        k (int, optional): Spatial pooling size. Defaults to 3 (k x k grid)
-        scale (bool, optional): Enable learnable output scale. Defaults to False
+        ec (int, optional): Embedding channels. Defaults to 256.
+        ch (tuple): Input channel tuple from different feature levels.
+        ct (int, optional): Text embedding dimension. Defaults to 512.
+        nh (int, optional): Number of attention heads. Defaults to 8.
+        k (int, optional): Spatial pooling size. Defaults to 3 (k x k grid).
+        scale (bool, optional): Enable learnable output scale. Defaults to False.
 
     Shape:
         - Input:
-            x (list[Tensor]): Multi-scale image features [(B, ch[i], H, W), ...]
-            text (Tensor): Text embeddings (B, seq_len, ct)
+            x (List[Tensor]): Multi-scale image features [(B, ch[i], H, W), ...].
+            text (Tensor): Text embeddings (B, seq_len, ct).
         - Output: (B, seq_len, ct)  # Enhanced text embeddings
 
     Attributes:
-        query (nn.Sequential): Text transformation pipeline
-        key (nn.Sequential): Image key projection
-        value (nn.Sequential): Image value projection
-        projections (nn.ModuleList): Channel alignment convs for each feature level
-        im_pools (nn.ModuleList): Spatial pooling adapters
+        query (nn.Sequential): Text transformation pipeline.
+        key (nn.Sequential): Image key projection.
+        value (nn.Sequential): Image value projection.
+        projections (nn.ModuleList): Channel alignment convs for each feature level.
+        im_pools (nn.ModuleList): Spatial pooling adapters.
 
 
     Example:
@@ -1507,11 +1507,11 @@ class ImagePoolingAttn(nn.Module):
         3. Apply residual connection with original text embeddings
 
         Args:
-            x (List[torch.Tensor]): Multi-scale image features [(B, ch[i], H, W), ...]
-            text (torch.Tensor): Text embeddings (B, seq_len, ct)
+            x (List[torch.Tensor]): Multi-scale image features [(B, ch[i], H, W), ...].
+            text (torch.Tensor): Text embeddings (B, seq_len, ct).
 
         Returns:
-            (torch.Tensor): Vision-enhanced text embeddings (B, seq_len, ct)
+            (torch.Tensor): Vision-enhanced text embeddings (B, seq_len, ct).
         """
         bs = x[0].shape[0]
         # Process image features
@@ -1543,8 +1543,8 @@ class ContrastiveHead(nn.Module):
         - Output: Similarity scores (batch_size, num_texts, H, W)
 
     Attributes:
-        bias (nn.Parameter): Learnable bias term initialized at -10.0
-        logit_scale (nn.Parameter): Learnable temperature scaling parameter
+        bias (nn.Parameter): Learnable bias term initialized at -10.0.
+        logit_scale (nn.Parameter): Learnable temperature scaling parameter.
 
     Example:
         >>> head = ContrastiveHead()
@@ -1566,11 +1566,11 @@ class ContrastiveHead(nn.Module):
         Computes region-text similarity scores through normalized cosine similarity.
 
         Args:
-            x (torch.Tensor): Image region features (B, C, H, W)
-            w (torch.Tensor): Text embeddings (B, N, C)
+            x (torch.Tensor): Image region features (B, C, H, W).
+            w (torch.Tensor): Text embeddings (B, N, C).
 
         Returns:
-            (torch.Tensor): Similarity scores (B, N, H, W)
+            (torch.Tensor): Similarity scores (B, N, H, W).
         """
         x = F.normalize(x, dim=1, p=2)
         w = F.normalize(w, dim=-1, p=2)
@@ -1584,7 +1584,7 @@ class BNContrastiveHead(nn.Module):
     Batch Normalized Contrastive Head for YOLO-World with modified normalization strategy.
 
     Args:
-        embed_dims (int): Embedding dimensions for text and image features
+        embed_dims (int): Embedding dimensions for text and image features.
 
     Shape:
         - Input x: Image features (batch_size, embed_dims, H, W)
@@ -1592,9 +1592,9 @@ class BNContrastiveHead(nn.Module):
         - Output: Similarity scores (batch_size, num_texts, H, W)
 
     Attributes:
-        norm (nn.BatchNorm2d): Batch normalization layer for image features
-        bias (nn.Parameter): Learnable bias term initialized at -10.0
-        logit_scale (nn.Parameter): Temperature parameter initialized at -1.0
+        norm (nn.BatchNorm2d): Batch normalization layer for image features.
+        bias (nn.Parameter): Learnable bias term initialized at -10.0.
+        logit_scale (nn.Parameter): Temperature parameter initialized at -1.0.
 
     Example:
         >>> head = BNContrastiveHead(256)
@@ -1648,12 +1648,12 @@ class RepBottleneck(Bottleneck):
     Reparameterizable Bottleneck block with enhanced inference efficiency.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        shortcut (bool, optional): Enable residual connection. Defaults to True
-        g (int, optional): Groups for convolution. Defaults to 1
-        k (tuple, optional): Kernel sizes for two conv layers. Defaults to (3, 3)
-        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        shortcut (bool, optional): Enable residual connection. Defaults to True.
+        g (int, optional): Groups for convolution. Defaults to 1.
+        k (tuple, optional): Kernel sizes for two conv layers. Defaults to (3, 3).
+        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5.
 
 
 
@@ -1688,12 +1688,12 @@ class RepCSP(C3):
     Reparameterizable Cross Stage Partial Network for efficient feature extraction.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        n (int, optional): Number of RepBottleneck blocks. Defaults to 1
-        shortcut (bool, optional): Enable residual connections. Defaults to True
-        g (int, optional): Groups for convolution. Defaults to 1
-        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int, optional): Number of RepBottleneck blocks. Defaults to 1.
+        shortcut (bool, optional): Enable residual connections. Defaults to True.
+        g (int, optional): Groups for convolution. Defaults to 1.
+        e (float, optional): Hidden channels expansion ratio. Defaults to 0.5.
 
     Shape:
         - Input: (batch_size, c1, H, W)
@@ -1728,15 +1728,15 @@ class RepNCSPELAN4(nn.Module):
     Reparameterizable CSP-ELAN4 block with hierarchical feature integration.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        c3 (int): First expansion channels
-        c4 (int): Secondary expansion channels
-        n (int, optional): Number of RepCSP blocks per branch. Defaults to 1
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        c3 (int): First expansion channels.
+        c4 (int): Secondary expansion channels.
+        n (int, optional): Number of RepCSP blocks per branch. Defaults to 1.
 
     Attributes:
-        cv1-4 (Conv): Convolutional transformation layers
-        cv2-3 (nn.Sequential): Feature processing branches with RepCSP blocks
+        cv1-4 (Conv): Convolutional transformation layers.
+        cv2-3 (nn.Sequential): Feature processing branches with RepCSP blocks.
 
     Example:
         >>> layer = RepNCSPELAN4(64, 128, 96, 64)
@@ -1781,10 +1781,10 @@ class ELAN1(RepNCSPELAN4):
     Lightweight ELAN variant without reparameterization.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        c3 (int): First expansion channels
-        c4 (int): Secondary expansion channels
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        c3 (int): First expansion channels.
+        c4 (int): Secondary expansion channels.
 
     Example:
         >>> layer = ELAN1(64, 128, 96, 64)
@@ -1816,11 +1816,11 @@ class AConv(nn.Module):
     - https://github.com/WongKinYiu/yolov9
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
+        c1 (int): Input channels.
+        c2 (int): Output channels.
 
     Attributes:
-        cv1 (Conv): 3x3 convolution with stride 2
+        cv1 (Conv): 3x3 convolution with stride 2.
 
     Example:
         >>> aconv = AConv(64, 128)
@@ -1855,13 +1855,13 @@ class ADown(nn.Module):
     - https://github.com/WongKinYiu/yolov9
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
+        c1 (int): Input channels.
+        c2 (int): Output channels.
 
     Attributes:
-        c (int): Half of output channels
-        cv1 (Conv): 3x3 convolution with stride 2 for first half
-        cv2 (Conv): 1x1 convolution for second half
+        c (int): Half of output channels.
+        cv1 (Conv): 3x3 convolution with stride 2 for first half.
+        cv2 (Conv): 1x1 convolution for second half.
 
     Example:
         >>> adown = ADown(128, 256)
@@ -1905,15 +1905,15 @@ class SPPELAN(nn.Module):
     - https://github.com/WongKinYiu/yolov9
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        c3 (int): Intermediate channels for pyramid branches
-        k (int, optional): Shared kernel size for pyramid pooling layers. Default: 5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        c3 (int): Intermediate channels for pyramid branches.
+        k (int, optional): Shared kernel size for pyramid pooling layers. Default: 5.
 
     Attributes:
-        cv1 (Conv): 1x1 channel reduction (c1 -> c3)
-        cv2-4 (nn.MaxPool2d): Triple identical pooling layers (kernel=k)
-        cv5 (Conv): 1x1 channel expansion (4*c3 -> c2)
+        cv1 (Conv): 1x1 channel reduction (c1 -> c3).
+        cv2-4 (nn.MaxPool2d): Triple identical pooling layers (kernel=k).
+        cv5 (Conv): 1x1 channel expansion (4*c3 -> c2).
 
     Example:
         >>> # Basic usage with 5x5 pooling
@@ -1975,17 +1975,16 @@ class CBLinear(nn.Module):
     YOLOv9 Implementation: https://github.com/WongKinYiu/yolov9
 
     Args:
-        c1 (int): Input channels from upstream backbone
-        c2s (list[int]): Output channel distribution for downstream backbones
-                         (e.g., [256, 512] = 2 backbones with 256ch and 512ch inputs)
-        k (int, optional): Kernel size for cross-backbone fusion. Default: 1
-        s (int, optional): Stride for fusion convolution. Default: 1
-        p (int, optional): Padding. Auto-calculated if None. Default: None
-        g (int, optional): Groups for grouped convolution. Default: 1
+        c1 (int): Input channels from upstream backbone.
+        c2s (List[int]): Output channel distribution for downstream backbones e.g. [256, 512] = 2 backbones with 256ch and 512ch inputs).
+        k (int, optional): Kernel size for cross-backbone fusion. Default: 1.
+        s (int, optional): Stride for fusion convolution. Default: 1.
+        p (int, optional): Padding. Auto-calculated if None. Default: None.
+        g (int, optional): Groups for grouped convolution. Default: 1.
 
     Attributes:
-        fusion_conv (nn.Conv2d): Cross-backbone fusion convolution
-        c2s (list): Channel distribution for downstream backbone inputs
+        fusion_conv (nn.Conv2d): Cross-backbone fusion convolution.
+        c2s (list): Channel distribution for downstream backbone inputs.
 
     Example:
         >>> # Connecting 2 composite backbones (512ch → [256ch, 256ch] branches)
@@ -2024,10 +2023,10 @@ class CBLinear(nn.Module):
         Routes features to multiple downstream backbones.
 
         Args:
-            x (Tensor): Features from upstream backbone (B, c1, H, W)
+            x (Tensor): Features from upstream backbone (B, c1, H, W).
 
         Returns:
-            (tuple[Tensor]): Split features for downstream backbones
+            (tuple[Tensor]): Split features for downstream backbones.
         """
         fused = self.fusion_conv(x)
         return fused.split(self.c2s, dim=1)
@@ -2103,18 +2102,18 @@ class C3f(nn.Module):
     while reducing computational complexity through partial feature aggregation.
 
     Args:
-        c1 (int): Input channels from upstream layer
-        c2 (int): Output channels for downstream layer
-        n (int, optional): Number of bottleneck blocks. Default: 1
-        shortcut (bool, optional): Enable residual shortcuts in bottlenecks. Default: False
-        g (int, optional): Groups for grouped convolution in bottlenecks. Default: 1
-        e (float, optional): Expansion ratio for hidden channels. Default: 0.5
+        c1 (int): Input channels from upstream layer.
+        c2 (int): Output channels for downstream layer.
+        n (int, optional): Number of bottleneck blocks. Default: 1.
+        shortcut (bool, optional): Enable residual shortcuts in bottlenecks. Default: False.
+        g (int, optional): Groups for grouped convolution in bottlenecks. Default: 1.
+        e (float, optional): Expansion ratio for hidden channels. Default: 0.5.
 
     Attributes:
-        cv1 (Conv): Initial 1x1 projection convolution
-        cv2 (Conv): Secondary 1x1 projection convolution
-        cv3 (Conv): Final 1x1 aggregation convolution
-        m (nn.ModuleList): Stack of bottleneck blocks
+        cv1 (Conv): Initial 1x1 projection convolution.
+        cv2 (Conv): Secondary 1x1 projection convolution.
+        cv3 (Conv): Final 1x1 aggregation convolution.
+        m (nn.ModuleList): Stack of bottleneck blocks.
 
     Example:
         >>> # Basic C3f block with 1 bottleneck
@@ -2161,10 +2160,10 @@ class C3f(nn.Module):
         Forward pass through C3f layer using split-transform-merge strategy.
 
         Args:
-            x (torch.Tensor): Input features of shape (B, c1, H, W)
+            x (torch.Tensor): Input features of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Processed features of shape (B, c2, H, W)
+            (torch.Tensor): Processed features of shape (B, c2, H, W).
         """
         y = [self.cv2(x), self.cv1(x)]  # Initial split projections
         y.extend(m(y[-1]) for m in self.m)  # Sequential processing through bottlenecks
@@ -2180,16 +2179,16 @@ class C3k2(C2f):
     fundamentals from C2f with enhanced block flexibility.
 
     Args:
-        c1 (int): Input channels from upstream layer
-        c2 (int): Output channels for downstream layer
-        n (int, optional): Number of processing blocks. Default: 1
-        c3k (bool, optional): Enable C3k blocks instead of Bottleneck. Default: False
-        e (float, optional): Hidden channels expansion ratio. Default: 0.5
-        g (int, optional): Groups for grouped convolution. Default: 1
-        shortcut (bool, optional): Enable residual connections. Default: True
+        c1 (int): Input channels from upstream layer.
+        c2 (int): Output channels for downstream layer.
+        n (int, optional): Number of processing blocks. Default: 1.
+        c3k (bool, optional): Enable C3k blocks instead of Bottleneck. Default: False.
+        e (float, optional): Hidden channels expansion ratio. Default: 0.5.
+        g (int, optional): Groups for grouped convolution. Default: 1.
+        shortcut (bool, optional): Enable residual connections. Default: True.
 
     Attributes:
-        m (nn.ModuleList): Dynamic stack of processing blocks (C3k or Bottleneck)
+        m (nn.ModuleList): Dynamic stack of processing blocks (C3k or Bottleneck).
 
     Example:
         >>> # Default configuration with Bottleneck blocks
@@ -2240,16 +2239,16 @@ class C3k(C3):
     receptive field characteristics.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        n (int, optional): Number of bottleneck blocks. Default: 1
-        shortcut (bool, optional): Enable residual connections. Default: True
-        g (int, optional): Groups for grouped convolution. Default: 1
-        e (float, optional): Hidden channels expansion ratio. Default: 0.5
-        k (int, optional): Kernel size for bottleneck convolutions. Default: 3
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int, optional): Number of bottleneck blocks. Default: 1.
+        shortcut (bool, optional): Enable residual connections. Default: True.
+        g (int, optional): Groups for grouped convolution. Default: 1.
+        e (float, optional): Hidden channels expansion ratio. Default: 0.5.
+        k (int, optional): Kernel size for bottleneck convolutions. Default: 3.
 
     Attributes:
-        m (nn.Sequential): Stack of Bottleneck layers with custom kernel sizes
+        m (nn.Sequential): Stack of Bottleneck layers with custom kernel sizes.
 
     Example:
         >>> # Standard 3x3 kernel configuration
@@ -2296,13 +2295,13 @@ class RepVGGDW(torch.nn.Module):
     optimization strategy.
 
     Args:
-        ed (int): Number of input/output channels (must equal groups for depthwise conv)
+        ed (int): Number of input/output channels (must equal groups for depthwise conv).
 
     Attributes:
-        conv (Conv): 7x7 depthwise convolution branch
-        conv1 (Conv): 3x3 depthwise convolution branch (padded to 7x7 during fusion)
-        act (nn.SiLU): Activation function
-        dim (int): Channel dimension preserved through operations
+        conv (Conv): 7x7 depthwise convolution branch.
+        conv1 (Conv): 3x3 depthwise convolution branch (padded to 7x7 during fusion).
+        act (nn.SiLU): Activation function.
+        dim (int): Channel dimension preserved through operations.
 
     Example:
         >>> # Training phase with dual branches
@@ -2337,10 +2336,10 @@ class RepVGGDW(torch.nn.Module):
         Dual-branch forward pass during training.
 
         Args:
-            x (Tensor): Input tensor of shape (B, ed, H, W)
+            x (torch.Tensor): Input tensor of shape (B, ed, H, W).
 
         Returns:
-            (Tensor): Activated sum of 7x7 and 3x3 branch outputs
+            (torch.Tensor): Activated sum of 7x7 and 3x3 branch outputs.
         """
         return self.act(self.conv(x) + self.conv1(x))
 
@@ -2349,10 +2348,10 @@ class RepVGGDW(torch.nn.Module):
         Single-branch forward pass for fused weights.
 
         Args:
-            x (Tensor): Input tensor of shape (B, ed, H, W)
+            x (Tensor): Input tensor of shape (B, ed, H, W).
 
         Returns:
-            (Tensor): Output using fused 7x7 convolution weights
+            (Tensor): Output using fused 7x7 convolution weights.
         """
         return self.act(self.conv(x))
 
@@ -2399,10 +2398,10 @@ class CIB(nn.Module):
     The "large kernel" refers to the 3x3 convolution enhanced with multi-branch training-time optimization.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        shortcut (bool, optional): Enable residual connection. Default: True
-        e (float, optional): Hidden layer expansion ratio. Default: 0.5
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        shortcut (bool, optional): Enable residual connection. Default: True.
+        e (float, optional): Hidden layer expansion ratio. Default: 0.5.
         lk (bool, optional): Use RepVGG-style reparameterizable 3x3 conv (True) or standard 3x3 conv (False).
                             Implements training-time multi-branch -> inference-time single branch conversion. Default: False
 
@@ -2413,7 +2412,7 @@ class CIB(nn.Module):
             3. Large Kernel Block: RepVGGDW (train-time multi-branch) or standard DWConv
             4. 1x1 Conv: Channel compression
             5. 3x3 Depthwise Conv: Final spatial processing
-        add (bool): Residual connection enabled when input/output channels match
+        add (bool): Residual connection enabled when input/output channels match.
 
     Example:
         >>> # Training-phase RepVGG-style with multi-branch
@@ -2456,10 +2455,10 @@ class CIB(nn.Module):
         Executes forward pass with optional residual connection.
 
         Args:
-            x (Tensor): Input tensor (B, c1, H, W)
+            x (Tensor): Input tensor (B, c1, H, W).
 
         Returns:
-            (Tensor): Output tensor (B, c2, H, W) preserving spatial dimensions
+            (Tensor): Output tensor (B, c2, H, W) preserving spatial dimensions.
         """
         return x + self.cv1(x) if self.add else self.cv1(x)
 
@@ -2472,10 +2471,10 @@ class C2fCIB(C2f):
     Combines channel splitting/merging with multi-branch->single branch optimization.
 
     Args:
-        c1 (int): Input channels
-        c2 (int): Output channels
-        n (int, optional): Number of CIB blocks to stack. Default: 1
-        shortcut (bool, optional): Enable cross-block residual connections. Default: False
+        c1 (int): Input channels.
+        c2 (int): Output channels.
+        n (int, optional): Number of CIB blocks to stack. Default: 1.
+        shortcut (bool, optional): Enable cross-block residual connections. Default: False.
         lk (bool, optional): Use RepVGG-style reparameterizable 3x3 conv in CIB blocks.
                            Enables multi-branch (3x3+1x1+identity) during training ->
                            converts to single 3x3 during inference. Default: False
@@ -2484,9 +2483,9 @@ class C2fCIB(C2f):
                            Hidden channels = c2 * e. Default: 0.5
 
     Attributes:
-        m (nn.ModuleList): Stack of n CIB blocks with RepVGG optimization
-        cv1 (Conv): Input channel splitting convolution (inherited from C2f)
-        cv2 (Conv): Output channel merging convolution (inherited from C2f)
+        m (nn.ModuleList): Stack of n CIB blocks with RepVGG optimization.
+        cv1 (Conv): Input channel splitting convolution (inherited from C2f).
+        cv2 (Conv): Output channel merging convolution (inherited from C2f).
 
     Example:
         >>> # Basic usage with default parameters
@@ -2534,15 +2533,15 @@ class Attention(nn.Module):
     Implements vanilla self-attention mechanism with convolutional projections and positional encoding.
 
     Args:
-        dim (int): Input channel dimension
-        num_heads (int, optional): Number of parallel attention heads. Default: 8
-        attn_ratio (float, optional): Ratio of key dimension to head dimension. Default: 0.5
+        dim (int): Input channel dimension.
+        num_heads (int, optional): Number of parallel attention heads. Default: 8.
+        attn_ratio (float, optional): Ratio of key dimension to head dimension. Default: 0.5.
 
     Attributes:
-        qkv (Conv): 1x1 convolution for generating query/key/value projections
-        proj (Conv): 1x1 convolution for final output projection
-        pe (Conv): Depthwise convolution for positional encoding
-        scale (float): Normalization factor for attention scores
+        qkv (Conv): 1x1 convolution for generating query/key/value projections.
+        proj (Conv): 1x1 convolution for final output projection.
+        pe (Conv): Depthwise convolution for positional encoding.
+        scale (float): Normalization factor for attention scores.
 
     Example:
         >>> # Basic self-attention operation
@@ -2589,10 +2588,10 @@ class Attention(nn.Module):
         6. Project to output space.
 
         Args:
-            x (Tensor): Input tensor of shape (B, dim, H, W)
+            x (Tensor): Input tensor of shape (B, dim, H, W).
 
         Returns:
-            (Tensor): Output tensor of same shape (B, dim, H, W)
+            (Tensor): Output tensor of same shape (B, dim, H, W).
         """
         B, C, H, W = x.shape
         N = H * W
@@ -2622,15 +2621,15 @@ class PSABlock(nn.Module):
     while maintaining spatial resolution.
 
     Attributes:
-        attn (Attention): Partial self-attention module with optimized head configuration
-        ffn (nn.Sequential): Feed-forward network with channel expansion/contraction (c → 2c → c)
-        add (bool): Enables residual connections when True
+        attn (Attention): Partial self-attention module with optimized head configuration.
+        ffn (nn.Sequential): Feed-forward network with channel expansion/contraction (c → 2c → c).
+        add (bool): Enables residual connections when True.
 
     Args:
-        c (int): Number of input/output channels
-        attn_ratio (float, optional): Ratio of attention channels to total channels. Default: 0.5
-        num_heads (int, optional): Number of parallel attention heads. Default: 4
-        shortcut (bool, optional): Enables residual connections for stable training. Default: True
+        c (int): Number of input/output channels.
+        attn_ratio (float, optional): Ratio of attention channels to total channels. Default: 0.5.
+        num_heads (int, optional): Number of parallel attention heads. Default: 4.
+        shortcut (bool, optional): Enables residual connections for stable training. Default: True.
 
     Example:
         >>> # Basic usage with residual connections
@@ -2681,10 +2680,10 @@ class PSABlock(nn.Module):
         Residuals skipped when shortcut=False
 
         Args:
-            x (Tensor): Input tensor of shape (B, c, H, W)
+            x (Tensor): Input tensor of shape (B, c, H, W).
 
         Returns:
-            (Tensor): Enhanced output of same shape (B, c, H, W)
+            (Tensor): Enhanced output of same shape (B, c, H, W).
         """
         x = x + self.attn(x) if self.add else self.attn(x)
         x = x + self.ffn(x) if self.add else self.ffn(x)
@@ -2699,8 +2698,8 @@ class PSA(nn.Module):
     YOLOv10's improvements showing 0.3% AP gain with 0.05ms latency reduction compared to standard transformer blocks.
 
     Attributes:
-        attn (Attention): Partial self-attention module with optimized head configuration
-        ffn (nn.Sequential): Feed-forward network with channel expansion/contraction
+        attn (Attention): Partial self-attention module with optimized head configuration.
+        ffn (nn.Sequential): Feed-forward network with channel expansion/contraction.
 
     Args:
         c1 (int): Input channels. Must equal c2.
@@ -2815,10 +2814,10 @@ class C2PSA(nn.Module):
         Splits input into two streams, processes one through PSABlocks, then merges back.
 
         Args:
-            x (torch.Tensor): Input tensor of shape (B, c1, H, W)
+            x (torch.Tensor): Input tensor of shape (B, c1, H, W).
 
         Returns:
-            (torch.Tensor): Output tensor of shape (B, c2, H, W) with enhanced features
+            (torch.Tensor): Output tensor of shape (B, c2, H, W) with enhanced features.
 
         Example:
             >>> # Verify input-output shape consistency

@@ -1449,7 +1449,7 @@ class ImagePoolingAttn(nn.Module):
 
     Shape:
         - Input:
-            x (List[Tensor]): Multi-scale image features [(B, ch[i], H, W), ...].
+            x (List[torch.Tensor]): Multi-scale image features [(B, ch[i], H, W), ...].
             text (torch.Tensor): Text embeddings (B, seq_len, ct).
         - Output: (B, seq_len, ct)  # Enhanced text embeddings
 
@@ -2026,7 +2026,7 @@ class CBLinear(nn.Module):
             x (torch.Tensor): Features from upstream backbone (B, c1, H, W).
 
         Returns:
-            (tuple[Tensor]): Split features for downstream backbones.
+            (Tuple[torch.Tensor]): Split features for downstream backbones.
         """
         fused = self.fusion_conv(x)
         return fused.split(self.c2s, dim=1)

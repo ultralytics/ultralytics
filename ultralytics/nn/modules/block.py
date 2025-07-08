@@ -81,10 +81,10 @@ class DFL(nn.Module):
 
     def __init__(self, c1: int = 16):
         """
-        Initializes a convolutional layer with fixed weight distribution.
+        Initialize a convolutional layer with a given number of input channels.
 
         Args:
-            c1 (int, optional): Number of channels per group. The total input channels will be 4 * c1. Defaults to 16.
+            c1 (int, optional): Number of input channels. Defaults to 16.
         """
         super().__init__()
         self.conv = nn.Conv2d(c1, 1, 1, bias=False).requires_grad_(False)

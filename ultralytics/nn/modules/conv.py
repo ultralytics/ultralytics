@@ -69,7 +69,7 @@ class Reshape(nn.Module):
     """
     Reshape the input tensor to a new shape.
     """
-    def __init__(self, shape: Tuple[int,...]):
+    def __init__(self, shape: List[int]):
         """
         Initialize the Reshape module.
         

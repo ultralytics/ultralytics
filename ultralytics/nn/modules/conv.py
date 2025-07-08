@@ -2,7 +2,7 @@
 """Convolution modules."""
 
 import math
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import torch

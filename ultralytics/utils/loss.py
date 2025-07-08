@@ -146,6 +146,8 @@ class BboxLoss(nn.Module):
                 F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
             )
             loss_dfl = loss_dfl.sum() / target_scores_sum
+            # TODO: try this, treat this as an additional branch, not put it with `target_scores_sum`
+            # loss_dfl = F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="mean")
             # loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
         return loss_iou, loss_dfl

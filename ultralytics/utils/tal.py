@@ -143,6 +143,11 @@ class TaskAlignedAssigner(nn.Module):
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
+        # TODO: try this
+        # temp_metric = align_metric.clone()
+        # temp_metric[temp_metric == 0] = 1.0
+        # value = torch.min(temp_metric[mask_in_gts.bool()])
+        # align_metric = torch.where((mask_in_gts * (align_metric == 0)).bool(), value, align_metric)
         # Get topk_metric mask, (b, max_num_obj, h*w)
         mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool(), mask_in_gts=mask_in_gts)
         # Merge all mask to a final mask, (b, max_num_obj, h*w)

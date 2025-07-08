@@ -111,7 +111,7 @@ class DFL(nn.Module):
 
 class Proto(nn.Module):
     """
-    YOLOv8 mask Proto module for segmentation models.
+    Ultralytics YOLO models mask Proto module for segmentation models.
 
     This module processes feature maps to generate prototype masks for instance segmentation,
     using convolutional layers and transposed convolution for upsampling.
@@ -617,7 +617,7 @@ class C2f(nn.Module):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = False, g: int = 1, e: float = 0.5):
         """
-        Initializes C2f layer with expanded feature aggregation capabilities.
+        Initialize C2f layer with expanded feature aggregation capabilities.
 
         Args:
             c1 (int): Input channels.

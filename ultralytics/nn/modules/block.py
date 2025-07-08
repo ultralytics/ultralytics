@@ -200,7 +200,7 @@ class HGStem(nn.Module):
 
     def __init__(self, c1: int, cm: int, c2: int):
         """
-        Initializes PPHGNetV2 StemBlock with channel configurations.
+        Initialize PPHGNetV2 StemBlock with channel configurations.
 
         Args:
             c1 (int): Input channels.
@@ -290,7 +290,7 @@ class HGBlock(nn.Module):
         act: nn.Module = nn.ReLU(),
     ):
         """
-        Initializes HGBlock with configurable convolution patterns and optional shortcut.
+        Initialize HGBlock with configurable convolution patterns and optional shortcut.
 
         Args:
             c1 (int): Input channels.
@@ -475,7 +475,7 @@ class C1(nn.Module):
 
     def __init__(self, c1: int, c2: int, n: int = 1):
         """
-        Initializes CSP Bottleneck with channel configuration and convolution count.
+        Initialize CSP Bottleneck with channel configuration and convolution count.
 
         Args:
             c1 (int): Input channels.
@@ -539,7 +539,7 @@ class C2(nn.Module):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
         """
-        Initializes CSP Bottleneck with channel configuration and processing parameters.
+        Initialize CSP Bottleneck with channel configuration and processing parameters.
 
         Args:
             c1 (int): Input channels.
@@ -734,7 +734,7 @@ class C3x(C3):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
         """
-        Initializes C3x with cross-convolution Bottleneck blocks.
+        Initialize C3x with cross-convolution Bottleneck blocks.
 
         Args:
             c1 (int): Input channels.
@@ -781,7 +781,7 @@ class RepC3(nn.Module):
 
     def __init__(self, c1: int, c2: int, n: int = 3, e: float = 1.0):
         """
-        Initializes reparameterizable CSP bottleneck with dual branches.
+        Initialize reparameterizable CSP bottleneck with dual branches.
 
         Args:
             c1 (int): Input channels.
@@ -846,7 +846,7 @@ class C3TR(C3):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
         """
-        Initializes hybrid CNN/Transformer bottleneck.
+        Initialize hybrid CNN/Transformer bottleneck.
 
         Args:
             c1 (int): Input channels.
@@ -896,7 +896,7 @@ class C3Ghost(C3):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
         """
-        Initializes C3Ghost module with GhostBottleneck blocks.
+        Initialize C3Ghost module with GhostBottleneck blocks.
 
         Args:
             c1 (int): Input channels.
@@ -941,7 +941,7 @@ class GhostBottleneck(nn.Module):
 
     def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1):
         """
-        Initializes GhostBottleneck with channel config, kernel size, and stride.
+        Initialize GhostBottleneck with channel config, kernel size, and stride.
 
         Args:
             c1 (int): Input channels.
@@ -1021,7 +1021,7 @@ class Bottleneck(nn.Module):
         self, c1: int, c2: int, shortcut: bool = True, g: int = 1, k: Tuple[int, int] = (3, 3), e: float = 0.5
     ):
         """
-        Initializes bottleneck block with channel configuration and convolution parameters.
+        Initialize bottleneck block with channel configuration and convolution parameters.
 
         Args:
             c1 (int): Input channels.
@@ -1084,7 +1084,7 @@ class BottleneckCSP(nn.Module):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
         """
-        Initializes CSP bottleneck with channel configuration and processing parameters.
+        Initialize CSP bottleneck with channel configuration and processing parameters.
 
         Args:
             c1 (int): Input channels.
@@ -1154,7 +1154,7 @@ class ResNetBlock(nn.Module):
 
     def __init__(self, c1: int, c2: int, s: int = 1, e: int = 4):
         """
-        Initializes ResNet block with expansion configuration.
+        Initialize ResNet block with expansion configuration.
 
         Args:
             c1 (int): Input channels.
@@ -1217,7 +1217,7 @@ class ResNetLayer(nn.Module):
 
     def __init__(self, c1: int, c2: int, s: int = 1, is_first: bool = False, n: int = 1, e: int = 4):
         """
-        Initializes ResNet layer configuration.
+        Initialize ResNet layer configuration.
 
         Args:
             c1 (int): Input channels.
@@ -1286,7 +1286,7 @@ class MaxSigmoidAttnBlock(nn.Module):
 
     def __init__(self, c1: int, c2: int, nh: int = 1, ec: int = 128, gc: int = 512, scale: bool = False):
         """
-        Initializes attention block with configurable head and channel settings.
+        Initialize attention block with configurable head and channel settings.
 
         Args:
             c1 (int): Input channels.
@@ -1380,7 +1380,7 @@ class C2fAttn(nn.Module):
         e: float = 0.5,
     ):
         """
-        Initializes C2f attention module with configurable parameters.
+        Initialize C2f attention module with configurable parameters.
 
         Args:
             c1 (int): Input channels.
@@ -1473,7 +1473,7 @@ class ImagePoolingAttn(nn.Module):
         self, ec: int = 256, ch: Tuple[int, ...] = (), ct: int = 512, nh: int = 8, k: int = 3, scale: bool = False
     ):
         """
-        Initializes image-text attention with configurable pooling.
+        Initialize image-text attention with configurable pooling.
 
         Args:
             ec (int): Embedding channels.
@@ -1556,7 +1556,7 @@ class ContrastiveHead(nn.Module):
     """
 
     def __init__(self):
-        """Initializes contrastive head with bias and temperature parameters."""
+        """Initialize contrastive head with bias and temperature parameters."""
         super().__init__()
         self.bias = nn.Parameter(torch.tensor([-10.0]))
         self.logit_scale = nn.Parameter(torch.ones([]) * torch.tensor(1 / 0.07).log())
@@ -1606,7 +1606,7 @@ class BNContrastiveHead(nn.Module):
 
     def __init__(self, embed_dims: int):
         """
-        Initializes contrastive head with batch normalization.
+        Initialize contrastive head with batch normalization.
 
         Args:
             embed_dims (int): Embedding dimensions for features.
@@ -1668,7 +1668,7 @@ class RepBottleneck(Bottleneck):
         self, c1: int, c2: int, shortcut: bool = True, g: int = 1, k: Tuple[int, int] = (3, 3), e: float = 0.5
     ):
         """
-        Initializes RepBottleneck with reparameterizable components.
+        Initialize RepBottleneck with reparameterizable components.
 
         Args:
             c1 (int): Input channels.
@@ -1708,7 +1708,7 @@ class RepCSP(C3):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
         """
-        Initializes RepCSP with reparameterizable bottlenecks.
+        Initialize RepCSP with reparameterizable bottlenecks.
 
         Args:
             c1 (int): Input channels.
@@ -1747,7 +1747,7 @@ class RepNCSPELAN4(nn.Module):
 
     def __init__(self, c1: int, c2: int, c3: int, c4: int, n: int = 1):
         """
-        Initializes hierarchical feature integration block.
+        Initialize hierarchical feature integration block.
 
         Args:
             c1 (int): Input channels.
@@ -1795,7 +1795,7 @@ class ELAN1(RepNCSPELAN4):
 
     def __init__(self, c1: int, c2: int, c3: int, c4: int):
         """
-        Initializes non-reparameterized ELAN block.
+        Initialize non-reparameterized ELAN block.
 
         Args:
             c1 (int): Input channels.
@@ -1832,7 +1832,7 @@ class AConv(nn.Module):
 
     def __init__(self, c1: int, c2: int):
         """
-        Initializes pooling and convolution layers.
+        Initialize pooling and convolution layers.
 
         Args:
             c1 (int): Input channels.
@@ -1873,7 +1873,7 @@ class ADown(nn.Module):
 
     def __init__(self, c1: int, c2: int):
         """
-        Initializes channel split and processing layers.
+        Initialize channel split and processing layers.
 
         Args:
             c1 (int): Input channels.
@@ -1932,7 +1932,7 @@ class SPPELAN(nn.Module):
 
     def __init__(self, c1: int, c2: int, c3: int, k: int = 5):
         """
-        Initializes SPP-ELAN components with configurable pyramid depth.
+        Initialize SPP-ELAN components with configurable pyramid depth.
 
         Args:
             c1 (int): Input channels.
@@ -2004,7 +2004,7 @@ class CBLinear(nn.Module):
 
     def __init__(self, c1: int, c2s: List[int], k: int = 1, s: int = 1, p: Optional[int] = None, g: int = 1):
         """
-        Initializes cross-backbone feature router.
+        Initialize cross-backbone feature router.
 
         Args:
             c1 (int): Input channels.
@@ -2067,7 +2067,7 @@ class CBFuse(nn.Module):
 
     def __init__(self, idx: List[int]):
         """
-        Initializes CBFuse module with layer index for selective feature fusion.
+        Initialize CBFuse module with layer index for selective feature fusion.
 
         Args:
             idx (List[int]): Indices specifying which feature maps to select.
@@ -2214,7 +2214,7 @@ class C3k2(C2f):
         self, c1: int, c2: int, n: int = 1, c3k: bool = False, e: float = 0.5, g: int = 1, shortcut: bool = True
     ):
         """
-        Initializes the C3k2 module with dynamic block selection.
+        Initialize the C3k2 module with dynamic block selection.
 
         Args:
             c1 (int): Input channels.
@@ -2271,7 +2271,7 @@ class C3k(C3):
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5, k: int = 3):
         """
-        Initializes C3k with configurable kernel size.
+        Initialize C3k with configurable kernel size.
 
         Args:
             c1 (int): Input channels.
@@ -2321,7 +2321,7 @@ class RepVGGDW(torch.nn.Module):
 
     def __init__(self, ed: int) -> None:
         """
-        Initializes dual depthwise convolution branches.
+        Initialize dual depthwise convolution branches.
 
         Args:
             ed (int): Input and output channels.
@@ -2431,7 +2431,7 @@ class CIB(nn.Module):
 
     def __init__(self, c1: int, c2: int, shortcut: bool = True, e: float = 0.5, lk: bool = False):
         """
-        Initializes CIB block with RepVGG-style optimization option.
+        Initialize CIB block with RepVGG-style optimization option.
 
         Args:
             c1 (int): Input channels.
@@ -2656,7 +2656,7 @@ class PSABlock(nn.Module):
 
     def __init__(self, c: int, attn_ratio: float = 0.5, num_heads: int = 4, shortcut: bool = True) -> None:
         """
-        Initializes partial self-attention and FFN layers with residual option.
+        Initialize partial self-attention and FFN layers with residual option.
 
         Args:
             c (int): Input and output channels.
@@ -2723,7 +2723,7 @@ class PSA(nn.Module):
 
     def __init__(self, c1: int, c2: int, e: float = 0.5):
         """
-        Initializes PSA with channel splitting, attention, and FFN components.
+        Initialize PSA with channel splitting, attention, and FFN components.
 
         Args:
             c1 (int): Input channels.
@@ -2912,7 +2912,7 @@ class SCDown(nn.Module):
 
     def __init__(self, c1: int, c2: int, k: int, s: int):
         """
-        Initializes the SCDown module with specified parameters.
+        Initialize the SCDown module with specified parameters.
 
         Args:
             c1 (int): Number of input channels.
@@ -3113,7 +3113,7 @@ class ABlock(nn.Module):
         mlp (nn.Sequential): Multi-layer perceptron for feature transformation.
 
     Methods:
-        _init_weights: Initializes module weights using truncated normal distribution.
+        _init_weights: Initialize module weights using truncated normal distribution.
         forward: Applies area-attention and feed-forward processing to input tensor.
 
     Examples:

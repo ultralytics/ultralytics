@@ -8,6 +8,7 @@ import torch
 
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
+from ultralytics.data.augment import RandomLoadText
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import de_parallel
@@ -108,6 +109,14 @@ class WorldTrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
         if mode == "train":
+            dataset.transforms.insert(
+                -1,
+                RandomLoadText(
+                    max_samples=min(self.data["nc"], 80),
+                    padding=True,
+                    padding_value=dataset._get_neg_texts(dataset.category_freq),
+                ),
+            )
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
 
@@ -151,6 +160,7 @@ class WorldTrainer(DetectionTrainer):
         """
         model = "clip:ViT-B/32"
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
+        texts += [""]  # add empty str here for padding text
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
             txt_map = torch.load(cache_path, map_location=self.device)

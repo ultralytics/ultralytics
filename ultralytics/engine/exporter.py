@@ -349,7 +349,9 @@ class Exporter:
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if self.args.dynamic and self.args.batch == 1 and (engine or self.args.nms):
-            LOGGER.warning(f"'dynamic=True' model with '{'nms=True' if self.args.nms else 'format=engine'}' requires max batch size, i.e. 'batch=16'")
+            LOGGER.warning(
+                f"'dynamic=True' model with '{'nms=True' if self.args.nms else 'format=engine'}' requires max batch size, i.e. 'batch=16'"
+            )
         if edgetpu:
             if not LINUX or ARM64:
                 raise SystemError(

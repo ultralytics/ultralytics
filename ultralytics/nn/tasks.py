@@ -1737,8 +1737,8 @@ def parse_model(d, ch, verbose=True):
             c1 = ch[f]
             args = [*args[1:]]
         elif m in frozenset({Permute, Reshape}):
-            # print(f"args: {args}")
-            pass
+            c1 = ch[f]
+            c2 = c1
         else:
             c2 = ch[f]
 

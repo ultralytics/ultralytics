@@ -133,11 +133,12 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
     )
 
 
-def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):
+def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32, max_samples=80):
     """Build and return a GroundingDataset based on configuration parameters."""
     return GroundingDataset(
         img_path=img_path,
         json_file=json_file,
+        max_samples=max_samples,
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation

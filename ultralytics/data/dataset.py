@@ -432,7 +432,7 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task: str = "detect", json_file: str = "", **kwargs):
+    def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
@@ -444,6 +444,7 @@ class GroundingDataset(YOLODataset):
         """
         assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
+        self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
     def get_img_files(self, img_path: str) -> List:
@@ -621,7 +622,7 @@ class GroundingDataset(YOLODataset):
             # the strategy of selecting negative is restricted in one dataset,
             # while official pre-saved neg embeddings from all datasets at once.
             transform = RandomLoadText(
-                max_samples=80,
+                max_samples=min(self.max_samples, 80),
                 padding=True,
                 padding_value=self._get_neg_texts(self.category_freq),
             )

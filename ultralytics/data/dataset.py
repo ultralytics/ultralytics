@@ -22,6 +22,7 @@ from .augment import (
     Compose,
     Format,
     LetterBox,
+    RandomLoadText,
     classify_augmentations,
     classify_transforms,
     v8_transforms,
@@ -359,6 +360,28 @@ class YOLOMultiModalDataset(YOLODataset):
 
         return labels
 
+    def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
+        """
+        Enhance data transformations with optional text augmentation for multi-modal training.
+        Args:
+            hyp (dict, optional): Hyperparameters for transforms.
+        Returns:
+            (Compose): Composed transforms including text augmentation if applicable.
+        """
+        transforms = super().build_transforms(hyp)
+        if self.augment:
+            # NOTE: hard-coded the args for now.
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=min(self.data["nc"], 80),
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
+            )
+            transforms.insert(-1, transform)
+        return transforms
+
     @property
     def category_names(self):
         """
@@ -582,6 +605,28 @@ class GroundingDataset(YOLODataset):
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
         return labels
+
+    def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
+        """
+        Configure augmentations for training with optional text loading.
+        Args:
+            hyp (dict, optional): Hyperparameters for transforms.
+        Returns:
+            (Compose): Composed transforms including text augmentation if applicable.
+        """
+        transforms = super().build_transforms(hyp)
+        if self.augment:
+            # NOTE: hard-coded the args for now.
+            # NOTE: this implementation is different from official yoloe,
+            # the strategy of selecting negative is restricted in one dataset,
+            # while official pre-saved neg embeddings from all datasets at once.
+            transform = RandomLoadText(
+                max_samples=80,
+                padding=True,
+                padding_value=self._get_neg_texts(self.category_freq),
+            )
+            transforms.insert(-1, transform)
+        return transforms
 
     @property
     def category_names(self):

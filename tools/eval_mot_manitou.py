@@ -170,8 +170,7 @@ class MotManitou2DBox(trackeval.datasets.MotChallenge2DBox):
                 except IndexError:
                     if is_gt:
                         err = (
-                            f"Cannot load gt data from sequence {seq}, because there is not enough "
-                            "columns in the data."
+                            f"Cannot load gt data from sequence {seq}, because there is not enough columns in the data."
                         )
                         raise TrackEvalException(err)
                     else:

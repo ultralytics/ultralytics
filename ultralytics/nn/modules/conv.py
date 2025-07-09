@@ -61,7 +61,7 @@ class Permute(nn.Module):
             x (torch.Tensor): Input tensor.
         
         Returns:
-            torch.Tensor: Permuted tensor
+            (torch.Tensor): Permuted tensor
         """
         assert x.dim() == len(self.permutation), f"The permutation must have same number of channels as the input tensor. Found: permutation channels: {self.permutation}, input tensor channels: {x.dim()}"
         return torch.permute(x, self.permutation)
@@ -89,7 +89,7 @@ class Reshape(nn.Module):
             x (torch.Tensor): Input tensor.
         
         Returns:
-            torch.Tensor: Reshaped tensor
+            (torch.Tensor): Reshaped tensor
         """
         return torch.reshape(x, self.shape)
 

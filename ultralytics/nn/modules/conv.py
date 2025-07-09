@@ -42,15 +42,16 @@ class Permute(nn.Module):
 
     """
     def __init__(self, permutation: List[int]):
-       """
-       Initialize the Permute module.
+        """
+        Initialize the Permute module.
 
-        Args:
-            permutation (List[int]): New order of the channels. Refer to torch.permute for more details.
-       """
-       super().__init__()
-       assert all(isinstance(p, int) for p in permutation), "All permutation indices should be integers"
-       self.permutation = permutation
+            Args:
+                permutation (List[int]): New order of the channels. Refer to torch.permute for more details.
+        """
+        super().__init__()
+        # print("Pemutation args: ", permutation)
+        assert all(isinstance(p, int) for p in permutation), "All permutation indices should be integers"
+        self.permutation = permutation
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -62,7 +63,7 @@ class Permute(nn.Module):
         Returns:
             torch.Tensor: Permuted tensor
         """
-        assert x.dim() == len(self.permutation), f"The permutation must have same nummber of channels as the input tensor. Found: permutation channels: {self.permutation}, input tensor channels: {x.dim()}"
+        assert x.dim() == len(self.permutation), f"The permutation must have same number of channels as the input tensor. Found: permutation channels: {self.permutation}, input tensor channels: {x.dim()}"
         return torch.permute(x, self.permutation)
 
 class Reshape(nn.Module):
@@ -74,10 +75,11 @@ class Reshape(nn.Module):
         Initialize the Reshape module.
         
         Args:
-            shape (Tuple[int,...]): New shape of the tensor.
+            shape (List[int]): New shape of the tensor.
         """
         super().__init__()
-        self.shape = shape
+        # print("Reshape args: ", shape)
+        self.shape = tuple(shape)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """

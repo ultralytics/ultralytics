@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
-from ultralytics.data.augment import RandomLoadText
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils import DATASETS_DIR, DEFAULT_CFG, LOGGER
@@ -111,18 +110,6 @@ class WorldTrainerFromScratch(WorldTrainer):
             else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
             for im_path in img_path
         ]
-        for dataset in datasets:
-            # NOTE: this implementation is different from official yoloe,
-            # the strategy of selecting negative is restricted in one dataset,
-            # while official pre-saved neg embeddings from all datasets at once.
-            dataset.transforms.insert(
-                -1,
-                RandomLoadText(
-                    max_samples=min(self.data["nc"], 80),
-                    padding=True,
-                    padding_value=dataset._get_neg_texts(dataset.category_freq),
-                ),
-            )
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
         return YOLOConcatDataset(datasets) if len(datasets) > 1 else datasets[0]
 

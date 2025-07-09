@@ -6,8 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import torch
 
-from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
-from ultralytics.data.augment import RandomLoadText
+from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -109,39 +108,8 @@ class WorldTrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
         if mode == "train":
-            dataset.transforms.insert(
-                -1,
-                RandomLoadText(
-                    max_samples=min(self.data["nc"], 80),
-                    padding=True,
-                    padding_value=dataset._get_neg_texts(dataset.category_freq),
-                ),
-            )
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
-
-    def _close_dataloader_mosaic(self):
-        """Close mosaic augmentation and add visual prompt loading to the training dataset."""
-        super()._close_dataloader_mosaic()
-        if isinstance(self.train_loader.dataset, YOLOConcatDataset):
-            for d in self.train_loader.dataset.datasets:
-                d.transforms.insert(
-                    -1,
-                    RandomLoadText(
-                        max_samples=min(self.data["nc"], 80),
-                        padding=True,
-                        padding_value=d._get_neg_texts(d.category_freq),
-                    ),
-                )
-        else:
-            self.train_loader.dataset.transforms.insert(
-                -1,
-                RandomLoadText(
-                    max_samples=min(self.data["nc"], 80),
-                    padding=True,
-                    padding_value=self.train_loader.dataset._get_neg_texts(self.train_loader.dataset.category_freq),
-                ),
-            )
 
     def set_text_embeddings(self, datasets: List[Any], batch: Optional[int]) -> None:
         """

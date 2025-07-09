@@ -3,14 +3,14 @@
 import os
 import random
 from pathlib import Path
-from typing import Any, Iterator, Dict
+from typing import Any, Dict, Iterator
 
 import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
-from ultralytics.cfg import IterableSimpleNamespace
 
+from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,

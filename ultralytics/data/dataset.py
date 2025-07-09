@@ -363,8 +363,10 @@ class YOLOMultiModalDataset(YOLODataset):
     def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
         """
         Enhance data transformations with optional text augmentation for multi-modal training.
+
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
+
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
@@ -610,8 +612,10 @@ class GroundingDataset(YOLODataset):
     def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
         """
         Configure augmentations for training with optional text loading.
+
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
+
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """

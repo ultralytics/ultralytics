@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import torch
 
-from ultralytics.data import build_yolo_dataset, YOLOConcatDataset
+from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import RandomLoadText
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel

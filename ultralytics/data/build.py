@@ -10,8 +10,6 @@ from PIL import Image
 from torch.utils.data import dataloader, distributed
 
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
-from ultralytics.data.manitou_dataset import ManitouDataset
-from ultralytics.data.manitou_video_dataset import ManitouVideoDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -22,6 +20,8 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
+from ultralytics.data.manitou_dataset import ManitouDataset
+from ultralytics.data.manitou_video_dataset import ManitouVideoDataset
 from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
@@ -125,7 +125,8 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
         data=data,
         fraction=cfg.fraction if mode == "train" else 1.0,
     )
-    
+
+
 def build_manitou_dataset(cfg, ann_path, batch, data, mode="train", rect=False, stride=32, multi_cam=False):
     """Build and return a Manitou dataset based on configuration parameters."""
     if multi_cam:
@@ -148,7 +149,7 @@ def build_manitou_dataset(cfg, ann_path, batch, data, mode="train", rect=False, 
             fraction=cfg.fraction if mode == "train" else 1.0,
             ref_img_sampler=cfg.ref_img_sampler if mode == "train" else None,
         )
-    else:    
+    else:
         return ManitouDataset(
             ann_path=ann_path,
             imgsz=cfg.imgsz,

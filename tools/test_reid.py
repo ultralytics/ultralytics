@@ -1,20 +1,20 @@
-from ultralytics import YOLOManitou_MultiCam, YOLO
-from ultralytics.data.manitou_api import ManitouAPI, get_manitou_calibrations
-import os
 import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-def draw_results_on_image(img, boxes, confs, global_indices):
+from ultralytics import YOLOManitou_MultiCam
+from ultralytics.data.manitou_api import get_manitou_calibrations
 
+
+def draw_results_on_image(img, boxes, confs, global_indices):
     for i, (box, conf, idx) in enumerate(zip(boxes, confs, global_indices)):
         x1, y1, x2, y2 = map(int, box)
         cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         text = f"ID:{idx} Conf:{conf:.2f}"
-        cv2.putText(img, text, (x1, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+        cv2.putText(img, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
     return img
+
 
 weights = "/root/workspace/ultralytics/tools/runs/manitou_remap/train/weights/best.pt"
 device = [0]
@@ -32,17 +32,17 @@ cam3_paths = f"/datasets/dataset/manitou/key_frames/{rosbag_name}/camera3/{frame
 cam4_paths = f"/datasets/dataset/manitou/key_frames/{rosbag_name}/camera4/{frame}.jpg"
 
 data_cfg = {
-    'camera1': [cam1_paths],
-    'camera2': [cam2_paths],
-    'camera3': [cam3_paths],
-    'camera4': [cam4_paths],
-    'radar1': None,
-    'radar2': None,
-    'radar3': None,
-    'radar4': None,
-    'calib_params': calib_params,
-    'filter_cfg': {},
-    'radar_accumulation': 1
+    "camera1": [cam1_paths],
+    "camera2": [cam2_paths],
+    "camera3": [cam3_paths],
+    "camera4": [cam4_paths],
+    "radar1": None,
+    "radar2": None,
+    "radar3": None,
+    "radar4": None,
+    "calib_params": calib_params,
+    "filter_cfg": {},
+    "radar_accumulation": 1,
 }
 
 results = model.predict(data_cfg=data_cfg, imgsz=imgsz, conf=0.50, max_det=100, save=False)
@@ -68,7 +68,7 @@ for cam_idx, res in enumerate(results[0]):
     camera_idx.extend([cam_idx] * n)
     all_boxes.extend(boxes)
     all_confs.extend(confs)
-    all_img_indices.extend([cam_idx] * n) 
+    all_img_indices.extend([cam_idx] * n)
 
     processed_images.append(img)
     features_list.append(features)
@@ -106,11 +106,10 @@ top_matches = torch.argmax(similarity_matrix, dim=1).tolist()
 annotated_images = [img.copy() for img in processed_images]
 for i, (box, conf, img_idx, match_idx) in enumerate(zip(all_boxes, all_confs, all_img_indices, top_matches)):
     x1, y1, x2, y2 = map(int, box)
-    #label = f"ID: {i+1} -> ReID: {match_idx+1}"
-    label = f"ID: {i+1}"
+    # label = f"ID: {i+1} -> ReID: {match_idx+1}"
+    label = f"ID: {i + 1}"
     cv2.rectangle(annotated_images[img_idx], (x1, y1), (x2, y2), (0, 255, 0), 2)
-    cv2.putText(annotated_images[img_idx], label, (x1, y1 - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+    cv2.putText(annotated_images[img_idx], label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
 target_size = (1920, 1536)
 resized_images = [cv2.resize(img, target_size) for img in annotated_images]

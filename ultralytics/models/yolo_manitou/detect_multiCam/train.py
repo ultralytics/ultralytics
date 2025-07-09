@@ -1,33 +1,23 @@
 """
 @Description: Trainer to support training Manitou dataset in multi-camera setup.
 @Author: Sijie Hu
-@Date: 2025-05-20
+@Date: 2025-05-20.
 """
+
 import math
 import time
 import warnings
-import numpy as np
 from copy import copy
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch import distributed as dist
 
-from pathlib import Path
-from ultralytics.nn.tasks import DetectionModel_MultiView
 from ultralytics.data import build_manitou_dataset, get_manitou_dataset
-from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo_manitou
-from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
-from ultralytics.utils.checks import check_amp
-from ultralytics.utils.torch_utils import (
-    TORCH_2_4,
-    EarlyStopping,
-    ModelEMA,
-    de_parallel,
-    autocast,
-    unset_deterministic,
-)
+from ultralytics.models.yolo_manitou.detect import ManitouTrainer
+from ultralytics.nn.tasks import DetectionModel_MultiView
 from ultralytics.utils import (
     DEFAULT_CFG,
     LOCAL_RANK,
@@ -36,11 +26,17 @@ from ultralytics.utils import (
     TQDM,
     callbacks,
     colorstr,
-    yaml_load,
-    yaml_save,
 )
-
-from ultralytics.models.yolo_manitou.detect import ManitouTrainer
+from ultralytics.utils.checks import check_amp
+from ultralytics.utils.plotting import plot_images, plot_labels
+from ultralytics.utils.torch_utils import (
+    TORCH_2_4,
+    EarlyStopping,
+    ModelEMA,
+    autocast,
+    de_parallel,
+    unset_deterministic,
+)
 
 
 class ManitouTrainer_MultiCam(ManitouTrainer):
@@ -51,12 +47,13 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
         model: The model to be trained.
         data: Dictionary containing dataset information including class names and number of classes.
         loss_names (Tuple[str]): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
-        
+
     Modified Methods:
         __init__: Initialize the trainer with configuration, device, and dataset.
         get_dataset: Get the annotation path for training or validation.
         build_dataset: Build Manitou dataset for training or validation based on the annotation path.
     """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the BaseTrainer class.
@@ -68,7 +65,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
         """
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
         self.plot_idx = [0, 1, 2]
-        
+
     def _setup_train(self, world_size):
         """Build dataloaders and optimizer on correct rank process."""
         # Model
@@ -85,7 +82,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             if isinstance(self.args.freeze, int)
             else []
         )
-        always_freeze_names = [".dfl"]  # always freeze these layers  
+        always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
@@ -159,7 +156,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks("on_pretrain_routine_end")
-    
+
     def _do_train(self, world_size=1):
         """Train the model with the specified world size."""
         if world_size > 1:
@@ -182,7 +179,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
 
         base_idx = self.epochs * nb // 1.5
         self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
-        
+
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
         while True:
@@ -273,7 +270,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni, prefix="key")
                         self.plot_training_samples(ref_batch, ni, prefix="ref")
-                        
+
                 self.run_callbacks("on_train_batch_end")
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
@@ -328,26 +325,26 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             self.run_callbacks("on_train_end")
         self._clear_memory()
         unset_deterministic()
-        self.run_callbacks("teardown")     
-        
+        self.run_callbacks("teardown")
+
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss", "reid_loss"
         return yolo_manitou.detect_multiCam.ManitouValidator_MultiCam(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-        
+
     def get_dataset(self):
         """
         Get the annotation path for training or validation.
-        
+
         Returns:
             (tuple): Tuple containing training and validation datasets.
-        """        
+        """
         self.data = get_manitou_dataset(self.args.data)
-        
+
         return self.data["train"], self.data["val"]
-    
+
     def build_dataset(self, ann_path, mode="train", batch=None):
         """
         Build Manitou dataset for training or validation based on the annotation path.
@@ -361,8 +358,10 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             Dataset: A dataset object for the specified mode.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_manitou_dataset(self.args, ann_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_cam=True)
-        
+        return build_manitou_dataset(
+            self.args, ann_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_cam=True
+        )
+
     def preprocess_batch(self, batch):
         """
         Preprocess a batch of images by scaling and converting to float.
@@ -372,16 +371,16 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
 
         Returns:
             (dict): Preprocessed batch with normalized images.
-        """        
+        """
         key_frames = batch["key_frames"]
         ref_frames = batch["ref_frames"]
-        
+
         key_frames["img"] = key_frames["img"].to(self.device, non_blocking=True).float() / 255
         if ref_frames is not None:
             ref_frames["img"] = ref_frames["img"].to(self.device, non_blocking=True).float() / 255
-        
+
         return batch
-    
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
         Return a YOLO detection model.
@@ -394,7 +393,9 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel_MultiView(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = DetectionModel_MultiView(
+            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1
+        )
         if weights:
             model.load(weights)
         return model
@@ -416,7 +417,7 @@ class ManitouTrainer_MultiCam(ManitouTrainer):
             fname=self.save_dir / f"{prefix}_train_batch_{ni}.jpg",
             on_plot=self.on_plot,
         )
-        
+
     def plot_training_labels(self):
         """Create a labeled training plot of the YOLO model."""
         boxes = np.concatenate([lb["bboxes"] for lb in self.train_loader.dataset.labels], 0)

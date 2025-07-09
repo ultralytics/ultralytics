@@ -254,7 +254,6 @@ FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/Fa
 1. Download a [model checkpoint](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing).
 
 2. Use FastSAM for inference. Example commands:
-
     - Segment everything in an image:
 
         ```shell

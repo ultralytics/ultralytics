@@ -1,45 +1,31 @@
 """
 @Description: Manitou dataset class.
 @Author: Sijie Hu
-@Date: 2025-05-06
+@Date: 2025-05-06.
 """
-import glob
-import os
+
 import math
-from typing import Optional, List, Dict, Tuple
 from copy import deepcopy
-from collections import defaultdict
-from itertools import repeat
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image
-from torch.utils.data import Dataset, ConcatDataset
+from torch.utils.data import Dataset
 
-from ultralytics.utils.patches import imread
-from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils import LOGGER
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments
-from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds
-from ultralytics.utils.torch_utils import TORCHVISION_0_18
+from ultralytics.utils.patches import imread
 
-from .converter import merge_multi_segment
-from .manitou_api import ManitouAPI
 from .augmentV1 import (
     Compose,
     FormatManitou,
-    LetterBox,
     ManitouResizeCrop,
-    RandomLoadText,
-    classify_augmentations,
-    classify_transforms,
     v8_transformsV1,
 )
-from .base import BaseDataset
 from .converter import merge_multi_segment
+from .manitou_api import ManitouAPI
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for YOLOv8
 DATASET_CACHE_VERSION = "1.0.3"
@@ -52,11 +38,10 @@ class ManitouDataset(Dataset):
     Attributes:
         use_segments (bool): Indicates if segmentation masks should be used.
         data (dict): Dataset configuration dictionary.
-    
-    Methods:
 
+    Methods:
     """
-    
+
     def __init__(self, *args, data=None, use_segments=False, stride, imgsz, **kwargs):
         """
         Initialize the ManitouDataset class.
@@ -91,12 +76,12 @@ class ManitouDataset(Dataset):
             LOGGER.warning(
                 f"Image size {self.imgsz} is not divisible by stride {stride}, resizing and cropping to {(h, w)}"
             )
-        
+
         # In Manitou dataset, the image size is fixed, so rect is not needed.
         kwargs.pop("rect", False)
         kwargs.pop("pad", 0.0)  # for rect, not used in Manitou dataset
         self.full_init(*args, channels=data["channels"], rect=False, pad=0.0, **kwargs)
-        
+
     def full_init(
         self,
         ann_path,
@@ -168,15 +153,13 @@ class ManitouDataset(Dataset):
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
-                   
+
     def parse_label_info(self, raw_label_info):
-        """
-        Parse label information to target format.
-        """
+        """Parse label information to target format."""
         img_info = raw_label_info["raw_img_info"]
         radar_info = raw_label_info["raw_radar_info"]
         ann_info = raw_label_info["raw_ann_info"]
-        
+
         img_path = str(Path(self.data["path"]) / self.data["img_prefix"] / img_info["file_name"])
         img_shape = (img_info["height"], img_info["width"])  # (h, w)
         img_timestamp = img_info["time_stamp"]
@@ -189,53 +172,53 @@ class ManitouDataset(Dataset):
         radar_frame_name = radar_info["frame_name"]
         is_start = img_info["is_start"]
         is_end = img_info["is_end"]
-        
+
         boxes = []
         segments = []
         classes = []
         ins_ids = []
         mot_confs = []
         visibilities = []
-        
+
         for i, ann in enumerate(ann_info):
             if ann.get("is_ego", False):
                 continue
-            
-            if ann.get('ignore', False):
+
+            if ann.get("ignore", False):
                 continue
-            
-            x1, y1, w, h = ann['bbox']
-            inter_w = max(0, min(x1 + w, img_info['width']) - max(x1, 0))
-            inter_h = max(0, min(y1 + h, img_info['height']) - max(y1, 0))
+
+            x1, y1, w, h = ann["bbox"]
+            inter_w = max(0, min(x1 + w, img_info["width"]) - max(x1, 0))
+            inter_h = max(0, min(y1 + h, img_info["height"]) - max(y1, 0))
             if inter_w * inter_h == 0:
                 continue
-            
+
             # if ann['area'] <= 400 or w < 10 or h < 20:
             #     continue
-            
-            if ann['category_id'] not in self.data["cat_ids"]:
+
+            if ann["category_id"] not in self.data["cat_ids"]:
                 continue
-            
+
             # The coco box format is [top_left_x, top_left_y, width, height]
             cx, cy = x1 + w / 2, y1 + h / 2
-            
+
             boxes.append([cx, cy, w, h])
-            
-            if len(ann['segmentation']) == 0:
+
+            if len(ann["segmentation"]) == 0:
                 s = []
-            elif len(ann['segmentation']) > 1:
-                s = merge_multi_segment(ann['segmentation'])
+            elif len(ann["segmentation"]) > 1:
+                s = merge_multi_segment(ann["segmentation"])
                 s = np.concatenate(s, axis=0)
             else:
                 s = [j for i in ann["segmentation"] for j in i]
                 s = np.array(s).reshape(-1, 2)
             segments.append(s)
-            
-            classes.append(self.data["cat2label"][ann['category_id']])
-            ins_ids.append(ann['instance_id'])
-            mot_confs.append(ann['mot_conf'])
-            visibilities.append(ann['visibility'])
-        
+
+            classes.append(self.data["cat2label"][ann["category_id"]])
+            ins_ids.append(ann["instance_id"])
+            mot_confs.append(ann["mot_conf"])
+            visibilities.append(ann["visibility"])
+
         if len(boxes) > 0:
             boxes = np.array(boxes, dtype=np.float32).reshape(-1, 4)
             classes = np.array(classes, dtype=np.float32).reshape(-1, 1)
@@ -248,7 +231,7 @@ class ManitouDataset(Dataset):
             ins_ids = np.zeros((0, 1), dtype=np.float32)
             mot_confs = np.zeros((0, 1), dtype=np.float32)
             visibilities = np.zeros((0, 1), dtype=np.float32)
-            
+
         return {
             "im_file": img_path,
             "shape": img_shape,
@@ -271,9 +254,8 @@ class ManitouDataset(Dataset):
             "normalized": False,
             "bbox_format": "xywh",
         }
-    
+
     def get_img_files_labels(self, ann_path):
-        
         def update_labels(label_list):
             """Update 'prev' and 'next' fields in the labels."""
             for i, _lb in enumerate(label_list):
@@ -283,15 +265,15 @@ class ManitouDataset(Dataset):
                     _lb["prev"] = label_list[i - 1]
                 if not is_end and i < len(label_list) - 1:
                     _lb["next"] = label_list[i + 1]
-            
+
             return label_list
-        
+
         manitou = ManitouAPI(ann_path)
         cat_ids = self.data["cat_ids"]
-        
+
         img_list = []
         label_list = []
-        
+
         ne = 0  # number of empty images
         vid_ids = manitou.get_vid_ids()
         for vid_id in vid_ids:
@@ -301,25 +283,26 @@ class ManitouDataset(Dataset):
                 raw_img_info = manitou.load_imgs([img_id])[0]
                 raw_img_info["img_id"] = img_id
                 raw_img_info["video_length"] = len(img_ids)
-                
+
                 raw_radar_info = manitou.load_radars([img_id])[0]
                 raw_radar_info["radar_id"] = img_id
-                
+
                 # load ann info
                 ann_ids = manitou.get_ann_ids(imgIds=[img_id], catIds=cat_ids)
                 raw_ann_info = manitou.load_anns(ann_ids)
                 # get label info
                 parsed_label_info = self.parse_label_info(
-                    dict(raw_img_info=raw_img_info, raw_radar_info=raw_radar_info, raw_ann_info=raw_ann_info))
-                
-                if parsed_label_info["bboxes"].shape[0] >0:
+                    dict(raw_img_info=raw_img_info, raw_radar_info=raw_radar_info, raw_ann_info=raw_ann_info)
+                )
+
+                if parsed_label_info["bboxes"].shape[0] > 0:
                     label_list.append(parsed_label_info)
                     img_list.append(parsed_label_info["im_file"])
                 else:
                     ne += 1
-                    
+
         # label_list = update_labels(label_list)  # TODO: update labels with prev and next
-    
+
         return img_list, label_list
 
     def build_transforms(self, hyp=None):
@@ -337,14 +320,19 @@ class ManitouDataset(Dataset):
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transformsV1(self, self.imgsz, hyp, self.pre_crop_cfg)
-            
+
         else:
-            transforms = Compose([ManitouResizeCrop(self.pre_crop_cfg["scale"],
-                                                   self.pre_crop_cfg["target_size"],
-                                                   self.pre_crop_cfg["original_size"],
-                                                   1.0 if self.pre_crop_cfg["is_crop"] else 0.0),
-                                #   LetterBox(new_shape=self.imgsz, scaleup=False)  # no need to use LetterBox
-                                  ])
+            transforms = Compose(
+                [
+                    ManitouResizeCrop(
+                        self.pre_crop_cfg["scale"],
+                        self.pre_crop_cfg["target_size"],
+                        self.pre_crop_cfg["original_size"],
+                        1.0 if self.pre_crop_cfg["is_crop"] else 0.0,
+                    ),
+                    #   LetterBox(new_shape=self.imgsz, scaleup=False)  # no need to use LetterBox
+                ]
+            )
         transforms.append(
             FormatManitou(
                 bbox_format="xywh",
@@ -431,9 +419,9 @@ class ManitouDataset(Dataset):
         for i in range(len(new_batch["batch_idx"])):
             new_batch["batch_idx"][i] += i  # add target image index for build_targets()
         new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
-    
+
         return new_batch
-    
+
     def __getitem__(self, index):
         """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
@@ -453,8 +441,11 @@ class ManitouDataset(Dataset):
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         label["ratio_pad"] = (
             (label["resized_shape"][0] / label["ori_shape"][0], label["resized_shape"][1] / label["ori_shape"][1]),
-            (0, 0),  # padding (to compatible with the evaluation, cause we don't use LetterBox data augmentation for Manitou)
-            ) # for evaluation
+            (
+                0,
+                0,
+            ),  # padding (to compatible with the evaluation, cause we don't use LetterBox data augmentation for Manitou)
+        )  # for evaluation
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)
@@ -462,7 +453,7 @@ class ManitouDataset(Dataset):
     def __len__(self):
         """Return the length of the labels list for the dataset."""
         return len(self.labels)
-        
+
     def load_image(self, i, rect_mode=True):
         """
         Load an image from dataset index 'i'.
@@ -510,4 +501,3 @@ class ManitouDataset(Dataset):
             return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
-                

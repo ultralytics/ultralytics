@@ -1,23 +1,19 @@
 import os
-from pathlib import Path
 
-import numpy as np
 import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
-from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
-from ultralytics.data import build_manitou_dataset, ManitouAPI, build_dataloader, get_manitou_dataset
+from ultralytics.data import build_dataloader, build_manitou_dataset, get_manitou_dataset
+from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.utils import LOGGER, TQDM, callbacks
+from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import de_parallel, select_device, smart_inference_mode
-from ultralytics.models.yolo.detect import DetectionValidator
 
 
 class ManitouValidator(DetectionValidator):
-    """
-    A class extending the DetectionValidator class for validation based on a Manitou detection model.
-    """
+    """A class extending the DetectionValidator class for validation based on a Manitou detection model."""
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
@@ -60,7 +56,7 @@ class ManitouValidator(DetectionValidator):
         self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
-        
+
         self.eval_tracking = False
 
     def preprocess(self, batch):
@@ -90,7 +86,7 @@ class ManitouValidator(DetectionValidator):
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
-    
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """
@@ -127,7 +123,7 @@ class ManitouValidator(DetectionValidator):
                 data=self.args.data,
                 fp16=self.args.half,
             )
-            
+
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
             self.stride = model.stride
@@ -137,24 +133,26 @@ class ManitouValidator(DetectionValidator):
             elif not (pt or jit or getattr(model, "dynamic", False)):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch}")
-            
+
             self.data = get_manitou_dataset(self.args.data)
             self.names = self.data["names"]
             dataset = build_manitou_dataset(
-                                            cfg=self.args,
-                                            ann_path=self.data["val"],
-                                            batch=self.args.batch,
-                                            data=self.data,
-                                            mode="val",
-                                            stride=self.stride
-                                        )
-            
-            self.dataloader = self.dataloader or build_dataloader(dataset, self.args.batch, self.args.workers, shuffle=False, rank=-1)
-            
+                cfg=self.args,
+                ann_path=self.data["val"],
+                batch=self.args.batch,
+                data=self.data,
+                mode="val",
+                stride=self.stride,
+            )
+
+            self.dataloader = self.dataloader or build_dataloader(
+                dataset, self.args.batch, self.args.workers, shuffle=False, rank=-1
+            )
+
             imgsz = dataset.imgsz
             model.eval()
             model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz[0], imgsz[1]))  # warmup
-            
+
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),
@@ -184,7 +182,7 @@ class ManitouValidator(DetectionValidator):
             # Postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
-                
+
             self.update_metrics(preds, batch)
             if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)
@@ -207,8 +205,8 @@ class ManitouValidator(DetectionValidator):
                 )
             )
             return stats
-            
-            
+
+
 class ManitouValidatorVanillaYOLO(ManitouValidator):
     def init_metrics(self, model):
         """
@@ -224,15 +222,18 @@ class ManitouValidatorVanillaYOLO(ManitouValidator):
             and (val.endswith(f"{os.sep}val2017.txt") or val.endswith(f"{os.sep}test-dev2017.txt"))
         )  # is COCO
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
-        
+
         from ultralytics.data import converter
-        self.coco_class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
+
+        self.coco_class_map = (
+            converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
+        )
         self.coco_names = model.names
-        
+
         self.class_map = list(range(1, len(self.names) + 1))
         # self.names = model.names
         self.nc = len(self.names)
-        
+
         self.end2end = getattr(model, "end2end", False)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
@@ -240,11 +241,9 @@ class ManitouValidatorVanillaYOLO(ManitouValidator):
         self.seen = 0
         self.jdict = []
         self.stats = dict(tp=[], conf=[], pred_cls=[], target_cls=[], target_img=[])
-        
+
     def remap_predictions(self, preds):
-        """
-        Remap predictions of original YOLO (80 cls) to the correct class of Manitou dataset.
-        """
+        """Remap predictions of original YOLO (80 cls) to the correct class of Manitou dataset."""
         if not hasattr(self, "coco_manitou_class_map"):
             # build the mapping from coco classes to manitou classes
             self.coco_manitou_class_map = {}
@@ -252,10 +251,10 @@ class ManitouValidatorVanillaYOLO(ManitouValidator):
             for c_l, c_n in self.coco_names.items():
                 if c_n in ["person"]:
                     self.coco_manitou_class_map[c_l] = name2label["Pedestrians"]
-                
+
                 elif c_n in ["car", "bus", "truck"]:
                     self.coco_manitou_class_map[c_l] = name2label["Vehicles"]
-        
+
         new_preds = []
         new_pred = []
         for pred in preds:
@@ -264,13 +263,11 @@ class ManitouValidatorVanillaYOLO(ManitouValidator):
                 if l in self.coco_manitou_class_map:
                     new_pred.append(pred[i].clone())
                     new_pred[-1][5] = self.coco_manitou_class_map[l]
-        
+
             new_pred = torch.stack(new_pred, dim=0) if new_pred else torch.empty((0, 6), device=preds.device)
             new_preds.append(new_pred)
         return new_preds
-        
-    
+
     def update_metrics(self, preds, batch):
         preds = self.remap_predictions(preds)
         return super().update_metrics(preds, batch)
-        

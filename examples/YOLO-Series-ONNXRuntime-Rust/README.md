@@ -26,7 +26,6 @@ This repository provides a [Rust](https://www.rust-lang.org/) demo showcasing ke
 <summary>You have two options to link the ONNXRuntime library:</summary>
 
 - **Option 1: Manual Linking**
-
   - For detailed setup instructions, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
   - **Linux or macOS**:
     1. Download the appropriate ONNX Runtime package from the official [Releases page](https://github.com/microsoft/onnxruntime/releases).

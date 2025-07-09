@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
-from typing import Union, List, Any
+from typing import Any, List, Union
 
-import torch
 import numpy as np
+import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.engine.model import Model
@@ -12,8 +12,8 @@ from ultralytics.engine.results import Results
 from ultralytics.models import yolo_manitou
 from ultralytics.nn.tasks import (
     DetectionModel,
-    SegmentationModel,
     DetectionModel_MultiView,
+    SegmentationModel,
 )
 
 
@@ -30,14 +30,14 @@ class YOLOManitou(Model):
                 "validator": yolo_manitou.detect.ManitouValidator,
                 "predictor": yolo_manitou.detect.ManitouPredictor,
             },
-            "segment":{
+            "segment": {
                 "model": SegmentationModel,
                 "trainer": yolo_manitou.segment.ManitouSegmentationTrainer,
                 "validator": yolo_manitou.segment.ManitouSegmentationValidator,
                 "predictor": yolo_manitou.segment.ManitouSegmentationPredictor,
-            }
+            },
         }
-        
+
     def track(
         self,
         source: Union[str, Path, int, list, tuple, np.ndarray, torch.Tensor] = None,
@@ -81,22 +81,23 @@ class YOLOManitou(Model):
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
-    
-    
+
+
 class YOLOManitou_MultiCam(Model):
     """YOLO (You Only Look Once) object detection model for multi-camera scenarios."""
+
     @property
     def task_map(self):
         """Map head to model, trainer, validator, and predictor classes."""
         return {
-                "detect": {
-                    "model": DetectionModel_MultiView,
-                    "trainer": yolo_manitou.detect_multiCam.ManitouTrainer_MultiCam,
-                    "validator": yolo_manitou.detect_multiCam.ManitouValidator_MultiCam,
-                    "predictor": yolo_manitou.detect_multiCam.ManitouPredictor_MultiCam,
-                },
+            "detect": {
+                "model": DetectionModel_MultiView,
+                "trainer": yolo_manitou.detect_multiCam.ManitouTrainer_MultiCam,
+                "validator": yolo_manitou.detect_multiCam.ManitouValidator_MultiCam,
+                "predictor": yolo_manitou.detect_multiCam.ManitouPredictor_MultiCam,
+            },
         }
-        
+
     def predict(
         self,
         data_cfg,
@@ -124,7 +125,6 @@ class YOLOManitou_MultiCam(Model):
         persist: bool = False,
         **kwargs: Any,
     ) -> List[Results]:
-
         if not hasattr(self.predictor, "trackers"):
             from ultralytics.trackers import register_tracker_manitou_multiview
 
@@ -133,7 +133,7 @@ class YOLOManitou_MultiCam(Model):
         kwargs["batch"] = 1  # batch-size 1 for tracking
         kwargs["mode"] = "track"
         return self.predict(data_cfg=data_cfg, **kwargs)
-    
+
     def __call__(
         self,
         data_cfg,
@@ -141,5 +141,3 @@ class YOLOManitou_MultiCam(Model):
         **kwargs: Any,
     ) -> list:
         return self.predict(data_cfg, **kwargs)
-
-                        

@@ -1,8 +1,10 @@
 import os
+
 import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
+
 from ultralytics import YOLOManitou_MultiCam
 from ultralytics.data.manitou_api import get_manitou_calibrations
 
@@ -12,8 +14,7 @@ def draw_results_on_image(img, boxes, confs, global_indices):
         x1, y1, x2, y2 = map(int, box)
         cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
         text = f"ID:{idx} Conf:{conf:.2f}"
-        cv2.putText(img, text, (x1, y1 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+        cv2.putText(img, text, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
     return img
 
 
@@ -47,17 +48,17 @@ for frame_file in frame_files:
     cam4_path = os.path.join(root_dir, "camera4", frame_file)
 
     data_cfg = {
-        'camera1': [cam1_path],
-        'camera2': [cam2_path],
-        'camera3': [cam3_path],
-        'camera4': [cam4_path],
-        'radar1': None,
-        'radar2': None,
-        'radar3': None,
-        'radar4': None,
-        'calib_params': calib_params,
-        'filter_cfg': {},
-        'radar_accumulation': 1
+        "camera1": [cam1_path],
+        "camera2": [cam2_path],
+        "camera3": [cam3_path],
+        "camera4": [cam4_path],
+        "radar1": None,
+        "radar2": None,
+        "radar3": None,
+        "radar4": None,
+        "calib_params": calib_params,
+        "filter_cfg": {},
+        "radar_accumulation": 1,
     }
 
     results = model.predict(data_cfg=data_cfg, imgsz=imgsz, conf=0.50, max_det=100, save=False)
@@ -104,14 +105,15 @@ for frame_file in frame_files:
     top_scores = torch.max(similarity_matrix, dim=1).values.tolist()
 
     annotated_images = [img.copy() for img in processed_images]
-    for i, (box, conf, img_idx, match_idx, sim_score) in enumerate(zip(all_boxes, all_confs, all_img_indices, top_matches, top_scores)):
+    for i, (box, conf, img_idx, match_idx, sim_score) in enumerate(
+        zip(all_boxes, all_confs, all_img_indices, top_matches, top_scores)
+    ):
         x1, y1, x2, y2 = map(int, box)
-        label = f"ID: {i+1}"
+        label = f"ID: {i + 1}"
         if sim_score > reid_threshold:
-            label += f" -> ReID: {match_idx+1} | {sim_score:.2f}"
+            label += f" -> ReID: {match_idx + 1} | {sim_score:.2f}"
         cv2.rectangle(annotated_images[img_idx], (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(annotated_images[img_idx], label, (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        cv2.putText(annotated_images[img_idx], label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
     target_size = (1920, 1536)
     resized_images = [cv2.resize(img, target_size) for img in annotated_images]

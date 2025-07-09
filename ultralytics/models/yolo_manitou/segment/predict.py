@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-import cv2
 from ultralytics.engine.results import Results
 from ultralytics.models import yolo_manitou
-from ultralytics.utils import DEFAULT_CFG, ops
-from ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy, process_mask_native, process_mask
+from ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy, process_mask, process_mask_native
+from ultralytics.utils import DEFAULT_CFG
+
 
 class ManitouSegmentationPredictor(yolo_manitou.detect.ManitouPredictor):
     """
@@ -99,21 +99,25 @@ class ManitouSegmentationPredictor(yolo_manitou.detect.ManitouPredictor):
         Returns:
             (Results): Result object containing the original image, image path, class names, bounding boxes, and masks.
         """
-        assert orig_img.shape[:2] == self.pre_crop_cfg["original_size"], f"Original image size {orig_img.shape[:2]} does not match pre-crop cfg {self.pre_crop_cfg['original_size']}"
-            
+        assert orig_img.shape[:2] == self.pre_crop_cfg["original_size"], (
+            f"Original image size {orig_img.shape[:2]} does not match pre-crop cfg {self.pre_crop_cfg['original_size']}"
+        )
+
         if not len(pred):  # save empty boxes
             masks = None
         elif self.args.retina_masks:
             pred[:, :4] = invert_manitou_resize_crop_xyxy(pred[:, :4], self.pre_crop_cfg)
             masks = process_mask_native(proto, pred[:, 6:], pred[:, :4], self.pre_crop_cfg)  # HWC
         else:
-            masks = process_mask(proto, pred[:, 6:], pred[:, :4], img.shape[2:], self.pre_crop_cfg, upsample=True)  # HWC
+            masks = process_mask(
+                proto, pred[:, 6:], pred[:, :4], img.shape[2:], self.pre_crop_cfg, upsample=True
+            )  # HWC
             pred[:, :4] = invert_manitou_resize_crop_xyxy(pred[:, :4], self.pre_crop_cfg)
         if masks is not None:
             keep = masks.sum((-2, -1)) > 0  # only keep predictions with masks
             pred, masks = pred[keep], masks[keep]
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)
-    
+
     def write_results(self, i, p, im, s):
         """
         Write inference results to a file or directory.
@@ -156,7 +160,7 @@ class ManitouSegmentationPredictor(yolo_manitou.detect.ManitouPredictor):
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            (self.save_dir / rosbag).mkdir(parents=True, exist_ok=True)  
+            (self.save_dir / rosbag).mkdir(parents=True, exist_ok=True)
             self.save_predicted_images(str(self.save_dir / rosbag / p.name))
 
         return string

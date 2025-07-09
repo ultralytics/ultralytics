@@ -129,9 +129,9 @@ tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yam
 # Customized Manitou Dataset
 # Re-ID training settings
 ref_img_sampler: # (dict)
-  scope: 5  # (int) range of reference images to sample (cur_frame - scope, cur_frame + scope)
-  num_ref_imgs: 1  # (int) number of reference images to sample
-  method: "uniform"  # (str) sampling method
+  scope: 5 # (int) range of reference images to sample (cur_frame - scope, cur_frame + scope)
+  num_ref_imgs: 1 # (int) number of reference images to sample
+  method: "uniform" # (str) sampling method
 
 # Radar settings
-use_radar: False  # (bool) whether to use radar data
+use_radar: False # (bool) whether to use radar data

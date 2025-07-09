@@ -1,42 +1,35 @@
 """
 @Description: Trainer to support training Manitou dataset.
 @Author: Sijie Hu
-@Date: 2025-05-06
+@Date: 2025-05-06.
 """
-import os
+
 import math
-import numpy as np
 from copy import copy
 
 import torch
 import torch.nn as nn
 from torch import distributed as dist
 
-from pathlib import Path
-from ultralytics.nn.tasks import DetectionModel
-from ultralytics.data import build_dataloader, build_manitou_dataset, get_manitou_dataset
-from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.cfg import cfg2dict, check_cfg, get_save_dir
-from ultralytics.models import yolo, yolo_manitou
+from ultralytics.cfg import cfg2dict, check_cfg
+from ultralytics.data import build_manitou_dataset, get_manitou_dataset
+from ultralytics.models import yolo_manitou
 from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
-from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
+from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import (
     DEFAULT_CFG,
-    DEFAULT_CFG_DICT,
     LOCAL_RANK,
     LOGGER,
     RANK,
     IterableSimpleNamespace,
-    TQDM,
     callbacks,
-    yaml_load,
-    yaml_save,
 )
+from ultralytics.utils.checks import check_amp
 from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    de_parallel,
 )
 
 
@@ -48,12 +41,13 @@ class ManitouTrainer(DetectionTrainer):
         model: The model to be trained.
         data: Dictionary containing dataset information including class names and number of classes.
         loss_names (Tuple[str]): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
-        
+
     Modified Methods:
         __init__: Initialize the trainer with configuration, device, and dataset.
         get_dataset: Get the annotation path for training or validation.
         build_dataset: Build Manitou dataset for training or validation based on the annotation path.
     """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the BaseTrainer class.
@@ -64,7 +58,7 @@ class ManitouTrainer(DetectionTrainer):
             _callbacks (list, optional): List of callback functions. Defaults to None.
         """
         super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
-        
+
     def _setup_train(self, world_size):
         """Build dataloaders and optimizer on correct rank process."""
         # Model
@@ -81,7 +75,7 @@ class ManitouTrainer(DetectionTrainer):
             if isinstance(self.args.freeze, int)
             else []
         )
-        always_freeze_names = [".dfl"]  # always freeze these layers  
+        always_freeze_names = [".dfl"]  # always freeze these layers
         freeze_layer_names = [f"model.{x}." for x in freeze_list] + always_freeze_names
         self.freeze_layer_names = freeze_layer_names
         for k, v in self.model.named_parameters():
@@ -156,11 +150,11 @@ class ManitouTrainer(DetectionTrainer):
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks("on_pretrain_routine_end")
-            
+
     def get_cfg(self, cfg, overrides):
         """
         Load and merge configuration data from a YAML file, with optional overrides.
-        
+
         Modified from: ultralytics.cfg.get_cfg() to get rid of the checking of the official custom cfg.
         """
         cfg = cfg2dict(cfg)
@@ -171,7 +165,7 @@ class ManitouTrainer(DetectionTrainer):
             if "save_dir" not in cfg:
                 overrides.pop("save_dir", None)  # special override keys to ignore
             cfg = {**cfg, **overrides}  # merge c
-        
+
         # Special handling for numeric project/name
         for k in "project", "name":
             if k in cfg and isinstance(cfg[k], (int, float)):
@@ -185,25 +179,25 @@ class ManitouTrainer(DetectionTrainer):
 
         # Return instance
         return IterableSimpleNamespace(**cfg)
-        
+
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         return yolo_manitou.detect.ManitouValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-        
+
     def get_dataset(self):
         """
         Get the annotation path for training or validation.
-        
+
         Returns:
             (tuple): Tuple containing training and validation datasets.
-        """        
+        """
         self.data = get_manitou_dataset(self.args.data)
-        
+
         return self.data["train"], self.data["val"]
-    
+
     def build_dataset(self, ann_path, mode="train", batch=None):
         """
         Build Manitou dataset for training or validation based on the annotation path.
@@ -218,7 +212,7 @@ class ManitouTrainer(DetectionTrainer):
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_manitou_dataset(self.args, ann_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
-        
+
     def preprocess_batch(self, batch):
         """
         Preprocess a batch of images by scaling and converting to float.
@@ -231,7 +225,7 @@ class ManitouTrainer(DetectionTrainer):
         """
         batch = super().preprocess_batch(batch)
         return batch
-    
+
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
         Return a YOLO detection model.
@@ -248,5 +242,3 @@ class ManitouTrainer(DetectionTrainer):
         if weights:
             model.load(weights)
         return model
-
-        

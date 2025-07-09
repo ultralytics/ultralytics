@@ -341,6 +341,7 @@ def non_max_suppression(
 
     return (output, keepi) if return_idxs else output
 
+
 def non_max_suppression_forReid(
     prediction,
     features,
@@ -403,7 +404,6 @@ def non_max_suppression_forReid(
 
     if classes is not None:
         classes = torch.tensor(classes, device=prediction.device)
-
     """if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
         output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
         if classes is not None:
@@ -496,6 +496,7 @@ def non_max_suppression_forReid(
             break  # time limit exceeded
 
     return (output, keepi, feat_output) if return_idxs else output, feat_output
+
 
 def clip_boxes(boxes, shape):
     """

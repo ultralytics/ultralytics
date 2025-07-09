@@ -7,9 +7,7 @@ from ultralytics.utils.plotting import plot_images, plot_results
 
 
 class ManitouSegmentationTrainer(yolo_manitou.detect.ManitouTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on a segmentation model.
-    """
+    """A class extending the DetectionTrainer class for training based on a segmentation model."""
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:

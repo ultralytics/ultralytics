@@ -1,27 +1,25 @@
-import torch
 import math
-import numpy as np
-import cv2
 from pathlib import Path
 
-from ultralytics.models.yolo.detect import DetectionPredictor
+import cv2
+import numpy as np
+import torch
+
+from ultralytics.data import load_inference_source
+from ultralytics.data.augmentV1 import (
+    LetterBox,
+    ManitouResizeCrop,
+)
 from ultralytics.engine.predictor import STREAM_WARNING
 from ultralytics.engine.results import Results
-from ultralytics.utils import LOGGER, ops, colorstr
-from ultralytics.data import load_inference_source
-from ultralytics.utils.torch_utils import smart_inference_mode
-from ultralytics.data.augmentV1 import (
-    ManitouResizeCrop,
-    LetterBox,
-)
+from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo_manitou.utils import invert_manitou_resize_crop_xyxy
+from ultralytics.utils import LOGGER, colorstr, ops
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 
 class ManitouPredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a Manitou detection model.
-
-    """
+    """A class extending the DetectionPredictor class for prediction based on a Manitou detection model."""
 
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
@@ -123,7 +121,7 @@ class ManitouPredictor(DetectionPredictor):
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
-    
+
     def preprocess(self, im):
         """
         Prepares input image before inference.
@@ -135,7 +133,7 @@ class ManitouPredictor(DetectionPredictor):
         if not_tensor:
             im = self.pre_transform(im)
             im = np.stack(im)
-            
+
             if im.shape[-1] == 3:
                 im = im[..., ::-1]  # BGR to RGB
             im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
@@ -147,7 +145,7 @@ class ManitouPredictor(DetectionPredictor):
         if not_tensor:
             im /= 255  # 0 - 255 to 0.0 - 1.0
         return im
-    
+
     def pre_transform(self, im):
         """
         Pre-transform input image before inference.
@@ -158,25 +156,27 @@ class ManitouPredictor(DetectionPredictor):
         Returns:
             (List[np.ndarray]): A list of transformed images.
         """
-        resize_crop = ManitouResizeCrop(self.pre_crop_cfg["scale"],
-                                        self.pre_crop_cfg["target_size"],
-                                        self.pre_crop_cfg["original_size"],
-                                        1.0 if self.pre_crop_cfg["is_crop"] else 0.0)
-        
+        resize_crop = ManitouResizeCrop(
+            self.pre_crop_cfg["scale"],
+            self.pre_crop_cfg["target_size"],
+            self.pre_crop_cfg["original_size"],
+            1.0 if self.pre_crop_cfg["is_crop"] else 0.0,
+        )
+
         same_shapes = len({x.shape for x in im}) == 1
-        letterbox = LetterBox(
+        LetterBox(
             self.imgsz,
             auto=same_shapes
             and self.args.rect
             and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
             stride=self.model.stride,
         )
-        
+
         for transform in [resize_crop]:
             im = [transform(image=x) for x in im]
-            
+
         return im
-    
+
     def setup_source(self, source):
         """
         Set up source and inference mode.
@@ -188,13 +188,15 @@ class ManitouPredictor(DetectionPredictor):
         # Check image size
         if isinstance(self.args.imgsz, int):
             self.args.imgsz = (self.args.imgsz, self.args.imgsz)
-        
+
         h = self.args.imgsz[0] // self.model.stride * self.model.stride
         w = math.ceil(self.args.imgsz[1] / self.model.stride) * self.model.stride
-        self.pre_crop_cfg = {"is_crop": False, 
-                             "scale": 1, 
-                             "target_size": (self.args.imgsz[0], self.args.imgsz[1]), 
-                             "original_size": (self.args.imgsz[0], self.args.imgsz[1])}
+        self.pre_crop_cfg = {
+            "is_crop": False,
+            "scale": 1,
+            "target_size": (self.args.imgsz[0], self.args.imgsz[1]),
+            "original_size": (self.args.imgsz[0], self.args.imgsz[1]),
+        }
         if (h, w) != (self.args.imgsz[0], self.args.imgsz[1]):
             self.pre_crop_cfg["is_crop"] = True
             self.pre_crop_cfg["scale"] = w / self.args.imgsz[1]
@@ -257,7 +259,6 @@ class ManitouPredictor(DetectionPredictor):
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
-
         if save_feats:
             obj_feats = self.get_obj_feats(self._feats, preds[1])
             preds = preds[0]
@@ -269,7 +270,7 @@ class ManitouPredictor(DetectionPredictor):
                 r.feats = f  # add object features to results
 
         return results
-    
+
     def construct_results(self, preds, img, orig_imgs, **kwargs):
         """
         Construct a list of Results objects from model predictions.
@@ -282,13 +283,12 @@ class ManitouPredictor(DetectionPredictor):
             (List[Results]): List of Results objects containing detection information for each image.
         """
         res_list = []
-        
+
         for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
-            assert orig_img.shape[:2] == self.pre_crop_cfg["original_size"], f"Original image size {orig_img.shape[:2]} does not match pre-crop cfg {self.pre_crop_cfg['original_size']}"
+            assert orig_img.shape[:2] == self.pre_crop_cfg["original_size"], (
+                f"Original image size {orig_img.shape[:2]} does not match pre-crop cfg {self.pre_crop_cfg['original_size']}"
+            )
             pred[:, :4] = invert_manitou_resize_crop_xyxy(pred[:, :4], self.pre_crop_cfg)
             res_list.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
-    
+
         return res_list
-    
-
-

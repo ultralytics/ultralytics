@@ -17,19 +17,20 @@ OKS_SIGMA = (
     / 10.0
 )
 
+
 def compute_reid_map(features, ids, thresh=0.7):
     """
     Args:
         features (Tensor): shape [N, D], embeddings
         ids (Tensor): shape [N], instance IDs
-        thresh (float): similarity threshold
+        thresh (float): similarity threshold.
 
     Returns:
         dict: containing precision, recall, VP, FP, FN, VN
     """
     sim = F.cosine_similarity(features.unsqueeze(1), features.unsqueeze(0), dim=2)  # [N, N]
     N = sim.size(0)
-    id_eq = (ids.unsqueeze(1) == ids.unsqueeze(0))  # [N, N]
+    id_eq = ids.unsqueeze(1) == ids.unsqueeze(0)  # [N, N]
 
     mask = ~torch.eye(N, dtype=torch.bool, device=features.device)
 
@@ -52,6 +53,7 @@ def compute_reid_map(features, ids, thresh=0.7):
     recall = VP / (VP + FN + 1e-8)
 
     return dict(precision=precision, recall=recall, VP=VP, FP=FP, FN=FN, VN=VN, thresh=thresh)
+
 
 def bbox_ioa(box1, box2, iou=False, eps=1e-7):
     """

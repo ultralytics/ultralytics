@@ -89,7 +89,9 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     is_stream = predictor.dataset.mode == "stream"
     for i, result in enumerate(predictor.results):
         tracker = predictor.trackers[i if is_stream else 0]
-        vid_path = predictor.save_dir / Path(result.path).parent.parent.name/Path(result.path).parent.name  # to follow the manitou dataset structure
+        vid_path = (
+            predictor.save_dir / Path(result.path).parent.parent.name / Path(result.path).parent.name
+        )  # to follow the manitou dataset structure
         if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path

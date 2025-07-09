@@ -13,9 +13,7 @@ from ultralytics.utils.plotting import output_to_target, plot_images
 
 
 class ManitouSegmentationValidator(ManitouValidator):
-    """
-    A class extending the DetectionValidator class for validation based on a segmentation model.
-    """
+    """A class extending the DetectionValidator class for validation based on a segmentation model."""
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)

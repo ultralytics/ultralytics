@@ -267,10 +267,11 @@ class v8DetectionLoss:
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
+
 class MultiPosCrossEntropyLoss(nn.Module):
     """Criterion class for computing cross entropy loss."""
 
-    def __init__(self, gamma1=0.25, reduction='mean'):
+    def __init__(self, gamma1=0.25, reduction="mean"):
         super().__init__()
         self.gamma = gamma1
         self.reduction = reduction
@@ -282,17 +283,17 @@ class MultiPosCrossEntropyLoss(nn.Module):
 
         losses = []
         for dist, label in zip(dist_list, target_list):
-            if dist.numel()==0:
+            if dist.numel() == 0:
                 continue
 
-            pos_inds = (label == 1)
-            neg_inds = (label == 0)
+            pos_inds = label == 1
+            neg_inds = label == 0
             pred_pos = dist * pos_inds.float()
             pred_neg = dist * neg_inds.float()
 
-            pred_pos[neg_inds] = pred_pos[neg_inds] + float('inf')  # mask out negatives
-            pred_neg[pos_inds] = pred_neg[pos_inds] + float('-inf')  # mask out positives
-            
+            pred_pos[neg_inds] = pred_pos[neg_inds] + float("inf")  # mask out negatives
+            pred_neg[pos_inds] = pred_neg[pos_inds] + float("-inf")  # mask out positives
+
             _pos_expand = torch.repeat_interleave(pred_pos, dist.shape[1], dim=1)
             _neg_expand = pred_neg.repeat(1, dist.shape[1])
 
@@ -306,28 +307,29 @@ class MultiPosCrossEntropyLoss(nn.Module):
 
         return self.gamma * torch.stack(losses).mean()
 
-    def weight_reduce_loss(loss, weight=None, reduction='mean', avg_factor=None):
+    def weight_reduce_loss(loss, weight=None, reduction="mean", avg_factor=None):
         """Apply weights and reduce the loss."""
         if weight is not None:
             loss = loss * weight
 
         if avg_factor is None:
-            if reduction == 'mean':
+            if reduction == "mean":
                 loss = loss.mean()
-            elif reduction == 'sum':
+            elif reduction == "sum":
                 loss = loss.sum()
         else:
-            if reduction == 'mean':
+            if reduction == "mean":
                 loss = loss.sum() / avg_factor
-            elif reduction != 'none':
-                raise ValueError(f'avg_factor cannot be used with reduction={reduction}')
+            elif reduction != "none":
+                raise ValueError(f"avg_factor cannot be used with reduction={reduction}")
 
         return loss
+
 
 class L2loss(nn.Module):
     """Criterion class for computing auxiliary L2 Loss."""
 
-    def __init__(self, gamma2=1.0, reduction='mean'):
+    def __init__(self, gamma2=1.0, reduction="mean"):
         super().__init__()
         self.gamma = gamma2
         self.reduction = reduction
@@ -342,13 +344,14 @@ class L2loss(nn.Module):
             assert pred.shape == target.shape, "Embedding shapes must match"
             if pred.numel() == 0:
                 continue  # ignore empty samples
-            loss = F.mse_loss(pred, target, reduction='mean')
+            loss = F.mse_loss(pred, target, reduction="mean")
             losses.append(loss)
 
         if len(losses) == 0:
             return torch.tensor(0.0, device=pred_list[0].device, dtype=pred_list[0].dtype)
 
         return self.gamma * torch.stack(losses).mean()
+
 
 class v8DetectionReidLoss:
     """Criterion class for computing training losses for YOLOv8 object detection and Reid."""
@@ -412,29 +415,34 @@ class v8DetectionReidLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
-    def sampler(self, batch, gt_bboxes, batch_idx, preds, strides, im='key'):
+    def sampler(self, batch, gt_bboxes, batch_idx, preds, strides, im="key"):
         B4, N = preds.shape[:2]  # B4 = Batch_size * 4
         B = B4 // self.num_cam
-        preds = preds*strides
+        preds = preds * strides
         batch_samples = []
-        
+
         for b in range(B):
             sample_list = []
             for cam_id in range(self.num_cam):
-                idx = b*self.num_cam + cam_id
+                idx = b * self.num_cam + cam_id
                 pred = preds[idx]
-                gt_mask = (batch_idx == idx)
-        
+
                 gt_box = gt_bboxes[idx].to(self.device)
-                if im=='key':
-                    gt_ids = torch.cat(batch['key_frames']['ins_ids'], dim=0).squeeze(1).long().to(self.device)[(batch_idx == idx)].to(self.device)
+                if im == "key":
+                    gt_ids = (
+                        torch.cat(batch["key_frames"]["ins_ids"], dim=0)
+                        .squeeze(1)
+                        .long()
+                        .to(self.device)[(batch_idx == idx)]
+                        .to(self.device)
+                    )
 
                     if gt_box.numel() == 0:
                         positive_idxs = torch.full((self.nb_samples, 2), -1, dtype=torch.long, device=self.device)
                         positive_list.append(positive_idxs)
                         continue
 
-                    ious = bbox_iou(pred.unsqueeze(1), gt_box.unsqueeze(0),xywh=False,CIoU=True)[:, :, 0]  # (N, G)
+                    ious = bbox_iou(pred.unsqueeze(1), gt_box.unsqueeze(0), xywh=False, CIoU=True)[:, :, 0]  # (N, G)
 
                     mask = ious > self.iou_thresh1
                     ious_thresh = torch.where(mask, ious, torch.tensor(-1.0, device=ious.device))
@@ -445,30 +453,45 @@ class v8DetectionReidLoss:
                     if pred_indices.numel() == 0:
                         positive_idxs = torch.full((self.nb_samples, 2), -1, dtype=torch.long, device=self.device)
                     else:
-                        positive_idxs = torch.stack([pred_indices, gt_ids[gt_indices[pred_indices]]], dim=1)  
+                        positive_idxs = torch.stack([pred_indices, gt_ids[gt_indices[pred_indices]]], dim=1)
 
-                        # Ajustement à nb_samples
+                        # Adjustment à nb_samples
                         n_pos = positive_idxs.shape[0]
                         if n_pos > self.nb_samples:
-                            indices = torch.randperm(n_pos, device=self.device)[:self.nb_samples]
+                            indices = torch.randperm(n_pos, device=self.device)[: self.nb_samples]
                             positive_idxs = positive_idxs[indices]
                         elif n_pos < self.nb_samples:
                             pad = torch.full((self.nb_samples - n_pos, 2), -1, dtype=torch.long, device=self.device)
-                            positive_idxs = torch.cat([positive_idxs, pad], dim=0)                        
+                            positive_idxs = torch.cat([positive_idxs, pad], dim=0)
                     sample_list.append(positive_idxs)
-                    
-                elif im=='ref':
-                    gt_ids = torch.cat(batch['ref_frames']['ins_ids'], dim=0).squeeze(1).long().to(self.device)[(batch_idx == idx)].to(self.device)
 
-                    ious = bbox_iou(pred.unsqueeze(1), gt_box.unsqueeze(0), xywh=False, CIoU=True)[:, :, 0]                
+                elif im == "ref":
+                    gt_ids = (
+                        torch.cat(batch["ref_frames"]["ins_ids"], dim=0)
+                        .squeeze(1)
+                        .long()
+                        .to(self.device)[(batch_idx == idx)]
+                        .to(self.device)
+                    )
+
+                    ious = bbox_iou(pred.unsqueeze(1), gt_box.unsqueeze(0), xywh=False, CIoU=True)[:, :, 0]
 
                     if gt_box.numel() == 0:
                         neg_sample = torch.randperm(pred.shape[0], device=self.device)
-                        neg_sample = neg_sample[:num_select] if pred.shape[0] >= num_select else torch.cat([
-                            neg_sample, torch.full((num_select - pred.shape[0],), -1, device=device, dtype=torch.long)
-                        ])
+                        neg_sample = (
+                            neg_sample[:num_select]
+                            if pred.shape[0] >= num_select
+                            else torch.cat(
+                                [
+                                    neg_sample,
+                                    torch.full((num_select - pred.shape[0],), -1, device=device, dtype=torch.long),
+                                ]
+                            )
+                        )
 
-                        pad_triplets = torch.full((num_select, 3), -1, dtype=torch.long, device=self.device)  # pour les positifs absents
+                        pad_triplets = torch.full(
+                            (num_select, 3), -1, dtype=torch.long, device=self.device
+                        )  # pour les positifs absents
                         all_samples = torch.cat([pad_triplets, neg_triplets], dim=0)  # (2*num_select, 3)
                         sample_list.append(all_samples)
                         continue
@@ -505,7 +528,7 @@ class v8DetectionReidLoss:
 
                     all_samples = torch.cat([pos_samples, neg_samples], dim=0)
                     sample_list.append(all_samples)
-                    
+
             batch_samples.append(torch.cat(sample_list, dim=0))
 
         return batch_samples
@@ -517,11 +540,11 @@ class v8DetectionReidLoss:
 
         nb_cams = self.num_cam
         batch_size = len(key_positive_samples)
-        total_key = self.nb_samples * nb_cams
-        total_ref = self.nb_samples * 2 * nb_cams  # 2x car positifs + négatifs
+        self.nb_samples * nb_cams
+        self.nb_samples * 2 * nb_cams  # 2x car positifs + négatifs
         for b in range(batch_size):
             key_samp = key_positive_samples[b]  # [4 * nb_samples, 2]
-            ref_samp = ref_samples[b]          # [4 * 2 * nb_samples, 2]
+            ref_samp = ref_samples[b]  # [4 * 2 * nb_samples, 2]
 
             key_idx, key_ids = key_samp[:, 0].long(), key_samp[:, 1]
             ref_idx, ref_ids = ref_samp[:, 0].long(), ref_samp[:, 1]
@@ -560,20 +583,22 @@ class v8DetectionReidLoss:
                 # Accès aux features (clé/ref séparés dans `features`)
                 feat_key = features[b * nb_cams + cam, k_ids]  # [N_k_cam, C]
                 feat_ref = features[b * nb_cams + batch_size * nb_cams + cam, r_ids]  # [N_r_cam, C]
-                #feat_key = features[b + cam*batch_size, k_ids]  # [N_k_cam, C]
-                #feat_ref = features[b + cam*batch_size + batch_size * nb_cams, r_ids]
+                # feat_key = features[b + cam*batch_size, k_ids]  # [N_k_cam, C]
+                # feat_ref = features[b + cam*batch_size + batch_size * nb_cams, r_ids]
 
                 feat_key_all.append(feat_key)
                 feat_ref_all.append(feat_ref)
-            
-            dist_matrix = torch.mm(torch.cat(feat_key_all, dim=0), torch.cat(feat_ref_all, dim=0).t())  # Distance matrix
+
+            dist_matrix = torch.mm(
+                torch.cat(feat_key_all, dim=0), torch.cat(feat_ref_all, dim=0).t()
+            )  # Distance matrix
 
             # Concaténer tous les features valides
             feat_key_all = F.normalize(torch.cat(feat_key_all, dim=0), p=2, dim=1)
             feat_ref_all = F.normalize(torch.cat(feat_ref_all, dim=0), p=2, dim=1)
 
             similarity_matrix = torch.mm(feat_key_all, feat_ref_all.t())  # Cosine similarity
-        
+
             dist_matrix_list.append(dist_matrix)
             similarity_matrix_list.append(similarity_matrix)
 
@@ -586,10 +611,10 @@ class v8DetectionReidLoss:
 
         nb_cams = self.num_cam
         batch_size = len(samples1)
-        #print(samples1)
-        #print(samples2)
+        # print(samples1)
+        # print(samples2)
         for b in range(batch_size):
-            #print("Batch ", b)
+            # print("Batch ", b)
             samp1 = samples1[b]  # [4 * nb_samples, 2]
             samp2 = samples2[b]  # [4 * 2 * nb_samples, 2]
 
@@ -614,29 +639,29 @@ class v8DetectionReidLoss:
             feat_samp1_all, feat_samp2_all = [], []
 
             for cam in range(nb_cams):
-                #print("Cam ", cam)
+                # print("Cam ", cam)
                 # Index range par caméra
                 samp1_slice = slice(cam * self.nb_samples, (cam + 1) * self.nb_samples)
-                if self.is_train == True:                    
+                if self.is_train:
                     samp2_slice = slice(cam * self.nb_samples * 2, (cam + 1) * self.nb_samples * 2)
                 else:
                     samp2_slice = slice(cam * self.nb_samples, (cam + 1) * self.nb_samples)
 
                 samp1_mask = samp1_idx[samp1_slice] != -1
                 samp2_mask = samp2_idx[samp2_slice] != -1
-                #print(k_mask)
-                #print(r_mask)
+                # print(k_mask)
+                # print(r_mask)
 
                 if samp1_mask.sum() == 0 and samp2_mask.sum() == 0:
                     continue
 
                 s1_ids = samp1_idx[samp1_slice][samp1_mask]
                 s2_ids = samp2_idx[samp2_slice][samp2_mask]
-                #print("key idx", k_ids)
-                #print("ref idx", r_ids)
+                # print("key idx", k_ids)
+                # print("ref idx", r_ids)
                 # Accès aux features (clé/ref séparés dans `features`)
                 feat_s1 = features[b * nb_cams + cam, s1_ids]  # [N_k_cam, C]
-                if self.is_train == True:
+                if self.is_train:
                     feat_s2 = features[b * nb_cams + batch_size * nb_cams + cam, s2_ids]  # [N_r_cam, C]
 
                 else:
@@ -644,15 +669,17 @@ class v8DetectionReidLoss:
 
                 feat_samp1_all.append(feat_s1)
                 feat_samp2_all.append(feat_s2)
-            
-            dist_matrix = torch.mm(torch.cat(feat_samp1_all, dim=0), torch.cat(feat_samp2_all, dim=0).t())  # Distance matrix
+
+            dist_matrix = torch.mm(
+                torch.cat(feat_samp1_all, dim=0), torch.cat(feat_samp2_all, dim=0).t()
+            )  # Distance matrix
 
             # Concaténer tous les features valides et normaliser pour la cosine
             feat_samp1_all = F.normalize(torch.cat(feat_samp1_all, dim=0), p=2, dim=1)
             feat_samp2_all = F.normalize(torch.cat(feat_samp2_all, dim=0), p=2, dim=1)
 
             similarity_matrix = torch.mm(feat_samp1_all, feat_samp2_all.t())  # Cosine similarity
-        
+
             dist_matrix_list.append(dist_matrix)
             similarity_matrix_list.append(similarity_matrix)
 
@@ -665,43 +692,64 @@ class v8DetectionReidLoss:
         ref_feats = preds_ref[1] if isinstance(preds_ref, tuple) else preds_ref
 
         key_pred_distri, key_pred_scores = (
-            torch.cat([x.view(key_feats[0].shape[0], self.no, -1) for x in key_feats], dim=2).split((self.reg_max * 4, self.nc), dim=1)
-            if key_feats is not None else (None, None)
+            torch.cat([x.view(key_feats[0].shape[0], self.no, -1) for x in key_feats], dim=2).split(
+                (self.reg_max * 4, self.nc), dim=1
+            )
+            if key_feats is not None
+            else (None, None)
         )
 
         ref_pred_distri, ref_pred_scores = (
-            torch.cat([x.view(ref_feats[0].shape[0], self.no, -1) for x in ref_feats], dim=2).split((self.reg_max * 4, self.nc), dim=1)
-            if ref_feats is not None else (None, None)
+            torch.cat([x.view(ref_feats[0].shape[0], self.no, -1) for x in ref_feats], dim=2).split(
+                (self.reg_max * 4, self.nc), dim=1
+            )
+            if ref_feats is not None
+            else (None, None)
         )
 
         key_pred_scores = key_pred_scores.permute(0, 2, 1).contiguous() if key_pred_scores is not None else None
         key_pred_distri = key_pred_distri.permute(0, 2, 1).contiguous() if key_pred_distri is not None else None
         ref_pred_scores = ref_pred_scores.permute(0, 2, 1).contiguous() if ref_pred_scores is not None else None
         ref_pred_distri = ref_pred_distri.permute(0, 2, 1).contiguous() if ref_pred_distri is not None else None
-        
+
         dtype = key_pred_scores.dtype
         batch_size = key_pred_scores.shape[0]
-        imgsz = torch.tensor(key_feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
+        imgsz = (
+            torch.tensor(key_feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
+        )  # image size (h,w)
         anchor_points, stride_tensor = make_anchors(key_feats, self.stride, 0.5)
 
         # Targets Key Image
-        key_targets = torch.cat((batch["key_frames"]["batch_idx"].view(-1, 1), batch["key_frames"]["cls"].view(-1, 1), batch["key_frames"]["bboxes"]), 1)
+        key_targets = torch.cat(
+            (
+                batch["key_frames"]["batch_idx"].view(-1, 1),
+                batch["key_frames"]["cls"].view(-1, 1),
+                batch["key_frames"]["bboxes"],
+            ),
+            1,
+        )
         key_batch_idx = key_targets[:, 0].long()
         key_targets = self.preprocess(key_targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         key_gt_labels, key_gt_bboxes = key_targets.split((1, 4), 2)  # cls, xyxy
         key_mask_gt = key_gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
-
         # Pboxes Key
         key_pred_bboxes = self.bbox_decode(anchor_points, key_pred_distri)  # xyxy, (b, h*w, 4)
 
         # Targets Reference Image
-        if self.is_train == True:
-            ref_targets = torch.cat((batch["ref_frames"]["batch_idx"].view(-1, 1), batch["ref_frames"]["cls"].view(-1, 1), batch["ref_frames"]["bboxes"]), 1)
+        if self.is_train:
+            ref_targets = torch.cat(
+                (
+                    batch["ref_frames"]["batch_idx"].view(-1, 1),
+                    batch["ref_frames"]["cls"].view(-1, 1),
+                    batch["ref_frames"]["bboxes"],
+                ),
+                1,
+            )
             ref_batch_idx = ref_targets[:, 0].long()
             ref_targets = self.preprocess(ref_targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
             ref_gt_labels, ref_gt_bboxes = ref_targets.split((1, 4), 2)  # cls, xyxy
-            ref_mask_gt = ref_gt_bboxes.sum(2, keepdim=True).gt_(0.0)
+            ref_gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
             # Pboxes Ref
             ref_pred_bboxes = self.bbox_decode(anchor_points, ref_pred_distri)  # xyxy, (b, h*w, 4)
@@ -730,24 +778,30 @@ class v8DetectionReidLoss:
         if fg_mask.sum():
             target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(
-                key_pred_distri, key_pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask
+                key_pred_distri,
+                key_pred_bboxes,
+                anchor_points,
+                target_bboxes,
+                target_scores,
+                target_scores_sum,
+                fg_mask,
             )
 
         # Sampling des positives image key et positives/négatives image ref
-        #key_positive_samples = self.sampler(batch, key_gt_bboxes, key_batch_idx, key_pred_bboxes, stride_tensor, 'key')
-        #ref_samples = self.sampler(batch, ref_gt_bboxes, ref_batch_idx, ref_pred_bboxes, stride_tensor, 'ref')
+        # key_positive_samples = self.sampler(batch, key_gt_bboxes, key_batch_idx, key_pred_bboxes, stride_tensor, 'key')
+        # ref_samples = self.sampler(batch, ref_gt_bboxes, ref_batch_idx, ref_pred_bboxes, stride_tensor, 'ref')
         # Calcul similarity matrix et Target matrix
-        #cosine_similarity, distance, asso_target = self.get_match_target(key_positive_samples, ref_samples, features)
+        # cosine_similarity, distance, asso_target = self.get_match_target(key_positive_samples, ref_samples, features)
 
-        # Sampling des positives image key et positives/négatives image ref 
+        # Sampling des positives image key et positives/négatives image ref
         # Calcul similarity matrix et Target matrix
-        key_samples = self.sampler(batch, key_gt_bboxes, key_batch_idx, key_pred_bboxes, stride_tensor, 'key')
-        if self.is_train == True:            
-            ref_samples = self.sampler(batch, ref_gt_bboxes, ref_batch_idx, ref_pred_bboxes, stride_tensor, 'ref')
+        key_samples = self.sampler(batch, key_gt_bboxes, key_batch_idx, key_pred_bboxes, stride_tensor, "key")
+        if self.is_train:
+            ref_samples = self.sampler(batch, ref_gt_bboxes, ref_batch_idx, ref_pred_bboxes, stride_tensor, "ref")
             cosine_similarity, distance, asso_target = self.get_matchings(key_samples, ref_samples, features)
         else:
             cosine_similarity, distance, asso_target = self.get_matchings(key_samples, key_samples, features)
-        
+
         # Calcul Reid loss -> L2 aux + Cross-Entropy
         l2 = self.l2aux(cosine_similarity, asso_target)
         eloss = self.embd_loss(distance, asso_target)
@@ -759,6 +813,7 @@ class v8DetectionReidLoss:
         loss[3] = l2 + eloss
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
+
 
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""

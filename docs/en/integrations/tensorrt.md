@@ -145,7 +145,6 @@ When processing implicitly quantized networks TensorRT uses INT8 opportunistical
 The arguments provided when using [export](../modes/export.md) for an Ultralytics YOLO model will **greatly** influence the performance of the exported model. They will also need to be selected based on the device resources available, however the default arguments _should_ work for most [Ampere (or newer) NVIDIA discrete GPUs](https://developer.nvidia.com/blog/nvidia-ampere-architecture-in-depth/). The calibration algorithm used is `"ENTROPY_CALIBRATION_2"` and you can read more details about the options available [in the TensorRT Developer Guide](https://docs.nvidia.com/deeplearning/tensorrt/developer-guide/index.html#enable_int8_c). Ultralytics tests found that `"ENTROPY_CALIBRATION_2"` was the best choice and exports are fixed to using this algorithm.
 
 - `workspace` : Controls the size (in GiB) of the device memory allocation while converting the model weights.
-
     - Adjust the `workspace` value according to your calibration needs and resource availability. While a larger `workspace` may increase calibration time, it allows TensorRT to explore a wider range of optimization tactics, potentially enhancing model performance and [accuracy](https://www.ultralytics.com/glossary/accuracy). Conversely, a smaller `workspace` can reduce calibration time but may limit the optimization strategies, affecting the quality of the quantized model.
 
     - Default is `workspace=None`, which will allow for TensorRT to automatically allocate memory, when configuring manually, this value may need to be increased if calibration crashes (exits without warning).
@@ -551,7 +550,6 @@ These guides will help you integrate YOLOv8 models efficiently in various deploy
 Performance improvements with TensorRT can vary based on the hardware used. Here are some typical benchmarks:
 
 - **NVIDIA A100**:
-
     - **FP32** Inference: ~0.52 ms / image
     - **FP16** Inference: ~0.34 ms / image
     - **INT8** Inference: ~0.28 ms / image

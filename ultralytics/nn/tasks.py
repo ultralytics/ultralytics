@@ -1074,7 +1074,11 @@ class Ensemble(torch.nn.ModuleList):
 
 
 class DetectionModel_MultiView(DetectionModel):
-    """Detection model for multi-view inputs. With Reid embeddings training"""
+    """
+    Detection model for multi-view inputs.
+
+    With Reid embeddings training.
+    """
 
     def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
         """
@@ -1108,7 +1112,7 @@ class DetectionModel_MultiView(DetectionModel):
                 xi = outs[m.f] if m.f != -1 else x
             else:
                 xi = [outs[j] if j != -1 else x for j in m.f]
-            
+
             x = m(xi)
             outs.append(x)
 
@@ -1118,38 +1122,43 @@ class DetectionModel_MultiView(DetectionModel):
         # Récupère les dimensions des canaux (C) pour chaque couche
         detect_feat_dims = [featmap_shapes[i][1] for i in self.featmap_idxs]
 
-        self.featmap_projectors = nn.ModuleList([
-            nn.Conv2d(detect_feat_dims[0], detect_feat_dims[1], kernel_size=1),
-            nn.Conv2d(detect_feat_dims[1], detect_feat_dims[1], kernel_size=1),
-            nn.Conv2d(detect_feat_dims[2], detect_feat_dims[1], kernel_size=1)
-        ])
+        self.featmap_projectors = nn.ModuleList(
+            [
+                nn.Conv2d(detect_feat_dims[0], detect_feat_dims[1], kernel_size=1),
+                nn.Conv2d(detect_feat_dims[1], detect_feat_dims[1], kernel_size=1),
+                nn.Conv2d(detect_feat_dims[2], detect_feat_dims[1], kernel_size=1),
+            ]
+        )
 
     def loss(self, batch, preds=None, features=None):
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
-        if self.is_train == True:
+        if self.is_train:
             self.criterion.is_train = True
-            img = torch.cat([batch['key_frames']['img'], batch['ref_frames']['img']], dim=0)
+            img = torch.cat([batch["key_frames"]["img"], batch["ref_frames"]["img"]], dim=0)
             preds, features = self.forward(img, embed=self.featmap_idxs) if preds is None else preds
 
-            B = batch['key_frames']['img'].shape[0]
+            B = batch["key_frames"]["img"].shape[0]
             preds_key = [p[:B] for p in preds]  # liste de 3 tenseurs (4B, 144, H, W)
             preds_ref = [p[B:] for p in preds]
 
-        if self.is_train == False:
+        if not self.is_train:
             self.criterion.is_train = False
 
-            preds, features = self.forward(batch['key_frames']['img'], embed=self.featmap_idxs) if preds is None else preds, features
+            preds, features = (
+                self.forward(batch["key_frames"]["img"], embed=self.featmap_idxs) if preds is None else preds,
+                features,
+            )
 
-            B = batch['key_frames']['img'].shape[0]
+            B = batch["key_frames"]["img"].shape[0]
             preds_key = [p[:B] for p in preds[1]]  # liste de 3 tenseurs (4B, 144, H, W)
             preds_ref = None
-        
+
         return self.criterion(preds_key, preds_ref, features, batch)
 
     def _predict_once(self, x, profile=False, visualize=False, embed=None):
-        y, dt, embeddings = [], [], []  # outputs
-        feature_maps = [] 
+        y, dt, _embeddings = [], [], []  # outputs
+        feature_maps = []
         for m in self.model:
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
@@ -1159,13 +1168,13 @@ class DetectionModel_MultiView(DetectionModel):
             y.append(x if m.i in self.save else None)  # save output
 
             if embed and m.i in embed:
-                #print(f"Layer {m.i}: shape={x.shape}")
+                # print(f"Layer {m.i}: shape={x.shape}")
                 feature_maps.append(x)
 
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
 
-        if embed==None:
+        if embed is None:
             return x
         else:
             features_flat = self.featmap_flatten(feature_maps)
@@ -1174,7 +1183,7 @@ class DetectionModel_MultiView(DetectionModel):
     def featmap_flatten(self, feature_maps):
         """
         feature_maps : liste de 3 tenseurs [B, C, H, W]
-        Retourne : [B, total_pixels, 128]
+        Retourne : [B, total_pixels, 128].
         """
         projected = []
 
@@ -1188,6 +1197,7 @@ class DetectionModel_MultiView(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
         return v8DetectionReidLoss(self)
+
 
 # Functions ------------------------------------------------------------------------------------------------------------
 

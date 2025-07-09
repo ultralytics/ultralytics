@@ -2417,7 +2417,7 @@ class RandomLoadText:
         self.prompt_format = prompt_format
         self.neg_samples = neg_samples
         self.max_samples = max_samples
-        self.padding = padding and padding_value
+        self.padding = padding
         self.padding_value = padding_value
 
     def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:

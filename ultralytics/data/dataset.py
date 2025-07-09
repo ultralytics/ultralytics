@@ -363,10 +363,8 @@ class YOLOMultiModalDataset(YOLODataset):
     def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
         """
         Enhance data transformations with optional text augmentation for multi-modal training.
-
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
-
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
@@ -411,7 +409,7 @@ class YOLOMultiModalDataset(YOLODataset):
     @staticmethod
     def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
         """Get negative text samples based on frequency threshold."""
-        return [k for k, v in category_freq.items() if v >= threshold]
+        return [k for k, v in category_freq.items() if v >= threshold] or [""]
 
 
 class GroundingDataset(YOLODataset):
@@ -434,7 +432,7 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task: str = "detect", json_file: str = "", **kwargs):
+    def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
@@ -446,6 +444,7 @@ class GroundingDataset(YOLODataset):
         """
         assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
+        self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
     def get_img_files(self, img_path: str) -> List:
@@ -611,10 +610,8 @@ class GroundingDataset(YOLODataset):
     def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
         """
         Configure augmentations for training with optional text loading.
-
         Args:
             hyp (dict, optional): Hyperparameters for transforms.
-
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
         """
@@ -625,7 +622,7 @@ class GroundingDataset(YOLODataset):
             # the strategy of selecting negative is restricted in one dataset,
             # while official pre-saved neg embeddings from all datasets at once.
             transform = RandomLoadText(
-                max_samples=80,
+                max_samples=min(self.max_samples, 80),
                 padding=True,
                 padding_value=self._get_neg_texts(self.category_freq),
             )
@@ -651,7 +648,7 @@ class GroundingDataset(YOLODataset):
     @staticmethod
     def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
         """Get negative text samples based on frequency threshold."""
-        return [k for k, v in category_freq.items() if v >= threshold]
+        return [k for k, v in category_freq.items() if v >= threshold] or [""]
 
 
 class YOLOConcatDataset(ConcatDataset):

@@ -215,7 +215,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         """
         model = "mobileclip:blt"
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"
-        texts += [""]  # add empty str here for padding text
         if cache_path.exists():
             LOGGER.info(f"Reading existed cache from '{cache_path}'")
             txt_map = torch.load(cache_path, map_location=self.device)

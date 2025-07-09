@@ -411,7 +411,8 @@ class YOLOMultiModalDataset(YOLODataset):
     @staticmethod
     def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
         """Get negative text samples based on frequency threshold."""
-        return [k for k, v in category_freq.items() if v >= threshold] or [""]
+        threshold = min(max(category_freq.values()), 100)
+        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class GroundingDataset(YOLODataset):
@@ -652,7 +653,8 @@ class GroundingDataset(YOLODataset):
     @staticmethod
     def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
         """Get negative text samples based on frequency threshold."""
-        return [k for k, v in category_freq.items() if v >= threshold] or [""]
+        threshold = min(max(category_freq.values()), 100)
+        return [k for k, v in category_freq.items() if v >= threshold]
 
 
 class YOLOConcatDataset(ConcatDataset):

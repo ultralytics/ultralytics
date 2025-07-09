@@ -442,6 +442,7 @@ class GroundingDataset(YOLODataset):
         Args:
             json_file (str): Path to the JSON file containing annotations.
             task (str): Must be 'detect' or 'segment' for GroundingDataset.
+            max_samples (int): Maximum number of samples to load for text augmentation.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """

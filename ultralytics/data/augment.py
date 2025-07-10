@@ -1434,7 +1434,7 @@ class RandomHSV:
         >>> augmented_image = augmented_labels["img"]
     """
 
-    def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
+    def __init__(self, hgain: float = 0.5, sgain: float = 0.5, vgain: float = 0.5) -> None:
         """
         Initialize the RandomHSV object for random HSV (Hue, Saturation, Value) augmentation.
 
@@ -1453,7 +1453,7 @@ class RandomHSV:
         self.sgain = sgain
         self.vgain = vgain
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply random HSV augmentation to an image within predefined limits.
 
@@ -1461,17 +1461,16 @@ class RandomHSV:
         The adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
 
         Args:
-            labels (dict): A dictionary containing image data and metadata. Must include an 'img' key with
+            labels (Dict[str, Any]): A dictionary containing image data and metadata. Must include an 'img' key with
                 the image as a numpy array.
 
         Returns:
-            (None): The function modifies the input 'labels' dictionary in-place, updating the 'img' key
-                with the HSV-augmented image.
+            (Dict[str, Any]): A dictionary containing the mixed image and adjusted labels.
 
         Examples:
             >>> hsv_augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
             >>> labels = {"img": np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)}
-            >>> hsv_augmenter(labels)
+            >>> labels = hsv_augmenter(labels)
             >>> augmented_img = labels["img"]
         """
         img = labels["img"]

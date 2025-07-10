@@ -1785,18 +1785,18 @@ class CopyPaste(BaseMixTransform):
         >>> augmented_labels = copypaste(original_labels)
     """
 
-    def __init__(self, dataset=None, pre_transform=None, p=0.5, mode="flip") -> None:
+    def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying MixUp."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         labels2 = labels["mix_labels"][0]
         return self._transform(labels, labels2)
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """Apply Copy-Paste augmentation to an image and its labels."""
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
@@ -1823,7 +1823,7 @@ class CopyPaste(BaseMixTransform):
         labels.pop("mix_labels", None)
         return labels
 
-    def _transform(self, labels1, labels2={}):
+    def _transform(self, labels1: Dict[str, Any], labels2: Dict[str, Any] = {}) -> Dict[str, Any]:
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         im = labels1["img"]
         if "mosaic_border" not in labels1:

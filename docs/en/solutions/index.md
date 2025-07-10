@@ -117,7 +117,7 @@ Except [`Similarity Search`](../guides/similarity-search.md), each Solution call
 
 | Attribute            | Type               | Description                                                                                                   |
 | -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `plot_im`            | `numpy.ndarray`    | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
+| `plot_im`            | `np.ndarray`       | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
 | `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
 | `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |
 | `classwise_count`    | `Dict[str, int]`   | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |

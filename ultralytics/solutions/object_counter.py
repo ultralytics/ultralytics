@@ -122,7 +122,7 @@ class ObjectCounter(BaseSolution):
         Display object counts on the input image or frame.
 
         Args:
-            plot_im (numpy.ndarray): The image or frame to display counts on.
+            plot_im (np.ndarray): The image or frame to display counts on.
 
         Examples:
             >>> counter = ObjectCounter()
@@ -146,7 +146,7 @@ class ObjectCounter(BaseSolution):
         object counts, and displays the results on the input image.
 
         Args:
-            im0 (numpy.ndarray): The input image or frame to be processed.
+            im0 (np.ndarray): The input image or frame to be processed.
 
         Returns:
             (SolutionResults): Contains processed image `im0`, 'in_count' (int, count of objects entering the region),

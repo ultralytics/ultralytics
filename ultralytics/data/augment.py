@@ -2763,7 +2763,7 @@ class ClassifyLetterBox:
         (640, 640, 3)
     """
 
-    def __init__(self, size=(640, 640), auto=False, stride=32):
+    def __init__(self, size: Union[int, Tuple[int, int]] = (640, 640), auto: bool = False, stride: int = 32):
         """
         Initialize the ClassifyLetterBox object for image preprocessing.
 
@@ -2794,7 +2794,7 @@ class ClassifyLetterBox:
         self.auto = auto  # pass max size integer, automatically solve for short side using stride
         self.stride = stride  # used with auto
 
-    def __call__(self, im):
+    def __call__(self, im: np.ndarray) -> np.ndarray:
         """
         Resize and pad an image using the letterbox method.
 
@@ -2802,7 +2802,7 @@ class ClassifyLetterBox:
         then pads the resized image to match the target size.
 
         Args:
-            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C).
+            im (np.ndarray): Input image as a numpy array with shape (H, W, C).
 
         Returns:
             (numpy.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are
@@ -2852,7 +2852,7 @@ class CenterCrop:
         (640, 640, 3)
     """
 
-    def __init__(self, size=640):
+    def __init__(self, size: Union[int, Tuple[int, int]] = (640, 640)):
         """
         Initialize the CenterCrop object for image preprocessing.
 
@@ -2876,7 +2876,7 @@ class CenterCrop:
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
-    def __call__(self, im):
+    def __call__(self, im: Union[Image.Image, np.ndarray]) -> np.ndarray:
         """
         Apply center cropping to an input image.
 
@@ -2884,11 +2884,11 @@ class CenterCrop:
         ratio of the original image while fitting it into the specified dimensions.
 
         Args:
-            im (numpy.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a
+            im (np.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a
                 PIL Image object.
 
         Returns:
-            (numpy.ndarray): The center-cropped and resized image as a numpy array of shape (self.h, self.w, C).
+            (np.ndarray): The center-cropped and resized image as a numpy array of shape (self.h, self.w, C).
 
         Examples:
             >>> transform = CenterCrop(size=224)
@@ -2929,7 +2929,7 @@ class ToTensor:
         The output tensor will be in RGB format with shape (C, H, W), normalized to [0, 1].
     """
 
-    def __init__(self, half=False):
+    def __init__(self, half:bool=False):
         """
         Initialize the ToTensor object for converting images to PyTorch tensors.
 
@@ -2950,7 +2950,7 @@ class ToTensor:
         super().__init__()
         self.half = half
 
-    def __call__(self, im):
+    def __call__(self, im:np.ndarray) -> torch.Tensor:
         """
         Transform an image from a numpy array to a PyTorch tensor.
 
@@ -2959,7 +2959,7 @@ class ToTensor:
         the color channels are reversed from BGR to RGB.
 
         Args:
-            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
+            im (np.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
 
         Returns:
             (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized

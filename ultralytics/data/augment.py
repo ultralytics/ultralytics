@@ -2280,7 +2280,7 @@ class Format:
 class LoadVisualPrompt:
     """Create visual prompts from bounding boxes or masks for model input."""
 
-    def __init__(self, scale_factor=1 / 8):
+    def __init__(self, scale_factor: float = 1 / 8) -> None:
         """
         Initialize the LoadVisualPrompt with a scale factor.
 
@@ -2289,7 +2289,7 @@ class LoadVisualPrompt:
         """
         self.scale_factor = scale_factor
 
-    def make_mask(self, boxes, h, w):
+    def make_mask(self, boxes: torch.Tensor, h: int, w: int) -> torch.Tensor:
         """
         Create binary masks from bounding boxes.
 
@@ -2307,15 +2307,15 @@ class LoadVisualPrompt:
 
         return (r >= x1) * (r < x2) * (c >= y1) * (c < y2)
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Process labels to create visual prompts.
 
         Args:
-            labels (dict): Dictionary containing image data and annotations.
+            labels (Dict[str, Any]): Dictionary containing image data and annotations.
 
         Returns:
-            (dict): Updated labels with visual prompts added.
+            (Dict[str, Any]): Updated labels with visual prompts added.
         """
         imgsz = labels["img"].shape[1:]
         bboxes, masks = None, None
@@ -2328,13 +2328,19 @@ class LoadVisualPrompt:
         labels["visuals"] = visuals
         return labels
 
-    def get_visuals(self, category, shape, bboxes=None, masks=None):
+    def get_visuals(
+        self,
+        category: Union[int, np.ndarray, torch.Tensor],
+        shape: Tuple[int, int],
+        bboxes: Union[np.ndarray, torch.Tensor] = None,
+        masks: Union[np.ndarrag, torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
         Generate visual masks based on bounding boxes or masks.
 
         Args:
             category (int | np.ndarray | torch.Tensor): The category labels for the objects.
-            shape (tuple): The shape of the image (height, width).
+            shape (Tuple[int, int]): The shape of the image (height, width).
             bboxes (np.ndarray | torch.Tensor, optional): Bounding boxes for the objects, xyxy format.
             masks (np.ndarray | torch.Tensor, optional): Masks for the objects.
 

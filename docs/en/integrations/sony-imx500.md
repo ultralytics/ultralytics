@@ -50,7 +50,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
 
     Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
 
-!!! example "Object Detection" 
+!!! example "Object Detection"
 
     === "Python"
 
@@ -80,7 +80,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
-!!! example "Pose Estimation" 
+!!! example "Pose Estimation"
 
     === "Python"
 
@@ -198,7 +198,6 @@ sudo reboot
 
 Step 4: Install Aitrios Raspberry Pi application module library
 
-
 ```bash
 pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git
 ```
@@ -210,43 +209,43 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
     === "Object Detection"
 
          ```python
-         import importlib.resources
          import numpy as np
-
          from modlib.apps import Annotator
          from modlib.devices import AiCamera
          from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
          from modlib.models.post_processors import pp_od_yolo_ultralytics
 
+
          class Yolo(Model):
              def __init__(self):
                  super().__init__(
-                     model_file="yolo11n_imx_model/packerOut.zip", # replace with proper directory
+                     model_file="yolo11n_imx_model/packerOut.zip",  # replace with proper directory
                      model_type=MODEL_TYPE.CONVERTED,
                      color_format=COLOR_FORMAT.RGB,
                      preserve_aspect_ratio=True,
                  )
-         
+
                  self.labels = np.genfromtxt(
-                     "yolo11n_imx_model/labels.txt", # replace with proper directory
+                     "yolo11n_imx_model/labels.txt",  # replace with proper directory
                      dtype=str,
                      delimiter="\n",
                  )
-         
+
              def post_process(self, output_tensors):
                  return pp_od_yolo_ultralytics(output_tensors)
+
 
          device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the Yolo model running on the AI Camera
          model = Yolo()
          device.deploy(model)
-         
+
          annotator = Annotator()
-         
+
          with device as stream:
              for frame in stream:
                  detections = frame.detections[frame.detections.confidence > 0.55]
                  labels = [f"{model.labels[class_id]}: {score:0.2f}" for _, score, class_id, _ in detections]
-         
+
                  annotator.annotate_boxes(frame, detections, labels=labels, alpha=0.3, corner_radius=10)
                  frame.display()
          ```
@@ -259,10 +258,11 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
          from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
          from modlib.models.post_processors import pp_yolo_pose_ultralytics
 
+
          class YoloPose(Model):
              def __init__(self):
                  super().__init__(
-                     model_file="yolo11n-pose_imx_model/packerOut.zip", # replace with proper directory  
+                     model_file="yolo11n-pose_imx_model/packerOut.zip",  # replace with proper directory
                      model_type=MODEL_TYPE.CONVERTED,
                      color_format=COLOR_FORMAT.RGB,
                      preserve_aspect_ratio=True,
@@ -270,6 +270,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
 
              def post_process(self, output_tensors):
                  return pp_yolo_pose_ultralytics(output_tensors)
+
 
          device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the Yolo-pose model running on the AI Camera
          model = YoloPose()

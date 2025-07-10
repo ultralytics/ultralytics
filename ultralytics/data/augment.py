@@ -2458,10 +2458,10 @@ class RandomLoadText:
         new sampled text order.
 
         Args:
-            labels (dict): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
+            labels (Dict[str, Any]): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
 
         Returns:
-            (dict): Updated labels dictionary with new 'cls' and 'texts' entries.
+            (Dict[str, Any]): Updated labels dictionary with new 'cls' and 'texts' entries.
 
         Examples:
             >>> loader = RandomLoadText(prompt_format="A photo of {}", neg_samples=(5, 10), max_samples=20)

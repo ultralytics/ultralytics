@@ -1515,7 +1515,7 @@ class RandomFlip:
         >>> flipped_instances = result["instances"]
     """
 
-    def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
+    def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: List[int] = None) -> None:
         """
         Initialize the RandomFlip class with probability and direction.
 
@@ -1541,7 +1541,7 @@ class RandomFlip:
         self.direction = direction
         self.flip_idx = flip_idx
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply random flip to an image and update any instances like bounding boxes or keypoints accordingly.
 
@@ -1550,13 +1550,13 @@ class RandomFlip:
         match the flipped image.
 
         Args:
-            labels (dict): A dictionary containing the following keys:
+            labels (Dict[str, Any]): A dictionary containing the following keys:
                 'img' (numpy.ndarray): The image to be flipped.
                 'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and
                     optionally keypoints.
 
         Returns:
-            (dict): The same dictionary with the flipped image and updated instances:
+            (Dict[str, Any]): The same dictionary with the flipped image and updated instances:
                 'img' (numpy.ndarray): The flipped image.
                 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 

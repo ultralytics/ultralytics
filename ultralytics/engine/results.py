@@ -1082,8 +1082,8 @@ class Masks(BaseTensor):
     Attributes:
         data (torch.Tensor | np.ndarray): The raw tensor or array containing mask data.
         orig_shape (tuple): Original image shape in (height, width) format.
-        xy (List[numpy.ndarray]): A list of segments in pixel coordinates.
-        xyn (List[numpy.ndarray]): A list of normalized segments.
+        xy (List[np.ndarray]): A list of segments in pixel coordinates.
+        xyn (List[np.ndarray]): A list of normalized segments.
 
     Methods:
         cpu: Return a copy of the Masks object with the mask tensor on CPU memory.
@@ -1128,7 +1128,7 @@ class Masks(BaseTensor):
         are normalized relative to the original image shape.
 
         Returns:
-            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
+            (List[np.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
                 of a single segmentation mask. Each array has shape (N, 2), where N is the number of points in the
                 mask contour.
 
@@ -1153,7 +1153,7 @@ class Masks(BaseTensor):
         Masks object. The coordinates are scaled to match the original image dimensions.
 
         Returns:
-            (List[numpy.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel
+            (List[np.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel
                 coordinates for a single segmentation mask. Each array has shape (N, 2), where N is the
                 number of points in the segment.
 
@@ -1564,7 +1564,7 @@ class OBB(BaseTensor):
         Return the tracking IDs of the oriented bounding boxes (if available).
 
         Returns:
-            (torch.Tensor | numpy.ndarray | None): A tensor or numpy array containing the tracking IDs for each
+            (torch.Tensor | np.ndarray | None): A tensor or numpy array containing the tracking IDs for each
                 oriented bounding box. Returns None if tracking IDs are not available.
 
         Examples:

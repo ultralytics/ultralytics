@@ -720,14 +720,14 @@ class Mosaic(BaseMixTransform):
         Args:
             labels (Dict[str, Any]): A dictionary containing the input image and its associated labels. It should have
                 the following keys:
-                - 'img' (numpy.ndarray): The input image.
+                - 'img' (np.ndarray): The input image.
                 - 'resized_shape' (Tuple[int, int]): The shape of the resized image (height, width).
                 - 'mix_labels' (List[Dict]): A list of dictionaries containing information for the additional
                   eight images, each with the same structure as the input labels.
 
         Returns:
             (Dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following keys:
-                - 'img' (numpy.ndarray): The final mosaic image.
+                - 'img' (np.ndarray): The final mosaic image.
                 - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
         Examples:
@@ -1551,13 +1551,13 @@ class RandomFlip:
 
         Args:
             labels (Dict[str, Any]): A dictionary containing the following keys:
-                'img' (numpy.ndarray): The image to be flipped.
+                'img' (np.ndarray): The image to be flipped.
                 'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and
                     optionally keypoints.
 
         Returns:
             (Dict[str, Any]): The same dictionary with the flipped image and updated instances:
-                'img' (numpy.ndarray): The flipped image.
+                'img' (np.ndarray): The flipped image.
                 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
@@ -2010,8 +2010,8 @@ class Albumentations:
 
         Args:
             labels (Dict[str, Any]): A dictionary containing image data and annotations. Expected keys are:
-                - 'img': numpy.ndarray representing the image
-                - 'cls': numpy.ndarray of class labels
+                - 'img': np.ndarray representing the image
+                - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
 
         Returns:
@@ -2805,7 +2805,7 @@ class ClassifyLetterBox:
             im (np.ndarray): Input image as a numpy array with shape (H, W, C).
 
         Returns:
-            (numpy.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are
+            (np.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are
                 the target height and width respectively.
 
         Examples:

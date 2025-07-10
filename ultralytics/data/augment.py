@@ -12,7 +12,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, colorstr
+from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -251,8 +251,7 @@ class Compose:
             >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomPerspective
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
-        index = [index] if isinstance(index, int) else index
-        return Compose([self.transforms[i] for i in index])
+        return Compose([self.transforms[i] for i in index]) if isinstance(index, list) else self.transforms[index]
 
     def __setitem__(self, index: Union[list, int], value: Union[list, int]) -> None:
         """
@@ -367,7 +366,7 @@ class BaseMixTransform:
         self.pre_transform = pre_transform
         self.p = p
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply pre-processing transforms and cutmix/mixup/mosaic transforms to labels data.
 
@@ -375,10 +374,10 @@ class BaseMixTransform:
         selects additional images, applies pre-transforms if specified, and then performs the mix transform.
 
         Args:
-            labels (dict): A dictionary containing label data for an image.
+            labels (Dict[str, Any]): A dictionary containing label data for an image.
 
         Returns:
-            (dict): The transformed labels dictionary, which may include mixed data from other images.
+            (Dict[str, Any]): The transformed labels dictionary, which may include mixed data from other images.
 
         Examples:
             >>> transform = BaseMixTransform(dataset, pre_transform=None, p=0.5)
@@ -407,7 +406,7 @@ class BaseMixTransform:
         labels.pop("mix_labels", None)
         return labels
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]):
         """
         Apply CutMix, MixUp or Mosaic augmentation to the label dictionary.
 
@@ -415,11 +414,11 @@ class BaseMixTransform:
         Mosaic. It modifies the input label dictionary in-place with the augmented data.
 
         Args:
-            labels (dict): A dictionary containing image and label data. Expected to have a 'mix_labels' key
+            labels (Dict[str, Any]): A dictionary containing image and label data. Expected to have a 'mix_labels' key
                 with a list of additional image and label data for mixing.
 
         Returns:
-            (dict): The modified labels dictionary with augmented data after applying the mix transform.
+            (Dict[str, Any]): The modified labels dictionary with augmented data after applying the mix transform.
 
         Examples:
             >>> transform = BaseMixTransform(dataset)
@@ -443,7 +442,7 @@ class BaseMixTransform:
         return random.randint(0, len(self.dataset) - 1)
 
     @staticmethod
-    def _update_label_text(labels):
+    def _update_label_text(labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update label text and class IDs for mixed labels in image augmentation.
 
@@ -451,11 +450,11 @@ class BaseMixTransform:
         creating a unified set of text labels and updating class IDs accordingly.
 
         Args:
-            labels (dict): A dictionary containing label information, including 'texts' and 'cls' fields,
+            labels (Dict[str, Any]): A dictionary containing label information, including 'texts' and 'cls' fields,
                 and optionally a 'mix_labels' field with additional label dictionaries.
 
         Returns:
-            (dict): The updated labels dictionary with unified text labels and updated class IDs.
+            (Dict[str, Any]): The updated labels dictionary with unified text labels and updated class IDs.
 
         Examples:
             >>> labels = {
@@ -518,7 +517,7 @@ class Mosaic(BaseMixTransform):
         >>> augmented_labels = mosaic_aug(original_labels)
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, n=4):
+    def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4):
         """
         Initialize the Mosaic augmentation object.
 
@@ -565,7 +564,7 @@ class Mosaic(BaseMixTransform):
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply mosaic augmentation to the input image and labels.
 
@@ -574,12 +573,12 @@ class Mosaic(BaseMixTransform):
         mosaic augmentation.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations. Expected keys include:
+            labels (Dict[str, Any]): A dictionary containing image data and annotations. Expected keys include:
                 - 'rect_shape': Should be None as rect and mosaic are mutually exclusive.
                 - 'mix_labels': A list of dictionaries containing data for other images to be used in the mosaic.
 
         Returns:
-            (dict): A dictionary containing the mosaic-augmented image and updated annotations.
+            (Dict[str, Any]): A dictionary containing the mosaic-augmented image and updated annotations.
 
         Raises:
             AssertionError: If 'rect_shape' is not None or if 'mix_labels' is empty.
@@ -594,7 +593,7 @@ class Mosaic(BaseMixTransform):
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
         )  # This code is modified for mosaic3 method.
 
-    def _mosaic3(self, labels):
+    def _mosaic3(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a 1x3 image mosaic by combining three images.
 
@@ -602,12 +601,12 @@ class Mosaic(BaseMixTransform):
         additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
 
         Args:
-            labels (dict): A dictionary containing image and label information for the main (center) image.
+            labels (Dict[str, Any]): A dictionary containing image and label information for the main (center) image.
                 Must include 'img' key with the image array, and 'mix_labels' key with a list of two
                 dictionaries containing information for the side images.
 
         Returns:
-            (dict): A dictionary with the mosaic image and updated labels. Keys include:
+            (Dict[str, Any]): A dictionary with the mosaic image and updated labels. Keys include:
                 - 'img' (np.ndarray): The mosaic image array with shape (H, W, C).
                 - Other keys from the input labels, updated to reflect the new image dimensions.
 
@@ -653,7 +652,7 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
 
-    def _mosaic4(self, labels):
+    def _mosaic4(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a 2x2 image mosaic from four input images.
 
@@ -661,11 +660,11 @@ class Mosaic(BaseMixTransform):
         updates the corresponding labels for each image in the mosaic.
 
         Args:
-            labels (dict): A dictionary containing image data and labels for the base image (index 0) and three
+            labels (Dict[str, Any]): A dictionary containing image data and labels for the base image (index 0) and three
                 additional images (indices 1-3) in the 'mix_labels' key.
 
         Returns:
-            (dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
+            (Dict[str, Any]): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
                 image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
 
         Examples:
@@ -711,7 +710,7 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img4
         return final_labels
 
-    def _mosaic9(self, labels):
+    def _mosaic9(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a 3x3 image mosaic from the input image and eight additional images.
 
@@ -719,16 +718,16 @@ class Mosaic(BaseMixTransform):
         and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
 
         Args:
-            labels (dict): A dictionary containing the input image and its associated labels. It should have
+            labels (Dict[str, Any]): A dictionary containing the input image and its associated labels. It should have
                 the following keys:
-                - 'img' (numpy.ndarray): The input image.
+                - 'img' (np.ndarray): The input image.
                 - 'resized_shape' (Tuple[int, int]): The shape of the resized image (height, width).
                 - 'mix_labels' (List[Dict]): A list of dictionaries containing information for the additional
                   eight images, each with the same structure as the input labels.
 
         Returns:
-            (dict): A dictionary containing the mosaic image and updated labels. It includes the following keys:
-                - 'img' (numpy.ndarray): The final mosaic image.
+            (Dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following keys:
+                - 'img' (np.ndarray): The final mosaic image.
                 - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
         Examples:
@@ -784,7 +783,7 @@ class Mosaic(BaseMixTransform):
         return final_labels
 
     @staticmethod
-    def _update_labels(labels, padw, padh):
+    def _update_labels(labels, padw: int, padh: int) -> Dict[str, Any]:
         """
         Update label coordinates with padding values.
 
@@ -792,7 +791,7 @@ class Mosaic(BaseMixTransform):
         values. It also denormalizes the coordinates if they were previously normalized.
 
         Args:
-            labels (dict): A dictionary containing image and instance information.
+            labels (Dict[str, Any]): A dictionary containing image and instance information.
             padw (int): Padding width to be added to the x-coordinates.
             padh (int): Padding height to be added to the y-coordinates.
 
@@ -810,7 +809,7 @@ class Mosaic(BaseMixTransform):
         labels["instances"].add_padding(padw, padh)
         return labels
 
-    def _cat_labels(self, mosaic_labels):
+    def _cat_labels(self, mosaic_labels: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Concatenate and process labels for mosaic augmentation.
 
@@ -818,10 +817,10 @@ class Mosaic(BaseMixTransform):
         mosaic border, and removes zero-area boxes.
 
         Args:
-            mosaic_labels (List[Dict]): A list of label dictionaries for each image in the mosaic.
+            mosaic_labels (List[Dict[str, Any]]): A list of label dictionaries for each image in the mosaic.
 
         Returns:
-            (dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
+            (Dict[str, Any]): A dictionary containing concatenated and processed labels for the mosaic image, including:
                 - im_file (str): File path of the first image in the mosaic.
                 - ori_shape (Tuple[int, int]): Original shape of the first image.
                 - resized_shape (Tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
@@ -884,7 +883,7 @@ class MixUp(BaseMixTransform):
         >>> augmented_labels = mixup(original_labels)
     """
 
-    def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
+    def __init__(self, dataset, pre_transform=None, p: float = 0.0) -> None:
         """
         Initialize the MixUp augmentation object.
 
@@ -903,7 +902,7 @@ class MixUp(BaseMixTransform):
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply MixUp augmentation to the input labels.
 
@@ -911,10 +910,10 @@ class MixUp(BaseMixTransform):
         "mixup: Beyond Empirical Risk Minimization" (https://arxiv.org/abs/1710.09412).
 
         Args:
-            labels (dict): A dictionary containing the original image and label information.
+            labels (Dict[str, Any]): A dictionary containing the original image and label information.
 
         Returns:
-            (dict): A dictionary containing the mixed-up image and combined label information.
+            (Dict[str, Any]): A dictionary containing the mixed-up image and combined label information.
 
         Examples:
             >>> mixer = MixUp(dataset)
@@ -953,7 +952,7 @@ class CutMix(BaseMixTransform):
         >>> augmented_labels = cutmix(original_labels)
     """
 
-    def __init__(self, dataset, pre_transform=None, p=0.0, beta=1.0, num_areas=3) -> None:
+    def __init__(self, dataset, pre_transform=None, p: float = 0.0, beta: float = 1.0, num_areas: int = 3) -> None:
         """
         Initialize the CutMix augmentation object.
 
@@ -968,7 +967,7 @@ class CutMix(BaseMixTransform):
         self.beta = beta
         self.num_areas = num_areas
 
-    def _rand_bbox(self, width, height):
+    def _rand_bbox(self, width: int, height: int) -> Tuple[int, int, int, int]:
         """
         Generate random bounding box coordinates for the cut region.
 
@@ -977,7 +976,7 @@ class CutMix(BaseMixTransform):
             height (int): Height of the image.
 
         Returns:
-            (tuple): (x1, y1, x2, y2) coordinates of the bounding box.
+            (Tuple[int]): (x1, y1, x2, y2) coordinates of the bounding box.
         """
         # Sample mixing ratio from Beta distribution
         lam = np.random.beta(self.beta, self.beta)
@@ -998,15 +997,15 @@ class CutMix(BaseMixTransform):
 
         return x1, y1, x2, y2
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply CutMix augmentation to the input labels.
 
         Args:
-            labels (dict): A dictionary containing the original image and label information.
+            labels (Dict[str, Any]): A dictionary containing the original image and label information.
 
         Returns:
-            (dict): A dictionary containing the mixed image and adjusted labels.
+            (Dict[str, Any]): A dictionary containing the mixed image and adjusted labels.
 
         Examples:
             >>> cutter = CutMix(dataset)
@@ -1081,7 +1080,14 @@ class RandomPerspective:
     """
 
     def __init__(
-        self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None
+        self,
+        degrees: float = 0.0,
+        translate: float = 0.1,
+        scale: float = 0.5,
+        shear: float = 0.0,
+        perspective: float = 0.0,
+        border: Tuple[int, int] = (0, 0),
+        pre_transform=None,
     ):
         """
         Initialize RandomPerspective object with transformation parameters.
@@ -1111,7 +1117,7 @@ class RandomPerspective:
         self.border = border  # mosaic border
         self.pre_transform = pre_transform
 
-    def affine_transform(self, img, border):
+    def affine_transform(self, img: np.ndarray, border: Tuple[int, int]) -> Tuple[np.ndarray, np.ndarray, float]:
         """
         Apply a sequence of affine transformations centered around the image center.
 
@@ -1175,7 +1181,7 @@ class RandomPerspective:
                 img = img[..., None]
         return img, M, s
 
-    def apply_bboxes(self, bboxes, M):
+    def apply_bboxes(self, bboxes: np.ndarray, M: np.ndarray) -> np.ndarray:
         """
         Apply affine transformation to bounding boxes.
 
@@ -1183,12 +1189,12 @@ class RandomPerspective:
         transformation matrix.
 
         Args:
-            bboxes (torch.Tensor): Bounding boxes in xyxy format with shape (N, 4), where N is the number
+            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4), where N is the number
                 of bounding boxes.
-            M (torch.Tensor): Affine transformation matrix with shape (3, 3).
+            M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
-            (torch.Tensor): Transformed bounding boxes in xyxy format with shape (N, 4).
+            (np.ndarray): Transformed bounding boxes in xyxy format with shape (N, 4).
 
         Examples:
             >>> bboxes = torch.tensor([[10, 10, 20, 20], [30, 30, 40, 40]])
@@ -1209,7 +1215,7 @@ class RandomPerspective:
         y = xy[:, [1, 3, 5, 7]]
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
-    def apply_segments(self, segments, M):
+    def apply_segments(self, segments: np.ndarray, M: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Apply affine transformations to segments and generate new bounding boxes.
 
@@ -1245,7 +1251,7 @@ class RandomPerspective:
         segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
-    def apply_keypoints(self, keypoints, M):
+    def apply_keypoints(self, keypoints: np.ndarray, M: np.ndarray) -> np.ndarray:
         """
         Apply affine transformation to keypoints.
 
@@ -1279,7 +1285,7 @@ class RandomPerspective:
         visible[out_mask] = 0
         return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply random perspective and affine transformations to an image and its associated labels.
 
@@ -1288,7 +1294,7 @@ class RandomPerspective:
         and keypoints accordingly.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations.
+            labels (Dict[str, Any]): A dictionary containing image data and annotations.
                 Must include:
                     'img' (np.ndarray): The input image.
                     'cls' (np.ndarray): Class labels.
@@ -1297,7 +1303,7 @@ class RandomPerspective:
                     'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.
 
         Returns:
-            (dict): Transformed labels dictionary containing:
+            (Dict[str, Any]): Transformed labels dictionary containing:
                 - 'img' (np.ndarray): The transformed image.
                 - 'cls' (np.ndarray): Updated class labels.
                 - 'instances' (Instances): Updated object instances.
@@ -1358,7 +1364,14 @@ class RandomPerspective:
         return labels
 
     @staticmethod
-    def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+    def box_candidates(
+        box1: np.ndarray,
+        box2: np.ndarray,
+        wh_thr: int = 2,
+        ar_thr: int = 100,
+        area_thr: float = 0.1,
+        eps: float = 1e-16,
+    ) -> np.ndarray:
         """
         Compute candidate boxes for further processing based on size and aspect ratio criteria.
 
@@ -1367,20 +1380,20 @@ class RandomPerspective:
         been overly distorted or reduced by the augmentation process.
 
         Args:
-            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, N) where n is the
+            box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where n is the
                 number of boxes. Format is [x1, y1, x2, y2] in absolute coordinates.
-            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, N). Format is
+            box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is
                 [x1, y1, x2, y2] in absolute coordinates.
-            wh_thr (float): Width and height threshold in pixels. Boxes smaller than this in either
+            wh_thr (int): Width and height threshold in pixels. Boxes smaller than this in either
                 dimension are rejected.
-            ar_thr (float): Aspect ratio threshold. Boxes with an aspect ratio greater than this
+            ar_thr (int): Aspect ratio threshold. Boxes with an aspect ratio greater than this
                 value are rejected.
             area_thr (float): Area ratio threshold. Boxes with an area ratio (new/old) less than
                 this value are rejected.
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (numpy.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
+            (np.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
                 True values correspond to boxes that meet all criteria.
 
         Examples:
@@ -1421,7 +1434,7 @@ class RandomHSV:
         >>> augmented_image = augmented_labels["img"]
     """
 
-    def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
+    def __init__(self, hgain: float = 0.5, sgain: float = 0.5, vgain: float = 0.5) -> None:
         """
         Initialize the RandomHSV object for random HSV (Hue, Saturation, Value) augmentation.
 
@@ -1440,7 +1453,7 @@ class RandomHSV:
         self.sgain = sgain
         self.vgain = vgain
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply random HSV augmentation to an image within predefined limits.
 
@@ -1448,17 +1461,16 @@ class RandomHSV:
         The adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
 
         Args:
-            labels (dict): A dictionary containing image data and metadata. Must include an 'img' key with
+            labels (Dict[str, Any]): A dictionary containing image data and metadata. Must include an 'img' key with
                 the image as a numpy array.
 
         Returns:
-            (None): The function modifies the input 'labels' dictionary in-place, updating the 'img' key
-                with the HSV-augmented image.
+            (Dict[str, Any]): A dictionary containing the mixed image and adjusted labels.
 
         Examples:
             >>> hsv_augmenter = RandomHSV(hgain=0.5, sgain=0.5, vgain=0.5)
             >>> labels = {"img": np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)}
-            >>> hsv_augmenter(labels)
+            >>> labels = hsv_augmenter(labels)
             >>> augmented_img = labels["img"]
         """
         img = labels["img"]
@@ -1503,7 +1515,7 @@ class RandomFlip:
         >>> flipped_instances = result["instances"]
     """
 
-    def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
+    def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: List[int] = None) -> None:
         """
         Initialize the RandomFlip class with probability and direction.
 
@@ -1529,7 +1541,7 @@ class RandomFlip:
         self.direction = direction
         self.flip_idx = flip_idx
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply random flip to an image and update any instances like bounding boxes or keypoints accordingly.
 
@@ -1538,14 +1550,14 @@ class RandomFlip:
         match the flipped image.
 
         Args:
-            labels (dict): A dictionary containing the following keys:
-                'img' (numpy.ndarray): The image to be flipped.
+            labels (Dict[str, Any]): A dictionary containing the following keys:
+                'img' (np.ndarray): The image to be flipped.
                 'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and
                     optionally keypoints.
 
         Returns:
-            (dict): The same dictionary with the flipped image and updated instances:
-                'img' (numpy.ndarray): The flipped image.
+            (Dict[str, Any]): The same dictionary with the flipped image and updated instances:
+                'img' (np.ndarray): The flipped image.
                 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
@@ -1601,7 +1613,15 @@ class LetterBox:
         >>> updated_instances = result["instances"]
     """
 
-    def __init__(self, new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, center=True, stride=32):
+    def __init__(
+        self,
+        new_shape: Tuple[int, int] = (640, 640),
+        auto: bool = False,
+        scale_fill: bool = False,
+        scaleup: bool = True,
+        center: bool = True,
+        stride: int = 32,
+    ):
         """
         Initialize LetterBox object for resizing and padding images.
 
@@ -1634,7 +1654,7 @@ class LetterBox:
         self.stride = stride
         self.center = center  # Put the image in the middle or top-left
 
-    def __call__(self, labels=None, image=None):
+    def __call__(self, labels: Dict[str, Any] = None, image: np.ndarray = None) -> Union[Dict[str, Any], np.ndarray]:
         """
         Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
 
@@ -1642,13 +1662,13 @@ class LetterBox:
         aspect ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
 
         Args:
-            labels (Dict | None): A dictionary containing image data and associated labels, or empty dict if None.
+            labels (Dict[str, Any] | None): A dictionary containing image data and associated labels, or empty dict if None.
             image (np.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
 
         Returns:
-            (Dict | Tuple): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
-                updated labels, and additional metadata. If 'labels' is empty, returns a tuple containing the resized
-                and padded image, and a tuple of (ratio, (left_pad, top_pad)).
+            (Dict[str, Any] | nd.ndarray): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
+                updated labels, and additional metadata. If 'labels' is empty, returns the resized
+                and padded image.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
@@ -1711,7 +1731,7 @@ class LetterBox:
             return img
 
     @staticmethod
-    def _update_labels(labels, ratio, padw, padh):
+    def _update_labels(labels: Dict[str, Any], ratio: Tuple[float, float], padw: float, padh: float) -> Dict[str, Any]:
         """
         Update labels after applying letterboxing to an image.
 
@@ -1719,13 +1739,13 @@ class LetterBox:
         to account for resizing and padding applied during letterboxing.
 
         Args:
-            labels (dict): A dictionary containing image labels and instances.
+            labels (Dict[str, Any]): A dictionary containing image labels and instances.
             ratio (Tuple[float, float]): Scaling ratios (width, height) applied to the image.
             padw (float): Padding width added to the image.
             padh (float): Padding height added to the image.
 
         Returns:
-            (dict): Updated labels dictionary with modified instance coordinates.
+            (Dict[str, Any]): Updated labels dictionary with modified instance coordinates.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
@@ -1765,18 +1785,18 @@ class CopyPaste(BaseMixTransform):
         >>> augmented_labels = copypaste(original_labels)
     """
 
-    def __init__(self, dataset=None, pre_transform=None, p=0.5, mode="flip") -> None:
+    def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
         """Initialize CopyPaste object with dataset, pre_transform, and probability of applying MixUp."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         labels2 = labels["mix_labels"][0]
         return self._transform(labels, labels2)
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """Apply Copy-Paste augmentation to an image and its labels."""
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
@@ -1803,9 +1823,11 @@ class CopyPaste(BaseMixTransform):
         labels.pop("mix_labels", None)
         return labels
 
-    def _transform(self, labels1, labels2={}):
+    def _transform(self, labels1: Dict[str, Any], labels2: Dict[str, Any] = {}) -> Dict[str, Any]:
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         im = labels1["img"]
+        if "mosaic_border" not in labels1:
+            im = im.copy()  # avoid modifying original non-mosaic image
         cls = labels1["cls"]
         h, w = im.shape[:2]
         instances = labels1.pop("instances")
@@ -1865,7 +1887,7 @@ class Albumentations:
         - Spatial transforms are handled differently and require special processing for bounding boxes.
     """
 
-    def __init__(self, p=1.0):
+    def __init__(self, p: float = 1.0) -> None:
         """
         Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
@@ -1979,7 +2001,7 @@ class Albumentations:
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply Albumentations transformations to input labels.
 
@@ -1987,13 +2009,13 @@ class Albumentations:
         spatial and non-spatial transformations on the input image and its corresponding labels.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations. Expected keys are:
-                - 'img': numpy.ndarray representing the image
-                - 'cls': numpy.ndarray of class labels
+            labels (Dict[str, Any]): A dictionary containing image data and annotations. Expected keys are:
+                - 'img': np.ndarray representing the image
+                - 'cls': np.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
 
         Returns:
-            (dict): The input dictionary with augmented image and updated annotations.
+            (Dict[str, Any]): The input dictionary with augmented image and updated annotations.
 
         Examples:
             >>> transform = Albumentations(p=0.5)
@@ -2068,15 +2090,15 @@ class Format:
 
     def __init__(
         self,
-        bbox_format="xywh",
-        normalize=True,
-        return_mask=False,
-        return_keypoint=False,
-        return_obb=False,
-        mask_ratio=4,
-        mask_overlap=True,
-        batch_idx=True,
-        bgr=0.0,
+        bbox_format: str = "xywh",
+        normalize: bool = True,
+        return_mask: bool = False,
+        return_keypoint: bool = False,
+        return_obb: bool = False,
+        mask_ratio: int = 4,
+        mask_overlap: bool = True,
+        batch_idx: bool = True,
+        bgr: float = 0.0,
     ):
         """
         Initialize the Format class with given parameters for image and instance annotation formatting.
@@ -2121,7 +2143,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Format image annotations for object detection, instance segmentation, and pose estimation tasks.
 
@@ -2130,13 +2152,13 @@ class Format:
         applying normalization if required.
 
         Args:
-            labels (dict): A dictionary containing image and annotation data with the following keys:
+            labels (Dict[str, Any]): A dictionary containing image and annotation data with the following keys:
                 - 'img': The input image as a numpy array.
                 - 'cls': Class labels for instances.
                 - 'instances': An Instances object containing bounding boxes, segments, and keypoints.
 
         Returns:
-            (dict): A dictionary with formatted data, including:
+            (Dict[str, Any]): A dictionary with formatted data, including:
                 - 'img': Formatted image tensor.
                 - 'cls': Class label's tensor.
                 - 'bboxes': Bounding boxes tensor in the specified format.
@@ -2190,7 +2212,7 @@ class Format:
             labels["batch_idx"] = torch.zeros(nl)
         return labels
 
-    def _format_img(self, img):
+    def _format_img(self, img: np.ndarray) -> torch.Tensor:
         """
         Format an image for YOLO from a Numpy array to a PyTorch tensor.
 
@@ -2221,20 +2243,22 @@ class Format:
         img = torch.from_numpy(img)
         return img
 
-    def _format_segments(self, instances, cls, w, h):
+    def _format_segments(
+        self, instances: Instances, cls: np.ndarray, w: int, h: int
+    ) -> Tuple[np.ndarray, Instances, np.ndarray]:
         """
         Convert polygon segments to bitmap masks.
 
         Args:
             instances (Instances): Object containing segment information.
-            cls (numpy.ndarray): Class labels for each instance.
+            cls (np.ndarray): Class labels for each instance.
             w (int): Width of the image.
             h (int): Height of the image.
 
         Returns:
-            masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+            masks (np.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
             instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
-            cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+            cls (np.ndarray): Updated class labels, sorted if mask_overlap is True.
 
         Notes:
             - If self.mask_overlap is True, masks are overlapped and sorted by area.
@@ -2256,7 +2280,7 @@ class Format:
 class LoadVisualPrompt:
     """Create visual prompts from bounding boxes or masks for model input."""
 
-    def __init__(self, scale_factor=1 / 8):
+    def __init__(self, scale_factor: float = 1 / 8) -> None:
         """
         Initialize the LoadVisualPrompt with a scale factor.
 
@@ -2265,7 +2289,7 @@ class LoadVisualPrompt:
         """
         self.scale_factor = scale_factor
 
-    def make_mask(self, boxes, h, w):
+    def make_mask(self, boxes: torch.Tensor, h: int, w: int) -> torch.Tensor:
         """
         Create binary masks from bounding boxes.
 
@@ -2283,15 +2307,15 @@ class LoadVisualPrompt:
 
         return (r >= x1) * (r < x2) * (c >= y1) * (c < y2)
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Process labels to create visual prompts.
 
         Args:
-            labels (dict): Dictionary containing image data and annotations.
+            labels (Dict[str, Any]): Dictionary containing image data and annotations.
 
         Returns:
-            (dict): Updated labels with visual prompts added.
+            (Dict[str, Any]): Updated labels with visual prompts added.
         """
         imgsz = labels["img"].shape[1:]
         bboxes, masks = None, None
@@ -2304,13 +2328,19 @@ class LoadVisualPrompt:
         labels["visuals"] = visuals
         return labels
 
-    def get_visuals(self, category, shape, bboxes=None, masks=None):
+    def get_visuals(
+        self,
+        category: Union[int, np.ndarray, torch.Tensor],
+        shape: Tuple[int, int],
+        bboxes: Union[np.ndarray, torch.Tensor] = None,
+        masks: Union[np.ndarray, torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
         Generate visual masks based on bounding boxes or masks.
 
         Args:
             category (int | np.ndarray | torch.Tensor): The category labels for the objects.
-            shape (tuple): The shape of the image (height, width).
+            shape (Tuple[int, int]): The shape of the image (height, width).
             bboxes (np.ndarray | torch.Tensor, optional): Bounding boxes for the objects, xyxy format.
             masks (np.ndarray | torch.Tensor, optional): Masks for the objects.
 
@@ -2428,10 +2458,10 @@ class RandomLoadText:
         new sampled text order.
 
         Args:
-            labels (dict): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
+            labels (Dict[str, Any]): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
 
         Returns:
-            (dict): Updated labels dictionary with new 'cls' and 'texts' entries.
+            (Dict[str, Any]): Updated labels dictionary with new 'cls' and 'texts' entries.
 
         Examples:
             >>> loader = RandomLoadText(prompt_format="A photo of {}", neg_samples=(5, 10), max_samples=20)
@@ -2485,7 +2515,7 @@ class RandomLoadText:
         return labels
 
 
-def v8_transforms(dataset, imgsz, hyp, stretch=False):
+def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):
     """
     Apply a series of image transformations for training.
 
@@ -2495,7 +2525,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.
         imgsz (int): The target image size for resizing.
-        hyp (Namespace): A dictionary of hyperparameters controlling various aspects of the transformations.
+        hyp (IterableSimpleNamespace): A dictionary of hyperparameters controlling various aspects of the transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
@@ -2555,11 +2585,11 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(
-    size=224,
-    mean=DEFAULT_MEAN,
-    std=DEFAULT_STD,
-    interpolation="BILINEAR",
-    crop_fraction=None,
+    size: Union[Tuple[int, int], int] = 224,
+    mean: Tuple[float, float, float] = DEFAULT_MEAN,
+    std: Tuple[float, float, float] = DEFAULT_STD,
+    interpolation: str = "BILINEAR",
+    crop_fraction: float = None,
 ):
     """
     Create a composition of image transforms for classification tasks.
@@ -2571,8 +2601,8 @@ def classify_transforms(
     Args:
         size (int | tuple): The target size for the transformed image. If an int, it defines the shortest edge. If a
             tuple, it defines (height, width).
-        mean (tuple): Mean values for each RGB channel used in normalization.
-        std (tuple): Standard deviation values for each RGB channel used in normalization.
+        mean (Tuple[float, float, float]): Mean values for each RGB channel used in normalization.
+        std (Tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
         crop_fraction (float): Deprecated, will be removed in a future version.
 
@@ -2606,20 +2636,20 @@ def classify_transforms(
 
 # Classification training augmentations --------------------------------------------------------------------------------
 def classify_augmentations(
-    size=224,
-    mean=DEFAULT_MEAN,
-    std=DEFAULT_STD,
-    scale=None,
-    ratio=None,
-    hflip=0.5,
-    vflip=0.0,
-    auto_augment=None,
-    hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
-    hsv_s=0.4,  # image HSV-Saturation augmentation (fraction)
-    hsv_v=0.4,  # image HSV-Value augmentation (fraction)
-    force_color_jitter=False,
-    erasing=0.0,
-    interpolation="BILINEAR",
+    size: int = 224,
+    mean: Tuple[float, float, float] = DEFAULT_MEAN,
+    std: Tuple[float, float, float] = DEFAULT_STD,
+    scale: Tuple[float, float] = None,
+    ratio: Tuple[float, float] = None,
+    hflip: float = 0.5,
+    vflip: float = 0.0,
+    auto_augment: str = None,
+    hsv_h: float = 0.015,  # image HSV-Hue augmentation (fraction)
+    hsv_s: float = 0.4,  # image HSV-Saturation augmentation (fraction)
+    hsv_v: float = 0.4,  # image HSV-Value augmentation (fraction)
+    force_color_jitter: bool = False,
+    erasing: float = 0.0,
+    interpolation: str = "BILINEAR",
 ):
     """
     Create a composition of image augmentation transforms for classification tasks.
@@ -2629,10 +2659,10 @@ def classify_augmentations(
 
     Args:
         size (int): Target size for the image after transformations.
-        mean (tuple): Mean values for normalization, one per channel.
-        std (tuple): Standard deviation values for normalization, one per channel.
-        scale (tuple | None): Range of size of the origin size cropped.
-        ratio (tuple | None): Range of aspect ratio of the origin aspect ratio cropped.
+        mean (Tuple[float, float, float]): Mean values for each RGB channel used in normalization.
+        std (Tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
+        scale (Tuple[float, float] | None): Range of size of the origin size cropped.
+        ratio (Tuple[float, float] | None): Range of aspect ratio of the origin aspect ratio cropped.
         hflip (float): Probability of horizontal flip.
         vflip (float): Probability of vertical flip.
         auto_augment (str | None): Auto augmentation policy. Can be 'randaugment', 'augmix', 'autoaugment' or None.
@@ -2654,7 +2684,7 @@ def classify_augmentations(
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if not isinstance(size, int):
-        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
+        raise TypeError(f"classify_augmentations() size {size} must be integer, not (list, tuple)")
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
     ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
     interpolation = getattr(T.InterpolationMode, interpolation)
@@ -2733,7 +2763,7 @@ class ClassifyLetterBox:
         (640, 640, 3)
     """
 
-    def __init__(self, size=(640, 640), auto=False, stride=32):
+    def __init__(self, size: Union[int, Tuple[int, int]] = (640, 640), auto: bool = False, stride: int = 32):
         """
         Initialize the ClassifyLetterBox object for image preprocessing.
 
@@ -2764,7 +2794,7 @@ class ClassifyLetterBox:
         self.auto = auto  # pass max size integer, automatically solve for short side using stride
         self.stride = stride  # used with auto
 
-    def __call__(self, im):
+    def __call__(self, im: np.ndarray) -> np.ndarray:
         """
         Resize and pad an image using the letterbox method.
 
@@ -2772,10 +2802,10 @@ class ClassifyLetterBox:
         then pads the resized image to match the target size.
 
         Args:
-            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C).
+            im (np.ndarray): Input image as a numpy array with shape (H, W, C).
 
         Returns:
-            (numpy.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are
+            (np.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are
                 the target height and width respectively.
 
         Examples:
@@ -2822,7 +2852,7 @@ class CenterCrop:
         (640, 640, 3)
     """
 
-    def __init__(self, size=640):
+    def __init__(self, size: Union[int, Tuple[int, int]] = (640, 640)):
         """
         Initialize the CenterCrop object for image preprocessing.
 
@@ -2846,7 +2876,7 @@ class CenterCrop:
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
-    def __call__(self, im):
+    def __call__(self, im: Union[Image.Image, np.ndarray]) -> np.ndarray:
         """
         Apply center cropping to an input image.
 
@@ -2854,11 +2884,11 @@ class CenterCrop:
         ratio of the original image while fitting it into the specified dimensions.
 
         Args:
-            im (numpy.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a
+            im (np.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a
                 PIL Image object.
 
         Returns:
-            (numpy.ndarray): The center-cropped and resized image as a numpy array of shape (self.h, self.w, C).
+            (np.ndarray): The center-cropped and resized image as a numpy array of shape (self.h, self.w, C).
 
         Examples:
             >>> transform = CenterCrop(size=224)
@@ -2899,7 +2929,7 @@ class ToTensor:
         The output tensor will be in RGB format with shape (C, H, W), normalized to [0, 1].
     """
 
-    def __init__(self, half=False):
+    def __init__(self, half: bool = False):
         """
         Initialize the ToTensor object for converting images to PyTorch tensors.
 
@@ -2920,7 +2950,7 @@ class ToTensor:
         super().__init__()
         self.half = half
 
-    def __call__(self, im):
+    def __call__(self, im: np.ndarray) -> torch.Tensor:
         """
         Transform an image from a numpy array to a PyTorch tensor.
 
@@ -2929,7 +2959,7 @@ class ToTensor:
         the color channels are reversed from BGR to RGB.
 
         Args:
-            im (numpy.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
+            im (np.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
 
         Returns:
             (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized

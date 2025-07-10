@@ -1887,7 +1887,7 @@ class Albumentations:
         - Spatial transforms are handled differently and require special processing for bounding boxes.
     """
 
-    def __init__(self, p=1.0):
+    def __init__(self, p: float = 1.0) -> None:
         """
         Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 
@@ -2001,7 +2001,7 @@ class Albumentations:
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply Albumentations transformations to input labels.
 
@@ -2009,13 +2009,13 @@ class Albumentations:
         spatial and non-spatial transformations on the input image and its corresponding labels.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations. Expected keys are:
+            labels (Dict[str, Any]): A dictionary containing image data and annotations. Expected keys are:
                 - 'img': numpy.ndarray representing the image
                 - 'cls': numpy.ndarray of class labels
                 - 'instances': object containing bounding boxes and other instance information
 
         Returns:
-            (dict): The input dictionary with augmented image and updated annotations.
+            (Dict[str, Any]): The input dictionary with augmented image and updated annotations.
 
         Examples:
             >>> transform = Albumentations(p=0.5)

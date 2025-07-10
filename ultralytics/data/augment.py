@@ -2244,7 +2244,7 @@ class Format:
         return img
 
     def _format_segments(
-        self, instances: Instances, cls: np.ndarrag, w: int, h: int
+        self, instances: Instances, cls: np.ndarray, w: int, h: int
     ) -> Tuple[np.ndarray, Instances, np.ndarray]:
         """
         Convert polygon segments to bitmap masks.
@@ -2333,7 +2333,7 @@ class LoadVisualPrompt:
         category: Union[int, np.ndarray, torch.Tensor],
         shape: Tuple[int, int],
         bboxes: Union[np.ndarray, torch.Tensor] = None,
-        masks: Union[np.ndarrag, torch.Tensor] = None,
+        masks: Union[np.ndarray, torch.Tensor] = None,
     ) -> torch.Tensor:
         """
         Generate visual masks based on bounding boxes or masks.

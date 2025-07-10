@@ -499,7 +499,7 @@ class BasePredictor:
             for w in self.windows:
                 cv2.destroyWindow(w)
             self.windows.clear()
-            
+
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

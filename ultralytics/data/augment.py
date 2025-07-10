@@ -12,7 +12,7 @@ from PIL import Image
 from torch.nn import functional as F
 
 from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
-from ultralytics.utils import LOGGER, colorstr
+from ultralytics.utils import LOGGER, colorstr, IterableSimpleNamespace
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.metrics import bbox_ioa
@@ -2515,7 +2515,7 @@ class RandomLoadText:
         return labels
 
 
-def v8_transforms(dataset, imgsz, hyp, stretch=False):
+def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):
     """
     Apply a series of image transformations for training.
 
@@ -2525,7 +2525,7 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.
         imgsz (int): The target image size for resizing.
-        hyp (Namespace): A dictionary of hyperparameters controlling various aspects of the transformations.
+        hyp (IterableSimpleNamespace): A dictionary of hyperparameters controlling various aspects of the transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
@@ -2585,11 +2585,11 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
 
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(
-    size=224,
-    mean=DEFAULT_MEAN,
-    std=DEFAULT_STD,
-    interpolation="BILINEAR",
-    crop_fraction=None,
+    size: Union[Tuple[int, int], int] = 224,
+    mean: Tuple[float, float, float] = DEFAULT_MEAN,
+    std: Tuple[float, float, float] = DEFAULT_STD,
+    interpolation: str = "BILINEAR",
+    crop_fraction: float = None,
 ):
     """
     Create a composition of image transforms for classification tasks.
@@ -2601,8 +2601,8 @@ def classify_transforms(
     Args:
         size (int | tuple): The target size for the transformed image. If an int, it defines the shortest edge. If a
             tuple, it defines (height, width).
-        mean (tuple): Mean values for each RGB channel used in normalization.
-        std (tuple): Standard deviation values for each RGB channel used in normalization.
+        mean (Tuple[float, float, float]): Mean values for each RGB channel used in normalization.
+        std (Tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
         crop_fraction (float): Deprecated, will be removed in a future version.
 
@@ -2636,20 +2636,20 @@ def classify_transforms(
 
 # Classification training augmentations --------------------------------------------------------------------------------
 def classify_augmentations(
-    size=224,
-    mean=DEFAULT_MEAN,
-    std=DEFAULT_STD,
-    scale=None,
-    ratio=None,
-    hflip=0.5,
-    vflip=0.0,
-    auto_augment=None,
-    hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
-    hsv_s=0.4,  # image HSV-Saturation augmentation (fraction)
-    hsv_v=0.4,  # image HSV-Value augmentation (fraction)
-    force_color_jitter=False,
-    erasing=0.0,
-    interpolation="BILINEAR",
+    size: int = 224,
+    mean: Tuple[float, float, float] = DEFAULT_MEAN,
+    std: Tuple[float, float, float] = DEFAULT_STD,
+    scale: Tuple[float, float] = None,
+    ratio: Tuple[float, float] = None,
+    hflip: float = 0.5,
+    vflip: float = 0.0,
+    auto_augment: str = None,
+    hsv_h: float = 0.015,  # image HSV-Hue augmentation (fraction)
+    hsv_s: float = 0.4,  # image HSV-Saturation augmentation (fraction)
+    hsv_v: float = 0.4,  # image HSV-Value augmentation (fraction)
+    force_color_jitter: bool = False,
+    erasing: float = 0.0,
+    interpolation: str = "BILINEAR",
 ):
     """
     Create a composition of image augmentation transforms for classification tasks.
@@ -2659,10 +2659,10 @@ def classify_augmentations(
 
     Args:
         size (int): Target size for the image after transformations.
-        mean (tuple): Mean values for normalization, one per channel.
-        std (tuple): Standard deviation values for normalization, one per channel.
-        scale (tuple | None): Range of size of the origin size cropped.
-        ratio (tuple | None): Range of aspect ratio of the origin aspect ratio cropped.
+        mean (Tuple[float, float, float]): Mean values for each RGB channel used in normalization.
+        std (Tuple[float, float, float]): Standard deviation values for each RGB channel used in normalization.
+        scale (Tuple[float, float] | None): Range of size of the origin size cropped.
+        ratio (Tuple[float, float] | None): Range of aspect ratio of the origin aspect ratio cropped.
         hflip (float): Probability of horizontal flip.
         vflip (float): Probability of vertical flip.
         auto_augment (str | None): Auto augmentation policy. Can be 'randaugment', 'augmix', 'autoaugment' or None.

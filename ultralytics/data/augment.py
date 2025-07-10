@@ -809,7 +809,7 @@ class Mosaic(BaseMixTransform):
         labels["instances"].add_padding(padw, padh)
         return labels
 
-    def _cat_labels(self, mosaic_labels):
+    def _cat_labels(self, mosaic_labels: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Concatenate and process labels for mosaic augmentation.
 
@@ -817,10 +817,10 @@ class Mosaic(BaseMixTransform):
         mosaic border, and removes zero-area boxes.
 
         Args:
-            mosaic_labels (List[Dict]): A list of label dictionaries for each image in the mosaic.
+            mosaic_labels (List[Dict[str, Any]]): A list of label dictionaries for each image in the mosaic.
 
         Returns:
-            (dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
+            (Dict[str, Any]): A dictionary containing concatenated and processed labels for the mosaic image, including:
                 - im_file (str): File path of the first image in the mosaic.
                 - ori_shape (Tuple[int, int]): Original shape of the first image.
                 - resized_shape (Tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
@@ -883,7 +883,7 @@ class MixUp(BaseMixTransform):
         >>> augmented_labels = mixup(original_labels)
     """
 
-    def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
+    def __init__(self, dataset, pre_transform=None, p: float = 0.0) -> None:
         """
         Initialize the MixUp augmentation object.
 
@@ -902,7 +902,7 @@ class MixUp(BaseMixTransform):
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply MixUp augmentation to the input labels.
 
@@ -910,10 +910,10 @@ class MixUp(BaseMixTransform):
         "mixup: Beyond Empirical Risk Minimization" (https://arxiv.org/abs/1710.09412).
 
         Args:
-            labels (dict): A dictionary containing the original image and label information.
+            labels (Dict[str, Any]): A dictionary containing the original image and label information.
 
         Returns:
-            (dict): A dictionary containing the mixed-up image and combined label information.
+            (Dict[str, Any]): A dictionary containing the mixed-up image and combined label information.
 
         Examples:
             >>> mixer = MixUp(dataset)
@@ -952,7 +952,7 @@ class CutMix(BaseMixTransform):
         >>> augmented_labels = cutmix(original_labels)
     """
 
-    def __init__(self, dataset, pre_transform=None, p=0.0, beta=1.0, num_areas=3) -> None:
+    def __init__(self, dataset, pre_transform=None, p: float = 0.0, beta: float = 1.0, num_areas: int = 3) -> None:
         """
         Initialize the CutMix augmentation object.
 
@@ -967,7 +967,7 @@ class CutMix(BaseMixTransform):
         self.beta = beta
         self.num_areas = num_areas
 
-    def _rand_bbox(self, width, height):
+    def _rand_bbox(self, width: int, height: int) -> Tuple[int, int, int, int]:
         """
         Generate random bounding box coordinates for the cut region.
 
@@ -976,7 +976,7 @@ class CutMix(BaseMixTransform):
             height (int): Height of the image.
 
         Returns:
-            (tuple): (x1, y1, x2, y2) coordinates of the bounding box.
+            (Tuple[int]): (x1, y1, x2, y2) coordinates of the bounding box.
         """
         # Sample mixing ratio from Beta distribution
         lam = np.random.beta(self.beta, self.beta)
@@ -997,15 +997,15 @@ class CutMix(BaseMixTransform):
 
         return x1, y1, x2, y2
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply CutMix augmentation to the input labels.
 
         Args:
-            labels (dict): A dictionary containing the original image and label information.
+            labels (Dict[str, Any]): A dictionary containing the original image and label information.
 
         Returns:
-            (dict): A dictionary containing the mixed image and adjusted labels.
+            (Dict[str, Any]): A dictionary containing the mixed image and adjusted labels.
 
         Examples:
             >>> cutter = CutMix(dataset)
@@ -1080,7 +1080,14 @@ class RandomPerspective:
     """
 
     def __init__(
-        self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None
+        self,
+        degrees: float = 0.0,
+        translate: float = 0.1,
+        scale: float = 0.5,
+        shear: float = 0.0,
+        perspective: float = 0.0,
+        border: Tuple[int, int] = (0, 0),
+        pre_transform=None,
     ):
         """
         Initialize RandomPerspective object with transformation parameters.
@@ -1110,7 +1117,7 @@ class RandomPerspective:
         self.border = border  # mosaic border
         self.pre_transform = pre_transform
 
-    def affine_transform(self, img, border):
+    def affine_transform(self, img: np.ndarray, border: Tuple[int, int]) -> Tuple[np.ndarray, np.ndarray, float]:
         """
         Apply a sequence of affine transformations centered around the image center.
 
@@ -1174,7 +1181,7 @@ class RandomPerspective:
                 img = img[..., None]
         return img, M, s
 
-    def apply_bboxes(self, bboxes, M):
+    def apply_bboxes(self, bboxes: np.ndarray, M: np.ndarray) -> np.ndarray:
         """
         Apply affine transformation to bounding boxes.
 
@@ -1182,12 +1189,12 @@ class RandomPerspective:
         transformation matrix.
 
         Args:
-            bboxes (torch.Tensor): Bounding boxes in xyxy format with shape (N, 4), where N is the number
+            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4), where N is the number
                 of bounding boxes.
-            M (torch.Tensor): Affine transformation matrix with shape (3, 3).
+            M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
-            (torch.Tensor): Transformed bounding boxes in xyxy format with shape (N, 4).
+            (np.ndarray): Transformed bounding boxes in xyxy format with shape (N, 4).
 
         Examples:
             >>> bboxes = torch.tensor([[10, 10, 20, 20], [30, 30, 40, 40]])

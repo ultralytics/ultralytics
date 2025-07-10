@@ -1613,7 +1613,15 @@ class LetterBox:
         >>> updated_instances = result["instances"]
     """
 
-    def __init__(self, new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, center=True, stride=32):
+    def __init__(
+        self,
+        new_shape: Tuple[int, int] = (640, 640),
+        auto: bool = False,
+        scale_fill: bool = False,
+        scaleup: bool = True,
+        center: bool = True,
+        stride: int = 32,
+    ):
         """
         Initialize LetterBox object for resizing and padding images.
 
@@ -1646,7 +1654,7 @@ class LetterBox:
         self.stride = stride
         self.center = center  # Put the image in the middle or top-left
 
-    def __call__(self, labels=None, image=None):
+    def __call__(self, labels: Dict[str, Any] = None, image: np.ndarray = None) -> Union[Dict[str, Any], np.ndarray]:
         """
         Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
 
@@ -1654,13 +1662,13 @@ class LetterBox:
         aspect ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
 
         Args:
-            labels (Dict | None): A dictionary containing image data and associated labels, or empty dict if None.
+            labels (Dict[str, Any] | None): A dictionary containing image data and associated labels, or empty dict if None.
             image (np.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
 
         Returns:
-            (Dict | Tuple): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
-                updated labels, and additional metadata. If 'labels' is empty, returns a tuple containing the resized
-                and padded image, and a tuple of (ratio, (left_pad, top_pad)).
+            (Dict[str, Any] | nd.ndarray): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
+                updated labels, and additional metadata. If 'labels' is empty, returns the resized
+                and padded image.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
@@ -1723,7 +1731,7 @@ class LetterBox:
             return img
 
     @staticmethod
-    def _update_labels(labels, ratio, padw, padh):
+    def _update_labels(labels: Dict[str, Any], ratio: Tuple[float, float], padw: float, padh: float) -> Dict[str, Any]:
         """
         Update labels after applying letterboxing to an image.
 
@@ -1731,13 +1739,13 @@ class LetterBox:
         to account for resizing and padding applied during letterboxing.
 
         Args:
-            labels (dict): A dictionary containing image labels and instances.
+            labels (Dict[str, Any]): A dictionary containing image labels and instances.
             ratio (Tuple[float, float]): Scaling ratios (width, height) applied to the image.
             padw (float): Padding width added to the image.
             padh (float): Padding height added to the image.
 
         Returns:
-            (dict): Updated labels dictionary with modified instance coordinates.
+            (Dict[str, Any]): Updated labels dictionary with modified instance coordinates.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))

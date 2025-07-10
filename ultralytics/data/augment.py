@@ -366,7 +366,7 @@ class BaseMixTransform:
         self.pre_transform = pre_transform
         self.p = p
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply pre-processing transforms and cutmix/mixup/mosaic transforms to labels data.
 
@@ -374,10 +374,10 @@ class BaseMixTransform:
         selects additional images, applies pre-transforms if specified, and then performs the mix transform.
 
         Args:
-            labels (dict): A dictionary containing label data for an image.
+            labels (Dict[str, Any]): A dictionary containing label data for an image.
 
         Returns:
-            (dict): The transformed labels dictionary, which may include mixed data from other images.
+            (Dict[str, Any]): The transformed labels dictionary, which may include mixed data from other images.
 
         Examples:
             >>> transform = BaseMixTransform(dataset, pre_transform=None, p=0.5)
@@ -406,7 +406,7 @@ class BaseMixTransform:
         labels.pop("mix_labels", None)
         return labels
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]):
         """
         Apply CutMix, MixUp or Mosaic augmentation to the label dictionary.
 
@@ -414,11 +414,11 @@ class BaseMixTransform:
         Mosaic. It modifies the input label dictionary in-place with the augmented data.
 
         Args:
-            labels (dict): A dictionary containing image and label data. Expected to have a 'mix_labels' key
+            labels (Dict[str, Any]): A dictionary containing image and label data. Expected to have a 'mix_labels' key
                 with a list of additional image and label data for mixing.
 
         Returns:
-            (dict): The modified labels dictionary with augmented data after applying the mix transform.
+            (Dict[str, Any]): The modified labels dictionary with augmented data after applying the mix transform.
 
         Examples:
             >>> transform = BaseMixTransform(dataset)
@@ -442,7 +442,7 @@ class BaseMixTransform:
         return random.randint(0, len(self.dataset) - 1)
 
     @staticmethod
-    def _update_label_text(labels):
+    def _update_label_text(labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update label text and class IDs for mixed labels in image augmentation.
 
@@ -450,11 +450,11 @@ class BaseMixTransform:
         creating a unified set of text labels and updating class IDs accordingly.
 
         Args:
-            labels (dict): A dictionary containing label information, including 'texts' and 'cls' fields,
+            labels (Dict[str, Any]): A dictionary containing label information, including 'texts' and 'cls' fields,
                 and optionally a 'mix_labels' field with additional label dictionaries.
 
         Returns:
-            (dict): The updated labels dictionary with unified text labels and updated class IDs.
+            (Dict[str, Any]): The updated labels dictionary with unified text labels and updated class IDs.
 
         Examples:
             >>> labels = {
@@ -517,7 +517,7 @@ class Mosaic(BaseMixTransform):
         >>> augmented_labels = mosaic_aug(original_labels)
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, n=4):
+    def __init__(self, dataset, imgsz: int = 640, p: float = 1.0, n: int = 4):
         """
         Initialize the Mosaic augmentation object.
 
@@ -564,7 +564,7 @@ class Mosaic(BaseMixTransform):
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
-    def _mix_transform(self, labels):
+    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply mosaic augmentation to the input image and labels.
 
@@ -573,12 +573,12 @@ class Mosaic(BaseMixTransform):
         mosaic augmentation.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations. Expected keys include:
+            labels (Dict[str, Any]): A dictionary containing image data and annotations. Expected keys include:
                 - 'rect_shape': Should be None as rect and mosaic are mutually exclusive.
                 - 'mix_labels': A list of dictionaries containing data for other images to be used in the mosaic.
 
         Returns:
-            (dict): A dictionary containing the mosaic-augmented image and updated annotations.
+            (Dict[str, Any]): A dictionary containing the mosaic-augmented image and updated annotations.
 
         Raises:
             AssertionError: If 'rect_shape' is not None or if 'mix_labels' is empty.
@@ -593,7 +593,7 @@ class Mosaic(BaseMixTransform):
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
         )  # This code is modified for mosaic3 method.
 
-    def _mosaic3(self, labels):
+    def _mosaic3(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a 1x3 image mosaic by combining three images.
 
@@ -601,12 +601,12 @@ class Mosaic(BaseMixTransform):
         additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
 
         Args:
-            labels (dict): A dictionary containing image and label information for the main (center) image.
+            labels (Dict[str, Any]): A dictionary containing image and label information for the main (center) image.
                 Must include 'img' key with the image array, and 'mix_labels' key with a list of two
                 dictionaries containing information for the side images.
 
         Returns:
-            (dict): A dictionary with the mosaic image and updated labels. Keys include:
+            (Dict[str, Any]): A dictionary with the mosaic image and updated labels. Keys include:
                 - 'img' (np.ndarray): The mosaic image array with shape (H, W, C).
                 - Other keys from the input labels, updated to reflect the new image dimensions.
 
@@ -652,7 +652,7 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
 
-    def _mosaic4(self, labels):
+    def _mosaic4(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a 2x2 image mosaic from four input images.
 
@@ -660,11 +660,11 @@ class Mosaic(BaseMixTransform):
         updates the corresponding labels for each image in the mosaic.
 
         Args:
-            labels (dict): A dictionary containing image data and labels for the base image (index 0) and three
+            labels (Dict[str, Any]): A dictionary containing image data and labels for the base image (index 0) and three
                 additional images (indices 1-3) in the 'mix_labels' key.
 
         Returns:
-            (dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
+            (Dict[str, Any]): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
                 image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
 
         Examples:
@@ -710,7 +710,7 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img4
         return final_labels
 
-    def _mosaic9(self, labels):
+    def _mosaic9(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a 3x3 image mosaic from the input image and eight additional images.
 
@@ -718,7 +718,7 @@ class Mosaic(BaseMixTransform):
         and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
 
         Args:
-            labels (dict): A dictionary containing the input image and its associated labels. It should have
+            labels (Dict[str, Any]): A dictionary containing the input image and its associated labels. It should have
                 the following keys:
                 - 'img' (numpy.ndarray): The input image.
                 - 'resized_shape' (Tuple[int, int]): The shape of the resized image (height, width).
@@ -726,7 +726,7 @@ class Mosaic(BaseMixTransform):
                   eight images, each with the same structure as the input labels.
 
         Returns:
-            (dict): A dictionary containing the mosaic image and updated labels. It includes the following keys:
+            (Dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following keys:
                 - 'img' (numpy.ndarray): The final mosaic image.
                 - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
@@ -783,7 +783,7 @@ class Mosaic(BaseMixTransform):
         return final_labels
 
     @staticmethod
-    def _update_labels(labels, padw, padh):
+    def _update_labels(labels, padw: int, padh: int) -> Dict[str, Any]:
         """
         Update label coordinates with padding values.
 
@@ -791,7 +791,7 @@ class Mosaic(BaseMixTransform):
         values. It also denormalizes the coordinates if they were previously normalized.
 
         Args:
-            labels (dict): A dictionary containing image and instance information.
+            labels (Dict[str, Any]): A dictionary containing image and instance information.
             padw (int): Padding width to be added to the x-coordinates.
             padh (int): Padding height to be added to the y-coordinates.
 

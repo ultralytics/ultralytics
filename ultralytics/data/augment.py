@@ -2090,15 +2090,15 @@ class Format:
 
     def __init__(
         self,
-        bbox_format="xywh",
-        normalize=True,
-        return_mask=False,
-        return_keypoint=False,
-        return_obb=False,
-        mask_ratio=4,
-        mask_overlap=True,
-        batch_idx=True,
-        bgr=0.0,
+        bbox_format: str = "xywh",
+        normalize: bool = True,
+        return_mask: bool = False,
+        return_keypoint: bool = False,
+        return_obb: bool = False,
+        mask_ratio: int = 4,
+        mask_overlap: bool = True,
+        batch_idx: bool = True,
+        bgr: float = 0.0,
     ):
         """
         Initialize the Format class with given parameters for image and instance annotation formatting.
@@ -2143,7 +2143,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Format image annotations for object detection, instance segmentation, and pose estimation tasks.
 
@@ -2152,13 +2152,13 @@ class Format:
         applying normalization if required.
 
         Args:
-            labels (dict): A dictionary containing image and annotation data with the following keys:
+            labels (Dict[str, Any]): A dictionary containing image and annotation data with the following keys:
                 - 'img': The input image as a numpy array.
                 - 'cls': Class labels for instances.
                 - 'instances': An Instances object containing bounding boxes, segments, and keypoints.
 
         Returns:
-            (dict): A dictionary with formatted data, including:
+            (Dict[str, Any]): A dictionary with formatted data, including:
                 - 'img': Formatted image tensor.
                 - 'cls': Class label's tensor.
                 - 'bboxes': Bounding boxes tensor in the specified format.
@@ -2212,7 +2212,7 @@ class Format:
             labels["batch_idx"] = torch.zeros(nl)
         return labels
 
-    def _format_img(self, img):
+    def _format_img(self, img: np.ndarray) -> torch.Tensor:
         """
         Format an image for YOLO from a Numpy array to a PyTorch tensor.
 
@@ -2243,20 +2243,22 @@ class Format:
         img = torch.from_numpy(img)
         return img
 
-    def _format_segments(self, instances, cls, w, h):
+    def _format_segments(
+        self, instances: Instances, cls: np.ndarrag, w: int, h: int
+    ) -> Tuple[np.ndarray, Instances, np.ndarray]:
         """
         Convert polygon segments to bitmap masks.
 
         Args:
             instances (Instances): Object containing segment information.
-            cls (numpy.ndarray): Class labels for each instance.
+            cls (np.ndarray): Class labels for each instance.
             w (int): Width of the image.
             h (int): Height of the image.
 
         Returns:
-            masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+            masks (np.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
             instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
-            cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+            cls (np.ndarray): Updated class labels, sorted if mask_overlap is True.
 
         Notes:
             - If self.mask_overlap is True, masks are overlapped and sorted by area.

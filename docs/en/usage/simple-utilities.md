@@ -449,18 +449,19 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
                 for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
                     color = colors(t_id, True)  # Assign different color to each tracked object.
+                    label = f"{classes[cls]}:{t_id}"
                     if mask is not None and mask.size > 0:
                         if box[0] > line_x:
                             count += 1
                             cv2.polylines(im0, [mask], True, color, 2)
                             x, y = mask.min(axis=0)
-                            (w_m, _), _ = cv2.getTextSize(str(classes[cls]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                            (w_m, _), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
                             cv2.rectangle(im0, (x, y - 20), (x + w_m, y), color, -1)
-                            cv2.putText(im0, str(classes[cls]), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                            cv2.putText(im0, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
                     else:
                         if box[0] > line_x:
                             count += 1
-                            annotator.box_label(box=box, color=color, label=str(classes[cls]))
+                            annotator.box_label(box=box, color=color, label=label)
 
             # Generate draggable sweep line
             annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")

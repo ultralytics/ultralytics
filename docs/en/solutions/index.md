@@ -78,7 +78,6 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 | `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line. |
 | `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
 | `seg_bbox()`                       | `None`      | Draws contours for segmented objects and optionally labels them.       |
-| `sweep_annotator()`                | `None`      | Visualizes a vertical sweep line and optional label.                   |
 | `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
 | `circle_label()`                   | `None`      | Draws a circular label in the place of a bounding box.                 |
 | `text_label()`                     | `None`      | Draws a rectangular label in the place of a bounding box.              |

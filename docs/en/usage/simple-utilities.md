@@ -391,39 +391,39 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
         ```python
         import cv2
-
+        import numpy as np
         from ultralytics import YOLO
-        from ultralytics.engine.results import Results
+        from ultralytics.utils.plotting import colors
         from ultralytics.solutions.solutions import SolutionAnnotator
-
+                
         # User defined video path and model file
         cap = cv2.VideoCapture("path/to/video.mp4")
         model = YOLO(model="yolo11s-seg.pt")  # Model file i.e. yolo11s.pt or yolo11m-seg.pt
-
+        
         if not cap.isOpened():
             print("Error: Could not open video.")
             exit()
-
+        
         # Initialize the video writer object.
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         video_writer = cv2.VideoWriter("ultralytics.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
+        
         masks = None  # Initialize variable to store masks data
         f = 0  # Initialize frame count variable for enabling mouse event.
         line_x = w  # Store width of line.
         dragging = False  # Initialize bool variable for line dragging.
         classes = model.names  # Store model classes names for plotting.
         window_name = "Ultralytics Sweep Annotator"
-
-
+        
+        
         def drag_line(event, x, _, flags, param):
             """Mouse callback function to enable dragging a vertical sweep line across the video frame."""
             global line_x, dragging
             if event == cv2.EVENT_LBUTTONDOWN or (flags & cv2.EVENT_FLAG_LBUTTON):
                 line_x = max(0, min(x, w))
                 dragging = True
-
-
+        
+        
         while cap.isOpened():  # Loop over the video capture object.
             ret, im0 = cap.read()
             if not ret:
@@ -431,47 +431,52 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
             f = f + 1  # Increment frame count.
             count = 0  # Re-initialize count variable on every frame for precise counts.
             results = model.track(im0, persist=True)[0]
-
+        
             if f == 1:
                 cv2.namedWindow(window_name)
                 cv2.setMouseCallback(window_name, drag_line)
-
+        
+            annotator = SolutionAnnotator(im0)
+        
             if results.boxes.is_track:
                 if results.masks is not None:
-                    masks = results.masks
-                boxes = results.boxes
-
+                    masks = [np.array(m, dtype=np.int32) for m in results.masks.xy]
+        
+                boxes = results.boxes.xyxy.tolist()
                 track_ids = results.boxes.id.int().cpu().tolist()
                 clss = results.boxes.cls.cpu().tolist()
-
+        
                 for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
-                    box_data = box.xyxy.cpu().tolist()[0][0]
-                    if box_data > line_x:
-                        count += 1
-                        results = Results(
-                            im0, path=None, names=classes, boxes=box.data, masks=None if mask is None else mask.data
-                        )
-                        im0 = results.plot(
-                            boxes=True,  # display bounding box
-                            conf=False,  # hide confidence score
-                            labels=True,  # display labels
-                            color_mode="instance",
-                        )
-
+                    color = colors(t_id, True)  # Assign different color to each tracked object.
+                    if mask is not None and mask.size > 0:
+                        if box[0] > line_x:
+                            count += 1
+                            cv2.polylines(im0, [mask], True, color, 2)
+                            x, y = mask.min(axis=0)
+                            (w_m, _), _ = cv2.getTextSize(str(classes[cls]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                            cv2.rectangle(im0, (x, y - 20), (x + w_m, y), color, -1)
+                            cv2.putText(im0, str(classes[cls]), (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                        (255, 255, 255), 1)
+                    else:
+                        if box[0] > line_x:
+                            count += 1
+                            annotator.box_label(box=box, color=color, label=str(classes[cls]))
+        
             # Generate draggable sweep line
-            annotator = SolutionAnnotator(im0)
             annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")
-
+        
             cv2.imshow(window_name, im0)
             video_writer.write(im0)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
-
+        
         # Release the resources
         cap.release()
         video_writer.release()
         cv2.destroyAllWindows()
         ```
+
+Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
 
 #### Horizontal Bounding Boxes
 

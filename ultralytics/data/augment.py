@@ -1805,6 +1805,8 @@ class CopyPaste(BaseMixTransform):
     def _transform(self, labels1, labels2={}):
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         im = labels1["img"]
+        if "mosaic_border" not in labels1:
+            im = im.copy()  # avoid modifying original non-mosaic image
         cls = labels1["cls"]
         h, w = im.shape[:2]
         instances = labels1.pop("instances")
@@ -2653,7 +2655,7 @@ def classify_augmentations(
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
     if not isinstance(size, int):
-        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
+        raise TypeError(f"classify_augmentations() size {size} must be integer, not (list, tuple)")
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
     ratio = tuple(ratio or (3.0 / 4.0, 4.0 / 3.0))  # default imagenet ratio range
     interpolation = getattr(T.InterpolationMode, interpolation)

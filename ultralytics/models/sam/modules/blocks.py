@@ -411,7 +411,7 @@ class RoPEAttention(Attention):
 
     Attributes:
         compute_cis (Callable): Function to compute axial complex numbers for rotary encoding.
-        freqs_cis (Tensor): Precomputed frequency tensor for rotary encoding.
+        freqs_cis (torch.Tensor): Precomputed frequency tensor for rotary encoding.
         rope_k_repeat (bool): Flag to repeat query RoPE to match key length for cross-attention to memories.
 
     Methods:

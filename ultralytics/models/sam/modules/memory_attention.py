@@ -148,8 +148,8 @@ class MemoryAttentionLayer(nn.Module):
         Process input tensors through self-attention, cross-attention, and feedforward network layers.
 
         Args:
-            tgt (Tensor): Target tensor for self-attention with shape (N, L, D).
-            memory (Tensor): Memory tensor for cross-attention with shape (N, S, D).
+            tgt (torch.Tensor): Target tensor for self-attention with shape (N, L, D).
+            memory (torch.Tensor): Memory tensor for cross-attention with shape (N, S, D).
             pos (Optional[Tensor]): Positional encoding for memory tensor.
             query_pos (Optional[Tensor]): Positional encoding for target tensor.
             num_k_exclude_rope (int): Number of keys to exclude from rotary position embedding.

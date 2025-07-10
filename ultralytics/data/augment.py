@@ -2929,7 +2929,7 @@ class ToTensor:
         The output tensor will be in RGB format with shape (C, H, W), normalized to [0, 1].
     """
 
-    def __init__(self, half:bool=False):
+    def __init__(self, half: bool = False):
         """
         Initialize the ToTensor object for converting images to PyTorch tensors.
 
@@ -2950,7 +2950,7 @@ class ToTensor:
         super().__init__()
         self.half = half
 
-    def __call__(self, im:np.ndarray) -> torch.Tensor:
+    def __call__(self, im: np.ndarray) -> torch.Tensor:
         """
         Transform an image from a numpy array to a PyTorch tensor.
 

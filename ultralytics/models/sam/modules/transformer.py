@@ -82,10 +82,10 @@ class TwoWayTransformer(nn.Module):
 
     def forward(
         self,
-        image_embedding: Tensor,
-        image_pe: Tensor,
-        point_embedding: Tensor,
-    ) -> Tuple[Tensor, Tensor]:
+        image_embedding: torch.Tensor,
+        image_pe: torch.Tensor,
+        point_embedding: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Process image and point embeddings through the Two-Way Transformer.
 
@@ -196,7 +196,9 @@ class TwoWayAttentionBlock(nn.Module):
 
         self.skip_first_layer_pe = skip_first_layer_pe
 
-    def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> Tuple[Tensor, Tensor]:
+    def forward(
+        self, queries: torch.Tensor, keys: torch.Tensor, query_pe: torch.Tensor, key_pe: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Apply two-way attention to process query and key embeddings in a transformer block.
 
@@ -304,7 +306,7 @@ class Attention(nn.Module):
         self.out_proj = nn.Linear(self.internal_dim, embedding_dim)
 
     @staticmethod
-    def _separate_heads(x: Tensor, num_heads: int) -> Tensor:
+    def _separate_heads(x: torch.Tensor, num_heads: int) -> torch.Tensor:
         """Separate the input tensor into the specified number of attention heads."""
         b, n, c = x.shape
         x = x.reshape(b, n, num_heads, c // num_heads)
@@ -317,7 +319,7 @@ class Attention(nn.Module):
         x = x.transpose(1, 2)
         return x.reshape(b, n_tokens, n_heads * c_per_head)  # B x N_tokens x C
 
-    def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
+    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
         """
         Apply multi-head attention to query, key, and value tensors with optional downsampling.
 

@@ -55,7 +55,7 @@ class InstanceSegmentation(BaseSolution):
         Perform instance segmentation on the input image and annotate the results.
 
         Args:
-            im0 (numpy.ndarray): The input image for segmentation.
+            im0 (np.ndarray): The input image for segmentation.
 
         Returns:
             (SolutionResults): Object containing the annotated image and total number of tracked instances.

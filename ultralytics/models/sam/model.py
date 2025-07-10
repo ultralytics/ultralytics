@@ -87,7 +87,7 @@ class SAM(Model):
         Perform segmentation prediction on the given image or video source.
 
         Args:
-            source (str | PIL.Image | numpy.ndarray): Path to the image or video file, or a PIL.Image object, or
+            source (str | PIL.Image | np.ndarray): Path to the image or video file, or a PIL.Image object, or
                 a numpy.ndarray object.
             stream (bool): If True, enables real-time streaming.
             bboxes (List[List[float]] | None): List of bounding box coordinates for prompted segmentation.

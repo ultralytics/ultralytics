@@ -9,7 +9,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Dict, List, Tuple, Union, Any
+from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np

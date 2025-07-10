@@ -476,7 +476,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         cv2.destroyAllWindows()
         ```
 
-Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
+Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
 
 #### Horizontal Bounding Boxes
 

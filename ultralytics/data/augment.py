@@ -1215,7 +1215,7 @@ class RandomPerspective:
         y = xy[:, [1, 3, 5, 7]]
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
-    def apply_segments(self, segments, M):
+    def apply_segments(self, segments: np.ndarray, M: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Apply affine transformations to segments and generate new bounding boxes.
 
@@ -1251,7 +1251,7 @@ class RandomPerspective:
         segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
         return bboxes, segments
 
-    def apply_keypoints(self, keypoints, M):
+    def apply_keypoints(self, keypoints: np.ndarray, M: np.ndarray) -> np.ndarray:
         """
         Apply affine transformation to keypoints.
 
@@ -1285,7 +1285,7 @@ class RandomPerspective:
         visible[out_mask] = 0
         return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
-    def __call__(self, labels):
+    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
         """
         Apply random perspective and affine transformations to an image and its associated labels.
 
@@ -1294,7 +1294,7 @@ class RandomPerspective:
         and keypoints accordingly.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations.
+            labels (Dict[str, Any]): A dictionary containing image data and annotations.
                 Must include:
                     'img' (np.ndarray): The input image.
                     'cls' (np.ndarray): Class labels.
@@ -1303,7 +1303,7 @@ class RandomPerspective:
                     'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.
 
         Returns:
-            (dict): Transformed labels dictionary containing:
+            (Dict[str, Any]): Transformed labels dictionary containing:
                 - 'img' (np.ndarray): The transformed image.
                 - 'cls' (np.ndarray): Updated class labels.
                 - 'instances' (Instances): Updated object instances.
@@ -1364,7 +1364,14 @@ class RandomPerspective:
         return labels
 
     @staticmethod
-    def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
+    def box_candidates(
+        box1: np.ndarray,
+        box2: np.ndarray,
+        wh_thr: int = 2,
+        ar_thr: int = 100,
+        area_thr: float = 0.1,
+        eps: float = 1e-16,
+    ) -> np.ndarray:
         """
         Compute candidate boxes for further processing based on size and aspect ratio criteria.
 
@@ -1373,20 +1380,20 @@ class RandomPerspective:
         been overly distorted or reduced by the augmentation process.
 
         Args:
-            box1 (numpy.ndarray): Original boxes before augmentation, shape (4, N) where n is the
+            box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where n is the
                 number of boxes. Format is [x1, y1, x2, y2] in absolute coordinates.
-            box2 (numpy.ndarray): Augmented boxes after transformation, shape (4, N). Format is
+            box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is
                 [x1, y1, x2, y2] in absolute coordinates.
-            wh_thr (float): Width and height threshold in pixels. Boxes smaller than this in either
+            wh_thr (int): Width and height threshold in pixels. Boxes smaller than this in either
                 dimension are rejected.
-            ar_thr (float): Aspect ratio threshold. Boxes with an aspect ratio greater than this
+            ar_thr (int): Aspect ratio threshold. Boxes with an aspect ratio greater than this
                 value are rejected.
             area_thr (float): Area ratio threshold. Boxes with an area ratio (new/old) less than
                 this value are rejected.
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (numpy.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
+            (np.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
                 True values correspond to boxes that meet all criteria.
 
         Examples:

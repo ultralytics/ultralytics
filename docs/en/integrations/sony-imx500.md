@@ -37,7 +37,7 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 ## Supported Tasks
 
-Currently, you can only export models that include the following tasks to IMX500 format. However, we will bring support to more tasks in the future.
+Currently, you can only export models that include the following tasks to IMX500 format.
 
 - Object detection
 - Pose estimation
@@ -196,13 +196,17 @@ Step 3: Reboot Raspberry Pi for the changes to take into effect
 sudo reboot
 ```
 
-Step 4: Install Aitrios Raspberry Pi application module library
+Step 4: Install [Aitrios Raspberry Pi application module library](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library)
 
 ```bash
 pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git
 ```
 
-Step 5: Run YOLO11 object detection and pose estimation by using the below scripts
+Step 5: Run YOLO11 object detection and pose estimation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
+
+!!! note
+
+    Make sure to replace `model_file` and `labels.txt` directories according to your environment before running these scripts.
 
 !!! example "Python Scripts"
 
@@ -286,10 +290,6 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                  annotator.annotate_boxes(frame, detections, corner_length=20)
                  frame.display()
          ```
-
-!!! note
-
-    Make sure to replace `model_file` and `labels.txt` directories according to your environment.
 
 ## Benchmarks
 

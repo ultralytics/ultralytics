@@ -360,8 +360,9 @@ class ConfusionMatrix(DataExportMixin):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
-        conf = 0.25 if conf in {None, 0.01, 0.001} else conf  # apply 0.25 if default val conf is passed
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
+        is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
+        conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
@@ -380,7 +381,6 @@ class ConfusionMatrix(DataExportMixin):
         gt_classes = gt_cls.int().tolist()
         detection_classes = detections["cls"].int().tolist()
         bboxes = detections["bboxes"]
-        is_obb = bboxes.shape[1] == 5  # check if detections contains angle for OBB
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
         x = torch.where(iou > iou_thres)

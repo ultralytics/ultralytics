@@ -293,7 +293,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
 
 ## Benchmarks
 
-YOLOv8, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
+YOLOv8n, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
 | Model        | Format | Status | Size of `packerOut.zip` (MB) | mAP50-95(B) | Inference time (ms/im) |
 |--------------|--------|--------|------------------------------|-------------|------------------------|

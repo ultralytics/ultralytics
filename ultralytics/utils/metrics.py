@@ -360,7 +360,7 @@ class ConfusionMatrix(DataExportMixin):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
-        conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
+        conf = 0.25 if conf in {None, 0.01, 0.001} else conf  # apply 0.25 if default val conf is passed
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty

@@ -304,7 +304,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the
 
 !!! note
 
-    Validation for the above benchmarks were done using COCO128 dataset for detection models and COCO8-Pose dataset for pose estimation models on a Raspberry Pi 5
+    Validation for the above benchmarks were done using COCO128 dataset for detection models and COCO8-Pose dataset for pose estimation models
 
 ## What's Under the Hood?
 

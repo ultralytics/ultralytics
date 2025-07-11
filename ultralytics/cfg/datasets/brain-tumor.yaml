@@ -12,7 +12,6 @@
 path: brain-tumor # dataset root dir
 train: images/train # train images (relative to 'path') 893 images
 val: images/val # val images (relative to 'path') 223 images
-test: # test images (relative to 'path')
 
 # Classes
 names:

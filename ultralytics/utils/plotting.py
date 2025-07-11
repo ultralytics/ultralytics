@@ -1028,7 +1028,7 @@ def plot_matches(validator, batch, preds, ni):
     else:
         pred = preds[ni]
 
-    pred = torch.stack([torch.hstack(t) for t in zip(*list(pred.values())[:3])])
+    pred = torch.stack([torch.hstack(t) for t in zip(*[pred[k] for k in ["bboxes", "conf", "cls"]])])  # (N, 6 or 7)
     if task == "obb":
         box_dims = 7
     else:

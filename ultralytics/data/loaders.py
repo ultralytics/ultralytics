@@ -451,9 +451,9 @@ class LoadImagesAndVideos:
                 self.mode = "image"
                 if path.rpartition(".")[-1].lower() == "heic":
                     # Load HEIC image using Pillow with pillow-heif
-                    check_requirements("pillow-heif")
+                    check_requirements("pi-heif")
 
-                    from pillow_heif import register_heif_opener
+                    from pi_heif import register_heif_opener
 
                     register_heif_opener()  # Register HEIF opener with Pillow
                     with Image.open(path) as img:

@@ -402,17 +402,12 @@ class Pose(Detect):
                 grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
                 norm = self.strides / (self.stride[0] * grid_size)
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
-            elif self.format == "imx":
-                y = kpts.view(bs, *self.kpt_shape, -1)
-                a = (y[:, :, :2] * 2.0 + (copy.copy(self.anchors) - 0.5)) * copy.copy(self.strides)
             else:
                 # NCNN fix
                 y = kpts.view(bs, *self.kpt_shape, -1)
                 a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
-            if self.format == "imx":
-                return a.reshape((bs, self.nk, -1))
             return a.view(bs, self.nk, -1)
         else:
             y = kpts.clone()

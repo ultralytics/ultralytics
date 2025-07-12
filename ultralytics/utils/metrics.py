@@ -330,7 +330,7 @@ class ConfusionMatrix(DataExportMixin):
         """
         self.task = task
         self.nc = len(names)  # number of classes
-        self.matrix = np.zeros((self.nc + 1, self.nc + 1)) if self.task == "detect" else np.zeros((self.nc, self.nc))
+        self.matrix = np.zeros((self.nc, self.nc)) if self.task == "classify" else np.zeros((self.nc + 1, self.nc + 1))
         self.names = names  # name of classes
 
     def process_cls_preds(self, preds, targets):
@@ -422,7 +422,7 @@ class ConfusionMatrix(DataExportMixin):
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
-        return (tp[:-1], fp[:-1]) if self.task == "detect" else (tp, fp)  # remove background class if task=detect
+        return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()

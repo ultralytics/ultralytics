@@ -56,11 +56,11 @@ class ObjectBlurrer(BaseSolution):
         and annotates the image with bounding boxes.
 
         Args:
-            im0 (numpy.ndarray): The input image containing detected objects.
+            im0 (np.ndarray): The input image containing detected objects.
 
         Returns:
             (SolutionResults): Object containing the processed image and number of tracked objects.
-                - plot_im (numpy.ndarray): The annotated output image with blurred objects.
+                - plot_im (np.ndarray): The annotated output image with blurred objects.
                 - total_tracks (int): The total number of tracked objects in the frame.
 
         Examples:

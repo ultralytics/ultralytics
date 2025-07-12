@@ -57,7 +57,7 @@ class ObjectCropper(BaseSolution):
         Crop detected objects from the input image and save them as separate images.
 
         Args:
-            im0 (numpy.ndarray): The input image containing detected objects.
+            im0 (np.ndarray): The input image containing detected objects.
 
         Returns:
             (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed

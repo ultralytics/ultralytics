@@ -107,15 +107,15 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
     Rescale bounding boxes from one image shape to another.
 
     Rescales bounding boxes from img1_shape to img0_shape, accounting for padding and aspect ratio changes.
-    Supports both xyxy and xywh box formats.
+    Supports xyxy, xywh, and xywhr box formats.
 
     Args:
         img1_shape (tuple): Shape of the source image (height, width).
-        boxes (torch.Tensor): Bounding boxes to rescale in format (N, 4).
+        boxes (torch.Tensor): Bounding boxes to rescale in format (N, 4) or (N, 5) for Oriented Bounding Boxes (OBB).
         img0_shape (tuple): Shape of the target image (height, width).
         ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
-        xywh (bool): Whether box format is xywh (True) or xyxy (False).
+        xywh (bool): Whether box format is xywh (True) or xyxy (False). For OBBs (xywhr), this should be True.
 
     Returns:
         (torch.Tensor): Rescaled bounding boxes in the same format as input.
@@ -136,8 +136,20 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
         if not xywh:
             boxes[..., 2] -= pad[0]  # x padding
             boxes[..., 3] -= pad[1]  # y padding
+
     boxes[..., :4] /= gain
-    return clip_boxes(boxes, img0_shape)
+
+    is_obb = boxes.shape[-1] == 5
+
+    if xywh and not is_obb:
+        boxes = xywh2xyxy(boxes)  # convert to xyxy format as `clip_boxes` expects xyxy
+
+    boxes = clip_boxes(boxes, img0_shape)
+
+    if xywh and not is_obb:
+        boxes = xyxy2xywh(boxes)
+
+    return boxes
 
 
 def make_divisible(x: int, divisor):

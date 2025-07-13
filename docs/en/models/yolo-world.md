@@ -307,12 +307,12 @@ This approach provides a powerful means of customizing state-of-the-art [object 
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr30k/images",
-                        json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+                        img_path="flickr30k/images",
+                        json_file="flickr30k/final_flickr_separateGT_train.json",
                     ),
                     dict(
-                        img_path="../datasets/GQA/images",
-                        json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+                        img_path="GQA/images",
+                        json_file="GQA/final_mixed_train_no_coco.json",
                     ),
                 ],
             ),
@@ -424,12 +424,12 @@ data = {
         "yolo_data": ["Objects365.yaml"],
         "grounding_data": [
             {
-                "img_path": "../datasets/flickr30k/images",
-                "json_file": "../datasets/flickr30k/final_flickr_separateGT_train.json",
+                "img_path": "flickr30k/images",
+                "json_file": "flickr30k/final_flickr_separateGT_train.json",
             },
             {
-                "img_path": "../datasets/GQA/images",
-                "json_file": "../datasets/GQA/final_mixed_train_no_coco.json",
+                "img_path": "GQA/images",
+                "json_file": "GQA/final_mixed_train_no_coco.json",
             },
         ],
     },

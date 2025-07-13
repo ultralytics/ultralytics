@@ -90,7 +90,6 @@ def imshow(winname: str, mat: np.ndarray) -> None:
 
 
 # PyTorch functions ----------------------------------------------------------------------------------------------------
-_torch_load = torch.load  # copy to avoid recursion errors
 _torch_save = torch.save
 
 
@@ -116,7 +115,7 @@ def torch_load(*args, **kwargs):
     if TORCH_1_13 and "weights_only" not in kwargs:
         kwargs["weights_only"] = False
 
-    return _torch_load(*args, **kwargs)
+    return torch.load(*args, **kwargs)
 
 
 def torch_save(*args, **kwargs):

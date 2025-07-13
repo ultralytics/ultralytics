@@ -52,9 +52,9 @@ Sparse networks with compressed computation, executed depth-wise in cache, allow
 
 ## How Do I Create A Sparse Version of YOLOv5 Trained on My Data?
 
-Neural Magic's open-source model repository, [SparseZoo](https://sparsezoo.neuralmagic.com/), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
+Neural Magic's open-source model repository, [SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
-[Checkout Neural Magic's YOLOv5 documentation for more details](https://docs.neuralmagic.com/computer-vision/object-detection/).
+[Checkout Neural Magic's YOLOv5 documentation for more details](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
 
 ## DeepSparse Usage
 
@@ -265,6 +265,6 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35
 
 ## Get Started With DeepSparse
 
-**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://docs.neuralmagic.com/).
+**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
 
-For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://docs.neuralmagic.com/products/deepsparse/) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).

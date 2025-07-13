@@ -73,10 +73,10 @@ from .conv import (
     GhostConv,
     Index,
     LightConv,
-    RepConv,
-    SpatialAttention,
     Permute,
+    RepConv,
     Reshape,
+    SpatialAttention,
 )
 from .head import (
     OBB,

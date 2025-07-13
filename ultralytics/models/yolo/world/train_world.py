@@ -107,7 +107,15 @@ class WorldTrainerFromScratch(WorldTrainer):
         datasets = [
             build_yolo_dataset(self.args, im_path, batch, self.training_data[im_path], stride=gs, multi_modal=True)
             if isinstance(im_path, str)
-            else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
+            else build_grounding(
+                # assign `nc` from validation set to max number of text samples for training consistency
+                self.args,
+                im_path["img_path"],
+                im_path["json_file"],
+                batch,
+                stride=gs,
+                max_samples=self.data["nc"],
+            )
             for im_path in img_path
         ]
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training

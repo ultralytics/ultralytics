@@ -69,14 +69,14 @@ __all__ = (
 #        super().__init__()
 #        assert all(isinstance(p, int) for p in permutation), "All permutation indices should be integers"
 #        self.permutation = permutation
-    
+
 #     def forward(self, x: torch.Tensor) -> torch.Tensor:
 #         """
 #         Permute the channels of the input tensor.
 
 #         Args:
 #             x (torch.Tensor): Input tensor.
-        
+
 #         Returns:
 #             torch.Tensor: Permuted tensor
 #         """
@@ -90,24 +90,25 @@ __all__ = (
 #     def __init__(self, shape: Tuple[int,...]):
 #         """
 #         Initialize the Reshape module.
-        
+
 #         Args:
 #             shape (Tuple[int,...]): New shape of the tensor.
 #         """
 #         super().__init__()
 #         self.shape = shape
-    
+
 #     def forward(self, x: torch.Tensor) -> torch.Tensor:
 #         """
 #         Reshape the input tensor to the specified shape.
 
 #         Args:
 #             x (torch.Tensor): Input tensor.
-        
+
 #         Returns:
 #             torch.Tensor: Reshaped tensor
 #         """
 #         return torch.reshape(x, self.shape)
+
 
 class DFL(nn.Module):
     """

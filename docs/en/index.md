@@ -6,17 +6,17 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 
 <div align="center">
 <a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
-<a href="https://docs.ultralytics.com/zh">中文</a> |
-<a href="https://docs.ultralytics.com/ko">한국어</a> |
-<a href="https://docs.ultralytics.com/ja">日本語</a> |
-<a href="https://docs.ultralytics.com/ru">Русский</a> |
-<a href="https://docs.ultralytics.com/de">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr">Français</a> |
+<a href="https://docs.ultralytics.com/zh/">中文</a> |
+<a href="https://docs.ultralytics.com/ko/">한국어</a> |
+<a href="https://docs.ultralytics.com/ja/">日本語</a> |
+<a href="https://docs.ultralytics.com/ru/">Русский</a> |
+<a href="https://docs.ultralytics.com/de/">Deutsch</a> |
+<a href="https://docs.ultralytics.com/fr/">Français</a> |
 <a href="https://docs.ultralytics.com/es">Español</a> |
-<a href="https://docs.ultralytics.com/pt">Português</a> |
-<a href="https://docs.ultralytics.com/tr">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar">العربية</a>
+<a href="https://docs.ultralytics.com/pt/">Português</a> |
+<a href="https://docs.ultralytics.com/tr/">Türkçe</a> |
+<a href="https://docs.ultralytics.com/vi/">Tiếng Việt</a> |
+<a href="https://docs.ultralytics.com/ar/">العربية</a>
 <br>
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>

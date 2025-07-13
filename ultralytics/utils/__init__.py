@@ -25,7 +25,7 @@ import torch
 import tqdm
 
 from ultralytics import __version__
-from ultralytics.utils.patches import imread, imshow, imwrite, torch_load, torch_save  # for patches
+from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -255,11 +255,8 @@ class DataExportMixin:
         Notes:
             Requires `lxml` package to be installed.
         """
-        from ultralytics.utils.checks import check_requirements
-
-        check_requirements("lxml")
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml()
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(parser="etree")
 
     def to_html(self, normalize=False, decimals=5, index=False):
         """
@@ -1596,7 +1593,6 @@ TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
 
 # Apply monkey patches
-torch.load = torch_load
 torch.save = torch_save
 if WINDOWS:
     # Apply cv2 patches for non-ASCII and non-UTF characters in image paths

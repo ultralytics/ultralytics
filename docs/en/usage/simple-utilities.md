@@ -391,10 +391,11 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
         ```python
         import cv2
+        import numpy as np
 
         from ultralytics import YOLO
-        from ultralytics.engine.results import Results
         from ultralytics.solutions.solutions import SolutionAnnotator
+        from ultralytics.utils.plotting import colors
 
         # User defined video path and model file
         cap = cv2.VideoCapture("path/to/video.mp4")
@@ -436,30 +437,33 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
                 cv2.namedWindow(window_name)
                 cv2.setMouseCallback(window_name, drag_line)
 
+            annotator = SolutionAnnotator(im0)
+
             if results.boxes.is_track:
                 if results.masks is not None:
-                    masks = results.masks
-                boxes = results.boxes
+                    masks = [np.array(m, dtype=np.int32) for m in results.masks.xy]
 
+                boxes = results.boxes.xyxy.tolist()
                 track_ids = results.boxes.id.int().cpu().tolist()
                 clss = results.boxes.cls.cpu().tolist()
 
                 for mask, box, cls, t_id in zip(masks or [None] * len(boxes), boxes, clss, track_ids):
-                    box_data = box.xyxy.cpu().tolist()[0][0]
-                    if box_data > line_x:
-                        count += 1
-                        results = Results(
-                            im0, path=None, names=classes, boxes=box.data, masks=None if mask is None else mask.data
-                        )
-                        im0 = results.plot(
-                            boxes=True,  # display bounding box
-                            conf=False,  # hide confidence score
-                            labels=True,  # display labels
-                            color_mode="instance",
-                        )
+                    color = colors(t_id, True)  # Assign different color to each tracked object.
+                    label = f"{classes[cls]}:{t_id}"
+                    if mask is not None and mask.size > 0:
+                        if box[0] > line_x:
+                            count += 1
+                            cv2.polylines(im0, [mask], True, color, 2)
+                            x, y = mask.min(axis=0)
+                            (w_m, _), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                            cv2.rectangle(im0, (x, y - 20), (x + w_m, y), color, -1)
+                            cv2.putText(im0, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    else:
+                        if box[0] > line_x:
+                            count += 1
+                            annotator.box_label(box=box, color=color, label=label)
 
             # Generate draggable sweep line
-            annotator = SolutionAnnotator(im0)
             annotator.sweep_annotator(line_x=line_x, line_y=h, label=f"COUNT:{count}")
 
             cv2.imshow(window_name, im0)
@@ -472,6 +476,8 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         video_writer.release()
         cv2.destroyAllWindows()
         ```
+
+Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
 
 #### Horizontal Bounding Boxes
 

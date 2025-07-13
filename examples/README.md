@@ -2,6 +2,9 @@
 
 # Ultralytics YOLO Examples
 
+> [!WARNING]  
+> The examples in this directory are community-contributed and showcase creative ways to use Ultralytics YOLO models. While we truly appreciate these contributions, they may not always reflect the latest best practices or receive regular updates. To help streamline our codebase and focus our resources on maintaining comprehensive, up-to-date official documentation and guides, we plan to retire these examples in **Ultralytics v8.4.0**.
+
 Welcome to the Ultralytics examples directory! This collection showcases practical applications and detailed walkthroughs for integrating [Ultralytics YOLO models](https://docs.ultralytics.com/models/) into various real-world projects. Explore Python scripts and Jupyter notebooks designed to help you leverage the power of models like [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) for tasks like [object detection](https://docs.ultralytics.com/tasks/detect/), [instance segmentation](https://docs.ultralytics.com/tasks/segment/), [pose estimation](https://docs.ultralytics.com/tasks/pose/), and more.
 
 Whether you're deploying models on [edge devices](https://www.ultralytics.com/glossary/edge-ai) using formats like [ONNX](https://docs.ultralytics.com/integrations/onnx/) with [ONNX Runtime](https://onnxruntime.ai/), optimizing with [TensorRT](https://docs.ultralytics.com/integrations/tensorrt/) on NVIDIA Jetson, using [OpenVINO](https://docs.ultralytics.com/integrations/openvino/) for Intel hardware, or integrating with frameworks like [OpenCV](https://opencv.org/), these examples provide valuable insights and code snippets. Find inspiration for your next [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) project and see how others are using Ultralytics YOLO to build innovative [AI solutions](https://www.ultralytics.com/solutions) on platforms ranging from C++ and C# to Python and Rust.

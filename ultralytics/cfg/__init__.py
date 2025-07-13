@@ -954,8 +954,6 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import YOLO
 
         model = YOLO(model, task=task)
-    if isinstance(overrides.get("pretrained"), str):
-        model.load(overrides["pretrained"])
 
     # Task Update
     if task != model.task:

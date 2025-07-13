@@ -58,7 +58,7 @@ class FastSAM(Model):
         prompts and passes them to the parent class predict method for processing.
 
         Args:
-            source (str | PIL.Image | numpy.ndarray): Input source for prediction, can be a file path, URL, PIL image,
+            source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image,
                 or numpy array.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
             bboxes (List, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].

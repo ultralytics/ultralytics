@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
+
 from ultralytics.engine.results import Results
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 
@@ -17,7 +19,7 @@ class InstanceSegmentation(BaseSolution):
         names (Dict[int, str]): Dictionary mapping class indices to class names.
         clss (List[int]): List of detected class indices.
         track_ids (List[int]): List of track IDs for detected instances.
-        masks (List[numpy.ndarray]): List of segmentation masks for detected instances.
+        masks (List[np.ndarray]): List of segmentation masks for detected instances.
         show_conf (bool): Whether to display confidence scores.
         show_labels (bool): Whether to display class labels.
         show_boxes (bool): Whether to display bounding boxes.
@@ -33,7 +35,7 @@ class InstanceSegmentation(BaseSolution):
         >>> print(f"Total segmented instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
@@ -48,12 +50,12 @@ class InstanceSegmentation(BaseSolution):
         self.show_labels = self.CFG.get("show_labels", True)
         self.show_boxes = self.CFG.get("show_boxes", True)
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Perform instance segmentation on the input image and annotate the results.
 
         Args:
-            im0 (numpy.ndarray): The input image for segmentation.
+            im0 (np.ndarray): The input image for segmentation.
 
         Returns:
             (SolutionResults): Object containing the annotated image and total number of tracked instances.

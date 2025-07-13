@@ -33,7 +33,7 @@ class DistanceCalculation(BaseSolution):
         >>> cv2.waitKey(0)
     """
 
-    def __init__(self, **kwargs: Any):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 
@@ -76,7 +76,7 @@ class DistanceCalculation(BaseSolution):
         between two user-selected objects if they have been chosen.
 
         Args:
-            im0 (numpy.ndarray): The input image frame to process.
+            im0 (np.ndarray): The input image frame to process.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number

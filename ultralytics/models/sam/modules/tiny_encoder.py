@@ -931,7 +931,7 @@ class TinyViT(nn.Module):
             if layer.downsample is not None:
                 layer.downsample.apply(lambda x: _set_lr_scale(x, lr_scales[i - 1]))
         assert i == depth
-        for m in [self.norm_head, self.head]:
+        for m in {self.norm_head, self.head}:
             m.apply(lambda x: _set_lr_scale(x, lr_scales[-1]))
 
         for k, p in self.named_parameters():

@@ -30,6 +30,7 @@ from ultralytics.utils import (
     colorstr,
 )
 from ultralytics.utils.checks import check_version
+from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
@@ -724,7 +725,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: Dict[
         >>>    strip_optimizer(f)
     """
     try:
-        x = torch.load(f, map_location=torch.device("cpu"))
+        x = torch_load(f, map_location=torch.device("cpu"))
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:

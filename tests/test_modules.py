@@ -15,7 +15,9 @@ def test_permute(shape_in, shape_out, permutation):
     layer = Permute(permutation)
     ip = torch.Tensor(*shape_in)
     out = layer(ip)
-    assert out.shape == shape_out, f"Test failed for Permute module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
+    assert out.shape == shape_out, (
+        f"Test failed for Permute module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
+    )
     torch.testing.assert_close(out.reshape(-1), ip.reshape(-1))
 
 
@@ -27,5 +29,7 @@ def test_reshape(shape_in, shape_out):
     layer = Reshape(shape_out)
     ip = torch.Tensor(*shape_in)
     out = layer(ip)
-    assert out.shape == shape_out, f"Test failed for Reshape module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
+    assert out.shape == shape_out, (
+        f"Test failed for Reshape module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
+    )
     torch.testing.assert_close(out.reshape(-1), ip.reshape(-1))

@@ -252,7 +252,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         ```
 
         Using `refer_image` also sets the classes permanently, so you can run predictions without having to supply the same visual prompts again, and export the model while retaining the ability to still detect the same classes after export:
-        ```
+        ```python
         # After making prediction with `refer_image`, you can run predictions without passing visual_prompts again and still get the same classes back
         results = model("ultralytics/assets/bus.jpg")
 

@@ -6,7 +6,7 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── Objects365  ← downloads here (712 GB = 367G data + 345G zips)
+#     └── Objects365 ← downloads here (712 GB = 367G data + 345G zips)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: Objects365 # dataset root dir

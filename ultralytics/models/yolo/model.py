@@ -287,7 +287,7 @@ class YOLOE(Model):
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> img = torch.rand(1, 3, 640, 640)
-            >>> visual_features = model.model.backbone(img)
+            >>> visual_features = torch.rand(1, 1, 80, 80)
             >>> pe = model.get_visual_pe(img, visual_features)
         """
         assert isinstance(self.model, YOLOEModel)

@@ -259,7 +259,11 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
                 check_requirements(
-                    ["model-compression-toolkit>=2.3.0", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
+                    [
+                        "model-compression-toolkit>=2.3.0,<2.4.1",
+                        "sony-custom-layers[torch]>=0.3.0",
+                        "onnxruntime-extensions",
+                    ]
                 )
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
@@ -483,7 +487,13 @@ class AutoBackend(nn.Module):
         # PaddlePaddle
         elif paddle:
             LOGGER.info(f"Loading {w} for PaddlePaddle inference...")
-            check_requirements("paddlepaddle-gpu" if cuda else "paddlepaddle>=3.0.0")
+            check_requirements(
+                "paddlepaddle-gpu"
+                if torch.cuda.is_available()
+                else "paddlepaddle==3.0.0"  # pin 3.0.0 for ARM64
+                if ARM64
+                else "paddlepaddle>=3.0.0"
+            )
             import paddle.inference as pdi  # noqa
 
             w = Path(w)

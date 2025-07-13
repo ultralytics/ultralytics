@@ -411,6 +411,7 @@ class YOLOMultiModalDataset(YOLODataset):
     @staticmethod
     def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
         """Get negative text samples based on frequency threshold."""
+        threshold = min(max(category_freq.values()), 100)
         return [k for k, v in category_freq.items() if v >= threshold]
 
 
@@ -434,18 +435,20 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task: str = "detect", json_file: str = "", **kwargs):
+    def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
         """
         Initialize a GroundingDataset for object detection.
 
         Args:
             json_file (str): Path to the JSON file containing annotations.
             task (str): Must be 'detect' or 'segment' for GroundingDataset.
+            max_samples (int): Maximum number of samples to load for text augmentation.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
         assert task in {"detect", "segment"}, "GroundingDataset currently only supports `detect` and `segment` tasks"
         self.json_file = json_file
+        self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
     def get_img_files(self, img_path: str) -> List:
@@ -482,7 +485,7 @@ class GroundingDataset(YOLODataset):
             a warning is logged and verification is skipped.
         """
         expected_counts = {
-            "final_mixed_train_no_coco_segm": 3662344,
+            "final_mixed_train_no_coco_segm": 3662412,
             "final_mixed_train_no_coco": 3681235,
             "final_flickr_separateGT_train_segm": 638214,
             "final_flickr_separateGT_train": 640704,
@@ -625,7 +628,7 @@ class GroundingDataset(YOLODataset):
             # the strategy of selecting negative is restricted in one dataset,
             # while official pre-saved neg embeddings from all datasets at once.
             transform = RandomLoadText(
-                max_samples=80,
+                max_samples=min(self.max_samples, 80),
                 padding=True,
                 padding_value=self._get_neg_texts(self.category_freq),
             )
@@ -651,6 +654,7 @@ class GroundingDataset(YOLODataset):
     @staticmethod
     def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
         """Get negative text samples based on frequency threshold."""
+        threshold = min(max(category_freq.values()), 100)
         return [k for k, v in category_freq.items() if v >= threshold]
 
 

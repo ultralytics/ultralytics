@@ -49,7 +49,6 @@ class Permute(nn.Module):
                 permutation (List[int]): New order of the channels. Refer to torch.permute for more details.
         """
         super().__init__()
-        # print("Pemutation args: ", permutation)
         assert all(isinstance(p, int) for p in permutation), "All permutation indices should be integers"
         self.permutation = permutation
     
@@ -78,7 +77,6 @@ class Reshape(nn.Module):
             shape (List[int]): New shape of the tensor.
         """
         super().__init__()
-        # print("Reshape args: ", shape)
         self.shape = tuple(shape)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:

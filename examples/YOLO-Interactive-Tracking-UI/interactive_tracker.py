@@ -101,7 +101,7 @@ def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:
     Draw tracking scope lines extending from the bounding box to image edges.
 
     Args:
-        im (ndarray): Image array to draw on.
+        im (np.ndarray): Image array to draw on.
         bbox (tuple): Bounding box coordinates (x1, y1, x2, y2).
         color (tuple): Color in BGR format for drawing.
     """

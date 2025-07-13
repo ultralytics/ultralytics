@@ -42,7 +42,7 @@ class VisionEye(BaseSolution):
         Perform object detection, vision mapping, and annotation on the input image.
 
         Args:
-            im0 (numpy.ndarray): The input image for detection and annotation.
+            im0 (np.ndarray): The input image for detection and annotation.
 
         Returns:
             (SolutionResults): Object containing the annotated image and tracking statistics.

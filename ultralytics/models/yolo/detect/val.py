@@ -71,7 +71,7 @@ class DetectionValidator(BaseValidator):
         """
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        for k in ["batch_idx", "cls", "bboxes"]:
+        for k in {"batch_idx", "cls", "bboxes"}:
             batch[k] = batch[k].to(self.device)
 
         return batch
@@ -450,8 +450,8 @@ class DetectionValidator(BaseValidator):
                     val.summarize()
 
                     # update mAP50-95 and mAP50
-                    stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
-                    stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
+                    stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
+                    stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
 
                     if self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]

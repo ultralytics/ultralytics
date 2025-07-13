@@ -76,7 +76,7 @@ class SecurityAlarm(BaseSolution):
         Send an email notification with an image attachment indicating the number of objects detected.
 
         Args:
-            im0 (numpy.ndarray): The input image or frame to be attached to the email.
+            im0 (np.ndarray): The input image or frame to be attached to the email.
             records (int, optional): The number of detected objects to be included in the email message.
 
         This method encodes the input image, composes the email message with details about the detection, and sends it
@@ -121,7 +121,7 @@ class SecurityAlarm(BaseSolution):
         Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
 
         Args:
-            im0 (numpy.ndarray): The input image or frame to be processed and annotated.
+            im0 (np.ndarray): The input image or frame to be processed and annotated.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (total number of tracked objects) and

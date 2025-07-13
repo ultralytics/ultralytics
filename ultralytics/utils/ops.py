@@ -343,11 +343,11 @@ def clip_boxes(boxes, shape):
     Clip bounding boxes to image boundaries.
 
     Args:
-        boxes (torch.Tensor | numpy.ndarray): Bounding boxes to clip.
+        boxes (torch.Tensor | np.ndarray): Bounding boxes to clip.
         shape (tuple): Image shape as (height, width).
 
     Returns:
-        (torch.Tensor | numpy.ndarray): Clipped bounding boxes.
+        (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
     if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
         boxes[..., 0] = boxes[..., 0].clamp(0, shape[1])  # x1
@@ -365,11 +365,11 @@ def clip_coords(coords, shape):
     Clip line coordinates to image boundaries.
 
     Args:
-        coords (torch.Tensor | numpy.ndarray): Line coordinates to clip.
+        coords (torch.Tensor | np.ndarray): Line coordinates to clip.
         shape (tuple): Image shape as (height, width).
 
     Returns:
-        (torch.Tensor | numpy.ndarray): Clipped coordinates.
+        (torch.Tensor | np.ndarray): Clipped coordinates.
     """
     if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
         coords[..., 0] = coords[..., 0].clamp(0, shape[1])  # x
@@ -564,10 +564,10 @@ def xyxyxyxy2xywhr(x):
     Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format.
 
     Args:
-        x (numpy.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
+        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
 
     Returns:
-        (numpy.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5).
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5).
             Rotation values are in radians from 0 to pi/2.
     """
     is_torch = isinstance(x, torch.Tensor)
@@ -587,11 +587,11 @@ def xywhr2xyxyxyxy(x):
     Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4] format.
 
     Args:
-        x (numpy.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5).
+        x (np.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5).
             Rotation values should be in radians from 0 to pi/2.
 
     Returns:
-        (numpy.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
+        (np.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
     """
     cos, sin, cat, stack = (
         (torch.cos, torch.sin, torch.cat, torch.stack)

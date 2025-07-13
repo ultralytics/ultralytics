@@ -14,7 +14,7 @@ Export to Torchscript to serialize your [Ultralytics YOLO11](https://github.com/
 
 ![Torchscript Overview](https://github.com/ultralytics/docs/releases/download/0/torchscript-overview.avif)
 
-Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLO11 models to [TorchScript](https://pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
+Developed by the creators of PyTorch, TorchScript is a powerful tool for optimizing and deploying PyTorch models across a variety of platforms. Exporting YOLO11 models to [TorchScript](https://docs.pytorch.org/docs/stable/jit.html) is crucial for moving from research to real-world applications. TorchScript, part of the PyTorch framework, helps make this transition smoother by allowing PyTorch models to be used in environments that don't support Python.
 
 The process involves two techniques: tracing and scripting. Tracing records operations during model execution, while scripting allows for the definition of models using a subset of Python. These techniques ensure that models like YOLO11 can still work their magic even outside their usual Python environment.
 
@@ -122,17 +122,17 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After successfully exporting your Ultralytics YOLO11 models to TorchScript format, you can now deploy them. The primary and recommended first step for running a TorchScript model is to utilize the YOLO("model.torchscript") method, as outlined in the previous usage code snippet. However, for in-depth instructions on deploying your TorchScript models in various other settings, take a look at the following resources:
 
-- **[Explore Mobile Deployment](https://pytorch.org/mobile/home/)**: The [PyTorch](https://www.ultralytics.com/glossary/pytorch) Mobile Documentation provides comprehensive guidelines for deploying models on mobile devices, ensuring your applications are efficient and responsive.
+- **[Explore Mobile Deployment](https://docs.pytorch.org/executorch/)**: The [PyTorch](https://www.ultralytics.com/glossary/pytorch) Mobile Documentation provides comprehensive guidelines for deploying models on mobile devices, ensuring your applications are efficient and responsive.
 
-- **[Master Server-Side Deployment](https://pytorch.org/serve/getting_started.html)**: Learn how to deploy models server-side with TorchServe, offering a step-by-step tutorial for scalable, efficient model serving.
+- **[Master Server-Side Deployment](https://docs.pytorch.org/serve/getting_started.html)**: Learn how to deploy models server-side with TorchServe, offering a step-by-step tutorial for scalable, efficient model serving.
 
-- **[Implement C++ Deployment](https://pytorch.org/tutorials/advanced/cpp_export.html)**: Dive into the Tutorial on Loading a TorchScript Model in C++, facilitating the integration of your TorchScript models into C++ applications for enhanced performance and versatility.
+- **[Implement C++ Deployment](https://docs.pytorch.org/tutorials/advanced/cpp_export.html)**: Dive into the Tutorial on Loading a TorchScript Model in C++, facilitating the integration of your TorchScript models into C++ applications for enhanced performance and versatility.
 
 ## Summary
 
 In this guide, we explored the process of exporting Ultralytics YOLO11 models to the TorchScript format. By following the provided instructions, you can optimize YOLO11 models for performance and gain the flexibility to deploy them across various platforms and environments.
 
-For further details on usage, visit [TorchScript's official documentation](https://pytorch.org/docs/stable/jit.html).
+For further details on usage, visit [TorchScript's official documentation](https://docs.pytorch.org/docs/stable/jit.html).
 
 Also, if you'd like to know more about other Ultralytics YOLO11 integrations, visit our [integration guide page](../integrations/index.md). You'll find plenty of useful resources and insights there.
 
@@ -187,7 +187,7 @@ Using TorchScript for deploying YOLO11 models offers several advantages:
 - **Cross-Language Integration**: TorchScript models can be integrated into other programming languages, enhancing flexibility and expandability.
 - **Serialization**: Models can be serialized, allowing for platform-independent loading and inference.
 
-For more insights into deployment, visit the [PyTorch Mobile Documentation](https://pytorch.org/mobile/home/), [TorchServe Documentation](https://pytorch.org/serve/getting_started.html), and [C++ Deployment Guide](https://pytorch.org/tutorials/advanced/cpp_export.html).
+For more insights into deployment, visit the [PyTorch Mobile Documentation](https://docs.pytorch.org/executorch/), [TorchServe Documentation](https://docs.pytorch.org/serve/getting_started.html), and [C++ Deployment Guide](https://docs.pytorch.org/tutorials/advanced/cpp_export.html).
 
 ### What are the installation steps for exporting YOLO11 models to TorchScript?
 
@@ -209,7 +209,7 @@ For detailed instructions, visit the [Ultralytics Installation guide](../quickst
 After exporting YOLO11 models to the TorchScript format, you can deploy them across a variety of platforms:
 
 - **C++ API**: Ideal for low-overhead, highly efficient production environments.
-- **Mobile Deployment**: Use [PyTorch Mobile](https://pytorch.org/mobile/home/) for iOS and Android applications.
-- **Cloud Deployment**: Utilize services like [TorchServe](https://pytorch.org/serve/getting_started.html) for scalable server-side deployment.
+- **Mobile Deployment**: Use [PyTorch Mobile](https://docs.pytorch.org/executorch/) for iOS and Android applications.
+- **Cloud Deployment**: Utilize services like [TorchServe](https://docs.pytorch.org/serve/getting_started.html) for scalable server-side deployment.
 
 Explore comprehensive guidelines for deploying models in these settings to take full advantage of TorchScript's capabilities.

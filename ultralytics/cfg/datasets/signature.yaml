@@ -6,12 +6,12 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── signature  ← downloads here (11.2 MB)
+#     └── signature ← downloads here (11.3 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: signature # dataset root dir
-train: train/images # train images (relative to 'path') 143 images
-val: valid/images # val images (relative to 'path') 35 images
+train: images/train # train images (relative to 'path') 143 images
+val: images/val # val images (relative to 'path') 35 images
 
 # Classes
 names:

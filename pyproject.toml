@@ -117,6 +117,15 @@ extra = [
     "albumentations>=1.4.6", # training augmentations
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
+typing = [
+    "pandas-stubs",
+    "scipy-stubs",
+    "types-pillow",
+    "types-psutil",
+    "types-pyyaml",
+    "types-requests",
+    "types-shapely",
+]
 
 [project.urls]
 "Homepage" = "https://ultralytics.com"

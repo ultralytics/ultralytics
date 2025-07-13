@@ -452,16 +452,16 @@ class BasePredictor:
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(str(self.save_dir / p.name), frame)
+            self.save_predicted_images(self.save_dir / p.name, frame)
 
         return string
 
-    def save_predicted_images(self, save_path: str = "", frame: int = 0):
+    def save_predicted_images(self, save_path: Path, frame: int = 0):
         """
         Save video predictions as mp4 or images as jpg at specified path.
 
         Args:
-            save_path (str): Path to save the results.
+            save_path (Path): Path to save the results.
             frame (int): Frame number for video mode.
         """
         im = self.plotted_img
@@ -469,7 +469,7 @@ class BasePredictor:
         # Save videos and streams
         if self.dataset.mode in {"stream", "video"}:
             fps = self.dataset.fps if self.dataset.mode == "video" else 30
-            frames_path = f"{save_path.split('.', 1)[0]}_frames/"
+            frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
                     Path(frames_path).mkdir(parents=True, exist_ok=True)
@@ -484,11 +484,11 @@ class BasePredictor:
             # Save video
             self.vid_writer[save_path].write(im)
             if self.args.save_frames:
-                cv2.imwrite(f"{frames_path}{frame}.jpg", im)
+                cv2.imwrite(f"{frames_path}/{save_path.stem}_{frame}.jpg", im)
 
         # Save images
         else:
-            cv2.imwrite(str(Path(save_path).with_suffix(".jpg")), im)  # save to JPG for best support
+            cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
 
     def show(self, p: str = ""):
         """Display an image in a window."""

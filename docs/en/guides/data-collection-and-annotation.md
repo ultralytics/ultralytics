@@ -10,6 +10,17 @@ keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoid
 
 The key to success in any [computer vision project](./steps-of-a-cv-project.md) starts with effective data collection and annotation strategies. The quality of the data directly impacts model performance, so it's important to understand the best practices related to data collection and data annotation.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/iBk6S-PHwS0"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Build Effective Data Collection and Annotation Strategies for Computer Vision 🚀
+</p>
+
 Every consideration regarding the data should closely align with [your project's goals](./defining-project-goals.md). Changes in your annotation strategies could shift the project's focus or effectiveness and vice versa. With this in mind, let's take a closer look at the best ways to approach data collection and annotation.
 
 ## Setting Up Classes and Collecting Data

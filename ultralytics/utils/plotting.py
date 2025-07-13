@@ -610,8 +610,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
     ax[3].set_xlabel("width")
     ax[3].set_ylabel("height")
-    for a in [0, 1, 2, 3]:
-        for s in ["top", "right", "left", "bottom"]:
+    for a in {0, 1, 2, 3}:
+        for s in {"top", "right", "left", "bottom"}:
             ax[a].spines[s].set_visible(False)
 
     fname = save_dir / "labels.jpg"
@@ -694,7 +694,7 @@ def plot_images(
 
     Args:
         labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
-        images (Union[torch.Tensor, np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
+        images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
         paths (Optional[List[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
         names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.

@@ -193,7 +193,7 @@ YOLOv8 and YOLO11n benchmarks below were run by the Ultralytics team on Raspberr
 
 !!! note
 
-    Validation for the above benchmark was done using coco128 dataset on a Raspberry Pi 5
+    Validation for the above benchmark was done using COCO128 dataset on a Raspberry Pi 5
 
 ## What's Under the Hood?
 

@@ -777,6 +777,8 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
+        if isinstance(kwargs.get("pretrained", None), (str, Path)):
+            self.load(kwargs["pretrained"])  # load pretrained weights if provided
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.

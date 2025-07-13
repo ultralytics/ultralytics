@@ -406,18 +406,18 @@ class YOLOE(Model):
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"
             )
-        self.predictor = (predictor or self._smart_load("predictor"))(
-            overrides={
-                "task": self.model.task,
-                "mode": "predict",
-                "save": False,
-                "verbose": refer_image is None,
-                "batch": 1,
-            },
-            _callbacks=self.callbacks,
-        )
+            if not isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
+                self.predictor = (predictor or yolo.yoloe.YOLOEVPDetectPredictor)(
+                    overrides={
+                        "task": self.model.task,
+                        "mode": "predict",
+                        "save": False,
+                        "verbose": refer_image is None,
+                        "batch": 1,
+                    },
+                    _callbacks=self.callbacks,
+                )
 
-        if len(visual_prompts):
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
                 if isinstance(source, list) and refer_image is None  # means multiple images
@@ -426,18 +426,19 @@ class YOLOE(Model):
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
+            self.predictor.setup_model(model=self.model)
 
-        self.predictor.setup_model(model=self.model)
-
-        if refer_image is None and source is not None:
-            dataset = load_inference_source(source)
-            if dataset.mode in {"video", "stream"}:
-                # NOTE: set the first frame as refer image for videos/streams inference
-                refer_image = next(iter(dataset))[1][0]
-        if refer_image is not None and len(visual_prompts):
-            vpe = self.predictor.get_vpe(refer_image)
-            self.model.set_classes(self.model.names, vpe)
-            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-            self.predictor = None  # reset predictor
+            if refer_image is None and source is not None:
+                dataset = load_inference_source(source)
+                if dataset.mode in {"video", "stream"}:
+                    # NOTE: set the first frame as refer image for videos/streams inference
+                    refer_image = next(iter(dataset))[1][0]
+            if refer_image is not None:
+                vpe = self.predictor.get_vpe(refer_image)
+                self.model.set_classes(self.model.names, vpe)
+                self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
+                self.predictor = None  # reset predictor
+        elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
+            self.predictor = None  # reset predictor if no visual prompts
 
         return super().predict(source, stream, **kwargs)

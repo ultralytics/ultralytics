@@ -241,37 +241,15 @@ class PoseValidator(DetectionValidator):
             converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
             before saving to the JSON dictionary.
         """
-        stem = Path(pbatch["im_file"]).stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.scale_boxes(
-            pbatch["imgsz"],
-            predn["bboxes"].clone(),
-            pbatch["ori_shape"],
-            ratio_pad=pbatch["ratio_pad"],
-        )
-        box = ops.xyxy2xywh(box)  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+        super().pred_to_json(predn, pbatch)
         kpts = ops.scale_coords(
             pbatch["imgsz"],
             predn.get("keypoints").clone(),
             pbatch["ori_shape"],
             ratio_pad=pbatch["ratio_pad"],
         )
-        for b, s, c, k in zip(
-            box.tolist(),
-            predn["conf"].tolist(),
-            predn["cls"].tolist(),
-            kpts.flatten(1, 2).tolist(),
-        ):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "keypoints": k,
-                    "score": round(s, 5),
-                }
-            )
+        for i, k in enumerate(kpts.flatten(1, 2).tolist()):
+            self.jdict[-len(kpts) + i]["keypoints"] = k  # flatten keypoints to list
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""

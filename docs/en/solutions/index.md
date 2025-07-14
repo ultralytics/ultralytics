@@ -65,7 +65,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 ### Usage of SolutionAnnotator
 
 All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
-: Visualize a vertical sweep line and optional label.
+
 | Method                             | Return Type | Description                                                            |
 | ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
 | `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.          |

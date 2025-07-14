@@ -561,7 +561,7 @@ for obb in obb_boxes:
 image_with_obb = ann.result()
 ```
 
-#### Bounding Boxes Circle Annotation [Circle Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.circle_label)
+#### Bounding Boxes Circle Annotation [Adaptive Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.adaptive_label)
 
 <p align="center">
   <br>
@@ -599,7 +599,7 @@ while True:
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        annotator.circle_label(box, label=names[int(cls)], color=colors(cls, True))
+        annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")
 
     writer.write(im0)
     cv2.imshow("Ultralytics circle annotation", im0)
@@ -612,7 +612,7 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-#### Bounding Boxes Text Annotation [Text Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.text_label)
+#### Bounding Boxes Text Annotation [Adaptive Label](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator.adaptive_label)
 
 ```python
 import cv2
@@ -639,7 +639,7 @@ while True:
     clss = results[0].boxes.cls.cpu().tolist()
 
     for box, cls in zip(boxes, clss):
-        annotator.text_label(box, label=names[int(cls)], color=colors(cls, True))
+        annotator.text_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")
 
     writer.write(im0)
     cv2.imshow("Ultralytics text annotation", im0)

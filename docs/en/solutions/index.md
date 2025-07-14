@@ -79,7 +79,6 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 | `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
 | `sweep_annotator()`                | `None`      | Visualize a vertical sweep line and optional label.       |
 | `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
-| `circle_label()`                   | `None`      | Draws a circular label in the place of a bounding box.                 |
 | `adaptive_label()`                     | `None`      | Draw a circular or rectangle background shape label in center of a bounding box.              |
 
 ### Working with SolutionResults

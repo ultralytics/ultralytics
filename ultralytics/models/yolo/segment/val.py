@@ -135,29 +135,6 @@ class SegmentationValidator(DetectionValidator):
         prepared_batch["masks"] = batch["masks"][midx]
         return prepared_batch
 
-    # def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-    #     """
-    #     Prepare predictions for evaluation by processing bounding boxes and masks.
-    #
-    #     Args:
-    #         pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
-    #         pbatch (Dict[str, Any]): Prepared batch information.
-    #
-    #     Returns:
-    #         Dict[str, torch.Tensor]: Processed bounding box predictions.
-    #     """
-    #     predn = super()._prepare_pred(pred, pbatch)
-    #     predn["masks"] = pred["masks"]
-    #     if self.args.save_json and len(predn["masks"]):
-    #         coco_masks = torch.as_tensor(pred["masks"], dtype=torch.uint8)
-    #         coco_masks = ops.scale_image(
-    #             coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-    #             pbatch["ori_shape"],
-    #             ratio_pad=pbatch["ratio_pad"],
-    #         )
-    #         predn["coco_masks"] = coco_masks
-    #     return predn
-
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Compute correct prediction matrix for a batch based on bounding boxes and optional masks.

@@ -316,7 +316,7 @@ class Exporter:
             if not self.args.nms:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
-            if model.task not in ("detect", "pose"):
+            if model.task not in {"detect", "pose"}:
                 raise ValueError("IMX export only supported for detection and pose estimation models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()

@@ -229,37 +229,18 @@ class SegmentationValidator(DetectionValidator):
             rle["counts"] = rle["counts"].decode("utf-8")
             return rle
 
-        stem = Path(pbatch["im_file"]).stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.scale_boxes(
-            pbatch["imgsz"],
-            predn["bboxes"].clone(),
-            pbatch["ori_shape"],
-            ratio_pad=pbatch["ratio_pad"],
-        )
-        box = ops.xyxy2xywh(box)  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-
         coco_masks = torch.as_tensor(predn["masks"], dtype=torch.uint8)
         coco_masks = ops.scale_image(
             coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
             pbatch["ori_shape"],
             ratio_pad=pbatch["ratio_pad"],
         )
-
         pred_masks = np.transpose(coco_masks, (2, 0, 1))
         with ThreadPool(NUM_THREADS) as pool:
             rles = pool.map(single_encode, pred_masks)
-        for i, (b, s, c) in enumerate(zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist())):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "score": round(s, 5),
-                    "segmentation": rles[i],
-                }
-            )
+        super().pred_to_json(predn, pbatch)
+        for i, r in enumerate(rles):
+            self.jdict[-len(rles) + i]["segmentation"] = r  # flatten keypoints to list
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""

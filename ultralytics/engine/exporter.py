@@ -1175,7 +1175,7 @@ class Exporter:
         import model_compression_toolkit as mct
         import onnx
         from edgemdt_tpc import get_target_platform_capabilities
-        from sony_custom_layers.pytorch import multiclass_nms, multiclass_nms_with_indices
+        from sony_custom_layers.pytorch import multiclass_nms_with_indices
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
@@ -1287,25 +1287,18 @@ class Exporter:
                 outputs = self.model(images)
 
                 boxes, scores = outputs[0], outputs[1]
-                if self.task == "detect":
-                    return multiclass_nms(
-                        boxes=boxes,
-                        scores=scores,
-                        score_threshold=self.score_threshold,
-                        iou_threshold=self.iou_threshold,
-                        max_detections=self.max_detections,
-                    )
-                elif self.task == "pose":
-                    nms = multiclass_nms_with_indices(
-                        boxes=boxes,
-                        scores=scores,
-                        score_threshold=self.score_threshold,
-                        iou_threshold=self.iou_threshold,
-                        max_detections=self.max_detections,
-                    )
+                nms_outputs = multiclass_nms_with_indices(
+                    boxes=boxes,
+                    scores=scores,
+                    score_threshold=self.score_threshold,
+                    iou_threshold=self.iou_threshold,
+                    max_detections=self.max_detections,
+                )
+                if self.task == "pose":
                     kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
-                    out_kpts = torch.gather(kpts, 1, nms.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
-                    return nms.boxes, nms.scores, nms.labels, out_kpts
+                    out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
+                    return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
+                return nms_outputs
 
         quant_model = NMSWrapper(
             model=quant_model,

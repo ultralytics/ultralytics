@@ -694,7 +694,6 @@ class SolutionAnnotator(Annotator):
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
         cv2.line(self.im, center_point, center_bbox, color, self.tf)
 
-
     def adaptive_label(
         self,
         box: Tuple[float, float, float, float],
@@ -715,33 +714,36 @@ class SolutionAnnotator(Annotator):
             shape (str): The shape of the label i.e "circle" or "rect"
             margin (int): The margin between the text and the rectangle border.
         """
-        if shape=="circle" and len(label) > 3:
-            LOGGER.warning(
-                f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
+        if shape == "circle" and len(label) > 3:
+            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
             label = label[:3]
 
         x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)  # Calculate center of the bbox
         text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]  # Get size of the text
         text_x, text_y = x_center - text_size[0] // 2, y_center + text_size[1] // 2  # Calculate top-left corner of text
 
-        if shape=="circle":
-            cv2.circle(self.im,
-                       (x_center, y_center),
-                       int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin,  # Calculate the radius
-                       color,
-                       -1)
+        if shape == "circle":
+            cv2.circle(
+                self.im,
+                (x_center, y_center),
+                int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin,  # Calculate the radius
+                color,
+                -1,
+            )
         else:
-            cv2.rectangle(self.im,
-                          (text_x - margin, text_y - text_size[1] - margin),  # Calculate coordinates of the rectangle
-                          (text_x + text_size[0] + margin, text_y + margin),  # Calculate coordinates of the rectangle
-                          color,
-                          -1)
+            cv2.rectangle(
+                self.im,
+                (text_x - margin, text_y - text_size[1] - margin),  # Calculate coordinates of the rectangle
+                (text_x + text_size[0] + margin, text_y + margin),  # Calculate coordinates of the rectangle
+                color,
+                -1,
+            )
 
         # Draw the text on top of the rectangle
         cv2.putText(
             self.im,
             label,
-            (text_x, text_y), # Calculate top-left corner of the text
+            (text_x, text_y),  # Calculate top-left corner of the text
             cv2.FONT_HERSHEY_SIMPLEX,
             self.sf - 0.15,
             self.get_txt_color(color, txt_color),

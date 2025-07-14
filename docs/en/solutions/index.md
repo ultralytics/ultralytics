@@ -66,20 +66,20 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
-| Method                             | Return Type | Description                                                            |
-| ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
-| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.          |
-| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                         |
-| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                |
-| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.           |
-| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                 |
-| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                 |
-| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.        |
-| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line. |
-| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
-| `sweep_annotator()`                | `None`      | Visualize a vertical sweep line and optional label.       |
-| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
-| `adaptive_label()`                     | `None`      | Draw a circular or rectangle background shape label in center of a bounding box.              |
+| Method                             | Return Type | Description                                                                      |
+| ---------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.                    |
+| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                                   |
+| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                          |
+| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.                     |
+| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                           |
+| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                           |
+| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.                  |
+| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line.           |
+| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                               |
+| `sweep_annotator()`                | `None`      | Visualize a vertical sweep line and optional label.                              |
+| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.                      |
+| `adaptive_label()`                 | `None`      | Draw a circular or rectangle background shape label in center of a bounding box. |
 
 ### Working with SolutionResults
 

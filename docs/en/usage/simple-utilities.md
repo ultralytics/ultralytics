@@ -566,7 +566,7 @@ image_with_obb = ann.result()
 !!! warning
 
     Starting from **Ultralytics v8.3.167**, `circle_label` and `text_label` have been replaced by a unified `adaptive_label` function. You can now specify the annotation type using the `shape` argument:
-    
+
     * **Rectangle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")`
     * **Circle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")`
 
@@ -587,36 +587,36 @@ image_with_obb = ann.result()
 
         ```python
         import cv2
-        
+
         from ultralytics import YOLO
         from ultralytics.solutions.solutions import SolutionAnnotator
         from ultralytics.utils.plotting import colors
-        
+
         model = YOLO("yolo11s.pt")
         names = model.names
         cap = cv2.VideoCapture("path/to/video.mp4")
-        
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         writer = cv2.VideoWriter("Ultralytics circle annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-        
+
         while True:
             ret, im0 = cap.read()
             if not ret:
                 break
-        
+
             annotator = SolutionAnnotator(im0)
             results = model.predict(im0)
             boxes = results[0].boxes.xyxy.cpu()
             clss = results[0].boxes.cls.cpu().tolist()
-        
+
             for box, cls in zip(boxes, clss):
                 annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")
             writer.write(im0)
             cv2.imshow("Ultralytics circle annotation", im0)
-        
+
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
-        
+
         writer.release()
         cap.release()
         cv2.destroyAllWindows()
@@ -626,37 +626,37 @@ image_with_obb = ann.result()
 
         ```python
         import cv2
-        
+
         from ultralytics import YOLO
         from ultralytics.solutions.solutions import SolutionAnnotator
         from ultralytics.utils.plotting import colors
-        
+
         model = YOLO("yolo11s.pt")
         names = model.names
         cap = cv2.VideoCapture("path/to/video.mp4")
-        
+
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
         writer = cv2.VideoWriter("Ultralytics text annotation.avi", cv2.VideoWriter_fourcc(*"MJPG"), fps, (w, h))
-        
+
         while True:
             ret, im0 = cap.read()
             if not ret:
                 break
-        
+
             annotator = SolutionAnnotator(im0)
             results = model.predict(im0)
             boxes = results[0].boxes.xyxy.cpu()
             clss = results[0].boxes.cls.cpu().tolist()
-        
+
             for box, cls in zip(boxes, clss):
                 annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")
-        
+
             writer.write(im0)
             cv2.imshow("Ultralytics text annotation", im0)
-        
+
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
-        
+
         writer.release()
         cap.release()
         cv2.destroyAllWindows()

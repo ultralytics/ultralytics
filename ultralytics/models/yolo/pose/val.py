@@ -249,7 +249,7 @@ class PoseValidator(DetectionValidator):
             ratio_pad=pbatch["ratio_pad"],
         )
         for i, k in enumerate(kpts.flatten(1, 2).tolist()):
-            self.jdict[-len(kpts) + i]["keypoints"] = k  # flatten keypoints to list
+            self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""

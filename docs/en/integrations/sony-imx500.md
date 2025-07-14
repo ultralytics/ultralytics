@@ -39,8 +39,8 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 Currently, you can only export models that include the following tasks to IMX500 format.
 
-- Object detection
-- Pose estimation
+- [Object detection](https://docs.ultralytics.com/tasks/detect/)
+- [Pose estimation](https://docs.ultralytics.com/tasks/pose/)
 
 ## Usage Examples
 

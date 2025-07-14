@@ -132,33 +132,7 @@ class OBBValidator(DetectionValidator):
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
-            # ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
         return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
-
-    # def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-    #     """
-    #     Prepare predictions by scaling bounding boxes to original image dimensions.
-    #
-    #     This method takes prediction tensors containing bounding box coordinates and scales them from the model's
-    #     input dimensions to the original image dimensions using the provided batch information.
-    #
-    #     Args:
-    #         pred (Dict[str, torch.Tensor]): Prediction dictionary containing bounding box coordinates and other information.
-    #         pbatch (Dict[str, Any]): Dictionary containing batch information with keys:
-    #             - imgsz (tuple): Model input image size.
-    #             - ori_shape (tuple): Original image shape.
-    #             - ratio_pad (tuple): Ratio and padding information for scaling.
-    #
-    #     Returns:
-    #         (Dict[str, torch.Tensor]): Scaled prediction dictionary with bounding boxes in original image dimensions.
-    #     """
-    #     cls = pred["cls"]
-    #     if self.args.single_cls:
-    #         cls *= 0
-    #     bboxes = ops.scale_boxes(
-    #         pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
-    #     )  # native-space pred
-    #     return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """

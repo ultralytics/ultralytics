@@ -13,7 +13,7 @@ from ultralytics.nn.modules import Permute, Reshape
 def test_permute(shape_in, shape_out, permutation):
     """Test for Permute module."""
     layer = Permute(permutation)
-    ip = torch.Tensor(*shape_in)
+    ip = torch.randn(*shape_in)
     out = layer(ip)
     assert out.shape == shape_out, (
         f"Test failed for Permute module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
@@ -27,7 +27,7 @@ def test_permute(shape_in, shape_out, permutation):
 def test_reshape(shape_in, shape_out):
     """Test for Reshape module."""
     layer = Reshape(shape_out)
-    ip = torch.Tensor(*shape_in)
+    ip = torch.randn(*shape_in)
     out = layer(ip)
     assert out.shape == shape_out, (
         f"Test failed for Reshape module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"

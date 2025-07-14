@@ -56,11 +56,11 @@ from .block import (
     RepC3,
     RepNCSPELAN4,
     RepVGGDW,
+    ResNeStBlock,
+    ResNeStLayer,
     ResNetLayer,
     SCDown,
     TorchVision,
-    ResNeStLayer,
-    ResNeStBlock
 )
 from .conv import (
     CBAM,
@@ -76,9 +76,9 @@ from .conv import (
     Index,
     LightConv,
     RepConv,
+    RSoftMax,
     SpatialAttention,
     SplAtConv2d,
-    RSoftMax
 )
 from .head import (
     OBB,
@@ -186,5 +186,5 @@ __all__ = (
     "ResNeStLayer",
     "ResNeStBlock",
     "SplAtConv2d",
-    "RSoftMax"
+    "RSoftMax",
 )

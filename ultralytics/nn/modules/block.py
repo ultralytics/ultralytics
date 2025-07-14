@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad, SplAtConv2d
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, SplAtConv2d, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -53,7 +53,7 @@ __all__ = (
     "SCDown",
     "TorchVision",
     "ResNeStBlock",
-    "ResNeStLayer"
+    "ResNeStLayer",
 )
 
 
@@ -589,7 +589,9 @@ class ResNetLayer(nn.Module):
 class ResNeStBlock(ResNetBlock):
     """ResNeSt block with standard and split attention convolution layers."""
 
-    def __init__(self, c1: int, c2: int, s: int = 1, e: int = 4, radix: int = 1, d: int = 1, is_first_block: bool = False):
+    def __init__(
+        self, c1: int, c2: int, s: int = 1, e: int = 4, radix: int = 1, d: int = 1, is_first_block: bool = False
+    ):
         """
         Initialize ResNeSt block.
 
@@ -609,7 +611,7 @@ class ResNeStBlock(ResNetBlock):
                 down_layers.append(nn.AvgPool2d(1, 1, ceil_mode=True, count_include_pad=False))
             down_layers.append(Conv(c1, c3, k=1, s=1, act=False))
             self.shortcut = nn.Sequential(*down_layers)
-        
+
         self.avd = s > 1 or is_first_block
         if self.avd:
             self.avd_layer = nn.AvgPool2d(3, s, padding=1)
@@ -627,13 +629,23 @@ class ResNeStBlock(ResNetBlock):
         if self.avd:
             out = self.avd_layer(out)
         return F.relu(self.cv3(self.cv2(out)) + self.shortcut(x))
-    
+
 
 class ResNeStLayer(nn.Module):
     """ResNeSt layer with multiple ResNeSt blocks."""
 
-    def __init__(self, c1: int, c2: int, s: int = 1, is_first: bool = False, 
-                 n: int = 1, dilation: int = 1, e: int = 4, radix: int = 2, deep_stem: bool = True):
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        s: int = 1,
+        is_first: bool = False,
+        n: int = 1,
+        dilation: int = 1,
+        e: int = 4,
+        radix: int = 2,
+        deep_stem: bool = True,
+    ):
         """
         Initialize ResNet layer.
 
@@ -644,7 +656,7 @@ class ResNeStLayer(nn.Module):
             is_first (bool): Whether this is the first layer.
             n (int): Number of ResNet blocks.
             e (int): Expansion ratio.
-            deep_stem (bool): Whether to use deep stem 
+            deep_stem (bool): Whether to use deep stem
         """
         super().__init__()
         self.is_first = is_first
@@ -655,13 +667,12 @@ class ResNeStLayer(nn.Module):
                 self.layer = nn.Sequential(
                     Conv(c1, stem_width, k=3, s=2, p=1, act=True),
                     Conv(stem_width, stem_width, k=3, s=1, p=1, act=True),
-                    Conv(stem_width, c2, k=3, s=1, p=1, act=True), 
-                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+                    Conv(stem_width, c2, k=3, s=1, p=1, act=True),
+                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
                 )
             else:
                 self.layer = nn.Sequential(
-                    Conv(c1, c2, k=7, s=2, p=3, act=True), 
-                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+                    Conv(c1, c2, k=7, s=2, p=3, act=True), nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
                 )
         else:
             is_first_block = False if s == 1 else True
@@ -707,7 +718,7 @@ class ResNetLayer(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the ResNet layer."""
         return self.layer(x)
-    
+
 
 class MaxSigmoidAttnBlock(nn.Module):
     """Max Sigmoid attention block."""

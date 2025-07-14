@@ -170,27 +170,6 @@ class PoseValidator(DetectionValidator):
         pbatch["keypoints"] = kpts
         return pbatch
 
-    def _prepare_pred(self, pred: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Prepare and scale keypoints in predictions for pose processing.
-
-        This method extends the parent class's _prepare_pred method to handle keypoint scaling. It first calls
-        the parent method to get the basic prediction boxes, then extracts and scales the keypoint coordinates
-        to match the original image dimensions.
-
-        Args:
-            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
-            pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
-                - imgsz: Image size used for inference
-                - ori_shape: Original image shape
-                - ratio_pad: Ratio and padding information for coordinate scaling
-
-        Returns:
-            (Dict[str, Any]): Processed prediction dictionary with keypoints scaled to original image dimensions.
-        """
-        predn = super()._prepare_pred(pred)
-        return predn
-
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.

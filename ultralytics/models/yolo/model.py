@@ -243,10 +243,6 @@ class YOLOE(Model):
         """
         super().__init__(model=model, task=task, verbose=verbose)
 
-        # Assign default COCO class names when there are no custom names
-        if not hasattr(self.model, "names"):
-            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
-
     @property
     def task_map(self) -> Dict[str, Dict[str, Any]]:
         """Map head to model, validator, and predictor classes."""
@@ -287,7 +283,7 @@ class YOLOE(Model):
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> img = torch.rand(1, 3, 640, 640)
-            >>> visual_features = model.model.backbone(img)
+            >>> visual_features = torch.rand(1, 1, 80, 80)
             >>> pe = model.get_visual_pe(img, visual_features)
         """
         assert isinstance(self.model, YOLOEModel)

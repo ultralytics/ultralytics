@@ -147,28 +147,21 @@ class DetectionValidator(BaseValidator):
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
-            ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad)  # native-space labels
         return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
 
-    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def _prepare_pred(self, pred: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
         Prepare predictions for evaluation against ground truth.
 
         Args:
             pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
-            pbatch (Dict[str, Any]): Prepared batch information.
 
         Returns:
             (Dict[str, torch.Tensor]): Prepared predictions in native space.
         """
-        cls = pred["cls"]
         if self.args.single_cls:
-            cls *= 0
-        # predn = pred.clone()
-        bboxes = ops.scale_boxes(
-            pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
-        )  # native-space pred
-        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
+            pred["cls"] *= 0
+        return pred
 
     def update_metrics(self, preds: List[Dict[str, torch.Tensor]], batch: Dict[str, Any]) -> None:
         """
@@ -203,6 +196,9 @@ class DetectionValidator(BaseValidator):
 
             # Save
             if self.args.save_json:
+                predn["bboxes"] = ops.scale_boxes(
+                    pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
+                )  # native-space pred
                 self.pred_to_json(predn, batch["im_file"][si])
             if self.args.save_txt:
                 self.save_one_txt(

@@ -174,7 +174,7 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
-            predn = self._prepare_pred(pred, pbatch)
+            predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = len(predn["cls"]) == 0

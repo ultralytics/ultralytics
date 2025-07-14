@@ -147,7 +147,14 @@ class DetectionValidator(BaseValidator):
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
-        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {
+            "cls": cls,
+            "bboxes": bbox,
+            "ori_shape": ori_shape,
+            "imgsz": imgsz,
+            "ratio_pad": ratio_pad,
+            "im_file": batch["im_file"][si],
+        }
 
     def _prepare_pred(self, pred: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
@@ -196,10 +203,7 @@ class DetectionValidator(BaseValidator):
 
             # Save
             if self.args.save_json:
-                predn["bboxes"] = ops.scale_boxes(
-                    pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
-                )  # native-space pred
-                self.pred_to_json(predn, batch["im_file"][si])
+                self.pred_to_json(predn, pbatch)
             if self.args.save_txt:
                 self.save_one_txt(
                     predn,
@@ -356,18 +360,24 @@ class DetectionValidator(BaseValidator):
             boxes=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
         """
         Serialize YOLO predictions to COCO json format.
 
         Args:
             predn (Dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
                 with bounding box coordinates, confidence scores, and class predictions.
-            filename (str): Image filename.
+            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        stem = Path(filename).stem
+        stem = Path(pbatch["im_file"]).stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
+        box = ops.scale_boxes(
+            pbatch["imgsz"],
+            predn["bboxes"].clone(),
+            pbatch["ori_shape"],
+            ratio_pad=pbatch["ratio_pad"],
+        )
+        box = ops.xyxy2xywh(box)  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(

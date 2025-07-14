@@ -240,7 +240,7 @@ class SegmentationValidator(DetectionValidator):
             rles = pool.map(single_encode, pred_masks)
         super().pred_to_json(predn, pbatch)
         for i, r in enumerate(rles):
-            self.jdict[-len(rles) + i]["segmentation"] = r  # flatten keypoints to list
+            self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""

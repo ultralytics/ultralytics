@@ -1286,17 +1286,15 @@ class Exporter:
                 # model inference
                 outputs = self.model(images)
 
-                boxes = outputs[0]
-                scores = outputs[1]
+                boxes, scores = outputs[0], outputs[1]
                 if self.task == "detect":
-                    nms = multiclass_nms(
+                    return multiclass_nms(
                         boxes=boxes,
                         scores=scores,
                         score_threshold=self.score_threshold,
                         iou_threshold=self.iou_threshold,
                         max_detections=self.max_detections,
                     )
-                    return nms
                 elif self.task == "pose":
                     nms = multiclass_nms_with_indices(
                         boxes=boxes,
@@ -1305,12 +1303,8 @@ class Exporter:
                         iou_threshold=self.iou_threshold,
                         max_detections=self.max_detections,
                     )
-                    kpts = torch.permute(outputs[2], (0, 2, 1))  # (bs, max_detections, kpts 17*3)
-                    idx = nms.indices
-                    indices_expanded = idx.unsqueeze(-1).expand(
-                        -1, -1, kpts.size(-1)
-                    )  # add new dimension at the end of tensor idx and expand to match the number of kpts (17*3)
-                    out_kpts = torch.gather(kpts, 1, indices_expanded)
+                    kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
+                    out_kpts = torch.gather(kpts, 1, nms.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
                     return nms.boxes, nms.scores, nms.labels, out_kpts
 
         quant_model = NMSWrapper(

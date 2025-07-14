@@ -25,8 +25,7 @@ __all__ = (
     "RepConv",
     "Index",
     "SplAtConv2d",
-    "RSoftMax"
-
+    "RSoftMax",
 )
 
 
@@ -326,7 +325,7 @@ class RSoftMax(nn.Module):
         else:
             x = torch.sigmoid(x)
         return x
-    
+
 
 class SplAtConv2d(nn.Module):
     """
@@ -376,8 +375,8 @@ class SplAtConv2d(nn.Module):
 
         bs, c = x.shape[:2]
         if self.radix > 1:
-            splited = x.split(int(c // self.radix), dim=1)
-            gap = sum(splited)
+            split = x.split(int(c // self.radix), dim=1)
+            gap = sum(split)
         else:
             gap = x
         gap = F.adaptive_avg_pool2d(gap, 1)
@@ -388,11 +387,11 @@ class SplAtConv2d(nn.Module):
 
         if self.radix > 1:
             attens = atten.split(int(c // self.radix), dim=1)
-            out = sum([att * split for (att, split) in zip(attens, splited)])
+            out = sum([att * split for (att, split) in zip(attens, split)])
         else:
             out = atten * x
         return out.contiguous()
-    
+
 
 class Focus(nn.Module):
     """

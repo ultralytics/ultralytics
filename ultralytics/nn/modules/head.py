@@ -178,14 +178,10 @@ class Detect(nn.Module):
             grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
             norm = self.strides / (self.stride[0] * grid_size)
             dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        elif self.export and self.format == "imx":
-            dbox = self.decode_bboxes(
-                self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False
-            )
-            return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-
+        if self.export and self.format == "imx":
+            return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):

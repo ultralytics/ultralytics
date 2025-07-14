@@ -598,6 +598,9 @@ class ResNeStBlock(ResNetBlock):
             c2 (int): Output channels.
             s (int): Stride.
             e (int): Expansion ratio.
+            raidx (int): Number of splits.
+            d (int): Dilation rate.
+            is_first_block (bool): Whether this is the first block. 
         """
         super().__init__(c1, c2, s, e)
         c3 = e * c2
@@ -642,9 +645,11 @@ class ResNeStLayer(nn.Module):
             c2 (int): Output channels.
             s (int): Stride.
             is_first (bool): Whether this is the first layer.
-            n (int): Number of ResNet blocks.
+            n (int): Number of ResNeSt blocks.
+            dilation (int): Dilation rate.
             e (int): Expansion ratio.
-            deep_stem (bool): Whether to use deep stem 
+            radix (int): Number of splits.
+            deep_stem (bool): Whether to use deep stem. 
         """
         super().__init__()
         self.is_first = is_first

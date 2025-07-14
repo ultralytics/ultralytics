@@ -289,11 +289,35 @@ class ConvTranspose(nn.Module):
 
 
 class RSoftMax(nn.Module):
+    """
+    Softmax for splited tensor.
+
+    Attributes:
+        radix (int): Number of splits. 
+
+    References:
+        https://github.com/JDAI-CV/fast-reid
+    """
     def __init__(self, radix):
+        """
+        Initialize r-softmax with given parameters.
+
+        Args:
+            raidx (int): Number of splits.        
+        """
         super().__init__()
         self.radix = radix
 
     def forward(self, x):
+        """
+        Apply softmax to input tensor after spliting.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor with attention.
+        """
         batch = x.size(0)
         if self.radix > 1:
             x = x.view(batch, 1, self.radix, -1).transpose(1, 2)
@@ -305,10 +329,31 @@ class RSoftMax(nn.Module):
     
 
 class SplAtConv2d(nn.Module):
-    """Split-Attention Conv2d
     """
+    Split attention convolution block.
 
+    Slices input tensor into radix parts and fuses them with attention weights.
+
+    Attributes:
+        conv (Conv): Primary convolution layer.
+        fc1 (Conv): Convolution layer.
+        fc2 (Conv): Convolution layer.
+        rsoftmax (RSoftMax): r-softmax.
+
+    References:
+        https://github.com/JDAI-CV/fast-reid
+    """
     def __init__(self, c, s=1, d=1, radix=2, reduction_factor=4):
+        """
+        Initialize SplAtConv2d with given parameters.
+
+        Args:
+            c (int): Number of input channels.
+            s (int): Stride.
+            d (int): Dilation rate.
+            raidx (int): Number of splits..
+            reduction_factor (int): reduction factor of attention.
+        """
         super(SplAtConv2d, self).__init__()
         inter_channels = max(c * radix // reduction_factor, 32)
         self.radix = radix
@@ -318,6 +363,15 @@ class SplAtConv2d(nn.Module):
         self.rsoftmax = RSoftMax(radix)
 
     def forward(self, x):
+        """
+        Apply Split Attention Convolution to input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor with attention.
+        """
         x = self.conv(x)
 
         bs, c = x.shape[:2]

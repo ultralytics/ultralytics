@@ -722,6 +722,7 @@ class SolutionAnnotator(Annotator):
 
         x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)  # Calculate center of the bbox
         text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]  # Get size of the text
+        text_x, text_y = x_center - text_size[0] // 2, y_center + text_size[1] // 2  # Calculate top-left corner of text
 
         if shape=="circle":
             cv2.circle(self.im,
@@ -740,7 +741,7 @@ class SolutionAnnotator(Annotator):
         cv2.putText(
             self.im,
             label,
-            (x_center - text_size[0] // 2, y_center + text_size[1] // 2), # Calculate top-left corner of the text
+            (text_x, text_y), # Calculate top-left corner of the text
             cv2.FONT_HERSHEY_SIMPLEX,
             self.sf - 0.15,
             self.get_txt_color(color, txt_color),

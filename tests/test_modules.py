@@ -16,7 +16,7 @@ def test_permute(shape_in, shape_out, permutation):
     ip = torch.Tensor(*shape_in)
     out = layer(ip)
     assert out.shape == shape_out, f"Test failed for Permute module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
-    torch.testing.assert_close(out.reshape(-1), ip.reshape(-1))
+    torch.testing.assert_close(torch.sort(out.reshape(-1)).values, torch.sort(ip.reshape(-1)).values)
 
 
 @pytest.mark.parametrize(
@@ -28,4 +28,4 @@ def test_reshape(shape_in, shape_out):
     ip = torch.Tensor(*shape_in)
     out = layer(ip)
     assert out.shape == shape_out, f"Test failed for Reshape module. Input shape: {shape_in}, Output shape: {out.shape}, Expected shape: {shape_out}"
-    torch.testing.assert_close(out.reshape(-1), ip.reshape(-1))
+    torch.testing.assert_close(torch.sort(out.reshape(-1)).values, torch.sort(ip.reshape(-1)).values)

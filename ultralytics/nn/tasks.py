@@ -60,6 +60,7 @@ from ultralytics.nn.modules import (
     RepNCSPELAN4,
     RepVGGDW,
     ResNetLayer,
+    ResNeStLayer,
     RTDETRDecoder,
     SCDown,
     Segment,
@@ -1708,7 +1709,7 @@ def parse_model(d, ch, verbose=True):
             if m is HGBlock:
                 args.insert(4, n)  # number of repeats
                 n = 1
-        elif m is ResNetLayer:
+        elif m in [ResNetLayer, ResNeStLayer]:
             c2 = args[1] if args[3] else args[1] * 4
         elif m is torch.nn.BatchNorm2d:
             args = [ch[f]]

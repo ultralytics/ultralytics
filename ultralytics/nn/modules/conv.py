@@ -7,6 +7,7 @@ from typing import List
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 __all__ = (
     "Conv",
@@ -23,6 +24,9 @@ __all__ = (
     "Concat",
     "RepConv",
     "Index",
+    "SplAtConv2d",
+    "RSoftMax"
+
 )
 
 
@@ -283,6 +287,58 @@ class ConvTranspose(nn.Module):
         """
         return self.act(self.conv_transpose(x))
 
+
+class RSoftMax(nn.Module):
+    def __init__(self, radix):
+        super().__init__()
+        self.radix = radix
+
+    def forward(self, x):
+        batch = x.size(0)
+        if self.radix > 1:
+            x = x.view(batch, 1, self.radix, -1).transpose(1, 2)
+            x = F.softmax(x, dim=1)
+            x = x.reshape(batch, -1)
+        else:
+            x = torch.sigmoid(x)
+        return x
+    
+
+class SplAtConv2d(nn.Module):
+    """Split-Attention Conv2d
+    """
+
+    def __init__(self, c, s=1, d=1, radix=2, reduction_factor=4):
+        super(SplAtConv2d, self).__init__()
+        inter_channels = max(c * radix // reduction_factor, 32)
+        self.radix = radix
+        self.conv = Conv(c, c * radix, k=3, s=s, d=d, g=radix, act=True)
+        self.fc1 = Conv(c, inter_channels, k=1, s=1, act=True)
+        self.fc2 = nn.Conv2d(inter_channels, c * radix, 1)
+        self.rsoftmax = RSoftMax(radix)
+
+    def forward(self, x):
+        x = self.conv(x)
+
+        bs, c = x.shape[:2]
+        if self.radix > 1:
+            splited = x.split(int(c // self.radix), dim=1)
+            gap = sum(splited)
+        else:
+            gap = x
+        gap = F.adaptive_avg_pool2d(gap, 1)
+        gap = self.fc1(gap)
+
+        atten = self.fc2(gap)
+        atten = self.rsoftmax(atten).view(bs, -1, 1, 1)
+
+        if self.radix > 1:
+            attens = atten.split(int(c // self.radix), dim=1)
+            out = sum([att * split for (att, split) in zip(attens, splited)])
+        else:
+            out = atten * x
+        return out.contiguous()
+    
 
 class Focus(nn.Module):
     """

@@ -243,10 +243,6 @@ class YOLOE(Model):
         """
         super().__init__(model=model, task=task, verbose=verbose)
 
-        # Assign default COCO class names when there are no custom names
-        if not hasattr(self.model, "names"):
-            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
-
     @property
     def task_map(self) -> Dict[str, Dict[str, Any]]:
         """Map head to model, validator, and predictor classes."""

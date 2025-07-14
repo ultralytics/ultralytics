@@ -65,7 +65,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 ### Usage of SolutionAnnotator
 
 All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
-
+: Visualize a vertical sweep line and optional label.
 | Method                             | Return Type | Description                                                            |
 | ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
 | `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.          |
@@ -77,9 +77,10 @@ All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://d
 | `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.        |
 | `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line. |
 | `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
+| `sweep_annotator()`                | `None`      | Visualize a vertical sweep line and optional label.       |
 | `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
 | `circle_label()`                   | `None`      | Draws a circular label in the place of a bounding box.                 |
-| `text_label()`                     | `None`      | Draws a rectangular label in the place of a bounding box.              |
+| `adaptive_label()`                     | `None`      | Draw a circular or rectangle background shape label in center of a bounding box.              |
 
 ### Working with SolutionResults
 

@@ -287,8 +287,7 @@ class SolutionAnnotator(Annotator):
         display_objects_labels: Annotate bounding boxes with object class labels.
         sweep_annotator: Visualize a vertical sweep line and optional label.
         visioneye: Map and connect object centroids to a visual "eye" point.
-        circle_label: Draw a circular label within a bounding box.
-        text_label: Draw a rectangular label within a bounding box.
+        adaptive_label: Draw a circular or rectangle background shape label in center of a bounding box.
 
     Examples:
         >>> annotator = SolutionAnnotator(image)
@@ -706,7 +705,7 @@ class SolutionAnnotator(Annotator):
         margin: int = 5,
     ):
         """
-        Draw a label with a background rectangle centered within a given bounding box.
+        Draw a label with a background rectangle or circle centered within a given bounding box.
 
         Args:
             box (Tuple[float, float, float, float]): The bounding box coordinates (x1, y1, x2, y2).

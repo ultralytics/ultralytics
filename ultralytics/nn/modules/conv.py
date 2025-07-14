@@ -289,27 +289,28 @@ class ConvTranspose(nn.Module):
 
 class RSoftMax(nn.Module):
     """
-    Softmax for splited tensor.
+    Softmax for split tensor.
 
     Attributes:
-        radix (int): Number of splits. 
+        radix (int): Number of splits.
 
     References:
         https://github.com/JDAI-CV/fast-reid
     """
+
     def __init__(self, radix):
         """
         Initialize r-softmax with given parameters.
 
         Args:
-            raidx (int): Number of splits.        
+            raidx (int): Number of splits.
         """
         super().__init__()
         self.radix = radix
 
     def forward(self, x):
         """
-        Apply softmax to input tensor after spliting.
+        Apply softmax to input tensor after splitting.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -342,6 +343,7 @@ class SplAtConv2d(nn.Module):
     References:
         https://github.com/JDAI-CV/fast-reid
     """
+
     def __init__(self, c, s=1, d=1, radix=2, reduction_factor=4):
         """
         Initialize SplAtConv2d with given parameters.
@@ -353,7 +355,7 @@ class SplAtConv2d(nn.Module):
             raidx (int): Number of splits..
             reduction_factor (int): reduction factor of attention.
         """
-        super(SplAtConv2d, self).__init__()
+        super().__init__()
         inter_channels = max(c * radix // reduction_factor, 32)
         self.radix = radix
         self.conv = Conv(c, c * radix, k=3, s=s, d=d, g=radix, act=True)

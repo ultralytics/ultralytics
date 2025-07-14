@@ -421,7 +421,7 @@ jobs:
           (github.event_name == 'schedule' || github.event_name == 'push') &&
           github.run_attempt == '1' &&
           (failure() || cancelled())
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

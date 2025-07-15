@@ -35,6 +35,13 @@ The IMX500 works with quantized models. Quantization makes models smaller and fa
 
 **Before You Begin:** For best results, ensure your YOLO11 model is well-prepared for export by following our [Model Training Guide](https://docs.ultralytics.com/modes/train/), [Data Preparation Guide](https://docs.ultralytics.com/datasets/), and [Hyperparameter Tuning Guide](https://docs.ultralytics.com/guides/hyperparameter-tuning/).
 
+## Supported Tasks
+
+Currently, you can only export models that include the following tasks to IMX500 format.
+
+- [Object detection](https://docs.ultralytics.com/tasks/detect/)
+- [Pose estimation](https://docs.ultralytics.com/tasks/pose/)
+
 ## Usage Examples
 
 Export an Ultralytics YOLO11 model to IMX500 format and run inference with the exported model.
@@ -43,7 +50,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
 
     Here we perform inference just to make sure the model works as expected. However, for deployment and inference on the Raspberry Pi AI Camera, please jump to [Using IMX500 Export in Deployment](#using-imx500-export-in-deployment) section.
 
-!!! example
+!!! example "Object Detection"
 
     === "Python"
 
@@ -73,6 +80,36 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
+!!! example "Pose Estimation"
+
+    === "Python"
+
+         ```python
+         from ultralytics import YOLO
+
+         # Load a YOLO11n-pose PyTorch model
+         model = YOLO("yolo11n-pose.pt")
+
+         # Export the model
+         model.export(format="imx", data="coco8-pose.yaml")  # exports with PTQ quantization by default
+
+         # Load the exported model
+         imx_model = YOLO("yolo11n-pose_imx_model")
+
+         # Run inference
+         results = imx_model("https://ultralytics.com/images/bus.jpg")
+         ```
+
+    === "CLI"
+
+         ```bash
+         # Export a YOLO11n-pose PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo11n-pose.pt format=imx data=coco8-pose.yaml
+
+         # Run inference with the exported model
+         yolo predict model=yolo11n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
+         ```
+
 !!! warning
 
     The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
@@ -96,15 +133,31 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 The export process will create an ONNX model for quantization validation, along with a directory named `<model-name>_imx_model`. This directory will include the `packerOut.zip` file, which is essential for packaging the model for deployment on the IMX500 hardware. Additionally, the `<model-name>_imx_model` folder will contain a text file (`labels.txt`) listing all the labels associated with the model.
 
-```bash
-yolo11n_imx_model
-├── dnnParams.xml
-├── labels.txt
-├── packerOut.zip
-├── yolo11n_imx.onnx
-├── yolo11n_imx500_model_MemoryReport.json
-└── yolo11n_imx500_model.pbtxt
-```
+!!! example "Folder Structure"
+
+    === "Object Detection"
+
+        ```bash
+        yolo11n_imx_model
+        ├── dnnParams.xml
+        ├── labels.txt
+        ├── packerOut.zip
+        ├── yolo11n_imx.onnx
+        ├── yolo11n_imx500_model_MemoryReport.json
+        └── yolo11n_imx500_model.pbtxt
+        ```
+
+    === "Pose Estimation"
+
+        ```bash
+        yolo11n-pose_imx_model
+        ├── dnnParams.xml
+        ├── labels.txt
+        ├── packerOut.zip
+        ├── yolo11n-pose_imx.onnx
+        ├── yolo11n-pose_imx500_model_MemoryReport.json
+        └── yolo11n-pose_imx500_model.pbtxt
+        ```
 
 ## Using IMX500 Export in Deployment
 
@@ -131,69 +184,127 @@ Step 1: Open a terminal window and execute the following commands to update the 
 sudo apt update && sudo apt full-upgrade
 ```
 
-Step 2: Install IMX500 firmware which is required to operate the IMX500 sensor along with a packager tool.
+Step 2: Install IMX500 firmware which is required to operate the IMX500 sensor.
 
 ```bash
-sudo apt install imx500-all imx500-tools
+sudo apt install imx500-all
 ```
 
-Step 3: Install prerequisites to run `picamera2` application. We will use this application later for the deployment process.
-
-```bash
-sudo apt install python3-opencv python3-munkres
-```
-
-Step 4: Reboot Raspberry Pi for the changes to take into effect
+Step 3: Reboot Raspberry Pi for the changes to take into effect
 
 ```bash
 sudo reboot
 ```
 
-### Package Model and Deploy to AI Camera
-
-After obtaining `packerOut.zip` from the IMX500 conversion process, you can pass this file into the packager tool to obtain an RPK file. This file can then be deployed directly to the AI Camera using `picamera2`.
-
-Step 1: Package the model into RPK file
+Step 4: Install [Aitrios Raspberry Pi application module library](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library)
 
 ```bash
-imx500-package -i path/to/packerOut.zip -o path/to/output/folder
+pip install git+https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library.git
 ```
 
-The above will generate a `network.rpk` file inside the specified output folder.
-
-Step 2: Clone `picamera2` repository, install it and navigate to the imx500 examples
-
-```bash
-git clone https://github.com/raspberrypi/picamera2
-cd picamera2
-pip install -e . --break-system-packages
-cd examples/imx500
-```
-
-Step 3: Run YOLO11 object detection, using the labels.txt file that has been generated during the IMX500 export.
-
-```bash
-python imx500_object_detection_demo.py --model path/to/network.rpk --fps 17 --bbox-normalization --ignore-dash-labels --bbox-order xy --labels path/to/labels.txt
-```
-
-Then you will be able to see live inference output as follows
-
-<p align="center">
-  <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/imx500-inference-rpi.avif" alt="Inference on Raspberry Pi AI Camera">
-</p>
-
-## Benchmarks
-
-YOLOv8 and YOLO11n benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
-
-| Model   | Format | Status | Size of `RPK` (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------- | ------ | ------ | ------------------ | ----------- | ---------------------- |
-| YOLOv8n | imx    | ✅     | 3.1                | 0.433       | 58.82                  |
-| YOLO11n | imx    | ✅     | 3.2                | 0.492       | 62.50                  |
+Step 5: Run YOLO11 object detection and pose estimation by using the below scripts which are available in [aitrios-rpi-application-module-library examples](https://github.com/SonySemiconductorSolutions/aitrios-rpi-application-module-library/tree/main/examples/aicam).
 
 !!! note
 
-    Validation for the above benchmark was done using COCO128 dataset on a Raspberry Pi 5
+    Make sure to replace `model_file` and `labels.txt` directories according to your environment before running these scripts.
+
+!!! example "Python Scripts"
+
+    === "Object Detection"
+
+         ```python
+         import numpy as np
+         from modlib.apps import Annotator
+         from modlib.devices import AiCamera
+         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+         from modlib.models.post_processors import pp_od_yolo_ultralytics
+
+
+         class Yolo(Model):
+             def __init__(self):
+                 super().__init__(
+                     model_file="yolo11n_imx_model/packerOut.zip",  # replace with proper directory
+                     model_type=MODEL_TYPE.CONVERTED,
+                     color_format=COLOR_FORMAT.RGB,
+                     preserve_aspect_ratio=False,
+                 )
+
+                 self.labels = np.genfromtxt(
+                     "yolo11n_imx_model/labels.txt",  # replace with proper directory
+                     dtype=str,
+                     delimiter="\n",
+                 )
+
+             def post_process(self, output_tensors):
+                 return pp_od_yolo_ultralytics(output_tensors)
+
+
+         device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the Yolo model running on the AI Camera
+         model = Yolo()
+         device.deploy(model)
+
+         annotator = Annotator()
+
+         with device as stream:
+             for frame in stream:
+                 detections = frame.detections[frame.detections.confidence > 0.55]
+                 labels = [f"{model.labels[class_id]}: {score:0.2f}" for _, score, class_id, _ in detections]
+
+                 annotator.annotate_boxes(frame, detections, labels=labels, alpha=0.3, corner_radius=10)
+                 frame.display()
+         ```
+
+    === "Pose Estimation"
+
+         ```python
+         from modlib.apps import Annotator
+         from modlib.devices import AiCamera
+         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+         from modlib.models.post_processors import pp_yolo_pose_ultralytics
+
+
+         class YoloPose(Model):
+             def __init__(self):
+                 super().__init__(
+                     model_file="yolo11n-pose_imx_model/packerOut.zip",  # replace with proper directory
+                     model_type=MODEL_TYPE.CONVERTED,
+                     color_format=COLOR_FORMAT.RGB,
+                     preserve_aspect_ratio=False,
+                 )
+
+             def post_process(self, output_tensors):
+                 return pp_yolo_pose_ultralytics(output_tensors)
+
+
+         device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the Yolo-pose model running on the AI Camera
+         model = YoloPose()
+         device.deploy(model)
+
+         annotator = Annotator()
+
+         with device as stream:
+             for frame in stream:
+                 detections = frame.detections[frame.detections.confidence > 0.4]
+
+                 annotator.annotate_keypoints(frame, detections)
+                 annotator.annotate_boxes(frame, detections, corner_length=20)
+                 frame.display()
+         ```
+
+## Benchmarks
+
+YOLOv8n, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
+
+| Model        | Format | Status | Size of `packerOut.zip` (MB) | mAP50-95(B) | Inference time (ms/im) |
+| ------------ | ------ | ------ | ---------------------------- | ----------- | ---------------------- |
+| YOLOv8n      | imx    | ✅     | 2.1                          | 0.470       | 58.79                  |
+| YOLO11n      | imx    | ✅     | 2.2                          | 0.517       | 58.82                  |
+| YOLOv8n-pose | imx    | ✅     | 2.0                          | 0.687       | 58.79                  |
+| YOLO11n-pose | imx    | ✅     | 2.1                          | 0.788       | 62.50                  |
+
+!!! note
+
+    Validation for the above benchmarks were done using COCO128 dataset for detection models and COCO8-Pose dataset for pose estimation models
 
 ## What's Under the Hood?
 
@@ -276,7 +387,7 @@ model = YOLO("yolo11n.pt")
 model.export(format="imx")  # Exports with PTQ quantization by default
 ```
 
-The export process will create a directory containing the necessary files for deployment, including `packerOut.zip` which can be used with the IMX500 packager tool on Raspberry Pi.
+The export process will create a directory containing the necessary files for deployment, including `packerOut.zip`.
 
 ### What are the key benefits of using the IMX500 format for edge AI deployment?
 
@@ -300,8 +411,7 @@ Hardware:
 Software:
 
 - Raspberry Pi OS Bookworm
-- IMX500 firmware and tools (`sudo apt install imx500-all imx500-tools`)
-- Python packages for `picamera2` (`sudo apt install python3-opencv python3-munkres`)
+- IMX500 firmware and tools (`sudo apt install imx500-all`)
 
 ### What performance can I expect from YOLO11 models on the IMX500?
 
@@ -312,26 +422,3 @@ Based on Ultralytics benchmarks on Raspberry Pi AI Camera:
 - Model size of only 3.2MB after quantization
 
 This demonstrates that IMX500 format provides efficient real-time inference while maintaining good accuracy for edge AI applications.
-
-### How do I package and deploy my exported model to the Raspberry Pi AI Camera?
-
-After exporting to IMX500 format:
-
-1. Use the packager tool to create an RPK file:
-
-    ```bash
-    imx500-package -i path/to/packerOut.zip -o path/to/output/folder
-    ```
-
-2. Clone and install picamera2:
-
-    ```bash
-    git clone https://github.com/raspberrypi/picamera2
-    cd picamera2 && pip install -e . --break-system-packages
-    ```
-
-3. Run inference using the generated RPK file:
-
-    ```bash
-    python imx500_object_detection_demo.py --model path/to/network.rpk --fps 17 --bbox-normalization --labels path/to/labels.txt
-    ```

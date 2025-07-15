@@ -184,7 +184,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         ```python
         import numpy as np
 
-        from ultralytics import YOLOE, ASSETS
+        from ultralytics import ASSETS, YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
@@ -227,7 +227,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         ```python
         import numpy as np
 
-        from ultralytics import YOLOE, ASSETS
+        from ultralytics import ASSETS, YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model

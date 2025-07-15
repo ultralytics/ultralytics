@@ -138,7 +138,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
         ```python
-        from ultralytics import YOLO, ASSETS
+        from ultralytics import ASSETS, YOLO
 
         # Build a YOLOv9c model from scratch
         model = YOLO("yolov9c.yaml")

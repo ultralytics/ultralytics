@@ -126,7 +126,7 @@ Download the MobileSAM pretrained weights from [Ultralytics assets](https://gith
     === "Python"
 
         ```python
-        from ultralytics import SAM, ASSETS
+        from ultralytics import ASSETS, SAM
 
         # Load the model
         model = SAM("mobile_sam.pt")
@@ -151,7 +151,7 @@ Download the MobileSAM pretrained weights from [Ultralytics assets](https://gith
     === "Python"
 
         ```python
-        from ultralytics import SAM, ASSETS
+        from ultralytics import ASSETS, SAM
 
         # Load the model
         model = SAM("mobile_sam.pt")
@@ -217,7 +217,7 @@ MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.co
 Testing MobileSAM in Ultralytics is straightforward. You can use Point and Box prompts to predict segments. For example, using a Point prompt:
 
 ```python
-from ultralytics import SAM, ASSETS
+from ultralytics import ASSETS, SAM
 
 # Load the model
 model = SAM("mobile_sam.pt")

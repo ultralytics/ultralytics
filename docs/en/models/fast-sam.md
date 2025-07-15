@@ -108,7 +108,7 @@ To perform [object detection](https://www.ultralytics.com/glossary/object-detect
     === "Python"
 
         ```python
-        from ultralytics import FastSAM, ASSETS
+        from ultralytics import ASSETS, FastSAM
 
         # Define an inference source
         source = ASSETS / "bus.jpg"
@@ -327,7 +327,7 @@ Its ability to handle various user interaction prompts makes FastSAM adaptable a
 To use FastSAM for inference in Python, you can follow the example below:
 
 ```python
-from ultralytics import FastSAM, ASSETS
+from ultralytics import ASSETS, FastSAM
 
 # Define an inference source
 source = ASSETS / "bus.jpg"

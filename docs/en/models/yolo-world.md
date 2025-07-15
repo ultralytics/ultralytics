@@ -94,7 +94,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in python:
 
         ```python
-        from ultralytics import YOLOWorld, ASSETS
+        from ultralytics import ASSETS, YOLOWorld
 
         # Load a pretrained YOLOv8s-worldv2 model
         model = YOLOWorld("yolov8s-worldv2.pt")

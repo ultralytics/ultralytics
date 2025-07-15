@@ -60,7 +60,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
 
         ```python
-        from ultralytics import NAS, ASSETS
+        from ultralytics import ASSETS, NAS
 
         # Load a COCO-pretrained YOLO-NAS-s model
         model = NAS("yolo_nas_s.pt")
@@ -136,7 +136,7 @@ YOLO-NAS, developed by Deci AI, is a state-of-the-art object detection model lev
 You can easily integrate YOLO-NAS models into your Python application using the `ultralytics` package. Here's a simple example of how to load a pre-trained YOLO-NAS model and perform inference:
 
 ```python
-from ultralytics import NAS, ASSETS
+from ultralytics import ASSETS, NAS
 
 # Load a COCO-pretrained YOLO-NAS-s model
 model = NAS("yolo_nas_s.pt")

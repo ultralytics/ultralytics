@@ -115,7 +115,7 @@ Note that the example below is for YOLO11 [Detect](../tasks/detect.md) models fo
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
 
         ```python
-        from ultralytics import YOLO, ASSETS
+        from ultralytics import ASSETS, YOLO
 
         # Load a COCO-pretrained YOLO11n model
         model = YOLO("yolo11n.pt")

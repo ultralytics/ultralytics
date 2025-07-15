@@ -47,7 +47,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
         ```python
-        from ultralytics import YOLO, ASSETS
+        from ultralytics import ASSETS, YOLO
 
         # Load a COCO-pretrained YOLOv3u model
         model = YOLO("yolov3u.pt")
@@ -139,7 +139,7 @@ You can perform inference using YOLOv3 models by either Python scripts or CLI co
     === "Python"
 
         ```python
-        from ultralytics import YOLO, ASSETS
+        from ultralytics import ASSETS, YOLO
 
         # Load a COCO-pretrained YOLOv3u model
         model = YOLO("yolov3u.pt")

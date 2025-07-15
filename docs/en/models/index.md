@@ -56,7 +56,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()`, `SAM()`, `NAS()` and `RTDETR()` classes to create a model instance in Python:
 
         ```python
-        from ultralytics import YOLO, ASSETS
+        from ultralytics import ASSETS, YOLO
 
         # Load a COCO-pretrained YOLOv8n model
         model = YOLO("yolov8n.pt")

@@ -128,7 +128,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         import cv2
         from PIL import Image
 
-        from ultralytics import YOLO, ASSETS
+        from ultralytics import ASSETS, YOLO
 
         model = YOLO("model.pt")
         # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam

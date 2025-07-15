@@ -32,9 +32,9 @@ class NAS(Model):
         info: Log model information and return model details.
 
     Examples:
-        >>> from ultralytics import NAS
+        >>> from ultralytics import NAS, ASSETS
         >>> model = NAS("yolo_nas_s")
-        >>> results = model.predict("ultralytics/assets/bus.jpg")
+        >>> results = model.predict(ASSETS / "bus.jpg")
 
     Notes:
         YOLO-NAS models only support pre-trained models. Do not provide YAML configuration files.

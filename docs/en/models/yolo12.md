@@ -86,7 +86,7 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
         Pretrained `*.pt` models (using [PyTorch](https://pytorch.org/)) and configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
 
         ```python
-        from ultralytics import YOLO
+        from ultralytics import YOLO, ASSETS
 
         # Load a COCO-pretrained YOLO12n model
         model = YOLO("yolo12n.pt")
@@ -95,7 +95,7 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLO12n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
@@ -107,7 +107,7 @@ The examples below focus on YOLO12 [Detect](../tasks/detect.md) models (for obje
         yolo train model=yolo12n.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLO12n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolo12n.pt source=path/to/bus.jpg
+        yolo predict model=yolo12n.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Key Improvements

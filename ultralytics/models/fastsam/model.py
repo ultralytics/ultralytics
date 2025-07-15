@@ -26,9 +26,9 @@ class FastSAM(Model):
 
     Examples:
         Initialize FastSAM model and run prediction
-        >>> from ultralytics import FastSAM
+        >>> from ultralytics import FastSAM, ASSETS
         >>> model = FastSAM("FastSAM-x.pt")
-        >>> results = model.predict("ultralytics/assets/bus.jpg")
+        >>> results = model.predict(ASSETS / "bus.jpg")
 
         Run prediction with bounding box prompts
         >>> results = model.predict("image.jpg", bboxes=[[100, 100, 200, 200]])

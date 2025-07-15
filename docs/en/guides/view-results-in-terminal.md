@@ -44,13 +44,13 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 3. Load a model and execute inference, then plot the results and store in a variable. See more about inference arguments and working with results on the [predict mode](../modes/predict.md) page.
 
     ```{ .py .annotate }
-    from ultralytics import YOLO
+    from ultralytics import YOLO, ASSETS
 
     # Load a model
     model = YOLO("yolo11n.pt")
 
     # Run inference on an image
-    results = model.predict(source="ultralytics/assets/bus.jpg")
+    results = model.predict(source=ASSETS / "bus.jpg")
 
     # Plot inference results
     plot = results[0].plot()  # (1)!
@@ -108,13 +108,13 @@ import io
 import cv2
 from sixel import SixelWriter
 
-from ultralytics import YOLO
+from ultralytics import YOLO, ASSETS
 
 # Load a model
 model = YOLO("yolo11n.pt")
 
 # Run inference on an image
-results = model.predict(source="ultralytics/assets/bus.jpg")
+results = model.predict(source=ASSETS / "bus.jpg")
 
 # Plot inference results
 plot = results[0].plot()  # (3)!

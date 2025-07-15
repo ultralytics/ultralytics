@@ -48,7 +48,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
         YOLOv6 `*.yaml` files can be passed to the `YOLO()` class to build the corresponding model in Python:
 
         ```python
-        from ultralytics import YOLO
+        from ultralytics import YOLO, ASSETS
 
         # Build a YOLOv6n model from scratch
         model = YOLO("yolov6n.yaml")
@@ -60,7 +60,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv6n model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
@@ -72,7 +72,7 @@ This example provides simple YOLOv6 training and inference examples. For full do
         yolo train model=yolov6n.yaml data=coco8.yaml epochs=100 imgsz=640
 
         # Build a YOLOv6n model from scratch and run inference on the 'bus.jpg' image
-        yolo predict model=yolov6n.yaml source=path/to/bus.jpg
+        yolo predict model=yolov6n.yaml source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Supported Tasks and Modes

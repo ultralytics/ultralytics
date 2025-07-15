@@ -285,10 +285,10 @@ When scaling an image up or down, you can appropriately scale corresponding boun
 ```python
 import cv2 as cv
 import numpy as np
-
+from ultralytics import ASSETS
 from ultralytics.utils.ops import scale_boxes
 
-image = cv.imread("ultralytics/assets/bus.jpg")
+image = cv.imread(ASSETS / "bus.jpg")
 h, w, c = image.shape
 resized = cv.resize(image, None, (), fx=1.2, fy=1.2)
 new_h, new_w, _ = resized.shape
@@ -484,7 +484,7 @@ Find additional details about the `sweep_annotator` method in our reference sect
 ```python
 import cv2 as cv
 import numpy as np
-
+from ultralytics import ASSETS
 from ultralytics.utils.plotting import Annotator, colors
 
 names = {
@@ -493,7 +493,7 @@ names = {
     11: "stop sign",
 }
 
-image = cv.imread("ultralytics/assets/bus.jpg")
+image = cv.imread(ASSETS / "bus.jpg")
 ann = Annotator(
     image,
     line_width=None,  # default auto-size

@@ -128,7 +128,7 @@ For example, users can load a model, train it, evaluate its performance on a val
         import cv2
         from PIL import Image
 
-        from ultralytics import YOLO
+        from ultralytics import YOLO, ASSETS
 
         model = YOLO("model.pt")
         # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
@@ -136,11 +136,11 @@ For example, users can load a model, train it, evaluate its performance on a val
         results = model.predict(source="folder", show=True)  # Display preds. Accepts all YOLO predict arguments
 
         # from PIL
-        im1 = Image.open("bus.jpg")
+        im1 = Image.open(ASSETS / "bus.jpg")
         results = model.predict(source=im1, save=True)  # save plotted images
 
         # from ndarray
-        im2 = cv2.imread("bus.jpg")
+        im2 = cv2.imread(ASSETS / "bus.jpg")
         results = model.predict(source=im2, save=True, save_txt=True)  # save predictions as labels
 
         # from list of PIL/ndarray

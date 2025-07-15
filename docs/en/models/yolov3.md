@@ -47,7 +47,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
         ```python
-        from ultralytics import YOLO
+        from ultralytics import YOLO, ASSETS
 
         # Load a COCO-pretrained YOLOv3u model
         model = YOLO("yolov3u.pt")
@@ -59,7 +59,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv3u model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
@@ -71,7 +71,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
         yolo train model=yolov3u.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained YOLOv3u model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov3u.pt source=path/to/bus.jpg
+        yolo predict model=yolov3u.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Citations and Acknowledgements
@@ -139,20 +139,20 @@ You can perform inference using YOLOv3 models by either Python scripts or CLI co
     === "Python"
 
         ```python
-        from ultralytics import YOLO
+        from ultralytics import YOLO, ASSETS
 
         # Load a COCO-pretrained YOLOv3u model
         model = YOLO("yolov3u.pt")
 
         # Run inference with the YOLOv3u model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
 
         ```bash
         # Load a COCO-pretrained YOLOv3u model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov3u.pt source=path/to/bus.jpg
+        yolo predict model=yolov3u.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 Refer to the [Inference mode documentation](../modes/predict.md) for more details on running YOLO models.

@@ -174,7 +174,7 @@ For predicting new images with YOLOv10:
 
         ```bash
         # Load a COCO-pretrained YOLOv10n model and run inference on the 'bus.jpg' image
-        yolo detect predict model=yolov10n.pt source=path/to/bus.jpg
+        yolo detect predict model=yolov10n.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 For training YOLOv10 on a custom dataset:
@@ -200,7 +200,7 @@ For training YOLOv10 on a custom dataset:
         yolo train model=yolov10n.yaml data=coco8.yaml epochs=100 imgsz=640
 
         # Build a YOLOv10n model from scratch and run inference on the 'bus.jpg' image
-        yolo predict model=yolov10n.yaml source=path/to/bus.jpg
+        yolo predict model=yolov10n.yaml source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Supported Tasks and Modes

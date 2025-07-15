@@ -184,7 +184,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         ```python
         import numpy as np
 
-        from ultralytics import YOLOE
+        from ultralytics import YOLOE, ASSETS
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
@@ -209,7 +209,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
         # Run inference on an image, using the provided visual prompts as guidance
         results = model.predict(
-            "ultralytics/assets/bus.jpg",
+            ASSETS / "bus.jpg",
             visual_prompts=visual_prompts,
             predictor=YOLOEVPSegPredictor,
         )
@@ -227,7 +227,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         ```python
         import numpy as np
 
-        from ultralytics import YOLOE
+        from ultralytics import YOLOE, ASSETS
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
         # Initialize a YOLOE model
@@ -241,8 +241,8 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
         # Run prediction on a different image, using reference image to guide what to look for
         results = model.predict(
-            "ultralytics/assets/zidane.jpg",  # Target image for detection
-            refer_image="ultralytics/assets/bus.jpg",  # Reference image used to get visual prompts
+            ASSETS / "zidane.jpg",  # Target image for detection
+            refer_image=ASSETS / "bus.jpg",  # Reference image used to get visual prompts
             visual_prompts=visual_prompts,
             predictor=YOLOEVPSegPredictor,
         )
@@ -254,7 +254,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         Using `refer_image` also sets the classes permanently, so you can run predictions without having to supply the same visual prompts again, and export the model while retaining the ability to still detect the same classes after export:
         ```python
         # After making prediction with `refer_image`, you can run predictions without passing visual_prompts again and still get the same classes back
-        results = model("ultralytics/assets/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
 
         # Or export it to a different format while retaining the classes
         model.export(format="onnx")
@@ -296,7 +296,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
         # Run inference on multiple image, using the provided visual prompts as guidance
         results = model.predict(
-            ["ultralytics/assets/bus.jpg", "ultralytics/assets/zidane.jpg"],
+            [ASSETS / "bus.jpg", ASSETS / "zidane.jpg"],
             visual_prompts=visual_prompts,
             predictor=YOLOEVPSegPredictor,
         )

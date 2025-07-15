@@ -49,7 +49,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Python"
 
         ```python
-        from ultralytics import SAM
+        from ultralytics import SAM, ASSETS
 
         # Load a model
         model = SAM("sam_b.pt")
@@ -58,7 +58,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model.info()
 
         # Run inference with bboxes prompt
-        results = model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+        results = model(ASSETS / "zidane.jpg", bboxes=[439, 437, 524, 709])
 
         # Run inference with single point
         results = model(points=[900, 370], labels=[1])
@@ -108,6 +108,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Prompt inference"
 
         ```python
+        from ultralytics import ASSETS
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
@@ -115,8 +116,8 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor = SAMPredictor(overrides=overrides)
 
         # Set image
-        predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
-        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
+        predictor.set_image(ASSETS / "zidane.jpg")  # set with image file
+        predictor.set_image(cv2.imread(ASSETS / "zidane.jpg"))  # set with np.ndarray
         results = predictor(bboxes=[439, 437, 524, 709])
 
         # Run inference with single point prompt
@@ -137,6 +138,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Segment everything"
 
         ```python
+        from ultralytics import ASSETS
         from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
@@ -144,7 +146,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args
-        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
+        results = predictor(source=ASSETS / "zidane.jpg", crop_n_layers=1, points_stride=64)
         ```
 
 !!! note
@@ -250,25 +252,25 @@ The Segment Anything Model (SAM) by Ultralytics is a revolutionary image segment
 You can use the Segment Anything Model (SAM) for image segmentation by running inference with various prompts such as bounding boxes or points. Here's an example using Python:
 
 ```python
-from ultralytics import SAM
+from ultralytics import SAM, ASSETS
 
 # Load a model
 model = SAM("sam_b.pt")
 
 # Segment with bounding box prompt
-model("ultralytics/assets/zidane.jpg", bboxes=[439, 437, 524, 709])
+model(ASSETS / "zidane.jpg", bboxes=[439, 437, 524, 709])
 
 # Segment with points prompt
-model("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+model(ASSETS / "zidane.jpg", points=[900, 370], labels=[1])
 
 # Segment with multiple points prompt
-model("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
+model(ASSETS / "zidane.jpg", points=[[400, 370], [900, 370]], labels=[[1, 1]])
 
 # Segment with multiple points prompt per object
-model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+model(ASSETS / "zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
 
 # Segment with negative points prompt.
-model("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+model(ASSETS / "zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
 ```
 
 Alternatively, you can run inference with SAM in the command line interface (CLI):

@@ -108,10 +108,10 @@ To perform [object detection](https://www.ultralytics.com/glossary/object-detect
     === "Python"
 
         ```python
-        from ultralytics import FastSAM
+        from ultralytics import FastSAM, ASSETS
 
         # Define an inference source
-        source = "path/to/bus.jpg"
+        source = ASSETS / "bus.jpg"
 
         # Create a FastSAM model
         model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt
@@ -136,7 +136,7 @@ To perform [object detection](https://www.ultralytics.com/glossary/object-detect
 
         ```bash
         # Load a FastSAM model and segment everything with it
-        yolo segment predict model=FastSAM-s.pt source=path/to/bus.jpg imgsz=640
+        yolo segment predict model=FastSAM-s.pt source='https://ultralytics.com/images/bus.jpg' imgsz=640
         ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
@@ -148,6 +148,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
     === "Prompt inference"
 
         ```python
+        from ultralytics import ASSETS
         from ultralytics.models.fastsam import FastSAMPredictor
 
         # Create FastSAMPredictor
@@ -155,7 +156,7 @@ This snippet demonstrates the simplicity of loading a pre-trained model and runn
         predictor = FastSAMPredictor(overrides=overrides)
 
         # Segment everything
-        everything_results = predictor("ultralytics/assets/bus.jpg")
+        everything_results = predictor(ASSETS / "bus.jpg")
 
         # Prompt inference
         bbox_results = predictor.prompt(everything_results, bboxes=[[200, 200, 300, 300]])
@@ -326,10 +327,10 @@ Its ability to handle various user interaction prompts makes FastSAM adaptable a
 To use FastSAM for inference in Python, you can follow the example below:
 
 ```python
-from ultralytics import FastSAM
+from ultralytics import FastSAM, ASSETS
 
 # Define an inference source
-source = "path/to/bus.jpg"
+source = ASSETS / "bus.jpg"
 
 # Create a FastSAM model
 model = FastSAM("FastSAM-s.pt")  # or FastSAM-x.pt

@@ -138,7 +138,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
 
         ```python
-        from ultralytics import YOLO
+        from ultralytics import YOLO, ASSETS
 
         # Build a YOLOv9c model from scratch
         model = YOLO("yolov9c.yaml")
@@ -153,7 +153,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv9c model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
@@ -165,7 +165,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         yolo train model=yolov9c.yaml data=coco8.yaml epochs=100 imgsz=640
 
         # Build a YOLOv9c model from scratch and run inference on the 'bus.jpg' image
-        yolo predict model=yolov9c.yaml source=path/to/bus.jpg
+        yolo predict model=yolov9c.yaml source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Supported Tasks and Modes

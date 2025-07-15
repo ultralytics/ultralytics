@@ -126,22 +126,22 @@ Download the MobileSAM pretrained weights from [Ultralytics assets](https://gith
     === "Python"
 
         ```python
-        from ultralytics import SAM
+        from ultralytics import SAM, ASSETS
 
         # Load the model
         model = SAM("mobile_sam.pt")
 
         # Predict a segment based on a single point prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+        model.predict(ASSETS / "zidane.jpg", points=[900, 370], labels=[1])
 
         # Predict multiple segments based on multiple points prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
+        model.predict(ASSETS / "zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Predict a segment based on multiple points prompt per object
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+        model.predict(ASSETS / "zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
 
         # Predict a segment using both positive and negative prompts.
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+        model.predict(ASSETS / "zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 ### Box Prompt
@@ -151,22 +151,22 @@ Download the MobileSAM pretrained weights from [Ultralytics assets](https://gith
     === "Python"
 
         ```python
-        from ultralytics import SAM
+        from ultralytics import SAM, ASSETS
 
         # Load the model
         model = SAM("mobile_sam.pt")
 
         # Predict a segment based on a single point prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+        model.predict(ASSETS / "zidane.jpg", points=[900, 370], labels=[1])
 
         # Predict multiple segments based on multiple points prompt
-        model.predict("ultralytics/assets/zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
+        model.predict(ASSETS / "zidane.jpg", points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Predict a segment based on multiple points prompt per object
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+        model.predict(ASSETS / "zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
 
         # Predict a segment using both positive and negative prompts.
-        model.predict("ultralytics/assets/zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+        model.predict(ASSETS / "zidane.jpg", points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
         ```
 
 Both `MobileSAM` and `SAM` share the same API. For more usage details, see the [SAM documentation](sam.md).
@@ -217,13 +217,13 @@ MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.co
 Testing MobileSAM in Ultralytics is straightforward. You can use Point and Box prompts to predict segments. For example, using a Point prompt:
 
 ```python
-from ultralytics import SAM
+from ultralytics import SAM, ASSETS
 
 # Load the model
 model = SAM("mobile_sam.pt")
 
 # Predict a segment based on a point prompt
-model.predict("ultralytics/assets/zidane.jpg", points=[900, 370], labels=[1])
+model.predict(ASSETS / "zidane.jpg", points=[900, 370], labels=[1])
 ```
 
 For more details, see the [Testing MobileSAM in Ultralytics](#testing-mobilesam-in-ultralytics) section.

@@ -54,7 +54,7 @@ This example provides simple RT-DETR training and inference examples. For full d
     === "Python"
 
         ```python
-        from ultralytics import RTDETR
+        from ultralytics import RTDETR, ASSETS
 
         # Load a COCO-pretrained RT-DETR-l model
         model = RTDETR("rtdetr-l.pt")
@@ -66,7 +66,7 @@ This example provides simple RT-DETR training and inference examples. For full d
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the RT-DETR-l model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
@@ -76,7 +76,7 @@ This example provides simple RT-DETR training and inference examples. For full d
         yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
-        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
+        yolo predict model=rtdetr-l.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Supported Tasks and Modes
@@ -151,7 +151,7 @@ You can leverage Ultralytics Python API to use pre-trained PaddlePaddle RT-DETR 
     === "Python"
 
         ```python
-        from ultralytics import RTDETR
+        from ultralytics import RTDETR, ASSETS
 
         # Load a COCO-pretrained RT-DETR-l model
         model = RTDETR("rtdetr-l.pt")
@@ -163,7 +163,7 @@ You can leverage Ultralytics Python API to use pre-trained PaddlePaddle RT-DETR 
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the RT-DETR-l model on the 'bus.jpg' image
-        results = model("path/to/bus.jpg")
+        results = model(ASSETS / "bus.jpg")
         ```
 
     === "CLI"
@@ -173,7 +173,7 @@ You can leverage Ultralytics Python API to use pre-trained PaddlePaddle RT-DETR 
         yolo train model=rtdetr-l.pt data=coco8.yaml epochs=100 imgsz=640
 
         # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
-        yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
+        yolo predict model=rtdetr-l.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ### Why should I choose Baidu's RT-DETR over other real-time object detectors?

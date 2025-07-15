@@ -18,7 +18,26 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "RTDETRDecoderV2", "v10Detect", "YOLOEDetect", "YOLOESegment"
+
+
+def _parse_activation(act):
+    """Parse activation function from string or return as-is if already a module."""
+    if isinstance(act, str):
+        if act == "nn.ReLU()":
+            return nn.ReLU()
+        elif act == "nn.GELU()":
+            return nn.GELU()
+        elif act == "nn.SiLU()":
+            return nn.SiLU()
+        else:
+            # Try to evaluate the string directly
+            try:
+                return eval(act)
+            except:
+                # Fallback to ReLU if parsing fails
+                return nn.ReLU()
+    return act
 
 
 class Detect(nn.Module):
@@ -933,6 +952,9 @@ class RTDETRDecoder(nn.Module):
             learnt_init_query (bool): Whether to learn initial query embeddings.
         """
         super().__init__()
+        # Parse activation function if it's a string
+        act = _parse_activation(act)
+        
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)  # num level
@@ -1118,7 +1140,6 @@ class RTDETRDecoder(nn.Module):
 
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
-        # Query selection
         # (bs, num_queries)
         topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         # (bs, num_queries)
@@ -1170,6 +1191,121 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
+
+class RTDETRDecoderV2(RTDETRDecoder):
+    """
+    Real-Time Deformable Transformer Decoder (RT-DETRv2) module for object detection.
+    """
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: Tuple = (512, 1024, 2048),
+        hd: int = 256,  # hidden dim
+        nq: int = 300,  # num queries
+        ndp: Union[int, List[int]] = 4,  # num decoder points
+        nh: int = 8,  # num head
+        ndl: int = 6,  # num decoder layers
+        d_ffn: int = 1024,  # dim of feedforward
+        dropout: float = 0.0,
+        act: nn.Module = nn.ReLU(),
+        eval_idx: int = -1,
+        # Training args
+        nd: int = 100,  # num denoising
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        query_select_method: str = "default",
+        cross_attn_method: str = "default",
+    ):
+        """
+        Initialize the RTDETRDecoder module with the given parameters.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels in the backbone feature maps.
+            hd (int): Dimension of hidden layers.
+            nq (int): Number of query points.
+            ndp (int or list): Number of decoder points.
+            nh (int): Number of heads in multi-head attention.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (nn.Module): Activation function.
+            eval_idx (int): Evaluation index.
+            nd (int): Number of denoising.
+            label_noise_ratio (float): Label noise ratio.
+            box_noise_scale (float): Box noise scale.
+            learnt_init_query (bool): Whether to learn initial query embeddings.
+            query_select_method (str): Method for selecting queries ('default' or 'agnostic').
+            cross_attn_method (str): Method for cross-attention ('default' or 'discrete').
+        """
+        # Parse activation function if it's a string
+        act = _parse_activation(act)
+        
+        super().__init__(nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query)
+        self.query_select_method = query_select_method
+        self.cross_attn_method = cross_attn_method
+        
+        if query_select_method == 'agnostic':
+            # Override the parent class enc_score_head for agnostic query selection
+            self.enc_score_head = nn.Linear(hd, nc)
+        
+        # Transformer module
+        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp, cross_attn_method=cross_attn_method)
+        self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
+        
+        self._reset_parameters()
+
+    def _get_decoder_input(
+        self,
+        feats: torch.Tensor,
+        shapes: List[List[int]],
+        dn_embed: Optional[torch.Tensor] = None,
+        dn_bbox: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Generate and prepare the input required for the decoder from the provided features and shapes.
+        """
+        bs = feats.shape[0]
+        # Prepare input for decoder
+        anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
+
+        enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
+
+        # Query selection
+        if self.query_select_method == 'agnostic':
+            # For agnostic selection, take max across all classes  
+            topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        else:
+            # (bs, num_queries)
+            topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        # (bs, num_queries)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+
+        # (bs, num_queries, 256)
+        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        # (bs, num_queries, 4)
+        top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
+
+        # Dynamic anchors + static content
+        refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
+
+        enc_bboxes = refer_bbox.sigmoid()
+        if dn_bbox is not None:
+            refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+
+        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        if self.training:
+            refer_bbox = refer_bbox.detach()
+            if not self.learnt_init_query:
+                embeddings = embeddings.detach()
+        if dn_embed is not None:
+            embeddings = torch.cat([dn_embed, embeddings], 1)
+
+        return embeddings, refer_bbox, enc_bboxes, enc_scores
 
 
 class v10Detect(Detect):

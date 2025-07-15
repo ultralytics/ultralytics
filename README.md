@@ -30,7 +30,7 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
 
 <a href="https://docs.ultralytics.com/models/yolo11/" target="_blank">
   <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png" alt="YOLO11 performance plots">
-</a>
+</a><br><br>
 
 <div align="center">
   <a href="https://github.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="Ultralytics GitHub"></a>
@@ -48,6 +48,16 @@ Request an Enterprise License for commercial use at [Ultralytics Licensing](http
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="2%" alt="Ultralytics Discord"></a>
 </div>
 
+## 📚 Table of Contents
+
+- [📄 Documentation](#-documentation)
+- [✨ Models](#-models)
+- [🧩 Integrations](#-integrations)
+- [🌟 Ultralytics HUB](#-ultralytics-hub)
+- [🤝 Contribute](#-contribute)
+- [📜 License](#-license)
+- [📞 Contact](#-contact)
+
 ## 📄 Documentation
 
 See below for quickstart installation and usage examples. For comprehensive guidance on training, validation, prediction, and deployment, refer to our full [Ultralytics Docs](https://docs.ultralytics.com/).
@@ -61,6 +71,10 @@ Install the `ultralytics` package, including all [requirements](https://github.c
 
 ```bash
 pip install ultralytics
+# or via Conda:
+conda install -c conda-forge ultralytics
+# or Docker:
+docker pull ultralytics/ultralytics
 ```
 
 For alternative installation methods, including [Conda](https://anaconda.org/conda-forge/ultralytics), [Docker](https://hub.docker.com/r/ultralytics/ultralytics), and building from source via Git, please consult the [Quickstart Guide](https://docs.ultralytics.com/quickstart/).
@@ -88,6 +102,7 @@ The `yolo` command supports various tasks and modes, accepting additional argume
 Ultralytics YOLO can also be integrated directly into your Python projects. It accepts the same [configuration arguments](https://docs.ultralytics.com/usage/cfg/) as the CLI:
 
 ```python
+# Import the required library
 from ultralytics import YOLO
 
 # Load a pretrained YOLO11n model

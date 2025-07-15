@@ -220,7 +220,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
          from modlib.models.post_processors import pp_od_yolo_ultralytics
 
 
-         class Yolo(Model):
+         class YOLO(Model):
              def __init__(self):
                  super().__init__(
                      model_file="yolo11n_imx_model/packerOut.zip",  # replace with proper directory
@@ -239,8 +239,8 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                  return pp_od_yolo_ultralytics(output_tensors)
 
 
-         device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the Yolo model running on the AI Camera
-         model = Yolo()
+         device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the YOLO model running on the AI Camera
+         model = YOLO()
          device.deploy(model)
 
          annotator = Annotator()
@@ -263,7 +263,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
          from modlib.models.post_processors import pp_yolo_pose_ultralytics
 
 
-         class YoloPose(Model):
+         class YOLOPose(Model):
              def __init__(self):
                  super().__init__(
                      model_file="yolo11n-pose_imx_model/packerOut.zip",  # replace with proper directory
@@ -276,8 +276,8 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                  return pp_yolo_pose_ultralytics(output_tensors)
 
 
-         device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the Yolo-pose model running on the AI Camera
-         model = YoloPose()
+         device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-pose model running on the AI Camera
+         model = YOLOPose()
          device.deploy(model)
 
          annotator = Annotator()

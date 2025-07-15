@@ -1171,7 +1171,9 @@ class Exporter:
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
         check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
-        check_requirements("mct-quantizers>=1.6.0") # Separate requirements for mct-quantizers for compatibility with model-compression-toolkit
+        check_requirements(
+            "mct-quantizers>=1.6.0"
+        )  # Separate requirements for mct-quantizers for compatibility with model-compression-toolkit
 
         import model_compression_toolkit as mct
         import onnx

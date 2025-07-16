@@ -177,7 +177,7 @@ class Inference:
         image = cv2.imread(self.img_file_name)  # Load and display the original image
         if image is not None:
             self.org_frame.image(image, channels="BGR", caption="Original Image")   # Display original image
-            results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)  # predict
+            results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)  # Predict
             annotated_image = results[0].plot()  # Add annotations on image
             self.ann_frame.image(annotated_image, channels="BGR", caption="Predicted Image")  # Result display
             try:  # Clean up temporary file

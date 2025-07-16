@@ -10,7 +10,6 @@ import torch
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 torch.classes.__path__ = []  # Torch module __path__._path issue: https://github.com/datalab-to/marker/issues/442
@@ -127,7 +126,8 @@ class Inference:
 
     def source_upload(self) -> None:
         """Handle video file uploads through the Streamlit interface."""
-        print(list(VID_FORMATS))
+        from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+
         self.vid_file_name = ""
         if self.source == "video":
             vid_file = self.st.sidebar.file_uploader("Upload Video File", type=VID_FORMATS)

@@ -87,13 +87,13 @@ class Inference:
         menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""  # Hide main menu style
 
         # Main title of streamlit application
-        main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; margin-top:-50px;
+        main_title_cfg = """<div><h1 style="color:#111F68; text-align:center; font-size:40px; margin-top:-50px;
         font-family: 'Archivo', sans-serif; margin-bottom:20px;">Ultralytics YOLO Streamlit Application</h1></div>"""
 
         # Subtitle of streamlit application
-        sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
+        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
         margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images 
-        with the power of Ultralytics YOLO! 🚀</h4></div>"""
+        with the power of Ultralytics YOLO! 🚀</h5></div>"""
 
         # Set html page configuration and append custom HTML
         self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide")
@@ -194,9 +194,9 @@ class Inference:
                 with col2:
                     self.st.image(annotated_image, channels="BGR", caption="Predicted Image")
                 try:  # Clean up temporary file
-                    os.unlink(img_path)  # Use correct path
-                except:
-                    pass
+                    os.unlink(img_path)
+                except FileNotFoundError:
+                    pass  # File doesn't exist, ignore
             else:
                 self.st.error("Could not load the uploaded image.")
 

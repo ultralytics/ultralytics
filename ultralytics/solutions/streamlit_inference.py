@@ -146,10 +146,7 @@ class Inference:
                 for imgfile in imgfiles:  # Save each uploaded image to a temporary file
                     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{imgfile.name.split('.')[-1]}") as tf:
                         tf.write(imgfile.read())
-                        self.img_file_names.append({
-                            'path': tf.name,
-                            'name': imgfile.name
-                        })
+                        self.img_file_names.append({"path": tf.name, "name": imgfile.name})
 
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
@@ -182,7 +179,7 @@ class Inference:
     def image_inference(self) -> None:
         """Perform inference on uploaded images."""
         for idx, img_info in enumerate(self.img_file_names):
-            img_path = img_info['path']
+            img_path = img_info["path"]
             image = cv2.imread(img_path)  # Load and display the original image
             if image is not None:
                 self.st.markdown(f"#### Processed: {img_info['name']}")

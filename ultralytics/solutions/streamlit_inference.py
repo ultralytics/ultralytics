@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
-from typing import Any, List
 import os
+from typing import Any, List
 
 import cv2
 import torch

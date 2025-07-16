@@ -85,6 +85,19 @@ Each of these settings plays a vital role in the validation process, allowing fo
 
 ### Example Validation with Arguments
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zHxwDkYShNc"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Model Validation Results in CSV, JSON, SQL, Pandas DataFrame & More
+</p>
+
+<a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-export-the-validation-results-into-dataframe-csv-sql-and-other-formats.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Explore model validation and different export methods in Google Colab"></a>
+
 The below examples showcase YOLO model validation with custom arguments in Python and CLI.
 
 !!! example
@@ -120,14 +133,15 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
     print(results.confusion_matrix.to_df())
     ```
 
-| Method      | Return Type | Description                                                                      |
-| ----------- | ----------- | -------------------------------------------------------------------------------- |
-| `to_df()`   | `DataFrame` | Returns the validation results as a structured Pandas DataFrame.                 |
-| `to_csv()`  | `str`       | Exports the validation results in CSV format and returns the CSV string.         |
-| `to_xml()`  | `str`       | Exports the validation results in XML format and returns the XML string.         |
-| `to_html()` | `str`       | Exports the validation results in HTML table format and returns the HTML string. |
-| `to_json()` | `str`       | Exports the validation results in JSON format and returns the JSON string.       |
-| `to_sql()`  | `str`       | Exports the validation results in SQl database.                                  |
+| Method      | Return Type            | Description                                                                      |
+| ----------- | ---------------------- | -------------------------------------------------------------------------------- |
+| `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                          |
+| `to_df()`   | `DataFrame`            | Returns the validation results as a structured Pandas DataFrame.                 |
+| `to_csv()`  | `str`                  | Exports the validation results in CSV format and returns the CSV string.         |
+| `to_xml()`  | `str`                  | Exports the validation results in XML format and returns the XML string.         |
+| `to_html()` | `str`                  | Exports the validation results in HTML table format and returns the HTML string. |
+| `to_json()` | `str`                  | Exports the validation results in JSON format and returns the JSON string.       |
+| `to_sql()`  | `str`                  | Exports the validation results in SQl database.                                  |
 
 For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md/#ultralytics.utils.DataExportMixin).
 

@@ -330,7 +330,7 @@ class ConfusionMatrix(DataExportMixin):
         """
         self.task = task
         self.nc = len(names)  # number of classes
-        self.matrix = np.zeros((self.nc + 1, self.nc + 1)) if self.task == "detect" else np.zeros((self.nc, self.nc))
+        self.matrix = np.zeros((self.nc, self.nc)) if self.task == "classify" else np.zeros((self.nc + 1, self.nc + 1))
         self.names = names  # name of classes
 
     def process_cls_preds(self, preds, targets):
@@ -360,8 +360,9 @@ class ConfusionMatrix(DataExportMixin):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
-        conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
+        is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
+        conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
@@ -380,7 +381,6 @@ class ConfusionMatrix(DataExportMixin):
         gt_classes = gt_cls.int().tolist()
         detection_classes = detections["cls"].int().tolist()
         bboxes = detections["bboxes"]
-        is_obb = bboxes.shape[1] == 5  # check if detections contains angle for OBB
         iou = batch_probiou(gt_bboxes, bboxes) if is_obb else box_iou(gt_bboxes, bboxes)
 
         x = torch.where(iou > iou_thres)
@@ -422,7 +422,7 @@ class ConfusionMatrix(DataExportMixin):
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
-        return (tp[:-1], fp[:-1]) if self.task == "detect" else (tp, fp)  # remove background class if task=detect
+        return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
@@ -441,16 +441,15 @@ class ConfusionMatrix(DataExportMixin):
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
+        names, n = self.names, self.nc
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
-            self.names = self.names[keep_idx]  # slice class names
+            names = names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
-            nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
-        else:
-            nc = nn = self.nc if self.task == "classify" else self.nc + 1
-        ticklabels = (self.names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
+        nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
+        ticklabels = (names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
         xy_ticks = np.arange(len(ticklabels))
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
@@ -488,7 +487,7 @@ class ConfusionMatrix(DataExportMixin):
         if ticklabels != "auto":
             ax.set_xticklabels(ticklabels, fontsize=tick_fontsize, rotation=90, ha="center")
             ax.set_yticklabels(ticklabels, fontsize=tick_fontsize)
-        for s in ["left", "right", "bottom", "top", "outline"]:
+        for s in {"left", "right", "bottom", "top", "outline"}:
             if s != "outline":
                 ax.spines[s].set_visible(False)  # Confusion matrix plot don't have outline
             cbar.ax.spines[s].set_visible(False)
@@ -1006,6 +1005,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             save_dir=save_dir,
             names=self.names,
             on_plot=on_plot,
+            prefix="Box",
         )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
@@ -1061,7 +1061,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         """Return dictionary of computed performance metrics and statistics."""
         return self.box.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class detection metrics as a list of dictionaries. Includes shared
         scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1071,30 +1071,28 @@ class DetMetrics(SimpleClass, DataExportMixin):
            decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-           (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+           (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
            >>> results = model.val(data="coco8.yaml")
            >>> detection_summary = results.summary()
            >>> print(detection_summary)
         """
-        scalars = {
-            "box-map": round(self.box.map, decimals),
-            "box-map50": round(self.box.map50, decimals),
-            "box-map75": round(self.box.map75, decimals),
-        }
         per_class = {
-            "box-p": self.box.p,
-            "box-r": self.box.r,
-            "box-f1": self.box.f1,
+            "Box-P": self.box.p,
+            "Box-R": self.box.r,
+            "Box-F1": self.box.f1,
         }
         return [
             {
-                "class_name": self.names[self.ap_class_index[i]],
+                "Class": self.names[self.ap_class_index[i]],
+                "Images": self.nt_per_image[self.ap_class_index[i]],
+                "Instances": self.nt_per_class[self.ap_class_index[i]],
                 **{k: round(v[i], decimals) for k, v in per_class.items()},
-                **scalars,
+                "mAP50": round(self.class_result(i)[2], decimals),
+                "mAP50-95": round(self.class_result(i)[3], decimals),
             }
-            for i in range(len(per_class["box-p"]))
+            for i in range(len(per_class["Box-P"]))
         ]
 
 
@@ -1137,7 +1135,7 @@ class SegmentMetrics(DetMetrics):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
         results_mask = ap_per_class(
             stats["tp_m"],
             stats["conf"],
@@ -1196,7 +1194,7 @@ class SegmentMetrics(DetMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class segmentation metrics as a list of dictionaries. Includes both
         box and mask scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1206,26 +1204,21 @@ class SegmentMetrics(DetMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-seg.yaml")
             >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
         """
-        scalars = {
-            "mask-map": round(self.seg.map, decimals),
-            "mask-map50": round(self.seg.map50, decimals),
-            "mask-map75": round(self.seg.map75, decimals),
-        }
         per_class = {
-            "mask-p": self.seg.p,
-            "mask-r": self.seg.r,
-            "mask-f1": self.seg.f1,
+            "Mask-P": self.seg.p,
+            "Mask-R": self.seg.r,
+            "Mask-F1": self.seg.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
         return summary
 
 
@@ -1277,7 +1270,7 @@ class PoseMetrics(DetMetrics):
         Returns:
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
-        stats = DetMetrics.process(self, on_plot=on_plot)  # process box stats
+        stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
         results_pose = ap_per_class(
             stats["tp_p"],
             stats["conf"],
@@ -1340,7 +1333,7 @@ class PoseMetrics(DetMetrics):
         """Return dictionary of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
-    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Union[str, float]]]:
+    def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
         """
         Generate a summarized representation of per-class pose metrics as a list of dictionaries. Includes both box and
         pose scalar metrics (mAP, mAP50, mAP75) alongside precision, recall, and F1-score for each class.
@@ -1350,26 +1343,21 @@ class PoseMetrics(DetMetrics):
             decimals (int): Number of decimal places to round the metrics values to.
 
         Returns:
-            (List[Dict[str, Union[str, float]]]): A list of dictionaries, each representing one class with corresponding metric values.
+            (List[Dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
 
         Examples:
             >>> results = model.val(data="coco8-pose.yaml")
             >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
         """
-        scalars = {
-            "pose-map": round(self.pose.map, decimals),
-            "pose-map50": round(self.pose.map50, decimals),
-            "pose-map75": round(self.pose.map75, decimals),
-        }
         per_class = {
-            "pose-p": self.pose.p,
-            "pose-r": self.pose.r,
-            "pose-f1": self.pose.f1,
+            "Pose-P": self.pose.p,
+            "Pose-R": self.pose.r,
+            "Pose-F1": self.pose.f1,
         }
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
-            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}, **scalars})
+            s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
         return summary
 
 
@@ -1445,7 +1433,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
             >>> classify_summary = results.summary(decimals=4)
             >>> print(classify_summary)
         """
-        return [{"classify-top1": round(self.top1, decimals), "classify-top5": round(self.top5, decimals)}]
+        return [{"top1_acc": round(self.top1, decimals), "top5_acc": round(self.top5, decimals)}]
 
 
 class OBBMetrics(DetMetrics):

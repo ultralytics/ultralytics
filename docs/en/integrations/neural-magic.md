@@ -20,7 +20,7 @@ This guide shows you how to deploy YOLO11 using Neural Magic's DeepSparse, how t
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/neural-magic-deepsparse-overview.avif" alt="Neural Magic's DeepSparse Overview">
 </p>
 
-[Neural Magic's DeepSparse](https://neuralmagic.com/deepsparse/) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable [neural network](https://www.ultralytics.com/glossary/neural-network-nn) execution across various devices.
+[Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable [neural network](https://www.ultralytics.com/glossary/neural-network-nn) execution across various devices.
 
 ## Benefits of Integrating Neural Magic's DeepSparse with YOLO11
 
@@ -62,7 +62,7 @@ For more details on how Neural Magic's DeepSparse technology works, check out [t
 
 ## Creating A Sparse Version of YOLO11 Trained on a Custom Dataset
 
-[SparseZoo](https://sparsezoo.neuralmagic.com/), an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLO11 model checkpoints](https://sparsezoo.neuralmagic.com/?modelSet=computer_vision&searchModels=yolo). With [SparseML](https://github.com/neuralmagic/sparseml), seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.
+[SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLO11 model checkpoints](https://github.com/neuralmagic/sparsezoo/blob/main/README.md). With [SparseML](https://github.com/neuralmagic/sparseml), seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.
 
 Check out [Neural Magic's SparseML YOLO11 documentation](https://github.com/neuralmagic/sparseml/tree/main/integrations/ultralytics-yolov8) for more details.
 
@@ -161,7 +161,7 @@ After running the eval command, you will receive detailed output metrics such as
 
 This guide explored integrating Ultralytics' YOLO11 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLO11's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
 
-For more detailed information and advanced usage, visit the [DeepSparse documentation by Neural Magic](https://docs.neuralmagic.com/products/deepsparse/). You can also [explore the YOLO11 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
+For more detailed information and advanced usage, visit the [DeepSparse documentation by Neural Magic](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud). You can also [explore the YOLO11 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLO11 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
 

@@ -17,7 +17,7 @@ Multi-Object Detector doesn't need standalone training and directly supports pre
 Ultralytics YOLO supports the following tracking algorithms:
 
 - [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` to enable this tracker (default)
-- [ByteTrack](https://github.com/ifzhang/ByteTrack) - Use `bytetrack.yaml` to enable this tracker
+- [ByteTrack](https://github.com/FoundationVision/ByteTrack) - Use `bytetrack.yaml` to enable this tracker
 
 ## Usage
 

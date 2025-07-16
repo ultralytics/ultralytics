@@ -6,6 +6,7 @@ from typing import List, Union
 
 import torch
 import torch.nn as nn
+from PIL import Image
 
 from ultralytics.utils import checks
 from ultralytics.utils.torch_utils import smart_inference_mode
@@ -68,7 +69,7 @@ class CLIP(TextModel):
         >>> print(text_features.shape)
     """
 
-    def __init__(self, size: str, device: torch.device):
+    def __init__(self, size: str, device: torch.device) -> None:
         """
         Initialize the CLIP text encoder.
 
@@ -85,12 +86,12 @@ class CLIP(TextModel):
             >>> text_features = clip_model.encode_text(["a photo of a cat", "a photo of a dog"])
         """
         super().__init__()
-        self.model = clip.load(size, device=device)[0]
+        self.model, self.image_preprocess = clip.load(size, device=device)
         self.to(device)
         self.device = device
         self.eval()
 
-    def tokenize(self, texts: Union[str, List[str]]):
+    def tokenize(self, texts: Union[str, List[str]]) -> torch.Tensor:
         """
         Convert input texts to CLIP tokens.
 
@@ -108,7 +109,7 @@ class CLIP(TextModel):
         return clip.tokenize(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32):
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -132,6 +133,38 @@ class CLIP(TextModel):
         txt_feats = self.model.encode_text(texts).to(dtype)
         txt_feats = txt_feats / txt_feats.norm(p=2, dim=-1, keepdim=True)
         return txt_feats
+
+    @smart_inference_mode()
+    def encode_image(self, image: Union[Image.Image, torch.Tensor], dtype: torch.dtype = torch.float32) -> torch.Tensor:
+        """
+        Encode preprocessed images into normalized feature vectors.
+
+        This method processes preprocessed image inputs through the CLIP model to generate feature vectors, which are then
+        normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
+
+        Args:
+            image (PIL.Image | torch.Tensor): Preprocessed image input. If a PIL Image is provided, it will be
+                converted to a tensor using the model's image preprocessing function.
+            dtype (torch.dtype, optional): Data type for output features.
+
+        Returns:
+            (torch.Tensor): Normalized image feature vectors with unit length (L2 norm = 1).
+
+        Examples:
+            >>> from ultralytics.nn.text_model import CLIP
+            >>> from PIL import Image
+            >>> clip_model = CLIP("ViT-B/32", device="cuda")
+            >>> image = Image.open("path/to/image.jpg")
+            >>> image_tensor = clip_model.image_preprocess(image).unsqueeze(0).to("cuda")
+            >>> features = clip_model.encode_image(image_tensor)
+            >>> features.shape
+            torch.Size([1, 512])
+        """
+        if isinstance(image, Image.Image):
+            image = self.image_preprocess(image).unsqueeze(0).to(self.device)
+        img_feats = self.model.encode_image(image).to(dtype)
+        img_feats = img_feats / img_feats.norm(p=2, dim=-1, keepdim=True)
+        return img_feats
 
 
 class MobileCLIP(TextModel):
@@ -160,7 +193,7 @@ class MobileCLIP(TextModel):
 
     config_size_map = {"s0": "s0", "s1": "s1", "s2": "s2", "b": "b", "blt": "b"}
 
-    def __init__(self, size: str, device: torch.device):
+    def __init__(self, size: str, device: torch.device) -> None:
         """
         Initialize the MobileCLIP text encoder.
 
@@ -201,7 +234,7 @@ class MobileCLIP(TextModel):
         self.device = device
         self.eval()
 
-    def tokenize(self, texts: List[str]):
+    def tokenize(self, texts: List[str]) -> torch.Tensor:
         """
         Convert input texts to MobileCLIP tokens.
 
@@ -218,7 +251,7 @@ class MobileCLIP(TextModel):
         return self.tokenizer(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32):
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -286,7 +319,7 @@ class MobileCLIPTS(TextModel):
         self.tokenizer = clip.clip.tokenize
         self.device = device
 
-    def tokenize(self, texts: List[str]):
+    def tokenize(self, texts: List[str]) -> torch.Tensor:
         """
         Convert input texts to MobileCLIP tokens.
 
@@ -303,7 +336,7 @@ class MobileCLIPTS(TextModel):
         return self.tokenizer(texts).to(self.device)
 
     @smart_inference_mode()
-    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32):
+    def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode tokenized texts into normalized feature vectors.
 
@@ -322,10 +355,10 @@ class MobileCLIPTS(TextModel):
             torch.Size([2, 512])  # Actual dimension depends on model size
         """
         # NOTE: no need to do normalization here as it's embedded in the torchscript model
-        return self.encoder(texts)
+        return self.encoder(texts).to(dtype)
 
 
-def build_text_model(variant: str, device: torch.device = None):
+def build_text_model(variant: str, device: torch.device = None) -> TextModel:
     """
     Build a text encoding model based on the specified variant.
 

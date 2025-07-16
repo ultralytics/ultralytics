@@ -2,6 +2,7 @@
 
 import io
 from typing import Any, List
+import os
 
 import cv2
 import torch
@@ -135,6 +136,8 @@ class Inference:
         elif self.source == "webcam":
             self.vid_file_name = 0  # Use webcam index 0
         elif self.source == "image":
+            import tempfile  # scope import
+
             img_file = self.st.sidebar.file_uploader("Upload Image File", type=["jpg", "jpeg", "png", "bmp", "tiff"])
             if img_file is not None:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=f".{img_file.name.split('.')[-1]}") as tmp_file:
@@ -171,46 +174,18 @@ class Inference:
 
     def image_inference(self) -> None:
         """Perform inference on uploaded images."""
-        if self.img_file_name and os.path.exists(self.img_file_name):
-            # Load and display the original image
-            image = cv2.imread(self.img_file_name)
-            if image is not None:
-                # Display original image
-                self.org_frame.image(image, channels="BGR", caption="Original Image")
-
-                # Perform inference
-                results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)
-                annotated_image = results[0].plot()  # Add annotations on image
-
-                # Display annotated image
-                self.ann_frame.image(annotated_image, channels="BGR", caption="Detected Objects")
-
-                # Display detection results
-                if results[0].boxes is not None:
-                    detections = results[0].boxes
-                    num_detections = len(detections)
-                    self.st.success(f"Found {num_detections} objects!")
-
-                    # Show detection details
-                    if num_detections > 0:
-                        with self.st.expander("Detection Details"):
-                            for i, box in enumerate(detections):
-                                cls_id = int(box.cls[0])
-                                conf = float(box.conf[0])
-                                class_name = self.model.names[cls_id]
-                                self.st.write(f"**Detection {i + 1}:** {class_name} ({conf:.2f})")
-                else:
-                    self.st.info("No objects detected in the image.")
-
-                # Clean up temporary file
-                try:
-                    os.unlink(self.img_file_name)
-                except:
-                    pass
-            else:
-                self.st.error("Could not load the uploaded image.")
+        image = cv2.imread(self.img_file_name)  # Load and display the original image
+        if image is not None:
+            self.org_frame.image(image, channels="BGR", caption="Original Image")   # Display original image
+            results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)  # predict
+            annotated_image = results[0].plot()  # Add annotations on image
+            self.ann_frame.image(annotated_image, channels="BGR", caption="Detected Objects")  # Result display
+            try:  # Clean up temporary file
+                os.unlink(self.img_file_name)
+            except:
+                pass
         else:
-            self.st.info("Please upload an image file to perform inference.")
+            self.st.error("Could not load the uploaded image.")
 
     def inference(self) -> None:
         """Perform real-time object detection inference on video or webcam feed."""
@@ -219,43 +194,45 @@ class Inference:
         self.source_upload()  # Upload the video source
         self.configure()  # Configure the app
 
-        if self.source == "image":
-            # For images, automatically perform inference when image is uploaded
-            if self.img_file_name:
-                self.image_inference()
-        else:
-            if self.st.sidebar.button("Start"):
-                stop_button = self.st.button("Stop")  # Button to stop the inference
-                cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video
-                if not cap.isOpened():
-                    self.st.error("Could not open webcam or video source.")
-                    return
+        if self.st.sidebar.button("Start"):
+            if self.source == "image":
+                if self.img_file_name and os.path.exists(self.img_file_name):
+                    self.image_inference()
+                else:
+                    self.st.info("Please upload an image file to perform inference.")
+                return
 
-                while cap.isOpened():
-                    success, frame = cap.read()
-                    if not success:
-                        self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
-                        break
+            stop_button = self.st.button("Stop")  # Button to stop the inference
+            cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video
+            if not cap.isOpened():
+                self.st.error("Could not open webcam or video source.")
+                return
 
-                    # Process frame with model
-                    if self.enable_trk:
-                        results = self.model.track(
-                            frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
-                        )
-                    else:
-                        results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+            while cap.isOpened():
+                success, frame = cap.read()
+                if not success:
+                    self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
+                    break
 
-                    annotated_frame = results[0].plot()  # Add annotations on frame
+                # Process frame with model
+                if self.enable_trk:
+                    results = self.model.track(
+                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
+                    )
+                else:
+                    results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
 
-                    if stop_button:
-                        cap.release()  # Release the capture
-                        self.st.stop()  # Stop streamlit app
+                annotated_frame = results[0].plot()  # Add annotations on frame
 
-                    self.org_frame.image(frame, channels="BGR")  # Display original frame
-                    self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
+                if stop_button:
+                    cap.release()  # Release the capture
+                    self.st.stop()  # Stop streamlit app
 
-                cap.release()  # Release the capture
-            cv2.destroyAllWindows()  # Destroy all OpenCV windows
+                self.org_frame.image(frame, channels="BGR")  # Display original frame
+                self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
+
+            cap.release()  # Release the capture
+        cv2.destroyAllWindows()  # Destroy all OpenCV windows
 
 
 if __name__ == "__main__":

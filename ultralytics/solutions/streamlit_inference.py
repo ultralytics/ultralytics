@@ -179,7 +179,7 @@ class Inference:
             self.org_frame.image(image, channels="BGR", caption="Original Image")   # Display original image
             results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)  # predict
             annotated_image = results[0].plot()  # Add annotations on image
-            self.ann_frame.image(annotated_image, channels="BGR", caption="Detected Objects")  # Result display
+            self.ann_frame.image(annotated_image, channels="BGR", caption="Predicted Image")  # Result display
             try:  # Clean up temporary file
                 os.unlink(self.img_file_name)
             except:
@@ -228,8 +228,8 @@ class Inference:
                     cap.release()  # Release the capture
                     self.st.stop()  # Stop streamlit app
 
-                self.org_frame.image(frame, channels="BGR")  # Display original frame
-                self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
+                self.org_frame.image(frame, channels="BGR", caption="Original Frame")  # Display original frame
+                self.ann_frame.image(annotated_frame, channels="BGR", caption="Predicted Frame")  # Display processed
 
             cap.release()  # Release the capture
         cv2.destroyAllWindows()  # Destroy all OpenCV windows

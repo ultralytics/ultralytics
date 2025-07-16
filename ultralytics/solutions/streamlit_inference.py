@@ -10,6 +10,7 @@ import torch
 from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
+from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
 
 torch.classes.__path__ = []  # Torch module __path__._path issue: https://github.com/datalab-to/marker/issues/442
@@ -65,7 +66,7 @@ class Inference:
 
         self.st = st  # Reference to the Streamlit module
         self.source = None  # Video source selection (webcam or video file)
-        self.img_file_name = None  # Image file name
+        self.img_file_names = []  # List of image file names
         self.enable_trk = False  # Flag to toggle object tracking
         self.conf = 0.25  # Confidence threshold for detection
         self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
@@ -92,8 +93,8 @@ class Inference:
 
         # Subtitle of streamlit application
         sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
-        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam with the power 
-        of Ultralytics YOLO! 🚀</h4></div>"""
+        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images 
+        with the power of Ultralytics YOLO! 🚀</h4></div>"""
 
         # Set html page configuration and append custom HTML
         self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide")
@@ -109,7 +110,7 @@ class Inference:
 
         self.st.sidebar.title("User Configuration")  # Add elements to vertical setting menu
         self.source = self.st.sidebar.selectbox(
-            "Video",
+            "Source",
             ("webcam", "video", "image"),
         )  # Add source selection dropdown
         if self.source in ["webcam", "video"]:
@@ -119,15 +120,17 @@ class Inference:
         )  # Slider for confidence
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
-        col1, col2 = self.st.columns(2)  # Create two columns for displaying frames
-        self.org_frame = col1.empty()  # Container for original frame
-        self.ann_frame = col2.empty()  # Container for annotated frame
+        if self.source != "image":  # Only create columns for video/webcam
+            col1, col2 = self.st.columns(2)  # Create two columns for displaying frames
+            self.org_frame = col1.empty()  # Container for original frame
+            self.ann_frame = col2.empty()  # Container for annotated frame
 
     def source_upload(self) -> None:
         """Handle video file uploads through the Streamlit interface."""
+        print(list(VID_FORMATS))
         self.vid_file_name = ""
         if self.source == "video":
-            vid_file = self.st.sidebar.file_uploader("Upload Video File", type=["mp4", "mov", "avi", "mkv"])
+            vid_file = self.st.sidebar.file_uploader("Upload Video File", type=VID_FORMATS)
             if vid_file is not None:
                 g = io.BytesIO(vid_file.read())  # BytesIO Object
                 with open("ultralytics.mp4", "wb") as out:  # Open temporary file as bytes
@@ -138,11 +141,15 @@ class Inference:
         elif self.source == "image":
             import tempfile  # scope import
 
-            img_file = self.st.sidebar.file_uploader("Upload Image File", type=["jpg", "jpeg", "png", "bmp", "tiff"])
-            if img_file is not None:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{img_file.name.split('.')[-1]}") as tmp_file:
-                    tmp_file.write(img_file.read())
-                    self.img_file_name = tmp_file.name
+            imgfiles = self.st.sidebar.file_uploader("Upload Image Files", type=list(IMG_FORMATS), accept_multiple_files=True)
+            if imgfiles:
+                for imgfile in imgfiles:  # Save each uploaded image to a temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{imgfile.name.split('.')[-1]}") as tf:
+                        tf.write(imgfile.read())
+                        self.img_file_names.append({
+                            'path': tf.name,
+                            'name': imgfile.name
+                        })
 
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
@@ -174,18 +181,24 @@ class Inference:
 
     def image_inference(self) -> None:
         """Perform inference on uploaded images."""
-        image = cv2.imread(self.img_file_name)  # Load and display the original image
-        if image is not None:
-            self.org_frame.image(image, channels="BGR", caption="Original Image")   # Display original image
-            results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)  # Predict
-            annotated_image = results[0].plot()  # Add annotations on image
-            self.ann_frame.image(annotated_image, channels="BGR", caption="Predicted Image")  # Result display
-            try:  # Clean up temporary file
-                os.unlink(self.img_file_name)
-            except:
-                pass
-        else:
-            self.st.error("Could not load the uploaded image.")
+        for idx, img_info in enumerate(self.img_file_names):
+            img_path = img_info['path']
+            image = cv2.imread(img_path)  # Load and display the original image
+            if image is not None:
+                self.st.markdown(f"#### Processed: {img_info['name']}")
+                col1, col2 = self.st.columns(2)
+                with col1:
+                    self.st.image(image, channels="BGR", caption="Original Image")
+                results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+                annotated_image = results[0].plot()
+                with col2:
+                    self.st.image(annotated_image, channels="BGR", caption="Predicted Image")
+                try:  # Clean up temporary file
+                    os.unlink(img_path)  # Use correct path
+                except:
+                    pass
+            else:
+                self.st.error("Could not load the uploaded image.")
 
     def inference(self) -> None:
         """Perform real-time object detection inference on video or webcam feed."""
@@ -196,13 +209,13 @@ class Inference:
 
         if self.st.sidebar.button("Start"):
             if self.source == "image":
-                if self.img_file_name and os.path.exists(self.img_file_name):
+                if self.img_file_names:
                     self.image_inference()
                 else:
                     self.st.info("Please upload an image file to perform inference.")
                 return
 
-            stop_button = self.st.button("Stop")  # Button to stop the inference
+            stop_button = self.st.sidebar.button("Stop")  # Button to stop the inference
             cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video
             if not cap.isOpened():
                 self.st.error("Could not open webcam or video source.")

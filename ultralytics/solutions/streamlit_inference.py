@@ -64,6 +64,7 @@ class Inference:
 
         self.st = st  # Reference to the Streamlit module
         self.source = None  # Video source selection (webcam or video file)
+        self.img_file_name = None  # Image file name
         self.enable_trk = False  # Flag to toggle object tracking
         self.conf = 0.25  # Confidence threshold for detection
         self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
@@ -108,9 +109,10 @@ class Inference:
         self.st.sidebar.title("User Configuration")  # Add elements to vertical setting menu
         self.source = self.st.sidebar.selectbox(
             "Video",
-            ("webcam", "video"),
+            ("webcam", "video", "image"),
         )  # Add source selection dropdown
-        self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No")) == "Yes"  # Enable object tracking
+        if self.source in ["webcam", "video"]:
+            self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No")) == "Yes"  # Enable object tracking
         self.conf = float(
             self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01)
         )  # Slider for confidence
@@ -132,6 +134,12 @@ class Inference:
                 self.vid_file_name = "ultralytics.mp4"
         elif self.source == "webcam":
             self.vid_file_name = 0  # Use webcam index 0
+        elif self.source == "image":
+            img_file = self.st.sidebar.file_uploader("Upload Image File", type=["jpg", "jpeg", "png", "bmp", "tiff"])
+            if img_file is not None:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{img_file.name.split('.')[-1]}") as tmp_file:
+                    tmp_file.write(img_file.read())
+                    self.img_file_name = tmp_file.name
 
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
@@ -161,6 +169,49 @@ class Inference:
         if not isinstance(self.selected_ind, list):  # Ensure selected_options is a list
             self.selected_ind = list(self.selected_ind)
 
+    def image_inference(self) -> None:
+        """Perform inference on uploaded images."""
+        if self.img_file_name and os.path.exists(self.img_file_name):
+            # Load and display the original image
+            image = cv2.imread(self.img_file_name)
+            if image is not None:
+                # Display original image
+                self.org_frame.image(image, channels="BGR", caption="Original Image")
+
+                # Perform inference
+                results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+                annotated_image = results[0].plot()  # Add annotations on image
+
+                # Display annotated image
+                self.ann_frame.image(annotated_image, channels="BGR", caption="Detected Objects")
+
+                # Display detection results
+                if results[0].boxes is not None:
+                    detections = results[0].boxes
+                    num_detections = len(detections)
+                    self.st.success(f"Found {num_detections} objects!")
+
+                    # Show detection details
+                    if num_detections > 0:
+                        with self.st.expander("Detection Details"):
+                            for i, box in enumerate(detections):
+                                cls_id = int(box.cls[0])
+                                conf = float(box.conf[0])
+                                class_name = self.model.names[cls_id]
+                                self.st.write(f"**Detection {i + 1}:** {class_name} ({conf:.2f})")
+                else:
+                    self.st.info("No objects detected in the image.")
+
+                # Clean up temporary file
+                try:
+                    os.unlink(self.img_file_name)
+                except:
+                    pass
+            else:
+                self.st.error("Could not load the uploaded image.")
+        else:
+            self.st.info("Please upload an image file to perform inference.")
+
     def inference(self) -> None:
         """Perform real-time object detection inference on video or webcam feed."""
         self.web_ui()  # Initialize the web interface
@@ -168,38 +219,43 @@ class Inference:
         self.source_upload()  # Upload the video source
         self.configure()  # Configure the app
 
-        if self.st.sidebar.button("Start"):
-            stop_button = self.st.button("Stop")  # Button to stop the inference
-            cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video
-            if not cap.isOpened():
-                self.st.error("Could not open webcam or video source.")
-                return
+        if self.source == "image":
+            # For images, automatically perform inference when image is uploaded
+            if self.img_file_name:
+                self.image_inference()
+        else:
+            if self.st.sidebar.button("Start"):
+                stop_button = self.st.button("Stop")  # Button to stop the inference
+                cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video
+                if not cap.isOpened():
+                    self.st.error("Could not open webcam or video source.")
+                    return
 
-            while cap.isOpened():
-                success, frame = cap.read()
-                if not success:
-                    self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
-                    break
+                while cap.isOpened():
+                    success, frame = cap.read()
+                    if not success:
+                        self.st.warning("Failed to read frame from webcam. Please verify the webcam is connected properly.")
+                        break
 
-                # Process frame with model
-                if self.enable_trk:
-                    results = self.model.track(
-                        frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
-                    )
-                else:
-                    results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+                    # Process frame with model
+                    if self.enable_trk:
+                        results = self.model.track(
+                            frame, conf=self.conf, iou=self.iou, classes=self.selected_ind, persist=True
+                        )
+                    else:
+                        results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
 
-                annotated_frame = results[0].plot()  # Add annotations on frame
+                    annotated_frame = results[0].plot()  # Add annotations on frame
 
-                if stop_button:
-                    cap.release()  # Release the capture
-                    self.st.stop()  # Stop streamlit app
+                    if stop_button:
+                        cap.release()  # Release the capture
+                        self.st.stop()  # Stop streamlit app
 
-                self.org_frame.image(frame, channels="BGR")  # Display original frame
-                self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
+                    self.org_frame.image(frame, channels="BGR")  # Display original frame
+                    self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
 
-            cap.release()  # Release the capture
-        cv2.destroyAllWindows()  # Destroy all OpenCV windows
+                cap.release()  # Release the capture
+            cv2.destroyAllWindows()  # Destroy all OpenCV windows
 
 
 if __name__ == "__main__":

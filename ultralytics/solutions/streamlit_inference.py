@@ -126,7 +126,7 @@ class Inference:
 
     def source_upload(self) -> None:
         """Handle video file uploads through the Streamlit interface."""
-        from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+        from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS  # scope import
 
         self.vid_file_name = ""
         if self.source == "video":

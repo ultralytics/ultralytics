@@ -1741,7 +1741,10 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
-        elif m is RTDETRDecoder or m is RTDETRDecoderV2:  # special case
+        elif m is RTDETRDecoder:  # special case
+            args.append([ch[x] for x in f])
+            m_ = m(*args)
+        elif m is RTDETRDecoderV2:  # special case for RTDETRDecoderV2
             ch_in = tuple(ch[x] for x in f)
             kwargs = {
                 "nc": nc,
@@ -1759,8 +1762,8 @@ def parse_model(d, ch, verbose=True):
                 "label_noise_ratio": args[10],
                 "box_noise_scale": args[11],
                 "learnt_init_query": args[12],
-                "query_select_method": args[13],
-                "cross_attn_method": args[14],
+                "query_select_method": args[13] if len(args) > 13 else "default",
+                "cross_attn_method": args[14] if len(args) > 14 else "default",
             }
             m_ = m(**kwargs)
             t = str(m)[8:-2].replace("__main__.", "")  # module type

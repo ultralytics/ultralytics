@@ -408,7 +408,7 @@ class RTDETRDetectionLoss(DETRLoss):
     def __init__(self, nc=80, use_vfl=True, enc_loss_coef=0.1, **kwargs):
         """
         Initialize RTDETRDetectionLoss.
-        
+
         Args:
             nc (int): Number of classes.
             use_vfl (bool): Whether to use VariFocal loss.
@@ -501,18 +501,18 @@ class RTDETRDetectionLoss(DETRLoss):
     def _compute_encoder_aux_loss(self, enc_outputs_class, enc_outputs_coord_unact, batch):
         """
         Compute encoder auxiliary loss for RT-DETR v2.
-        
+
         Args:
             enc_outputs_class (torch.Tensor): Encoder classification outputs.
             enc_outputs_coord_unact (torch.Tensor): Encoder coordinate outputs (unactivated).
             batch (dict): Batch data containing ground truth information.
-            
+
         Returns:
             (dict): Dictionary containing encoder auxiliary losses.
         """
         # Check if class-agnostic (single class output)
         class_agnostic = enc_outputs_class.shape[-1] == 1
-        
+
         if class_agnostic:
             # For class-agnostic classification, all labels are 0
             # The matcher will be based on GIoU loss, as the class is always matched
@@ -520,13 +520,11 @@ class RTDETRDetectionLoss(DETRLoss):
             batch_enc["cls"] = torch.zeros_like(batch["cls"])
         else:
             batch_enc = batch
-            
+
         # Compute encoder auxiliary loss using parent DETRLoss.forward method
         # DETRLoss.forward expects (pred_bboxes, pred_scores, batch, postfix, **kwargs)
-        enc_loss = super(RTDETRDetectionLoss, self).forward(
-            enc_outputs_coord_unact.unsqueeze(0),
-            enc_outputs_class.unsqueeze(0),
-            batch_enc
+        enc_loss = super().forward(
+            enc_outputs_coord_unact.unsqueeze(0), enc_outputs_class.unsqueeze(0), batch_enc
         )
-        
+
         return enc_loss

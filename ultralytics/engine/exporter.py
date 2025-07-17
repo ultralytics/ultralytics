@@ -75,7 +75,7 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, RTDETRDecoderV2
+from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -416,9 +416,9 @@ class Exporter:
                 m.format = self.args.format
                 m.max_det = self.args.max_det
                 m.xyxy = self.args.nms and not coreml
-                
+
                 # RT-DETR v2: Enable discrete sampling for better export compatibility
-                if hasattr(m, 'cross_attn_method') and self.args.format.lower() in {'onnx', 'engine', 'trt'}:
+                if hasattr(m, "cross_attn_method") and self.args.format.lower() in {"onnx", "engine", "trt"}:
                     self._enable_discrete_sampling_for_export(m)
                     LOGGER.info(f"RT-DETR v2: Enabled discrete sampling for {self.args.format.upper()} export")
             elif isinstance(m, C2f) and not is_tf_format:
@@ -544,34 +544,34 @@ class Exporter:
     def _enable_discrete_sampling_for_export(self, decoder_module):
         """
         Enable discrete sampling for RT-DETR v2 export compatibility.
-        
+
         This method modifies the decoder's cross-attention layers to use discrete sampling
         instead of grid_sample, which improves compatibility with ONNX and TensorRT exports.
-        
+
         Args:
             decoder_module: The RT-DETR decoder module to modify.
         """
         try:
             # Check if this is RTDETRDecoderV2 with cross_attn_method attribute
-            if hasattr(decoder_module, 'cross_attn_method'):
+            if hasattr(decoder_module, "cross_attn_method"):
                 original_method = decoder_module.cross_attn_method
-                
+
                 # Temporarily set to discrete mode for export
-                decoder_module.cross_attn_method = 'discrete'
-                
+                decoder_module.cross_attn_method = "discrete"
+
                 # Update transformer layers if they exist
-                if hasattr(decoder_module, 'decoder') and hasattr(decoder_module.decoder, 'layers'):
+                if hasattr(decoder_module, "decoder") and hasattr(decoder_module.decoder, "layers"):
                     for layer in decoder_module.decoder.layers:
-                        if hasattr(layer, 'cross_attn') and hasattr(layer.cross_attn, 'method'):
-                            layer.cross_attn.method = 'discrete'
-                            
+                        if hasattr(layer, "cross_attn") and hasattr(layer.cross_attn, "method"):
+                            layer.cross_attn.method = "discrete"
+
                             # Disable gradients for sampling offsets in discrete mode
-                            if hasattr(layer.cross_attn, 'sampling_offsets'):
+                            if hasattr(layer.cross_attn, "sampling_offsets"):
                                 for p in layer.cross_attn.sampling_offsets.parameters():
                                     p.requires_grad = False
-                                    
+
                 LOGGER.info(f"RT-DETR v2: Switched from '{original_method}' to 'discrete' sampling for export")
-                
+
         except Exception as e:
             LOGGER.warning(f"RT-DETR v2: Failed to enable discrete sampling: {e}")
 

@@ -794,7 +794,12 @@ class RTDETRDetectionModel(DetectionModel):
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
         loss = self.criterion(
-            (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta, encoder_feats=encoder_feats
+            (dec_bboxes, dec_scores),
+            targets,
+            dn_bboxes=dn_bboxes,
+            dn_scores=dn_scores,
+            dn_meta=dn_meta,
+            encoder_feats=encoder_feats,
         )
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor(
@@ -834,7 +839,7 @@ class RTDETRDetectionModel(DetectionModel):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
-        
+
         # Extract encoder features for RT-DETR v2 auxiliary loss
         if self.training:
             # x = (dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta)
@@ -1598,6 +1603,7 @@ def parse_model(d, ch, verbose=True):
         save (list): Sorted list of output layers.
     """
     import ast
+
     from ultralytics.nn import modules
 
     # Args
@@ -1738,23 +1744,23 @@ def parse_model(d, ch, verbose=True):
         elif m is RTDETRDecoder or m is RTDETRDecoderV2:  # special case
             ch_in = tuple(ch[x] for x in f)
             kwargs = {
-                'nc': nc,
-                'ch': ch_in,
-                'hd': args[0],
-                'nq': args[1],
-                'ndp': args[2],
-                'nh': args[3],
-                'ndl': args[4],
-                'd_ffn': args[5],
-                'dropout': args[6],
-                'act': args[7],
-                'eval_idx': args[8],
-                'nd': args[9],
-                'label_noise_ratio': args[10],
-                'box_noise_scale': args[11],
-                'learnt_init_query': args[12],
-                'query_select_method': args[13],
-                'cross_attn_method': args[14],
+                "nc": nc,
+                "ch": ch_in,
+                "hd": args[0],
+                "nq": args[1],
+                "ndp": args[2],
+                "nh": args[3],
+                "ndl": args[4],
+                "d_ffn": args[5],
+                "dropout": args[6],
+                "act": args[7],
+                "eval_idx": args[8],
+                "nd": args[9],
+                "label_noise_ratio": args[10],
+                "box_noise_scale": args[11],
+                "learnt_init_query": args[12],
+                "query_select_method": args[13],
+                "cross_attn_method": args[14],
             }
             m_ = m(**kwargs)
             t = str(m)[8:-2].replace("__main__.", "")  # module type
@@ -1772,7 +1778,7 @@ def parse_model(d, ch, verbose=True):
             layers.append(m_)
             if i == 0:
                 ch = []
-            c2 = kwargs['hd']
+            c2 = kwargs["hd"]
             ch.append(c2)
             continue
         elif m is CBLinear:

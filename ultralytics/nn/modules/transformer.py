@@ -476,7 +476,14 @@ class MSDeformAttn(nn.Module):
         https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 
-    def __init__(self, d_model: int = 256, n_levels: int = 4, n_heads: int = 8, n_points: Union[int, List[int]] = 4, method: str = 'default'):
+    def __init__(
+        self,
+        d_model: int = 256,
+        n_levels: int = 4,
+        n_heads: int = 8,
+        n_points: Union[int, List[int]] = 4,
+        method: str = "default",
+    ):
         """
         Initialize MSDeformAttn with the given parameters.
 
@@ -500,7 +507,7 @@ class MSDeformAttn(nn.Module):
         self.n_levels = n_levels
         self.n_heads = n_heads
         self.method = method
-        
+
         if isinstance(n_points, list):
             assert len(n_points) == n_levels, "The length of n_points list must be equal to n_levels."
             self.n_points_list = n_points
@@ -514,9 +521,9 @@ class MSDeformAttn(nn.Module):
         self.output_proj = nn.Linear(d_model, d_model)
 
         self._reset_parameters()
-        
+
         # RT-DETR v2: Disable gradients for discrete sampling
-        if method == 'discrete':
+        if method == "discrete":
             for p in self.sampling_offsets.parameters():
                 p.requires_grad = False
 
@@ -525,15 +532,13 @@ class MSDeformAttn(nn.Module):
         constant_(self.sampling_offsets.weight.data, 0.0)
         thetas = torch.arange(self.n_heads, dtype=torch.float32) * (2.0 * math.pi / self.n_heads)
         grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
-        
+
         grid_init_level = []
         for n_p in self.n_points_list:
             grid_init_level.append(
-                (grid_init / grid_init.abs().max(-1, keepdim=True)[0])
-                .view(self.n_heads, 1, 1, 2)
-                .repeat(1, 1, n_p, 1)
+                (grid_init / grid_init.abs().max(-1, keepdim=True)[0]).view(self.n_heads, 1, 1, 2).repeat(1, 1, n_p, 1)
             )
-        
+
         for i in range(self.n_levels):
             for j in range(self.n_points_list[i]):
                 grid_init_level[i][:, :, j, :] *= j + 1
@@ -593,11 +598,20 @@ class MSDeformAttn(nn.Module):
             sampling_locations = refer_bbox[:, :, None, :, None, :] + add
         elif num_points == 4:
             sampling_offsets = sampling_offsets.view(bs, len_q, self.n_heads, self.n_levels, -1, 2)
-            add = sampling_offsets / torch.as_tensor(self.n_points_list, dtype=query.dtype, device=query.device)[None, None, None, :, None, None] * refer_bbox[:, :, None, :, None, 2:] * 0.5
+            add = (
+                sampling_offsets
+                / torch.as_tensor(self.n_points_list, dtype=query.dtype, device=query.device)[
+                    None, None, None, :, None, None
+                ]
+                * refer_bbox[:, :, None, :, None, 2:]
+                * 0.5
+            )
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
-        output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights.view(bs, len_q, self.n_heads, self.n_levels, -1))
+        output = multi_scale_deformable_attn_pytorch(
+            value, value_shapes, sampling_locations, attention_weights.view(bs, len_q, self.n_heads, self.n_levels, -1)
+        )
         return self.output_proj(output)
 
 
@@ -636,7 +650,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         act: nn.Module = nn.ReLU(),
         n_levels: int = 4,
         n_points: Union[int, List[int]] = 4,
-        cross_attn_method: str = 'default',
+        cross_attn_method: str = "default",
     ):
         """
         Initialize the DeformableTransformerDecoderLayer with the given parameters.

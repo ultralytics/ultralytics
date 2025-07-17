@@ -18,7 +18,18 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "RTDETRDecoderV2", "v10Detect", "YOLOEDetect", "YOLOESegment"
+__all__ = (
+    "Detect",
+    "Segment",
+    "Pose",
+    "Classify",
+    "OBB",
+    "RTDETRDecoder",
+    "RTDETRDecoderV2",
+    "v10Detect",
+    "YOLOEDetect",
+    "YOLOESegment",
+)
 
 
 def _parse_activation(act):
@@ -954,7 +965,7 @@ class RTDETRDecoder(nn.Module):
         super().__init__()
         # Parse activation function if it's a string
         act = _parse_activation(act)
-        
+
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)  # num level
@@ -1194,9 +1205,8 @@ class RTDETRDecoder(nn.Module):
 
 
 class RTDETRDecoderV2(RTDETRDecoder):
-    """
-    Real-Time Deformable Transformer Decoder (RT-DETRv2) module for object detection.
-    """
+    """Real-Time Deformable Transformer Decoder (RT-DETRv2) module for object detection."""
+
     def __init__(
         self,
         nc: int = 80,
@@ -1242,19 +1252,37 @@ class RTDETRDecoderV2(RTDETRDecoder):
         """
         # Parse activation function if it's a string
         act = _parse_activation(act)
-        
-        super().__init__(nc, ch, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale, learnt_init_query)
+
+        super().__init__(
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp,
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
+        )
         self.query_select_method = query_select_method
         self.cross_attn_method = cross_attn_method
-        
-        if query_select_method == 'agnostic':
+
+        if query_select_method == "agnostic":
             # Override the parent class enc_score_head for agnostic query selection
             self.enc_score_head = nn.Linear(hd, nc)
-        
+
         # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp, cross_attn_method=cross_attn_method)
+        decoder_layer = DeformableTransformerDecoderLayer(
+            hd, nh, d_ffn, dropout, act, self.nl, ndp, cross_attn_method=cross_attn_method
+        )
         self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
-        
+
         self._reset_parameters()
 
     def _get_decoder_input(
@@ -1264,9 +1292,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
         dn_embed: Optional[torch.Tensor] = None,
         dn_bbox: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Generate and prepare the input required for the decoder from the provided features and shapes.
-        """
+        """Generate and prepare the input required for the decoder from the provided features and shapes."""
         bs = feats.shape[0]
         # Prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
@@ -1275,8 +1301,8 @@ class RTDETRDecoderV2(RTDETRDecoder):
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection
-        if self.query_select_method == 'agnostic':
-            # For agnostic selection, take max across all classes  
+        if self.query_select_method == "agnostic":
+            # For agnostic selection, take max across all classes
             topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         else:
             # (bs, num_queries)

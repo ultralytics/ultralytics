@@ -20,7 +20,7 @@ backbone:
 
   - [-1, 1, DWConv, [512, 3, 2, 1, False]] # 4-P3/16
   - [-1, 6, HGBlock, [192, 1024, 5, True, False]] # 5-cm, c2, k, light, shortcut
-  - [-1, 6, HGBlock, [192, 1024, 5, True, True]]  # 6
+  - [-1, 6, HGBlock, [192, 1024, 5, True, True]] # 6
   - [-1, 6, HGBlock, [192, 1024, 5, True, True]] # 7-stage 3
 
   - [-1, 1, DWConv, [1024, 3, 2, 1, False]] # 8-P4/32
@@ -50,4 +50,25 @@ head:
   - [[-1, 12], 1, Concat, [1]] # cat Y5
   - [-1, 3, RepC3, [256]] # F5 (27), pan_blocks.1
 
-  - [[21, 24, 27], 1, RTDETRDecoderV2, [256, 300, [4, 4, 4], 8, 6, 1024, 0.0, 'nn.ReLU()', -1, 100, 0.5, 1.0, False, 'agnostic', 'discrete']] # Detect(P3, P4, P5)
+  - [
+      [21, 24, 27],
+      1,
+      RTDETRDecoderV2,
+      [
+        256,
+        300,
+        [4, 4, 4],
+        8,
+        6,
+        1024,
+        0.0,
+        "nn.ReLU()",
+        -1,
+        100,
+        0.5,
+        1.0,
+        False,
+        "agnostic",
+        "discrete",
+      ],
+    ] # Detect(P3, P4, P5)

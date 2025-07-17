@@ -55,8 +55,8 @@ class RTDETRTrainer(DetectionTrainer):
         # Set default value for disable_strong_aug_epochs if not provided
         if not hasattr(self.args, "disable_strong_aug_epochs"):
             self.args.disable_strong_aug_epochs = 0  # disabled by default
-    
-    #TODO 后续可能迁移至utils/callbacks/rtdetr.py
+
+    # TODO 后续可能迁移至utils/callbacks/rtdetr.py
     def _disable_strong_aug_if_needed(self, trainer):
         """Disables strong augmentations in the final epochs of training for RT-DETR v2."""
         if self.args.disable_strong_aug_epochs > 0 and not self.strong_aug_disabled:
@@ -129,82 +129,82 @@ class RTDETRTrainer(DetectionTrainer):
     def _apply_scale_adaptive_hyperparameters(self):
         """
         Apply scale-adaptive hyperparameters for RT-DETR v2 based on model size.
-        
+
         Different model sizes require different learning rates for optimal performance:
         - Larger models (more parameters) need smaller learning rates
         - Smaller models can handle larger learning rates
         """
         # Detect model scale from config filename or parameters
         model_scale = self._detect_model_scale()
-        
+
         # Scale-adaptive learning rate mapping (based on RT-DETR v2 paper)
         scale_lr_mapping = {
-            'n': 1.0,    # nano - baseline LR
-            's': 0.8,    # small - slightly reduced
-            'm': 0.6,    # medium - more reduced  
-            'l': 0.4,    # large - significantly reduced
-            'x': 0.3,    # extra large - most reduced
+            "n": 1.0,  # nano - baseline LR
+            "s": 0.8,  # small - slightly reduced
+            "m": 0.6,  # medium - more reduced
+            "l": 0.4,  # large - significantly reduced
+            "x": 0.3,  # extra large - most reduced
         }
-        
+
         if model_scale in scale_lr_mapping:
             lr_scale = scale_lr_mapping[model_scale]
-            original_lr = getattr(self.args, 'lr0', 0.01)
-            
+            original_lr = getattr(self.args, "lr0", 0.01)
+
             # Apply learning rate scaling
-            if not hasattr(self.args, '_lr_scaled'):
+            if not hasattr(self.args, "_lr_scaled"):
                 self.args.lr0 = original_lr * lr_scale
                 self.args._lr_scaled = True  # Prevent double scaling
-                
+
                 LOGGER.info(
                     f"{colorstr('bright_yellow', 'RT-DETR v2')}: Applied scale-adaptive LR for model '{model_scale}': "
                     f"{original_lr:.4f} -> {self.args.lr0:.4f} (scale: {lr_scale})"
                 )
-                
+
         # Scale-adaptive weight decay (optional)
         scale_wd_mapping = {
-            'n': 1.0,
-            's': 1.2, 
-            'm': 1.5,
-            'l': 2.0,
-            'x': 2.5,
+            "n": 1.0,
+            "s": 1.2,
+            "m": 1.5,
+            "l": 2.0,
+            "x": 2.5,
         }
-        
-        if model_scale in scale_wd_mapping and not hasattr(self.args, '_wd_scaled'):
+
+        if model_scale in scale_wd_mapping and not hasattr(self.args, "_wd_scaled"):
             wd_scale = scale_wd_mapping[model_scale]
-            original_wd = getattr(self.args, 'weight_decay', 0.0001)
+            original_wd = getattr(self.args, "weight_decay", 0.0001)
             self.args.weight_decay = original_wd * wd_scale
             self.args._wd_scaled = True
-            
+
     def _detect_model_scale(self):
         """
         Detect the model scale (n/s/m/l/x) from configuration or model parameters.
-        
+
         Returns:
             str: Model scale identifier ('n', 's', 'm', 'l', 'x') or 'unknown'
         """
         # Method 1: Check config filename
-        if hasattr(self.args, 'model') and self.args.model:
+        if hasattr(self.args, "model") and self.args.model:
             model_file = str(self.args.model).lower()
-            for scale in ['n', 's', 'm', 'l', 'x']:
-                if f'rtdetrv2-{scale}' in model_file or f'rtdetr-{scale}-v2' in model_file:
+            for scale in ["n", "s", "m", "l", "x"]:
+                if f"rtdetrv2-{scale}" in model_file or f"rtdetr-{scale}-v2" in model_file:
                     return scale
-                if f'rtdetr-{scale}' in model_file:  # fallback for v1 configs
+                if f"rtdetr-{scale}" in model_file:  # fallback for v1 configs
                     return scale
-        
+
         # Method 2: Estimate from model parameters (fallback)
         try:
             total_params = sum(p.numel() for p in self.model.parameters())
-            if total_params < 10e6:    # < 10M parameters
-                return 'n'
-            elif total_params < 25e6:  # < 25M parameters  
-                return 's'
+            if total_params < 10e6:  # < 10M parameters
+                return "n"
+            elif total_params < 25e6:  # < 25M parameters
+                return "s"
             elif total_params < 60e6:  # < 60M parameters
-                return 'm'
-            elif total_params < 120e6: # < 120M parameters
-                return 'l'
-            else:                      # > 120M parameters
-                return 'x'
+                return "m"
+            elif total_params < 120e6:  # < 120M parameters
+                return "l"
+            else:  # > 120M parameters
+                return "x"
         except:
             pass
-            
-        return 'unknown'
+
+        return "unknown"

@@ -278,6 +278,7 @@ class ReID:
 
 
 class DINOv2ReID:
+    """DINOv2 model as encoder for re-identification."""
     def __init__(self, model: str, device=None, return_clstoken=True):
         """
         Initialize DINOv2ReID with a specified model and device.

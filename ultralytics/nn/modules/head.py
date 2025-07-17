@@ -45,7 +45,7 @@ def _parse_activation(act):
             # Try to evaluate the string directly
             try:
                 return eval(act)
-            except:
+            except Exception:
                 # Fallback to ReLU if parsing fails
                 return nn.ReLU()
     return act

@@ -204,7 +204,7 @@ class RTDETRTrainer(DetectionTrainer):
                 return "l"
             else:  # > 120M parameters
                 return "x"
-        except:
+        except Exception:
             pass
 
         return "unknown"

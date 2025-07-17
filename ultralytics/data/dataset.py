@@ -164,7 +164,7 @@ class YOLODataset(BaseDataset):
         Returns:
             (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
-        self.label_files = img2label_paths(self.im_files)
+        self.label_files = img2label_paths(self.im_files, self.data.get("labels_path", "labels"))
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file

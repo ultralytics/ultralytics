@@ -29,7 +29,7 @@ return_clstoken: True  # Use CLS token (faster) or average of patch tokens (more
 
 ## Usage in BoT-SORT
 
-DINOv2 is automatically invoked when `with_reid: True` is set in the tracker configuration. It processes object crops and generates normalized embeddings for ReID.
+DINOv2 is automatically invoked when `with_reid: True` and any dinov2 model `model:dinov2_vits14` is set in the tracker configuration. It processes object crops and generates normalized embeddings for ReID.
 
 ```python
 from ultralytics.trackers.bot_sort import DINOv2ReID

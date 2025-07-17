@@ -35,6 +35,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.trackers.bot_sort import DINOv2ReID
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
@@ -738,3 +739,27 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+    
+
+@pytest.mark.parametrize(
+    "img, detections, description",
+    [
+        (np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8),  # Normal image
+         np.array([[100, 100, 50, 50], [200, 200, 60, 60]]),
+         "Test with a normal image"),
+        (np.zeros((640, 480, 3), dtype=np.uint8),  # Empty image
+         np.array([[100, 100, 50, 50]]),
+         "Test with an empty image"),
+    ],
+)
+def test_dino_feature_extractor(img, detections, description):
+    """Test the DINOv2 feature extractor for object detection."""
+    model_name = "dinov2_vits14"
+    dino_extractor = DINOv2ReID(model=model_name, device="cpu", return_clstoken=True)
+
+    features = dino_extractor(img, detections)
+
+    assert len(features) == len(detections), f"Feature count does not match detection count: {description}"
+    for feature in features:
+        assert feature.shape[0] > 0, f"Feature vector is empty: {description}"
+        assert np.isclose(np.linalg.norm(feature), 1.0), f"Feature vector is not normalized: {description}"

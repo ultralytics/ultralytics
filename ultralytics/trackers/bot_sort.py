@@ -290,9 +290,9 @@ class DINOv2ReID:
             return_clstoken (bool): Whether to return the CLS token or average of patch tokens. Defaults to True.
         """
         import warnings
-        
+
         warnings.filterwarnings("ignore", message="xFormers is not available")
-        
+
         if not hasattr(torch, "inference_mode"):
             torch.inference_mode = torch.no_grad
 

@@ -19,4 +19,5 @@ gmc_method: sparseOptFlow # method of global motion compensation
 proximity_thresh: 0.5 # minimum IoU for valid match with ReID
 appearance_thresh: 0.8 # minimum appearance similarity for ReID
 with_reid: False
-model: auto # uses native features if detector is YOLO else yolo11n-cls.pt
+model: auto # auto uses native features if detector is YOLO else yolo11n-cls.pt or use dinov2_vits14, dinov2_vitb14, dinov2_vitl14 or dinov2_vitg14
+return_clstoken: False # True: use CLS token (faster, standard), False: use average of patch tokens (more detailed info).

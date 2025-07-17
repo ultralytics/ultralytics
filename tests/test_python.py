@@ -761,7 +761,8 @@ def test_dino_feature_extractor(img, detections, description):
     model_name = "dinov2_vits14"
     dino_extractor = DINOv2ReID(model=model_name, device="cpu", return_clstoken=True)
 
-    features = dino_extractor(img, detections)
+    with torch.no_grad():
+        features = dino_extractor(img, detections)
 
     assert len(features) == len(detections), f"Feature count does not match detection count: {description}"
     for feature in features:

@@ -8,7 +8,7 @@ mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmar
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model: # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
-data: coco8.yaml #! (str, optional) path to data file, i.e. coco8.yaml
+data: # (str, optional) path to data file, i.e. coco8.yaml
 epochs: 100 # (int) number of epochs to train for
 time: # (float, optional) number of hours to train for, overrides epochs if supplied
 patience: 100 # (int) epochs to wait for no observable improvement for early stopping of training
@@ -125,6 +125,3 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
-
-# TODO rt-detr v2 settings -------------------------------------------------------------------------------------------------
-disable_strong_aug_epochs: 10 # (int) disable strong augmentation for final epochs

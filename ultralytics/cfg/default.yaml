@@ -125,3 +125,6 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+
+# TODO rt-detr v2 settings -------------------------------------------------------------------------------------------------
+disable_strong_aug_epochs: 10 # (int) disable strong augmentation for final epochs

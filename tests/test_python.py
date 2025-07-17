@@ -482,7 +482,7 @@ def test_utils_files():
 @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
-    from unittest.mock import patch
+    from unittest.mock import MagicMock, patch
 
     from ultralytics.utils.patches import torch_save
 
@@ -741,41 +741,45 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     model.predict(source=im, imgsz=32)
 
 
-from unittest.mock import patch
-
-
 @pytest.mark.parametrize(
-    "img, detections, description",
+    "img, detections, description, return_clstoken",
     [
         (
-            np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8),  # Normal image
+            np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8),
             np.array([[100, 100, 50, 50], [200, 200, 60, 60]]),
-            "Test with a normal image",
+            "Test with a normal image, CLS token",
+            True,
         ),
         (
-            np.zeros((640, 480, 3), dtype=np.uint8),  # Empty image
+            np.zeros((640, 480, 3), dtype=np.uint8),
             np.array([[100, 100, 50, 50]]),
-            "Test with an empty image",
+            "Test with an empty image, CLS token",
+            True,
+        ),
+        (
+            np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8),
+            np.array([[100, 100, 50, 50], [200, 200, 60, 60]]),
+            "Test with a normal image, patch tokens",
+            False,
+        ),
+        (
+            np.zeros((640, 480, 3), dtype=np.uint8),
+            np.array([[100, 100, 50, 50]]),
+            "Test with an empty image, patch tokens",
+            False,
         ),
     ],
 )
-@patch("torch.hub.load")
-def test_dino_feature_extractor(mock_torch_hub_load, img, detections, description):
+def test_dino_feature_extractor(img, detections, description, return_clstoken):
     """Test the DINOv2 feature extractor for object detection."""
-
-    class DummyModel(torch.nn.Module):
-        def forward(self, x):
-            return torch.nn.functional.normalize(torch.rand(len(x), 384), dim=1)
-
-    mock_torch_hub_load.return_value = DummyModel()
-
     model_name = "dinov2_vits14"
-    dino_extractor = DINOv2ReID(model=model_name, device="cuda", return_clstoken=True)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dino_extractor = DINOv2ReID(model=model_name, device=device, return_clstoken=return_clstoken)
 
     with torch.no_grad():
         features = dino_extractor(img, detections)
 
-    assert len(features) == len(detections), f"Feature count mismatch: {description}"
+    assert len(features) == len(detections), f"Feature count does not match detection count: {description}"
     for feature in features:
-        assert feature.shape[0] > 0, f"Empty feature vector: {description}"
-        assert np.isclose(np.linalg.norm(feature), 1.0, atol=1e-2), f"Feature not normalized: {description}"
+        assert feature.shape[0] > 0, f"Feature vector is empty: {description}"
+        assert np.isclose(np.linalg.norm(feature), 1.0), f"Feature vector is not normalized: {description}"

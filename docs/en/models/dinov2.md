@@ -14,18 +14,18 @@ To enable DINOv2 as the feature extractor in BoT-SORT, update the `model` parame
 
 ```yaml
 with_reid: True
-model: dinov2_vits14  # Options: dinov2_vits14, dinov2_vitb14, dinov2_vitl14, dinov2_vitg14u
-return_clstoken: True  # Use CLS token (faster) or average of patch tokens (more detailed)
+model: dinov2_vits14 # Options: dinov2_vits14, dinov2_vitb14, dinov2_vitl14, dinov2_vitg14u
+return_clstoken: True # Use CLS token (faster) or average of patch tokens (more detailed)
 ```
 
 ## Supported Models
 
-| Model           | Description                  |
-|------------------|------------------------------|
-| `dinov2_vits14`  | Small vision transformer     |
-| `dinov2_vitb14`  | Base vision transformer      |
-| `dinov2_vitl14`  | Large vision transformer     |
-| `dinov2_vitg14`  | Giant vision transformer     |
+| Model           | Description              |
+| --------------- | ------------------------ |
+| `dinov2_vits14` | Small vision transformer |
+| `dinov2_vitb14` | Base vision transformer  |
+| `dinov2_vitl14` | Large vision transformer |
+| `dinov2_vitg14` | Giant vision transformer |
 
 ## Usage in BoT-SORT
 

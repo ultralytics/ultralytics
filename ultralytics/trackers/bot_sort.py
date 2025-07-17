@@ -2,10 +2,10 @@
 
 from collections import deque
 from typing import Any, List, Optional
-from torchvision import transforms
 
 import numpy as np
 import torch
+from torchvision import transforms
 
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
@@ -203,14 +203,13 @@ class BOTSORT(BYTETracker):
             if args.model == "auto":
                 self.encoder = lambda feats, s: [f.cpu().numpy() for f in feats]
             elif args.model.startswith("dinov2"):
-                self.encoder = DINOv2ReID(args.model, 
-                                          device=getattr(args, "device", "cuda"), 
-                                          return_clstoken=args.return_clstoken)
+                self.encoder = DINOv2ReID(
+                    args.model, device=getattr(args, "device", "cuda"), return_clstoken=args.return_clstoken
+                )
             else:
                 self.encoder = ReID(args.model)
         else:
             self.encoder = None
-
 
     def get_kalmanfilter(self) -> KalmanFilterXYWH:
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
@@ -277,37 +276,43 @@ class ReID:
             feats = feats[0]  # batched prediction with non-PyTorch backend
         return [f.cpu().numpy() for f in feats]
 
+
 class DINOv2ReID:
     def __init__(self, model: str, device=None, return_clstoken=True):
         """
         Initialize DINOv2ReID with a specified model and device.
-        
+
         Args:
             model (str): The DINOv2 model to use for re-identification.
             device (str, optional): Device to run the model on ('cuda' or 'cpu'). Defaults to 'cuda' if available.
             return_clstoken (bool): Whether to return the CLS token or average of patch tokens. Defaults to True.
         """
         import warnings
+
         warnings.filterwarnings("ignore", message="xFormers is not available")
-        
+
         self.device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
-        self.model = torch.hub.load('facebookresearch/dinov2', model).to(self.device).eval()
+        self.model = torch.hub.load("facebookresearch/dinov2", model).to(self.device).eval()
         self.return_clstoken = return_clstoken
 
         # Define the image transformation pipeline as expected by DINOv2
-        self.transform = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
-        ])
+        self.transform = transforms.Compose(
+            [
+                transforms.ToPILImage(),
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ]
+        )
 
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> List[np.ndarray]:
-        """Extract embeddings for detected objects using DINOv2.
+        """
+        Extract embeddings for detected objects using DINOv2.
+
         Args:
             img (np.ndarray): The input image from which to extract features.
             dets (np.ndarray): Array of detections in xywh format, shape (N, 4).
+
         Returns:
             List[np.ndarray]: List of feature vectors for each detection.
         """
@@ -329,14 +334,18 @@ class DINOv2ReID:
         with torch.no_grad():
             batch = batch.to(self.device)
             if self.return_clstoken:
-                feats = self.model(batch)  
+                feats = self.model(batch)
             else:
-                feats = self.model.forward_features(batch)['x_norm_patchtokens']  # dino feature to use average of patch tokens for more detailed info (ref: https://github.com/mikkoim/dinotool)
+                feats = self.model.forward_features(
+                    batch
+                )[
+                    "x_norm_patchtokens"
+                ]  # dino feature to use average of patch tokens for more detailed info (ref: https://github.com/mikkoim/dinotool)
                 feats = feats.mean(dim=1)
 
         # Ensure feats is a 2D tensor as it is expected by the rest of the code
         if feats.dim() != 2:
             raise ValueError(f"Expected 2D tensor after pooling, got: {feats.shape}")
 
-        feats = torch.nn.functional.normalize(feats, dim=1) # Normalize features to unit length
+        feats = torch.nn.functional.normalize(feats, dim=1)  # Normalize features to unit length
         return [f.cpu().numpy() for f in feats]

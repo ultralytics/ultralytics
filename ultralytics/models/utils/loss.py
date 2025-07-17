@@ -523,8 +523,6 @@ class RTDETRDetectionLoss(DETRLoss):
 
         # Compute encoder auxiliary loss using parent DETRLoss.forward method
         # DETRLoss.forward expects (pred_bboxes, pred_scores, batch, postfix, **kwargs)
-        enc_loss = super().forward(
-            enc_outputs_coord_unact.unsqueeze(0), enc_outputs_class.unsqueeze(0), batch_enc
-        )
+        enc_loss = super().forward(enc_outputs_coord_unact.unsqueeze(0), enc_outputs_class.unsqueeze(0), batch_enc)
 
         return enc_loss

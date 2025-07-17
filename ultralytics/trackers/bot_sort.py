@@ -287,6 +287,9 @@ class DINOv2ReID:
             device (str, optional): Device to run the model on ('cuda' or 'cpu'). Defaults to 'cuda' if available.
             return_clstoken (bool): Whether to return the CLS token or average of patch tokens. Defaults to True.
         """
+        import warnings
+        warnings.filterwarnings("ignore", message="xFormers is not available")
+        
         self.device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
         self.model = torch.hub.load('facebookresearch/dinov2', model).to(self.device).eval()
         self.return_clstoken = return_clstoken

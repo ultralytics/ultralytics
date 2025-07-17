@@ -482,7 +482,7 @@ def test_utils_files():
 @pytest.mark.slow
 def test_utils_patches_torch_save():
     """Test torch_save backoff when _torch_save raises RuntimeError."""
-    from unittest.mock import MagicMock, patch
+    from unittest.mock import patch
 
     from ultralytics.utils.patches import torch_save
 
@@ -741,7 +741,9 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     model.predict(source=im, imgsz=32)
 
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+
 @pytest.mark.parametrize(
     "img, detections, description",
     [
@@ -760,6 +762,7 @@ from unittest.mock import patch, MagicMock
 @patch("torch.hub.load")
 def test_dino_feature_extractor(mock_torch_hub_load, img, detections, description):
     """Test the DINOv2 feature extractor for object detection."""
+
     class DummyModel(torch.nn.Module):
         def forward(self, x):
             return torch.nn.functional.normalize(torch.rand(len(x), 384), dim=1)
@@ -776,4 +779,3 @@ def test_dino_feature_extractor(mock_torch_hub_load, img, detections, descriptio
     for feature in features:
         assert feature.shape[0] > 0, f"Empty feature vector: {description}"
         assert np.isclose(np.linalg.norm(feature), 1.0, atol=1e-2), f"Feature not normalized: {description}"
-

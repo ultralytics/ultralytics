@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -132,33 +132,14 @@ class OBBValidator(DetectionValidator):
         ratio_pad = batch["ratio_pad"][si]
         if len(cls):
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
-            ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
-        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
-
-    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Prepare predictions by scaling bounding boxes to original image dimensions.
-
-        This method takes prediction tensors containing bounding box coordinates and scales them from the model's
-        input dimensions to the original image dimensions using the provided batch information.
-
-        Args:
-            pred (Dict[str, torch.Tensor]): Prediction dictionary containing bounding box coordinates and other information.
-            pbatch (Dict[str, Any]): Dictionary containing batch information with keys:
-                - imgsz (tuple): Model input image size.
-                - ori_shape (tuple): Original image shape.
-                - ratio_pad (tuple): Ratio and padding information for scaling.
-
-        Returns:
-            (Dict[str, torch.Tensor]): Scaled prediction dictionary with bounding boxes in original image dimensions.
-        """
-        cls = pred["cls"]
-        if self.args.single_cls:
-            cls *= 0
-        bboxes = ops.scale_boxes(
-            pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
-        )  # native-space pred
-        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
+        return {
+            "cls": cls,
+            "bboxes": bbox,
+            "ori_shape": ori_shape,
+            "imgsz": imgsz,
+            "ratio_pad": ratio_pad,
+            "im_file": batch["im_file"][si],
+        }
 
     def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
         """
@@ -180,23 +161,26 @@ class OBBValidator(DetectionValidator):
             p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format for plotting
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: Union[str, Path]) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
         """
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
         Args:
             predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
                 with bounding box coordinates, confidence scores, and class predictions.
-            filename (str | Path): Path to the image file for which predictions are being processed.
+            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Notes:
             This method processes rotated bounding box predictions and converts them to both rbox format
             (x, y, w, h, angle) and polygon format (x1, y1, x2, y2, x3, y3, x4, y4) before adding them
             to the JSON dictionary.
         """
-        stem = Path(filename).stem
+        stem = Path(pbatch["im_file"]).stem
         image_id = int(stem) if stem.isnumeric() else stem
         rbox = predn["bboxes"]
+        rbox = ops.scale_boxes(
+            pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
+        )  # native-space pred
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
         for r, b, s, c in zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(

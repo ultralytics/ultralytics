@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
+import os
 from typing import Any, List
 
 import cv2
@@ -64,6 +65,7 @@ class Inference:
 
         self.st = st  # Reference to the Streamlit module
         self.source = None  # Video source selection (webcam or video file)
+        self.img_file_names = []  # List of image file names
         self.enable_trk = False  # Flag to toggle object tracking
         self.conf = 0.25  # Confidence threshold for detection
         self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
@@ -85,13 +87,13 @@ class Inference:
         menu_style_cfg = """<style>MainMenu {visibility: hidden;}</style>"""  # Hide main menu style
 
         # Main title of streamlit application
-        main_title_cfg = """<div><h1 style="color:#FF64DA; text-align:center; font-size:40px; margin-top:-50px;
+        main_title_cfg = """<div><h1 style="color:#111F68; text-align:center; font-size:40px; margin-top:-50px;
         font-family: 'Archivo', sans-serif; margin-bottom:20px;">Ultralytics YOLO Streamlit Application</h1></div>"""
 
         # Subtitle of streamlit application
-        sub_title_cfg = """<div><h4 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
-        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam with the power 
-        of Ultralytics YOLO! 🚀</h4></div>"""
+        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
+        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images 
+        with the power of Ultralytics YOLO! 🚀</h5></div>"""
 
         # Set html page configuration and append custom HTML
         self.st.set_page_config(page_title="Ultralytics Streamlit App", layout="wide")
@@ -107,24 +109,28 @@ class Inference:
 
         self.st.sidebar.title("User Configuration")  # Add elements to vertical setting menu
         self.source = self.st.sidebar.selectbox(
-            "Video",
-            ("webcam", "video"),
+            "Source",
+            ("webcam", "video", "image"),
         )  # Add source selection dropdown
-        self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No")) == "Yes"  # Enable object tracking
+        if self.source in ["webcam", "video"]:
+            self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No")) == "Yes"  # Enable object tracking
         self.conf = float(
             self.st.sidebar.slider("Confidence Threshold", 0.0, 1.0, self.conf, 0.01)
         )  # Slider for confidence
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
-        col1, col2 = self.st.columns(2)  # Create two columns for displaying frames
-        self.org_frame = col1.empty()  # Container for original frame
-        self.ann_frame = col2.empty()  # Container for annotated frame
+        if self.source != "image":  # Only create columns for video/webcam
+            col1, col2 = self.st.columns(2)  # Create two columns for displaying frames
+            self.org_frame = col1.empty()  # Container for original frame
+            self.ann_frame = col2.empty()  # Container for annotated frame
 
     def source_upload(self) -> None:
         """Handle video file uploads through the Streamlit interface."""
+        from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS  # scope import
+
         self.vid_file_name = ""
         if self.source == "video":
-            vid_file = self.st.sidebar.file_uploader("Upload Video File", type=["mp4", "mov", "avi", "mkv"])
+            vid_file = self.st.sidebar.file_uploader("Upload Video File", type=VID_FORMATS)
             if vid_file is not None:
                 g = io.BytesIO(vid_file.read())  # BytesIO Object
                 with open("ultralytics.mp4", "wb") as out:  # Open temporary file as bytes
@@ -132,6 +138,15 @@ class Inference:
                 self.vid_file_name = "ultralytics.mp4"
         elif self.source == "webcam":
             self.vid_file_name = 0  # Use webcam index 0
+        elif self.source == "image":
+            import tempfile  # scope import
+
+            imgfiles = self.st.sidebar.file_uploader("Upload Image Files", type=IMG_FORMATS, accept_multiple_files=True)
+            if imgfiles:
+                for imgfile in imgfiles:  # Save each uploaded image to a temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{imgfile.name.split('.')[-1]}") as tf:
+                        tf.write(imgfile.read())
+                        self.img_file_names.append({"path": tf.name, "name": imgfile.name})
 
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
@@ -161,6 +176,27 @@ class Inference:
         if not isinstance(self.selected_ind, list):  # Ensure selected_options is a list
             self.selected_ind = list(self.selected_ind)
 
+    def image_inference(self) -> None:
+        """Perform inference on uploaded images."""
+        for idx, img_info in enumerate(self.img_file_names):
+            img_path = img_info["path"]
+            image = cv2.imread(img_path)  # Load and display the original image
+            if image is not None:
+                self.st.markdown(f"#### Processed: {img_info['name']}")
+                col1, col2 = self.st.columns(2)
+                with col1:
+                    self.st.image(image, channels="BGR", caption="Original Image")
+                results = self.model(image, conf=self.conf, iou=self.iou, classes=self.selected_ind)
+                annotated_image = results[0].plot()
+                with col2:
+                    self.st.image(annotated_image, channels="BGR", caption="Predicted Image")
+                try:  # Clean up temporary file
+                    os.unlink(img_path)
+                except FileNotFoundError:
+                    pass  # File doesn't exist, ignore
+            else:
+                self.st.error("Could not load the uploaded image.")
+
     def inference(self) -> None:
         """Perform real-time object detection inference on video or webcam feed."""
         self.web_ui()  # Initialize the web interface
@@ -169,7 +205,14 @@ class Inference:
         self.configure()  # Configure the app
 
         if self.st.sidebar.button("Start"):
-            stop_button = self.st.button("Stop")  # Button to stop the inference
+            if self.source == "image":
+                if self.img_file_names:
+                    self.image_inference()
+                else:
+                    self.st.info("Please upload an image file to perform inference.")
+                return
+
+            stop_button = self.st.sidebar.button("Stop")  # Button to stop the inference
             cap = cv2.VideoCapture(self.vid_file_name)  # Capture the video
             if not cap.isOpened():
                 self.st.error("Could not open webcam or video source.")
@@ -195,8 +238,8 @@ class Inference:
                     cap.release()  # Release the capture
                     self.st.stop()  # Stop streamlit app
 
-                self.org_frame.image(frame, channels="BGR")  # Display original frame
-                self.ann_frame.image(annotated_frame, channels="BGR")  # Display processed frame
+                self.org_frame.image(frame, channels="BGR", caption="Original Frame")  # Display original frame
+                self.ann_frame.image(annotated_frame, channels="BGR", caption="Predicted Frame")  # Display processed
 
             cap.release()  # Release the capture
         cv2.destroyAllWindows()  # Destroy all OpenCV windows

@@ -135,29 +135,6 @@ class SegmentationValidator(DetectionValidator):
         prepared_batch["masks"] = batch["masks"][midx]
         return prepared_batch
 
-    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Prepare predictions for evaluation by processing bounding boxes and masks.
-
-        Args:
-            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
-            pbatch (Dict[str, Any]): Prepared batch information.
-
-        Returns:
-            Dict[str, torch.Tensor]: Processed bounding box predictions.
-        """
-        predn = super()._prepare_pred(pred, pbatch)
-        predn["masks"] = pred["masks"]
-        if self.args.save_json and len(predn["masks"]):
-            coco_masks = torch.as_tensor(pred["masks"], dtype=torch.uint8)
-            coco_masks = ops.scale_image(
-                coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                pbatch["ori_shape"],
-                ratio_pad=pbatch["ratio_pad"],
-            )
-            predn["coco_masks"] = coco_masks
-        return predn
-
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
         Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
@@ -233,13 +210,13 @@ class SegmentationValidator(DetectionValidator):
             masks=torch.as_tensor(predn["masks"], dtype=torch.uint8),
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: torch.Tensor, filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
         """
         Save one JSON result for COCO evaluation.
 
         Args:
             predn (Dict[str, torch.Tensor]): Predictions containing bboxes, masks, confidence scores, and classes.
-            filename (str): Image filename.
+            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Examples:
              >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
@@ -252,23 +229,18 @@ class SegmentationValidator(DetectionValidator):
             rle["counts"] = rle["counts"].decode("utf-8")
             return rle
 
-        stem = Path(filename).stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        pred_masks = np.transpose(predn["coco_masks"], (2, 0, 1))
+        coco_masks = torch.as_tensor(predn["masks"], dtype=torch.uint8)
+        coco_masks = ops.scale_image(
+            coco_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+            pbatch["ori_shape"],
+            ratio_pad=pbatch["ratio_pad"],
+        )
+        pred_masks = np.transpose(coco_masks, (2, 0, 1))
         with ThreadPool(NUM_THREADS) as pool:
             rles = pool.map(single_encode, pred_masks)
-        for i, (b, s, c) in enumerate(zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist())):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "score": round(s, 5),
-                    "segmentation": rles[i],
-                }
-            )
+        super().pred_to_json(predn, pbatch)
+        for i, r in enumerate(rles):
+            self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""

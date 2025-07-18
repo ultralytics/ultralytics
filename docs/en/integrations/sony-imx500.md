@@ -212,90 +212,92 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
 
     === "Object Detection"
 
-         ```python
-         import numpy as np
-         from modlib.apps import Annotator
-         from modlib.devices import AiCamera
-         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
-         from modlib.models.post_processors import pp_od_yolo_ultralytics
+        ```python
+        import numpy as np
+        from modlib.apps import Annotator
+        from modlib.devices import AiCamera
+        from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+        from modlib.models.post_processors import pp_od_yolo_ultralytics
 
 
-         class YOLO(Model):
+        class YOLO(Model):
             """YOLO model for IMX500 deployment."""
-             def __init__(self):
+
+            def __init__(self):
                 """Initialize the YOLO model for IMX500 deployment."""
-                 super().__init__(
-                     model_file="yolo11n_imx_model/packerOut.zip",  # replace with proper directory
-                     model_type=MODEL_TYPE.CONVERTED,
-                     color_format=COLOR_FORMAT.RGB,
-                     preserve_aspect_ratio=False,
-                 )
+                super().__init__(
+                    model_file="yolo11n_imx_model/packerOut.zip",  # replace with proper directory
+                    model_type=MODEL_TYPE.CONVERTED,
+                    color_format=COLOR_FORMAT.RGB,
+                    preserve_aspect_ratio=False,
+                )
 
-                 self.labels = np.genfromtxt(
-                     "yolo11n_imx_model/labels.txt",  # replace with proper directory
-                     dtype=str,
-                     delimiter="\n",
-                 )
+                self.labels = np.genfromtxt(
+                    "yolo11n_imx_model/labels.txt",  # replace with proper directory
+                    dtype=str,
+                    delimiter="\n",
+                )
 
-             def post_process(self, output_tensors):
+            def post_process(self, output_tensors):
                 """Post-process the output tensors for object detection."""
-                 return pp_od_yolo_ultralytics(output_tensors)
+                return pp_od_yolo_ultralytics(output_tensors)
 
 
-         device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the YOLO model running on the AI Camera
-         model = YOLO()
-         device.deploy(model)
+        device = AiCamera(frame_rate=16)  # Optimal frame rate for maximum DPS of the YOLO model running on the AI Camera
+        model = YOLO()
+        device.deploy(model)
 
-         annotator = Annotator()
+        annotator = Annotator()
 
-         with device as stream:
-             for frame in stream:
-                 detections = frame.detections[frame.detections.confidence > 0.55]
-                 labels = [f"{model.labels[class_id]}: {score:0.2f}" for _, score, class_id, _ in detections]
+        with device as stream:
+            for frame in stream:
+                detections = frame.detections[frame.detections.confidence > 0.55]
+                labels = [f"{model.labels[class_id]}: {score:0.2f}" for _, score, class_id, _ in detections]
 
-                 annotator.annotate_boxes(frame, detections, labels=labels, alpha=0.3, corner_radius=10)
-                 frame.display()
-         ```
+                annotator.annotate_boxes(frame, detections, labels=labels, alpha=0.3, corner_radius=10)
+                frame.display()
+        ```
 
     === "Pose Estimation"
 
-         ```python
-         from modlib.apps import Annotator
-         from modlib.devices import AiCamera
-         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
-         from modlib.models.post_processors import pp_yolo_pose_ultralytics
+        ```python
+        from modlib.apps import Annotator
+        from modlib.devices import AiCamera
+        from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+        from modlib.models.post_processors import pp_yolo_pose_ultralytics
 
 
-         class YOLOPose(Model):
+        class YOLOPose(Model):
             """YOLO pose estimation model for IMX500 deployment."""
-             def __init__(self):
+
+            def __init__(self):
                 """Initialize the YOLO pose estimation model for IMX500 deployment."""
-                 super().__init__(
-                     model_file="yolo11n-pose_imx_model/packerOut.zip",  # replace with proper directory
-                     model_type=MODEL_TYPE.CONVERTED,
-                     color_format=COLOR_FORMAT.RGB,
-                     preserve_aspect_ratio=False,
-                 )
+                super().__init__(
+                    model_file="yolo11n-pose_imx_model/packerOut.zip",  # replace with proper directory
+                    model_type=MODEL_TYPE.CONVERTED,
+                    color_format=COLOR_FORMAT.RGB,
+                    preserve_aspect_ratio=False,
+                )
 
-             def post_process(self, output_tensors):
+            def post_process(self, output_tensors):
                 """Post-process the output tensors for pose estimation."""
-                 return pp_yolo_pose_ultralytics(output_tensors)
+                return pp_yolo_pose_ultralytics(output_tensors)
 
 
-         device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-pose model running on the AI Camera
-         model = YOLOPose()
-         device.deploy(model)
+        device = AiCamera(frame_rate=17)  # Optimal frame rate for maximum DPS of the YOLO-pose model running on the AI Camera
+        model = YOLOPose()
+        device.deploy(model)
 
-         annotator = Annotator()
+        annotator = Annotator()
 
-         with device as stream:
-             for frame in stream:
-                 detections = frame.detections[frame.detections.confidence > 0.4]
+        with device as stream:
+            for frame in stream:
+                detections = frame.detections[frame.detections.confidence > 0.4]
 
-                 annotator.annotate_keypoints(frame, detections)
-                 annotator.annotate_boxes(frame, detections, corner_length=20)
-                 frame.display()
-         ```
+                annotator.annotate_keypoints(frame, detections)
+                annotator.annotate_boxes(frame, detections, corner_length=20)
+                frame.display()
+        ```
 
 ## Benchmarks
 

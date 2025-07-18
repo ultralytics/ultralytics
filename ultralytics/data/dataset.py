@@ -758,15 +758,12 @@ class ClassificationDataset:
             self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
-        if self.cache_ram:
-            LOGGER.warning(
-                "Classification `cache_ram` training has known memory leak in "
-                "https://github.com/ultralytics/ultralytics/issues/9824, setting `cache_ram=False`."
-            )
-            self.cache_ram = False
+        self.ni = len(self.samples)
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        if self.cache_ram:
+            self.cache_images_ram()
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
         self.torch_transforms = (
             classify_augmentations(
@@ -784,6 +781,40 @@ class ClassificationDataset:
             else classify_transforms(size=args.imgsz)
         )
 
+    def load_image(self, i):
+        """
+        Load an image from dataset index 'i'.
+
+        Args:
+            i (int): Index of the image to load.
+
+        Returns:
+            im (np.ndarray): Loaded image as a NumPy array.
+        """
+        f, _, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        if im is None:  # not cached in RAM
+            if fn.exists():  # load npy
+                try:
+                    im = np.load(fn)
+                except Exception as e:
+                    LOGGER.warning(f"{self.prefix}Removing corrupt *.npy image file {fn} due to: {e}")
+                    Path(fn).unlink(missing_ok=True)
+                    im = cv2.imread(f)  # BGR
+            else:  # read image
+                im = cv2.imread(f)  # BGR
+        return im
+
+    def cache_images_ram(self) -> None:
+        b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(self.load_image, range(self.ni))
+            pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
+            for i, x in pbar:
+                self.samples[i][3] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                b += x.nbytes
+                pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB RAM)"
+            pbar.close()
+
     def __getitem__(self, i: int) -> Dict:
         """
         Return subset of data and targets corresponding to given indices.
@@ -795,10 +826,7 @@ class ClassificationDataset:
             (dict): Dictionary containing the image and its class index.
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
-        if self.cache_ram:
-            if im is None:  # Warning: two separate if statements required here, do not combine this with previous line
-                im = self.samples[i][3] = cv2.imread(f)
-        elif self.cache_disk:
+        if self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)

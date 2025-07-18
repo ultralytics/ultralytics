@@ -222,6 +222,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
 
         class YOLO(Model):
             """YOLO model for IMX500 deployment."""
+
             def __init__(self):
                 """Initialize the YOLO model for IMX500 deployment."""
                 super().__init__(

@@ -238,7 +238,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                 )
 
             def post_process(self, output_tensors):
-               """Post-process the output tensors for object detection."""
+                """Post-process the output tensors for object detection."""
                 return pp_od_yolo_ultralytics(output_tensors)
 
 

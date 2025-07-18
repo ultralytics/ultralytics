@@ -11,6 +11,7 @@ import torch
 
 from ultralytics import RTDETR
 from ultralytics.nn.modules.head import RTDETRDecoder, RTDETRDecoderV2
+from ultralytics.utils.torch_utils import TORCH_1_9
 
 
 class TestRTDETRCompatibility:
@@ -18,18 +19,24 @@ class TestRTDETRCompatibility:
 
     def test_v1_decoder_creation(self):
         """Test RT-DETR v1 decoder creation."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         decoder = RTDETRDecoder(nc=80, ch=(256, 512, 1024))
         assert decoder.nc == 80
         assert decoder.nl == 3
 
     def test_v2_decoder_creation(self):
         """Test RT-DETR v2 decoder creation."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         decoder = RTDETRDecoderV2(nc=80, ch=(256, 512, 1024))
         assert decoder.nc == 80
         assert decoder.nl == 3
 
     def test_v2_decoder_v1_mode(self):
         """Test RT-DETR v2 decoder in v1 compatibility mode."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # Create v2 decoder with v1-style ndp parameter
         decoder = RTDETRDecoderV2(nc=80, ch=(256, 512, 1024), ndp=4)
         assert decoder.is_v1_mode
@@ -37,6 +44,8 @@ class TestRTDETRCompatibility:
 
     def test_v2_decoder_v2_mode(self):
         """Test RT-DETR v2 decoder in native v2 mode."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # Create v2 decoder with v2-style ndp parameter
         decoder = RTDETRDecoderV2(nc=80, ch=(256, 512, 1024), ndp=[4, 4, 4])
         assert not decoder.is_v1_mode
@@ -44,6 +53,8 @@ class TestRTDETRCompatibility:
 
     def test_version_detection(self):
         """Test weight version detection."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         decoder = RTDETRDecoderV2(nc=80, ch=(256, 512, 1024))
 
         # Mock v1 state dict with 64-dim sampling_offsets
@@ -63,6 +74,8 @@ class TestRTDETRCompatibility:
 
     def test_v1_to_v2_conversion(self):
         """Test converting v1 weights to v2 format."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         decoder = RTDETRDecoderV2(nc=80, ch=(256, 512, 1024))
 
         # Create mock v1 weights
@@ -82,6 +95,8 @@ class TestRTDETRCompatibility:
 
     def test_v2_to_v1_conversion(self):
         """Test converting v2 weights to v1 format."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         decoder = RTDETRDecoderV2(nc=80, ch=(256, 512, 1024))
 
         # Create mock v2 weights
@@ -101,12 +116,16 @@ class TestRTDETRCompatibility:
 
     def test_model_auto_config_selection(self):
         """Test automatic config selection based on weight version."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # This test would need actual weight files, so we'll mock it
         model = RTDETR("rtdetr-l.yaml")  # Direct config loading
         assert model.model is not None
 
     def test_cross_version_compatibility(self):
         """Test that v1 and v2 models can coexist."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # Create v1 model
         model_v1 = RTDETR("rtdetr-l.yaml")
 
@@ -119,6 +138,8 @@ class TestRTDETRCompatibility:
 
     def test_forward_compatibility(self):
         """Test forward pass compatibility."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # Create test input
         x = [torch.randn(1, 256, 64, 64), torch.randn(1, 512, 32, 32), torch.randn(1, 1024, 16, 16)]
 
@@ -155,12 +176,16 @@ class TestRTDETRCompatibility:
     @pytest.mark.slow
     def test_training_compatibility(self):
         """Test training compatibility between versions."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # This would test that training works with both v1 and v2
         # Marked as slow since it involves model training
         pass
 
     def test_export_compatibility(self):
         """Test export compatibility for both versions."""
+        if not TORCH_1_9:
+            pytest.skip("RT-DETR requires torch>=1.9")
         # This would test ONNX/TensorRT export compatibility
         pass
 

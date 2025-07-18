@@ -562,7 +562,6 @@ Also see the [`Annotator` Reference Page](../reference/utils/plotting.md/#ultral
 
 Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
 
-
 #### Adaptive label Annotation
 
 !!! warning

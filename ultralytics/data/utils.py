@@ -40,31 +40,31 @@ HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting gui
 def calculate_class_weights(dataset, nc):
     """
     Calculate inverse frequency class weights for balancing.
-    
+
     Args:
         dataset: Dataset object containing samples with 'cls' labels
         nc (int): Number of classes
-        
+
     Returns:
         torch.Tensor: Class weights for balancing
     """
     import torch
-    
+
     class_counts = torch.zeros(nc)
     total_samples = 0
-    
+
     for i in range(len(dataset)):
         try:
             sample = dataset[i]
-            if isinstance(sample, dict) and 'cls' in sample:
-                classes = sample['cls']
+            if isinstance(sample, dict) and "cls" in sample:
+                classes = sample["cls"]
                 if isinstance(classes, torch.Tensor):
                     classes = classes.flatten()
                 elif isinstance(classes, (list, tuple, np.ndarray)):
                     classes = torch.tensor(classes).flatten()
                 else:
                     continue
-                    
+
                 for cls_id in classes:
                     cls_id = int(cls_id)
                     if 0 <= cls_id < nc:
@@ -72,12 +72,14 @@ def calculate_class_weights(dataset, nc):
                         total_samples += 1
         except Exception:
             continue
-    
+
     if total_samples == 0:
         return torch.ones(nc)
-    
+
     class_weights = total_samples / (nc * class_counts + 1e-6)
     return class_weights
+
+
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
 PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global pin_memory for dataloaders

@@ -200,14 +200,14 @@ class v8DetectionLoss:
         h = model.args  # hyperparameters
 
         m = model.model[-1]  # Detect() module
-        
+
         pos_weight = None
-        if hasattr(h, 'cls_weights') and h.cls_weights is not None:
+        if hasattr(h, "cls_weights") and h.cls_weights is not None:
             if isinstance(h.cls_weights, (list, tuple)):
                 pos_weight = torch.tensor(h.cls_weights, device=device, dtype=torch.float32)
             elif h.cls_weights is True:
                 pos_weight = self._calculate_pos_weight(model, device)
-        
+
         self.bce = nn.BCEWithLogitsLoss(reduction="none", pos_weight=pos_weight)
         self.hyp = h
         self.stride = m.stride  # model strides
@@ -307,8 +307,9 @@ class v8DetectionLoss:
     def _calculate_pos_weight(self, model, device):
         """Calculate pos_weight from training dataset class distribution."""
         try:
-            if hasattr(model, 'trainer') and hasattr(model.trainer, 'train_loader'):
+            if hasattr(model, "trainer") and hasattr(model.trainer, "train_loader"):
                 from ultralytics.data.utils import calculate_class_weights
+
                 dataset = model.trainer.train_loader.dataset
                 class_weights = calculate_class_weights(dataset, self.nc)
                 return class_weights.to(device)

@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
+from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
@@ -1227,6 +1228,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
         learnt_init_query: bool = False,
         query_select_method: str = "default",
         cross_attn_method: str = "default",
+        v2_compatible: bool = True,  # Enable v1/v2 compatibility
     ):
         """
         Initialize the RTDETRDecoder module with the given parameters.
@@ -1249,16 +1251,30 @@ class RTDETRDecoderV2(RTDETRDecoder):
             learnt_init_query (bool): Whether to learn initial query embeddings.
             query_select_method (str): Method for selecting queries ('default' or 'agnostic').
             cross_attn_method (str): Method for cross-attention ('default' or 'discrete').
+            v2_compatible (bool): Enable v1/v2 compatibility mode.
         """
         # Parse activation function if it's a string
         act = _parse_activation(act)
+
+        # v1/v2 compatibility handling
+        self.v2_compatible = v2_compatible
+        if isinstance(ndp, int):
+            # v1 mode: use same sampling points for all layers
+            self.ndp = [ndp] * ndl
+            self.is_v1_mode = True
+            LOGGER.warning(f"RT-DETR: Initializing RTDETRDecoderV2 in v1 compatibility mode (ndp={ndp})")
+        else:
+            # v2 mode: use independent sampling points per layer
+            self.ndp = ndp if isinstance(ndp, list) else [ndp] * ndl
+            self.is_v1_mode = False
+            LOGGER.warning(f"RT-DETR: Initializing RTDETRDecoderV2 in v2 mode (ndp={ndp})")
 
         super().__init__(
             nc,
             ch,
             hd,
             nq,
-            ndp,
+            ndp if self.is_v1_mode else ndp[0],  # Pass first value to parent for v1 compatibility
             nh,
             ndl,
             d_ffn,
@@ -1277,13 +1293,117 @@ class RTDETRDecoderV2(RTDETRDecoder):
             # Override the parent class enc_score_head for agnostic query selection
             self.enc_score_head = nn.Linear(hd, nc)
 
-        # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(
-            hd, nh, d_ffn, dropout, act, self.nl, ndp, cross_attn_method=cross_attn_method
-        )
+        # Transformer module - use appropriate ndp for decoder layer
+        # For MSDeformAttn, we need sampling points per feature level, not per decoder layer
+        if self.is_v1_mode:
+            # v1 mode: use single integer (same as parent class)
+            decoder_layer = DeformableTransformerDecoderLayer(
+                hd, nh, d_ffn, dropout, act, self.nl, ndp, cross_attn_method=cross_attn_method
+            )
+        else:
+            # v2 mode: use first n_levels values from self.ndp as feature level sampling points
+            feature_level_ndp = self.ndp[:self.nl] if len(self.ndp) >= self.nl else self.ndp[0]
+            decoder_layer = DeformableTransformerDecoderLayer(
+                hd, nh, d_ffn, dropout, act, self.nl, feature_level_ndp, cross_attn_method=cross_attn_method
+            )
         self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
 
         self._reset_parameters()
+
+    def _load_from_state_dict(
+        self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+    ):
+        """
+        Custom state dict loading with v1/v2 compatibility.
+        Automatically detects weight version and converts if necessary.
+        """
+        if self.v2_compatible:
+            # Detect weight version
+            version = self._detect_weight_version(state_dict, prefix)
+
+            if version == "v1" and not self.is_v1_mode:
+                # Convert v1 weights to v2 format
+                LOGGER.warning(f"RT-DETR: Converting v1 weights to v2 format for RTDETRDecoderV2")
+                state_dict = self._convert_v1_to_v2_weights(state_dict, prefix)
+            elif version == "v2" and self.is_v1_mode:
+                # Convert v2 weights to v1 format
+                LOGGER.warning(f"RT-DETR: Converting v2 weights to v1 format for RTDETRDecoderV2")
+                state_dict = self._convert_v2_to_v1_weights(state_dict, prefix)
+            elif version == "v1" and self.is_v1_mode:
+                LOGGER.warning(f"RT-DETR: Loading v1 weights in v1 compatibility mode")
+            elif version == "v2" and not self.is_v1_mode:
+                LOGGER.warning(f"RT-DETR: Loading v2 weights in v2 mode")
+            elif version == "unknown":
+                LOGGER.warning(f"RT-DETR: Could not detect weight version, loading as-is")
+
+        super()._load_from_state_dict(
+            state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+        )
+
+    def _detect_weight_version(self, state_dict, prefix):
+        """
+        Detect RT-DETR weight version by examining sampling_offsets dimensions.
+        """
+        # Check decoder layer sampling_offsets to determine version
+        for name, param in state_dict.items():
+            if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
+                # v1: sampling_offsets has shape [..., 64] (8 * 4 * 2)
+                # v2: sampling_offsets has shape [..., 192] (8 * 12 * 2)
+                if param.shape[-1] == 64:
+                    return "v1"
+                elif param.shape[-1] == 192:
+                    return "v2"
+        return "unknown"
+
+    def _convert_v1_to_v2_weights(self, state_dict, prefix):
+        """
+        Convert RT-DETR v1 weights to v2 format.
+        Expands sampling offsets from 4 points to 12 points per layer.
+        """
+        new_state_dict = {}
+
+        for name, param in state_dict.items():
+            if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
+                # v1: [..., 64] -> v2: [..., 192]
+                # Reshape to [batch, queries, heads, 4, 2]
+                original_shape = param.shape
+                reshaped = param.view(*original_shape[:-1], 8, 4, 2)
+
+                # Expand to 12 sampling points by repeating the 4 points
+                expanded = reshaped.repeat(*([1] * (len(original_shape) - 1)), 1, 3, 1)
+
+                # Reshape back to original format
+                new_param = expanded.reshape(*original_shape[:-1], 192)
+                new_state_dict[name] = new_param
+            else:
+                new_state_dict[name] = param
+
+        return new_state_dict
+
+    def _convert_v2_to_v1_weights(self, state_dict, prefix):
+        """
+        Convert RT-DETR v2 weights to v1 format.
+        Reduces sampling offsets from 12 points to 4 points per layer.
+        """
+        new_state_dict = {}
+
+        for name, param in state_dict.items():
+            if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
+                # v2: [..., 192] -> v1: [..., 64]
+                # Reshape to [batch, queries, heads, 12, 2]
+                original_shape = param.shape
+                reshaped = param.view(*original_shape[:-1], 8, 12, 2)
+
+                # Take first 4 sampling points
+                reduced = reshaped[..., :4, :]
+
+                # Reshape back to v1 format
+                new_param = reduced.reshape(*original_shape[:-1], 64)
+                new_state_dict[name] = new_param
+            else:
+                new_state_dict[name] = param
+
+        return new_state_dict
 
     def _get_decoder_input(
         self,

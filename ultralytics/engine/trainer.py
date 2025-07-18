@@ -304,8 +304,20 @@ class BaseTrainer:
 
         # Dataloaders
         batch_size = self.batch_size // max(world_size, 1)
+        
+        use_weighted_sampler = hasattr(self.args, 'cls_weights') and self.args.cls_weights is not None
+        cls_weights = None
+        if use_weighted_sampler:
+            if isinstance(self.args.cls_weights, (list, tuple)):
+                cls_weights = self.args.cls_weights
+            elif self.args.cls_weights is True:
+                from ultralytics.data.utils import calculate_class_weights
+                temp_dataset = self.build_dataset(self.data["train"], mode="train")
+                cls_weights = calculate_class_weights(temp_dataset, getattr(self.model.model[-1], 'nc', 80))
+        
         self.train_loader = self.get_dataloader(
-            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
+            self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train",
+            use_weighted_sampler=use_weighted_sampler, cls_weights=cls_weights
         )
         if RANK in {-1, 0}:
             # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.

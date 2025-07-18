@@ -66,7 +66,7 @@ class DetectionTrainer(BaseTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
-    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
+    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train", use_weighted_sampler: bool = False, cls_weights=None):
         """
         Construct and return dataloader for the specified mode.
 
@@ -75,6 +75,8 @@ class DetectionTrainer(BaseTrainer):
             batch_size (int): Number of images per batch.
             rank (int): Process rank for distributed training.
             mode (str): 'train' for training dataloader, 'val' for validation dataloader.
+            use_weighted_sampler (bool): Whether to use WeightedRandomSampler for class balancing.
+            cls_weights (list, optional): Class weights for WeightedRandomSampler.
 
         Returns:
             (DataLoader): PyTorch dataloader object.
@@ -87,7 +89,7 @@ class DetectionTrainer(BaseTrainer):
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         workers = self.args.workers if mode == "train" else self.args.workers * 2
-        return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
+        return build_dataloader(dataset, batch_size, workers, shuffle, rank, use_weighted_sampler=use_weighted_sampler, cls_weights=cls_weights)  # return dataloader
 
     def preprocess_batch(self, batch: Dict) -> Dict:
         """

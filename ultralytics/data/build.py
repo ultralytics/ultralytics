@@ -174,7 +174,7 @@ def build_grounding(
     )
 
 
-def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1, drop_last: bool = False):
+def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1, drop_last: bool = False, use_weighted_sampler: bool = False, cls_weights=None):
     """
     Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
@@ -185,6 +185,8 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
+        use_weighted_sampler (bool, optional): Whether to use WeightedRandomSampler for class balancing.
+        cls_weights (list, optional): Class weights for WeightedRandomSampler.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -197,7 +199,31 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
-    sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
+    
+    sampler = None
+    if rank == -1:
+        if use_weighted_sampler and cls_weights is not None:
+            sample_weights = []
+            for i in range(len(dataset)):
+                try:
+                    sample = dataset[i]
+                    if isinstance(sample, dict) and 'cls' in sample and len(sample['cls']) > 0:
+                        cls_id = int(sample['cls'][0])
+                        if 0 <= cls_id < len(cls_weights):
+                            sample_weights.append(float(cls_weights[cls_id]))
+                        else:
+                            sample_weights.append(1.0)
+                    else:
+                        sample_weights.append(1.0)
+                except Exception:
+                    sample_weights.append(1.0)
+            
+            from torch.utils.data import WeightedRandomSampler
+            sampler = WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
+            shuffle = False
+    else:
+        sampler = distributed.DistributedSampler(dataset, shuffle=shuffle)
+    
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(

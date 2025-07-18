@@ -1302,7 +1302,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
             )
         else:
             # v2 mode: use first n_levels values from self.ndp as feature level sampling points
-            feature_level_ndp = self.ndp[:self.nl] if len(self.ndp) >= self.nl else self.ndp[0]
+            feature_level_ndp = self.ndp[: self.nl] if len(self.ndp) >= self.nl else self.ndp[0]
             decoder_layer = DeformableTransformerDecoderLayer(
                 hd, nh, d_ffn, dropout, act, self.nl, feature_level_ndp, cross_attn_method=cross_attn_method
             )
@@ -1315,6 +1315,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
     ):
         """
         Custom state dict loading with v1/v2 compatibility.
+
         Automatically detects weight version and converts if necessary.
         """
         if self.v2_compatible:
@@ -1323,27 +1324,25 @@ class RTDETRDecoderV2(RTDETRDecoder):
 
             if version == "v1" and not self.is_v1_mode:
                 # Convert v1 weights to v2 format
-                LOGGER.warning(f"RT-DETR: Converting v1 weights to v2 format for RTDETRDecoderV2")
+                LOGGER.warning("RT-DETR: Converting v1 weights to v2 format for RTDETRDecoderV2")
                 state_dict = self._convert_v1_to_v2_weights(state_dict, prefix)
             elif version == "v2" and self.is_v1_mode:
                 # Convert v2 weights to v1 format
-                LOGGER.warning(f"RT-DETR: Converting v2 weights to v1 format for RTDETRDecoderV2")
+                LOGGER.warning("RT-DETR: Converting v2 weights to v1 format for RTDETRDecoderV2")
                 state_dict = self._convert_v2_to_v1_weights(state_dict, prefix)
             elif version == "v1" and self.is_v1_mode:
-                LOGGER.warning(f"RT-DETR: Loading v1 weights in v1 compatibility mode")
+                LOGGER.warning("RT-DETR: Loading v1 weights in v1 compatibility mode")
             elif version == "v2" and not self.is_v1_mode:
-                LOGGER.warning(f"RT-DETR: Loading v2 weights in v2 mode")
+                LOGGER.warning("RT-DETR: Loading v2 weights in v2 mode")
             elif version == "unknown":
-                LOGGER.warning(f"RT-DETR: Could not detect weight version, loading as-is")
+                LOGGER.warning("RT-DETR: Could not detect weight version, loading as-is")
 
         super()._load_from_state_dict(
             state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
         )
 
     def _detect_weight_version(self, state_dict, prefix):
-        """
-        Detect RT-DETR weight version by examining sampling_offsets dimensions.
-        """
+        """Detect RT-DETR weight version by examining sampling_offsets dimensions."""
         # Check decoder layer sampling_offsets to determine version
         for name, param in state_dict.items():
             if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
@@ -1358,6 +1357,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
     def _convert_v1_to_v2_weights(self, state_dict, prefix):
         """
         Convert RT-DETR v1 weights to v2 format.
+
         Expands sampling offsets from 4 points to 12 points per layer.
         """
         new_state_dict = {}
@@ -1383,6 +1383,7 @@ class RTDETRDecoderV2(RTDETRDecoder):
     def _convert_v2_to_v1_weights(self, state_dict, prefix):
         """
         Convert RT-DETR v2 weights to v1 format.
+
         Reduces sampling offsets from 12 points to 4 points per layer.
         """
         new_state_dict = {}

@@ -2,12 +2,13 @@
 """
 Test RT-DETR v1/v2 compatibility and version detection.
 
-This module tests the backward compatibility between RT-DETR v1 and v2 architectures,
-ensuring that existing v1 weights continue to work while supporting new v2 features.
+This module tests the backward compatibility between RT-DETR v1 and v2 architectures, ensuring that existing v1 weights
+continue to work while supporting new v2 features.
 """
 
-import torch
 import pytest
+import torch
+
 from ultralytics import RTDETR
 from ultralytics.nn.modules.head import RTDETRDecoder, RTDETRDecoderV2
 

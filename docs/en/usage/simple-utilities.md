@@ -379,9 +379,93 @@ See the docstring for each function or visit the `ultralytics.utils.ops` [refere
 
 ## Plotting
 
-### Drawing Annotations
+### Annotation utilities
 
 Ultralytics includes an `Annotator` class for annotating various data types. It's best used with [object detection bounding boxes](../modes/predict.md#boxes), [pose keypoints](../modes/predict.md#keypoints), and [oriented bounding boxes](../modes/predict.md#obb).
+
+#### Box Annotation
+
+!!! example "Python Examples using Ultralytics YOLO 🚀"
+
+    === "Horizontal Bounding Boxes"
+        ```python
+        import cv2 as cv
+        import numpy as np
+
+        from ultralytics.utils.plotting import Annotator, colors
+
+        names = {
+            0: "person",
+            5: "bus",
+            11: "stop sign",
+        }
+
+        image = cv.imread("ultralytics/assets/bus.jpg")
+        ann = Annotator(
+            image,
+            line_width=None,  # default auto-size
+            font_size=None,  # default auto-size
+            font="Arial.ttf",  # must be ImageFont compatible
+            pil=False,  # use PIL, otherwise uses OpenCV
+        )
+
+        xyxy_boxes = np.array(
+            [
+                [5, 22.878, 231.27, 804.98, 756.83],  # class-idx x1 y1 x2 y2
+                [0, 48.552, 398.56, 245.35, 902.71],
+                [0, 669.47, 392.19, 809.72, 877.04],
+                [0, 221.52, 405.8, 344.98, 857.54],
+                [0, 0, 550.53, 63.01, 873.44],
+                [11, 0.0584, 254.46, 32.561, 324.87],
+            ]
+        )
+
+        for nb, box in enumerate(xyxy_boxes):
+            c_idx, *box = box
+            label = f"{str(nb).zfill(2)}:{names.get(int(c_idx))}"
+            ann.box_label(box, label, color=colors(c_idx, bgr=True))
+
+        image_with_bboxes = ann.result()
+        ```
+
+    === "Oriented Bounding Boxes (OBB)"
+        ```python
+        import cv2 as cv
+        import numpy as np
+
+        from ultralytics.utils.plotting import Annotator, colors
+
+        obb_names = {10: "small vehicle"}
+        obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
+        obb_boxes = np.array(
+            [
+                [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y2 x4 y4
+                [0, 331, 19, 493, 260, 776, 70, 613, -171],
+                [9, 869, 161, 886, 147, 851, 101, 833, 115],
+            ]
+        )
+        ann = Annotator(
+            obb_image,
+            line_width=None,  # default auto-size
+            font_size=None,  # default auto-size
+            font="Arial.ttf",  # must be ImageFont compatible
+            pil=False,  # use PIL, otherwise uses OpenCV
+        )
+        for obb in obb_boxes:
+            c_idx, *obb = obb
+            obb = np.array(obb).reshape(-1, 4, 2).squeeze()
+            label = f"{obb_names.get(int(c_idx))}"
+            ann.box_label(
+                obb,
+                label,
+                color=colors(c_idx, True),
+                rotated=True,
+            )
+
+        image_with_obb = ann.result()
+        ```
+
+Names can be used from `model.names` when [working with detection results](../modes/predict.md#working-with-results).
 
 #### Ultralytics Sweep Annotation
 
@@ -479,89 +563,8 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
 Find additional details about the `sweep_annotator` method in our reference section [here](../reference/solutions/solutions.md/#ultralytics.solutions.solutions.SolutionAnnotator.sweep_annotator).
 
-#### Horizontal Bounding Boxes
 
-```python
-import cv2 as cv
-import numpy as np
-
-from ultralytics.utils.plotting import Annotator, colors
-
-names = {
-    0: "person",
-    5: "bus",
-    11: "stop sign",
-}
-
-image = cv.imread("ultralytics/assets/bus.jpg")
-ann = Annotator(
-    image,
-    line_width=None,  # default auto-size
-    font_size=None,  # default auto-size
-    font="Arial.ttf",  # must be ImageFont compatible
-    pil=False,  # use PIL, otherwise uses OpenCV
-)
-
-xyxy_boxes = np.array(
-    [
-        [5, 22.878, 231.27, 804.98, 756.83],  # class-idx x1 y1 x2 y2
-        [0, 48.552, 398.56, 245.35, 902.71],
-        [0, 669.47, 392.19, 809.72, 877.04],
-        [0, 221.52, 405.8, 344.98, 857.54],
-        [0, 0, 550.53, 63.01, 873.44],
-        [11, 0.0584, 254.46, 32.561, 324.87],
-    ]
-)
-
-for nb, box in enumerate(xyxy_boxes):
-    c_idx, *box = box
-    label = f"{str(nb).zfill(2)}:{names.get(int(c_idx))}"
-    ann.box_label(box, label, color=colors(c_idx, bgr=True))
-
-image_with_bboxes = ann.result()
-```
-
-Names can be used from `model.names` when [working with detection results](../modes/predict.md#working-with-results).
-
-#### Oriented Bounding Boxes (OBB)
-
-```python
-import cv2 as cv
-import numpy as np
-
-from ultralytics.utils.plotting import Annotator, colors
-
-obb_names = {10: "small vehicle"}
-obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
-obb_boxes = np.array(
-    [
-        [0, 635, 560, 919, 719, 1087, 420, 803, 261],  # class-idx x1 y1 x2 y2 x3 y2 x4 y4
-        [0, 331, 19, 493, 260, 776, 70, 613, -171],
-        [9, 869, 161, 886, 147, 851, 101, 833, 115],
-    ]
-)
-ann = Annotator(
-    obb_image,
-    line_width=None,  # default auto-size
-    font_size=None,  # default auto-size
-    font="Arial.ttf",  # must be ImageFont compatible
-    pil=False,  # use PIL, otherwise uses OpenCV
-)
-for obb in obb_boxes:
-    c_idx, *obb = obb
-    obb = np.array(obb).reshape(-1, 4, 2).squeeze()
-    label = f"{obb_names.get(int(c_idx))}"
-    ann.box_label(
-        obb,
-        label,
-        color=colors(c_idx, True),
-        rotated=True,
-    )
-
-image_with_obb = ann.result()
-```
-
-### Annotation utilities
+#### Adaptive label Annotation
 
 !!! warning
 

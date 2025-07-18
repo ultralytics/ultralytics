@@ -805,6 +805,7 @@ class ClassificationDataset:
         return im
 
     def cache_images_ram(self) -> None:
+        """Cache all dataset images in RAM for faster access during training."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(self.load_image, range(self.ni))

@@ -608,9 +608,9 @@ Find additional details about the `sweep_annotator` method in our reference sect
                 break
 
             annotator = SolutionAnnotator(im0)
-            results = model.predict(im0)
-            boxes = results[0].boxes.xyxy.cpu()
-            clss = results[0].boxes.cls.cpu().tolist()
+            results = model.predict(im0)[0]
+            boxes = results.boxes.xyxy.cpu()
+            clss = results.boxes.cls.cpu().tolist()
 
             for box, cls in zip(boxes, clss):
                 annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")
@@ -647,9 +647,9 @@ Find additional details about the `sweep_annotator` method in our reference sect
                 break
 
             annotator = SolutionAnnotator(im0)
-            results = model.predict(im0)
-            boxes = results[0].boxes.xyxy.cpu()
-            clss = results[0].boxes.cls.cpu().tolist()
+            results = model.predict(im0)[0]
+            boxes = results.boxes.xyxy.cpu()
+            clss = results.boxes.cls.cpu().tolist()
 
             for box, cls in zip(boxes, clss):
                 annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")

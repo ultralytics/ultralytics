@@ -287,8 +287,7 @@ class SolutionAnnotator(Annotator):
         display_objects_labels: Annotate bounding boxes with object class labels.
         sweep_annotator: Visualize a vertical sweep line and optional label.
         visioneye: Map and connect object centroids to a visual "eye" point.
-        circle_label: Draw a circular label within a bounding box.
-        text_label: Draw a rectangular label within a bounding box.
+        adaptive_label: Draw a circular or rectangle background shape label in center of a bounding box.
 
     Examples:
         >>> annotator = SolutionAnnotator(image)
@@ -695,90 +694,58 @@ class SolutionAnnotator(Annotator):
         cv2.circle(self.im, center_bbox, self.tf * 2, color, -1)
         cv2.line(self.im, center_point, center_bbox, color, self.tf)
 
-    def circle_label(
+    def adaptive_label(
         self,
         box: Tuple[float, float, float, float],
         label: str = "",
         color: Tuple[int, int, int] = (128, 128, 128),
         txt_color: Tuple[int, int, int] = (255, 255, 255),
-        margin: int = 2,
-    ):
-        """
-        Draw a label with a background circle centered within a given bounding box.
-
-        Args:
-            box (Tuple[float, float, float, float]): The bounding box coordinates (x1, y1, x2, y2).
-            label (str): The text label to be displayed.
-            color (Tuple[int, int, int]): The background color of the circle (B, G, R).
-            txt_color (Tuple[int, int, int]): The color of the text (R, G, B).
-            margin (int): The margin between the text and the circle border.
-        """
-        if len(label) > 3:
-            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
-            label = label[:3]
-
-        # Calculate the center of the box
-        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        # Get the text size
-        text_size = cv2.getTextSize(str(label), cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]
-        # Calculate the required radius to fit the text with the margin
-        required_radius = int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin
-        # Draw the circle with the required radius
-        cv2.circle(self.im, (x_center, y_center), required_radius, color, -1)
-        # Calculate the position for the text
-        text_x = x_center - text_size[0] // 2
-        text_y = y_center + text_size[1] // 2
-        # Draw the text
-        cv2.putText(
-            self.im,
-            str(label),
-            (text_x, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            self.sf - 0.15,
-            self.get_txt_color(color, txt_color),
-            self.tf,
-            lineType=cv2.LINE_AA,
-        )
-
-    def text_label(
-        self,
-        box: Tuple[float, float, float, float],
-        label: str = "",
-        color: Tuple[int, int, int] = (128, 128, 128),
-        txt_color: Tuple[int, int, int] = (255, 255, 255),
+        shape: str = "rect",
         margin: int = 5,
     ):
         """
-        Draw a label with a background rectangle centered within a given bounding box.
+        Draw a label with a background rectangle or circle centered within a given bounding box.
 
         Args:
             box (Tuple[float, float, float, float]): The bounding box coordinates (x1, y1, x2, y2).
             label (str): The text label to be displayed.
             color (Tuple[int, int, int]): The background color of the rectangle (B, G, R).
             txt_color (Tuple[int, int, int]): The color of the text (R, G, B).
+            shape (str): The shape of the label i.e "circle" or "rect"
             margin (int): The margin between the text and the rectangle border.
         """
-        # Calculate the center of the bounding box
-        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)
-        # Get the size of the text
-        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.1, self.tf)[0]
-        # Calculate the top-left corner of the text (to center it)
-        text_x = x_center - text_size[0] // 2
-        text_y = y_center + text_size[1] // 2
-        # Calculate the coordinates of the background rectangle
-        rect_x1 = text_x - margin
-        rect_y1 = text_y - text_size[1] - margin
-        rect_x2 = text_x + text_size[0] + margin
-        rect_y2 = text_y + margin
-        # Draw the background rectangle
-        cv2.rectangle(self.im, (rect_x1, rect_y1), (rect_x2, rect_y2), color, -1)
+        if shape == "circle" and len(label) > 3:
+            LOGGER.warning(f"Length of label is {len(label)}, only first 3 letters will be used for circle annotation.")
+            label = label[:3]
+
+        x_center, y_center = int((box[0] + box[2]) / 2), int((box[1] + box[3]) / 2)  # Calculate center of the bbox
+        text_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, self.sf - 0.15, self.tf)[0]  # Get size of the text
+        text_x, text_y = x_center - text_size[0] // 2, y_center + text_size[1] // 2  # Calculate top-left corner of text
+
+        if shape == "circle":
+            cv2.circle(
+                self.im,
+                (x_center, y_center),
+                int(((text_size[0] ** 2 + text_size[1] ** 2) ** 0.5) / 2) + margin,  # Calculate the radius
+                color,
+                -1,
+            )
+        else:
+            cv2.rectangle(
+                self.im,
+                (text_x - margin, text_y - text_size[1] - margin),  # Calculate coordinates of the rectangle
+                (text_x + text_size[0] + margin, text_y + margin),  # Calculate coordinates of the rectangle
+                color,
+                -1,
+            )
+
         # Draw the text on top of the rectangle
         cv2.putText(
             self.im,
             label,
-            (text_x, text_y),
+            (text_x, text_y),  # Calculate top-left corner of the text
             cv2.FONT_HERSHEY_SIMPLEX,
-            self.sf - 0.1,
+            self.sf - 0.15,
             self.get_txt_color(color, txt_color),
             self.tf,
             lineType=cv2.LINE_AA,

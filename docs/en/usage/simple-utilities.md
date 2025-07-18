@@ -388,6 +388,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 !!! example "Python Examples using Ultralytics YOLO 🚀"
 
     === "Horizontal Bounding Boxes"
+
         ```python
         import cv2 as cv
         import numpy as np
@@ -429,6 +430,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
         ```
 
     === "Oriented Bounding Boxes (OBB)"
+
         ```python
         import cv2 as cv
         import numpy as np

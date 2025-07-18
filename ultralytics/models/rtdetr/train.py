@@ -54,7 +54,7 @@ class RTDETRTrainer(DetectionTrainer):
         self._apply_scale_adaptive_hyperparameters()
         # Set default value for disable_strong_aug_epochs if not provided
         if not hasattr(self.args, "disable_strong_aug_epochs"):
-            self.args.disable_strong_aug_epochs = 0  # disabled by default
+            self.args.disable_strong_aug_epochs = self.cfg.disable_strong_aug_epochs
 
     # TODO 后续可能迁移至utils/callbacks/rtdetr.py
     def _disable_strong_aug_if_needed(self, trainer):

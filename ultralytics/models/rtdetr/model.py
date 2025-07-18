@@ -50,11 +50,11 @@ class RTDETR(Model):
             model_path = model
             # Auto-select config based on weight version
             config_path = self._auto_select_config(model_path)
-            LOGGER.warning(f"RT-DETR: Auto-selected config '{config_path}' for weights '{model_path}'")
+            LOGGER.info(f"RT-DETR: Auto-selected config '{config_path}' for weights '{model_path}'")
             super().__init__(model=config_path, task="detect")
             # Load weights after model initialization
             if config_path != model_path:  # Only load if we changed the config
-                LOGGER.warning(f"RT-DETR: Loading weights from '{model_path}' with auto-detected configuration")
+                LOGGER.info(f"RT-DETR: Loading weights from '{model_path}' with auto-detected configuration")
                 self.load(model_path)
         else:
             super().__init__(model=model, task="detect")
@@ -81,16 +81,15 @@ class RTDETR(Model):
 
             if version == "v2":
                 # Use v2 config
-                LOGGER.warning(f"RT-DETR: Detected v2 weights in '{weight_path}', using rtdetrv2-l.yaml config")
+                LOGGER.info(f"RT-DETR: Detected v2 weights in '{weight_path}', using rtdetrv2-l.yaml config")
                 return "rtdetrv2-l.yaml"
             else:
                 # Use v1 config (default)
-                LOGGER.warning(f"RT-DETR: Detected v1 weights in '{weight_path}', using rtdetr-l.yaml config")
+                LOGGER.info(f"RT-DETR: Detected v1 weights in '{weight_path}', using rtdetr-l.yaml config")
                 return "rtdetr-l.yaml"
 
         except Exception as e:
-            LOGGER.warning(f"RT-DETR: Could not auto-detect version from {weight_path}: {e}")
-            LOGGER.warning("RT-DETR: Using default v1 configuration (rtdetr-l.yaml)")
+            LOGGER.warning(f"RT-DETR: Could not auto-detect version from {weight_path}: {e}. Using default v1 config.")
             return "rtdetr-l.yaml"
 
     def _detect_model_version(self, state_dict):

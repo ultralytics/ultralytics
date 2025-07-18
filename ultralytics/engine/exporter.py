@@ -570,10 +570,10 @@ class Exporter:
                                 for p in layer.cross_attn.sampling_offsets.parameters():
                                     p.requires_grad = False
 
-                LOGGER.info(f"RT-DETR v2: Switched from '{original_method}' to 'discrete' sampling for export")
+                LOGGER.info(f"RT-DETR v2: Switched from '{original_method}' to 'discrete' sampling for export.")
 
         except Exception as e:
-            LOGGER.warning(f"RT-DETR v2: Failed to enable discrete sampling: {e}")
+            LOGGER.warning(f"RT-DETR v2: Failed to enable discrete sampling: {e}.")
 
     def get_int8_calibration_dataloader(self, prefix=""):
         """Build and return a dataloader for calibration of INT8 models."""

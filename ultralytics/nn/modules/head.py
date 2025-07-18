@@ -36,19 +36,13 @@ __all__ = (
 def _parse_activation(act):
     """Parse activation function from string or return as-is if already a module."""
     if isinstance(act, str):
-        if act == "nn.ReLU()":
-            return nn.ReLU()
-        elif act == "nn.GELU()":
-            return nn.GELU()
-        elif act == "nn.SiLU()":
-            return nn.SiLU()
-        else:
-            # Try to evaluate the string directly
-            try:
-                return eval(act)
-            except Exception:
-                # Fallback to ReLU if parsing fails
-                return nn.ReLU()
+        # Use a mapping for safe parsing
+        activation_map = {
+            "nn.ReLU()": nn.ReLU(),
+            "nn.GELU()": nn.GELU(),
+            "nn.SiLU()": nn.SiLU(),
+        }
+        return activation_map.get(act, nn.ReLU())  # Default to ReLU if not found
     return act
 
 
@@ -1262,12 +1256,12 @@ class RTDETRDecoderV2(RTDETRDecoder):
             # v1 mode: use same sampling points for all layers
             self.ndp = [ndp] * ndl
             self.is_v1_mode = True
-            LOGGER.warning(f"RT-DETR: Initializing RTDETRDecoderV2 in v1 compatibility mode (ndp={ndp})")
+            LOGGER.info(f"RT-DETR: Initializing RTDETRDecoderV2 in v1 compatibility mode (ndp={ndp})")
         else:
             # v2 mode: use independent sampling points per layer
             self.ndp = ndp if isinstance(ndp, list) else [ndp] * ndl
             self.is_v1_mode = False
-            LOGGER.warning(f"RT-DETR: Initializing RTDETRDecoderV2 in v2 mode (ndp={ndp})")
+            LOGGER.info(f"RT-DETR: Initializing RTDETRDecoderV2 in v2 mode (ndp={ndp})")
 
         super().__init__(
             nc,
@@ -1324,18 +1318,18 @@ class RTDETRDecoderV2(RTDETRDecoder):
 
             if version == "v1" and not self.is_v1_mode:
                 # Convert v1 weights to v2 format
-                LOGGER.warning("RT-DETR: Converting v1 weights to v2 format for RTDETRDecoderV2")
+                LOGGER.info("RT-DETR: Converting v1 weights to v2 format for RTDETRDecoderV2")
                 state_dict = self._convert_v1_to_v2_weights(state_dict, prefix)
             elif version == "v2" and self.is_v1_mode:
                 # Convert v2 weights to v1 format
-                LOGGER.warning("RT-DETR: Converting v2 weights to v1 format for RTDETRDecoderV2")
+                LOGGER.info("RT-DETR: Converting v2 weights to v1 format for RTDETRDecoderV2")
                 state_dict = self._convert_v2_to_v1_weights(state_dict, prefix)
             elif version == "v1" and self.is_v1_mode:
-                LOGGER.warning("RT-DETR: Loading v1 weights in v1 compatibility mode")
+                LOGGER.info("RT-DETR: Loading v1 weights in v1 compatibility mode")
             elif version == "v2" and not self.is_v1_mode:
-                LOGGER.warning("RT-DETR: Loading v2 weights in v2 mode")
+                LOGGER.info("RT-DETR: Loading v2 weights in v2 mode")
             elif version == "unknown":
-                LOGGER.warning("RT-DETR: Could not detect weight version, loading as-is")
+                LOGGER.warning("RT-DETR: Could not detect weight version, loading as-is.")
 
         super()._load_from_state_dict(
             state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs

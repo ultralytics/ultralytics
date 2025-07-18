@@ -405,7 +405,7 @@ class RTDETRDetectionLoss(DETRLoss):
     an additional denoising training loss when provided with denoising metadata and encoder auxiliary loss for v2.
     """
 
-    def __init__(self, nc=80, use_vfl=True, enc_loss_coef=0.1, **kwargs):
+    def __init__(self, nc: int = 80, use_vfl: bool = True, enc_loss_coef: float = 0.1, **kwargs: Any):
         """
         Initialize RTDETRDetectionLoss.
 
@@ -413,7 +413,7 @@ class RTDETRDetectionLoss(DETRLoss):
             nc (int): Number of classes.
             use_vfl (bool): Whether to use VariFocal loss.
             enc_loss_coef (float): Weight coefficient for encoder auxiliary loss.
-            **kwargs: Additional arguments for parent class.
+            **kwargs (Any): Additional arguments for parent class.
         """
         super().__init__(nc=nc, use_vfl=use_vfl, **kwargs)
         self.enc_loss_coef = enc_loss_coef

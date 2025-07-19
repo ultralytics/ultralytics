@@ -139,7 +139,6 @@ class AutoBackend(nn.Module):
         dnn: bool = False,
         data: Optional[Union[str, Path]] = None,
         fp16: bool = False,
-        batch: int = 1,
         fuse: bool = True,
         verbose: bool = True,
     ):
@@ -152,7 +151,6 @@ class AutoBackend(nn.Module):
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
-            batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
         """

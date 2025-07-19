@@ -41,6 +41,7 @@ Currently, you can only export models that include the following tasks to IMX500
 
 - [Object detection](https://docs.ultralytics.com/tasks/detect/)
 - [Pose estimation](https://docs.ultralytics.com/tasks/pose/)
+- [Classification](https://docs.ultralytics.com/tasks/classify/)
 
 ## Usage Examples
 
@@ -110,6 +111,36 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
+!!! example "Classification"
+
+    === "Python"
+
+         ```python
+         from ultralytics import YOLO
+
+         # Load a YOLO11n-cls PyTorch model
+         model = YOLO("yolo11n-cls.pt")
+
+         # Export the model
+         model.export(format="imx", data="imagenet")  # exports with PTQ quantization by default
+
+         # Load the exported model
+         imx_model = YOLO("yolo11n-cls_imx_model")
+
+         # Run inference
+         results = imx_model("https://ultralytics.com/images/bus.jpg")
+         ```
+
+    === "CLI"
+
+         ```bash
+         # Export a YOLO11n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo11n-cls.pt format=imx data=imagenet
+
+         # Run inference with the exported model
+         yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg'
+         ```
+
 !!! warning
 
     The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
@@ -143,8 +174,8 @@ The export process will create an ONNX model for quantization validation, along 
         ├── labels.txt
         ├── packerOut.zip
         ├── yolo11n_imx.onnx
-        ├── yolo11n_imx500_model_MemoryReport.json
-        └── yolo11n_imx500_model.pbtxt
+        ├── yolo11n_imx_MemoryReport.json
+        └── yolo11n_imx.pbtxt
         ```
 
     === "Pose Estimation"
@@ -155,8 +186,20 @@ The export process will create an ONNX model for quantization validation, along 
         ├── labels.txt
         ├── packerOut.zip
         ├── yolo11n-pose_imx.onnx
-        ├── yolo11n-pose_imx500_model_MemoryReport.json
-        └── yolo11n-pose_imx500_model.pbtxt
+        ├── yolo11n-pose_imx_MemoryReport.json
+        └── yolo11n-pose_imx.pbtxt
+        ```
+
+    === "Classification"
+
+        ```bash
+        yolo11n-cls_imx_model
+        ├── dnnParams.xml
+        ├── labels.txt
+        ├── packerOut.zip
+        ├── yolo11n-cls_imx.onnx
+        ├── yolo11n-cls_imx_MemoryReport.json
+        └── yolo11n-cls_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment

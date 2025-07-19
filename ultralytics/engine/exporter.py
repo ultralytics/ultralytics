@@ -313,10 +313,10 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
-            if not self.args.nms:
+            if not self.args.nms and model.task in {"detect", "pose"}:
                 LOGGER.warning("IMX export requires nms=True, setting nms=True.")
                 self.args.nms = True
-            if model.task not in {"detect", "pose"}:
+            if model.task not in {"detect", "pose", "classify"}:
                 raise ValueError("IMX export only supported for detection and pose estimation models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
@@ -1208,6 +1208,10 @@ class Exporter:
                 layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
                 weights_memory = 2437771.67
                 n_layers = 257  # 257 layers for fused YOLO11n-pose
+            elif self.model.task == "classify":
+                layer_names = []
+                weights_memory = np.inf
+                n_layers = 112
         else:  # YOLOv8
             if self.model.task == "detect":
                 layer_names = ["sub", "mul", "add_6", "cat_17"]
@@ -1217,6 +1221,10 @@ class Exporter:
                 layer_names = ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"]
                 weights_memory = 2482451.85
                 n_layers = 187  # 187 layers for fused YOLO11n-pose
+            elif self.model.task == "classify":
+                layer_names = []
+                weights_memory = np.inf
+                n_layers = 73
 
         # Check if the model has the expected number of layers
         if len(list(self.model.modules())) != n_layers:
@@ -1301,13 +1309,14 @@ class Exporter:
                     return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
                 return nms_outputs
 
-        quant_model = NMSWrapper(
-            model=quant_model,
-            score_threshold=self.args.conf or 0.001,
-            iou_threshold=self.args.iou,
-            max_detections=self.args.max_det,
-            task=self.model.task,
-        ).to(self.device)
+        if self.model.task != "classify":
+            quant_model = NMSWrapper(
+                model=quant_model,
+                score_threshold=self.args.conf or 0.001,
+                iou_threshold=self.args.iou,
+                max_detections=self.args.max_det,
+                task=self.model.task,
+            ).to(self.device)
 
         f = Path(str(self.file).replace(self.file.suffix, "_imx_model"))
         f.mkdir(exist_ok=True)

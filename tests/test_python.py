@@ -247,6 +247,26 @@ def test_all_model_yamls():
             YOLO(m.name)
 
 
+def test_rtdetr_compatibility():
+    """Test RT-DETR v1/v2 compatibility and version detection."""
+    if not TORCH_1_9:
+        pytest.skip("RT-DETR requires torch>=1.9")
+
+    # Test v1 model loading
+    model_v1 = RTDETR("rtdetr-l.yaml")
+    results_v1 = model_v1.predict(SOURCE, imgsz=640, verbose=False)
+    assert len(results_v1) == 1
+
+    # Test v2 model loading
+    model_v2 = RTDETR("rtdetrv2-l.yaml")
+    results_v2 = model_v2.predict(SOURCE, imgsz=640, verbose=False)
+    assert len(results_v2) == 1
+
+    # Test both models produce valid outputs
+    assert results_v1[0].boxes is not None
+    assert results_v2[0].boxes is not None
+
+
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
 def test_workflow():
     """Test the complete workflow including training, validation, prediction, and exporting."""

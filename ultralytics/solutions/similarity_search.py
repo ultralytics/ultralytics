@@ -8,7 +8,6 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.nn.text_model import build_text_model
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.torch_utils import select_device
@@ -48,6 +47,8 @@ class VisualAISearch:
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
+        from ultralytics.nn.text_model import build_text_model
+
         check_requirements("faiss-cpu")
 
         self.faiss = __import__("faiss")

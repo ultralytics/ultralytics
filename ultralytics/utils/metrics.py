@@ -465,7 +465,7 @@ class ConfusionMatrix(DataExportMixin):
             img (torch.Tensor): Image to plot onto.
             gt (dict): Ground truth data.
             task (str): Validation task.
-            save_dir (Path): Lcoation to save the visualizations to.
+            save_dir (Path): Location to save the visualizations to.
         """
         if not self.matches:
             return

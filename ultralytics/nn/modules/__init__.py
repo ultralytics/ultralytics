@@ -66,6 +66,7 @@ from .block import (
     ChannelShuffle,
     AdaptiveFeatureFusion,
     EnhancedC2fConfig,
+    FullEnhancementBlock,
 )
 from .conv import (
     CBAM,

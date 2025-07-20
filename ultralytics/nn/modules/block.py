@@ -119,20 +119,23 @@ class Proto(nn.Module):
 class SEModule(nn.Module):
     """Lightweight Squeeze-and-Excitation module for channel attention."""
 
-    def __init__(self, channels: int, reduction: int = 16):
+    # MODIFICATION: Updated signature to be (c1, c2, reduction) for parser compatibility.
+    def __init__(self, c1: int, c2: int, reduction: int = 16):
         """
         Initialize SE module.
 
         Args:
-            channels (int): Number of input channels.
+            c1 (int): Input channels (auto-passed by parser).
+            c2 (int): Output channels (auto-passed by parser, same as c1 for this module).
             reduction (int): Reduction ratio for bottleneck.
         """
         super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        hidden_channels = c1 // reduction
         self.fc = nn.Sequential(
-            nn.Linear(channels, channels // reduction, bias=False),
+            nn.Linear(c1, hidden_channels, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(channels // reduction, channels, bias=False),
+            nn.Linear(hidden_channels, c1, bias=False),
             nn.Sigmoid()
         )
 
@@ -142,6 +145,7 @@ class SEModule(nn.Module):
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1)
         return x * y.expand_as(x)
+
 
 
 class SpatialAttention(nn.Module):
@@ -169,16 +173,35 @@ class SpatialAttention(nn.Module):
 
 
 class EnhancedBottleneck(nn.Module):
-    """An enhanced bottleneck block that now uses CBAM."""
+    """An enhanced bottleneck block that now uses SpatialAttention."""
+
     def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, e: float = 0.5):
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, 3, 1)
         self.cv2 = Conv(c_, c2, 3, 1, g=g)
         self.add = shortcut and c1 == c2
-        # --- MODIFICATION ---
-        # Replaced SpatialAttention with the more advanced CBAM module.
-        self.attn = CBAM(c2)
+        
+        # This line now uses your SpatialAttention module
+        self.attn = SpatialAttention()
+
+    def forward(self, x):
+        """Defines the forward pass for the bottleneck block."""
+        out = self.cv2(self.cv1(x))
+        out = self.attn(out) # Apply spatial attention
+        return x + out if self.add else out
+    
+# class EnhancedBottleneck(nn.Module): #CBAM
+#     """An enhanced bottleneck block that now uses CBAM."""
+#     def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, e: float = 0.5):
+#         super().__init__()
+#         c_ = int(c2 * e)  # hidden channels
+#         self.cv1 = Conv(c1, c_, 3, 1)
+#         self.cv2 = Conv(c_, c2, 3, 1, g=g)
+#         self.add = shortcut and c1 == c2
+#         # --- MODIFICATION ---
+#         # Replaced SpatialAttention with the more advanced CBAM module.
+#         self.attn = CBAM(c2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.cv2(self.cv1(x))
@@ -188,31 +211,22 @@ class EnhancedBottleneck(nn.Module):
 class ChannelShuffle(nn.Module):
     """Channel shuffle operation for better information flow."""
 
-    def __init__(self, groups: int):
-        """
-        Initialize channel shuffle.
-
-        Args:
-            groups (int): Number of groups for shuffling.
-        """
+    # This __init__ signature is compatible with the YOLOv8 parser.
+    # The 'groups=2' provides a default value, fixing the error.
+    def __init__(self, c1: int, c2: int, groups: int = 2):
         super().__init__()
         self.groups = groups
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply channel shuffle to input tensor."""
         b, c, h, w = x.size()
-
         if c % self.groups != 0:
-            return x # Skip shuffle if not divisible
-
+            return x
         channels_per_group = c // self.groups
-
         x = x.view(b, self.groups, channels_per_group, h, w)
         x = torch.transpose(x, 1, 2).contiguous()
         x = x.view(b, c, h, w)
-
         return x
-
 
 class AdaptiveFeatureFusion(nn.Module):
     """Adaptive feature fusion with learnable weights."""
@@ -265,6 +279,35 @@ class EnhancedC2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
+
+class FullEnhancementBlock(nn.Module):
+    """
+    Applies channel attention and shuffling, then uses a 1x1 convolution
+    to align the output channel dimension with the parser's expectation.
+    This block is a workaround for the parser's channel scaling logic.
+    """
+    def __init__(self, c1, c2, se_reduction=16, shuffle_groups=2):
+        """
+        Args:
+            c1 (int): The actual number of input channels from the previous layer.
+            c2 (int): The number of channels the parser expects this module to output.
+            se_reduction (int): The reduction ratio for the SEModule.
+            shuffle_groups (int): The number of groups for ChannelShuffle.
+        """
+        super().__init__()
+        # Initialize enhancement modules using the actual input channel count (c1).
+        self.attn = SEModule(c1, c1, reduction=se_reduction)
+        self.shuffle = ChannelShuffle(c1, c1, groups=shuffle_groups)
+
+        # This 1x1 convolution is the key. It changes the channels from the
+        # actual count (c1) to the expected count (c2), preventing a runtime error.
+        self.channel_fixer = Conv(c1, c2, 1, 1)
+
+    def forward(self, x):
+        """Applies attention, shuffle, and channel correction."""
+        x_enhanced = self.shuffle(self.attn(x))
+        return self.channel_fixer(x_enhanced)
+    
 
 class EnhancedC2fConfig:
     """Configuration presets for different use cases."""

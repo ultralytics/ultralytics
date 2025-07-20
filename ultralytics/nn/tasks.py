@@ -75,6 +75,7 @@ from ultralytics.nn.modules import (
     ChannelShuffle,
     AdaptiveFeatureFusion,
     EnhancedC2fConfig,
+    FullEnhancementBlock,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1650,6 +1651,7 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             A2C2f,
             EnhancedC2f,
+            FullEnhancementBlock,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments

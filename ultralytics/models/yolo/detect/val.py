@@ -12,7 +12,7 @@ from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
-from ultralytics.utils.plotting import plot_images, plot_matches
+from ultralytics.utils.plotting import plot_images
 
 
 class DetectionValidator(BaseValidator):
@@ -203,13 +203,13 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.process_batch(
                     predn, pbatch, conf=self.args.conf, im_name=Path(batch["im_file"][si]).name
                 )
+                if self.args.visualize:
+                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch, self.args.task, self.save_dir)
 
             if no_pred:
                 continue
 
             # Save
-            if self.args.plots and self.args.visualize:
-                plot_matches(self, batch, preds, si)
             if self.args.save_json:
                 self.pred_to_json(predn, pbatch)
             if self.args.save_txt:

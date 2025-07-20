@@ -366,7 +366,6 @@ class ConfusionMatrix(DataExportMixin):
         batch: Dict[str, Any],
         conf: float = 0.25,
         iou_thres: float = 0.45,
-        im_name="",
     ) -> None:
         """
         Update confusion matrix for object detection task.
@@ -379,8 +378,8 @@ class ConfusionMatrix(DataExportMixin):
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
-            im_name (str, optional): Name of the image file. Used to aggregate matches dict for each image.
         """
+        im_name = Path(batch["im_file"]).name
         if self.matches is not None:  # only if visualization is enabled
             self.matches[im_name] = {k: defaultdict(list) for k in {"TP", "FP", "FN"}}
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]

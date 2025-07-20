@@ -200,9 +200,7 @@ class DetectionValidator(BaseValidator):
             )
             # Evaluate
             if self.args.plots:
-                self.confusion_matrix.process_batch(
-                    predn, pbatch, conf=self.args.conf, im_name=Path(batch["im_file"][si]).name
-                )
+                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(batch["img"][si], pbatch, self.args.task, self.save_dir)
 

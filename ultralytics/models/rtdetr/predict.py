@@ -67,6 +67,7 @@ class RTDETRPredictor(BasePredictor):
             if self.args.classes is not None:
                 idx = (cls == torch.tensor(self.args.classes, device=cls.device)).any(1) & idx
             pred = torch.cat([bbox, max_score, cls], dim=-1)[idx]  # filter
+            pred = pred[pred[:, 4].argsort(descending=True)][: self.args.max_det]
             oh, ow = orig_img.shape[:2]
             pred[..., [0, 2]] *= ow  # scale x coordinates to original width
             pred[..., [1, 3]] *= oh  # scale y coordinates to original height

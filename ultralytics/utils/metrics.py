@@ -3,9 +3,9 @@
 
 import math
 import warnings
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
-from collections import defaultdict
 
 import numpy as np
 import torch
@@ -469,8 +469,8 @@ class ConfusionMatrix(DataExportMixin):
         """
         if not self.matches:
             return
-        from .plotting import plot_images
         from .ops import xyxy2xywh
+        from .plotting import plot_images
 
         im_file = Path(gt["im_file"]).name
         matches = self.matches[im_file]

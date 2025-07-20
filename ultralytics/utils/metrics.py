@@ -5,6 +5,7 @@ import math
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
+from collections import defaultdict
 
 import numpy as np
 import torch
@@ -318,20 +319,34 @@ class ConfusionMatrix(DataExportMixin):
         matrix (np.ndarray): The confusion matrix, with dimensions depending on the task.
         nc (int): The number of category.
         names (List[str]): The names of the classes, used as labels on the plot.
+        matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
-    def __init__(self, names: List[str] = [], task: str = "detect"):
+    def __init__(self, names: List[str] = [], task: str = "detect", save_matches: bool = False):
         """
         Initialize a ConfusionMatrix instance.
 
         Args:
             names (List[str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
+            save_matches (bool, optional): Save the indices of GTs, FPs, FNs for visualization.
         """
         self.task = task
         self.nc = len(names)  # number of classes
         self.matrix = np.zeros((self.nc, self.nc)) if self.task == "classify" else np.zeros((self.nc + 1, self.nc + 1))
         self.names = names  # name of classes
+        self.matches = {} if save_matches else None
+
+    def _append_matches(self, im_name, mtype, batch, idx):
+        """Append the matches to TP, FP or FN list for the last batch."""
+        if self.matches is not None:
+            for k, v in batch.items():
+                if k in {"bboxes", "cls", "conf", "keypoints"}:
+                    self.matches[im_name][mtype][k] += v[[idx]]
+                elif k == "masks":
+                    self.matches[im_name][mtype][k] += (
+                        [v[[idx]]] if mtype != "FN" else [v == idx + 1]
+                    )  # gt is merged, pred isn't
 
     def process_cls_preds(self, preds, targets):
         """
@@ -346,7 +361,12 @@ class ConfusionMatrix(DataExportMixin):
             self.matrix[p][t] += 1
 
     def process_batch(
-        self, detections: Dict[str, torch.Tensor], batch: Dict[str, Any], conf: float = 0.25, iou_thres: float = 0.45
+        self,
+        detections: Dict[str, torch.Tensor],
+        batch: Dict[str, Any],
+        conf: float = 0.25,
+        iou_thres: float = 0.45,
+        im_name="",
     ) -> None:
         """
         Update confusion matrix for object detection task.
@@ -359,25 +379,30 @@ class ConfusionMatrix(DataExportMixin):
                 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            im_name (str, optional): Name of the image file. Used to aggregate matches dict for each image.
         """
+        if self.matches is not None:  # only if visualization is enabled
+            self.matches[im_name] = {k: defaultdict(list) for k in {"TP", "FP", "FN"}}
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
         conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
-                detections = {k: detections[k][detections["conf"] > conf] for k in {"cls", "bboxes"}}
+                detections = {k: detections[k][detections["conf"] > conf] for k in detections.keys()}
                 detection_classes = detections["cls"].int().tolist()
-                for dc in detection_classes:
-                    self.matrix[dc, self.nc] += 1  # false positives
+                for i, dc in enumerate(detection_classes):
+                    self.matrix[dc, self.nc] += 1  # FP
+                    self._append_matches(im_name, "FP", detections, i)
             return
         if no_pred:
             gt_classes = gt_cls.int().tolist()
-            for gc in gt_classes:
-                self.matrix[self.nc, gc] += 1  # background FN
+            for i, gc in enumerate(gt_classes):
+                self.matrix[self.nc, gc] += 1  # FN
+                self._append_matches(im_name, "FN", batch, i)
             return
 
-        detections = {k: detections[k][detections["conf"] > conf] for k in {"cls", "bboxes"}}
+        detections = {k: detections[k][detections["conf"] > conf] for k in detections.keys()}
         gt_classes = gt_cls.int().tolist()
         detection_classes = detections["cls"].int().tolist()
         bboxes = detections["bboxes"]
@@ -399,13 +424,21 @@ class ConfusionMatrix(DataExportMixin):
         for i, gc in enumerate(gt_classes):
             j = m0 == i
             if n and sum(j) == 1:
-                self.matrix[detection_classes[m1[j].item()], gc] += 1  # correct
+                dc = detection_classes[m1[j].item()]
+                self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
+                if dc == gc:
+                    self._append_matches(im_name, "TP", detections, m1[j].item())
+                else:
+                    self._append_matches(im_name, "FP", detections, m1[j].item())
+                    self._append_matches(im_name, "FN", batch, i)
             else:
-                self.matrix[self.nc, gc] += 1  # true background
+                self.matrix[self.nc, gc] += 1  # FN
+                self._append_matches(im_name, "FN", batch, i)
 
         for i, dc in enumerate(detection_classes):
             if not any(m1 == i):
-                self.matrix[dc, self.nc] += 1  # predicted background
+                self.matrix[dc, self.nc] += 1  # FP
+                self._append_matches(im_name, "FP", detections, i)
 
     def matrix(self):
         """Return the confusion matrix."""
@@ -423,6 +456,58 @@ class ConfusionMatrix(DataExportMixin):
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
+
+    def plot_matches(self, img, gt, task, save_dir):
+        """
+        Plot grid of GT, TP, FP, FN for each image.
+
+        Args:
+            img (torch.Tensor): Image to plot onto.
+            gt (dict): Ground truth data.
+            task (str): Validation task.
+            save_dir (Path): Lcoation to save the visualizations to.
+        """
+        if not self.matches:
+            return
+        from .plotting import plot_images
+        from .ops import xyxy2xywh
+
+        im_file = Path(gt["im_file"]).name
+        matches = self.matches[im_file]
+        device = img.device
+
+        if task == "segment":
+            if gt["masks"].shape[0] != gt["bboxes"].shape[0]:  # overlap_masks = True
+                idxs = torch.arange(gt["bboxes"].shape[0], device=device) + 1
+                gt["masks"] = gt["masks"] == idxs[:, None, None]
+            if not isinstance(gt["masks"], list):
+                gt["masks"] = [gt["masks"]]
+
+        # Create batch of 4 (GT, TP, FP, FN)
+        labels = defaultdict(list)
+        for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
+            mbatch = gt if mtype == "GT" else matches[mtype]
+            if mtype in {"GT", "FN"}:
+                mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=device)
+            mbatch["batch_idx"] = torch.tensor([i] * len(mbatch["bboxes"]), device=device)
+            for k in mbatch.keys():
+                if k in {"batch_idx", "bboxes", "cls", "conf", "keypoints", "masks"}:
+                    labels[k] += mbatch[k]
+
+        plot_args = {
+            "paths": ["Ground Truth", "False Positives", "True Positives", "False Negatives"],
+            "fname": save_dir / "visualizations" / im_file,
+            "names": dict(enumerate(self.names)),
+            "max_subplots": 4,
+            "conf_thres": 0.001,
+        }
+        for k, v in labels.items():
+            if not len(v):
+                v = [torch.empty(gt[k].shape, device=device)]
+            labels[k] = torch.cat(v) if k == "masks" else torch.stack(v, 0)
+        if not task == "obb":
+            labels["bboxes"] = xyxy2xywh(labels["bboxes"])
+        plot_images(labels, img.repeat(4, 1, 1, 1), **plot_args)
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()

@@ -98,7 +98,11 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.metrics.names = self.names
-        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
+        if self.args.plots and self.args.visualize:
+            (self.save_dir / "visualizations").mkdir(exist_ok=True)
+        self.confusion_matrix = ConfusionMatrix(
+            names=list(model.names.values()), save_matches=self.args.plots and self.args.visualize
+        )
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""
@@ -196,7 +200,11 @@ class DetectionValidator(BaseValidator):
             )
             # Evaluate
             if self.args.plots:
-                self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
+                self.confusion_matrix.process_batch(
+                    predn, pbatch, conf=self.args.conf, im_name=Path(batch["im_file"][si]).name
+                )
+                if self.args.visualize:
+                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch, self.args.task, self.save_dir)
 
             if no_pred:
                 continue

@@ -148,8 +148,14 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` to `180`
 - **Default**: `{{ degrees }}`
-- **Usage**: Rotates images randomly within the specified range. The `degrees` hyperparameter defines the rotation angle, with the final adjustment randomly chosen between `-degrees` and `degrees`. For example, with `degrees=10.0`, the rotation is randomly selected within`-10.0` to `10.0`.
-- **Purpose**: Crucial for applications where objects can appear at different orientations. For example, in aerial drone imagery, vehicles can be oriented in any direction, requiring models to recognize objects regardless of their rotation.
+- **Usage**: Rotates images randomly within the specified range. The `degrees` hyperparameter defines the rotation range, not a fixed angle. Each image is randomly rotated by an angle between negative `degrees` and positive `degrees`. For example, `degrees=90.0` rotates an image randomly between -90° and +90° (including 0°).
+- **Note:**
+  - Passing `degrees=-10` is identical to `degrees=10`. The model will take the absolute value of `degrees`.
+  - Bounding boxes are automatically transformed to match rotated objects. Instances outside image boundaries after rotation are clipped.
+- **Purpose**: Helps models recognize objects at various orientations:
+  - Essential for aerial imagery where objects can appear at any angle, or when camera mounting may vary. In this case, 90° ranges are recommended, as filmed objects can be viewed from any orientation.
+  - Useful for digit recognition where the 1-20° range prevents changing the label meaning. For example, a larger rotation angle can make 6 look like 9. Source: [Journal of Big Data: A survey on Image Data Augmentation for Deep Learning](https://journalofbigdata.springeropen.com/articles/10.1186/s40537-019-0197-0).
+
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 
 |                                                                  **`-180`**                                                                   |                                                                  **`-90`**                                                                  |                                                          **`0.0`**                                                          |                                                                 **`90`**                                                                  |                                                                  **`180`**                                                                  |

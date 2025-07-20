@@ -122,7 +122,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          model = YOLO("yolo11n-cls.pt")
 
          # Export the model
-         model.export(format="imx", data="imagenet")  # exports with PTQ quantization by default
+         model.export(format="imx", data="imagenet10")  # exports with PTQ quantization by default
 
          # Load the exported model
          imx_model = YOLO("yolo11n-cls_imx_model")
@@ -135,7 +135,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
 
          ```bash
          # Export a YOLO11n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
-         yolo export model=yolo11n-cls.pt format=imx data=imagenet
+         yolo export model=yolo11n-cls.pt format=imx data=imagenet10
 
          # Run inference with the exported model
          yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg'

@@ -80,6 +80,63 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
         ```
 
+    === "uv install"
+
+        [uv](https://docs.astral.sh/uv/) is a pip alternative that uses PyPi as a default index and simplifies common Python workflows around dependency management. uv creates a virtual environment automatically and integrates perfectly with your `pyproject.toml` file, while also allowing you to use [Ultralytics with CLI commands](#use-ultralytics-with-cli).
+
+        !!! note
+
+            uv uses the [Python Package Index (PyPi)](https://pypi.org/) by default. Builds for different accelerators are published to different indexes. Refer to the uv documentation on [using uv with PyTorch](https://docs.astral.sh/uv/guides/integration/pytorch/#using-uv-with-pytorch) for more details.
+
+        ```bash
+        # Install ultralytics using uv in a new project
+        uv init --python 3.12
+        uv add ultralytics
+
+        # Install ultralytics with automatic backend detection (CPU or GPU)
+        uv pip install torch torchvision ultralytics --torch-backend=auto
+        ```
+
+        uv provides [extensive documentation](https://docs.astral.sh/uv/guides/integration/pytorch/#using-uv-with-pytorch) on how to configure PyTorch for the specific accelerator. This example shows a Linux-based setup for CUDA 12.8:
+
+        ```toml
+        [project]
+        name = "your-project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = [
+          "torch>=2.7.0",
+          "torchvision>=0.22.0",
+          "ultralytics>=8.3.0",
+        ]
+
+        [tool.uv.sources]
+        torch = [
+          { index = "pytorch-cu128", marker = "sys_platform == 'linux'" },
+        ]
+        torchvision = [
+          { index = "pytorch-cu128", marker = "sys_platform == 'linux'" },
+        ]
+
+        [[tool.uv.index]]
+        name = "pytorch-cu128"
+        url = "https://download.pytorch.org/whl/cu128"
+        explicit = true
+        ```
+
+        ### Exporting Ultralytics to ONNX with uv
+
+        If you want to export your Ultralytics models to ONNX format, you need to install additional dependencies with uv:
+
+        ```bash
+        # Install ONNX export dependencies
+        uv add onnx onnxslim onnxruntime
+        ```
+
+        ### Running Ultralytics CLI commands with uv
+
+        uv allows you to use Ultralytics with CLI commands, similar to pip. To do that, prepend `uv run` to your command as follows: `uv run yolo TASK MODE ARGS`.
+
     === "Git clone"
 
         Clone the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) if you are interested in contributing to development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.

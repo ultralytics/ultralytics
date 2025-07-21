@@ -41,7 +41,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
         try:
             im = cv2.imdecode(file_bytes, flags)
             return im[..., None] if im.ndim == 2 else im  # Always ensure 3 dimensions
-        except IOError:
+        except Exception:
             return None
 
 

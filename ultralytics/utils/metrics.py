@@ -1174,6 +1174,7 @@ class SegmentMetrics(DetMetrics):
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP50(M)",
+            "metrics/F1-Score(M)",
             "metrics/mAP50-95(M)",
         ]
 
@@ -1309,6 +1310,7 @@ class PoseMetrics(DetMetrics):
             "metrics/precision(P)",
             "metrics/recall(P)",
             "metrics/mAP50(P)",
+            "metrics/F1-Score(P)",
             "metrics/mAP50-95(P)",
         ]
 

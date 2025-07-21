@@ -62,7 +62,7 @@ class LoadStreams:
         buffer (bool): Whether to buffer input streams.
         running (bool): Flag to indicate if the streaming thread is running.
         mode (str): Set to 'stream' indicating real-time capture.
-        imgs (List[List[np.ndarray]]): List of image frames for each stream.
+        imgs (List[np.ndarray]): List of image frames for each stream.
         fps (List[float]): List of FPS for each stream.
         frames (List[int]): List of total frames for each stream.
         threads (List[Thread]): List of threads for each stream.

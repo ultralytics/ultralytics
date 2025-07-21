@@ -890,7 +890,7 @@ class Metric(SimpleClass):
 
     def class_result(self, i: int) -> Tuple[float, float, float, float]:
         """Return class-aware result, p[i], r[i], ap50[i] ap[i]."""
-        return self.p[i], self.r[i], self.ap50[i],self.f1[i], self.ap[i]
+        return self.p[i], self.r[i], self.ap50[i], self.f1[i], self.ap[i]
 
     @property
     def maps(self) -> np.ndarray:

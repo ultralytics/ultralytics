@@ -843,6 +843,16 @@ class Metric(SimpleClass):
             (float): The mean recall of all classes.
         """
         return self.r.mean() if len(self.r) else 0.0
+    
+    @property
+    def mf1(self) -> float:
+        """
+        Return the f1 score
+
+        Returns:
+            (float): The f1 score ((precision*recall)/(precision+recall))*2
+        """
+        return self.f1[:].mean() if len(self.f1) else 0.0
 
     @property
     def map50(self) -> float:
@@ -875,12 +885,12 @@ class Metric(SimpleClass):
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
     def mean_results(self) -> List[float]:
-        """Return mean of results, mp, mr, map50, map."""
-        return [self.mp, self.mr, self.map50, self.map]
+        """Return mean of results, mp, mr, map50,f1, map."""
+        return [self.mp, self.mr, self.map50,self.mf1, self.map]
 
     def class_result(self, i: int) -> Tuple[float, float, float, float]:
-        """Return class-aware result, p[i], r[i], ap50[i], ap[i]."""
-        return self.p[i], self.r[i], self.ap50[i], self.ap[i]
+        """Return class-aware result, p[i], r[i], ap50[i] ap[i]."""
+        return self.p[i], self.r[i], self.ap50[i],self.mf1[i], self.ap[i]
 
     @property
     def maps(self) -> np.ndarray:
@@ -892,7 +902,7 @@ class Metric(SimpleClass):
 
     def fitness(self) -> float:
         """Return model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        w = [0.0, 0.0, 0.1,0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         return (np.nan_to_num(np.array(self.mean_results())) * w).sum()
 
     def update(self, results: tuple):
@@ -1021,10 +1031,10 @@ class DetMetrics(SimpleClass, DataExportMixin):
     @property
     def keys(self) -> List[str]:
         """Return a list of keys for accessing specific metrics."""
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)","F1-Score(B)", "metrics/mAP50-95(B)"]
 
     def mean_results(self) -> List[float]:
-        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
+        """Calculate mean of detected objects & return precision, recall, mAP50, F1-Score, and mAP50-95."""
         return self.box.mean_results()
 
     def class_result(self, i: int) -> Tuple[float, float, float, float]:

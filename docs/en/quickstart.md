@@ -86,7 +86,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         !!! note
 
-            uv uses the [Python Package Index (PyPi)](https://pypi.org/) by default. Builds for different accelerators are published to different indexes. Refer to the uv documentation on [using uv with PyTorch](https://docs.astral.sh/uv/guides/integration/pytorch/#using-uv-with-pytorch) for more details.
+            uv uses the [Python Package Index (PyPi)](https://pypi.org/) by default, but PyTorch builds for specific accelerators are typically published to other indexes. Refer to the uv documentation on [using uv with PyTorch](https://docs.astral.sh/uv/guides/integration/pytorch/#using-uv-with-pytorch) for more details.
 
         ```bash
         # Install ultralytics using uv in a new project
@@ -593,6 +593,20 @@ conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cu
 ```
 
 For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.md).
+
+### Can I install Ultralytics YOLO using uv?
+
+Yes, install Ultralytics YOLO using uv with:
+
+```bash
+uv add ultralytics
+```
+
+[uv](https://docs.astral.sh/uv/) is an extremely fast Python package manager that automatically creates virtual environments. For PyTorch with specific CUDA support, [configure your `pyproject.toml`](https://docs.astral.sh/uv/guides/integration/pytorch/) or use:
+
+```bash
+uv pip install torch torchvision ultralytics --torch-backend=auto
+```
 
 ### What are the advantages of using Docker to run Ultralytics YOLO?
 

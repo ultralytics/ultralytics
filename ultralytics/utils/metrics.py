@@ -499,6 +499,7 @@ class ConfusionMatrix(DataExportMixin):
         labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
         if not self.task == "obb" and len(labels["bboxes"]):
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
+        (save_dir / "visualizations").mkdir(parents=True, exist_ok=True)
         plot_images(
             labels,
             img.repeat(4, 1, 1, 1),

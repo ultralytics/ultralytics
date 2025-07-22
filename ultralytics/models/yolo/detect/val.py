@@ -98,8 +98,6 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         self.metrics.names = self.names
-        if self.args.plots and self.args.visualize:
-            (self.save_dir / "visualizations").mkdir(exist_ok=True)
         self.confusion_matrix = ConfusionMatrix(
             names=list(model.names.values()), save_matches=self.args.plots and self.args.visualize
         )

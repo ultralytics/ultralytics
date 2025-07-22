@@ -221,7 +221,6 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_sql()
 
 
-
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""
     model = YOLO(CFG)

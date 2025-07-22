@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 

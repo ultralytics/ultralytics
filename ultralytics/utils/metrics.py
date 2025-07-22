@@ -379,9 +379,11 @@ class ConfusionMatrix(DataExportMixin):
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
         im_name = Path(batch["im_file"]).name
-        if self.matches is not None:  # only if visualization is enabled
-            self.matches[im_name] = {k: defaultdict(list) for k in {"TP", "FP", "FN"}}
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
+        if self.matches is not None:  # only if visualization is enabled
+            self.matches[im_name] = {k: defaultdict(list) for k in {"TP", "FP", "FN", "GT"}}
+            for i in range(len(gt_cls)):
+                self._append_matches(im_name, "GT", batch, i)  # store GT
         is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
         conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
         no_pred = len(detections["cls"]) == 0
@@ -474,17 +476,10 @@ class ConfusionMatrix(DataExportMixin):
         matches = self.matches[im_file]
         device = img.device
 
-        if task == "segment":
-            if gt["masks"].shape[0] != gt["bboxes"].shape[0]:  # overlap_mask=True
-                idxs = torch.arange(gt["bboxes"].shape[0], device=device) + 1
-                gt["masks"] = gt["masks"] == idxs[:, None, None]
-            if not isinstance(gt["masks"], list):
-                gt["masks"] = [gt["masks"]]
-
         # Create batch of 4 (GT, TP, FP, FN)
         labels = defaultdict(list)
         for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
-            mbatch = gt if mtype == "GT" else matches[mtype]
+            mbatch = matches[mtype]
             if mtype in {"GT", "FN"}:
                 mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=device)
             mbatch["batch_idx"] = torch.tensor([i] * len(mbatch["bboxes"]), device=device)
@@ -500,10 +495,9 @@ class ConfusionMatrix(DataExportMixin):
             "conf_thres": 0.001,
         }
         for k, v in labels.items():
-            if not len(v):
-                v = [torch.empty(gt[k].shape, device=device)]
-            labels[k] = torch.cat(v) if k == "masks" else torch.stack(v, 0)
-        if not task == "obb":
+            if len(v):
+                labels[k] = torch.cat(v) if k == "masks" else torch.stack(v, 0)
+        if not task == "obb" and len(labels["bboxes"]):
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         plot_images(labels, img.repeat(4, 1, 1, 1), **plot_args)
 

@@ -361,13 +361,13 @@ class ConfusionMatrix(DataExportMixin):
                     # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
                     self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
 
-    def process_cls_preds(self, preds, targets):
+    def process_cls_preds(self, preds: List[torch.Tensor], targets: List[torch.Tensor]) -> None:
         """
         Update confusion matrix for classification task.
 
         Args:
-            preds (Array[N, min(nc,5)]): Predicted class labels.
-            targets (Array[N, 1]): Ground truth class labels.
+            preds (List[N, min(nc,5)]): Predicted class labels.
+            targets (List[N, 1]): Ground truth class labels.
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):

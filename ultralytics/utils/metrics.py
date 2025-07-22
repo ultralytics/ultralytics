@@ -486,6 +486,7 @@ class ConfusionMatrix(DataExportMixin):
             for k in mbatch.keys():
                 labels[k] += mbatch[k]
 
+        labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
         plot_args = {
             "paths": ["Ground Truth", "False Positives", "True Positives", "False Negatives"],
             "fname": save_dir / "visualizations" / im_file,
@@ -493,7 +494,6 @@ class ConfusionMatrix(DataExportMixin):
             "max_subplots": 4,
             "conf_thres": 0.001,
         }
-        labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
         if not task == "obb" and len(labels["bboxes"]):
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         plot_images(labels, img.repeat(4, 1, 1, 1), **plot_args)

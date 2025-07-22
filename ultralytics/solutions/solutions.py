@@ -250,10 +250,10 @@ class BaseSolution:
         result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}
         if self.CFG["verbose"]:
             self.frame_no += 1
+            cls_count = Counter(self.clss)  # Only required for logging.
             LOGGER.info(
                 f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms"
-                f" {len(self.track_ids)} objects, "
-                f"{', '.join(f'{v}: {self.names[int(k)]}' for k, v in Counter(self.clss).items())}\n"
+                f" {len(self.track_ids)} objects, {', '.join([f'{v} {self.names[k]}' for k, v in cls_count.items()])}\n"
                 f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
                 f"{solution_speed:.1f}ms solution per image at shape "
                 f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"

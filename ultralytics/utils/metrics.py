@@ -338,7 +338,8 @@ class ConfusionMatrix(DataExportMixin):
         self.matches = {} if save_matches else None
 
     def _append_matches(self, mtype: str, batch: Dict[str, Any], idx: int) -> None:
-        """Append the matches to TP, FP, FN or GT list for the last batch.
+        """
+        Append the matches to TP, FP, FN or GT list for the last batch.
 
         This method updates the matches dictionary by appending specific batch data
         to the appropriate match type (True Positive, False Positive, or False Negative).

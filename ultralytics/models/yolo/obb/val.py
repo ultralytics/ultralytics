@@ -67,6 +67,7 @@ class OBBValidator(DetectionValidator):
         super().init_metrics(model)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
+        self.confusion_matrix.task = "obb"  # set confusion matrix task to 'obb'
 
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, np.ndarray]:
         """

@@ -344,8 +344,8 @@ class ConfusionMatrix(DataExportMixin):
                 if k in {"bboxes", "cls", "conf", "keypoints"}:
                     self.matches[im_name][mtype][k] += v[[idx]]
                 elif k == "masks":
-                    # NOTE: masks.max() > 1.0 means overlap_mask=True
-                    self.matches[im_name][mtype][k] += [v == idx + 1] if v.max() > 1.0 else [v[[idx]]]
+                    # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
+                    self.matches[im_name][mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
 
     def process_cls_preds(self, preds, targets):
         """
@@ -473,7 +473,7 @@ class ConfusionMatrix(DataExportMixin):
         from .plotting import plot_images
 
         im_file = Path(gt["im_file"]).name
-        matches = self.matches[im_file]
+        matches = self.matches.pop(im_file)
         device = img.device
 
         # Create batch of 4 (GT, TP, FP, FN)
@@ -484,8 +484,7 @@ class ConfusionMatrix(DataExportMixin):
                 mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=device)
             mbatch["batch_idx"] = torch.tensor([i] * len(mbatch["bboxes"]), device=device)
             for k in mbatch.keys():
-                if k in {"batch_idx", "bboxes", "cls", "conf", "keypoints", "masks"}:
-                    labels[k] += mbatch[k]
+                labels[k] += mbatch[k]
 
         plot_args = {
             "paths": ["Ground Truth", "False Positives", "True Positives", "False Negatives"],
@@ -494,9 +493,7 @@ class ConfusionMatrix(DataExportMixin):
             "max_subplots": 4,
             "conf_thres": 0.001,
         }
-        for k, v in labels.items():
-            if len(v):
-                labels[k] = torch.cat(v) if k == "masks" else torch.stack(v, 0)
+        labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
         if not task == "obb" and len(labels["bboxes"]):
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         plot_images(labels, img.repeat(4, 1, 1, 1), **plot_args)

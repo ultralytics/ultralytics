@@ -337,8 +337,22 @@ class ConfusionMatrix(DataExportMixin):
         self.names = names  # name of classes
         self.matches = {} if save_matches else None
 
-    def _append_matches(self, mtype, batch, idx):
-        """Append the matches to TP, FP or FN list for the last batch."""
+    def _append_matches(self, mtype: str, batch: Dict[str, Any], idx: int) -> None:
+        """Append the matches to TP, FP, FN or GT list for the last batch.
+
+        This method updates the matches dictionary by appending specific batch data
+        to the appropriate match type (True Positive, False Positive, or False Negative).
+
+        Args:
+            mtype (str): Match type identifier ('TP', 'FP', 'FN' or 'GT').
+            batch (Dict[str, Any]): Batch data containing detection results with keys
+                like 'bboxes', 'cls', 'conf', 'keypoints', 'masks'.
+            idx (int): Index of the specific detection to append from the batch.
+
+        Note:
+            For masks, handles both overlap and non-overlap cases. When masks.max() > 1.0,
+            it indicates overlap_mask=True with shape (1, H, W), otherwise uses direct indexing.
+        """
         if self.matches is not None:
             for k, v in batch.items():
                 if k in {"bboxes", "cls", "conf", "keypoints"}:
@@ -456,13 +470,13 @@ class ConfusionMatrix(DataExportMixin):
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return (tp, fp) if self.task == "classify" else (tp[:-1], fp[:-1])  # remove background class if task=detect
 
-    def plot_matches(self, img, gt, task, save_dir):
+    def plot_matches(self, img: torch.Tensor, im_file: str, save_dir: Path) -> None:
         """
         Plot grid of GT, TP, FP, FN for each image.
 
         Args:
             img (torch.Tensor): Image to plot onto.
-            gt (dict): Ground truth data.
+            im_file (str): Image filename to save visualizations.
             task (str): Validation task.
             save_dir (Path): Location to save the visualizations to.
         """
@@ -471,9 +485,7 @@ class ConfusionMatrix(DataExportMixin):
         from .ops import xyxy2xywh
         from .plotting import plot_images
 
-        im_file = Path(gt["im_file"]).name
         device = img.device
-
         # Create batch of 4 (GT, TP, FP, FN)
         labels = defaultdict(list)
         for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
@@ -485,7 +497,7 @@ class ConfusionMatrix(DataExportMixin):
                 labels[k] += mbatch[k]
 
         labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
-        if not task == "obb" and len(labels["bboxes"]):
+        if not self.task == "obb" and len(labels["bboxes"]):
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         plot_images(
             labels,

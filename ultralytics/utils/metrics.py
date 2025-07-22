@@ -337,15 +337,15 @@ class ConfusionMatrix(DataExportMixin):
         self.names = names  # name of classes
         self.matches = {} if save_matches else None
 
-    def _append_matches(self, im_name, mtype, batch, idx):
+    def _append_matches(self, mtype, batch, idx):
         """Append the matches to TP, FP or FN list for the last batch."""
         if self.matches is not None:
             for k, v in batch.items():
                 if k in {"bboxes", "cls", "conf", "keypoints"}:
-                    self.matches[im_name][mtype][k] += v[[idx]]
+                    self.matches[mtype][k] += v[[idx]]
                 elif k == "masks":
                     # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
-                    self.matches[im_name][mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
+                    self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
 
     def process_cls_preds(self, preds, targets):
         """
@@ -378,12 +378,11 @@ class ConfusionMatrix(DataExportMixin):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
-        im_name = Path(batch["im_file"]).name
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled
-            self.matches[im_name] = {k: defaultdict(list) for k in {"TP", "FP", "FN", "GT"}}
+            self.matches = {k: defaultdict(list) for k in {"TP", "FP", "FN", "GT"}}
             for i in range(len(gt_cls)):
-                self._append_matches(im_name, "GT", batch, i)  # store GT
+                self._append_matches("GT", batch, i)  # store GT
         is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
         conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
         no_pred = len(detections["cls"]) == 0
@@ -393,13 +392,13 @@ class ConfusionMatrix(DataExportMixin):
                 detection_classes = detections["cls"].int().tolist()
                 for i, dc in enumerate(detection_classes):
                     self.matrix[dc, self.nc] += 1  # FP
-                    self._append_matches(im_name, "FP", detections, i)
+                    self._append_matches("FP", detections, i)
             return
         if no_pred:
             gt_classes = gt_cls.int().tolist()
             for i, gc in enumerate(gt_classes):
                 self.matrix[self.nc, gc] += 1  # FN
-                self._append_matches(im_name, "FN", batch, i)
+                self._append_matches("FN", batch, i)
             return
 
         detections = {k: detections[k][detections["conf"] > conf] for k in detections.keys()}
@@ -427,18 +426,18 @@ class ConfusionMatrix(DataExportMixin):
                 dc = detection_classes[m1[j].item()]
                 self.matrix[dc, gc] += 1  # TP if class is correct else both an FP and an FN
                 if dc == gc:
-                    self._append_matches(im_name, "TP", detections, m1[j].item())
+                    self._append_matches("TP", detections, m1[j].item())
                 else:
-                    self._append_matches(im_name, "FP", detections, m1[j].item())
-                    self._append_matches(im_name, "FN", batch, i)
+                    self._append_matches("FP", detections, m1[j].item())
+                    self._append_matches("FN", batch, i)
             else:
                 self.matrix[self.nc, gc] += 1  # FN
-                self._append_matches(im_name, "FN", batch, i)
+                self._append_matches("FN", batch, i)
 
         for i, dc in enumerate(detection_classes):
             if not any(m1 == i):
                 self.matrix[dc, self.nc] += 1  # FP
-                self._append_matches(im_name, "FP", detections, i)
+                self._append_matches("FP", detections, i)
 
     def matrix(self):
         """Return the confusion matrix."""
@@ -473,13 +472,12 @@ class ConfusionMatrix(DataExportMixin):
         from .plotting import plot_images
 
         im_file = Path(gt["im_file"]).name
-        matches = self.matches.pop(im_file)
         device = img.device
 
         # Create batch of 4 (GT, TP, FP, FN)
         labels = defaultdict(list)
         for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
-            mbatch = matches[mtype]
+            mbatch = self.matches[mtype]
             if mtype in {"GT", "FN"}:
                 mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=device)
             mbatch["batch_idx"] = torch.tensor([i] * len(mbatch["bboxes"]), device=device)

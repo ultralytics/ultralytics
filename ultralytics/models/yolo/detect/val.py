@@ -202,7 +202,7 @@ class DetectionValidator(BaseValidator):
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
-                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch, self.args.task, self.save_dir)
+                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
 
             if no_pred:
                 continue
@@ -215,7 +215,7 @@ class DetectionValidator(BaseValidator):
                     predn,
                     self.args.save_conf,
                     pbatch["ori_shape"],
-                    self.save_dir / "labels" / f"{Path(batch['im_file'][si]).stem}.txt",
+                    self.save_dir / "labels" / f"{Path(pbatch['im_file']).stem}.txt",
                 )
 
     def finalize_metrics(self) -> None:

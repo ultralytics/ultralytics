@@ -503,7 +503,7 @@ class ConfusionMatrix(DataExportMixin):
             labels,
             img.repeat(4, 1, 1, 1),
             paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
-            fname=save_dir / "visualizations" / im_file,
+            fname=save_dir / "visualizations" / Path(im_file).name,
             names=dict(enumerate(self.names)),
             max_subplots=4,
             conf_thres=0.001,

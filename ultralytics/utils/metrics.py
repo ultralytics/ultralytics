@@ -322,12 +322,12 @@ class ConfusionMatrix(DataExportMixin):
         matches (dict): Contains the indices of ground truths and predictions categorized into TP, FP and FN.
     """
 
-    def __init__(self, names: List[str] = [], task: str = "detect", save_matches: bool = False):
+    def __init__(self, names: Dict[int, str] = [], task: str = "detect", save_matches: bool = False):
         """
         Initialize a ConfusionMatrix instance.
 
         Args:
-            names (List[str], optional): Names of classes, used as labels on the plot.
+            names (Dict[int, str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
             save_matches (bool, optional): Save the indices of GTs, TPs, FPs, FNs for visualization.
         """
@@ -505,7 +505,7 @@ class ConfusionMatrix(DataExportMixin):
             img.repeat(4, 1, 1, 1),
             paths=["Ground Truth", "False Positives", "True Positives", "False Negatives"],
             fname=save_dir / "visualizations" / Path(im_file).name,
-            names=dict(enumerate(self.names)),
+            names=self.names,
             max_subplots=4,
             conf_thres=0.001,
         )
@@ -527,7 +527,7 @@ class ConfusionMatrix(DataExportMixin):
         array[array < 0.005] = np.nan  # don't annotate (would appear as 0.00)
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
-        names, n = self.names, self.nc
+        names, n = list(self.names.values()), self.nc
         if self.nc >= 100:  # downsample for large class count
             k = max(2, self.nc // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
@@ -608,7 +608,7 @@ class ConfusionMatrix(DataExportMixin):
         """
         import re
 
-        names = self.names if self.task == "classify" else self.names + ["background"]
+        names = list(self.names.values()) if self.task == "classify" else list(self.names.values()) + ["background"]
         clean_names, seen = [], set()
         for name in names:
             clean_name = re.sub(r"[^a-zA-Z0-9_]", "_", name)

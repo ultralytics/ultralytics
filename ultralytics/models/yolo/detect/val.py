@@ -97,10 +97,8 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
         self.jdict = []
-        self.metrics.names = self.names
-        self.confusion_matrix = ConfusionMatrix(
-            names=list(model.names.values()), save_matches=self.args.plots and self.args.visualize
-        )
+        self.metrics.names = model.names
+        self.confusion_matrix = ConfusionMatrix(names=model.names, save_matches=self.args.plots and self.args.visualize)
 
     def get_desc(self) -> str:
         """Return a formatted string summarizing class metrics of YOLO model."""

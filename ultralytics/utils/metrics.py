@@ -344,9 +344,8 @@ class ConfusionMatrix(DataExportMixin):
                 if k in {"bboxes", "cls", "conf", "keypoints"}:
                     self.matches[im_name][mtype][k] += v[[idx]]
                 elif k == "masks":
-                    self.matches[im_name][mtype][k] += (
-                        [v[[idx]]] if mtype != "FN" else [v == idx + 1]
-                    )  # gt is merged, pred isn't
+                    # NOTE: masks.max() > 1.0 means overlap_mask=True
+                    self.matches[im_name][mtype][k] += [v == idx + 1] if v.max() > 1.0 else [v[[idx]]]
 
     def process_cls_preds(self, preds, targets):
         """

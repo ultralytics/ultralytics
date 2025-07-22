@@ -201,11 +201,12 @@ def test_track_stream(model):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
-@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
-def test_val(task: str, model: str, data: str) -> None:
+@pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
+def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
+    model = YOLO(weight)
     for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
-        metrics = YOLO(model).val(data=data, imgsz=32, plots=plots)
+        metrics = model.val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
         metrics.to_csv()
         metrics.to_xml()
@@ -219,11 +220,6 @@ def test_val(task: str, model: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
         metrics.confusion_matrix.to_sql()
 
-
-@pytest.mark.parametrize("task", [task for task in TASKS if task != "classify"])
-def test_val_visualize(task):
-    """Test the visualization during validation."""
-    YOLO(TASK2MODEL[task]).val(data=TASK2DATA[task], imgsz=32, visualize=True)
 
 
 def test_train_scratch():

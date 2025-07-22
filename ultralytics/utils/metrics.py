@@ -329,7 +329,7 @@ class ConfusionMatrix(DataExportMixin):
         Args:
             names (List[str], optional): Names of classes, used as labels on the plot.
             task (str, optional): Type of task, either 'detect' or 'classify'.
-            save_matches (bool, optional): Save the indices of GTs, FPs, FNs for visualization.
+            save_matches (bool, optional): Save the indices of GTs, TPs, FPs, FNs for visualization.
         """
         self.task = task
         self.nc = len(names)  # number of classes
@@ -354,13 +354,14 @@ class ConfusionMatrix(DataExportMixin):
             For masks, handles both overlap and non-overlap cases. When masks.max() > 1.0,
             it indicates overlap_mask=True with shape (1, H, W), otherwise uses direct indexing.
         """
-        if self.matches is not None:
-            for k, v in batch.items():
-                if k in {"bboxes", "cls", "conf", "keypoints"}:
-                    self.matches[mtype][k] += v[[idx]]
-                elif k == "masks":
-                    # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
-                    self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
+        if self.matches is None:
+            return
+        for k, v in batch.items():
+            if k in {"bboxes", "cls", "conf", "keypoints"}:
+                self.matches[mtype][k] += v[[idx]]
+            elif k == "masks":
+                # NOTE: masks.max() > 1.0 means overlap_mask=True with (1, H, W) shape
+                self.matches[mtype][k] += [v[0] == idx + 1] if v.max() > 1.0 else [v[idx]]
 
     def process_cls_preds(self, preds: List[torch.Tensor], targets: List[torch.Tensor]) -> None:
         """
@@ -486,14 +487,13 @@ class ConfusionMatrix(DataExportMixin):
         from .ops import xyxy2xywh
         from .plotting import plot_images
 
-        device = img.device
         # Create batch of 4 (GT, TP, FP, FN)
         labels = defaultdict(list)
         for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
             mbatch = self.matches[mtype]
-            if mtype in {"GT", "FN"}:
-                mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=device)
-            mbatch["batch_idx"] = torch.tensor([i] * len(mbatch["bboxes"]), device=device)
+            if "conf" not in mbatch:
+                mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=img.device)
+            mbatch["batch_idx"] = torch.ones(len(mbatch["bboxes"]), device=img.device) * i
             for k in mbatch.keys():
                 labels[k] += mbatch[k]
 

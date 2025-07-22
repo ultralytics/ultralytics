@@ -476,7 +476,7 @@ class ConfusionMatrix(DataExportMixin):
         device = img.device
 
         if task == "segment":
-            if gt["masks"].shape[0] != gt["bboxes"].shape[0]:  # overlap_masks = True
+            if gt["masks"].shape[0] != gt["bboxes"].shape[0]:  # overlap_mask=True
                 idxs = torch.arange(gt["bboxes"].shape[0], device=device) + 1
                 gt["masks"] = gt["masks"] == idxs[:, None, None]
             if not isinstance(gt["masks"], list):

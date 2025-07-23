@@ -39,7 +39,7 @@ def test_val(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_predict(task: str, model: str, data: str) -> None:
     """Test YOLO prediction on provided sample assets for specified task and model."""
-    run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt")
+    run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save save_crop save_txt visualize")
 
 
 @pytest.mark.parametrize("model", MODELS)

@@ -41,6 +41,7 @@ IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests star
 
 
 def create_temp_image(tmp_path, filename, ext, img):
+    """Helper function to create a temporary image file of a specified format"""
     # Encode image using the specified extension and write to temporary file.
     ret, buf = cv2.imencode(ext, img)
     assert ret, "Failed to encode image."
@@ -50,6 +51,7 @@ def create_temp_image(tmp_path, filename, ext, img):
 
 
 def test_imread_png_success(tmp_path):
+    """Test reading a PNG image using imread."""
     # Create a simple 10x10 color image
     img = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
     # Create PNG image
@@ -61,6 +63,7 @@ def test_imread_png_success(tmp_path):
 
 
 def test_imread_jpg_success(tmp_path):
+    """Test JPG image reading with imread."""
     # Create a simple 10x10 color image
     img = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
     # Create PNG image
@@ -72,6 +75,7 @@ def test_imread_jpg_success(tmp_path):
 
 
 def test_imread_tiff_success(tmp_path):
+    """Test TIFF image reading with imread."""
     # Create a simple 10x10 color image
     img = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
     # Create TIFF image
@@ -91,6 +95,7 @@ def test_imread_tiff_success(tmp_path):
 
 
 def test_imread_nonexistent_file():
+    """Test a scenario when no file exists"""
     with pytest.raises(FileNotFoundError):
         patches.imread("nonexistent_file.png")
 

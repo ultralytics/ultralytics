@@ -41,7 +41,11 @@ IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests star
 
 
 def create_temp_image(tmp_path, filename, ext, img):
+<<<<<<< Updated upstream
     """Helper function to create a temporary image file of a specified format."""
+=======
+    """Helper function to create a temporary image file of a specified format"""
+>>>>>>> Stashed changes
     # Encode image using the specified extension and write to temporary file.
     ret, buf = cv2.imencode(ext, img)
     assert ret, "Failed to encode image."
@@ -94,8 +98,26 @@ def test_imread_tiff_success(tmp_path):
         pytest.fail("Unexpected image dimensions returned by imread for TIFF file.")
 
 
+@pytest.mark.parametrize("suffix", [".tiff", ".jpg"])
+def test_imread_returns_none_on_corrupt_file(tmp_path, suffix):
+    """Given a file that *exists* but is not a valid image, imread() should return None instead of raising."""
+    # 1) Create a bogus file
+    bad_file = tmp_path / f"corrupt{suffix}"
+    bad_file.write_bytes(b"This is not an image\x00\x01\x02garbage")
+
+    # 2) Call your helper
+    result = patches.imread(str(bad_file))
+
+    # 3) Assert the sentinel value
+    assert result is None
+
+
 def test_imread_nonexistent_file():
+<<<<<<< Updated upstream
     """Test a scenario when no file exists."""
+=======
+    """Test a scenario when no file exists"""
+>>>>>>> Stashed changes
     with pytest.raises(FileNotFoundError):
         patches.imread("nonexistent_file.png")
 

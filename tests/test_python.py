@@ -41,7 +41,7 @@ IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests star
 
 
 def create_temp_image(tmp_path, filename, ext, img):
-    """Helper function to create a temporary image file of a specified format"""
+    """Helper function to create a temporary image file of a specified format."""
     # Encode image using the specified extension and write to temporary file.
     ret, buf = cv2.imencode(ext, img)
     assert ret, "Failed to encode image."
@@ -95,7 +95,7 @@ def test_imread_tiff_success(tmp_path):
 
 
 def test_imread_nonexistent_file():
-    """Test a scenario when no file exists"""
+    """Test a scenario when no file exists."""
     with pytest.raises(FileNotFoundError):
         patches.imread("nonexistent_file.png")
 

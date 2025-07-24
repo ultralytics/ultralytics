@@ -44,7 +44,7 @@ def create_temp_image(tmp_path, filename, ext, img):
 <<<<<<< Updated upstream
     """Helper function to create a temporary image file of a specified format."""
 =======
-    """Helper function to create a temporary image file of a specified format"""
+    """Helper function to create a temporary image file of a specified format."""
 >>>>>>> Stashed changes
     # Encode image using the specified extension and write to temporary file.
     ret, buf = cv2.imencode(ext, img)
@@ -116,7 +116,7 @@ def test_imread_nonexistent_file():
 <<<<<<< Updated upstream
     """Test a scenario when no file exists."""
 =======
-    """Test a scenario when no file exists"""
+    """Test a scenario when no file exists."""
 >>>>>>> Stashed changes
     with pytest.raises(FileNotFoundError):
         patches.imread("nonexistent_file.png")

@@ -169,6 +169,7 @@ class SegmentationValidator(DetectionValidator):
             if gt_masks.shape[1:] != pred_masks.shape[1:]:
                 gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
                 gt_masks = gt_masks.gt_(0.5)
+                batch["masks"] = gt_masks
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU

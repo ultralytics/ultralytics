@@ -32,12 +32,62 @@ from ultralytics.utils import (
     checks,
     is_dir_writeable,
     is_github_action_running,
+    patches
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
+def create_temp_image(tmp_path, filename, ext, img):
+    # Encode image using the specified extension and write to temporary file.
+    ret, buf = cv2.imencode(ext, img)
+    assert ret, "Failed to encode image."
+    file_path = tmp_path / filename
+    file_path.write_bytes(buf.tobytes())
+    return file_path
+
+def test_imread_png_success(tmp_path):
+    # Create a simple 10x10 color image
+    img = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
+    # Create PNG image
+    file_path = create_temp_image(tmp_path, "test.png", ".png", img)
+    # Read image using imread and verify output
+    result = patches.imread(str(file_path))
+    assert result is not None, "imread should succeed for a valid PNG file."
+    assert result.shape == img.shape, "Image shape should be preserved."
+
+def test_imread_jpg_success(tmp_path):
+    # Create a simple 10x10 color image
+    img = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
+    # Create PNG image
+    file_path = create_temp_image(tmp_path, "test.jpg", ".jpg", img)
+    # Read image using imread and verify output
+    result = patches.imread(str(file_path))
+    assert result is not None, "imread should succeed for a valid JPG file."
+    assert result.shape == img.shape, "Image shape should be preserved."
+
+def test_imread_tiff_success(tmp_path):
+    # Create a simple 10x10 color image
+    img = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
+    # Create TIFF image
+    file_path = create_temp_image(tmp_path, "test.tiff", ".tiff", img)
+    # Read image using imread
+    result = patches.imread(str(file_path))
+    # The TIFF branch uses imdecodemulti which may return single frame or stacked frames.
+    assert result is not None, "imread should succeed for a valid TIFF file."
+    # Check for valid image shape; allow both single frame or stacked version
+    if result.ndim == 3:
+        assert result.shape == img.shape, "TIFF image shape should match the input image."
+    elif result.ndim == 4:
+        # For multi-page TIFF, the stacked dimension should equal the number of pages.
+        assert result.shape[0] >= 1, "Should have at least one frame for multi-page TIFF."
+    else:
+        pytest.fail("Unexpected image dimensions returned by imread for TIFF file.")
+
+def test_imread_nonexistent_file():
+    with pytest.raises(FileNotFoundError):
+        patches.imread("nonexistent_file.png")
 
 def test_model_forward():
     """Test the forward pass of the YOLO model."""

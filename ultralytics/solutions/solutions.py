@@ -253,7 +253,7 @@ class BaseSolution:
             counts = Counter(self.clss)  # Only for logging.
             LOGGER.info(
                 f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms,"
-                f" {len(self.clss)} objects, {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
+                f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
                 f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
                 f"{solution_speed:.1f}ms solution per image at shape "
                 f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"

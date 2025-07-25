@@ -17,6 +17,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.trackers import track as ultra_track
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -199,6 +200,36 @@ def test_track_stream(model):
         custom_yaml = TMP / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
+def test_track_reid_native():
+    """
+    Pass native features to botsort with reid and ensure they are correctly passed to tracklets
+    """
+    # update the tracker
+    tracker_file = ultra_track.check_yaml("botsort.yaml")
+    cfg = ultra_track.IterableSimpleNamespace(**ultra_track.YAML.load(tracker_file))
+    # Enable ReID functionality with native features
+    cfg.with_reid = True
+    cfg.model = "auto"
+    tracker = ultra_track.BOTSORT(args=cfg)
+    # make predictions, 5 detections are generated
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    im = cv2.imread(str(SOURCE))
+    results, *_ = model(im, conf=0.25)
+    reid_feats = torch.randn(results.boxes.shape[0], 10)
+
+    # create 5 initial tracks
+    tracker.update(results.boxes, img=None, feats=reid_feats)
+    # test both matching stages
+    tracker.args.track_high_thresh = 0.75  # 4 detections above the score and one below
+    # without zip(..., strict=True), next line should fail
+    tracker.update(results.boxes, img=None, feats=reid_feats)
+    first_track_f = tracker.tracked_stracks[0].smooth_feat
+    last_track_f = tracker.tracked_stracks[4].smooth_feat
+    assert not np.allclose(first_track_f, last_track_f, atol=0.01, rtol=0.01)
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

@@ -199,7 +199,8 @@ class BOTSORT(BYTETracker):
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
         self.encoder = (
-            (lambda feats, s: [f.cpu().numpy() for f in feats])  # native features do not require any model
+            # native features do not require any model
+            (lambda feats, s: [f.cpu().numpy() for f in feats])
             if args.with_reid and self.args.model == "auto"
             else ReID(args.model)
             if args.with_reid
@@ -218,9 +219,11 @@ class BOTSORT(BYTETracker):
             return []
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, dets)
-            return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
+            # detections
+            return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep, strict=True)]
         else:
-            return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections
+            # detections
+            return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]
 
     def get_dists(self, tracks: List[BOTrack], detections: List[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""

@@ -71,7 +71,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 

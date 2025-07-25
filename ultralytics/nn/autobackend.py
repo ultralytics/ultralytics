@@ -313,11 +313,13 @@ class AutoBackend(nn.Module):
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
             inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
-            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
                 config={"PERFORMANCE_HINT": inference_mode},
+            )
+            LOGGER.info(
+                f"Using OpenVINO {inference_mode} mode for batch={batch} inference on {', '.join(ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
             )
             input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"

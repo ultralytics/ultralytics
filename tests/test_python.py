@@ -205,9 +205,7 @@ def test_track_stream(model):
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_track_reid_native():
-    """
-    Pass native features to botsort with reid and ensure they are correctly passed to tracklets
-    """
+    """Pass native features to botsort with reid and ensure they are correctly passed to tracklets."""
     # update the tracker
     tracker_file = ultra_track.check_yaml("botsort.yaml")
     cfg = ultra_track.IterableSimpleNamespace(**ultra_track.YAML.load(tracker_file))

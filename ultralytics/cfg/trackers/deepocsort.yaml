@@ -1,26 +1,26 @@
-tracker_type: deepocsort  # Must match key in TRACKER_MAP
+tracker_type: deepocsort # Must match key in TRACKER_MAP
 
 # === Motion Tracking Params ===
-max_age: 30            # Frames to keep a lost track alive
-n_init: 3              # Frames required to confirm a track
-min_hits: 1            # Minimum consecutive hits to confirm track
-iou_threshold: 0.3     # IoU threshold for matching detections to tracks
+max_age: 30 # Frames to keep a lost track alive
+n_init: 3 # Frames required to confirm a track
+min_hits: 1 # Minimum consecutive hits to confirm track
+iou_threshold: 0.3 # IoU threshold for matching detections to tracks
 
 # === Detection Filtering ===
-conf_thres: 0.3          # Detection confidence threshold
-class_agnostic: False    # Ignore class when associating detections
+conf_thres: 0.3 # Detection confidence threshold
+class_agnostic: False # Ignore class when associating detections
 
 # === Track Management ===
-max_cosine_distance: 0.4    # Appearance matching threshold
-nn_budget: 100              # Max number of features to store per track
-embed_only_new: False       # Only compute embedding for new detections
+max_cosine_distance: 0.4 # Appearance matching threshold
+nn_budget: 100 # Max number of features to store per track
+embed_only_new: False # Only compute embedding for new detections
 
 # === Directional Matching / Speed Constraints ===
-use_direction: True          # Enable directional matching
-direction_threshold: 0.5     # Max cosine distance for direction vector matching
+use_direction: True # Enable directional matching
+direction_threshold: 0.5 # Max cosine distance for direction vector matching
 
 # === Miscellaneous ===
-use_byte: False              # If True, fallback to BYTE-style matching
-camera_motion_compensation: False  # Enable Kalman prediction with camera motion compensation
-match_metric: 'cosine'       # Feature matching metric: 'cosine' or 'euclidean'
-verbose: False               # Print internal tracker logs
+use_byte: False # If True, fallback to BYTE-style matching
+camera_motion_compensation: False # Enable Kalman prediction with camera motion compensation
+match_metric: "cosine" # Feature matching metric: 'cosine' or 'euclidean'
+verbose: False # Print internal tracker logs

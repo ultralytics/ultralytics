@@ -2,7 +2,7 @@
 """Transformer modules."""
 
 import math
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import torch
 import torch.nn as nn
@@ -466,7 +466,7 @@ class MSDeformAttn(nn.Module):
         d_model (int): Model dimension.
         n_levels (int): Number of feature levels.
         n_heads (int): Number of attention heads.
-        n_points (int): Number of sampling points per attention head per feature level.
+        n_points (int or list): Number of sampling points per attention head per feature level.
         sampling_offsets (nn.Linear): Linear layer for generating sampling offsets.
         attention_weights (nn.Linear): Linear layer for generating attention weights.
         value_proj (nn.Linear): Linear layer for projecting values.
@@ -476,7 +476,14 @@ class MSDeformAttn(nn.Module):
         https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/ops/modules/ms_deform_attn.py
     """
 
-    def __init__(self, d_model: int = 256, n_levels: int = 4, n_heads: int = 8, n_points: int = 4):
+    def __init__(
+        self,
+        d_model: int = 256,
+        n_levels: int = 4,
+        n_heads: int = 8,
+        n_points: Union[int, List[int]] = 4,
+        method: str = "default",
+    ):
         """
         Initialize MSDeformAttn with the given parameters.
 
@@ -484,7 +491,8 @@ class MSDeformAttn(nn.Module):
             d_model (int): Model dimension.
             n_levels (int): Number of feature levels.
             n_heads (int): Number of attention heads.
-            n_points (int): Number of sampling points per attention head per feature level.
+            n_points (int or list): Number of sampling points per attention head per feature level.
+            method (str): Cross-attention method ('default' or 'discrete').
         """
         super().__init__()
         if d_model % n_heads != 0:
@@ -498,27 +506,44 @@ class MSDeformAttn(nn.Module):
         self.d_model = d_model
         self.n_levels = n_levels
         self.n_heads = n_heads
-        self.n_points = n_points
+        self.method = method
 
-        self.sampling_offsets = nn.Linear(d_model, n_heads * n_levels * n_points * 2)
-        self.attention_weights = nn.Linear(d_model, n_heads * n_levels * n_points)
+        if isinstance(n_points, list):
+            assert len(n_points) == n_levels, "The length of n_points list must be equal to n_levels."
+            self.n_points_list = n_points
+        else:
+            self.n_points_list = [n_points] * n_levels
+        self.n_points = sum(self.n_points_list)
+
+        self.sampling_offsets = nn.Linear(d_model, n_heads * self.n_points * 2)
+        self.attention_weights = nn.Linear(d_model, n_heads * self.n_points)
         self.value_proj = nn.Linear(d_model, d_model)
         self.output_proj = nn.Linear(d_model, d_model)
 
         self._reset_parameters()
+
+        # RT-DETR v2: Disable gradients for discrete sampling
+        if method == "discrete":
+            for p in self.sampling_offsets.parameters():
+                p.requires_grad = False
 
     def _reset_parameters(self):
         """Reset module parameters."""
         constant_(self.sampling_offsets.weight.data, 0.0)
         thetas = torch.arange(self.n_heads, dtype=torch.float32) * (2.0 * math.pi / self.n_heads)
         grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
-        grid_init = (
-            (grid_init / grid_init.abs().max(-1, keepdim=True)[0])
-            .view(self.n_heads, 1, 1, 2)
-            .repeat(1, self.n_levels, self.n_points, 1)
-        )
-        for i in range(self.n_points):
-            grid_init[:, :, i, :] *= i + 1
+
+        grid_init_level = []
+        for n_p in self.n_points_list:
+            grid_init_level.append(
+                (grid_init / grid_init.abs().max(-1, keepdim=True)[0]).view(self.n_heads, 1, 1, 2).repeat(1, 1, n_p, 1)
+            )
+
+        for i in range(self.n_levels):
+            for j in range(self.n_points_list[i]):
+                grid_init_level[i][:, :, j, :] *= j + 1
+
+        grid_init = torch.cat(grid_init_level, dim=2)
         with torch.no_grad():
             self.sampling_offsets.bias = nn.Parameter(grid_init.view(-1))
         constant_(self.attention_weights.weight.data, 0.0)
@@ -562,9 +587,9 @@ class MSDeformAttn(nn.Module):
         if value_mask is not None:
             value = value.masked_fill(value_mask[..., None], float(0))
         value = value.view(bs, len_v, self.n_heads, self.d_model // self.n_heads)
-        sampling_offsets = self.sampling_offsets(query).view(bs, len_q, self.n_heads, self.n_levels, self.n_points, 2)
-        attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, self.n_levels * self.n_points)
-        attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_levels, self.n_points)
+        sampling_offsets = self.sampling_offsets(query).view(bs, len_q, self.n_heads, self.n_points, 2)
+        attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, self.n_points)
+        attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_points)
         # N, Len_q, n_heads, n_levels, n_points, 2
         num_points = refer_bbox.shape[-1]
         if num_points == 2:
@@ -572,11 +597,21 @@ class MSDeformAttn(nn.Module):
             add = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
             sampling_locations = refer_bbox[:, :, None, :, None, :] + add
         elif num_points == 4:
-            add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, None, 2:] * 0.5
+            sampling_offsets = sampling_offsets.view(bs, len_q, self.n_heads, self.n_levels, -1, 2)
+            add = (
+                sampling_offsets
+                / torch.as_tensor(self.n_points_list, dtype=query.dtype, device=query.device)[
+                    None, None, None, :, None, None
+                ]
+                * refer_bbox[:, :, None, :, None, 2:]
+                * 0.5
+            )
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
             raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {num_points}.")
-        output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
+        output = multi_scale_deformable_attn_pytorch(
+            value, value_shapes, sampling_locations, attention_weights.view(bs, len_q, self.n_heads, self.n_levels, -1)
+        )
         return self.output_proj(output)
 
 
@@ -614,7 +649,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
         dropout: float = 0.0,
         act: nn.Module = nn.ReLU(),
         n_levels: int = 4,
-        n_points: int = 4,
+        n_points: Union[int, List[int]] = 4,
+        cross_attn_method: str = "default",
     ):
         """
         Initialize the DeformableTransformerDecoderLayer with the given parameters.
@@ -626,7 +662,8 @@ class DeformableTransformerDecoderLayer(nn.Module):
             dropout (float): Dropout probability.
             act (nn.Module): Activation function.
             n_levels (int): Number of feature levels.
-            n_points (int): Number of sampling points.
+            n_points (int or list): Number of sampling points.
+            cross_attn_method (str): Cross-attention method ('default' or 'discrete').
         """
         super().__init__()
 
@@ -636,7 +673,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         self.norm1 = nn.LayerNorm(d_model)
 
         # Cross attention
-        self.cross_attn = MSDeformAttn(d_model, n_levels, n_heads, n_points)
+        self.cross_attn = MSDeformAttn(d_model, n_levels, n_heads, n_points, method=cross_attn_method)
         self.dropout2 = nn.Dropout(dropout)
         self.norm2 = nn.LayerNorm(d_model)
 

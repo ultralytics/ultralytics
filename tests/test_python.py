@@ -17,6 +17,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.trackers.bot_sort import DINOv2ReID
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -739,3 +740,47 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+@pytest.mark.parametrize(
+    "img, detections, description, return_clstoken",
+    [
+        (
+            np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8),
+            np.array([[100, 100, 50, 50], [200, 200, 60, 60]]),
+            "Test with a normal image, CLS token",
+            True,
+        ),
+        (
+            np.zeros((640, 480, 3), dtype=np.uint8),
+            np.array([[100, 100, 50, 50]]),
+            "Test with an empty image, CLS token",
+            True,
+        ),
+        (
+            np.random.randint(0, 255, (640, 480, 3), dtype=np.uint8),
+            np.array([[100, 100, 50, 50], [200, 200, 60, 60]]),
+            "Test with a normal image, patch tokens",
+            False,
+        ),
+        (
+            np.zeros((640, 480, 3), dtype=np.uint8),
+            np.array([[100, 100, 50, 50]]),
+            "Test with an empty image, patch tokens",
+            False,
+        ),
+    ],
+)
+def test_dino_feature_extractor(img, detections, description, return_clstoken):
+    """Test the DINOv2 feature extractor for object detection."""
+    model_name = "dinov2_vits14"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dino_extractor = DINOv2ReID(model=model_name, device=device, return_clstoken=return_clstoken)
+
+    with torch.no_grad():
+        features = dino_extractor(img, detections)
+
+    assert len(features) == len(detections), f"Feature count does not match detection count: {description}"
+    for feature in features:
+        assert feature.shape[0] > 0, f"Feature vector is empty: {description}"
+        assert np.isclose(np.linalg.norm(feature), 1.0), f"Feature vector is not normalized: {description}"

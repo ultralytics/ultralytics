@@ -914,7 +914,7 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        optimizer_muon = Muon(g[3] * 0.1, lr=lr, weight_decay=decay, momentum=momentum)
+        optimizer_muon = Muon(g[3], lr=lr * 0.1, weight_decay=decay, momentum=momentum)
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)

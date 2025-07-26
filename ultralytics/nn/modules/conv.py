@@ -7,6 +7,7 @@ from typing import List
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 __all__ = (
     "Conv",
@@ -23,6 +24,8 @@ __all__ = (
     "Concat",
     "RepConv",
     "Index",
+    "SplAtConv2d",
+    "RSoftMax",
 )
 
 
@@ -282,6 +285,114 @@ class ConvTranspose(nn.Module):
             (torch.Tensor): Output tensor.
         """
         return self.act(self.conv_transpose(x))
+
+
+class RSoftMax(nn.Module):
+    """
+    Softmax for split tensor.
+
+    Attributes:
+        radix (int): Number of splits.
+
+    References:
+        https://github.com/JDAI-CV/fast-reid
+    """
+
+    def __init__(self, radix):
+        """
+        Initialize r-softmax with given parameters.
+
+        Args:
+            raidx (int): Number of splits.
+        """
+        super().__init__()
+        self.radix = radix
+
+    def forward(self, x):
+        """
+        Apply softmax to input tensor after splitting.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor with attention.
+        """
+        batch = x.size(0)
+        if self.radix > 1:
+            x = x.view(batch, 1, self.radix, -1).transpose(1, 2)
+            x = F.softmax(x, dim=1)
+            x = x.reshape(batch, -1)
+        else:
+            x = torch.sigmoid(x)
+        return x
+
+
+class SplAtConv2d(nn.Module):
+    """
+    Split attention convolution block.
+
+    Slices input tensor into radix parts and fuses them with attention weights.
+
+    Attributes:
+        conv (Conv): Primary convolution layer.
+        fc1 (Conv): Convolution layer.
+        fc2 (Conv): Convolution layer.
+        rsoftmax (RSoftMax): r-softmax.
+
+    References:
+        https://github.com/JDAI-CV/fast-reid
+    """
+
+    def __init__(self, c, s=1, d=1, radix=2, reduction_factor=4):
+        """
+        Initialize SplAtConv2d with given parameters.
+
+        Args:
+            c (int): Number of input channels.
+            s (int): Stride.
+            d (int): Dilation rate.
+            raidx (int): Number of splits..
+            reduction_factor (int): reduction factor of attention.
+        """
+        super().__init__()
+        inter_channels = max(c * radix // reduction_factor, 32)
+        self.radix = radix
+        self.conv = Conv(c, c * radix, k=3, s=s, d=d, g=radix, act=True)
+        self.fc1 = Conv(c, inter_channels, k=1, s=1, act=True)
+        self.fc2 = nn.Conv2d(inter_channels, c * radix, 1)
+        self.rsoftmax = RSoftMax(radix)
+
+    def forward(self, x):
+        """
+        Apply Split Attention Convolution to input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor with attention.
+        """
+        x = self.conv(x)
+
+        bs, c = x.shape[:2]
+        if self.radix > 1:
+            split = x.split(int(c // self.radix), dim=1)
+            gap = sum(split)
+        else:
+            gap = x
+        gap = F.adaptive_avg_pool2d(gap, 1)
+        gap = self.fc1(gap)
+
+        atten = self.fc2(gap)
+        atten = self.rsoftmax(atten).view(bs, -1, 1, 1)
+
+        if self.radix > 1:
+            attens = atten.split(int(c // self.radix), dim=1)
+            out = sum([att * split for (att, split) in zip(attens, split)])
+        else:
+            out = atten * x
+        return out.contiguous()
 
 
 class Focus(nn.Module):

@@ -139,7 +139,6 @@ class AutoBackend(nn.Module):
         dnn: bool = False,
         data: Optional[Union[str, Path]] = None,
         fp16: bool = False,
-        batch: int = 1,
         fuse: bool = True,
         verbose: bool = True,
     ):
@@ -152,7 +151,6 @@ class AutoBackend(nn.Module):
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
-            batch (int): Batch-size to assume for inference.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
         """
@@ -311,8 +309,13 @@ class AutoBackend(nn.Module):
             if ov_model.get_parameters()[0].get_layout().empty:
                 ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
+            metadata = w.parent / "metadata.yaml"
+            if metadata.exists():
+                metadata = YAML.load(metadata)
+                batch = metadata["batch"]
+                dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
-            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
+            inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 and dynamic else "LATENCY"
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
@@ -322,7 +325,6 @@ class AutoBackend(nn.Module):
                 f"Using OpenVINO {inference_mode} mode for batch={batch} inference on {', '.join(ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
             )
             input_name = ov_compiled_model.input().get_any_name()
-            metadata = w.parent / "metadata.yaml"
 
         # TensorRT
         elif engine:
@@ -399,7 +401,6 @@ class AutoBackend(nn.Module):
                 im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(device)
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
-            batch_size = bindings["images"].shape[0]  # if dynamic, this is instead max batch size
 
         # CoreML
         elif coreml:

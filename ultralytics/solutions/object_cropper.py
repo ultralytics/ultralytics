@@ -78,6 +78,7 @@ class ObjectCropper(BaseSolution):
                 device=self.CFG["device"],
                 verbose=False,
             )[0]
+            self.clss = results.boxes.cls.tolist()  # required for logging only.
 
         for box in results.boxes:
             self.crop_idx += 1

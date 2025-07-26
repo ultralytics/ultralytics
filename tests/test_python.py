@@ -17,7 +17,6 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.trackers import track as ultra_track
 from ultralytics.utils import (
     ARM64,
     ASSETS,

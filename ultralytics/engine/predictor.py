@@ -32,6 +32,7 @@ Usage - formats:
                               yolo11n_rknn_model         # Rockchip RKNN
 """
 
+import contextlib
 import platform
 import re
 import threading
@@ -312,9 +313,9 @@ class BasePredictor:
 
             self.seen, self.windows, self.batch = 0, [], None
             profilers = (
-                ops.Profile(device=self.device),
-                ops.Profile(device=self.device),
-                ops.Profile(device=self.device),
+                ops.Profile(device=self.device) if self.args.profile_inference else contextlib.nullcontext(),
+                ops.Profile(device=self.device) if self.args.profile_inference else contextlib.nullcontext(),
+                ops.Profile(device=self.device) if self.args.profile_inference else contextlib.nullcontext(),
             )
             self.run_callbacks("on_predict_start")
             for self.batch in self.dataset:
@@ -342,11 +343,12 @@ class BasePredictor:
                 try:
                     for i in range(n):
                         self.seen += 1
-                        self.results[i].speed = {
-                            "preprocess": profilers[0].dt * 1e3 / n,
-                            "inference": profilers[1].dt * 1e3 / n,
-                            "postprocess": profilers[2].dt * 1e3 / n,
-                        }
+                        if self.args.profile_inference:
+                            self.results[i].speed = {
+                                "preprocess": profilers[0].dt * 1e3 / n,
+                                "inference": profilers[1].dt * 1e3 / n,
+                                "postprocess": profilers[2].dt * 1e3 / n,
+                            }
                         if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                             s[i] += self.write_results(i, Path(paths[i]), im, s)
                 except StopIteration:
@@ -369,11 +371,12 @@ class BasePredictor:
 
         # Print final results
         if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
-            LOGGER.info(
-                f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                f"{(min(self.args.batch, self.seen), getattr(self.model, 'ch', 3), *im.shape[2:])}" % t
-            )
+            results_info = ""
+            if self.args.profile_inference:
+                t = tuple(x.t / self.seen * 1e3 for x in profilers)  # speeds per image
+                results_info += "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms ".format(*t)
+            results_info += f"postprocess per image at shape {(min(self.args.batch, self.seen), getattr(self.model, 'ch', 3), *im.shape[2:])}"
+            LOGGER.info(results_info)
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob("labels/*.txt")))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ""
@@ -431,7 +434,9 @@ class BasePredictor:
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
-        string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
+        string += f"{result.verbose()}"
+        if self.args.profile_inference:
+            string += f"{result.speed['inference']:.1f}ms"
 
         # Add predictions to image
         if self.args.save or self.args.show:

@@ -143,8 +143,8 @@ The export process will create an ONNX model for quantization validation, along 
         ├── labels.txt
         ├── packerOut.zip
         ├── yolo11n_imx.onnx
-        ├── yolo11n_imx500_model_MemoryReport.json
-        └── yolo11n_imx500_model.pbtxt
+        ├── yolo11n_imx_MemoryReport.json
+        └── yolo11n_imx.pbtxt
         ```
 
     === "Pose Estimation"
@@ -155,8 +155,8 @@ The export process will create an ONNX model for quantization validation, along 
         ├── labels.txt
         ├── packerOut.zip
         ├── yolo11n-pose_imx.onnx
-        ├── yolo11n-pose_imx500_model_MemoryReport.json
-        └── yolo11n-pose_imx500_model.pbtxt
+        ├── yolo11n-pose_imx_MemoryReport.json
+        └── yolo11n-pose_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment

@@ -259,11 +259,7 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
                 check_requirements(
-                    [
-                        "model-compression-toolkit>=2.3.0,<2.4.1",
-                        "sony-custom-layers[torch]>=0.3.0",
-                        "onnxruntime-extensions",
-                    ]
+                    ["model-compression-toolkit>=2.4.1", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
                 )
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
@@ -273,7 +269,6 @@ class AutoBackend(nn.Module):
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime
                 session = onnxruntime.InferenceSession(w, session_options, providers=["CPUExecutionProvider"])
-                task = "detect"
 
             output_names = [x.name for x in session.get_outputs()]
             metadata = session.get_modelmeta().custom_metadata_map
@@ -318,11 +313,13 @@ class AutoBackend(nn.Module):
 
             # OpenVINO inference modes are 'LATENCY', 'THROUGHPUT' (not recommended), or 'CUMULATIVE_THROUGHPUT'
             inference_mode = "CUMULATIVE_THROUGHPUT" if batch > 1 else "LATENCY"
-            LOGGER.info(f"Using OpenVINO {inference_mode} mode for batch={batch} inference...")
             ov_compiled_model = core.compile_model(
                 ov_model,
                 device_name=device_name,
                 config={"PERFORMANCE_HINT": inference_mode},
+            )
+            LOGGER.info(
+                f"Using OpenVINO {inference_mode} mode for batch={batch} inference on {', '.join(ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
             )
             input_name = ov_compiled_model.input().get_any_name()
             metadata = w.parent / "metadata.yaml"
@@ -674,8 +671,12 @@ class AutoBackend(nn.Module):
                 self.session.run_with_iobinding(self.io)
                 y = self.bindings
             if self.imx:
-                # boxes, conf, cls
-                y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                if self.task == "detect":
+                    # boxes, conf, cls
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
+                elif self.task == "pose":
+                    # boxes, conf, kpts
+                    y = np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1)
 
         # OpenVINO
         elif self.xml:
@@ -696,8 +697,8 @@ class AutoBackend(nn.Module):
                     # Start async inference with userdata=i to specify the position in results list
                     async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)  # keep image as BCHW
                 async_queue.wait_all()  # wait for all inference requests to complete
-                y = np.concatenate([list(r.values())[0] for r in results])
-
+                y = [list(r.values()) for r in results]
+                y = [np.concatenate(x) for x in zip(*y)]
             else:  # inference_mode = "LATENCY", optimized for fastest first result at batch-size 1
                 y = list(self.ov_compiled_model(im).values())
 

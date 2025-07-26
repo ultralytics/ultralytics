@@ -14,6 +14,17 @@ keywords: YOLO data augmentation, computer vision, deep learning, image transfor
 
 [Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in computer vision that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO, data augmentation helps improve model robustness, reduces overfitting, and enhances generalization to real-world scenarios.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/e-TwqFtay90"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to use Mosaic, MixUp & more Data Augmentations to help Ultralytics YOLO Models generalize better 🚀
+</p>
+
 ### Why Data Augmentation Matters
 
 Data augmentation serves multiple critical purposes in training computer vision models:

@@ -6,7 +6,7 @@ keywords: YOLO11, SAHI, Sliced Inference, Object Detection, Ultralytics, High-re
 
 # Ultralytics Docs: Using YOLO11 with SAHI for Sliced Inference
 
-<a href="https://github.com/ultralytics/notebooks/blob/main/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
+<a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
 
 Welcome to the Ultralytics documentation on how to use YOLO11 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLO11. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLO11 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
 

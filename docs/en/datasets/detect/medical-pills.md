@@ -6,7 +6,7 @@ keywords: medical-pills dataset, pill detection, pharmaceutical imaging, AI in h
 
 # Medical Pills Dataset
 
-<a href="https://github.com/ultralytics/notebooks/blob/main/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Medical Pills Dataset In Colab"></a>
+<a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-medical-pills-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Medical Pills Dataset In Colab"></a>
 
 The medical-pills detection dataset is a proof-of-concept (POC) dataset, carefully curated to demonstrate the potential of AI in pharmaceutical applications. It contains labeled images specifically designed to train [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) [models](https://docs.ultralytics.com/models/) for identifying medical-pills.
 

@@ -45,8 +45,8 @@ Vertex AI expects your container to implement two specific endpoints:
 
     ```json
     {
-      "instances": [{"image": "base64_encoded_image"}],
-      "parameters": {"confidence": 0.5}
+        "instances": [{ "image": "base64_encoded_image" }],
+        "parameters": { "confidence": 0.5 }
     }
     ```
 
@@ -94,7 +94,7 @@ build-backend = "setuptools.build_meta"
 ```
 
 - `uvicorn` will be used to run the FastAPI server.
-- `pillow` will be used for image processing, but you are not limited to PIL images only — Ultralytics supports  [many other formats](../modes/predict.md#inference-sources).
+- `pillow` will be used for image processing, but you are not limited to PIL images only — Ultralytics supports [many other formats](../modes/predict.md#inference-sources).
 
 ### Create inference logic with Ultralytics YOLO11
 
@@ -102,17 +102,13 @@ Now that you have the project structure and dependencies set up, you can impleme
 
 ```python
 # src/app.py
-from PIL import Image
-import io
-import base64
-import numpy as np
-from typing import List, Dict, Any
 
 from ultralytics import YOLO
 
 # Model initialization and readiness state
 model_yolo = None
 _model_ready = False
+
 
 def _initialize_model():
     """Initialize the YOLO model."""
@@ -128,13 +124,14 @@ def _initialize_model():
         _model_ready = False
         model_yolo = None
 
+
 # Initialize model on module import
 _initialize_model()
+
 
 def is_model_ready() -> bool:
     """Check if the model is ready for inference."""
     return _model_ready and model_yolo is not None
-
 ```
 
 This will load the model once when the container starts, and the model will be shared across all requests. If your model will be handling heavy inference load, it is recommended to select a machine type with more memory when importing a model in Vertex AI at a later step.
@@ -152,7 +149,7 @@ def get_image_from_bytes(binary_image: bytes) -> Image.Image:
 def get_bytes_from_image(image: Image.Image) -> bytes:
     """Convert PIL image to bytes."""
     return_image = io.BytesIO()
-    image.save(return_image, format='JPEG', quality=85)
+    image.save(return_image, format="JPEG", quality=85)
     return_image.seek(0)
     return return_image.getvalue()
 ```
@@ -167,17 +164,12 @@ def run_inference(input_image: Image.Image, confidence_threshold: float = 0.5) -
     # Check if model is ready
     if not is_model_ready():
         print("Model not ready for inference")
-        return {'detections': [], 'results': None}
+        return {"detections": [], "results": None}
 
     try:
         # Make predictions and get raw results
         results = model_yolo.predict(
-            imgsz=640,
-            source=input_image,
-            conf=confidence_threshold,
-            save=False,
-            augment=False,
-            verbose=False
+            imgsz=640, source=input_image, conf=confidence_threshold, save=False, augment=False, verbose=False
         )
 
         # Extract detections (bounding boxes, class names, and confidences)
@@ -195,24 +187,24 @@ def run_inference(input_image: Image.Image, confidence_threshold: float = 0.5) -
                 # Create detection dictionaries
                 for i in range(len(xyxy)):
                     detection = {
-                        'xmin': float(xyxy[i][0]),
-                        'ymin': float(xyxy[i][1]),
-                        'xmax': float(xyxy[i][2]),
-                        'ymax': float(xyxy[i][3]),
-                        'confidence': float(conf[i]),
-                        'class': int(cls[i]),
-                        'name': model_yolo.names.get(int(cls[i]), f'class_{int(cls[i])}')
+                        "xmin": float(xyxy[i][0]),
+                        "ymin": float(xyxy[i][1]),
+                        "xmax": float(xyxy[i][2]),
+                        "ymax": float(xyxy[i][3]),
+                        "confidence": float(conf[i]),
+                        "class": int(cls[i]),
+                        "name": model_yolo.names.get(int(cls[i]), f"class_{int(cls[i])}"),
                     }
                     detections.append(detection)
 
         return {
-            'detections': detections,
-            'results': results  # Keep raw results for annotation
+            "detections": detections,
+            "results": results,  # Keep raw results for annotation
         }
     except Exception as e:
         # If there's an error, return empty structure
         print(f"Error in YOLO detection: {e}")
-        return {'detections': [], 'results': None}
+        return {"detections": [], "results": None}
 ```
 
 Optionally, you can add a function to annotate the image with bounding boxes and labels using the Ultralytics built-in plotting method. This will be useful if you want to return annotated images in the prediction response.
@@ -235,25 +227,9 @@ Now that you have the core YOLO11 inference logic, you can create a FastAPI appl
 First, add the imports and configure logging for Vertex AI. Because Vertex AI treats stderr as error output, it makes sense to pipe the logs to stdout.
 
 ```python
-import os
-import base64
 import sys
-from typing import Dict, Any, Optional
-from io import BytesIO
 
 from loguru import logger
-from fastapi import FastAPI, File, UploadFile, status, HTTPException, Request
-from fastapi.responses import RedirectResponse, StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-from app import (
-    is_model_ready,
-    get_image_from_bytes,
-    get_bytes_from_image,
-    run_inference,
-    get_annotated_image
-)
 
 # Configure logger
 logger.remove()
@@ -286,6 +262,7 @@ class PredictionRequest(BaseModel):
     instances: list
     parameters: Optional[Dict[str, Any]] = None
 
+
 class PredictionResponse(BaseModel):
     predictions: list
 ```
@@ -299,7 +276,7 @@ def health_check():
     """Health check endpoint for Vertex AI."""
     if not is_model_ready():
         raise HTTPException(status_code=503, detail="Model not ready")
-    return {'status': 'healthy'}
+    return {"status": "healthy"}
 ```
 
 You now have everything to implement the prediction endpoint that will handle the inference requests. It will accept an image file, run the inference, and return the results. Note that the image must be base64-encoded, which additionally increases the size of the payload by up to 33%.
@@ -313,8 +290,8 @@ async def predict(request: PredictionRequest):
 
         for instance in request.instances:
             if isinstance(instance, dict):
-                if 'image' in instance:
-                    image_data = base64.b64decode(instance['image'])
+                if "image" in instance:
+                    image_data = base64.b64decode(instance["image"])
                     input_image = get_image_from_bytes(image_data)
                 else:
                     raise HTTPException(status_code=400, detail="Instance must contain 'image' field")
@@ -323,44 +300,49 @@ async def predict(request: PredictionRequest):
 
             # Extract YOLO11 parameters if provided
             parameters = request.parameters or {}
-            confidence_threshold = parameters.get('confidence', 0.5)
-            return_annotated_image = parameters.get('return_annotated_image', False)
+            confidence_threshold = parameters.get("confidence", 0.5)
+            return_annotated_image = parameters.get("return_annotated_image", False)
 
             # Run inference with YOLO11n model
             result = run_inference(input_image, confidence_threshold=confidence_threshold)
-            detections_list = result['detections']
+            detections_list = result["detections"]
 
             # Format predictions for Vertex AI
             detections = []
             for detection in detections_list:
                 formatted_detection = {
-                    'class': detection['name'],
-                    'confidence': detection['confidence'],
-                    'bbox': {
-                        'xmin': detection['xmin'],
-                        'ymin': detection['ymin'],
-                        'xmax': detection['xmax'],
-                        'ymax': detection['ymax']
-                    }
+                    "class": detection["name"],
+                    "confidence": detection["confidence"],
+                    "bbox": {
+                        "xmin": detection["xmin"],
+                        "ymin": detection["ymin"],
+                        "xmax": detection["xmax"],
+                        "ymax": detection["ymax"],
+                    },
                 }
                 detections.append(formatted_detection)
 
             # Build prediction response
-            prediction = {
-                'detections': detections,
-                'detection_count': len(detections)
-            }
+            prediction = {"detections": detections, "detection_count": len(detections)}
 
             # Add annotated image if requested and detections exist
-            if return_annotated_image and result['results'] and result['results'][0].boxes is not None and len(result['results'][0].boxes) > 0:
+            if (
+                return_annotated_image
+                and result["results"]
+                and result["results"][0].boxes is not None
+                and len(result["results"][0].boxes) > 0
+            ):
                 import base64
-                annotated_image = get_annotated_image(result['results'])
+
+                annotated_image = get_annotated_image(result["results"])
                 img_bytes = get_bytes_from_image(annotated_image)
-                prediction['annotated_image'] = base64.b64encode(img_bytes).decode('utf-8')
+                prediction["annotated_image"] = base64.b64encode(img_bytes).decode("utf-8")
 
             predictions.append(prediction)
 
-        logger.info(f"Processed {len(request.instances)} instances, found {sum(len(p['detections']) for p in predictions)} total detections")
+        logger.info(
+            f"Processed {len(request.instances)} instances, found {sum(len(p['detections']) for p in predictions)} total detections"
+        )
 
         return PredictionResponse(predictions=predictions)
 
@@ -377,6 +359,7 @@ Finally, add the application entry point to run the FastAPI server.
 ```python
 if __name__ == "__main__":
     import uvicorn
+
     logger.info(f"Starting server on port {AIP_HTTP_PORT}")
     logger.info(f"Health check route: {AIP_HEALTH_ROUTE}")
     logger.info(f"Predict route: {AIP_PREDICT_ROUTE}")
@@ -531,21 +514,21 @@ For more specific instructions on how to work with images in Artifact Registry, 
 Using the Docker image you've just pushed, you can now import the model in Vertex AI.
 
 1. In Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
-<p align="center">
-  <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry interface with Import button highlighted for importing a new model">
-</p>
+ <p align="center">
+   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry interface with Import button highlighted for importing a new model">
+ </p>
 1. Click Import.
-2. Select Import as a new model.
-3. Select the region. You can choose the same region as your Artifact Registry repository, but your selection should be dictated by the availability of machine types and quotas in your region.
-4. Select Import an existing model container.
-<p align="center">
-  <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/import-model.png" alt="Vertex AI import model dialog showing container image selection and model configuration options">
-</p>
+1. Select Import as a new model.
+1. Select the region. You can choose the same region as your Artifact Registry repository, but your selection should be dictated by the availability of machine types and quotas in your region.
+1. Select Import an existing model container.
+ <p align="center">
+   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/import-model.png" alt="Vertex AI import model dialog showing container image selection and model configuration options">
+ </p>
 1. In the Container image field, browse the Artifact Registry repository you created earlier and select the image you just pushed.
-2. Scroll down to the Environment variables section and enter the predict and health endpoints, and the port that you defined in your FastAPI application.
-<p align="center">
-  <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/predict-health-port.png" alt="Vertex AI environment variables configuration showing predict route, health route, and port settings for FastAPI endpoints">
-</p>
+1. Scroll down to the Environment variables section and enter the predict and health endpoints, and the port that you defined in your FastAPI application.
+ <p align="center">
+   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/predict-health-port.png" alt="Vertex AI environment variables configuration showing predict route, health route, and port settings for FastAPI endpoints">
+ </p>
 1. Click Import. Vertex AI will take several minutes to register the model and prepare it for deployment. You will receive an email notification once the import is complete.
 
 ## 5. Create a Vertex AI Endpoint and deploy your model
@@ -556,21 +539,21 @@ Using the Docker image you've just pushed, you can now import the model in Verte
 
 To deploy a model, you need to create an Endpoint in Vertex AI.
 
-1. In your Vertex AI navigation menu, go to Endpoints. Select your region you used when importing your model. Click Create.
+1.  In your Vertex AI navigation menu, go to Endpoints. Select your region you used when importing your model. Click Create.
 <p align="center">
   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface showing endpoint name input field and access configuration options">
 </p>
-1. Enter the Endpoint name.
-2. For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
-3. Click Continue.
-4. On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO11 performance.
-5. In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.
+1.  Enter the Endpoint name.
+1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
+1.  Click Continue.
+1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO11 performance.
+1.  In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.
 
     !!! note "Region and machine type quotas"
 
         Remember that certain regions have very limited compute quotas, so you may not be able to select certain machine types or GPUs in your region. If this is critical, change the region of your deployment to one with a bigger quota. Find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://cloud.google.com/vertex-ai/docs/quotas).
 
-6. Once the machine type is selected, you can click Continue. At this point, you can choose to enable model monitoring in Vertex AI—an extra service that will track your model's performance and provide insights into its behavior. This is optional and incurs additional costs, so select according to your needs. Click Create.
+1.  Once the machine type is selected, you can click Continue. At this point, you can choose to enable model monitoring in Vertex AI—an extra service that will track your model's performance and provide insights into its behavior. This is optional and incurs additional costs, so select according to your needs. Click Create.
 
 Vertex AI will take several minutes (up to 30 min in some regions) to deploy the model. You will receive an email notification once the deployment is complete.
 

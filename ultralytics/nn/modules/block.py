@@ -215,7 +215,7 @@ class SPPF(nn.Module):
         c_ = c1 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv(c_ * 2, c2, 1, 1, act=act)
-        self.m = nn.AvgPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
 
     def forward(self, x):
         """Apply sequential pooling operations to input and return concatenated feature maps."""

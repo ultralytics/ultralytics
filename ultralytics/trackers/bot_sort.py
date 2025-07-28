@@ -6,6 +6,7 @@ from typing import Any, List, Optional
 import numpy as np
 import torch
 
+from ultralytics.utils.checks import IS_PYTHON_3_8
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
 
@@ -220,7 +221,8 @@ class BOTSORT(BYTETracker):
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, dets)
             # detections
-            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(dets, scores, cls, features_keep, strict=True)]
+            kwargs = {} if IS_PYTHON_3_8 else dict(strict=True)
+            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(dets, scores, cls, features_keep, **kwargs)]
         else:
             # detections
             return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(dets, scores, cls)]

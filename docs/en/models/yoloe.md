@@ -106,9 +106,9 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
             trainer=YOLOEPESegTrainer,
         )
         ```
-        
+
         ### Detection
-    
+
         All [pretrained YOLOE models](#textvisual-prompt-models) perform instance segmentation by default. To use these pretrained checkpoints for training a detection model, initialize a detection model from scratch using the YAML configuration, then pass the pretrained segmentation checkpoint of the same scale as the `pretrained` argument. Note that we use `YOLOEPETrainer` instead of `YOLOEPESegTrainer` since we're training a detection model:
 
         ```python
@@ -147,7 +147,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         model = YOLOE("yoloe-11s-seg.pt")
         head_index = len(model.model.model) - 1
         freeze = [str(f) for f in range(0, head_index)]  # freeze all layers except head
-        
+
         # Freeze all head components except classification branch
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
@@ -191,7 +191,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         model = YOLOE("yoloe-11s.yaml")  # load from YAML config
         head_index = len(model.model.model) - 1
         freeze = [str(f) for f in range(0, head_index)]  # freeze all layers except head
-        
+
         # Freeze all head components except classification branch
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
@@ -226,7 +226,6 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
             pretrained="yoloe-11s-seg.pt",  # use pretrained checkpoint of matching scale
         )
         ```
-
 
 ### Predict Usage
 

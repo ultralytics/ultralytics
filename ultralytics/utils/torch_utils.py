@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import functools
 import gc
 import math
 import os
@@ -9,7 +10,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
 
 import numpy as np
 import torch
@@ -17,6 +18,7 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
@@ -25,15 +27,10 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
-    __version__,
     colorstr,
 )
 from ultralytics.utils.checks import check_version
-
-try:
-    import thop
-except ImportError:
-    thop = None  # conda support without 'ultralytics-thop' installed
+from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
@@ -53,21 +50,22 @@ if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
+    """Ensure all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
+    use_ids = initialized and dist.get_backend() == "nccl"
 
     if initialized and local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank])
+        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
     yield
     if initialized and local_rank == 0:
-        dist.barrier(device_ids=[local_rank])
+        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
 
 
 def smart_inference_mode():
-    """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
+    """Apply torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
 
     def decorate(fn):
-        """Applies appropriate torch decorator for inference mode based on torch version."""
+        """Apply appropriate torch decorator for inference mode based on torch version."""
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -85,7 +83,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Args:
         enabled (bool): Whether to enable automatic mixed precision.
-        device (str, optional): The device to use for autocast. Defaults to 'cuda'.
+        device (str, optional): The device to use for autocast.
 
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
@@ -105,6 +103,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         return torch.cuda.amp.autocast(enabled)
 
 
+@functools.lru_cache
 def get_cpu_info():
     """Return a string with system CPU information, i.e. 'Apple M2'."""
     from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
@@ -122,6 +121,7 @@ def get_cpu_info():
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
 
 
+@functools.lru_cache
 def get_gpu_info(index):
     """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
     properties = torch.cuda.get_device_properties(index)
@@ -137,12 +137,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        device (str | torch.device, optional): Device string or torch.device object.
-            Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
-            the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model. Defaults to 0.
-        newline (bool, optional): If True, adds a newline at the end of the log string. Defaults to False.
-        verbose (bool, optional): If True, logs the device information. Defaults to True.
+        device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
+            'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
+        batch (int, optional): Batch size being used in your model.
+        newline (bool, optional): If True, adds a newline at the end of the log string.
+        verbose (bool, optional): If True, logs the device information.
 
     Returns:
         (torch.device): Selected device.
@@ -158,16 +157,29 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         >>> select_device("cpu")
         device(type='cpu')
 
-    Note:
+    Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device) or str(device).startswith("tpu") or str(device).startswith("intel"):
+    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
+
+    # Auto-select GPUs
+    if "-1" in device:
+        from ultralytics.utils.autodevice import GPUInfo
+
+        # Replace each -1 with a selected GPU or remove it
+        parts = device.split(",")
+        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
+        for i in range(len(parts)):
+            if parts[i] == "-1":
+                parts[i] = str(selected.pop(0)) if selected else ""
+        device = ",".join(p for p in parts if p)
+
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
@@ -204,7 +216,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
             if batch < 1:
                 raise ValueError(
                     "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    "please specify a valid batch size, i.e. batch=16."
+                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
                 )
             if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
                 raise ValueError(
@@ -231,7 +243,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
 
 def time_sync():
-    """PyTorch-accurate time."""
+    """Return PyTorch-accurate time."""
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
@@ -308,12 +320,15 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
     Args:
         model (nn.Module): Model to analyze.
-        detailed (bool, optional): Whether to print detailed layer information. Defaults to False.
-        verbose (bool, optional): Whether to print model information. Defaults to True.
-        imgsz (int | List, optional): Input image size. Defaults to 640.
+        detailed (bool, optional): Whether to print detailed layer information.
+        verbose (bool, optional): Whether to print model information.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
-        (Tuple[int, int, int, float]): Number of layers, parameters, gradients, and GFLOPs.
+        n_l (int): Number of layers.
+        n_p (int): Number of parameters.
+        n_g (int): Number of gradients.
+        flops (float): GFLOPs.
     """
     if not verbose:
         return
@@ -377,7 +392,7 @@ def model_info_for_loggers(trainer):
     if trainer.args.profile:  # profile ONNX and TensorRT times
         from ultralytics.utils.benchmarks import ProfileModels
 
-        results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
+        results = ProfileModels([trainer.last], device=trainer.device).run()[0]
         results.pop("model/name")
     else:  # only return PyTorch times from most recent validation
         results = {
@@ -398,11 +413,16 @@ def get_flops(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         (float): The model FLOPs in billions.
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     if not thop:
         return 0.0  # if not installed return 0.0 GFLOPs
 
@@ -431,7 +451,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         (float): The model's FLOPs in billions.
@@ -474,13 +494,13 @@ def initialize_weights(model):
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
     """
-    Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
+    Scale and pad an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
 
     Args:
         img (torch.Tensor): Input image tensor.
-        ratio (float, optional): Scaling ratio. Defaults to 1.0.
-        same_shape (bool, optional): Whether to maintain the same shape. Defaults to False.
-        gs (int, optional): Grid size for padding. Defaults to 32.
+        ratio (float, optional): Scaling ratio.
+        same_shape (bool, optional): Whether to maintain the same shape.
+        gs (int, optional): Grid size for padding.
 
     Returns:
         (torch.Tensor): Scaled and padded image tensor.
@@ -497,13 +517,13 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
 
 def copy_attr(a, b, include=(), exclude=()):
     """
-    Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
+    Copy attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
 
     Args:
-        a (object): Destination object to copy attributes to.
-        b (object): Source object to copy attributes from.
-        include (tuple, optional): Attributes to include. If empty, all attributes are included. Defaults to ().
-        exclude (tuple, optional): Attributes to exclude. Defaults to ().
+        a (Any): Destination object to copy attributes to.
+        b (Any): Source object to copy attributes from.
+        include (tuple, optional): Attributes to include. If empty, all attributes are included.
+        exclude (tuple, optional): Attributes to exclude.
     """
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith("_") or k in exclude:
@@ -529,12 +549,12 @@ def get_latest_opset():
 
 def intersect_dicts(da, db, exclude=()):
     """
-    Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
+    Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
 
     Args:
         da (dict): First dictionary.
         db (dict): Second dictionary.
-        exclude (tuple, optional): Keys to exclude. Defaults to ().
+        exclude (tuple, optional): Keys to exclude.
 
     Returns:
         (dict): Dictionary of intersecting keys with matching shapes.
@@ -544,7 +564,7 @@ def intersect_dicts(da, db, exclude=()):
 
 def is_parallel(model):
     """
-    Returns True if model is of type DP or DDP.
+    Return True if model is of type DP or DDP.
 
     Args:
         model (nn.Module): Model to check.
@@ -557,7 +577,7 @@ def is_parallel(model):
 
 def de_parallel(model):
     """
-    De-parallelize a model: returns single-GPU model if model is of type DP or DDP.
+    De-parallelize a model: return single-GPU model if model is of type DP or DDP.
 
     Args:
         model (nn.Module): Model to de-parallelize.
@@ -570,12 +590,12 @@ def de_parallel(model):
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
     """
-    Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
+    Return a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
 
     Args:
-        y1 (float, optional): Initial value. Defaults to 0.0.
-        y2 (float, optional): Final value. Defaults to 1.0.
-        steps (int, optional): Number of steps. Defaults to 100.
+        y1 (float, optional): Initial value.
+        y2 (float, optional): Final value.
+        steps (int, optional): Number of steps.
 
     Returns:
         (function): Lambda function for computing the sinusoidal ramp.
@@ -588,8 +608,8 @@ def init_seeds(seed=0, deterministic=False):
     Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html.
 
     Args:
-        seed (int, optional): Random seed. Defaults to 0.
-        deterministic (bool, optional): Whether to set deterministic algorithms. Defaults to False.
+        seed (int, optional): Random seed.
+        deterministic (bool, optional): Whether to set deterministic algorithms.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -610,7 +630,7 @@ def init_seeds(seed=0, deterministic=False):
 
 
 def unset_deterministic():
-    """Unsets all the configurations applied for deterministic training."""
+    """Unset all the configurations applied for deterministic training."""
     torch.use_deterministic_algorithms(False)
     torch.backends.cudnn.deterministic = False
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
@@ -643,9 +663,9 @@ class ModelEMA:
 
         Args:
             model (nn.Module): Model to create EMA for.
-            decay (float, optional): Maximum EMA decay rate. Defaults to 0.9999.
-            tau (int, optional): EMA decay time constant. Defaults to 2000.
-            updates (int, optional): Initial number of updates. Defaults to 0.
+            decay (float, optional): Maximum EMA decay rate.
+            tau (int, optional): EMA decay time constant.
+            updates (int, optional): Initial number of updates.
         """
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
@@ -674,24 +694,25 @@ class ModelEMA:
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
         """
-        Updates attributes and saves stripped model with optimizer removed.
+        Update attributes and save stripped model with optimizer removed.
 
         Args:
             model (nn.Module): Model to update attributes from.
-            include (tuple, optional): Attributes to include. Defaults to ().
-            exclude (tuple, optional): Attributes to exclude. Defaults to ("process_group", "reducer").
+            include (tuple, optional): Attributes to include.
+            exclude (tuple, optional): Attributes to exclude.
         """
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict = None) -> dict:
+def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
-        f (str | Path): File path to model to strip the optimizer from. Defaults to 'best.pt'.
-        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
+        f (str | Path): File path to model to strip the optimizer from.
+        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be
+            overwritten.
         updates (dict, optional): A dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
@@ -704,7 +725,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         >>>    strip_optimizer(f)
     """
     try:
-        x = torch.load(f, map_location=torch.device("cpu"))
+        x = torch_load(f, map_location=torch.device("cpu"))
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
@@ -747,7 +768,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """
-    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+    Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
     Args:
         state_dict (dict): Optimizer state dictionary.
@@ -773,7 +794,7 @@ def cuda_memory_usage(device=None):
     Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
 
     Args:
-        device (torch.device, optional): The CUDA device to query memory usage for. Defaults to None.
+        device (torch.device, optional): The CUDA device to query memory usage for.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
@@ -789,27 +810,32 @@ def cuda_memory_usage(device=None):
         yield cuda_info
 
 
-def profile(input, ops, n=10, device=None, max_num_obj=0):
+def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     """
     Ultralytics speed, memory and FLOPs profiler.
 
     Args:
-        input (torch.Tensor | List[torch.Tensor]): Input tensor(s) to profile.
-        ops (nn.Module | List[nn.Module]): Model or list of operations to profile.
-        n (int, optional): Number of iterations to average. Defaults to 10.
-        device (str | torch.device, optional): Device to profile on. Defaults to None.
-        max_num_obj (int, optional): Maximum number of objects for simulation. Defaults to 0.
+        input (torch.Tensor | list): Input tensor(s) to profile.
+        ops (nn.Module | list): Model or list of operations to profile.
+        n (int, optional): Number of iterations to average.
+        device (str | torch.device, optional): Device to profile on.
+        max_num_obj (int, optional): Maximum number of objects for simulation.
 
     Returns:
         (list): Profile results for each operation.
 
     Examples:
-        >>> from ultralytics.utils.torch_utils import profile
+        >>> from ultralytics.utils.torch_utils import profile_ops
         >>> input = torch.randn(16, 3, 640, 640)
         >>> m1 = lambda x: x * torch.sigmoid(x)
         >>> m2 = nn.SiLU()
-        >>> profile(input, [m1, m2], n=100)  # profile over 100 iterations
+        >>> profile_ops(input, [m1, m2], n=100)  # profile over 100 iterations
     """
+    try:
+        import thop
+    except ImportError:
+        thop = None  # conda support without 'ultralytics-thop' installed
+
     results = []
     if not isinstance(device, torch.device):
         device = select_device(device)

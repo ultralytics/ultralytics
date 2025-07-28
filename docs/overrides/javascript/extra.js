@@ -71,8 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const config = {
     baseSettings: {
       apiKey: "13dfec2e75982bc9bae3199a08e13b86b5fbacd64e9b2f89",
-      integrationId: "cm1shscmm00y26sj83lgxzvkw",
-      organizationId: "org_e3869az6hQZ0mXdF",
       primaryBrandColor: "#E1FF25",
       organizationDisplayName: "Ultralytics",
       colorMode: {
@@ -164,3 +162,58 @@ document.addEventListener("DOMContentLoaded", () => {
     widgetContainer && Inkeep.SearchBar("#inkeepSearchBar", config);
   });
 });
+
+// Fix language switcher links
+(function () {
+  function fixLanguageLinks() {
+    const path = location.pathname;
+    const links = document.querySelectorAll(".md-select__link");
+    if (!links.length) return;
+
+    const langs = [];
+    let defaultLink = null;
+
+    // Extract language codes
+    links.forEach((link) => {
+      const href = link.getAttribute("href");
+      if (!href) return;
+
+      const url = new URL(href, location.origin);
+      const match = url.pathname.match(/^\/([a-z]{2})\/?$/);
+
+      if (match) langs.push({ code: match[1], link });
+      else if (url.pathname === "/" || url.pathname === "") defaultLink = link;
+    });
+
+    // Find current language and base path
+    let basePath = path;
+    for (const lang of langs) {
+      if (path.startsWith("/" + lang.code + "/")) {
+        basePath = path.substring(lang.code.length + 1);
+        break;
+      }
+    }
+
+    // Update links
+    langs.forEach(
+      (lang) => (lang.link.href = location.origin + "/" + lang.code + basePath),
+    );
+    if (defaultLink) defaultLink.href = location.origin + basePath;
+  }
+
+  // Run immediately
+  fixLanguageLinks();
+
+  // Handle SPA navigation
+  if (typeof document$ !== "undefined") {
+    document$.subscribe(() => setTimeout(fixLanguageLinks, 50));
+  } else {
+    let lastPath = location.pathname;
+    setInterval(() => {
+      if (location.pathname !== lastPath) {
+        lastPath = location.pathname;
+        setTimeout(fixLanguageLinks, 50);
+      }
+    }, 200);
+  }
+})();

@@ -85,7 +85,7 @@ You can also utilize various `track` arguments within the `VisionEye` solution:
 Furthermore, some visualization arguments are supported, as listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## How VisionEye Works
 

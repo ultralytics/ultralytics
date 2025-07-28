@@ -10,13 +10,13 @@ import cv2
 import numpy as np
 import pytest
 import torch
-import yaml
 from PIL import Image
 
-from tests import CFG, MODEL, SOURCE, SOURCES_LIST, TMP
+from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
 from ultralytics import RTDETR, YOLO
-from ultralytics.cfg import MODELS, TASK2DATA, TASKS
+from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
+from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -28,6 +28,7 @@ from ultralytics.utils import (
     ROOT,
     WEIGHTS_DIR,
     WINDOWS,
+    YAML,
     checks,
     is_dir_writeable,
     is_github_action_running,
@@ -112,21 +113,22 @@ def test_predict_csv_single_row():
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types and sources, including online images."""
+    channels = 1 if model_name == "yolo11n-grayscale.pt" else 3
     model = YOLO(WEIGHTS_DIR / model_name)
-    im = cv2.imread(str(SOURCE))  # uint8 numpy array
+    im = cv2.imread(str(SOURCE), flags=cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR)  # uint8 numpy array
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True, imgsz=32)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True, imgsz=32)) == 1  # ndarray
-    assert len(model(torch.rand((2, 3, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
+    assert len(model(torch.rand((2, channels, 32, 32)), imgsz=32)) == 2  # batch-size 2 Tensor, FP32 0.0-1.0 RGB order
     assert len(model(source=[im, im], save=True, save_txt=True, imgsz=32)) == 2  # batch
     assert len(list(model(source=[im, im], save=True, stream=True, imgsz=32))) == 2  # stream
-    assert len(model(torch.zeros(320, 640, 3).numpy().astype(np.uint8), imgsz=32)) == 1  # tensor to numpy
+    assert len(model(torch.zeros(320, 640, channels).numpy().astype(np.uint8), imgsz=32)) == 1  # tensor to numpy
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
         "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg" if ONLINE else SOURCE,  # URI
-        cv2.imread(str(SOURCE)),  # OpenCV
+        im,  # OpenCV
         Image.open(SOURCE),  # PIL
-        np.zeros((320, 640, 3), dtype=np.uint8),  # numpy
+        np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
     ]
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
@@ -177,31 +179,46 @@ def test_youtube():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
-def test_track_stream():
+@pytest.mark.parametrize("model", MODELS)
+def test_track_stream(model):
     """
     Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
+    if model == "yolo11n-cls.pt":  # classification model not supported for tracking
+        return
     video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
-    model = YOLO(MODEL)
+    model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
 
-    # Test Global Motion Compensation (GMC) methods
-    for gmc in "orb", "sift", "ecc":
-        with open(ROOT / "cfg/trackers/botsort.yaml", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        tracker = TMP / f"botsort-{gmc}.yaml"
-        data["gmc_method"] = gmc
-        with open(tracker, "w", encoding="utf-8") as f:
-            yaml.safe_dump(data, f)
-        model.track(video_url, imgsz=160, tracker=tracker)
+    # Test Global Motion Compensation (GMC) methods and ReID
+    for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
+        default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
+        custom_yaml = TMP / f"botsort-{gmc}.yaml"
+        YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
+        model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
-def test_val():
+@pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
+def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""
-    YOLO(MODEL).val(data="coco8.yaml", imgsz=32)
+    model = YOLO(weight)
+    for plots in {True, False}:  # Test both cases i.e. plots=True and plots=False
+        metrics = model.val(data=data, imgsz=32, plots=plots)
+        metrics.to_df()
+        metrics.to_csv()
+        metrics.to_xml()
+        metrics.to_html()
+        metrics.to_json()
+        metrics.to_sql()
+        metrics.confusion_matrix.to_df()  # Tests for confusion matrix export
+        metrics.confusion_matrix.to_csv()
+        metrics.confusion_matrix.to_xml()
+        metrics.confusion_matrix.to_html()
+        metrics.confusion_matrix.to_json()
+        metrics.confusion_matrix.to_sql()
 
 
 def test_train_scratch():
@@ -265,19 +282,23 @@ def test_predict_callback_and_setup():
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_results(model):
+def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
-    results = YOLO(WEIGHTS_DIR / model)([SOURCE, SOURCE], imgsz=160)
+    temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
     for r in results:
+        assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
-        r.to_json(normalize=True)
-        r.to_df(decimals=3)
+        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_xml()
+        r.to_html()
+        r.to_json(normalize=True)
+        r.to_sql()
         r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
@@ -370,7 +391,7 @@ def test_cfg_init():
         check_dict_alignment({"a": 1}, {"b": 2})
     copy_default_cfg()
     (Path.cwd() / DEFAULT_CFG_PATH.name.replace(".yaml", "_copy.yaml")).unlink(missing_ok=False)
-    [smart_value(x) for x in ["none", "true", "false"]]
+    [smart_value(x) for x in {"none", "true", "false"}]
 
 
 def test_utils_init():
@@ -399,18 +420,18 @@ def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""
     from ultralytics.utils.benchmarks import ProfileModels
 
-    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).profile()
+    ProfileModels(["yolo11n.yaml"], imgsz=32, min_time=1, num_timed_runs=3, num_warmup_runs=1).run()
 
 
 def test_utils_torchutils():
     """Test Torch utility functions including profiling and FLOP calculations."""
     from ultralytics.nn.modules.conv import Conv
-    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile, time_sync
+    from ultralytics.utils.torch_utils import get_flops_with_torch_profiler, profile_ops, time_sync
 
     x = torch.randn(1, 64, 20, 20)
     m = Conv(64, 64, k=1, s=2)
 
-    profile(x, [m], n=3)
+    profile_ops(x, [m], n=3)
     get_flops_with_torch_profiler(m)
     time_sync()
 
@@ -693,3 +714,28 @@ def test_multichannel():
     im = np.zeros((32, 32, 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
+
+
+@pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+def test_grayscale(task: str, model: str, data: str) -> None:
+    """Test YOLO model grayscale training, validation, and prediction functionality."""
+    if task == "classify":  # not support grayscale classification yet
+        return
+    grayscale_data = Path(TMP) / f"{Path(data).stem}-grayscale.yaml"
+    data = check_det_dataset(data)
+    data["channels"] = 1  # add additional channels key for grayscale
+    YAML.save(grayscale_data, data)
+    # remove npy files in train/val splits if exists, might be created by previous tests
+    for split in {"train", "val"}:
+        for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):
+            npy_file.unlink()
+
+    model = YOLO(model)
+    model.train(data=grayscale_data, epochs=1, imgsz=32, close_mosaic=1)
+    model.val(data=grayscale_data)
+    im = np.zeros((32, 32, 1), dtype=np.uint8)
+    model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
+    export_model = model.export(format="onnx")
+
+    model = YOLO(export_model, task=task)
+    model.predict(source=im, imgsz=32)

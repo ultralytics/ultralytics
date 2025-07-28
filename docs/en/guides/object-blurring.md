@@ -101,7 +101,7 @@ The `ObjectBlurrer` solution also supports a range of `track` arguments:
 Moreover, the following visualization arguments can be used:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## Real-World Applications
 

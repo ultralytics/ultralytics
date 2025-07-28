@@ -34,22 +34,22 @@ Larger models like YOLOv5x and [YOLOv5x6](https://github.com/ultralytics/yolov5/
 
 - **Start from Pretrained weights.** Recommended for small to medium-sized datasets (i.e. [VOC](https://github.com/ultralytics/yolov5/blob/master/data/VOC.yaml), [VisDrone](https://github.com/ultralytics/yolov5/blob/master/data/VisDrone.yaml), [GlobalWheat](https://github.com/ultralytics/yolov5/blob/master/data/GlobalWheat2020.yaml)). Pass the name of the model to the `--weights` argument. Models download automatically from the [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases).
 
-```shell
-python train.py --data custom.yaml --weights yolov5s.pt
-python train.py --data custom.yaml --weights yolov5m.pt
-python train.py --data custom.yaml --weights yolov5l.pt
-python train.py --data custom.yaml --weights yolov5x.pt
-python train.py --data custom.yaml --weights custom_pretrained.pt
-```
+    ```bash
+    python train.py --data custom.yaml --weights yolov5s.pt
+    python train.py --data custom.yaml --weights yolov5m.pt
+    python train.py --data custom.yaml --weights yolov5l.pt
+    python train.py --data custom.yaml --weights yolov5x.pt
+    python train.py --data custom.yaml --weights custom_pretrained.pt
+    ```
 
 - **Start from Scratch.** Recommended for large datasets (i.e. [COCO](https://github.com/ultralytics/yolov5/blob/master/data/coco.yaml), [Objects365](https://github.com/ultralytics/yolov5/blob/master/data/Objects365.yaml), [OIv6](https://storage.googleapis.com/openimages/web/index.html)). Pass the model architecture YAML you are interested in, along with an empty `--weights ''` argument:
 
-```bash
-python train.py --data custom.yaml --weights '' --cfg yolov5s.yaml
-python train.py --data custom.yaml --weights '' --cfg yolov5m.yaml
-python train.py --data custom.yaml --weights '' --cfg yolov5l.yaml
-python train.py --data custom.yaml --weights '' --cfg yolov5x.yaml
-```
+    ```bash
+    python train.py --data custom.yaml --weights '' --cfg yolov5s.yaml
+    python train.py --data custom.yaml --weights '' --cfg yolov5m.yaml
+    python train.py --data custom.yaml --weights '' --cfg yolov5l.yaml
+    python train.py --data custom.yaml --weights '' --cfg yolov5x.yaml
+    ```
 
 ## Training Settings
 

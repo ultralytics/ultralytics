@@ -22,19 +22,20 @@ def auto_annotate(
     Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
 
     This function processes images in a specified directory, detects objects using a YOLO model, and then generates
-    segmentation masks using a SAM model. The resulting annotations are saved as text files.
+    segmentation masks using a SAM model. The resulting annotations are saved as text files in YOLO format.
 
     Args:
         data (str | Path): Path to a folder containing images to be annotated.
         det_model (str): Path or name of the pre-trained YOLO detection model.
         sam_model (str): Path or name of the pre-trained SAM segmentation model.
-        device (str): Device to run the models on (e.g., 'cpu', 'cuda', '0').
+        device (str): Device to run the models on (e.g., 'cpu', 'cuda', '0'). Empty string for auto-selection.
         conf (float): Confidence threshold for detection model.
         iou (float): IoU threshold for filtering overlapping boxes in detection results.
         imgsz (int): Input image resize dimension.
         max_det (int): Maximum number of detections per image.
-        classes (List[int] | None): Filter predictions to specified class IDs, returning only relevant detections.
-        output_dir (str | Path | None): Directory to save the annotated results. If None, a default directory is created.
+        classes (List[int], optional): Filter predictions to specified class IDs, returning only relevant detections.
+        output_dir (str | Path, optional): Directory to save the annotated results. If None, creates a default
+            directory based on the input data path.
 
     Examples:
         >>> from ultralytics.data.annotator import auto_annotate
@@ -53,7 +54,7 @@ def auto_annotate(
     )
 
     for result in det_results:
-        class_ids = result.boxes.cls.int().tolist()  # noqa
+        class_ids = result.boxes.cls.int().tolist()  # Extract class IDs from detection results
         if class_ids:
             boxes = result.boxes.xyxy  # Boxes object for bbox outputs
             sam_results = sam_model(result.orig_img, bboxes=boxes, verbose=False, save=False, device=device)

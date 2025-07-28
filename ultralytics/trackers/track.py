@@ -5,7 +5,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import IterableSimpleNamespace, yaml_load
+from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
@@ -20,15 +20,11 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     Initialize trackers for object tracking during prediction.
 
     Args:
-        predictor (object): The predictor object to initialize trackers for.
-        persist (bool): Whether to persist the trackers if they already exist.
-
-    Raises:
-        AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
-        ValueError: If the task is 'classify' as classification doesn't support tracking.
+        predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
+        persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:
-        Initialize trackers for a predictor object:
+        Initialize trackers for a predictor object
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
@@ -39,11 +35,14 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         return
 
     tracker = check_yaml(predictor.args.tracker)
-    cfg = IterableSimpleNamespace(**yaml_load(tracker))
+    cfg = IterableSimpleNamespace(**YAML.load(tracker))
 
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+    predictor._feats = None  # reset in case used earlier
+    if hasattr(predictor, "_hook"):
+        predictor._hook.remove()
     if cfg.tracker_type == "botsort" and cfg.with_reid and cfg.model == "auto":
         from ultralytics.nn.modules.head import Detect
 
@@ -54,14 +53,11 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         ):
             cfg.model = "yolo11n-cls.pt"
         else:
-            predictor.save_feats = True
-            predictor._feats = None
-
             # Register hook to extract input of Detect layer
-            def capture_io(module, input, output):
-                predictor._feats = input[0]
+            def pre_hook(module, input):
+                predictor._feats = list(input[0])  # unroll to new list to avoid mutation in forward
 
-            predictor.model.model.model[-1].register_forward_hook(capture_io)
+            predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
     trackers = []
     for _ in range(predictor.dataset.bs):
@@ -79,7 +75,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool): Whether to persist the trackers if they already exist.
+        persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:
         Postprocess predictions and update with tracking
@@ -96,8 +92,6 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             predictor.vid_path[i if is_stream else 0] = vid_path
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
-        if len(det) == 0:
-            continue
         tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
         if len(tracks) == 0:
             continue

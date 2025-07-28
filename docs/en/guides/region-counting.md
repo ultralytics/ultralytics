@@ -106,7 +106,7 @@ The `RegionCounter` solution enables the use of object tracking parameters:
 Additionally, the following visualization settings are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

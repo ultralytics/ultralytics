@@ -14,6 +14,17 @@ keywords: YOLO data augmentation, computer vision, deep learning, image transfor
 
 [Data augmentation](https://www.ultralytics.com/glossary/data-augmentation) is a crucial technique in computer vision that artificially expands your training dataset by applying various transformations to existing images. When training [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models like Ultralytics YOLO, data augmentation helps improve model robustness, reduces overfitting, and enhances generalization to real-world scenarios.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/e-TwqFtay90"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to use Mosaic, MixUp & more Data Augmentations to help Ultralytics YOLO Models generalize better 🚀
+</p>
+
 ### Why Data Augmentation Matters
 
 Data augmentation serves multiple critical purposes in training computer vision models:
@@ -279,6 +290,23 @@ Then launch the training with the Python API:
 | :---------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_mixup_identity_1" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_mixup_identity_2.avif" alt="augmentation_mixup_identity_2" width="60%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_mixup_on.avif" alt="mixup_on_augmentation" width="85%"/> |
 
+### CutMix (`cutmix`)
+
+- **Range**: `0.0` - `1.0`
+- **Default**: `{{ cutmix }}`
+- **Usage**: Cuts a rectangular region from one image and pastes it onto another image with given probability. The `cutmix` hyperparameter defines the probability of applying the transformation, with `cutmix=1.0` ensuring that all images undergo this transformation and `cutmix=0.0` disabling it completely. For example, with `cutmix=0.5`, each image has a 50% chance of having a region replaced with a patch from another image.
+- **Purpose**: Enhances model performance by creating realistic occlusion scenarios while maintaining local feature integrity. For example, in autonomous driving systems, cutmix helps the model learn to recognize vehicles or pedestrians even when they're partially occluded by other objects, improving detection accuracy in complex real-world environments with overlapping objects.
+- **Ultralytics' implementation**: [CutMix](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CutMix)
+- **Note**:
+    - The size and position of the cut region is determined randomly for each application.
+    - Unlike mixup which blends pixel values globally, `cutmix` maintains the original pixel intensities within the cut regions, preserving local features.
+    - A region is pasted into the target image only if it does not overlap with any existing bounding box. Additionally, only the bounding boxes that retain at least `0.1` (10%) of their original area within the pasted region are preserved.
+    - This minimum bounding box area threshold cannot be changed with the current implementation and is set to `0.1` by default.
+
+|                                                               **First image, `cutmix` off**                                                               |                                                              **Second image, `cutmix` off**                                                               |                                                              **`cutmix` on**                                                              |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_identity_1.avif" alt="augmentation_cutmix_identity_1" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_identity_2.avif" alt="augmentation_cutmix_identity_2" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_cutmix_on.avif" alt="cutmix_on_augmentation" width="85%"/> |
+
 ## Segmentation-Specific Augmentations
 
 ### Copy-Paste (`copy_paste`)
@@ -290,8 +318,8 @@ Then launch the training with the Python API:
 - **Ultralytics' implementation**: [CopyPaste](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.CopyPaste)
 - **Note**:
     - As pictured in the gif below, the `copy_paste` augmentation can be used to copy objects from one image to another.
-    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below a `0.3`, the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
-    - The IoA threshold cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py#L1718) and is set to `0.3` by default.
+    - Once an object is copied, regardless of the `copy_paste_mode`, its Intersection over Area (IoA) is computed with all the object of the source image. If all the IoA are below `0.3` (30%), the object is pasted in the target image. If only one the IoA is above `0.3`, the object is not pasted in the target image.
+    - The IoA threshold cannot be changed with the current implementation and is set to `0.3` by default.
 
 |                                                             **`copy_paste` off**                                                              |                                                  **`copy_paste` on with `copy_paste_mode=flip`**                                                  |                                                            Visualize the `copy_paste` process                                                            |
 | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------: |
@@ -337,7 +365,7 @@ Then launch the training with the Python API:
 - **Purpose**: Helps models learn robust features and prevents over-reliance on specific image regions. For example, in facial recognition systems, random erasing helps models become more robust to partial occlusions like sunglasses, face masks, or other objects that might partially cover facial features. This improves real-world performance by forcing the model to identify individuals using multiple facial characteristics rather than depending solely on distinctive features that might be obscured.
 - **Ultralytics' implementation**: [classify_augmentations()](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.classify_augmentations)
 - **Note**:
-    - The `erasing` augmentation comes with a `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py#L2502). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [documentation](https://pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
+    - The `erasing` augmentation comes with a `scale`, `ratio`, and `value` hyperparameters that cannot be changed with the [current implementation](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/augment.py#L2502). Their default values are `(0.02, 0.33)`, `(0.3, 3.3)`, and `0`, respectively, as stated in the PyTorch [documentation](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html).
     - The upper limit of the `erasing` hyperparameter is set to `0.9` to avoid applying the transformation to all images.
 
 |                                                            **`erasing` off**                                                            |                                                         **`erasing` on (example 1)**                                                          |                                                         **`erasing` on (example 2)**                                                          |                                                         **`erasing` on (example 3)**                                                          |
@@ -365,3 +393,7 @@ You can find the full list of applied transformations in our [technical document
 ### When starting a training, I don't see any reference to albumentations. Why?
 
 Check if the `albumentations` package is installed. If not, you can install it by running `pip install albumentations`. Once installed, the package should be automatically detected and used by Ultralytics.
+
+### How do I customize my augmentations?
+
+You can customize augmentations by creating a custom dataset class and trainer. For example, you can replace the default Ultralytics classification augmentations with PyTorch's [torchvision.transforms.Resize](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) or other transforms. See the [custom training example](../tasks/classify.md#train) in the classification documentation for implementation details.

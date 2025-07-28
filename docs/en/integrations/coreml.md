@@ -45,7 +45,6 @@ Before we look at the code for exporting YOLO11 models to the CoreML format, let
 CoreML offers various deployment options for machine learning models, including:
 
 - **On-Device Deployment**: This method directly integrates CoreML models into your iOS app. It's particularly advantageous for ensuring low latency, enhanced privacy (since data remains on the device), and offline functionality. This approach, however, may be limited by the device's hardware capabilities, especially for larger and more complex models. On-device deployment can be executed in the following two ways.
-
     - **Embedded Models**: These models are included in the app bundle and are immediately accessible. They are ideal for small models that do not require frequent updates.
 
     - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
@@ -192,7 +191,6 @@ For more details on integrating your CoreML model into an iOS app, check out the
 Once you export your YOLO11 model to CoreML format, you have multiple deployment options:
 
 1. **On-Device Deployment**: Directly integrate CoreML models into your app for enhanced privacy and offline functionality. This can be done as:
-
     - **Embedded Models**: Included in the app bundle, accessible immediately.
     - **Downloaded Models**: Fetched from a server as needed, keeping the app bundle size smaller.
 

@@ -17,7 +17,7 @@ except (ImportError, AssertionError, AttributeError):
     import lap
 
 
-def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True) -> tuple:
+def linear_assignment(cost_matrix: np.ndarray, thresh: float, use_lap: bool = True):
     """
     Perform linear assignment using either the scipy or lap.lapjv method.
 

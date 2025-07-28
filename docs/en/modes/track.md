@@ -50,15 +50,11 @@ Ultralytics YOLO extends its object detection features to provide robust and ver
 Ultralytics YOLO supports the following tracking algorithms. They can be enabled by passing the relevant YAML configuration file such as `tracker=tracker_type.yaml`:
 
 - [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - Use `botsort.yaml` to enable this tracker.
-- [ByteTrack](https://github.com/ifzhang/ByteTrack) - Use `bytetrack.yaml` to enable this tracker.
+- [ByteTrack](https://github.com/FoundationVision/ByteTrack) - Use `bytetrack.yaml` to enable this tracker.
 
 The default tracker is BoT-SORT.
 
 ## Tracking
-
-!!! warning "Tracker Threshold Information"
-
-    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLO11n, YOLO11n-seg and YOLO11n-pose.
 
@@ -96,10 +92,6 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
 As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
 
 ## Configuration
-
-!!! warning "Tracker Threshold Information"
-
-    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
 
 ### Tracking Arguments
 
@@ -147,7 +139,66 @@ Ultralytics also allows you to use a modified tracker configuration file. To do 
         yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" tracker='custom_tracker.yaml'
         ```
 
-For a comprehensive list of tracking arguments, refer to the [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) page.
+Refer to [Tracker Arguments](#tracker-arguments) section for a detailed description of each parameter.
+
+### Tracker Arguments
+
+Some tracking behaviors can be fine-tuned by editing the YAML configuration files specific to each tracking algorithm. These files define parameters like thresholds, buffers, and matching logic:
+
+- [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml)
+- [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml)
+
+The following table provides a description of each parameter:
+
+!!! warning "Tracker Threshold Information"
+
+    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
+
+| **Parameter**       | **Valid Values or Ranges**                    | **Description**                                                                                                                                        |
+| ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tracker_type`      | `botsort`, `bytetrack`                        | Specifies the tracker type. Options are `botsort` or `bytetrack`.                                                                                      |
+| `track_high_thresh` | `0.0-1.0`                                     | Threshold for the first association during tracking used. Affects how confidently a detection is matched to an existing track.                         |
+| `track_low_thresh`  | `0.0-1.0`                                     | Threshold for the second association during tracking. Used when the first association fails, with more lenient criteria.                               |
+| `new_track_thresh`  | `0.0-1.0`                                     | Threshold to initialize a new track if the detection does not match any existing tracks. Controls when a new object is considered to appear.           |
+| `track_buffer`      | `>=0`                                         | Buffer used to indicate the number of frames lost tracks should be kept alive before getting removed. Higher value means more tolerance for occlusion. |
+| `match_thresh`      | `0.0-1.0`                                     | Threshold for matching tracks. Higher values makes the matching more lenient.                                                                          |
+| `fuse_score`        | `True`, `False`                               | Determines whether to fuse confidence scores with IoU distances before matching. Helps balance spatial and confidence information when associating.    |
+| `gmc_method`        | `orb`, `sift`, `ecc`, `sparseOptFlow`, `None` | Method used for global motion compensation. Helps account for camera movement to improve tracking.                                                     |
+| `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU required for a valid match with ReID (Re-identification). Ensures spatial closeness before using appearance cues.                          |
+| `appearance_thresh` | `0.0-1.0`                                     | Minimum appearance similarity required for ReID. Sets how visually similar two detections must be to be linked.                                        |
+| `with_reid`         | `True`, `False`                               | Indicates whether to use ReID. Enables appearance-based matching for better tracking across occlusions. Only supported by BoTSORT.                     |
+| `model`             | `auto`, `yolo11[nsmlx]-cls.pt`                | Specifies the model to use. Defaults to `auto`, which uses native features if the detector is YOLO, otherwise uses `yolo11n-cls.pt`.                   |
+
+### Enabling Re-Identification (ReID)
+
+By default, ReID is turned off to minimize performance overhead. Enabling it is simple—just set `with_reid: True` in the [tracker configuration](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml). You can also customize the `model` used for ReID, allowing you to trade off accuracy and speed depending on your use case:
+
+- **Native features (`model: auto`)**: This leverages features directly from the YOLO detector for ReID, adding minimal overhead. It's ideal when you need some level of ReID without significantly impacting performance. If the detector doesn't support native features, it automatically falls back to using `yolo11n-cls.pt`.
+- **YOLO classification models**: You can explicitly set a classification model (e.g. `yolo11n-cls.pt`) for ReID feature extraction. This provides more discriminative embeddings, but introduces additional latency due to the extra inference step.
+
+For better performance, especially when using a separate classification model for ReID, you can export it to a faster backend like TensorRT:
+
+!!! example "Exporting a ReID model to TensorRT"
+
+    ```python
+    from torch import nn
+
+    from ultralytics import YOLO
+
+    # Load the classification model
+    model = YOLO("yolo11n-cls.pt")
+
+    # Add average pooling layer
+    head = model.model.model[-1]
+    pool = nn.Sequential(nn.AdaptiveAvgPool2d((1, 1)), nn.Flatten(start_dim=1))
+    pool.f, pool.i = head.f, head.i
+    model.model.model[-1] = pool
+
+    # Export to TensorRT
+    model.export(format="engine", half=True, dynamic=True, batch=32)
+    ```
+
+Once exported, you can point to the TensorRT model path in your tracker config, and it will be used for ReID during tracking.
 
 ## Python Examples
 
@@ -234,7 +285,7 @@ In the following example, we demonstrate how to utilize YOLO11's tracking capabi
             result = model.track(frame, persist=True)[0]
 
             # Get the boxes and track IDs
-            if result.boxes and result.boxes.id is not None:
+            if result.boxes and result.boxes.is_track:
                 boxes = result.boxes.xywh.cpu()
                 track_ids = result.boxes.id.int().cpu().tolist()
 
@@ -345,7 +396,7 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 ### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
 
-Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers like [BoT-SORT](https://github.com/NirAharon/BoT-SORT) and [ByteTrack](https://github.com/ifzhang/ByteTrack), which can be configured via YAML files.
+Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers like [BoT-SORT](https://github.com/NirAharon/BoT-SORT) and [ByteTrack](https://github.com/FoundationVision/ByteTrack), which can be configured via YAML files.
 
 ### How do I configure a custom tracker for Ultralytics YOLO?
 

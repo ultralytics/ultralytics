@@ -10,6 +10,17 @@ keywords: data preprocessing, computer vision, image resizing, normalization, da
 
 After you've defined your computer vision [project's goals](./defining-project-goals.md) and [collected and annotated data](./data-collection-and-annotation.md), the next step is to preprocess annotated data and prepare it for model training. Clean and consistent data are vital to creating a model that performs well.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/E_d7xuY4hEk"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Use Data Preprocessing and Augmentation to Improve Model Accuracy in Real-World Scenarios 🚀
+</p>
+
 Preprocessing is a step in the [computer vision project workflow](./steps-of-a-cv-project.md) that includes resizing images, normalizing pixel values, augmenting the dataset, and splitting the data into training, validation, and test sets. Let's explore the essential techniques and best practices for cleaning your data!
 
 ## Importance of Data Preprocessing

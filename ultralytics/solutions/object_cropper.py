@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults
 from ultralytics.utils.plotting import save_one_box
@@ -21,7 +22,7 @@ class ObjectCropper(BaseSolution):
         conf (float): Confidence threshold for filtering detections.
 
     Methods:
-        process: Crops detected objects from the input image and saves them to the output directory.
+        process: Crop detected objects from the input image and save them to the output directory.
 
     Examples:
         >>> cropper = ObjectCropper()
@@ -30,7 +31,7 @@ class ObjectCropper(BaseSolution):
         >>> print(f"Total cropped objects: {cropper.crop_idx}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the ObjectCropper class for cropping objects from detected bounding boxes.
 
@@ -40,7 +41,7 @@ class ObjectCropper(BaseSolution):
         """
         super().__init__(**kwargs)
 
-        self.crop_dir = kwargs.get("crop_dir", "cropped-detections")  # Directory for storing cropped detections
+        self.crop_dir = self.CFG["crop_dir"]  # Directory for storing cropped detections
         if not os.path.exists(self.crop_dir):
             os.mkdir(self.crop_dir)  # Create directory if it does not exist
         if self.CFG["show"]:
@@ -49,17 +50,18 @@ class ObjectCropper(BaseSolution):
             )
         self.crop_idx = 0  # Initialize counter for total cropped objects
         self.iou = self.CFG["iou"]
-        self.conf = self.CFG["conf"] if self.CFG["conf"] is not None else 0.25
+        self.conf = self.CFG["conf"]
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Crop detected objects from the input image and save them as separate images.
 
         Args:
-            im0 (numpy.ndarray): The input image containing detected objects.
+            im0 (np.ndarray): The input image containing detected objects.
 
         Returns:
-            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed image.
+            (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed
+                image.
 
         Examples:
             >>> cropper = ObjectCropper()
@@ -67,9 +69,15 @@ class ObjectCropper(BaseSolution):
             >>> results = cropper.process(frame)
             >>> print(f"Total cropped objects: {results.total_crop_objects}")
         """
-        results = self.model.predict(
-            im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"]
-        )[0]
+        with self.profilers[0]:
+            results = self.model.predict(
+                im0,
+                classes=self.classes,
+                conf=self.conf,
+                iou=self.iou,
+                device=self.CFG["device"],
+                verbose=False,
+            )[0]
 
         for box in results.boxes:
             self.crop_idx += 1

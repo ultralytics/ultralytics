@@ -27,6 +27,10 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.checks.check_uv
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.checks.check_version
 
 <br><br><hr><br>
@@ -112,6 +116,10 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.checks.is_rockchip
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.checks.is_intel
 
 <br><br><hr><br>
 

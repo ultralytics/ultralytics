@@ -56,7 +56,7 @@ def _log_plot(title: str, plot_path: str) -> None:
 
 
 def on_pretrain_routine_start(trainer) -> None:
-    """Runs at start of pretraining routine; initializes and connects/logs task to ClearML."""
+    """Initialize and connect ClearML task at the start of pretraining routine."""
     try:
         if task := Task.current_task():
             # WARNING: make sure the automatic pytorch and matplotlib bindings are disabled!
@@ -85,9 +85,9 @@ def on_pretrain_routine_start(trainer) -> None:
 
 
 def on_train_epoch_end(trainer) -> None:
-    """Logs debug samples for the first epoch of YOLO training and reports current training progress."""
+    """Log debug samples for the first epoch and report current training progress."""
     if task := Task.current_task():
-        # Log debug samples
+        # Log debug samples for first epoch only
         if trainer.epoch == 1:
             _log_debug_samples(sorted(trainer.save_dir.glob("train_batch*.jpg")), "Mosaic")
         # Report the current training progress
@@ -98,7 +98,7 @@ def on_train_epoch_end(trainer) -> None:
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Reports model information to logger at the end of an epoch."""
+    """Report model information and metrics to logger at the end of an epoch."""
     if task := Task.current_task():
         # Report epoch time and validation metrics
         task.get_logger().report_scalar(
@@ -114,23 +114,23 @@ def on_fit_epoch_end(trainer) -> None:
 
 
 def on_val_end(validator) -> None:
-    """Logs validation results including labels and predictions."""
+    """Log validation results including labels and predictions."""
     if Task.current_task():
-        # Log val_labels and val_pred
+        # Log validation labels and predictions
         _log_debug_samples(sorted(validator.save_dir.glob("val*.jpg")), "Validation")
 
 
 def on_train_end(trainer) -> None:
-    """Logs final model and its name on training completion."""
+    """Log final model and training results on training completion."""
     if task := Task.current_task():
-        # Log final results, CM matrix + PR plots
+        # Log final results, confusion matrix and PR plots
         files = [
             "results.png",
             "confusion_matrix.png",
             "confusion_matrix_normalized.png",
             *(f"{x}_curve.png" for x in ("F1", "PR", "P", "R")),
         ]
-        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
+        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter existing files
         for f in files:
             _log_plot(title=f.stem, plot_path=f)
         # Report final metrics

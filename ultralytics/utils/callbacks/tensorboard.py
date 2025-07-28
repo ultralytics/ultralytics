@@ -31,7 +31,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
         step (int): Global step value to record with the scalar values. Used for x-axis in TensorBoard graphs.
 
     Examples:
-        >>> # Log training metrics
+        Log training metrics
         >>> metrics = {"loss": 0.5, "accuracy": 0.95}
         >>> _log_scalars(metrics, step=100)
     """
@@ -49,9 +49,8 @@ def _log_tensorboard_graph(trainer) -> None:
     approach for models like RTDETR that may require special handling.
 
     Args:
-        trainer (BaseTrainer): The trainer object containing the model to visualize. Must have attributes:
-            - model: PyTorch model to visualize
-            - args: Configuration arguments with 'imgsz' attribute
+        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing the model to visualize.
+            Must have attributes model and args with imgsz.
 
     Notes:
         This function requires TensorBoard integration to be enabled and the global WRITER to be initialized.
@@ -110,13 +109,13 @@ def on_train_start(trainer) -> None:
 
 
 def on_train_epoch_end(trainer) -> None:
-    """Logs scalar statistics at the end of a training epoch."""
+    """Log scalar statistics at the end of a training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
     _log_scalars(trainer.lr, trainer.epoch + 1)
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Logs epoch metrics at end of training epoch."""
+    """Log epoch metrics at end of training epoch."""
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 

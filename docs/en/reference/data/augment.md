@@ -31,6 +31,10 @@ keywords: Ultralytics, image augmentation, MixUp, Mosaic, Random Perspective, de
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.augment.CutMix
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.augment.RandomPerspective
 
 <br><br><hr><br>

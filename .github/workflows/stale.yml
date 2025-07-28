@@ -51,4 +51,5 @@ jobs:
           days-before-pr-stale: 90
           days-before-pr-close: 30
           exempt-issue-labels: "documentation,tutorial,TODO"
+          exempt-pr-labels: "TODO"
           operations-per-run: 300 # The maximum number of operations per run, used to control rate limiting.

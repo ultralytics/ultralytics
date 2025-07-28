@@ -116,7 +116,7 @@ You can also apply different `track` arguments in the `Heatmap` solution.
 Additionally, the supported visualization arguments are listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 #### Heatmap COLORMAPs
 

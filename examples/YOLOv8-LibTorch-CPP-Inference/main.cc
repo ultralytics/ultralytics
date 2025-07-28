@@ -218,7 +218,7 @@ int main() {
         // Load the model (e.g. yolov8s.torchscript)
         std::string model_path = "/path/to/yolov8s.torchscript";
         torch::jit::script::Module yolo_model;
-        yolo_model = torch::jit::load(model_path);
+        yolo_model = torch::jit::load(model_path, device);
         yolo_model.eval();
         yolo_model.to(device, torch::kFloat32);
 

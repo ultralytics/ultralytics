@@ -1,20 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""
-YOLO-NAS model interface.
-
-Examples:
-    >>> from ultralytics import NAS
-    >>> model = NAS("yolo_nas_s")
-    >>> results = model.predict("ultralytics/assets/bus.jpg")
-"""
 
 from pathlib import Path
+from typing import Any, Dict
 
 import torch
 
 from ultralytics.engine.model import Model
 from ultralytics.utils import DEFAULT_CFG_DICT
 from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils.patches import torch_load
 from ultralytics.utils.torch_utils import model_info
 
 from .predict import NASPredictor
@@ -23,7 +17,7 @@ from .val import NASValidator
 
 class NAS(Model):
     """
-    YOLO NAS model for object detection.
+    YOLO-NAS model for object detection.
 
     This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
     It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
@@ -33,6 +27,9 @@ class NAS(Model):
         task (str): The task type for the model, defaults to 'detect'.
         predictor (NASPredictor): The predictor instance for making predictions.
         validator (NASValidator): The validator instance for model validation.
+
+    Methods:
+        info: Log model information and return model details.
 
     Examples:
         >>> from ultralytics import NAS
@@ -60,7 +57,7 @@ class NAS(Model):
 
         suffix = Path(weights).suffix
         if suffix == ".pt":
-            self.model = torch.load(attempt_download_asset(weights))
+            self.model = torch_load(attempt_download_asset(weights))
         elif suffix == "":
             self.model = super_gradients.training.models.get(weights, pretrained_weights="coco")
 
@@ -72,7 +69,7 @@ class NAS(Model):
         self.model._original_forward = self.model.forward
         self.model.forward = new_forward
 
-        # Standardize model
+        # Standardize model attributes for compatibility
         self.model.fuse = lambda verbose=True: self.model
         self.model.stride = torch.tensor([32])
         self.model.names = dict(enumerate(self.model._class_names))
@@ -83,7 +80,7 @@ class NAS(Model):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
 
-    def info(self, detailed: bool = False, verbose: bool = True):
+    def info(self, detailed: bool = False, verbose: bool = True) -> Dict[str, Any]:
         """
         Log model information.
 
@@ -92,11 +89,11 @@ class NAS(Model):
             verbose (bool): Controls verbosity.
 
         Returns:
-            (dict): Model information dictionary.
+            (Dict[str, Any]): Model information dictionary.
         """
         return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 
     @property
-    def task_map(self):
+    def task_map(self) -> Dict[str, Dict[str, Any]]:
         """Return a dictionary mapping tasks to respective predictor and validator classes."""
         return {"detect": {"predictor": NASPredictor, "validator": NASValidator}}

@@ -106,7 +106,7 @@ You can also take advantage of `track` arguments within the `InstanceSegmentatio
 Moreover, the following visualization arguments are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## Applications of Instance Segmentation
 

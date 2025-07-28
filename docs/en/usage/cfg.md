@@ -150,6 +150,8 @@ Ultralytics Solutions configuration settings offer flexibility to customize mode
 
 Adjust these settings to meet dataset and task requirements. Experimenting with different values can help find the optimal augmentation strategy for the best model performance.
 
+[Augmentation Guide](../guides/yolo-data-augmentation.md){ .md-button }
+
 ## Logging, Checkpoints and Plotting Settings
 
 Logging, checkpoints, plotting, and file management are important when training a YOLO model:

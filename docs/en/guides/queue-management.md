@@ -107,7 +107,7 @@ The `QueueManagement` solution also support some `track` arguments:
 Additionally, the following visualization parameters are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## Implementation Strategies
 

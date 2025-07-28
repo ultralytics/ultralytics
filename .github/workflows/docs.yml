@@ -27,6 +27,9 @@ on:
         default: true
         type: boolean
 
+permissions:
+  contents: write # Modify code in PRs
+
 jobs:
   Docs:
     if: github.repository == 'ultralytics/ultralytics'
@@ -46,7 +49,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v6
       - name: Install Dependencies
         run: uv pip install --system ruff black tqdm mkdocs-material "mkdocstrings[python]" mkdocs-ultralytics-plugin mkdocs-macros-plugin
       - name: Ruff fixes

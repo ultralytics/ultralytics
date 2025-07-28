@@ -59,41 +59,41 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Deployment Integrations
 
-- [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure [model deployment](https://www.ultralytics.com/glossary/model-deployment).
-
-- [Gradio](gradio.md) 🚀 NEW: Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
-
-- [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
-
-- [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
-
-- [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
+- [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
 
 - [ONNX](onnx.md): An open-source format created by [Microsoft](https://www.microsoft.com/) for facilitating the transfer of AI models between various frameworks, enhancing the versatility and deployment flexibility of Ultralytics models.
 
 - [OpenVINO](openvino.md): Intel's toolkit for optimizing and deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models efficiently across various Intel CPU and GPU platforms.
 
-- [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
-- [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
+- [CoreML](coreml.md): CoreML, developed by [Apple](https://www.apple.com/), is a framework designed for efficiently integrating machine learning models into applications across iOS, macOS, watchOS, and tvOS, using Apple's hardware for effective and secure [model deployment](https://www.ultralytics.com/glossary/model-deployment).
 
 - [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
 
-- [TF.js](tfjs.md): Developed by [Google](https://www.google.com/) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models.
+- [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
 - [TFLite](tflite.md): Developed by [Google](https://www.google.com/), TFLite is a lightweight framework for deploying machine learning models on mobile and edge devices, ensuring fast, efficient inference with minimal memory footprint.
 
 - [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
 
-- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+- [TF.js](tfjs.md): Developed by [Google](https://www.google.com/) to facilitate machine learning in browsers and Node.js, TF.js allows JavaScript-based deployment of ML models.
 
-- [TorchScript](torchscript.md): Developed as part of the [PyTorch](https://pytorch.org/) framework, TorchScript enables efficient execution and deployment of machine learning models in various production environments without the need for Python dependencies.
+- [PaddlePaddle](paddlepaddle.md): An open-source deep learning platform by [Baidu](https://www.baidu.com/), PaddlePaddle enables the efficient deployment of AI models and focuses on the scalability of industrial applications.
 
-- [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
+- [MNN](mnn.md): Developed by [Alibaba](https://www.alibabagroup.com/), MNN is a highly efficient and lightweight deep learning framework. It supports inference and training of deep learning models and has industry-leading performance for inference and training on-device.
+
+- [NCNN](ncnn.md): Developed by [Tencent](http://www.tencent.com/), NCNN is an efficient [neural network](https://www.ultralytics.com/glossary/neural-network-nn) inference framework tailored for mobile devices. It enables direct deployment of AI models into apps, optimizing performance across various mobile platforms.
+
+- [SONY IMX500](sony-imx500.md) 🚀 NEW: Optimize and deploy [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8/) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
 - [Rockchip RKNN](rockchip-rknn.md): Developed by [Rockchip](https://www.rock-chips.com/), RKNN is a specialized neural network inference framework optimized for Rockchip's hardware platforms, particularly their NPUs. It facilitates efficient deployment of AI models on edge devices, enabling high-performance inference in real-time applications.
 
+- [Neural Magic](neural-magic.md): Leverage Quantization Aware Training (QAT) and pruning techniques to optimize Ultralytics models for superior performance and leaner size.
+
 - [Seeed Studio reCamera](seeedstudio-recamera.md): Developed by [Seeed Studio](https://www.seeedstudio.com/), the reCamera is a cutting-edge edge AI device designed for real-time computer vision applications. Powered by the RISC-V-based SG200X processor, it delivers high-performance AI inference with energy efficiency. Its modular design, advanced video processing capabilities, and support for flexible deployment make it an ideal choice for various use cases, including safety monitoring, environmental applications, and manufacturing.
+
+- [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
 ## Datasets Integrations
 

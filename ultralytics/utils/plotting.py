@@ -3,10 +3,9 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
@@ -19,20 +18,21 @@ from ultralytics.utils.files import increment_path
 
 class Colors:
     """
-    Ultralytics color palette https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Colors.
+    Ultralytics color palette for visualization and plotting.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
-    RGB values.
+    RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (List[Tuple]): List of RGB color values.
+        palette (List[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
     Examples:
         >>> from ultralytics.utils.plotting import Colors
         >>> colors = Colors()
-        >>> colors(5, True)  # ff6fdd or (255, 111, 221)
+        >>> colors(5, True)  # Returns BGR format: (221, 111, 255)
+        >>> colors(5, False)  # Returns RGB format: (255, 111, 221)
 
     ## Ultralytics Color Palette
 
@@ -86,7 +86,8 @@ class Colors:
 
     !!! note "Ultralytics Brand Colors"
 
-        For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand). Please use the official Ultralytics colors for all marketing materials.
+        For Ultralytics brand colors see [https://www.ultralytics.com/brand](https://www.ultralytics.com/brand).
+        Please use the official Ultralytics colors for all marketing materials.
     """
 
     def __init__(self):
@@ -141,13 +142,22 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i, bgr=False):
-        """Convert hex color codes to RGB values."""
+    def __call__(self, i: int, bgr: bool = False) -> tuple:
+        """
+        Convert hex color codes to RGB values.
+
+        Args:
+            i (int): Color index.
+            bgr (bool, optional): Whether to return BGR format instead of RGB.
+
+        Returns:
+            (tuple): RGB or BGR color tuple.
+        """
         c = self.palette[int(i) % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod
-    def hex2rgb(h):
+    def hex2rgb(h: str) -> tuple:
         """Convert hex color codes to RGB values (i.e. default PIL order)."""
         return tuple(int(h[1 + i : 1 + i + 2], 16) for i in (0, 2, 4))
 
@@ -160,9 +170,9 @@ class Annotator:
     Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Attributes:
-        im (Image.Image or np.ndarray): The image to annotate.
+        im (Image.Image | np.ndarray): The image to annotate.
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
-        font (ImageFont.truetype or ImageFont.load_default): Font used for text annotations.
+        font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
         skeleton (List[List[int]]): Skeleton structure for keypoints.
         limb_color (List[int]): Color palette for limbs.
@@ -174,14 +184,28 @@ class Annotator:
         >>> from ultralytics.utils.plotting import Annotator
         >>> im0 = cv2.imread("test.png")
         >>> annotator = Annotator(im0, line_width=10)
+        >>> annotator.box_label([10, 10, 100, 100], "person", (255, 0, 0))
     """
 
-    def __init__(self, im, line_width=None, font_size=None, font="Arial.ttf", pil=False, example="abc"):
+    def __init__(
+        self,
+        im,
+        line_width: Optional[int] = None,
+        font_size: Optional[int] = None,
+        font: str = "Arial.ttf",
+        pil: bool = False,
+        example: str = "abc",
+    ):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         input_is_pil = isinstance(im, Image.Image)
         self.pil = pil or non_ascii or input_is_pil
         self.lw = line_width or max(round(sum(im.size if input_is_pil else im.shape) / 2 * 0.003), 2)
+        if not input_is_pil:
+            if im.shape[2] == 1:  # handle grayscale
+                im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
+            elif im.shape[2] > 3:  # multispectral
+                im = np.ascontiguousarray(im[..., :3])
         if self.pil:  # use PIL
             self.im = im if input_is_pil else Image.fromarray(im)
             if self.im.mode not in {"RGB", "RGBA"}:  # multispectral
@@ -197,8 +221,6 @@ class Annotator:
             if check_version(pil_version, "9.2.0"):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
-            if im.shape[2] > 3:  # multispectral
-                im = np.ascontiguousarray(im[..., :3])
             assert im.data.contiguous, "Image not contiguous. Apply np.ascontiguousarray(im) to Annotator input images."
             self.im = im if im.flags.writeable else im.copy()
             self.tf = max(self.lw - 1, 1)  # font thickness
@@ -253,7 +275,7 @@ class Annotator:
             (104, 31, 17),
         }
 
-    def get_txt_color(self, color=(128, 128, 128), txt_color=(255, 255, 255)):
+    def get_txt_color(self, color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)) -> tuple:
         """
         Assign text color based on background color.
 
@@ -277,7 +299,7 @@ class Annotator:
         else:
             return txt_color
 
-    def box_label(self, box, label="", color=(128, 128, 128), txt_color=(255, 255, 255), rotated=False):
+    def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)):
         """
         Draw a bounding box on an image with a given label.
 
@@ -286,7 +308,6 @@ class Annotator:
             label (str, optional): The text label to be displayed.
             color (tuple, optional): The background color of the rectangle (B, G, R).
             txt_color (tuple, optional): The color of the text (R, G, B).
-            rotated (bool, optional): Whether the task is oriented bounding box detection.
 
         Examples:
             >>> from ultralytics.utils.plotting import Annotator
@@ -297,13 +318,13 @@ class Annotator:
         txt_color = self.get_txt_color(color, txt_color)
         if isinstance(box, torch.Tensor):
             box = box.tolist()
-        if self.pil or not is_ascii(label):
-            if rotated:
-                p1 = box[0]
-                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)  # PIL requires tuple box
-            else:
-                p1 = (box[0], box[1])
-                self.draw.rectangle(box, width=self.lw, outline=color)  # box
+
+        multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
+        p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
+        if self.pil:
+            self.draw.polygon(
+                [tuple(b) for b in box], width=self.lw, outline=color
+            ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
@@ -316,12 +337,11 @@ class Annotator:
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            if rotated:
-                p1 = [int(b) for b in box[0]]
-                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)  # cv2 requires nparray box
-            else:
-                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-                cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            cv2.polylines(
+                self.im, [np.asarray(box, dtype=int)], True, color, self.lw
+            ) if multi_points else cv2.rectangle(
+                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+            )
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
                 h += 3  # add pixels to pad text
@@ -341,7 +361,7 @@ class Annotator:
                     lineType=cv2.LINE_AA,
                 )
 
-    def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
+    def masks(self, masks, colors, im_gpu, alpha: float = 0.5, retina_masks: bool = False):
         """
         Plot masks on image.
 
@@ -377,7 +397,15 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), radius=None, kpt_line=True, conf_thres=0.25, kpt_color=None):
+    def kpts(
+        self,
+        kpts,
+        shape: tuple = (640, 640),
+        radius: Optional[int] = None,
+        kpt_line: bool = True,
+        conf_thres: float = 0.25,
+        kpt_color: Optional[tuple] = None,
+    ):
         """
         Plot keypoints on the image.
 
@@ -437,11 +465,11 @@ class Annotator:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def rectangle(self, xy, fill=None, outline=None, width=1):
+    def rectangle(self, xy, fill=None, outline=None, width: int = 1):
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor="top", box_color=()):
+    def text(self, xy, text: str, txt_color: tuple = (255, 255, 255), anchor: str = "top", box_color: tuple = ()):
         """
         Add text to an image using PIL or cv2.
 
@@ -481,7 +509,7 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    def show(self, title=None):
+    def show(self, title: Optional[str] = None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
@@ -492,12 +520,12 @@ class Annotator:
         else:
             im.show(title=title)
 
-    def save(self, filename="image.jpg"):
+    def save(self, filename: str = "image.jpg"):
         """Save the annotated image to 'filename'."""
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox=None):
+    def get_bbox_dimension(bbox: Optional[tuple] = None):
         """
         Calculate the dimensions and area of a bounding box.
 
@@ -534,10 +562,11 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         save_dir (Path, optional): Directory to save the plot.
         on_plot (Callable, optional): Function to call after plot is saved.
     """
-    import pandas  # scope for faster 'import ultralytics'
-    import seaborn  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas
+    from matplotlib.colors import LinearSegmentedColormap
 
-    # Filter matplotlib>=3.7.2 warning and Seaborn use_inf and is_categorical FutureWarnings
+    # Filter matplotlib>=3.7.2 warning
     warnings.filterwarnings("ignore", category=UserWarning, message="The figure layout has changed to tight")
     warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -547,12 +576,17 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     boxes = boxes[:1000000]  # limit to 1M boxes
     x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
 
-    # Seaborn correlogram
-    seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-    plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-    plt.close()
+    try:  # Seaborn correlogram
+        import seaborn
+
+        seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+        plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
+        plt.close()
+    except ImportError:
+        pass  # Skip if seaborn is not installed
 
     # Matplotlib labels
+    subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
     y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     for i in range(nc):
@@ -563,20 +597,21 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
     else:
         ax[0].set_xlabel("classes")
-    seaborn.histplot(x, x="x", y="y", ax=ax[2], bins=50, pmax=0.9)
-    seaborn.histplot(x, x="width", y="height", ax=ax[3], bins=50, pmax=0.9)
-
-    # Rectangles
-    boxes[:, 0:2] = 0.5  # center
-    boxes = ops.xywh2xyxy(boxes) * 1000
+    boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 
-    for a in [0, 1, 2, 3]:
-        for s in ["top", "right", "left", "bottom"]:
+    ax[2].hist2d(x["x"], x["y"], bins=50, cmap=subplot_3_4_color)
+    ax[2].set_xlabel("x")
+    ax[2].set_ylabel("y")
+    ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
+    ax[3].set_xlabel("width")
+    ax[3].set_ylabel("height")
+    for a in {0, 1, 2, 3}:
+        for s in {"top", "right", "left", "bottom"}:
             ax[a].spines[s].set_visible(False)
 
     fname = save_dir / "labels.jpg"
@@ -586,7 +621,16 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot(fname)
 
 
-def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False, BGR=False, save=True):
+def save_one_box(
+    xyxy,
+    im,
+    file: Path = Path("im.jpg"),
+    gain: float = 1.02,
+    pad: int = 10,
+    square: bool = False,
+    BGR: bool = False,
+    save: bool = True,
+):
     """
     Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
@@ -601,7 +645,7 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
         gain (float, optional): A multiplicative factor to increase the size of the bounding box.
         pad (int, optional): The number of pixels to add to the width and height of the bounding box.
         square (bool, optional): If True, the bounding box will be transformed into a square.
-        BGR (bool, optional): If True, the image will be saved in BGR format, otherwise in RGB.
+        BGR (bool, optional): If True, the image will be returned in BGR format, otherwise in RGB.
         save (bool, optional): If True, the cropped image will be saved to disk.
 
     Returns:
@@ -621,24 +665,21 @@ def save_one_box(xyxy, im, file=Path("im.jpg"), gain=1.02, pad=10, square=False,
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = ops.xywh2xyxy(b).long()
     xyxy = ops.clip_boxes(xyxy, im.shape)
-    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR else -1)]
+    grayscale = im.shape[2] == 1  # grayscale image
+    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file).with_suffix(".jpg"))
         # cv2.imwrite(f, crop)  # save BGR, https://github.com/ultralytics/yolov5/issues/7007 chroma subsampling issue
-        Image.fromarray(crop[..., ::-1]).save(f, quality=95, subsampling=0)  # save RGB
+        crop = crop.squeeze(-1) if grayscale else crop[..., ::-1] if BGR else crop
+        Image.fromarray(crop).save(f, quality=95, subsampling=0)  # save RGB
     return crop
 
 
 @threaded
 def plot_images(
-    images: Union[torch.Tensor, np.ndarray],
-    batch_idx: Union[torch.Tensor, np.ndarray],
-    cls: Union[torch.Tensor, np.ndarray],
-    bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
-    confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
-    masks: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.uint8),
-    kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),
+    labels: Dict[str, Any],
+    images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
     paths: Optional[List[str]] = None,
     fname: str = "images.jpg",
     names: Optional[Dict[int, str]] = None,
@@ -652,21 +693,16 @@ def plot_images(
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
-        images: Batch of images to plot. Shape: (batch_size, channels, height, width).
-        batch_idx: Batch indices for each detection. Shape: (num_detections,).
-        cls: Class labels for each detection. Shape: (num_detections,).
-        bboxes: Bounding boxes for each detection. Shape: (num_detections, 4) or (num_detections, 5) for rotated boxes.
-        confs: Confidence scores for each detection. Shape: (num_detections,).
-        masks: Instance segmentation masks. Shape: (num_detections, height, width) or (1, height, width).
-        kpts: Keypoints for each detection. Shape: (num_detections, 51).
-        paths: List of file paths for each image in the batch.
-        fname: Output filename for the plotted image grid.
-        names: Dictionary mapping class indices to class names.
-        on_plot: Optional callback function to be called after saving the plot.
-        max_size: Maximum size of the output image grid.
-        max_subplots: Maximum number of subplots in the image grid.
-        save: Whether to save the plotted image grid to a file.
-        conf_thres: Confidence threshold for displaying detections.
+        labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
+        images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
+        paths (Optional[List[str]]): List of file paths for each image in the batch.
+        fname (str): Output filename for the plotted image grid.
+        names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.
+        on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
+        max_size (int): Maximum size of the output image grid.
+        max_subplots (int): Maximum number of subplots in the image grid.
+        save (bool): Whether to save the plotted image grid to a file.
+        conf_thres (float): Confidence threshold for displaying detections.
 
     Returns:
         (np.ndarray): Plotted image grid as a numpy array if save is False, None otherwise.
@@ -675,18 +711,24 @@ def plot_images(
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
     """
-    if isinstance(images, torch.Tensor):
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+        if k not in labels:
+            continue
+        if k == "cls" and labels[k].ndim == 2:
+            labels[k] = labels[k].squeeze(1)  # squeeze if shape is (n, 1)
+        if isinstance(labels[k], torch.Tensor):
+            labels[k] = labels[k].cpu().numpy()
+
+    cls = labels.get("cls", np.zeros(0, dtype=np.int64))
+    batch_idx = labels.get("batch_idx", np.zeros(cls.shape, dtype=np.int64))
+    bboxes = labels.get("bboxes", np.zeros(0, dtype=np.float32))
+    confs = labels.get("conf", None)
+    masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
+    kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    images = labels.get("img", images)  # default to input images
+
+    if len(images) and isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
-    if isinstance(cls, torch.Tensor):
-        cls = cls.cpu().numpy()
-    if isinstance(bboxes, torch.Tensor):
-        bboxes = bboxes.cpu().numpy()
-    if isinstance(masks, torch.Tensor):
-        masks = masks.cpu().numpy().astype(int)
-    if isinstance(kpts, torch.Tensor):
-        kpts = kpts.cpu().numpy()
-    if isinstance(batch_idx, torch.Tensor):
-        batch_idx = batch_idx.cpu().numpy()
     if images.shape[1] > 3:
         images = images[:, :3]  # crop multispectral images to first 3 channels
 
@@ -735,6 +777,7 @@ def plot_images(
                 boxes[..., 0] += x
                 boxes[..., 1] += y
                 is_obb = boxes.shape[-1] == 5  # xywhr
+                # TODO: this transformation might be unnecessary
                 boxes = ops.xywhr2xyxyxyxy(boxes) if is_obb else ops.xywh2xyxy(boxes)
                 for j, box in enumerate(boxes.astype(np.int64).tolist()):
                     c = classes[j]
@@ -742,7 +785,7 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
-                        annotator.box_label(box, label, color=color, rotated=is_obb)
+                        annotator.box_label(box, label, color=color)
 
             elif len(classes):
                 for c in classes:
@@ -767,9 +810,9 @@ def plot_images(
 
             # Plot masks
             if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                if idx.shape[0] == masks.shape[0]:  # overlap_mask=False
                     image_masks = masks[idx]
-                else:  # overlap_masks=True
+                else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
                     index = np.arange(nl).reshape((nl, 1, 1)) + 1
@@ -802,7 +845,14 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, classify=False, on_plot=None):
+def plot_results(
+    file: str = "path/to/results.csv",
+    dir: str = "",
+    segment: bool = False,
+    pose: bool = False,
+    classify: bool = False,
+    on_plot: Optional[Callable] = None,
+):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -819,7 +869,8 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         >>> from ultralytics.utils.plotting import plot_results
         >>> plot_results("path/to/results.csv", segment=True)
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
@@ -861,7 +912,7 @@ def plot_results(file="path/to/results.csv", dir="", segment=False, pose=False, 
         on_plot(fname)
 
 
-def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none"):
+def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
     """
     Plot a scatter plot with points colored based on a 2D histogram.
 
@@ -878,6 +929,8 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
         >>> f = np.random.rand(100)
         >>> plt_color_scatter(v, f)
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     # Calculate 2D histogram and corresponding colors
     hist, xedges, yedges = np.histogram2d(v, f, bins=bins)
     colors = [
@@ -892,7 +945,7 @@ def plt_color_scatter(v, f, bins=20, cmap="viridis", alpha=0.8, edgecolors="none
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
 
 
-def plot_tune_results(csv_file="tune_results.csv"):
+def plot_tune_results(csv_file: str = "tune_results.csv"):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
@@ -903,7 +956,8 @@ def plot_tune_results(csv_file="tune_results.csv"):
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
     """
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+    import pandas as pd
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -947,29 +1001,7 @@ def plot_tune_results(csv_file="tune_results.csv"):
     _save_one_file(csv_file.with_name("tune_fitness.png"))
 
 
-def output_to_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
-    targets = []
-    for i, o in enumerate(output):
-        box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)
-        j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, ops.xyxy2xywh(box), conf), 1))
-    targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
-
-
-def output_to_rotated_target(output, max_det=300):
-    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
-    targets = []
-    for i, o in enumerate(output):
-        box, conf, cls, angle = o[:max_det].cpu().split((4, 1, 1, 1), 1)
-        j = torch.full((conf.shape[0], 1), i)
-        targets.append(torch.cat((j, cls, box, angle, conf), 1))
-    targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:-1], targets[:, -1]
-
-
-def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detect/exp")):
+def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
     """
     Visualize feature maps of a given model module during inference.
 
@@ -980,13 +1012,15 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path("runs/detec
         n (int, optional): Maximum number of feature maps to plot.
         save_dir (Path, optional): Directory to save results.
     """
+    import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
     for m in {"Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder"}:  # all model heads
         if m in module_type:
             return
     if isinstance(x, torch.Tensor):
         _, channels, height, width = x.shape  # batch, channels, height, width
         if height > 1 and width > 1:
-            f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
+            f = save_dir / f"stage{stage}_{module_type.rsplit('.', 1)[-1]}_features.png"  # filename
 
             blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
             n = min(n, channels)  # number of plots

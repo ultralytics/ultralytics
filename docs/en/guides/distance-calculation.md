@@ -102,7 +102,7 @@ You can also make use of various `track` arguments in the `DistanceCalculation` 
 Moreover, the following visualization arguments are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
 
 ## Implementation Details
 

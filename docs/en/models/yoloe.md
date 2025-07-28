@@ -82,6 +82,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 !!! example
 
     === "Fine-Tuning"
+
         ### Instance segmentation
         Fine-tuning a YOLOE pretrained checkpoint mostly follows the [standard YOLO training procedure](../modes/train.md). The key difference is explicitly passing `YOLOEPESegTrainer` as the `trainer` parameter to `model.train()`:
 

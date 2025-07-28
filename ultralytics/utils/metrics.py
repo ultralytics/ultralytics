@@ -879,6 +879,8 @@ class Metric(SimpleClass):
         maps(): mAP of each class. Returns: Array of mAP scores, shape: (nc,).
         fitness(): Model fitness as a weighted combination of metrics. Returns: Float.
         update(results): Update metric attributes with new evaluation results.
+        curves(): Provides a list of curves for accessing specific metrics like precision, recall, F1, etc. Returns: List
+        curves_results(): Provide a list of results for accessing specific metrics like precision, recall, F1, etc. Returns: List[List]
     """
 
     def __init__(self) -> None:
@@ -1039,6 +1041,21 @@ class DetMetrics(SimpleClass, DataExportMixin):
         stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
+
+    Methods:
+        update_stats(stat): Update statistics by appending new values to existing stat collections. Returns: None.
+        process(save_dir, plot, on_plot): Process predicted results for object detection and update metrics. Returns: Dict[str, np.ndarray]
+        clear_stats(): Clear the stored statistics.
+        keys(): Return a list of keys for accessing specific metrics. Returns: List[str]
+        mean_results(): Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95. Returns: List[Float]
+        class_result(i): Return the result of evaluating the performance of an object detection model on a specific class. Returns: Tuple[float, float, float, float]
+        maps(): Return mean Average Precision (mAP) scores per class. Returns: np.ndarray
+        fitness(): Return the fitness of box object. Returns: Float
+        ap_class_index(): Return the average precision index per class. Returns: List
+        results_dict(): Return dictionary of computed performance metrics and statistics. Returns: Dict[str, float]
+        curves(): Return a list of curves for accessing specific metrics curves. Returns: List[str]
+        curves_results(): Return list of computed performance metrics and statistics. Returns: List[List]
+        summary(normalize, decimals): Generate a summarized representation of per-class detection metrics as a list of dictionaries. Returns: List[Dict[str, Any]]
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1144,7 +1161,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     @property
     def curves_results(self) -> List[List]:
-        """Return dictionary of computed performance metrics and statistics."""
+        """Return list of computed performance metrics and statistics."""
         return self.box.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
@@ -1195,6 +1212,17 @@ class SegmentMetrics(DetMetrics):
         stats (Dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
+
+    Methods:
+        process(save_dir, plot, on_plot): Process the detection and segmentation metrics over the given set of predictions. Returns: Dict[str, np.ndarray]
+        keys(): Return a list of keys for accessing metrics. Returns: List[str]
+        mean_results(): Return the mean metrics for bounding box and segmentation results. Returns: List[Float]
+        class_result(i): Return classification results for a specified class index. Returns: List[Float]
+        maps(): Return mAP scores for object detection and semantic segmentation models. Returns: np.ndarray
+        fitness(): Return the fitness score for both segmentation and bounding box models. Returns: Float
+        curves(): Return a list of curves for accessing specific metrics curves. Returns: List[str]
+        curves_results(): Provide a list of computed performance metrics and statistics. Returns: List[List]
+        summary(normalize, decimals): Generate a summarized representation of per-class segmentation metrics as a list of dictionaries. Returns: List[Dict[str, Any]]
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1277,7 +1305,7 @@ class SegmentMetrics(DetMetrics):
 
     @property
     def curves_results(self) -> List[List]:
-        """Return dictionary of computed performance metrics and statistics."""
+        """Return list of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
@@ -1323,13 +1351,15 @@ class PoseMetrics(DetMetrics):
         nt_per_image: Number of targets per image.
 
     Methods:
-        process(tp_m, tp_b, conf, pred_cls, target_cls): Process metrics over the given set of predictions.
-        mean_results(): Return the mean of the detection and segmentation metrics over all the classes.
-        class_result(i): Return the detection and segmentation metrics of class `i`.
-        maps: Return the mean Average Precision (mAP) scores for IoU thresholds ranging from 0.50 to 0.95.
-        fitness: Return the fitness scores, which are a single weighted combination of metrics.
-        ap_class_index: Return the list of indices of classes used to compute Average Precision (AP).
-        results_dict: Return the dictionary containing all the detection and segmentation metrics and fitness score.
+        process(save_dir, plot, on_plot): Process the detection and pose metrics over the given set of predictions. Returns: Dict[str, np.ndarray]
+        keys(): Return a list of keys for accessing metrics. Returns: List[str]
+        mean_results(): Return the mean results of box and pose. Returns: List[Float]
+        class_result(i): Return the class-wise detection results for a specific class i. Returns: List[Float]
+        maps(): Return the mean average precision (mAP) per class for both box and pose detections. Returns: np.ndarray
+        fitness(): Return combined fitness score for pose and box detection. Returns: Float
+        curves(): Return a list of curves for accessing specific metrics curves. Returns: List[str]
+        curves_results(): Provide a list of computed performance metrics and statistics. Returns: List[List]
+        summary(normalize, decimals): Generate a summarized representation of per-class pose metrics as a list of dictionaries. Returns: List[Dict[str, Any]]
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1416,7 +1446,7 @@ class PoseMetrics(DetMetrics):
 
     @property
     def curves_results(self) -> List[List]:
-        """Return dictionary of computed performance metrics and statistics."""
+        """Return list of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
@@ -1456,6 +1486,15 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         top5 (float): The top-5 accuracy.
         speed (dict): A dictionary containing the time taken for each step in the pipeline.
         task (str): The task type, set to 'classify'.
+
+    Methods:
+        process(targets, pred): Process target classes and predicted classes to compute metrics.
+        fitness(): Return mean of top-1 and top-5 accuracies as fitness score. Returns: Float
+        results_dict(): Return a dictionary with model's performance metrics and fitness score. Returns: Dict[str, float]
+        keys(): Return a list of keys for the results_dict property. Returns: List[str]
+        curves(): Return a list of curves for accessing specific metrics curves. Returns: List
+        curves_results(): Provide a list of computed performance metrics and statistics. Returns: List
+        summary(normalize, decimals): Generate a single-row summary of classification metrics (Top-1 and Top-5 accuracy). Returns: List[Dict[str, float]]
     """
 
     def __init__(self) -> None:

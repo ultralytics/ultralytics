@@ -319,11 +319,10 @@ class BYTETracker:
         scores_second = scores[inds_second]
         cls_keep = cls[remain_inds]
         cls_second = cls[inds_second]
+        feats_keep = feats_second = img
         if feats is not None and len(feats) > 0:
             feats_keep = feats[remain_inds]
             feats_second = feats[inds_second]
-        else:
-            feats_keep = feats_second = img
 
         detections = self.init_track(dets, scores_keep, cls_keep, feats_keep)
         # Add newly detected tracklets to tracked_stracks

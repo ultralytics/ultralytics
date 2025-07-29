@@ -6,7 +6,6 @@ from typing import Any, List, Optional
 import numpy as np
 import torch
 
-from ultralytics.utils.checks import IS_PYTHON_3_8
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
 
@@ -200,8 +199,7 @@ class BOTSORT(BYTETracker):
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
         self.encoder = (
-            # native features do not require any model
-            (lambda feats, s: [f.cpu().numpy() for f in feats])
+            (lambda feats, s: [f.cpu().numpy() for f in feats])  # native features do not require any model
             if args.with_reid and self.args.model == "auto"
             else ReID(args.model)
             if args.with_reid
@@ -220,12 +218,9 @@ class BOTSORT(BYTETracker):
             return []
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, dets)
-            # detections
-            kwargs = {} if IS_PYTHON_3_8 else dict(strict=True)
-            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(dets, scores, cls, features_keep, **kwargs)]
+            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
         else:
-            # detections
-            return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(dets, scores, cls)]
+            return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(dets, scores, cls)]  # detections
 
     def get_dists(self, tracks: List[BOTrack], detections: List[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""

@@ -867,20 +867,20 @@ class Metric(SimpleClass):
         nc (int): Number of classes.
 
     Methods:
-        ap50(): AP at IoU threshold of 0.5 for all classes.
-        ap(): AP at IoU thresholds from 0.5 to 0.95 for all classes.
-        mp(): Mean precision of all classes.
-        mr(): Mean recall of all classes.
-        map50(): Mean AP at IoU threshold of 0.5 for all classes.
-        map75(): Mean AP at IoU threshold of 0.75 for all classes.
-        map(): Mean AP at IoU thresholds from 0.5 to 0.95 for all classes.
-        mean_results(): Mean of results, returns mp, mr, map50, map.
-        class_result(i): Class-aware result, returns p[i], r[i], ap50[i], ap[i].
-        maps(): mAP of each class.
-        fitness(): Model fitness as a weighted combination of metrics.
-        update(results): Update metric attributes with new evaluation results.
-        curves(): Provides a list of curves for accessing specific metrics like precision, recall, F1, etc.
-        curves_results(): Provide a list of results for accessing specific metrics like precision, recall, F1, etc.
+        ap50: AP at IoU threshold of 0.5 for all classes.
+        ap: AP at IoU thresholds from 0.5 to 0.95 for all classes.
+        mp: Mean precision of all classes.
+        mr: Mean recall of all classes.
+        map50: Mean AP at IoU threshold of 0.5 for all classes.
+        map75: Mean AP at IoU threshold of 0.75 for all classes.
+        map: Mean AP at IoU thresholds from 0.5 to 0.95 for all classes.
+        mean_results: Mean of results, returns mp, mr, map50, map.
+        class_result: Class-aware result, returns p[i], r[i], ap50[i], ap[i].
+        maps: mAP of each class.
+        fitness: Model fitness as a weighted combination of metrics.
+        update: Update metric attributes with new evaluation results.
+        curves: Provides a list of curves for accessing specific metrics like precision, recall, F1, etc.
+        curves_results: Provide a list of results for accessing specific metrics like precision, recall, F1, etc.
     """
 
     def __init__(self) -> None:
@@ -1043,19 +1043,19 @@ class DetMetrics(SimpleClass, DataExportMixin):
         nt_per_image: Number of targets per image.
 
     Methods:
-        update_stats(stat): Update statistics by appending new values to existing stat collections.
-        process(save_dir, plot, on_plot): Process predicted results for object detection and update metrics.
-        clear_stats(): Clear the stored statistics.
-        keys(): Return a list of keys for accessing specific metrics.
-        mean_results(): Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95.
-        class_result(i): Return the result of evaluating the performance of an object detection model on a specific class.
-        maps(): Return mean Average Precision (mAP) scores per class.
-        fitness(): Return the fitness of box object.
-        ap_class_index(): Return the average precision index per class.
-        results_dict(): Return dictionary of computed performance metrics and statistics.
-        curves(): Return a list of curves for accessing specific metrics curves.
-        curves_results(): Return list of computed performance metrics and statistics.
-        summary(normalize, decimals): Generate a summarized representation of per-class detection metrics as a list of dictionaries.
+        update_stats: Update statistics by appending new values to existing stat collections.
+        process: Process predicted results for object detection and update metrics.
+        clear_stats: Clear the stored statistics.
+        keys: Return a list of keys for accessing specific metrics.
+        mean_results: Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95.
+        class_result: Return the result of evaluating the performance of an object detection model on a specific class.
+        maps: Return mean Average Precision (mAP) scores per class.
+        fitness: Return the fitness of box object.
+        ap_class_index: Return the average precision index per class.
+        results_dict: Return dictionary of computed performance metrics and statistics.
+        curves: Return a list of curves for accessing specific metrics curves.
+        curves_results: Return list of computed performance metrics and statistics.
+        summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1214,15 +1214,15 @@ class SegmentMetrics(DetMetrics):
         nt_per_image: Number of targets per image.
 
     Methods:
-        process(save_dir, plot, on_plot): Process the detection and segmentation metrics over the given set of predictions.
-        keys(): Return a list of keys for accessing metrics.
-        mean_results(): Return the mean metrics for bounding box and segmentation results.
-        class_result(i): Return classification results for a specified class index.
-        maps(): Return mAP scores for object detection and semantic segmentation models.
-        fitness(): Return the fitness score for both segmentation and bounding box models.
-        curves(): Return a list of curves for accessing specific metrics curves.
-        curves_results(): Provide a list of computed performance metrics and statistics.
-        summary(normalize, decimals): Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
+        process: Process the detection and segmentation metrics over the given set of predictions.
+        keys: Return a list of keys for accessing metrics.
+        mean_results: Return the mean metrics for bounding box and segmentation results.
+        class_result: Return classification results for a specified class index.
+        maps: Return mAP scores for object detection and semantic segmentation models.
+        fitness: Return the fitness score for both segmentation and bounding box models.
+        curves: Return a list of curves for accessing specific metrics curves.
+        curves_results: Provide a list of computed performance metrics and statistics.
+        summary: Generate a summarized representation of per-class segmentation metrics as a list of dictionaries.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1351,15 +1351,15 @@ class PoseMetrics(DetMetrics):
         nt_per_image: Number of targets per image.
 
     Methods:
-        process(save_dir, plot, on_plot): Process the detection and pose metrics over the given set of predictions. R
-        keys(): Return a list of keys for accessing metrics.
-        mean_results(): Return the mean results of box and pose.
-        class_result(i): Return the class-wise detection results for a specific class i.
-        maps(): Return the mean average precision (mAP) per class for both box and pose detections.
-        fitness(): Return combined fitness score for pose and box detection.
-        curves(): Return a list of curves for accessing specific metrics curves.
-        curves_results(): Provide a list of computed performance metrics and statistics.
-        summary(normalize, decimals): Generate a summarized representation of per-class pose metrics as a list of dictionaries.
+        process: Process the detection and pose metrics over the given set of predictions. R
+        keys: Return a list of keys for accessing metrics.
+        mean_results: Return the mean results of box and pose.
+        class_result: Return the class-wise detection results for a specific class i.
+        maps: Return the mean average precision (mAP) per class for both box and pose detections.
+        fitness: Return combined fitness score for pose and box detection.
+        curves: Return a list of curves for accessing specific metrics curves.
+        curves_results: Provide a list of computed performance metrics and statistics.
+        summary: Generate a summarized representation of per-class pose metrics as a list of dictionaries.
     """
 
     def __init__(self, names: Dict[int, str] = {}) -> None:
@@ -1488,13 +1488,13 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         task (str): The task type, set to 'classify'.
 
     Methods:
-        process(targets, pred): Process target classes and predicted classes to compute metrics.
-        fitness(): Return mean of top-1 and top-5 accuracies as fitness score.
-        results_dict(): Return a dictionary with model's performance metrics and fitness score.
-        keys(): Return a list of keys for the results_dict property.
-        curves(): Return a list of curves for accessing specific metrics curves.
-        curves_results(): Provide a list of computed performance metrics and statistics.
-        summary(normalize, decimals): Generate a single-row summary of classification metrics (Top-1 and Top-5 accuracy).
+        process: Process target classes and predicted classes to compute metrics.
+        fitness: Return mean of top-1 and top-5 accuracies as fitness score.
+        results_dict: Return a dictionary with model's performance metrics and fitness score.
+        keys: Return a list of keys for the results_dict property.
+        curves: Return a list of curves for accessing specific metrics curves.
+        curves_results: Provide a list of computed performance metrics and statistics.
+        summary: Generate a single-row summary of classification metrics (Top-1 and Top-5 accuracy).
     """
 
     def __init__(self) -> None:

@@ -1054,7 +1054,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         ap_class_index: Return the average precision index per class.
         results_dict: Return dictionary of computed performance metrics and statistics.
         curves: Return a list of curves for accessing specific metrics curves.
-        curves_results: Return list of computed performance metrics and statistics.
+        curves_results: Return a list of computed performance metrics and statistics.
         summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
@@ -1161,7 +1161,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     @property
     def curves_results(self) -> List[List]:
-        """Return list of computed performance metrics and statistics."""
+        """Return a list of computed performance metrics and statistics."""
         return self.box.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
@@ -1305,7 +1305,7 @@ class SegmentMetrics(DetMetrics):
 
     @property
     def curves_results(self) -> List[List]:
-        """Return list of computed performance metrics and statistics."""
+        """Return a list of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.seg.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:
@@ -1404,7 +1404,7 @@ class PoseMetrics(DetMetrics):
 
     @property
     def keys(self) -> List[str]:
-        """Return list of evaluation metric keys."""
+        """Return a list of evaluation metric keys."""
         return DetMetrics.keys.fget(self) + [
             "metrics/precision(P)",
             "metrics/recall(P)",
@@ -1446,7 +1446,7 @@ class PoseMetrics(DetMetrics):
 
     @property
     def curves_results(self) -> List[List]:
-        """Return list of computed performance metrics and statistics."""
+        """Return a list of computed performance metrics and statistics."""
         return DetMetrics.curves_results.fget(self) + self.pose.curves_results
 
     def summary(self, normalize: bool = True, decimals: int = 5) -> List[Dict[str, Any]]:

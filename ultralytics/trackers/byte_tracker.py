@@ -320,7 +320,7 @@ class BYTETracker:
         cls_keep = cls[remain_inds]
         cls_second = cls[inds_second]
         feats_keep = feats_second = img
-        if feats is not None and len(feats) > 0:
+        if feats is not None and len(feats):
             feats_keep = feats[remain_inds]
             feats_second = feats[inds_second]
 

@@ -306,21 +306,16 @@ class BYTETracker:
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
-        cls = results.cls
 
         remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
         inds_high = scores < self.args.track_high_thresh
 
         inds_second = inds_low & inds_high
-        dets_second = bboxes[inds_second]
-        dets = bboxes[remain_inds]
-        scores_keep = scores[remain_inds]
-        scores_second = scores[inds_second]
-        cls_keep = cls[remain_inds]
-        cls_second = cls[inds_second]
+        results_second = results[inds_second]
+        results = results[remain_inds]
 
-        detections = self.init_track(dets, scores_keep, cls_keep, img if feats is None else feats)
+        detections = self.init_track(results, img if feats is None else feats)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks = []  # type: List[STrack]
@@ -336,6 +331,8 @@ class BYTETracker:
         if hasattr(self, "gmc") and img is not None:
             # use try-except here to bypass errors from gmc module
             try:
+                # TODO: fix this, this seems to need xyxy format
+                dets = results.xywhr if hasattr(results, "xywhr") else results.xywh
                 warp = self.gmc.apply(img, dets)
             except Exception:
                 warp = np.eye(2, 3)
@@ -355,7 +352,7 @@ class BYTETracker:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
-        detections_second = self.init_track(dets_second, scores_second, cls_second, img if feats is None else feats)
+        detections_second = self.init_track(results_second, img if feats is None else feats)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
@@ -416,11 +413,13 @@ class BYTETracker:
         """Return a Kalman filter object for tracking bounding boxes using KalmanFilterXYAH."""
         return KalmanFilterXYAH()
 
-    def init_track(
-        self, dets: np.ndarray, scores: np.ndarray, cls: np.ndarray, img: Optional[np.ndarray] = None
-    ) -> List[STrack]:
+    def init_track(self, results, img: Optional[np.ndarray] = None) -> List[STrack]:
         """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
-        return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
+        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
+        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
+        return (
+            [STrack(xyxy, s, c) for (xyxy, s, c) in zip(bboxes, results.conf, results.cls)] if len(bboxes) else []
+        )  # detections
 
     def get_dists(self, tracks: List[STrack], detections: List[STrack]) -> np.ndarray:
         """Calculate the distance between tracks and detections using IoU and optionally fuse scores."""

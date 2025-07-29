@@ -115,6 +115,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         ```python
         from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer as Trainer  # noqa
 
         model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")  # make sure .pt is of same scale ss YAML
 
@@ -175,6 +176,7 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         ```python
         from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer as Trainer  # noqa
 
         model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")  # make sure .pt is of same scale as YAML
 

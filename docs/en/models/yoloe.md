@@ -77,9 +77,14 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
 #### Fine-Tuning on custom dataset
 
+You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on your custom YOLO dataset for both detection and instance segmentation tasks.
+
 !!! example
 
     === "Fine-Tuning"
+
+        ### Instance segmentation
+        Fine-tuning a YOLOE pretrained checkpoint mostly follows the [standard YOLO training procedure](../modes/train.md). The key difference is explicitly passing `YOLOEPESegTrainer` as the `trainer` parameter to `model.train()`:
 
         ```python
         from ultralytics import YOLOE
@@ -87,11 +92,11 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
         model = YOLOE("yoloe-11s-seg.pt")
 
-        model.train(
+        results = model.train(
             data="coco128-seg.yaml",
             epochs=80,
             close_mosaic=10,
-            batch=128,
+            batch=16,
             optimizer="AdamW",
             lr0=1e-3,
             warmup_bias_lr=0.0,
@@ -103,7 +108,38 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
         )
         ```
 
+        ### Detection
+
+        All [pretrained YOLOE models](#textvisual-prompt-models) perform instance segmentation by default. To use these pretrained checkpoints for training a detection model, initialize a detection model from scratch using the YAML configuration, then pass the pretrained segmentation checkpoint of the same scale as the `pretrained` argument. Note that we use `YOLOEPETrainer` instead of `YOLOEPESegTrainer` since we're training a detection model:
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
+
+        model = YOLOE("yoloe-11s.yaml")  # load detection architecture using .yaml
+
+        results = model.train(
+            data="coco128.yaml",
+            epochs=80,
+            close_mosaic=10,
+            batch=16,
+            optimizer="AdamW",
+            lr0=1e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            device="0",
+            trainer=YOLOEPETrainer,
+            pretrained="yoloe-11s-seg.pt",  # use pretrained checkpoint of matching scale
+        )
+        ```
+
     === "Linear Probing"
+
+        Linear probing fine-tunes only the classification branch while freezing the rest of the model. This approach is useful when working with limited data, as it prevents overfitting by leveraging previously learned features while adapting only the classification head.
+
+        ### Instance segmentation
 
         ```python
         from ultralytics import YOLOE
@@ -111,11 +147,14 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
         model = YOLOE("yoloe-11s-seg.pt")
         head_index = len(model.model.model) - 1
-        freeze = [str(f) for f in range(0, head_index)]
+        freeze = [str(f) for f in range(0, head_index)]  # freeze all layers except head
+
+        # Freeze all head components except classification branch
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
                 freeze.append(f"{head_index}.{name}")
 
+        # Freeze detection branch components
         freeze.extend(
             [
                 f"{head_index}.cv3.0.0",
@@ -127,7 +166,7 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             ]
         )
 
-        model.train(
+        results = model.train(
             data="coco128-seg.yaml",
             epochs=2,
             close_mosaic=0,
@@ -141,6 +180,51 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             device="0",
             trainer=YOLOEPESegTrainer,
             freeze=freeze,
+        )
+        ```
+
+        ### Detection
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
+
+        model = YOLOE("yoloe-11s.yaml")  # load from YAML config
+        head_index = len(model.model.model) - 1
+        freeze = [str(f) for f in range(0, head_index)]  # freeze all layers except head
+
+        # Freeze all head components except classification branch
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        # Freeze detection branch components
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        results = model.train(
+            data="coco128.yaml",
+            epochs=2,
+            close_mosaic=0,
+            batch=16,
+            optimizer="AdamW",
+            lr0=1e-3,
+            warmup_bias_lr=0.0,
+            weight_decay=0.025,
+            momentum=0.9,
+            workers=4,
+            device="0",
+            trainer=YOLOEPETrainer,
+            freeze=freeze,
+            pretrained="yoloe-11s-seg.pt",  # use pretrained checkpoint of matching scale
         )
         ```
 

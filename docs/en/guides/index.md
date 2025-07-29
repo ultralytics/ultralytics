@@ -54,6 +54,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [A Guide on Model Testing](model-testing.md) 🚀 NEW: A thorough guide on testing your computer vision models in realistic settings. Learn how to verify accuracy, reliability, and performance in line with project goals.
 - [Best Practices for Model Deployment](model-deployment-practices.md) 🚀 NEW: Walk through tips and best practices for efficiently deploying models in computer vision projects, with a focus on optimization, troubleshooting, and security.
 - [Maintaining Your Computer Vision Model](model-monitoring-and-maintenance.md) 🚀 NEW: Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.
+- [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md) 🚀 NEW: Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
 
 ## Contribute to Our Guides
 

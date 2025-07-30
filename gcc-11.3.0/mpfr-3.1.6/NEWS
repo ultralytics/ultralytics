@@ -1,0 +1,337 @@
+Copyright 2000-2017 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
+
+This file is part of the GNU MPFR Library.
+
+The GNU MPFR Library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 3 of the License, or (at your
+option) any later version.
+
+The GNU MPFR Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the GNU MPFR Library; see the file COPYING.LESSER.  If not, see
+http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
+51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+
+##############################################################################
+
+Changes from version 3.1.5 to version 3.1.6:
+- Improved MPFR manual.
+- Bug fixes (see <http://www.mpfr.org/mpfr-3.1.5/#fixed> and ChangeLog file).
+- Autotools: Under Linux, make sure that the old dtags (when supported)
+  are used if LD_LIBRARY_PATH is defined; otherwise "make check" would
+  check an installed, compatible MPFR library found in LD_LIBRARY_PATH
+  instead of the one that has been built with "make".
+
+Changes from version 3.1.4 to version 3.1.5:
+- C++11 compatibility.
+- Bug fixes (see <http://www.mpfr.org/mpfr-3.1.4/#fixed> and ChangeLog file).
+- More tests.
+
+Changes from version 3.1.3 to version 3.1.4:
+- Improved MPFR manual.
+- Bug fixes (see <http://www.mpfr.org/mpfr-3.1.3/#fixed> and ChangeLog file).
+- MinGW (MS Windows): Added support for thread-safe DLL (shared library).
+
+Changes from version 3.1.2 to version 3.1.3:
+- Better support for Automake 1.13+ (now used to generate the tarball).
+- Improved MPFR manual.
+- Bug fixes (see <http://www.mpfr.org/mpfr-3.1.2/#fixed> and ChangeLog file).
+
+Changes from version 3.1.1 to version 3.1.2:
+- Bug fixes (see <http://www.mpfr.org/mpfr-3.1.1/#fixed> or ChangeLog file).
+- Updated examples to the MPFR 3.x API.
+- Note: The official tarballs for MPFR up to 3.1.1 were affected by a
+  vulnerability for "make distcheck" due to a bug in old GNU Automake
+  versions: http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-3386
+
+Changes from version 3.1.0 to version 3.1.1:
+- Improved MPFR manual.
+- Test coverage: 96.5% lines of code.
+- Bug fixes (see <http://www.mpfr.org/mpfr-3.1.0/#fixed> or ChangeLog file).
+
+Changes from versions 3.0.* to version 3.1.0:
+- The "canard à l'orange" release.
+- The MPFR source has been reorganized.
+- Dropped ansi2knr support.
+- TLS support is now detected automatically. If TLS is supported, MPFR is
+  built as thread safe by default. To disable TLS explicitly, configure
+  MPFR with --disable-thread-safe.
+- New --enable-gmp-internals configure option to use GMP's undocumented
+  functions (not from the public API). Note that library versioning is
+  not guaranteed to work if this option is used.
+- The mpfr_urandom and mpfr_urandomb functions now return identical values
+  on processors with different word size (assuming the same random seed, and
+  since the GMP random generator does not depend itself on the word size,
+  cf http://gmplib.org/list-archives/gmp-devel/2010-September/001642.html).
+- The mpfr_add_one_ulp and mpfr_sub_one_ulp macros (which are obsolete and
+  no more documented) will be removed in a future release.
+- Speed improvement for the mpfr_sqr and mpfr_div functions using Mulders'
+  algorithm. As a consequence, other functions using those routines are
+  also faster.
+- Much faster formatted output (mpfr_printf, etc.) with %Rg and similar.
+- The --with-gmp-build configure option can now be used when the GMP
+  source directory and the GMP build directory are different (without
+  having to copy header files manually as before).
+- New functions mpfr_buildopt_gmpinternals_p, mpfr_buildopt_tune_case,
+  mpfr_frexp, mpfr_grandom and mpfr_z_sub.
+- New divide-by-zero exception (flag) and associated functions.
+- The mpfr.h header can be included several times, while still supporting
+  optional functions (see Section "Headers and Libraries" in the manual).
+- Updated tuning parameters.
+- Improved MPFR manual.
+- MPFR tests: libtool no longer generates wrapper scripts with "make check"
+  (so that running the tests under valgrind or gdb is easier).
+- Internal change: the logging mechanism has been improved.
+- Test coverage: 95.2% lines of code.
+- Bug fixes, in particular a huge inefficiency in mpfr_exp (when the
+  target precision is less than MPFR_EXP_THRESHOLD) on hard-to-round
+  cases, which can take several minutes.
+  Note: The mpfr_subnormalize implementation up to MPFR 3.0.0 did not change
+  the flags. In particular, it did not follow the generic rule concerning
+  the inexact flag (and no special behavior was specified). The case of the
+  underflow flag was more a lack of specification.
+
+Changes from versions 2.4.* to version 3.0.0:
+- The "boudin aux pommes" release.
+- MPFR 3.0.0 is binary incompatible with previous versions but (almost)
+  API compatible.  More precisely the obsolete functions mpfr_random
+  and mpfr_random2 have been removed, the meaning of the return type
+  of the function mpfr_get_f has changed, and the return type of the
+  function mpfr_get_z is now int instead of void.  In practice, this
+  should not break any existing code.
+- MPFR is now distributed under the GNU Lesser General Public License
+  version 3 or later (LGPL v3+).
+- Rounding modes GMP_RNDx are now MPFR_RNDx (GMP_RNDx kept for
+  compatibility).
+- A new rounding mode (MPFR_RNDA) is available to round away from zero.
+- The rounding mode type is now mpfr_rnd_t (as in previous versions,
+  both mpfr_rnd_t and mp_rnd_t are accepted, but mp_rnd_t may be
+  removed in the future).
+- The precision type is now mpfr_prec_t (as in previous versions, both
+  mpfr_prec_t and mp_prec_t are accepted, but mp_prec_t may be removed
+  in the future) and it is now signed (it was unsigned in MPFR 2.*, but
+  this was not documented). In practice, this change should not affect
+  existing code that assumed nothing on the precision type.
+- MPFR now has its own exponent type mpfr_exp_t, which is currently
+  the same as GMP's mp_exp_t.
+- Functions mpfr_random and mpfr_random2 have been removed.
+- mpfr_get_f and mpfr_get_z now return a ternary value.
+- mpfr_strtofr now accepts bases from 37 to 62.
+- mpfr_custom_get_mantissa was renamed to mpfr_custom_get_significand
+  (mpfr_custom_get_mantissa is still available via a #define).
+- Functions mpfr_get_si, mpfr_get_ui, mpfr_get_sj, mpfr_get_uj,
+  mpfr_get_z and mpfr_get_z_2exp no longer have cases with undefined
+  behavior; in these cases, the behavior is now specified, and in
+  particular, the erange flag is set.
+- New functions mpfr_buildopt_tls_p and mpfr_buildopt_decimal_p giving
+  information about options used at MPFR build time.
+- New function mpfr_regular_p.
+- New function mpfr_set_zero.
+- New function mpfr_digamma.
+- New function mpfr_ai (incomplete, experimental).
+- New functions mpfr_set_flt and mpfr_get_flt to convert from/to the
+  float type.
+- New function mpfr_urandom.
+- New function mpfr_set_z_2exp (companion to mpfr_get_z_2exp, which
+  was renamed from mpfr_get_z_exp in previous versions).
+- New function mpfr_min_prec.
+- Speed improvement for large precisions in the trigonometric functions
+  (mpfr_sin, mpfr_cos, mpfr_tan, mpfr_sin_cos): speedup of about 2.5
+  for 10^5 digits, of about 5 for 10^6 digits.
+- Speed improvement for large precisions of the inverse trigonometric
+  functions (arcsin, arccos, arctan): about 2 for 10^3 digits, up to
+  2.7 for 10^6 digits.
+- Some documentation files are installed in $docdir.
+- The detection of a GMP build directory (more precisely, the internal
+  header files of GMP) was previously done separately from the use of
+  the --with-gmp-build configure option. This was not consistent with
+  the documentation and with other parts of the configure script. So,
+  as of MPFR 3.0.0, the internal header files of GMP are now used if
+  and only if the --with-gmp-build configure option is given.
+- The configure script recognizes some extra "long double" formats
+  (double big endian, double little endian, double-double big endian).
+- MPFR manual: added "API Compatibility" section.
+- Test coverage: 97.1% lines of code.
+- Bug fixes.
+
+Changes from versions 2.3.* to version 2.4.0:
+- The "andouillette sauce moutarde" release.
+- MPFR is now a GNU package.
+- Changes in the behavior of mpfr_strtofr and in its documentation
+  concerning particular cases where the code and the documentation
+  did not match; this change is also present in MPFR 2.3.1.
+- Behavior of mpfr_check_range changed: if the value is an inexact
+  infinity, the overflow flag is set (in case it was lost); this
+  change is also present in MPFR 2.3.2.
+- Function mpfr_init_gmp_rand (only defined when building MPFR without
+  the --with-gmp-build configure option) is no longer defined at all.
+  This function was private and not documented, and was used only in
+  the MPFR test suite. User code that calls it is regarded as broken
+  and may fail as a consequence. Running the old test suite against
+  MPFR 2.4.0 may also fail.
+- New functions:
+  * between a MPFR number and a double: mpfr_add_d, mpfr_sub_d,
+    mpfr_d_sub, mpfr_mul_d, mpfr_div_d, mpfr_d_div,
+  * formatted input/output:
+    mpfr_printf, mpfr_fprintf, mpfr_vprintf, mpfr_vfprintf,
+    mpfr_sprintf, mpfr_snprintf, mpfr_vsprintf, mpfr_vsnprintf,
+    mpfr_asprintf, mpfr_vasprintf.
+  * mpfr_sinh_cosh, mpfr_li2, mpfr_modf, mpfr_fmod, mpfr_rec_sqrt.
+- Configure test for TLS support.
+- Get default $CC and $CFLAGS from gmp.h (__GMP_CC / __GMP_CFLAGS,
+  which are available as of GMP 4.2.3).
+- Documented the fact that mpfr_random and mpfr_random2 will be
+  suppressed in the next release, and that the specification of
+  mpfr_eq may change in the next release (for compatibility with
+  the mpf layer of GMP).
+- Test coverage: 96.7% lines of code.
+- Bug fixes.
+
+Changes from versions 2.2.* to version 2.3.0:
+- The mpfr.info file is now installed in the share subdirectory
+  (as required by the Filesystem Hierarchy Standard); see output
+  of "./configure --help".
+- The shared library is now enabled by default. If the MPFR build
+  fails on your platform, try the --disable-shared configure option
+  to disable the shared library.
+- Thread-safe support with Microsoft Visual compiler.
+- New functions mpfr_j0, mpfr_j1, mpfr_jn, mpfr_y0, mpfr_y1, mpfr_yn,
+  mpfr_lgamma, mpfr_remainder, mpfr_remquo, mpfr_fms, mpfr_signbit,
+  mpfr_setsign, mpfr_copysign, mpfr_get_patches.
+- Functions mpfr_sin, mpfr_cos and mpfr_sin_cos improved (argument
+  reduction).
+- More detailed MPFR manual.
+- Improved tests (make check).
+- Bug fixes.
+
+Changes from versions 2.1.* to version 2.2.0:
+- Bug fixes.
+- new functions mpfr_set_overflow, mpfr_set_underflow, mpfr_set_inexflag,
+  mpfr_set_erangeflag, mpfr_set_nanflag, mpfr_erfc, mpfr_atan2, mpfr_pow_z,
+  mpfr_subnormalize, mpfr_const_catalan, mpfr_sec, mpfr_csc, mpfr_cot,
+  mpfr_root, mpfr_eint, mpfr_get_f, mpfr_sech, mpfr_csch, mpfr_coth,
+  mpfr_lngamma.
+- new macro: MPFR_VERSION_STRING
+- Remove the exported MPFR variables from mpfr.h to mpfr-impl.h.
+  (They were undocumented, so programs which respect the API still work).
+- Grep CC and CFLAGS from GMP Makefile if possible.
+- Math functions are faster (both average and worst cases).
+- Better support for long double.
+- Shared library of MPFR.
+- Binary compatible with previous versions if you do not use undocumented
+  features.
+- Thread safe (if built with --enable-thread-safe).
+- Logging facility.
+- Change in the semantics of mpfr_out_str/mpfr_get_str when n_digits=0.
+- Better locale support.
+
+Changes from version 2.1.0 to version 2.1.1:
+- Better way to detect the GMP library.
+- Bug fixes.
+
+Changes from version 2.0.3 to version 2.1.0:
+- Bug fixes.
+- new functions mpfr_strtofr, mpfr_set_uj, mpfr_set_sj, mpfr_set_ui_2exp,
+  mpfr_set_si_2exp, mpfr_set_sj_2exp, mpfr_set_uj_2exp, mpfr_get_uj,
+  mpfr_get_sj, mpfr_get_z, mpfr_free_str, mpfr_si_sub, mpfr_sub_si,
+  mpfr_mul_si, mpfr_si_div, mpfr_div_si, mpfr_sqr, mpfr_cmp_z, mpfr_cmp_q,
+  mpfr_zero_p, mpfr_free_cache, mpfr_sum, mpfr_get_version,
+  mpfr_get_default_rounding_mode, mpfr_get_emin_min, mpfr_get_emin_max,
+  mpfr_get_emax_min, mpfr_get_emax_max, mpfr_inits, mpfr_inits2, mpfr_clears,
+  mpfr_fits_intmax_p, mpfr_fits_uintmax_p, mpfr_clear_erangeflag,
+  mpfr_erangeflag_p, mpfr_rint_round, mpfr_rint_trunc, mpfr_rint_ceil,
+  mpfr_rint_floor.
+- new macros MPFR_DECL_INIT, MPFR_VERSION, MPFR_VERSION_NUM,
+  MPFR_VERSION_MAJOR, MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL.
+- improved documentation.
+- improved configure.
+- improved portability (library and test suite).
+- It handles correctly non IEEE-754 double.
+- GMP internal files are not needed to install MPFR.
+- It is faster with low-precision floating point.
+- New global flag: ERANGE_FLAG.
+- Binary incompatible with previous versions, but API compatible.
+- mpfr_set_str doesn't allow anymore "@NAN@garbagechar" and "@INF@garbagechar",
+  allows base 0 (detection of the base), prefix (0x, 0b), leading whitespace.
+
+Changes from version 2.0.2 to version 2.0.3:
+- Bug fixes.
+- Support GMP as a shared library (not fully tested).
+
+Changes from version 2.0.1 to version 2.0.2:
+- many bug fixes and other improvements.
+- new functions mpfr_prec_round (replaces mpfr_round_prec), mpfr_get_exp,
+  mpfr_set_exp, mpfr_get_ld, mpfr_set_ld, mpfr_get_d_2exp, mpfr_get_si,
+  mpfr_get_ui, mpfr_nextabove, mpfr_nextbelow, mpfr_nexttoward, mpfr_frac,
+  mpfr_fits_*, mpfr_cmp_d, mpfr_cmpabs, mpfr_erf, mpfr_gamma, mpfr_zeta,
+  mpfr_greater_p, mpfr_greaterequal_p, mpfr_less_p, mpfr_lessequal_p,
+  mpfr_lessgreater_p, mpfr_equal_p, mpfr_unordered_p.
+- removed functions: mpfr_print_binary, mpfr_round_prec (replaced by
+  mpfr_prec_round), mpfr_set_str_raw, mpfr_set_machine_rnd_mode.
+- function mpfr_isinteger renamed mpfr_integer_p.
+- return type of some functions changed from void to int, for consistency.
+- return type of mpfr_set_prec changed from int to void.
+- new values for exponent range.
+- rename internal variables.
+
+Changes from version 2001 to version 2.0.1:
+- new mathematical functions: acos, acosh, asin, asinh, atan, atanh, cosh,
+  base-2 exponential and logarithm, base-10 logarithm, expm1, factorial,
+  pow, pow_si, pow_ui, sinh, tan, tanh, ui_pow, ui_pow_ui
+- other new functions: mpfr_const_euler, mpfr_dim, mpfr_fma, mpfr_hypot,
+  mpfr_min, mpfr_max, mpfr_rint, mpfr_set_inf, mpfr_set_nan
+- new operations with MPZ or MPQ: mpfr_{add,sub,mul,div}_[zq]
+- new predicates: mpfr_inf_p, mpfr_nan_p, mpfr_number_p, mpfr_isinteger,
+- add mechanism to set/check exponent range (overflow, underflow), partially
+  implemented in the mpfr functions.
+- efficiency: mpfr_div is now faster when the divisor has a few limbs
+- rounding: now mpfr_pow implements exact rounding, and most functions return a
+  ternary value indicating the position of the returned value wrt the exact one
+  (thus the return value is now 'int' instead of 'void')
+- complete rewrite of the configuration files
+- mpfr_get_d, mpfr_{add,sub}_one_ulp now get a rounding mode as 2nd argument
+- some function names did change: mpz_set_fr is now mpfr_get_z_exp,
+  mpfr_print_raw is now mpfr_print_binary.
+
+Changes from version 1.0 to version 2001:
+- the default installation does not provide any more access to machine
+  rounding mode, and as a consequence does not compare MPFR results with
+  precision=53 to machine results. Add option -DTEST if you want to have
+  access to machine rounding mode, and to check MPFR results against.
+- the MPFR files do not need <math.h> any more
+- the header file <mpfr.h> was split into <mpfr.h> for exported functions
+  and <mpfr-impl.h> for internal functions. The user should not use functions
+  or macros from <mpfr-impl.h>, since those may change in further releases.
+- <mpfr.h> was modified in order to make easy a C++ interface
+- MPFR now deals with infinities (+infinity and -infinity) and NaN
+- the missing function mpfr_swap is now available
+- mpfr_zeta was removed (was incomplete)
+- mpfr_init and mpfr_init2 now initialize the corresponding variable to 0
+  (like in other initialization functions from GNU MP)
+- in case memory allocation fails, an error message is output
+- several bugs of version 1.0 were fixed
+
+Changes from version 0.4 to version 1.0:
+
+- Version 1.0 now uses a standard configure/make installation.
+- Version 1.0 implements all functions that are available in the MPF class
+  from GMP 3.1 (except mpf_swap) and a header file mpf2mpfr.h is included in
+  the distribution for easy change from MPF to MPFR.
+- Version 1.0 implements new elementary functions: mpfr_sincos
+- Some functions and macros have been renamed: mpfr_log2 is now
+  mpfr_const_log2, mpfr_pi is now mpfr_const_pi, SIGN is now MPFR_SIGN.
+- Version 1.0 uses faster algorithms for mpfr_exp, mpfr_const_pi,
+  mpfr_const_log2. Compare the timings from version 1.0 and version 0.4.
+- Version 1.0 corrects some bugs of version 0.4.
+- The precision of MPFR variables is now named mpfr_prec, which makes it
+  easier to change it, to say unsigned long long. Same for the rounding mode
+  which is called mp_rnd_t.
+
+You'll find other news concerning the GNU MPFR library on the web
+page <http://www.mpfr.org/>.

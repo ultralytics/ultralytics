@@ -1,0 +1,6 @@
+domain: "[outerTimeTileScatter, outerProcTileScatter1, outerProcTileScatter2, M, N] -> { S1[compIter1, compIter2, compIter3, 2compIter1 + compIter2 + compIter3, 1 + compIter1 + compIter2 + compIter3, 1 + compIter1 + compIter2] : N >= 3 and compIter3 <= 3 + 5outerProcTileScatter1 - compIter1 - compIter2 and compIter2 >= -1 + 5outerProcTileScatter2 - compIter1 and M >= 2 and compIter3 <= 4 + 5outerTimeTileScatter - 2compIter1 - compIter2 and compIter2 <= 3 + 5outerProcTileScatter2 - compIter1 and compIter3 >= 1 and compIter3 <= -2 + N and compIter2 >= 1 and compIter2 <= -2 + N and compIter1 >= 1 and compIter1 <= -1 + M and compIter3 >= 5outerTimeTileScatter - 2compIter1 - compIter2 and compIter3 >= -1 + 5outerProcTileScatter1 - compIter1 - compIter2 }"
+child:
+  context: "[outerTimeTileScatter, outerProcTileScatter1, outerProcTileScatter2, M, N] -> { [] }"
+  child:
+    schedule: "[outerTimeTileScatter, outerProcTileScatter1, outerProcTileScatter2, M, N] -> [{ S1[i0, i1, i2, i3, i4, i5] -> [(i3)] }, { S1[i0, i1, i2, i3, i4, i5] -> [(i4)] }, { S1[i0, i1, i2, i3, i4, i5] -> [(i5)] }]"
+    options: "[outerTimeTileScatter, outerProcTileScatter1, outerProcTileScatter2, M, N] -> { separate[i0] }"

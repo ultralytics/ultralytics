@@ -1,0 +1,84 @@
+# Data file for mpc_sinh.
+#
+# Copyright (C) 2008, 2010 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# For explanations on the file format, see sin.dat.
+
+# special values (following ISO C99 standard)
+0 0 7  inf 7  NaN   7 -inf 7 -inf N N
+0 0 7 -inf 7 -inf   7 -inf 7   -1 N N
+0 0 7 -inf 7   -0   7 -inf 7   -0 N N
+0 0 7 -inf 7   +0   7 -inf 7   +0 N N
+0 0 7 -inf 7 +inf   7 -inf 7    1 N N
+0 0 7  inf 7  NaN   7 -inf 7 +inf N N
+0 0 7  inf 7  NaN   7 -inf 7  NaN N N
+0 0 7  NaN 7  NaN   7   -1 7 -inf N N
+0 0 7  NaN 7  NaN   7   -1 7 +inf N N
+0 0 7  NaN 7  NaN   7   -1 7  NaN N N
+0 0 7    0 7  NaN   7   -0 7 -inf N N
+0 0 7   -0 7   -0   7   -0 7   -0 N N
+0 0 7   -0 7   +0   7   -0 7   +0 N N
+0 0 7    0 7  NaN   7   -0 7 +inf N N
+0 0 7    0 7  NaN   7   -0 7  NaN N N
+0 0 7    0 7  NaN   7   +0 7 -inf N N
+0 0 7   +0 7   -0   7   +0 7   -0 N N
+0 0 7   +0 7   +0   7   +0 7   +0 N N
+0 0 7    0 7  NaN   7   +0 7 +inf N N
+0 0 7    0 7  NaN   7   +0 7  NaN N N
+0 0 7  NaN 7  NaN   7    1 7 -inf N N
+0 0 7  NaN 7  NaN   7    1 7 +inf N N
+0 0 7  NaN 7  NaN   7    1 7  NaN N N
+0 0 7  inf 7  NaN   7 +inf 7 -inf N N
+0 0 7 +inf 7 -inf   7 +inf 7   -1 N N
+0 0 7 +inf 7   -0   7 +inf 7   -0 N N
+0 0 7 +inf 7   +0   7 +inf 7   +0 N N
+0 0 7 +inf 7 +inf   7 +inf 7    1 N N
+0 0 7  inf 7  NaN   7 +inf 7 +inf N N
+0 0 7  inf 7  NaN   7 +inf 7  NaN N N
+0 0 7  NaN 7  NaN   7  NaN 7 -inf N N
+0 0 7  NaN 7  NaN   7  NaN 7   -1 N N
+0 0 7  NaN 7   -0   7  NaN 7   -0 N N
+0 0 7  NaN 7   +0   7  NaN 7   +0 N N
+0 0 7  NaN 7  NaN   7  NaN 7    1 N N
+0 0 7  NaN 7  NaN   7  NaN 7 +inf N N
+0 0 7  NaN 7  NaN   7  NaN 7  NaN N N
+
+# purely real argument
++ 0 50 -0x12cd9fc44eb98p-48 50 -0   7 -1 7 -0 N N
++ 0 50 -0x12cd9fc44eb98p-48 50 +0   7 -1 7 +0 N N
+- 0 50  0x12cd9fc44eb98p-48 50 -0   7  1 7 -0 N N
+- 0 50  0x12cd9fc44eb98p-48 50 +0   7  1 7 +0 N N
+
+# purely imaginary argument
+0 - 50 -0 50 -0xd76aa47848678p-52   7   -0 7 -1 N N
+0 + 50 -0 50  0xd76aa47848678p-52   7   -0 7  1 N N
+0 - 50 +0 50 -0xd76aa47848678p-52   7   +0 7 -1 N N
+0 + 50 +0 50  0xd76aa47848678p-52   7   +0 7  1 N N
+
+# values with +1 and -1
++ - 50 -0xa28cfec023fc8p-52 50 -0x14c67b74f6cc5p-48   7 -1 7 -1 N N
++ + 50 -0xa28cfec023fc8p-52 50  0x14c67b74f6cc5p-48   7 -1 7  1 N N
+- - 50  0xa28cfec023fc8p-52 50 -0x14c67b74f6cc5p-48   7  1 7 -1 N N
+- + 50  0xa28cfec023fc8p-52 50  0x14c67b74f6cc5p-48   7  1 7  1 N N
+
+# IEEE-754 double precision
+- - 53 0xF48D4FDF29C53p-105 53 2   53 0x15124271980435p-52 53 0x3243F6A8885A3p-49 N N
+
+# huge values
++ - 53 +inf 53 -inf 53 0x4580CBF242683p-3 53 -0x1B3E8A3660D279p-3 N N
++ + 53 +inf 53 +inf 53 -0x1B3E8A3660D279p-3 53 0x4580CBF242683p-3 N N

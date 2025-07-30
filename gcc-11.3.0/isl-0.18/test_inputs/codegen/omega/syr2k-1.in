@@ -1,0 +1,3 @@
+[n, b] -> { s0[i, j, k] -> [1 - i + j, -j + k, k] : i >= 1 and j >= i and j <= n and k >= 1 and k <= n and k <= -1 + b + i and k >= 1 - b + j }
+[b, n] -> {  : b >= 1 and n >= b }
+[n, b] -> { [i0, i1, i2] -> separate[o0] : o0 >= 2; [i0, i1, i2] -> atomic[o0] : o0 <= 1 }

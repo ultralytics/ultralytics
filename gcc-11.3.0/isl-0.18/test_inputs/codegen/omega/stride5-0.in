@@ -1,0 +1,3 @@
+[n] -> { s0[In_1, In_2] -> [In_1, In_2] : exists (e0 = [(In_1)/2], e1 = [(In_2)/2]: 2e0 = In_1 and 2e1 = In_2 and In_1 >= 2 and In_1 <= 100 and In_2 <= 400 and In_2 >= 2n + In_1) }
+{  :  }
+[n] -> { [i0, i1] -> atomic[o0] : o0 <= 0; [i0, i1] -> separate[o0] : o0 >= 1 }

@@ -1,0 +1,3 @@
+{ s0[In_1, In_2, In_3, In_4, In_5, In_6, In_7, In_8] -> [In_1, In_2, In_3, In_4, In_5, In_6, In_7, In_8] : In_7 >= 1000In_5 and In_8 >= In_7 and In_8 <= 501 + 500In_6 and In_8 <= 1 + 2In_7 and In_7 <= 999 + 1000In_5 and In_7 <= 1000 and In_8 >= 1000In_1 - In_7 and In_8 <= 999 + 1000In_1 - In_7 and 2In_8 >= 1000In_2 + In_7 and 2In_8 <= 999 + 1000In_2 + In_7 and 3In_7 >= -1 + 1000In_3 and 3In_7 <= 998 + 1000In_3 and In_8 >= 2 + 500In_6 and In_6 >= 0 and In_8 >= 2 + 1000In_4 - 2In_7 and In_8 <= 1001 + 1000In_4 - 2In_7 }
+{  :  }
+{ [i0, i1, i2, i3, i4, i5, i6, i7] -> atomic[o0] : o0 <= 6; [i0, i1, i2, i3, i4, i5, i6, i7] -> separate[o0] : o0 >= 7 }

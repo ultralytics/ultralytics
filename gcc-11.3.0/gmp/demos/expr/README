@@ -1,0 +1,501 @@
+Copyright 2001, 2004 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+
+                    GMP EXPRESSION EVALUATION
+                    -------------------------
+
+
+
+THIS CODE IS PRELIMINARY AND MAY BE SUBJECT TO INCOMPATIBLE CHANGES IN
+FUTURE VERSIONS OF GMP.
+
+
+
+The files in this directory implement a simple scheme of string based
+expression parsing and evaluation, supporting mpz, mpq and mpf.
+
+This will be slower than direct GMP library calls, but may be convenient in
+various circumstances, such as while prototyping, or for letting a user
+enter values in symbolic form.  "2**5723-7" for example is a lot easier to
+enter or maintain than the equivalent written out in decimal.
+
+
+
+BUILDING
+
+Nothing in this directory is a normal part of libgmp, and nothing is built
+or installed, but various Makefile rules are available to compile
+everything.
+
+All the functions are available through a little library (there's no shared
+library since upward binary compatibility is not guaranteed).
+
+	make libexpr.a
+
+In a program, prototypes are available using
+
+	#include "expr.h"
+
+run-expr.c is a sample program doing evaluations from the command line.
+
+	make run-expr
+	./run-expr '1+2*3'
+
+t-expr.c is self-test program, it prints nothing if successful.
+
+	make t-expr
+	./t-expr
+
+The expr*.c sources don't depend on gmp-impl.h and can be compiled with just
+a standard installed GMP.  This isn't true of t-expr though, since it uses
+some of the internal tests/libtests.la.
+
+
+
+SIMPLE USAGE
+
+int mpz_expr (mpz_t res, int base, const char *e, ...);
+int mpq_expr (mpq_t res, int base, const char *e, ...);
+int mpf_expr (mpf_t res, int base, const char *e, ...);
+
+These functions evaluate simple arithmetic expressions.  For example,
+
+	mpz_expr (result, 0, "123+456", NULL);
+
+Numbers are parsed by mpz_expr and mpq_expr the same as mpz_set_str with the
+given base.  mpf_expr follows mpf_set_str, but supporting an "0x" prefix for
+hex when base==0.
+
+	mpz_expr (result, 0, "0xAAAA * 0x5555", NULL);
+
+White space, as indicated by <ctype.h> isspace(), is ignored except for the
+purpose of separating tokens.
+
+Variables can be included in expressions by putting them in the stdarg list
+after the string.  "a", "b", "c" etc in the expression string designate
+those values.  For example,
+
+        mpq_t  foo, bar;
+        ...
+	mpq_expr (q, 10, "2/3 + 1/a + b/2", foo, bar, NULL);
+
+Here "a" will be the value from foo and "b" from bar.  Up to 26 variables
+can be included this way.  The NULL must be present to indicate the end of
+the list.
+
+Variables can also be written "$a", "$b" etc.  This is necessary when using
+bases greater than 10 since plain "a", "b" etc will otherwise be interpreted
+as numbers.  For example,
+
+        mpf_t  quux;
+        mpf_expr (f, 16, "F00F@-6 * $a", quux, NULL);
+
+All the standard C operators are available, with the usual precedences, plus
+"**" for exponentiation at the highest precedence (and right associative).
+
+        Operators      Precedence
+         **              220
+         ~ ! - (unary)   210
+         * / %           200
+         + -             190
+         << >>           180
+         <= < >= >       170
+         == !=           160
+         &               150
+         ^               140
+         |               130
+         &&              120
+         ||              110
+         ? :             100/101
+
+Currently only mpz_expr has the bitwise ~ % & ^ and | operators.  The
+precedence numbers are of interest in the advanced usage described below.
+
+Various functions are available too.  For example,
+
+        mpz_expr (res, 10, "gcd(123,456,789) * abs(a)", var, NULL);
+
+The following is the full set of functions,
+
+        mpz_expr
+            abs bin clrbit cmp cmpabs congruent_p divisible_p even_p fib fac
+            gcd hamdist invert jacobi kronecker lcm lucnum max min nextprime
+            odd_p perfect_power_p perfect_square_p popcount powm
+            probab_prime_p root scan0 scan1 setbit sgn sqrt
+
+        mpq_expr
+            abs, cmp, den, max, min, num, sgn
+
+        mpf_expr
+            abs, ceil, cmp, eq, floor, integer_p, max, min, reldiff, sgn,
+            sqrt, trunc
+
+All these are the same as the GMP library functions, except that min and max
+don't exist in the library.  Note also that min, max, gcd and lcm take any
+number of arguments, not just two.
+
+mpf_expr does all calculations to the precision of the destination variable.
+
+
+Expression parsing can succeed or fail.  The return value indicates this,
+and will be one of the following
+
+	MPEXPR_RESULT_OK
+	MPEXPR_RESULT_BAD_VARIABLE
+	MPEXPR_RESULT_BAD_TABLE
+	MPEXPR_RESULT_PARSE_ERROR
+	MPEXPR_RESULT_NOT_UI
+
+BAD_VARIABLE is when a variable is referenced that hasn't been provided.
+For example if "c" is used when only two parameters have been passed.
+BAD_TABLE is applicable to the advanced usage described below.
+
+PARSE_ERROR is a general syntax error, returned for any mal-formed input
+string.
+
+NOT_UI is returned when an attempt is made to use an operand that's bigger
+than an "unsigned long" with a function that's restricted to that range.
+For example "fib" is mpz_fib_ui and only accepts an "unsigned long".
+
+
+
+
+ADVANCED USAGE
+
+int mpz_expr_a (const struct mpexpr_operator_t *table,
+                mpz_ptr res, int base, const char *e, size_t elen,
+                mpz_srcptr var[26])
+int mpq_expr_a (const struct mpexpr_operator_t *table,
+                mpq_ptr res, int base, const char *e, size_t elen,
+                mpq_srcptr var[26])
+int mpf_expr_a (const struct mpexpr_operator_t *table,
+                mpf_ptr res, int base, unsigned long prec,
+                const char *e, size_t elen,
+                mpf_srcptr var[26])
+
+These functions are an advanced interface to expression parsing.
+
+The string is taken as pointer and length.  This makes it possible to parse
+an expression in the middle of somewhere without copying and null
+terminating it.
+
+Variables are an array of 26 pointers to the appropriate operands, or NULL
+for variables that are not available.  Any combination of variables can be
+given, for example just "x" and "y" (var[23] and var[24]) could be set.
+
+Operators and functions are specified with a table.  This makes it possible
+to provide additional operators or functions, or to completely change the
+syntax.  The standard tables used by the simple functions above are
+available as
+
+	const struct mpexpr_operator_t * const mpz_expr_standard_table;
+	const struct mpexpr_operator_t * const mpq_expr_standard_table;
+	const struct mpexpr_operator_t * const mpf_expr_standard_table;
+
+struct mpexpr_operator_t is the following
+
+	struct mpexpr_operator_t {
+	  const char    *name;
+	  mpexpr_fun_t  fun;
+	  int           type;
+	  int           precedence;
+	};
+
+        typedef void (*mpexpr_fun_t) (void);
+
+As an example, the standard mpz_expr table entry for multiplication is as
+follows.  See the source code for the full set of standard entries.
+
+	{ "*", (mpexpr_fun_t) mpz_mul, MPEXPR_TYPE_BINARY, 200 },
+
+"name" is the string to parse, "fun" is the function to call for it, "type"
+indicates what parameters the function takes (among other things), and
+"precedence" sets its operator precedence.
+
+A NULL for "name" indicates the end of the table, so for example an mpf
+table with nothing but addition could be
+
+        struct mpexpr_operator_t  table[] = {
+          { "+", (mpexpr_fun_t) mpf_add, MPEXPR_TYPE_BINARY, 190 },
+          { NULL }
+        };
+
+A special type MPEXPR_TYPE_NEW_TABLE makes it possible to chain from one
+table to another.  For example the following would add a "mod" operator to
+the standard mpz table,
+
+        struct mpexpr_operator_t  table[] = {
+        { "mod", (mpexpr_fun_t) mpz_fdiv_r, MPEXPR_TYPE_BINARY, 125 },
+        { (const char *) mpz_expr_standard_table, NULL, MPEXPR_TYPE_NEW_TABLE }
+        };
+
+Notice the low precedence on "mod", so that for instance "45+26 mod 7"
+parses as "(45+26)mod7".
+
+
+Functions are designated by a precedence of 0.  They always occur as
+"foo(expr)" and so have no need for a precedence level.  mpq_abs in the
+standard mpq table is
+
+	{ "abs", (mpexpr_fun_t) mpq_abs, MPEXPR_TYPE_UNARY },
+
+Functions expecting no arguments as in "foo()" can be given with
+MPEXPR_TYPE_0ARY, or actual constants to be parsed as just "foo" are
+MPEXPR_TYPE_CONSTANT.  For example if a "void mpf_const_pi(mpf_t f)"
+function existed (which it doesn't) it could be,
+
+	{ "pi", (mpexpr_fun_t) mpf_const_pi, MPEXPR_TYPE_CONSTANT },
+
+
+Parsing of operator names is done by seeking the table entry with the
+longest matching name.  So for instance operators "<" and "<=" exist, and
+when presented with "x <= y" the parser matches "<=" because it's longer.
+
+Parsing of function names, on the other hand, is done by requiring a whole
+alphanumeric word to match.  For example presented with "fib2zz(5)" the
+parser will attempt to find a function called "fib2zz".  A function "fib"
+wouldn't be used because it doesn't match the whole word.
+
+The flag MPEXPR_TYPE_WHOLEWORD can be ORed into an operator type to override
+the default parsing style.  Similarly MPEXPR_TYPE_OPERATOR into a function.
+
+
+Binary operators are left associative by default, meaning they're evaluated
+from left to right, so for example "1+2+3" is treated as "(1+2)+3".
+MPEXPR_TYPE_RIGHTASSOC can be ORed into the operator type to work from right
+to left as in "1+(2+3)".  This is generally what's wanted for
+exponentiation, and for example the standard mpz table has
+
+        { "**", (mpexpr_fun_t) mpz_pow_ui,
+          MPEXPR_TYPE_BINARY_UI | MPEXPR_TYPE_RIGHTASSOC, 220 }
+
+Unary operators are postfix by default.  For example a factorial to be used
+as "123!" might be
+
+	{ "!", (mpexpr_fun_t) mpz_fac_ui, MPEXPR_TYPE_UNARY_UI, 215 }
+
+MPEXPR_TYPE_PREFIX can be ORed into the type to get a prefix operator.  For
+instance negation (unary minus) in the standard mpf table is
+
+	{ "-", (mpexpr_fun_t) mpf_neg,
+          MPEXPR_TYPE_UNARY | MPEXPR_TYPE_PREFIX, 210 },
+
+
+The same operator can exist as a prefix unary and a binary, or as a prefix
+and postfix unary, simply by putting two entries in the table.  While
+parsing the context determines which style is sought.  But note that the
+same operator can't be both a postfix unary and a binary, since the parser
+doesn't try to look ahead to decide which ought to be used.
+
+When there's two entries for an operator, both prefix or both postfix (or
+binary), then the first in the table will be used.  This makes it possible
+to override an entry in a standard table, for example to change the function
+it calls, or perhaps its precedence level.  The following would change mpz
+division from tdiv to cdiv,
+
+        struct mpexpr_operator_t  table[] = {
+          { "/", (mpexpr_fun_t) mpz_cdiv_q, MPEXPR_TYPE_BINARY, 200 },
+          { "%", (mpexpr_fun_t) mpz_cdiv_r, MPEXPR_TYPE_BINARY, 200 },
+          { (char *) mpz_expr_standard_table, NULL, MPEXPR_TYPE_NEW_TABLE }
+        };
+
+
+The type field indicates what parameters the given function expects.  The
+following styles of functions are supported.  mpz_t is shown, but of course
+this is mpq_t for mpq_expr_a, mpf_t for mpf_expr_a, etc.
+
+    MPEXPR_TYPE_CONSTANT     void func (mpz_t result);
+
+    MPEXPR_TYPE_0ARY         void func (mpz_t result);
+    MPEXPR_TYPE_I_0ARY       int func (void);
+
+    MPEXPR_TYPE_UNARY        void func (mpz_t result, mpz_t op);
+    MPEXPR_TYPE_UNARY_UI     void func (mpz_t result, unsigned long op);
+    MPEXPR_TYPE_I_UNARY      int func (mpz_t op);
+    MPEXPR_TYPE_I_UNARY_UI   int func (unsigned long op);
+
+    MPEXPR_TYPE_BINARY       void func (mpz_t result, mpz_t op1, mpz_t op2);
+    MPEXPR_TYPE_BINARY_UI    void func (mpz_t result,
+                                        mpz_t op1, unsigned long op2);
+    MPEXPR_TYPE_I_BINARY     int func (mpz_t op1, mpz_t op2);
+    MPEXPR_TYPE_I_BINARY_UI  int func (mpz_t op1, unsigned long op2);
+
+    MPEXPR_TYPE_TERNARY      void func (mpz_t result,
+                                        mpz_t op1, mpz_t op2, mpz_t op3);
+    MPEXPR_TYPE_TERNARY_UI   void func (mpz_t result, mpz_t op1, mpz_t op2,
+                                        unsigned long op3);
+    MPEXPR_TYPE_I_TERNARY    int func (mpz_t op1, mpz_t op2, mpz_t op3);
+    MPEXPR_TYPE_I_TERNARY_UI int func (mpz_t op1, mpz_t op2,
+                                       unsigned long op3);
+
+Notice the pattern of "UI" for the last parameter as an unsigned long, or
+"I" for the result as an "int" return value.
+
+It's important that the declared type for an operator or function matches
+the function pointer given.  Any mismatch will have unpredictable results.
+
+For binary functions, a further type attribute is MPEXPR_TYPE_PAIRWISE which
+indicates that any number of arguments should be accepted, and evaluated by
+applying the given binary function to them pairwise.  This is used by gcd,
+lcm, min and max.  For example the standard mpz gcd is
+
+	{ "gcd", (mpexpr_fun_t) mpz_gcd,
+	  MPEXPR_TYPE_BINARY | MPEXPR_TYPE_PAIRWISE },
+
+Some special types exist for comparison operators (or functions).
+MPEXPR_TYPE_CMP_LT through MPEXPR_TYPE_CMP_GE expect an MPEXPR_TYPE_I_BINARY
+function, returning positive, negative or zero like mpz_cmp and similar.
+For example the standard mpf "!=" operator is
+
+	{ "!=", (mpexpr_fun_t) mpf_cmp, MPEXPR_TYPE_CMP_NE, 160 },
+
+But there's no obligation to use these types, for instance the standard mpq
+table just uses a plain MPEXPR_TYPE_I_BINARY and mpq_equal for "==".
+
+Further special types MPEXPR_TYPE_MIN and MPEXPR_TYPE_MAX exist to implement
+the min and max functions, and they take a function like mpf_cmp similarly.
+The standard mpf max function is
+
+	{ "max",  (mpexpr_fun_t) mpf_cmp,
+          MPEXPR_TYPE_MAX | MPEXPR_TYPE_PAIRWISE },
+
+These can be used as operators too, for instance the following would be the
+>? operator which is a feature of GNU C++,
+
+	{ ">?", (mpexpr_fun_t) mpf_cmp, MPEXPR_TYPE_MAX, 175 },
+
+Other special types are used to define "(" ")" parentheses, "," function
+argument separator, "!" through "||" logical booleans, ternary "?"  ":", and
+the "$" which introduces variables.  See the sources for how they should be
+used.
+
+
+User definable operator tables will have various uses.  For example,
+
+  - a subset of the C operators, to be rid of infrequently used things
+  - a more mathematical syntax like "." for multiply, "^" for powering,
+    and "!" for factorial
+  - a boolean evaluator with "^" for AND, "v" for OR
+  - variables introduced with "%" instead of "$"
+  - brackets as "[" and "]" instead of "(" and ")"
+
+The only fixed parts of the parsing are the treatment of numbers, whitespace
+and the two styles of operator/function name recognition.
+
+As a final example, the following would be a complete mpz table implementing
+some operators with a more mathematical syntax.  Notice there's no need to
+preserve the standard precedence values, anything can be used so long as
+they're in the desired relation to each other.  There's also no need to have
+entries in precedence order, but it's convenient to do so to show what comes
+where.
+
+        static const struct mpexpr_operator_t  table[] = {
+	  { "^",   (mpexpr_fun_t) mpz_pow_ui,
+            MPEXPR_TYPE_BINARY_UI | MPEXPR_TYPE_RIGHTASSOC,           9 },
+
+          { "!",   (mpexpr_fun_t) mpz_fac_ui, MPEXPR_TYPE_UNARY_UI,   8 },
+          { "-",   (mpexpr_fun_t) mpz_neg,
+            MPEXPR_TYPE_UNARY | MPEXPR_TYPE_PREFIX,                   7 },
+
+          { "*",   (mpexpr_fun_t) mpz_mul,    MPEXPR_TYPE_BINARY,     6 },
+          { "/",   (mpexpr_fun_t) mpz_fdiv_q, MPEXPR_TYPE_BINARY,     6 },
+
+          { "+",   (mpexpr_fun_t) mpz_add,    MPEXPR_TYPE_BINARY,     5 },
+          { "-",   (mpexpr_fun_t) mpz_sub,    MPEXPR_TYPE_BINARY,     5 },
+
+          { "mod", (mpexpr_fun_t) mpz_mod,    MPEXPR_TYPE_BINARY,     6 },
+
+          { ")",   NULL,                      MPEXPR_TYPE_CLOSEPAREN, 4 },
+          { "(",   NULL,                      MPEXPR_TYPE_OPENPAREN,  3 },
+          { ",",   NULL,                      MPEXPR_TYPE_ARGSEP,     2 },
+
+          { "$",   NULL,                      MPEXPR_TYPE_VARIABLE,   1 },
+          { NULL }
+        };
+
+
+
+
+INTERNALS
+
+Operator precedence is implemented using a control and data stack, there's
+no C recursion.  When an expression like 1+2*3 is read the "+" is held on
+the control stack and 1 on the data stack until "*" has been parsed and
+applied to 2 and 3.  This happens any time a higher precedence operator
+follows a lower one, or when a right-associative operator like "**" is
+repeated.
+
+Parentheses are handled by making "(" a special prefix unary with a low
+precedence so a whole following expression is read.  The special operator
+")" knows to discard the pending "(".  Function arguments are handled
+similarly, with the function pretending to be a low precedence prefix unary
+operator, and with "," allowed within functions.  The same special ")"
+operator recognises a pending function and will invoke it appropriately.
+
+The ternary "? :" operator is also handled using precedences.  ":" is one
+level higher than "?", so when a valid a?b:c is parsed the ":" finds a "?"
+on the control stack.  It's a parse error for ":" to find anything else.
+
+
+
+FUTURE
+
+The ternary "?:" operator evaluates the "false" side of its pair, which is
+wasteful, though it ought to be harmless.  It'd be better if it could
+evaluate only the "true" side.  Similarly for the logical booleans "&&" and
+"||" if they know their result already.
+
+Functions like MPEXPR_TYPE_BINARY could return a status indicating operand
+out of range or whatever, to get an error back through mpz_expr etc.  That
+would want to be just an option, since plain mpz_add etc have no such
+return.
+
+Could have assignments like "a = b*c" modifying the input variables.
+Assignment could be an operator attribute, making it expect an lvalue.
+There would want to be a standard table without assignments available
+though, so user input could be safely parsed.
+
+The closing parenthesis table entry could specify the type of open paren it
+expects, so that "(" and ")" could match and "[" and "]" match but not a
+mixture of the two.  Currently "[" and "]" can be added, but there's no
+error on writing a mixed expression like "2*(3+4]".  Maybe also there could
+be a way to say that functions can only be written with one or the other
+style of parens.
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

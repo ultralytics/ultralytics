@@ -1,0 +1,193 @@
+version: 0.18
+date: Sun Dec 18 11:01:58 CET 2016
+changes:
+	- improve elimination of redundant existentially quantified variables
+	- improve coalescing
+	- improve parametric integer programming
+	- preserve isolate option in isl_schedule_node_band_split
+	- print AST nodes in YAML format
+	- minor improvements to Python bindings
+---
+version: 0.17.1
+date: Fri May  6 12:02:48 CEST 2016
+changes:
+	- fix bug in coalescing treatment
+---
+version: 0.17
+date: Tue May  3 14:26:43 CEST 2016
+changes:
+	- optionally combine SCCs incrementally in scheduler
+	- optionally maximize coincidence in scheduler
+	- optionally avoid loop coalescing in scheduler
+	- fix handling of nested integer divisions
+	- optionally detect min/max expressions during AST generation
+	- minor AST generator improvements
+	- simplify stride constraints
+	- improve support for expansions in schedule trees
+---
+version: 0.16.1
+date: Thu Jan 14 18:08:06 CET 2016
+changes:
+	- fix bug in simplification
+---
+version: 0.16
+date: Tue Jan 12 09:56:16 CET 2016
+changes:
+	- add 32 bit integer optimization for IMath
+	- minor AST generator improvements
+	- add isl_union_flow_get_full_{may,must}_dependence
+	- minor improvements to Python bindings
+	- minor improvements to set and map printing
+---
+version: 0.15
+date: Thu Jun 11 12:45:33 CEST 2015
+changes:
+	- improve coalescing
+	- add isl_union_access_info_compute_flow
+	- add mark nodes in AST
+	- add isl_union_pw_aff and isl_multi_union_pw_aff
+	- add schedule trees
+	- deprecate band forests
+	- deprecate separation_class AST generation option
+	- introduce isl_bool and isl_stat types
+---
+version: 0.14.1
+date: Thu Apr  9 12:57:23 CEST 2015
+changes:
+	- fix bug in affine expression normalization
+	- fix handling of conditional validity constraints
+---
+version: 0.14
+date: Sat Oct 25 16:08:47 CEST 2014
+changes:
+	- support IMath as an optional replacement for GMP
+	- minor AST generator improvements
+---
+version: 0.13
+date: Mon Apr 14 11:08:45 CEST 2014
+changes:
+	- deprecate isl_int
+	- improved support for multi piecewise quasi-affine expressions
+	- allow the user to impose a bound on the number of low-level operations
+	- add isl_id_to_ast_expr and isl_id_to_pw_aff
+	- add isl_schedule_constraints
+	- hide internal structure of isl_vec
+	- remove support for piplib
+---
+version: 0.12.2
+date: Sun Jan 12 12:09:46 CET 2014
+changes:
+	- MinGW-w64 build fix
+	- fix simplification bug
+---
+version: 0.12.1
+date: Wed Jul 24 12:54:46 CEST 2013
+changes:
+	- handle malloc returning NULL on zero-size allocation
+	- fix regression in AST generator
+---
+version: 0.12
+date: Sun Jun 23 20:23:05 CEST 2013
+changes:
+	- add isl_val abstraction
+---
+version: 0.11.2
+date: Tue Apr  9 18:45:10 CEST 2013
+changes:
+	- make code generation output the same on Solaris
+	- fix some hard to trigger bugs
+---
+version: 0.11.1
+date: Mon Dec 10 11:55:30 CET 2012
+changes:
+	- add LICENSE file to distribution
+	- make code generation output independent of endianness
+---
+version: 0.11
+date: Mon Dec  3 08:17:18 CET 2012
+changes:
+	- change license from LGPL 2.1 to MIT
+	- add support for multi piecewise quasi-affine expressions
+	- add code generation
+	- various minor bug fixes
+---
+version: 0.10
+date: Sun Jun  3 18:00:16 CEST 2012
+changes:
+	- support for interaction with dependence analysis
+	- add public API for vectors
+	- improved support for (piecewise) multi quasi-affine expressions
+	- various minor bug fixes
+---
+version: 0.09
+date: Sat Dec 17 18:19:26 CET 2011
+changes:
+	- improved argument parsing
+	- hide internal structure of isl_options
+	- improved support for parameter sets
+	- configurable scheduling
+---
+version: 0.08
+date: Fri Oct 21 12:36:20 CEST 2011
+changes:
+	- improved parsing
+	- drop isl_div abstraction
+	- rename isl_dim to isl_space
+	- |-
+	  explicitly differentiate between spaces of maps,
+	  sets and parameter sets
+	- add support for identifiers
+	- add support for (piecewise) multi quasi-affine expressions
+	- preliminary Python bindings
+---
+version: 0.07
+date: Tue Jul 12 19:34:51 CEST 2011
+changes:
+	- hide internal structures of isl_div and isl_constraint
+	- preliminary scheduling
+	- add support for local spaces and (piecewise) quasi-affine expressions
+---
+version: 0.06
+date: Fri Mar 18 15:59:16 CET 2011
+changes:
+	- improved parsing
+	- consistency changes in API
+	- hide internal structure of isl_ctx
+---
+version: 0.05.1
+date: Wed Jan  5 10:21:42 CET 2011
+changes:
+	- fix simple symmetry detection in parametric integer programming
+---
+version: 0.05
+date: Thu Dec 23 17:03:14 CET 2010
+changes:
+	- rename header files from isl_header.h to isl/header.h
+	- add higher level interface for dependence analysis
+	- improved argument parsing
+	- optionally triangulate domains during Bernstein expansion
+	- support extended PolyLib format
+	- hide internal structure of some data types
+	- improved coalescing
+	- add simple symmetry detection in parametric integer programming
+---
+version: 0.04
+date: Fri Sep 10 12:57:50 CEST 2010
+changes:
+	- rename isl_pw_qpolynomial_fold_add
+	- add isl_map_apply_pw_qpolynomial_fold
+	- support named and nested spaces
+	- support union sets and maps
+	- add public API for matrices
+---
+version: 0.03
+date: Tue Jun 29 13:16:46 CEST 2010
+changes:
+	- new printing functions
+	- support for "may" accesses in dependence analysis
+	- improved coalescing
+	- improved transitive closure
+	- fix several hard to trigger bugs
+	- improved argument parsing
+	- support parametric vertex enumeration for barvinok
+	- optionally use Bernstein expansion to compute bounds

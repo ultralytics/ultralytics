@@ -1,0 +1,7 @@
+# Check that no redundant guards are introduced
+{ s4[a, b] -> [a, 2, b] : exists (e0 = floor((-2 + a)/64):
+    64e0 = -2 + a and a <= 200 and b <= 62 + a and b >= 122);
+  s2[a, b] -> [a, 2, b] : exists (e0 = floor((-2 + a)/64):
+    64e0 = -2 + a and a >= 2 and b <= 120 and b >= -1 + a and a <= 100) }
+{ : }
+{ }

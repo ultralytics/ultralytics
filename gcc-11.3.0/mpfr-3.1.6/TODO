@@ -1,0 +1,434 @@
+Copyright 1999-2017 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
+
+This file is part of the GNU MPFR Library.
+
+The GNU MPFR Library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 3 of the License, or (at your
+option) any later version.
+
+The GNU MPFR Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the GNU MPFR Library; see the file COPYING.LESSER.  If not, see
+http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
+51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+
+Table of contents:
+1. Documentation
+2. Installation
+3. Changes in existing functions
+4. New functions to implement
+5. Efficiency
+6. Miscellaneous
+7. Portability
+
+##############################################################################
+1. Documentation
+##############################################################################
+
+- add a description of the algorithms used + proof of correctness
+
+##############################################################################
+2. Installation
+##############################################################################
+
+- if we want to distinguish GMP and MPIR, we can check at configure time
+  the following symbols which are only defined in MPIR:
+
+  #define __MPIR_VERSION 0
+  #define __MPIR_VERSION_MINOR 9
+  #define __MPIR_VERSION_PATCHLEVEL 0
+
+  There is also a library symbol mpir_version, which should match VERSION, set
+  by configure, for example 0.9.0.
+
+##############################################################################
+3. Changes in existing functions
+##############################################################################
+
+- export mpfr_overflow and mpfr_underflow as public functions
+
+- many functions currently taking into account the precision of the *input*
+  variable to set the initial working precison (acosh, asinh, cosh, ...).
+  This is nonsense since the "average" working precision should only depend
+  on the precision of the *output* variable (and maybe on the *value* of
+  the input in case of cancellation).
+  -> remove those dependencies from the input precision.
+
+- mpfr_can_round:
+   change the meaning of the 2nd argument (err). Currently the error is
+   at most 2^(MPFR_EXP(b)-err), i.e. err is the relative shift wrt the
+   most significant bit of the approximation. I propose that the error
+   is now at most 2^err ulps of the approximation, i.e.
+   2^(MPFR_EXP(b)-MPFR_PREC(b)+err).
+
+- mpfr_set_q first tries to convert the numerator and the denominator
+  to mpfr_t. But this conversion may fail even if the correctly rounded
+  result is representable. New way to implement:
+  Function q = a/b.  nq = PREC(q) na = PREC(a) nb = PREC(b)
+    If na < nb
+       a <- a*2^(nb-na)
+    n <- na-nb+ (HIGH(a,nb) >= b)
+    if (n >= nq)
+       bb <- b*2^(n-nq)
+       a  = q*bb+r     --> q has exactly n bits.
+    else
+       aa <- a*2^(nq-n)
+       aa = q*b+r      --> q has exactly n bits.
+  If RNDN, takes nq+1 bits. (See also the new division function).
+
+
+##############################################################################
+4. New functions to implement
+##############################################################################
+
+- implement mpfr_q_sub, mpfr_z_div, mpfr_q_div?
+- implement functions for random distributions, see for example
+  https://sympa.inria.fr/sympa/arc/mpfr/2010-01/msg00034.html
+  (suggested by Charles Karney <ckarney@Sarnoff.com>, 18 Jan 2010):
+   * a Bernoulli distribution with prob p/q (exact)
+   * a general discrete distribution (i with prob w[i]/sum(w[i]) (Walker
+     algorithm, but make it exact)
+   * a uniform distribution in (a,b)
+   * exponential distribution (mean lambda) (von Neumann's method?)
+   * normal distribution (mean m, s.d. sigma) (ratio method?)
+- wanted for Magma [John Cannon <john@maths.usyd.edu.au>, Tue, 19 Apr 2005]:
+  HypergeometricU(a,b,s) = 1/gamma(a)*int(exp(-su)*u^(a-1)*(1+u)^(b-a-1),
+                                    u=0..infinity)
+  JacobiThetaNullK
+  PolylogP, PolylogD, PolylogDold: see http://arxiv.org/abs/math.CA/0702243
+    and the references herein.
+  JBessel(n, x) = BesselJ(n+1/2, x)
+  IncompleteGamma [also wanted by <keith.briggs@bt.com> 4 Feb 2008: Gamma(a,x),
+    gamma(a,x), P(a,x), Q(a,x); see A&S 6.5, ref. [Smith01] in algorithms.bib]
+  KBessel, KBessel2 [2nd kind]
+  JacobiTheta
+  LogIntegral
+  ExponentialIntegralE1
+    E1(z) = int(exp(-t)/t, t=z..infinity), |arg z| < Pi
+    mpfr_eint1: implement E1(x) for x > 0, and Ei(-x) for x < 0
+    E1(NaN)  = NaN
+    E1(+Inf) = +0
+    E1(-Inf) = -Inf
+    E1(+0)   = +Inf
+    E1(-0)   = -Inf
+  DawsonIntegral
+  GammaD(x) = Gamma(x+1/2)
+- functions defined in the LIA-2 standard
+  + minimum and maximum (5.2.2): max, min, max_seq, min_seq, mmax_seq
+    and mmin_seq (mpfr_min and mpfr_max correspond to mmin and mmax);
+  + rounding_rest, floor_rest, ceiling_rest (5.2.4);
+  + remr (5.2.5): x - round(x/y) y;
+  + error functions from 5.2.7 (if useful in MPFR);
+  + power1pm1 (5.3.6.7): (1 + x)^y - 1;
+  + logbase (5.3.6.12): \log_x(y);
+  + logbase1p1p (5.3.6.13): \log_{1+x}(1+y);
+  + rad (5.3.9.1): x - round(x / (2 pi)) 2 pi = remr(x, 2 pi);
+  + axis_rad (5.3.9.1) if useful in MPFR;
+  + cycle (5.3.10.1): rad(2 pi x / u) u / (2 pi) = remr(x, u);
+  + axis_cycle (5.3.10.1) if useful in MPFR;
+  + sinu, cosu, tanu, cotu, secu, cscu, cossinu, arcsinu, arccosu,
+    arctanu, arccotu, arcsecu, arccscu (5.3.10.{2..14}):
+    sin(x 2 pi / u), etc.;
+    [from which sinpi(x) = sin(Pi*x), ... are trivial to implement, with u=2.]
+  + arcu (5.3.10.15): arctan2(y,x) u / (2 pi);
+  + rad_to_cycle, cycle_to_rad, cycle_to_cycle (5.3.11.{1..3}).
+- From GSL, missing special functions (if useful in MPFR):
+  (cf http://www.gnu.org/software/gsl/manual/gsl-ref.html#Special-Functions)
+  + The Airy functions Ai(x) and Bi(x) defined by the integral representations:
+   * Ai(x) = (1/\pi) \int_0^\infty \cos((1/3) t^3 + xt) dt
+   * Bi(x) = (1/\pi) \int_0^\infty (e^(-(1/3) t^3) + \sin((1/3) t^3 + xt)) dt
+   * Derivatives of Airy Functions
+  + The Bessel functions for n integer and n fractional:
+   * Regular Modified Cylindrical Bessel Functions I_n
+   * Irregular Modified Cylindrical Bessel Functions K_n
+   * Regular Spherical Bessel Functions j_n: j_0(x) = \sin(x)/x,
+     j_1(x)= (\sin(x)/x-\cos(x))/x & j_2(x)= ((3/x^2-1)\sin(x)-3\cos(x)/x)/x
+     Note: the "spherical" Bessel functions are solutions of
+     x^2 y'' + 2 x y' + [x^2 - n (n+1)] y = 0 and satisfy
+     j_n(x) = sqrt(Pi/(2x)) J_{n+1/2}(x). They should not be mixed with the
+     classical Bessel Functions, also noted j0, j1, jn, y0, y1, yn in C99
+     and mpfr.
+     Cf https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions
+   *Irregular Spherical Bessel Functions y_n: y_0(x) = -\cos(x)/x,
+     y_1(x)= -(\cos(x)/x+\sin(x))/x &
+     y_2(x)= (-3/x^3+1/x)\cos(x)-(3/x^2)\sin(x)
+   * Regular Modified Spherical Bessel Functions i_n:
+     i_l(x) = \sqrt{\pi/(2x)} I_{l+1/2}(x)
+   * Irregular Modified Spherical Bessel Functions:
+     k_l(x) = \sqrt{\pi/(2x)} K_{l+1/2}(x).
+  + Clausen Function:
+     Cl_2(x) = - \int_0^x dt \log(2 \sin(t/2))
+     Cl_2(\theta) = \Im Li_2(\exp(i \theta)) (dilogarithm).
+  + Dawson Function: \exp(-x^2) \int_0^x dt \exp(t^2).
+  + Debye Functions: D_n(x) = n/x^n \int_0^x dt (t^n/(e^t - 1))
+  + Elliptic Integrals:
+   * Definition of Legendre Forms:
+    F(\phi,k) = \int_0^\phi dt 1/\sqrt((1 - k^2 \sin^2(t)))
+    E(\phi,k) = \int_0^\phi dt   \sqrt((1 - k^2 \sin^2(t)))
+    P(\phi,k,n) = \int_0^\phi dt 1/((1 + n \sin^2(t))\sqrt(1 - k^2 \sin^2(t)))
+   * Complete Legendre forms are denoted by
+    K(k) = F(\pi/2, k)
+    E(k) = E(\pi/2, k)
+   * Definition of Carlson Forms
+    RC(x,y) = 1/2 \int_0^\infty dt (t+x)^(-1/2) (t+y)^(-1)
+    RD(x,y,z) = 3/2 \int_0^\infty dt (t+x)^(-1/2) (t+y)^(-1/2) (t+z)^(-3/2)
+    RF(x,y,z) = 1/2 \int_0^\infty dt (t+x)^(-1/2) (t+y)^(-1/2) (t+z)^(-1/2)
+    RJ(x,y,z,p) = 3/2 \int_0^\infty dt
+                          (t+x)^(-1/2) (t+y)^(-1/2) (t+z)^(-1/2) (t+p)^(-1)
+  + Elliptic Functions (Jacobi)
+  + N-relative exponential:
+     exprel_N(x) = N!/x^N (\exp(x) - \sum_{k=0}^{N-1} x^k/k!)
+  + exponential integral:
+     E_2(x) := \Re \int_1^\infty dt \exp(-xt)/t^2.
+     Ei_3(x) = \int_0^x dt \exp(-t^3) for x >= 0.
+     Ei(x) := - PV(\int_{-x}^\infty dt \exp(-t)/t)
+  + Hyperbolic/Trigonometric Integrals
+     Shi(x) = \int_0^x dt \sinh(t)/t
+     Chi(x) := Re[ \gamma_E + \log(x) + \int_0^x dt (\cosh[t]-1)/t]
+     Si(x) = \int_0^x dt \sin(t)/t
+     Ci(x) = -\int_x^\infty dt \cos(t)/t for x > 0
+     AtanInt(x) = \int_0^x dt \arctan(t)/t
+     [ \gamma_E is the Euler constant ]
+  + Fermi-Dirac Function:
+     F_j(x)   := (1/r\Gamma(j+1)) \int_0^\infty dt (t^j / (\exp(t-x) + 1))
+  + Pochhammer symbol (a)_x := \Gamma(a + x)/\Gamma(a) : see [Smith01] in
+          algorithms.bib
+    logarithm of the Pochhammer symbol
+  + Gegenbauer Functions
+  + Laguerre Functions
+  + Eta Function: \eta(s) = (1-2^{1-s}) \zeta(s)
+    Hurwitz zeta function: \zeta(s,q) = \sum_0^\infty (k+q)^{-s}.
+  + Lambert W Functions, W(x) are defined to be solutions of the equation:
+     W(x) \exp(W(x)) = x.
+    This function has multiple branches for x < 0 (2 funcs W0(x) and Wm1(x))
+  + Trigamma Function psi'(x).
+    and Polygamma Function: psi^{(m)}(x) for m >= 0, x > 0.
+
+- from gnumeric (www.gnome.org/projects/gnumeric/doc/function-reference.html):
+  - beta
+  - betaln
+  - degrees
+  - radians
+  - sqrtpi
+
+- mpfr_inp_raw, mpfr_out_raw (cf mail "Serialization of mpfr_t" from Alexey
+  and answer from Granlund on mpfr list, May 2007)
+- [maybe useful for SAGE] implement companion frac_* functions to the rint_*
+  functions. For example mpfr_frac_floor(x) = x - floor(x). (The current
+  mpfr_frac function corresponds to mpfr_rint_trunc.)
+- scaled erfc (https://sympa.inria.fr/sympa/arc/mpfr/2009-05/msg00054.html)
+- asec, acsc, acot, asech, acsch and acoth (mail from Björn Terelius on mpfr
+  list, 18 June 2009)
+
+##############################################################################
+5. Efficiency
+##############################################################################
+
+- implement a mpfr_sqrthigh algorithm based on Mulders' algorithm, with a
+  basecase variant
+- use mpn_div_q to speed up mpfr_div. However mpn_div_q, which is new in
+  GMP 5, is not documented in the GMP manual, thus we are not sure it
+  guarantees to return the same quotient as mpn_tdiv_qr.
+  Also mpfr_div uses the remainder computed by mpn_divrem. A workaround would
+  be to first try with mpn_div_q, and if we cannot (easily) compute the
+  rounding, then use the current code with mpn_divrem.
+- compute exp by using the series for cosh or sinh, which has half the terms
+  (see Exercise 4.11 from Modern Computer Arithmetic, version 0.3)
+  The same method can be used for log, using the series for atanh, i.e.,
+  atanh(x) = 1/2*log((1+x)/(1-x)).
+- improve mpfr_gamma (see https://code.google.com/p/fastfunlib/). A possible
+  idea is to implement a fast algorithm for the argument reconstruction
+  gamma(x+k). One could also use the series for 1/gamma(x), see for example
+  http://dlmf.nist.gov/5/7/ or formula (36) from
+  http://mathworld.wolfram.com/GammaFunction.html
+- fix regression with mpfr_mpz_root (from Keith Briggs, 5 July 2006), for
+   example on 3Ghz P4 with gmp-4.2, x=12.345:
+   prec=50000    k=2   k=3   k=10  k=100
+   mpz_root      0.036 0.072 0.476 7.628
+   mpfr_mpz_root 0.004 0.004 0.036 12.20
+   See also mail from Carl Witty on mpfr list, 09 Oct 2007.
+- implement Mulders algorithm for squaring and division
+- for sparse input (say x=1 with 2 bits), mpfr_exp is not faster than for
+        full precision when precision <= MPFR_EXP_THRESHOLD. The reason is
+        that argument reduction kills sparsity. Maybe avoid argument reduction
+        for sparse input?
+- speed up const_euler for large precision [for x=1.1, prec=16610, it takes
+        75% of the total time of eint(x)!]
+- speed up mpfr_atan for large arguments (to speed up mpc_log)
+        [from Mark Watkins on Fri, 18 Mar 2005]
+  Also mpfr_atan(x) seems slower (by a factor of 2) for x near from 1.
+  Example on a Athlon for 10^5 bits: x=1.1 takes 3s, whereas 2.1 takes 1.8s.
+  The current implementation does not give monotonous timing for the following:
+  mpfr_random (x); for (i = 0; i < k; i++) mpfr_atan (y, x, MPFR_RNDN);
+  for precision 300 and k=1000, we get 1070ms, and 500ms only for p=400!
+- improve mpfr_sin on values like ~pi (do not compute sin from cos, because
+  of the cancellation). For instance, reduce the input modulo pi/2 in
+  [-pi/4,pi/4], and define auxiliary functions for which the argument is
+  assumed to be already reduced (so that the sin function can avoid
+  unnecessary computations by calling the auxiliary cos function instead of
+  the full cos function). This will require a native code for sin, for
+  example using the reduction sin(3x)=3sin(x)-4sin(x)^3.
+  See https://sympa.inria.fr/sympa/arc/mpfr/2007-08/msg00001.html and
+  the following messages.
+- improve generic.c to work for number of terms <> 2^k
+- rewrite mpfr_greater_p... as native code.
+
+- mpf_t uses a scheme where the number of limbs actually present can
+  be less than the selected precision, thereby allowing low precision
+  values (for instance small integers) to be stored and manipulated in
+  an mpf_t efficiently.
+
+  Perhaps mpfr should get something similar, especially if looking to
+  replace mpf with mpfr, though it'd be a major change.  Alternately
+  perhaps those mpfr routines like mpfr_mul where optimizations are
+  possible through stripping low zero bits or limbs could check for
+  that (this would be less efficient but easier).
+
+- try the idea of the paper "Reduced Cancellation in the Evaluation of Entire
+  Functions and Applications to the Error Function" by W. Gawronski, J. Mueller
+  and M. Reinhard, to be published in SIAM Journal on Numerical Analysis: to
+  avoid cancellation in say erfc(x) for x large, they compute the Taylor
+  expansion of erfc(x)*exp(x^2/2) instead (which has less cancellation),
+  and then divide by exp(x^2/2) (which is simpler to compute).
+
+- replace the *_THRESHOLD macros by global (TLS) variables that can be
+  changed at run time (via a function, like other variables)? One benefit
+  is that users could use a single MPFR binary on several machines (e.g.,
+  a library provided by binary packages or shared via NFS) with different
+  thresholds. On the default values, this would be a bit less efficient
+  than the current code, but this isn't probably noticeable (this should
+  be tested). Something like:
+    long *mpfr_tune_get(void) to get the current values (the first value
+      is the size of the array).
+    int mpfr_tune_set(long *array) to set the tune values.
+    int mpfr_tune_run(long level) to find the best values (the support
+      for this feature is optional, this can also be done with an
+      external function).
+
+- better distinguish different processors (for example Opteron and Core 2)
+  and use corresponding default tuning parameters (as in GMP). This could be
+  done in configure.ac to avoid hacking config.guess, for example define
+  MPFR_HAVE_CORE2.
+  Note (VL): the effect on cross-compilation (that can be a processor
+  with the same architecture, e.g. compilation on a Core 2 for an
+  Opteron) is not clear. The choice should be consistent with the
+  build target (e.g. -march or -mtune value with gcc).
+  Also choose better default values. For instance, the default value of
+  MPFR_MUL_THRESHOLD is 40, while the best values that have been found
+  are between 11 and 19 for 32 bits and between 4 and 10 for 64 bits!
+
+- during the Many Digits competition, we noticed that (our implantation of)
+  Mulders short product was slower than a full product for large sizes.
+  This should be precisely analyzed and fixed if needed.
+
+##############################################################################
+6. Miscellaneous
+##############################################################################
+
+- [suggested by Tobias Burnus <burnus(at)net-b.de> and
+   Asher Langton <langton(at)gcc.gnu.org>, Wed, 01 Aug 2007]
+  support quiet and signaling NaNs in mpfr:
+  * functions to set/test a quiet/signaling NaN: mpfr_set_snan, mpfr_snan_p,
+    mpfr_set_qnan, mpfr_qnan_p
+  * correctly convert to/from double (if encoding of s/qNaN is fixed in 754R)
+
+- check again coverage: on 2007-07-27, Patrick Pelissier reports that the
+  following files are not tested at 100%: add1.c, atan.c, atan2.c,
+  cache.c, cmp2.c, const_catalan.c, const_euler.c, const_log2.c, cos.c,
+  gen_inverse.h, div_ui.c, eint.c, exp3.c, exp_2.c, expm1.c, fma.c, fms.c,
+  lngamma.c, gamma.c, get_d.c, get_f.c, get_ld.c, get_str.c, get_z.c,
+  inp_str.c, jn.c, jyn_asympt.c, lngamma.c, mpfr-gmp.c, mul.c, mul_ui.c,
+  mulders.c, out_str.c, pow.c, print_raw.c, rint.c, root.c, round_near_x.c,
+  round_raw_generic.c, set_d.c, set_ld.c, set_q.c, set_uj.c, set_z.c, sin.c,
+  sin_cos.c, sinh.c, sqr.c, stack_interface.c, sub1.c, sub1sp.c, subnormal.c,
+  uceil_exp2.c, uceil_log2.c, ui_pow_ui.c, urandomb.c, yn.c, zeta.c, zeta_ui.c.
+
+- check the constants mpfr_set_emin (-16382-63) and mpfr_set_emax (16383) in
+  get_ld.c and the other constants, and provide a testcase for large and
+  small numbers.
+
+- from Kevin Ryde <user42@zip.com.au>:
+   Also for pi.c, a pre-calculated compiled-in pi to a few thousand
+   digits would be good value I think.  After all, say 10000 bits using
+   1250 bytes would still be small compared to the code size!
+   Store pi in round to zero mode (to recover other modes).
+
+- add a new rounding mode: round to nearest, with ties away from zero
+  (this is roundTiesToAway in 754-2008, could be used by mpfr_round)
+- add a new roundind mode: round to odd. If the result is not exactly
+        representable, then round to the odd mantissa. This rounding
+        has the nice property that for k > 1, if:
+        y = round(x, p+k, TO_ODD)
+        z = round(y, p, TO_NEAREST_EVEN), then
+        z = round(x, p, TO_NEAREST_EVEN)
+  so it avoids the double-rounding problem.
+
+- add tests of the ternary value for constants
+
+- When doing Extensive Check (--enable-assert=full), since all the
+  functions use a similar use of MACROS (ZivLoop, ROUND_P), it should
+  be possible to do such a scheme:
+    For the first call to ROUND_P when we can round.
+    Mark it as such and save the approximated rounding value in
+    a temporary variable.
+    Then after, if the mark is set, check if:
+      - we still can round.
+      - The rounded value is the same.
+  It should be a complement to tgeneric tests.
+
+- in div.c, try to find a case for which cy != 0 after the line
+        cy = mpn_sub_1 (sp + k, sp + k, qsize, cy);
+  (which should be added to the tests), e.g. by having {vp, k} = 0, or
+  prove that this cannot happen.
+
+- add a configure test for --enable-logging to ignore the option if
+  it cannot be supported. Modify the "configure --help" description
+  to say "on systems that support it".
+
+- add generic bad cases for functions that don't have an inverse
+  function that is implemented (use a single Newton iteration).
+
+- add bad cases for the internal error bound (by using a dichotomy
+  between a bad case for the correct rounding and some input value
+  with fewer Ziv iterations?).
+
+- add an option to use a 32-bit exponent type (int) on LP64 machines,
+  mainly for developers, in order to be able to test the case where the
+  extended exponent range is the same as the default exponent range, on
+  such platforms.
+  Tests can be done with the exp-int branch (added on 2010-12-17, and
+  many tests fail at this time).
+
+- test underflow/overflow detection of various functions (in particular
+  mpfr_exp) in reduced exponent ranges, including ranges that do not
+  contain 0.
+
+- add an internal macro that does the equivalent of the following?
+    MPFR_IS_ZERO(x) || MPFR_GET_EXP(x) <= value
+
+- check whether __gmpfr_emin and __gmpfr_emax could be replaced by
+  a constant (see README.dev). Also check the use of MPFR_EMIN_MIN
+  and MPFR_EMAX_MAX.
+
+
+##############################################################################
+7. Portability
+##############################################################################
+
+- add a web page with results of builds on different architectures
+
+- support the decimal64 function without requiring --with-gmp-build
+
+- [Kevin about texp.c long strings]
+  For strings longer than c99 guarantees, it might be cleaner to
+  introduce a "tests_strdupcat" or something to concatenate literal
+  strings into newly allocated memory.  I thought I'd done that in a
+  couple of places already.  Arrays of chars are not much fun.
+
+- use https://gcc.gnu.org/viewcvs/gcc/trunk/config/stdint.m4 for mpfr-gmp.h

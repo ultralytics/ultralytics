@@ -1,0 +1,165 @@
+#! /bin/sh
+#
+# GMP config.sub wrapper.
+
+
+# Copyright 2000-2003, 2006, 2009-2015 Free Software Foundation, Inc.
+#
+#  This file is part of the GNU MP Library.
+#
+#  The GNU MP Library is free software; you can redistribute it and/or modify
+#  it under the terms of either:
+#
+#    * the GNU Lesser General Public License as published by the Free
+#      Software Foundation; either version 3 of the License, or (at your
+#      option) any later version.
+#
+#  or
+#
+#    * the GNU General Public License as published by the Free Software
+#      Foundation; either version 2 of the License, or (at your option) any
+#      later version.
+#
+#  or both in parallel, as here.
+#
+#  The GNU MP Library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#  for more details.
+#
+#  You should have received copies of the GNU General Public License and the
+#  GNU Lesser General Public License along with the GNU MP Library.  If not,
+#  see https://www.gnu.org/licenses/.
+
+
+# Usage: config.sub CPU-VENDOR-OS
+#        config.sub ALIAS
+#
+# Validate and canonicalize the given configuration name, with special
+# handling for GMP extra CPU names.
+#
+# When the CPU isn't special the whole name is simply passed straight
+# through to configfsf.sub.
+#
+# When the CPU is a GMP extra, configfsf.sub is run on a similar CPU that it
+# will recognise.  For example "athlon-pc-freebsd3.5" is validated using
+# "i386-pc-freebsd3.5".
+#
+# Any canonicalizations made by configfsf.sub are preserved.  For example
+# given "athlon-linux", configfsf.sub is called with "i386-linux" and will
+# give back "i386-pc-linux-gnu".  "athlon" is then reinstated, so we print
+# "athlon-pc-linux-gnu".
+
+
+# Expect to find configfsf.sub in the same directory as this config.sub
+configfsf_sub="`echo \"$0\" | sed 's/config.sub$/configfsf.sub/'`"
+if test "$configfsf_sub" = "$0"; then
+  echo "Cannot derive configfsf.sub from $0" 1>&2
+  exit 1
+fi
+if test -f "$configfsf_sub"; then
+  :
+else
+  echo "$configfsf_sub not found" 1>&2
+  exit 1
+fi
+
+# Always run configfsf.sub with $SHELL, like autoconf does for config.sub
+SHELL=${CONFIG_SHELL-/bin/sh}
+
+# Identify ourselves on --version, --help, etc
+case "$1" in
+"" | -*)
+  echo "(GNU MP wrapped config.sub)" 1>&2
+  $SHELL $configfsf_sub "$@"
+  exit
+  ;;
+esac
+
+given_full="$1"
+given_cpu=`echo "$given_full" | sed 's/-.*$//'`
+given_rest=`echo "$given_full" | sed 's/^[^-]*//'`
+
+
+# Aliases for GMP extras
+case "$given_cpu" in
+  # configfsf.sub turns p5 into i586, instead use our exact cpu type
+  p5 | p54)   given_cpu=pentium ;;
+  p55)        given_cpu=pentiummmx ;;
+
+  # configfsf.sub turns p6, pentiumii and pentiumiii into i686, instead use
+  # our exact cpu types
+  p6)         given_cpu=pentiumpro ;;
+  pentiumii)  given_cpu=pentium2 ;;
+  pentiumiii) given_cpu=pentium3 ;;
+esac
+given_full="$given_cpu$given_rest"
+
+
+# GMP extras and what to use for the config.sub test
+case "$given_cpu" in
+itanium | itanium2)
+  test_cpu=ia64 ;;
+pentium | pentiummmx | pentiumpro | pentium[234m] | k[567] | k6[23] | geode | athlon | viac3*)
+  test_cpu=i386 ;;
+athlon64 | atom | silvermont | goldmont | core2 | corei* | opteron | k[89] | k10 | bobcat | jaguar* | bulldozer* | piledriver* | steamroller* | excavator* | nano | nehalem* | westmere* | sandybridge* | ivybridge* | haswell* | broadwell* | skylake* | cabylake* | knightslanding)
+  test_cpu=x86_64 ;;
+power[2-9] | power2sc)
+  test_cpu=power ;;
+powerpc401 | powerpc403 | powerpc405 | \
+powerpc505 | \
+powerpc601 | powerpc602  | \
+powerpc603 | powerpc603e | \
+powerpc604 | powerpc604e | \
+powerpc620 | powerpc630  | powerpc970  | \
+powerpc740 | powerpc7400 | powerpc7450 | powerpc750  | \
+powerpc801 | powerpc821 | powerpc823  | powerpc860 | \
+powerpc64)
+  test_cpu=powerpc ;;
+sparcv8 | supersparc | microsparc | \
+ultrasparc | ultrasparc2 | ultrasparc2i | ultrasparc3 | ultrasparct[12345])
+  test_cpu=sparc ;;
+sh2)
+  test_cpu=sh ;;
+
+z900 | z990 | z9 | z10 | z196)
+  test_cpu=s390x;;
+z900esa | z990esa | z9esa | z10esa | z196esa)
+  test_cpu=s390;;
+
+armsa1 | armxscale | arm9tdmi | arm9te |				\
+arm10* | arm11mpcore | armsa1 | arm1136 | arm1156 | arm1176 |		\
+armcortexa5 | armcortexa7 | armcortexa8 | armcortexa9 | armcortexa15 |	\
+armcortexr4 | armcortexr5 | armcortexm3 | arm*neon)
+  test_cpu="arm";;
+
+*)
+  # Don't need or want to change the given name, just run configfsf.sub
+  $SHELL $configfsf_sub "$given_full"
+  if test $? = 0; then
+    exit 0
+  else
+    echo "(GNU MP wrapped config.sub, testing \"$given_full\")"
+    exit 1
+  fi
+esac
+
+
+test_full="$test_cpu$given_rest"
+canonical_full=`$SHELL $configfsf_sub "$test_full"`
+if test $? = 0; then
+  :
+else
+  echo "(GNU MP wrapped config.sub, testing \"$given_full\" as \"$test_full\")"
+  exit 1
+fi
+
+canonical_rest=`echo "$canonical_full" | sed 's/^[^-]*//'`
+echo "$given_cpu$canonical_rest"
+exit 0
+
+
+
+# Local variables:
+# fill-column: 76
+# End:

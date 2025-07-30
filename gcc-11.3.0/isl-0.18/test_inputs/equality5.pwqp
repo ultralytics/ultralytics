@@ -1,0 +1,1 @@
+[m,n] -> { [x,y,z] -> x^2 * y + z + m + 13 * n: n = 2x + 4y and 0 <= x,y <= 10 and 3 n = 5 m and z = x + y }

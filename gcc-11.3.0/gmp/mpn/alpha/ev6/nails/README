@@ -1,0 +1,65 @@
+Copyright 2002, 2005 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+This directory contains assembly code for nails-enabled 21264.  The code is not
+very well optimized.
+
+For addmul_N, as N grows larger, we could make multiple loads together, then do
+about 3.3 i/c.  10 cycles after the last load, we can increase to 4 i/c.  This
+would surely allow addmul_4 to run at 2 c/l, but the same should be possible
+also for addmul_3 and perhaps even addmul_2.
+
+
+		current		fair		best
+Routine		c/l  unroll	c/l  unroll	c/l  i/c
+mul_1		3.25		2.75		2.75 3.273
+addmul_1	4.0	4	3.5	4 14	3.25 3.385
+addmul_2	4.0	1	2.5	2 10	2.25 3.333
+addmul_3	3.0	1	2.33	2 14	2    3.333
+addmul_4	2.5	1	2.125	2 17	2    3.135
+
+addmul_5			2	1 10
+addmul_6			2	1 12
+addmul_7			2	1 14
+
+(The "best" column doesn't account for bookkeeping instructions and
+thereby assumes infinite unrolling.)
+
+Basecase usages:
+
+1	 addmul_1
+2	 addmul_2
+3	 addmul_3
+4	 addmul_4
+5	 addmul_3 + addmul_2	2.3998
+6	 addmul_4 + addmul_2
+7	 addmul_4 + addmul_3

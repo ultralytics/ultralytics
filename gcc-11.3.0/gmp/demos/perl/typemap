@@ -1,0 +1,108 @@
+# GMP module external subroutine type mappings.
+
+# Copyright 2001, 2003 Free Software Foundation, Inc.
+#
+#  This file is part of the GNU MP Library.
+#
+#  The GNU MP Library is free software; you can redistribute it and/or modify
+#  it under the terms of either:
+#
+#    * the GNU Lesser General Public License as published by the Free
+#      Software Foundation; either version 3 of the License, or (at your
+#      option) any later version.
+#
+#  or
+#
+#    * the GNU General Public License as published by the Free Software
+#      Foundation; either version 2 of the License, or (at your option) any
+#      later version.
+#
+#  or both in parallel, as here.
+#
+#  The GNU MP Library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#  for more details.
+#
+#  You should have received copies of the GNU General Public License and the
+#  GNU Lesser General Public License along with the GNU MP Library.  If not,
+#  see https://www.gnu.org/licenses/.
+
+
+TYPEMAP
+const_string		T_PV
+const_string_assume	CONST_STRING_ASSUME
+mpz			MPZ
+mpq			MPQ
+mpf			MPF
+mpz_assume		MPZ_ASSUME
+mpq_assume		MPQ_ASSUME
+mpf_assume		MPF_ASSUME
+mpz_coerce		MPZ_COERCE
+mpq_coerce		MPQ_COERCE
+mpf_coerce_st0		MPF_COERCE_ST0
+mpf_coerce_def		MPF_COERCE_DEF
+randstate		RANDSTATE
+ulong_coerce		ULONG_COERCE
+malloced_string		MALLOCED_STRING
+order_noswap		ORDER_NOSWAP
+dummy			DUMMY
+# perl 5.005 doesn't have UV in its standard typemap, so use this instead
+gmp_UV			GMP_UV
+
+
+INPUT
+MPZ
+	class_or_croak ($arg, mpz_class); $var = SvMPZ($arg);
+MPQ
+	class_or_croak ($arg, mpq_class); $var = SvMPQ($arg);
+MPF
+	class_or_croak ($arg, mpf_class); $var = SvMPF($arg);
+MPZ_ASSUME
+        MPZ_ASSUME ($var, $arg)
+MPQ_ASSUME
+        MPQ_ASSUME ($var, $arg)
+MPF_ASSUME
+        MPF_ASSUME ($var, $arg)
+MPZ_COERCE
+	$var = coerce_mpz (tmp_mpz_${(my $stnum=$arg)=~s/[^0-9]//g;\$stnum}, $arg)
+MPQ_COERCE
+	$var = coerce_mpq (tmp_mpq_${(my $stnum=$arg)=~s/[^0-9]//g;\$stnum}, $arg)
+MPF_COERCE_ST0
+        /* precision follows ST(0) */
+        assert (sv_derived_from (ST(0), mpf_class));
+	$var = coerce_mpf (tmp_mpf_${(my $stnum=$arg)=~s/[^0-9]//g;\$stnum},
+	                   $arg, mpf_get_prec (SvMPF(ST(0))))
+MPF_COERCE_DEF
+        /* default precision used */
+	$var = coerce_mpf (tmp_mpf_${(my $stnum=$arg)=~s/[^0-9]//g;\$stnum},
+	                   $arg, mpf_get_default_prec())
+RANDSTATE
+	class_or_croak ($arg, rand_class); $var = SvRANDSTATE($arg);
+ULONG_COERCE
+	$var = coerce_ulong ($arg)
+ORDER_NOSWAP
+	assert ($arg != &PL_sv_yes);
+DUMMY
+	/* dummy $var */
+CONST_STRING_ASSUME
+        /* No need to check for SvPOKp and use SvPV, this mapping is
+           only used for overload_constant, which always gets literal
+           strings.  */
+	assert (SvPOK ($arg));
+	$var = SvPVX ($arg);
+
+
+OUTPUT
+MPZ
+    sv_bless (sv_setref_pv ($arg, NULL, $var), mpz_class_hv);
+MPQ
+    sv_bless (sv_setref_pv ($arg, NULL, $var), mpq_class_hv);
+MPF
+    sv_bless (sv_setref_pv ($arg, NULL, $var), mpf_class_hv);
+RANDSTATE
+    sv_setref_pv ($arg, rand_class, $var);
+MALLOCED_STRING
+    sv_usepvn_mg ($arg, $var, strlen($var));
+GMP_UV
+    sv_setuv ($arg, (UV) ($var));

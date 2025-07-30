@@ -1,0 +1,6 @@
+# Check that we find a common stride on the first dimension
+# even if it is imposed by different inner dimensions
+{ A[i,k] -> [i,0,j,k] : 0 <= i,k <= 100 and i = 2 j;
+  B[i,k] -> [i,1,k,j] : 0 <= i,k <= 100 and i = 2 j }
+{ : }
+{ }

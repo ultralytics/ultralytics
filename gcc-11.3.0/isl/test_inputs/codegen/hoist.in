@@ -1,0 +1,10 @@
+# check that the shared conditions ni >= t0 + 1 and nj >= t1 + 1
+# are hoisted out of the loop
+[ni, nj, nk, t0, t1] -> { S_1[i, j, k] -> [t0, t1, k, i, j] :
+	exists (e0 = [(-t0 + i)/16], e1 = [(-t1 + j)/16]:
+	16e0 = -t0 + i and 16e1 = -t1 + j and k >= 0 and j >= 0 and
+	j <= -1 + nj and i >= 0 and i <= -1 + ni and k <= -1 + nk and
+	ni >= 1 and nj >= 1 and nk >= 1 and j <= 63 and t1 >= 0 and
+	i <= 63 and k <= 15 and t0 >= 0 and t1 <= 15 and t0 <= 15) }
+[t0, t1] -> { : 0 <= t0, t1 <= 15 }
+{ [t0, t1, i5, i6, i7] -> unroll[x] : x >= 3}

@@ -1,0 +1,179 @@
+# Data test file for mpc_log10.
+#
+# Copyright (C) 2012 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+
+# See file sin.dat for the format description.
+
+# Special values, following ISO C99 standard, Annex G,
+# more precisely Section 7.26 "Future library directions"
+
+# Rule [conj]: log10(conj(z)) = conj(log10(z))
+
+# log10(nan + i*inf) = +inf + i*nan
+0 0 2 +inf 2 nan                   2 nan 2 +inf  N N
+0 0 2 +inf 2 nan                   2 nan 2 -inf  N N
+
+# log10(nan + i*nan) = nan + i*nan
+0 0 2 nan 2 nan                    2 nan 2 nan   N N
+
+# log10(nan + i*y) = nan + i*nan for finite y
+0 0 2 nan 2 nan                    2 nan 2  1    N N
+0 0 2 nan 2 nan                    2 nan 2 +0    N N
+0 0 2 nan 2 nan                    2 nan 2 -0    N N
+0 0 2 nan 2 nan                    2 nan 2 -1    N N
+
+# log10(+/-inf + i*nan) = +inf + i*nan
+0 0 2 +inf 2 nan                   2 +inf 2 nan  N N
+0 0 2 +inf 2 nan                   2 -inf 2 nan  N N
+
+# log10(x + i*nan) = nan+i*nan for finite x
+0 0 2 nan 2 nan                    2  1 2 nan    N N
+0 0 2 nan 2 nan                    2 +0 2 nan    N N
+0 0 2 nan 2 nan                    2 -0 2 nan    N N
+0 0 2 nan 2 nan                    2 -1 2 nan    N N
+
+# log10(x + i*inf) = +inf + i*pi/2/log(10) for finite x
+0 + 2 +inf 53 +0x15d47c4cb2fba1p-53  2  1 2 +inf   N N
+0 + 2 +inf 53 +0x15d47c4cb2fba1p-53  2 +0 2 +inf   N N
+0 + 2 +inf 53 +0x15d47c4cb2fba1p-53  2 -0 2 +inf   N N
+0 + 2 +inf 53 +0x15d47c4cb2fba1p-53  2 -1 2 +inf   N N
+# by [conj]: log10(x - i*inf) = +inf - i*pi/2/log(10) for finite x
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-53  2  1 2 -inf  N N
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-53  2 +0 2 -inf  N N
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-53  2 -0 2 -inf  N N
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-53  2 -1 2 -inf  N N
+
+# log10(-inf + i*y) = +inf + i*pi/log(10) for finite positive-signed y
+0 + 2 +inf 53 0x15d47c4cb2fba1p-52  2 -inf 2  1   N N
+0 + 2 +inf 53 0x15d47c4cb2fba1p-52  2 -inf 2 +0   N N
+# by [conj]: log10(-inf+i*y) = +inf - i*pi/log(10) for finite negative-signed y
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-52  2 -inf 2 -1  N N
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-52  2 -inf 2 -0  N N
+
+# log10(+inf + i*y) = +inf + i*0 for finite positive-signed y
+0 0 2 +inf 2 +0                    2 +inf 2  1   N N
+0 0 2 +inf 2 +0                    2 +inf 2 +0   N N
+# by [conj]: log10(+inf + i*y) = +inf - i*0 for finite negative-signed y
+0 0 2 +inf 2 -0                    2 +inf 2 -1   N N
+0 0 2 +inf 2 -0                    2 +inf 2 -0   N N
+
+# log10(-inf + i*inf) = +inf + i*(3*pi/4)/log(10)
+0 + 2 +inf 53 0x105f5d39863cb9p-52  2 -inf 2 +inf N N
+# by [conj]: log10(-inf - i*inf) = +inf - i*(3*pi/4)/log(10)
+0 - 2 +inf 53 -0x105f5d39863cb9p-52 2 -inf 2 -inf N N
+
+# log10(+inf + i*inf) = +inf + i*(pi/4)/log(10)
+0 + 2 +inf 53 0x15d47c4cb2fba1p-54  2 +inf 2 +inf N N
+# by [conj]: log10(+inf - i*inf) = +inf - i*(pi/4)/log(10)
+0 - 2 +inf 53 -0x15d47c4cb2fba1p-54 2 +inf 2 -inf N N
+
+# log10(-0 + i*0) = -inf + i*pi/log(10)
+0 + 2 -inf 53 +0x15d47c4cb2fba1p-52   2 -0 2 +0     N N
+0 - 2 -inf 53 -0x15d47c4cb2fba1p-52   2 -0 2 -0     N N
+0 + 2 -inf 53 +0x15d47c4cb2fba1p-52   2 -0 2 +0     N U
+0 + 2 -inf 53 -0xaea3e26597ddp-47     2 -0 2 -0     N U
+0 - 2 -inf 53 +0xaea3e26597ddp-47     2 -0 2 +0     N D
+0 - 2 -inf 53 -0x15d47c4cb2fba1p-52   2 -0 2 -0     N D
+
+# log10(+0 + i*0) = -inf + i*0
+0 0 2 -inf 2 +0                      2 +0 2 +0    N N
+0 0 2 -inf 2 -0                      2 +0 2 -0    N N
+
+# log10(+1 +- i*0) = +0 +- i*0
+0 0 2 +0 2 +0                      2 1 2 +0    N N
+0 0 2 +0 2 -0                      2 1 2 -0    N N
+
+# log10(10 +- i*0) = 1 +- i*0
+0 0 2 1 2 +0                      4 10 2 +0    N N
+0 0 2 1 2 -0                      4 10 2 -0    N N
+
+# log10(100 +- i*0) = 1 +- i*0
+0 0 2 2 2 +0                      5 100 2 +0    N N
+0 0 2 2 2 -0                      5 100 2 -0    N N
+
+# log10(-1 +- i*0) = +0 +- i*pi/log(10)
+0 + 2 +0 53 +0x15d47c4cb2fba1p-52   2 -1 2 +0     N N
+0 - 2 +0 53 -0x15d47c4cb2fba1p-52   2 -1 2 -0     N N
+
+# log10(x + i*y) with either x or y zero and the other non-zero
+- 0 53 0x13afeb354b7d97p-52  2                   0     5  0x11 2     0 N N
+- + 53 0x13afeb354b7d97p-52 53  0x15d47c4cb2fba1p-53   2     0 5  0x11 N N
+- + 53 0x1475c655fbc11p-48  53  0x15d47c4cb2fba1p-52   5 -0x13 2    +0 N N
+- - 53 0x1475c655fbc11p-48  53 -0x15d47c4cb2fba1p-52   5 -0x13 2    -0 N N
+- - 53 0x1475c655fbc11p-48  53 -0x15d47c4cb2fba1p-53   2     0 5 -0x13 N N
+
+- + 53 0x15c9a3209bf97fp-52 53  0x15d47c4cb2fba1p-52   5 -0x17 2    +0 Z U
+- - 53 0x15c9a3209bf97fp-52 53 -0x15d47c4cb2fba1p-52   5 -0x17 2    -0 N D
++ - 53 0x2b93464137f3p-45   53  0xaea3e26597ddp-47     5 -0x17 2    +0 U Z
+- - 53 0x15c9a3209bf97fp-52 53 -0x15d47c4cb2fba1p-52   5 -0x17 2    -0 D N
+- - 53 0x1d1cda1a0c996dp-52 53  0xaea3e26597ddp-47     7 -0x42 2    +0 Z D
++ + 53 0xe8e6d0d064cb7p-51  53 -0xaea3e26597ddp-47     7 -0x42 2    -0 N Z
++ + 53 0xe8e6d0d064cb7p-51  53  0x15d47c4cb2fba1p-52   7 -0x42 2    +0 U N
+- + 53 0x1d1cda1a0c996dp-52 53 -0xaea3e26597ddp-47     7 -0x42 2    -0 D U
+
+# huge values
++ 0 53 0x134413509f79ffp-44 2   0                   2 0x1p1024 2    +0 U U
++ 0 53 0x134413509f79ffp-43 2   0                   2 0x1p2048 2    +0 U U
++ 0 53 0x134413509f79ffp-42 2   0                   2 0x1p4096 2    +0 U U
++ 0 53 0x134413509f79ffp-41 2   0                   2 0x1p8192 2    +0 U U
++ 0 53 0x134413509f79ffp-40 2   0                   2 0x1p16384 2   +0 U U
++ 0 53 0x134413509f79ffp-39 2   0                   2 0x1p32768 2   +0 U U
++ 0 53 0x134413509f79ffp-38 2   0                   2 0x1p65536 2   +0 U U
++ 0 53 0x134413509f79ffp-37 2   0                   2 0x1p131072 2  +0 U U
++ 0 53 0x134413509f79ffp-36 2   0                   2 0x1p262144 2  +0 U U
++ 0 53 0x134413509f79ffp-35 2   0                   2 0x1p524288 2  +0 U U
++ 0 53 0x134413509f79ffp-34 2   0                   2 0x1p1048576 2 +0 U U
++ 0 53 0x134413509f79ffp-33 2   0                   2 0x1p2097152 2 +0 U U
++ 0 53 0x134413509f79ffp-32 2   0                   2 0x1p4194304 2 +0 U U
++ 0 53 0x134413509f79ffp-31 2   0                   2 0x1p8388608 2 +0 U U
++ 0 53 0x134413509f79ffp-30 2   0                  2 0x1p16777216 2 +0 U U
++ 0 53 0x134413509f79ffp-29 2   0                  2 0x1p33554432 2 +0 U U
++ 0 53 0x134413509f79ffp-28 2   0                  2 0x1p67108864 2 +0 U U
++ 0 53 0x134413509f79ffp-27 2   0                 2 0x1p134217728 2 +0 U U
++ 0 53 0x134413509f79ffp-26 2   0                 2 0x1p268435456 2 +0 U U
++ 0 53 0x134413509f79ffp-25 2   0                 2 0x1p536870912 2 +0 U U
++ + 53 0x13467bd3098defp-44 53 0x15d47c4cb2fba1p-54 2 0x1p1024 2 0x1p1024 U U
++ + 53 0x13454791d483f7p-43 53 0x15d47c4cb2fba1p-54 2 0x1p2048 2 0x1p2048 U U
++ + 53 0x1344ad7139fefbp-42 53 0x15d47c4cb2fba1p-54 2 0x1p4096 2 0x1p4096 U U
++ + 53 0x13446060ecbc7dp-41 53 0x15d47c4cb2fba1p-54 2 0x1p8192 2 0x1p8192 U U
++ + 53 0x9a21cec630d9fp-39  53 0x15d47c4cb2fba1p-54 2 0x1p16384 2 0x1p16384 U U
++ + 53 0x13442694b2ca9fp-39 53 0x15d47c4cb2fba1p-54 2 0x1p32768 2 0x1p32768 U U
++ + 53 0x13441cf2a9224fp-38 53 0x15d47c4cb2fba1p-54 2 0x1p65536 2 0x1p65536 U U
++ + 53 0x13441821a44e27p-37  2  0x3p-3            2 0x1p131072 2 0x1p131072 U U
++ + 53 0x134415b921e413p-36  2  0x3p-3            2 0x1p262144 2 0x1p262144 U U
++ + 53 0x13441484e0af09p-35  2  0x3p-3            2 0x1p524288 2 0x1p524288 U U
++ + 53 0x4d104fab00521p-32   2  0x3p-3          2 0x1p1048576 2 0x1p1048576 U U
++ + 53 0x9a209ced7e3a1p-32   2  0x3p-3          2 0x1p2097152 2 0x1p2097152 U U
++ + 53 0x1344137727a0a1p-32  2  0x3p-3          2 0x1p4194304 2 0x1p4194304 U U
++ + 53 0x13441363e38d5p-27   2  0x3p-3          2 0x1p8388608 2 0x1p8388608 U U
++ + 53 0x268826b483075p-27   2  0x3p-3        2 0x1p16777216 2 0x1p16777216 U U
++ + 53 0x4d104d55c1fb5p-27   2  0x3p-3        2 0x1p33554432 2 0x1p33554432 U U
++ + 53 0x9a209a983fe35p-27   2  0x3p-3        2 0x1p67108864 2 0x1p67108864 U U
++ + 53 0x4d104d474eecdp-25   2  0x3p-3      2 0x1p134217728 2 0x1p134217728 U U
++ + 53 0x9a209a89ccd4dp-25   2  0x3p-3      2 0x1p268435456 2 0x1p268435456 U U
+# Due to intermediate overflow, the following result has wrong real part
+# instead of the correct result. Since this may happen in other parts of the
+# library as well, we do not consider it a bug for the moment.
+# + + 53 0x13441350ec8a4dp-25  2  0x3p-3    2 0x1p536870912 2 0x1p536870912 U U
+
+# log10(3+I) has an exact real part (from Joseph S. Myers)
+0 + 53 0.5 53 0x8f168ee8415e7p-54 2 3 2 1 N N
+
+# bug found by Mickael Gastineau on 29 Sep 2012
+0 + 2 +0 2  0.75 2 +0 2  1 N N
+0 - 2 +0 2 -0.75 2 +0 2 -1 N N

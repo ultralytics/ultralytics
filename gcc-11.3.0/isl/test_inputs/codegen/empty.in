@@ -1,0 +1,5 @@
+# Earlier versions of isl would end up with an empty partial
+# executed relation and fail to detect this emptiness.
+[M] -> { S0[i] -> [i, -M] : 0 <= i <= 10; S1[i] -> [i, 0] : 0 <= i <= 10; S2[] -> [5, 0] }
+[M] -> {  : M >= 1 }
+{ }

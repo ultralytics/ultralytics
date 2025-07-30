@@ -1,0 +1,135 @@
+# Data test file for mpc_tan.
+#
+# Copyright (C) 2008, 2010, 2011 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+
+# See file sin.dat for the format description.
+
+# Special values, following ISO C99 standard, Annex G,
+# more precisely Section G.6.2.6 "The ctanh functions"
+# since G.6 defines ctan(z) as -i * ctanh(i*z)
+
+# Rule [conj]: tan(conj(z)) = conj(tan(z))
+# Rule [odd]:  tan(-z) = -tan(z)
+
+# Note: for each rule, we cite the rule for tanh from C99,
+#       and below the translated rule for tan, using tanh(z) = i tan(-iz),
+#       thus tanh(a+i*b) = c+i*d translates to tan(b-i*a) = d-i*c
+
+# tanh(+0 + i*0) = +0 + i*0
+# tan (+0 - i*0) = +0 - i*0
+0 0 2 +0 2 -0   2 +0 2 -0   N N
+# [conj]: tan(+0 + i*0) =  +0 + i*0
+0 0 2 +0 2 +0   2 +0 2 +0   N N
+# [odd]: tan(-0 + i*0) =  -0 + i*0
+0 0 2 -0 2 +0   2 -0 2 +0   N N
+# [odd+conj]: tan(-0 - i*0) =  -0 - i*0
+0 0 2 -0 2 -0   2 -0 2 -0   N N
+
+# tanh(x + i*inf) = nan + i*nan for finite x
+# tan (inf - i*x) = nan + i*nan for finite x
+0 0 2 nan 2 nan   2 +inf 2 +1   N N
+0 0 2 nan 2 nan   2 +inf 2 +0   N N
+0 0 2 nan 2 nan   2 +inf 2 -0   N N
+0 0 2 nan 2 nan   2 +inf 2 -1   N N
+# [conj] does not make sense since we already considered x < 0
+# [odd]: tan(-inf + i*x) = nan + i*nan for finite x
+0 0 2 nan 2 nan   2 -inf 2 +1   N N
+0 0 2 nan 2 nan   2 -inf 2 +0   N N
+0 0 2 nan 2 nan   2 -inf 2 -0   N N
+0 0 2 nan 2 nan   2 -inf 2 -1   N N
+
+# tanh(x + i*nan) = nan + i*nan for finite x
+# tan (nan + i*x) = nan + i*nan for finite x
+0 0 2 nan 2 nan   2 nan 2  1    N N
+0 0 2 nan 2 nan   2 nan 2 +0    N N
+0 0 2 nan 2 nan   2 nan 2 -0    N N
+0 0 2 nan 2 nan   2 nan 2 -1    N N
+# [conj] makes no sense since we already considered x < 0
+# idem for [odd] since nan has no sign
+
+# tanh(+inf + i*y) = 1 + i*0*sin(2y) for positive-signed finite y
+# tan (y - i*inf) = 0*sin(2*y) - i*1 for positive-signed finite y
+0 0 2 +0 2 -1   2 1 2 -inf   N N
+0 0 2 -0 2 -1   2 2 2 -inf   N N
+# [conj]: tan (y + i*inf) = 0*sin(2*y) + i*1
+0 0 2 +0 2 +1   2 1 2 +inf   N N
+0 0 2 -0 2 +1   2 2 2 +inf   N N
+# [odd]: tan (-y + i*inf) = -0*sin(2*y) + i*1
+0 0 2 -0 2 +1   2 -1 2 +inf   N N
+0 0 2 +0 2 +1   2 -2 2 +inf   N N
+# [odd+conj]: tan (-y - i*inf) = -0*sin(2*y) - i*1
+0 0 2 -0 2 -1   2 -1 2 -inf   N N
+0 0 2 +0 2 -1   2 -2 2 -inf   N N
+
+# tanh(+inf + i*inf) = 1 +/- i*0 (unspecified sign of zero for C99)
+# tan (+inf - i*inf) = +/-0 - i*1
+0 0 2 0 2 -1   2 +inf 2 -inf   N N
+# [conj]: tan (+inf + i*inf) = +/-0 + i*1
+0 0 2 0 2 +1   2 +inf 2 +inf   N N
+# [odd]:  tan (-inf + i*inf) = +/-0 + i*1
+0 0 2 0 2 +1   2 -inf 2 +inf   N N
+# [odd+conj]: tan (-inf - i*inf) = +/-0 - i*1
+0 0 2 0 2 -1   2 -inf 2 -inf   N N
+
+# tanh(+inf + i*nan) = 1 +/- i*0 (unspecified sign of zero for C99)
+# tan (nan  - i*inf) = +/-0 - i*1
+0 0 2 0 2 -1   2 nan 2 -inf   N N
+# [conj]: tan (nan + i*inf) = +/-0 + i*1
+0 0 2 0 2 +1   2 nan 2 +inf   N N
+# [odd] = [conj] since nan has no sign, and -(+/-0) = +/-0
+
+# tanh(nan + i*0) = nan + i*0
+# tan(+0 + i*nan) = +0 + i*nan
+0 0 2 +0 2 nan   2 +0 2 nan   N N
+# [conj] gives the same identity since nan has no sign
+# [odd]: tan(-0 + i*nan) = -0 + i*nan
+0 0 2 -0 2 nan   2 -0 2 nan   N N
+
+# tanh(nan + i*y) = nan + i*nan for all nonzero y
+# tan (y + i*nan) = nan + i*nan
+0 0 2 nan 2 nan   2 +inf 2 nan   N N
+0 0 2 nan 2 nan   2 +1   2 nan   N N
+0 0 2 nan 2 nan   2 -1   2 nan   N N
+0 0 2 nan 2 nan   2 -inf 2 nan   N N
+# [conj] gives no new relation since nan has no sign
+# [odd] gives no new relation since we already considered y < 0
+
+# tanh(nan + i*nan) = nan + i*nan
+0 0 2 nan 2 nan   2 nan 2 nan   N N
+
+# corner case: op = atan (2^(-k) + i*2^k) for k=200 and k=1000
++ + 100 0x1@-50 100 0x1@50  1000 0x1.921fb54442d18469898cc51701b839a252049c1114cf98e804177d4c76273644a29410f31c6809bbdf2a33679a748636605614dbe4be286e9fc26adadaa3848bc90b6aecc4bcfd8de89884d34c6fdad617feb96de80d6fdbdc70d7f6b5133f4b5d3e4822f8963fcc9250cca3d9c8b67b8400f97142c77e0b31b4906c38 1000 0x1.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000055555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555548888888888888888888888888888888888888888888888888a@-50 N N
++ + 100 0x1@-250 100 0x1@250  4000 0x1.921fb54442d18469898cc51701b839a252049c1114cf98e804177d4c76273644a29410f31c6809bbdf2a33679a748636605614dbe4be286e9fc26adadaa3848bc90b6aecc4bcfd8de89885d34c6fdad617feb96de80d6fdbdc70d7f6b5133f4b5d3e4822f8963fcc9250cca3d9c8b67b8400f97142c77e0b31b4906c38aba734d22c7f51fa499ebf06caba47b9475b2c38c5e6ac410aa5773daa520ee12d2cdace186a9c95793009e2e8d811943042f86520bc8c5c6d9c77c73cee58301d0c07364f0745d80f451f6b8abbe0de98a593bc5797ed2ab02e30732a92f9d52ad5ca2ba44c3131f40a202ae51cb51555885b5a662e1a08a0f46750aa4357be3974c9d9f70a08b1b7de1515d4e2aeba0c18fb672e1f0b4dc3c98f57eb5d19b61267ae3d1929c0944ac33b9dc7a44c35a5dcd7e25ff40db31410c9b0ec04e67d90d4c8a43e56302ef6401977c22eaef4c2bad8ee13118175b28dc411c49f40e9cb566287b6b7f9c1fa211c9705a2415242100234e478254f0fccaf10e334217b74b64d33864e30d5e9c4783528d0696c2a17b44b07d39455a899d1b77785b609bd1df25d1df8283f7d954c50f8b28e9cd780bb33652c9f412187444677430ca2b7cfda3ec252e19dc5af5f7037baec42e09039a00d224fab60b5532769d5311b1fbb830dff6fb9214d811e9be86b92680509246d87f56a 4000 0x1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000055555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555556@-250 N N
+
+# yet another absurd case: op = atan (2^200) + 2^(-200000)*I;
+# expensive to compute
+#- - 50 0x1@50 50 0x1@-49900  1000 0x1.921fb54442d18469898cc51701b839a252049c1114cf98e803177d4c76273644a29410f31c6809bbdf2a33679a748636605614dbe4be286e9fc26adadaa3848bc90b6aecc4bcfd8de8988628a1c5302b6d540ec33d62c53131c62d4c0a6894a0b2939d784deb9521e7a621f92f1e0bd0d9564ec6981cd3608709e5c18e 1000 0x1@-50000 N N
+
+# corner case
+- + 9 -0x9bp-51 9 -1    9 -0x16dp-8 9 -0x77p-3   N N
+
+# huge values
++ - 53 -0 53 -1  53 0x4580CBF242683p-3 53 -0x1B3E8A3660D279p-3 N N
+- - 53 +0 53 -1  53 -0x4580CBF242683p-3 53 -0x1B3E8A3660D279p-3 N N
++ + 53 -0 53 +1  53 -0x1B3E8A3660D279p-3 53 0x4580CBF242683p-3 N N
+
+# some values taken from ttan.c
++ + 53 0x1D02967C31CDB5 53 0x1D02967C31CDB5  53 0x3243F6A8885A30p-53 53 0x11A62633145C07p-106 N N
+- + 53 0x1D02967C31CDB4 53 0x1D02967C31CDB5  53 0x3243F6A8885A30p-53 53 0x11A62633145C07p-106 D U
+- - 53 0x1D02967C31CDB4 53 0x1D02967C31CDB4  53 0x3243F6A8885A30p-53 53 0x11A62633145C07p-106 Z D
+- + 53 -0xB0BD0AA4A3B3D 53 -0xB0BD0AA4A3B3D  53 0x1921FB54442D19p-52 53 -0x172CECE675D1FDp-105 N N

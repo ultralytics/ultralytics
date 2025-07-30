@@ -1,0 +1,4 @@
+# Check that all information is taken into account while trying to unroll
+[m,n] -> { A[i] -> [i] : 0 <= i < n,m }
+[m,n] -> { : m <= 10 or n <= 10 }
+{ [i] -> unroll[x] }

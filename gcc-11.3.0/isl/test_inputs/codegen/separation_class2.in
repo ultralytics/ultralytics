@@ -1,0 +1,3 @@
+[n] -> { A[i,j] -> [it,jt, ip, jp] : 0 <= i,j < n and ip = i % 8 and it = i - ip and jp = j % 8 and jt = j - jp}
+[n] -> { : n >= 10}
+[n] -> { [it, jt, ip, jp] -> separation_class[[x]->[1]]: (exists id, jd: 0 <= x <= 3 and it < n - id and jt < n - jd and id = n %8 and jd = n %8)}

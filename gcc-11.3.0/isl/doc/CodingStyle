@@ -1,0 +1,42 @@
+This document describes some aspects of the coding style of isl,
+which is similar to that of the linux kernel and git.
+
+The general rule is to use the same style as that of the surrounding code.
+
+More specific rules:
+	- every line should have at most 80 columns
+	- use tabs for indentation, where a tab counts for 8 characters
+	- use single spaces around binary operators such as '+', '-', '=', '!='
+	- no space after unary operators such as '!'
+	- use a single space after a comma and a semicolon
+	  (except at the end of a line)
+	- no space between function name and arguments
+	- use a single space after control keywords such as if, for and while
+	- use a single space between the type of a cast and the value
+	  that is being cast
+	- no whitespace at the end of a line
+	- opening brace of a function is placed on a new line
+	- opening brace of other blocks stays on the same line
+	- the body of a control statement is placed on the next line(s)
+	- an else appears on the same line as the closing brace of
+	  the then branch, if there is such a closing brace
+	- if either the then or the else branch of an if has braces,
+	  then they both have braces
+	- no parentheses around argument of return keyword
+	- use only C style comments (/* ... */)
+	- no comments inside function bodies;
+	  if some part of a function deserves additional comments, then
+	  extract it out into a separate function first
+	- no #ifs inside function bodies
+	- variables are declared at the start of a block, before any
+	  other statements
+
+There are some exceptions to the general rule of using
+the same style as the surrounding code, most notably
+when the surrounding code is very old.
+In particular, an "isl_space" used to be called "isl_dim" and
+some variables of this type are still called "dim" or some variant thereof.
+New variables of this type should be called "space" or a more specific name.
+Some old functions do not have memory management annotations yet.
+All new functions should have memory management annotations,
+whenever appropriate

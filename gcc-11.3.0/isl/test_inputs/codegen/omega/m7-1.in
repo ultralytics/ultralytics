@@ -1,0 +1,3 @@
+{ s0[i, j] -> [j, i, 0] : i >= 1 and i <= 9 and j >= 1 and j <= 9; s1[i, j] -> [j, i, 1] : exists (e0 = [(j)/2]: 2e0 = j and i >= 1 and i <= 9 and j >= 2 and j <= 8) }
+{  :  }
+{ [i0, i1, i2] -> separate[o0] : o0 >= 1; [i0, i1, i2] -> atomic[o0] : o0 <= 0 }

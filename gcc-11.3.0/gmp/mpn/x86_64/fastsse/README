@@ -1,0 +1,22 @@
+This directory contains code for x86-64 processors with fast
+implementations of SSE operations, hence the name "fastsse".
+
+Current processors that might benefit from this code are:
+
+  AMD K10
+  AMD Bulldozer/Piledriver/Steamroller/Excavator
+  Intel Nocona
+  Intel Nehalem/Westmere
+  Intel Sandybridge/Ivybridge
+  Intel Haswell/Broadwell
+  VIA Nano
+
+Current processors that do not benefit from this code are:
+
+  AMD K8
+  AMD Bobcat
+  Intel Atom
+
+Intel Conroe/Penryn is a border case; its handling of non-aligned
+128-bit memory operands is poor.  VIA Nano also have poor handling of
+non-aligned operands.

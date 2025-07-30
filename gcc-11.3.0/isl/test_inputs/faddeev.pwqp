@@ -1,0 +1,1 @@
+[N] -> { [i, j, k] -> (((4 + 6 * N + 2 * N^2) + (-2 - 2 * N) * j) + ((-2 - N) + j) * k) : j = 1 + i and k = 1 + i and i >= 3 and N <= 100 and i <= N and N >= 10 }

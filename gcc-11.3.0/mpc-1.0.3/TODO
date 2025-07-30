@@ -1,0 +1,40 @@
+From Andreas Enge 31 August 2011:
+implement mul_karatsuba with three multiplications at precision around p,
+instead of two at precision 2*p and one at precision p
+requires analysis of error propagation
+
+From Andreas Enge 30 August 2011:
+As soon as dependent on mpfr>=3, remove auxiliary functions from
+get_version.c and update mpc.h.
+Use MPFR_RND? instead of GMP_RND?, and remove workarounds for MPFR_RNDA from
+mpc-impl.h.
+
+From Andreas Enge 05 July 2012:
+Add support for rounding mode MPFR_RNDA.
+
+From Andreas Enge and Paul Zimmermann 6 July 2012:
+Improve speed of Im (atan) for x+i*y with small y, for instance by using
+the Taylor series directly.
+
+Bench:
+- from Andreas Enge 9 June 2009:
+  Scripts and web page comparing timings with different systems,
+  as done for mpfr at http://www.mpfr.org/mpfr-2.4.0/timings.html
+
+New functions to implement:
+- from Joseph S. Myers <joseph at codesourcery dot com> 19 Mar 2012: mpc_erf,
+  mpc_erfc, mpc_exp2, mpc_expm1, mpc_log1p, mpc_log2, mpc_lgamma, mpc_tgamma
+  http://lists.gforge.inria.fr/pipermail/mpc-discuss/2012-March/001090.html
+- from Andreas Enge and Philippe Théveny 17 July 2008
+  agm (and complex logarithm with agm ?)
+- from Andreas Enge 25 June 2009:
+  correctly rounded roots of unity zeta_n^i
+- implement a root-finding algorithm using the Durand-Kerner method
+  (cf http://en.wikipedia.org/wiki/Durand%E2%80%93Kerner_method)
+  See also the CEVAL algorithm from Yap and Sagraloff:
+  http://www.mpi-inf.mpg.de/~msagralo/ceval.pdf
+
+New tests to add:
+- from Andreas Enge and Philippe Théveny 9 April 2008
+  correct handling of Nan and infinities in the case of
+  intermediate overflows while the result may fit (we need special code)

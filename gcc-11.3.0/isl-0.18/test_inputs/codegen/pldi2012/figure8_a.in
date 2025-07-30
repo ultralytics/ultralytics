@@ -1,0 +1,4 @@
+[n] -> { s0[i,j] -> [i,j] : exists alpha, beta: 1 <= i <= n and i <= j <= n and
+			    i = 1 + 4 alpha and j = i + 3 beta}
+[n] -> { : }
+[n] -> {}

@@ -1,0 +1,4 @@
+Code for SPARC processors implementing version 9 of the SPARC architecture.
+This code is for systems that doesn't preserve the full 64-bit contents of
+integer register at context switch.  For other systems (such as Solaris 7 or
+later) use the code in ../../sparc64.

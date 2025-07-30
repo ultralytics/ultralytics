@@ -1,0 +1,501 @@
+Copyright 2000-2002, 2004 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+               GMP SPEED MEASURING AND PARAMETER TUNING
+
+
+The programs in this directory are for knowledgeable users who want to
+measure GMP routines on their machine, and perhaps tweak some settings or
+identify things that can be improved.
+
+The programs here are tools, not ready to run solutions.  Nothing is built
+in a normal "make all", but various Makefile targets described below exist.
+
+Relatively few systems and CPUs have been tested, so be sure to verify that
+results are sensible before relying on them.
+
+
+
+
+MISCELLANEOUS NOTES
+
+--enable-assert
+
+    Don't configure with --enable-assert, since the extra code added by
+    assertion checking may influence measurements.
+
+Direct mapped caches
+
+    Some effort has been made to accommodate CPUs with direct mapped caches,
+    by putting data blocks more or less contiguously on the stack.  But this
+    will depend on TMP_ALLOC using alloca, and even then it may or may not
+    be enough.
+
+FreeBSD 4.2 i486 getrusage
+
+    This getrusage seems to be a bit doubtful, it looks like it's
+    microsecond accurate, but sometimes ru_utime remains unchanged after a
+    time of many microseconds has elapsed.  It'd be good to detect this in
+    the time.c initializations, but for now the suggestion is to pretend it
+    doesn't exist.
+
+        ./configure ac_cv_func_getrusage=no
+
+NetBSD 1.4.1 m68k macintosh time base
+
+    On this system it's been found getrusage often goes backwards, making it
+    unusable (time.c getrusage_backwards_p detects this).  gettimeofday
+    sometimes doesn't update atomically when it crosses a 1 second boundary.
+    Not sure what to do about this.  Expect possible intermittent failures.
+
+SCO OpenUNIX 8 /etc/hw
+
+    /etc/hw takes about a second to return the cpu frequency, which suggests
+    perhaps it's measuring each time it runs.  If this is annoying when
+    running the speed program repeatedly then set a GMP_CPU_FREQUENCY
+    environment variable (see TIME BASE section below).
+
+Timing on GNU/Linux
+
+    On Linux, timing currently uses the cycle counter. This is unreliable,
+    since the counter is not saved and restored at context switches (unlike
+    FreeBSD and Solaris where the cycle counter is "virtualized").
+
+    Using the clock_gettime method with CLOCK_PROCESS_CPUTIME_ID (posix) or
+    CLOCK_VIRTUAL (BSD) should be more reliable. To get clock_gettime
+    with glibc, one has to link with -lrt (which also drags in the pthreads
+    threading library). configure.in must be hacked to detect this and
+    arrange proper linking. Something like
+
+      old_LIBS="$LIBS"
+      AC_SEARCH_LIBS(clock_gettime, rt, [AC_DEFINE(HAVE_CLOCK_GETTIME)])
+      TUNE_LIBS="$LIBS"
+      LIBS="$old_LIBS"
+
+      AC_SUBST(TUNE_LIBS)
+
+    might work.
+
+Low resolution timebase
+
+    Parameter tuning can be very time consuming if the only timebase
+    available is a 10 millisecond clock tick, to the point of being
+    unusable.  This is currently the case on VAX and ARM systems.
+
+
+
+
+PARAMETER TUNING
+
+The "tuneup" program runs some tests designed to find the best settings for
+various thresholds, like MUL_TOOM22_THRESHOLD.  Its output can be put
+into gmp-mparam.h.  The program is built and run with
+
+        make tune
+
+If the thresholds indicated are grossly different from the values in the
+selected gmp-mparam.h then there may be a performance boost in applicable
+size ranges by changing gmp-mparam.h accordingly.
+
+Be sure to do a full reconfigure and rebuild to get any newly set thresholds
+to take effect.  A partial rebuild is enough sometimes, but a fresh
+configure and make is certain to be correct.
+
+If a CPU has specific tuned parameters coming from a gmp-mparam.h in one of
+the mpn subdirectories then the values from "make tune" should be similar.
+But check that the configured CPU is right and there are no machine specific
+effects causing a difference.
+
+It's hoped the compiler and options used won't have too much effect on
+thresholds, since for most CPUs they ultimately come down to comparisons
+between assembler subroutines.  Missing out on the longlong.h macros by not
+using gcc will probably have an effect.
+
+Some thresholds produced by the tune program are merely single values chosen
+from what's a range of sizes where two algorithms are pretty much the same
+speed.  When this happens the program is likely to give somewhat different
+values on successive runs.  This is noticeable on the toom3 thresholds for
+instance.
+
+
+
+
+SPEED PROGRAM
+
+The "speed" program can be used for measuring and comparing various
+routines, and producing tables of data or gnuplot graphs.  Compile it with
+
+	make speed
+
+(Or on DOS systems "make speed.exe".)
+
+Here are some examples of how to use it.  Check the code for all the
+options.
+
+Draw a graph of mpn_mul_n, stepping through sizes by 10 or a factor of 1.05
+(whichever is greater).
+
+        ./speed -s 10-5000 -t 10 -f 1.05 -P foo mpn_mul_n
+	gnuplot foo.gnuplot
+
+Compare mpn_add_n and an mpn_lshift by 1, showing times in cycles and
+showing under mpn_lshift the difference between it and mpn_add_n.
+
+	./speed -s 1-40 -c -d mpn_add_n mpn_lshift.1
+
+Using option -c for times in cycles is interesting but normally only
+necessary when looking carefully at assembler subroutines.  You might think
+it would always give an integer value, but this doesn't happen in practice,
+probably due to overheads in the time measurements.
+
+In the free-form output the "#" symbol against a measurement means the
+corresponding routine is fastest at that size.  This is a convenient visual
+cue when comparing different routines.  The graph data files <name>.data
+don't get this since it would upset gnuplot or other data viewers.
+
+
+
+
+TIME BASE
+
+The time measuring method is determined in time.c, based on what the
+configured host has available.  A cycle counter is preferred, possibly
+supplemented by another method if the counter has a limited range.  A
+microsecond accurate getrusage() or gettimeofday() will work quite well too.
+
+The cycle counters (except possibly on alpha) and gettimeofday() will depend
+on the machine being otherwise idle, or rather on other jobs not stealing
+CPU time from the measuring program.  Short routines (those that complete
+within a timeslice) should work even on a busy machine.
+
+Some trouble is taken by speed_measure() in common.c to avoid ill effects
+from sporadic interrupts, or other intermittent things (like cron waking up
+every minute).  But generally an idle machine will be necessary to be
+certain of consistent results.
+
+The CPU frequency is needed to convert between cycles and seconds, or for
+when a cycle counter is supplemented by getrusage() etc.  The speed program
+will convert as necessary according to the output format requested.  The
+tune program will work with either cycles or seconds.
+
+freq.c knows how to get the frequency on some systems, or can measure a
+cycle counter against gettimeofday() or getrusage(), but when that fails, or
+needs to be overridden, an environment variable GMP_CPU_FREQUENCY can be
+used (in Hertz).  For example in "bash" on a 650 MHz machine,
+
+	export GMP_CPU_FREQUENCY=650e6
+
+A high precision time base makes it possible to get accurate measurements in
+a shorter time.
+
+
+
+
+EXAMPLE COMPARISONS - VARIOUS
+
+Here are some ideas for things that can be done with the speed program.
+
+There's always going to be a certain amount of overhead in the time
+measurements, due to reading the time base, and in the loop that runs a
+routine enough times to get a reading of the desired precision.  Noop
+functions taking various arguments are available to measure this.  The
+"overhead" printed by the speed program each time in its intro is the "noop"
+routine, but note that this is just for information, it isn't deducted from
+the times printed or anything.
+
+	./speed -s 1 noop noop_wxs noop_wxys
+
+To see how many cycles per limb a routine is taking, look at the time
+increase when the size increments, using option -D.  This avoids fixed
+overheads in the measuring.  Also, remember many of the assembler routines
+have unrolled loops, so it might be necessary to compare times at, say, 16,
+32, 48, 64 etc to see what the unrolled part is taking, as opposed to any
+finishing off.
+
+        ./speed -s 16-64 -t 16 -C -D mpn_add_n
+
+The -C option on its own gives cycles per limb, but is really only useful at
+big sizes where fixed overheads are small compared to the code doing the
+real work.  Remember of course memory caching and/or page swapping will
+affect results at large sizes.
+
+        ./speed -s 500000 -C mpn_add_n
+
+Once a calculation stops fitting in the CPU data cache, it's going to start
+taking longer.  Exactly where this happens depends on the cache priming in
+the measuring routines, and on what sort of "least recently used" the
+hardware does.  Here's an example for a CPU with a 16kbyte L1 data cache and
+32-bit limb, showing a suddenly steeper curve for mpn_add_n at about 2000
+limbs.
+
+        ./speed -s 1-4000 -t 5 -f 1.02 -P foo mpn_add_n
+	gnuplot foo.gnuplot
+
+When a routine has an unrolled loop for, say, multiples of 8 limbs and then
+an ordinary loop for the remainder, it can happen that it's actually faster
+to do an operation on, say, 8 limbs than it is on 7 limbs.  The following
+draws a graph of mpn_sub_n, to see whether times smoothly increase with
+size.
+
+        ./speed -s 1-100 -c -P foo mpn_sub_n
+	gnuplot foo.gnuplot
+
+If mpn_lshift and mpn_rshift have special case code for shifts by 1, it
+ought to be faster (or at least not slower) than shifting by, say, 2 bits.
+
+        ./speed -s 1-200 -c mpn_rshift.1 mpn_rshift.2
+
+An mpn_lshift by 1 can be done by mpn_add_n adding a number to itself, and
+if the lshift isn't faster there's an obvious improvement that's possible.
+
+        ./speed -s 1-200 -c mpn_lshift.1 mpn_add_n_self
+
+On some CPUs (AMD K6 for example) an "in-place" mpn_add_n where the
+destination is one of the sources is faster than a separate destination.
+Here's an example to see this.  ".1" selects dst==src1 for mpn_add_n (and
+mpn_sub_n), for other values see speed.h SPEED_ROUTINE_MPN_BINARY_N_CALL.
+
+        ./speed -s 1-200 -c mpn_add_n mpn_add_n.1
+
+The gmp manual points out that divisions by powers of two should be done
+using a right shift because it'll be significantly faster than an actual
+division.  The following shows by what factor mpn_rshift is faster than
+mpn_divrem_1, using division by 32 as an example.
+
+        ./speed -s 10-20 -r mpn_rshift.5 mpn_divrem_1.32
+
+
+
+
+EXAMPLE COMPARISONS - MULTIPLICATION
+
+mul_basecase takes a ".<r>" parameter. If positive, it gives the second
+(smaller) operand size.  For example to show speeds for 3x3 up to 20x3 in
+cycles,
+
+        ./speed -s 3-20 -c mpn_mul_basecase.3
+
+A negative ".<-r>" parameter fixes the size of the product to the absolute
+value r.  For example to show speeds for 10x10 up to 19x1 in cycles,
+
+        ./speed -s 10-19 -c mpn_mul_basecase.-20
+
+mul_basecase with no parameter does an NxN multiply, so for example to show
+speeds in cycles for 1x1, 2x2, 3x3, etc, up to 20x20, in cycles,
+
+        ./speed -s 1-20 -c mpn_mul_basecase
+
+sqr_basecase is implemented by a "triangular" method on most CPUs, making it
+up to twice as fast as mul_basecase.  In practice loop overheads and the
+products on the diagonal mean it falls short of this.  Here's an example
+running the two and showing by what factor an NxN mul_basecase is slower
+than an NxN sqr_basecase.  (Some versions of sqr_basecase only allow sizes
+below SQR_TOOM2_THRESHOLD, so if it crashes at that point don't worry.)
+
+        ./speed -s 1-20 -r mpn_sqr_basecase mpn_mul_basecase
+
+The technique described above with -CD for showing the time difference in
+cycles per limb between two size operations can be done on an NxN
+mul_basecase using -E to change the basis for the size increment to N*N.
+For instance a 20x20 operation is taken to be doing 400 limbs, and a 16x16
+doing 256 limbs.  The following therefore shows the per crossproduct speed
+of mul_basecase and sqr_basecase at around 20x20 limbs.
+
+        ./speed -s 16-20 -t 4 -CDE mpn_mul_basecase mpn_sqr_basecase
+
+Of course sqr_basecase isn't really doing NxN crossproducts, but it can be
+interesting to compare it to mul_basecase as if it was.  For sqr_basecase
+the -F option can be used to base the deltas on N*(N+1)/2 operations, which
+is the triangular products sqr_basecase does.  For example,
+
+        ./speed -s 16-20 -t 4 -CDF mpn_sqr_basecase
+
+Both -E and -F are preliminary and might change.  A consistent approach to
+using them when claiming certain per crossproduct or per triangularproduct
+speeds hasn't really been established, but the increment between speeds in
+the range karatsuba will call seems sensible, that being k to k/2.  For
+instance, if the karatsuba threshold was 20 for the multiply and 30 for the
+square,
+
+        ./speed -s 10-20 -t 10 -CDE mpn_mul_basecase
+        ./speed -s 15-30 -t 15 -CDF mpn_sqr_basecase
+
+
+
+EXAMPLE COMPARISONS - MALLOC
+
+The gmp manual recommends application programs avoid excessive initializing
+and clearing of mpz_t variables (and mpq_t and mpf_t too).  Every new
+variable will at a minimum go through an init, a realloc for its first
+store, and finally a clear.  Quite how long that takes depends on the C
+library.  The following compares an mpz_init/realloc/clear to a 10 limb
+mpz_add.  Don't be surprised if the mallocing is quite slow.
+
+        ./speed -s 10 -c mpz_init_realloc_clear mpz_add
+
+On some systems malloc and free are much slower when dynamic linked.  The
+speed-dynamic program can be used to see this.  For example the following
+measures malloc/free, first static then dynamic.
+
+        ./speed -s 10 -c malloc_free
+        ./speed-dynamic -s 10 -c malloc_free
+
+Of course a real world program has big problems if it's doing so many
+mallocs and frees that it gets slowed down by a dynamic linked malloc.
+
+
+
+
+
+EXAMPLE COMPARISONS - STRING CONVERSIONS
+
+mpn_get_str does a binary to string conversion.  The base is specified with
+a ".<r>" parameter, or decimal by default.  Power of 2 bases are much faster
+than general bases.  The following compares decimal and hex for instance.
+
+        ./speed -s 1-20 -c mpn_get_str mpn_get_str.16
+
+Smaller bases need more divisions to split a given size number, and so are
+slower.  The following compares base 3 and base 9.  On small operands 9 will
+be nearly twice as fast, though at bigger sizes this reduces since in the
+current implementation both divide repeatedly by 3^20 (or 3^40 for 64 bit
+limbs) and those divisions come to dominate.
+
+        ./speed -s 1-20 -cr mpn_get_str.3 mpn_get_str.9
+
+mpn_set_str does a string to binary conversion.  The base is specified with
+a ".<r>" parameter, or decimal by default.  Power of 2 bases are faster than
+general bases on large conversions.
+
+	./speed -s 1-512 -f 2 -c mpn_set_str.8 mpn_set_str.10
+
+mpn_set_str also has some special case code for decimal which is a bit
+faster than the general case, basically by giving the compiler a chance to
+optimize some multiplications by 10.
+
+	./speed -s 20-40 -c mpn_set_str.9 mpn_set_str.10 mpn_set_str.11
+
+
+
+
+EXAMPLE COMPARISONS - GCDs
+
+mpn_gcd_1 has a threshold for when to reduce using an initial x%y when both
+x and y are single limbs.  This isn't tuned currently, but a value can be
+established by a measurement like
+
+	./speed -s 10-32 mpn_gcd_1.10
+
+This runs src[0] from 10 to 32 bits, and y fixed at 10 bits.  If the div
+threshold is high, say 31 so it's effectively disabled then a 32x10 bit gcd
+is done by nibbling away at the 32-bit operands bit-by-bit.  When the
+threshold is small, say 1 bit, then an initial x%y is done to reduce it to a
+10x10 bit operation.
+
+The threshold in mpn/generic/gcd_1.c or the various assembler
+implementations can be tweaked up or down until there's no more speedups on
+interesting combinations of sizes.  Note that this affects only a 1x1 limb
+operation and so isn't very important.  (An Nx1 limb operation always does
+an initial modular reduction, using mpn_mod_1 or mpn_modexact_1_odd.)
+
+
+
+
+SPEED PROGRAM EXTENSIONS
+
+Potentially lots of things could be made available in the program, but it's
+been left at only the things that have actually been wanted and are likely
+to be reasonably useful in the future.
+
+Extensions should be fairly easy to make though.  speed-ext.c is an example,
+in a style that should suit one-off tests, or new code fragments under
+development.
+
+many.pl is a script for generating a new speed program supplemented with
+alternate versions of the standard routines.  It can be used for measuring
+experimental code, or for comparing different implementations that exist
+within a CPU family.
+
+
+
+
+THRESHOLD EXAMINING
+
+The speed program can be used to examine the speeds of different algorithms
+to check the tune program has done the right thing.  For example to examine
+the karatsuba multiply threshold,
+
+	./speed -s 5-40 mpn_mul_basecase mpn_kara_mul_n
+
+When examining the toom3 threshold, remember it depends on the karatsuba
+threshold, so the right karatsuba threshold needs to be compiled into the
+library first.  The tune program uses specially recompiled versions of
+mpn/mul_n.c etc for this reason, but the speed program simply uses the
+normal libgmp.la.
+
+Note further that the various routines may recurse into themselves on sizes
+far enough above applicable thresholds.  For example, mpn_kara_mul_n will
+recurse into itself on sizes greater than twice the compiled-in
+MUL_TOOM22_THRESHOLD.
+
+When doing the above comparison between mul_basecase and kara_mul_n what's
+probably of interest is mul_basecase versus a kara_mul_n that does one level
+of Karatsuba then calls to mul_basecase, but this only happens on sizes less
+than twice the compiled MUL_TOOM22_THRESHOLD.  A larger value for that
+setting can be compiled-in to avoid the problem if necessary.  The same
+applies to toom3 and DC, though in a trickier fashion.
+
+There are some upper limits on some of the thresholds, arising from arrays
+dimensioned according to a threshold (mpn_mul_n), or asm code with certain
+sized displacements (some x86 versions of sqr_basecase).  So putting huge
+values for the thresholds, even just for testing, may fail.
+
+
+
+
+FUTURE
+
+Make a program to check the time base is working properly, for small and
+large measurements.  Make it able to test each available method, including
+perhaps the apparent resolution of each.
+
+Make a general mechanism for specifying operand overlap, and a syntax like
+maybe "mpn_add_n.dst=src2" to select it.  Some measuring routines do this
+sort of thing with the "r" parameter currently.
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

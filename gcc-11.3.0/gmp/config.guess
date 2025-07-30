@@ -1,0 +1,1057 @@
+#! /bin/sh
+#
+# GMP config.guess wrapper.
+
+
+# Copyright 2000-2006, 2008, 2011-2015 Free Software Foundation, Inc.
+#
+#  This file is part of the GNU MP Library.
+#
+#  The GNU MP Library is free software; you can redistribute it and/or modify
+#  it under the terms of either:
+#
+#    * the GNU Lesser General Public License as published by the Free
+#      Software Foundation; either version 3 of the License, or (at your
+#      option) any later version.
+#
+#  or
+#
+#    * the GNU General Public License as published by the Free Software
+#      Foundation; either version 2 of the License, or (at your option) any
+#      later version.
+#
+#  or both in parallel, as here.
+#
+#  The GNU MP Library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#  for more details.
+#
+#  You should have received copies of the GNU General Public License and the
+#  GNU Lesser General Public License along with the GNU MP Library.  If not,
+#  see https://www.gnu.org/licenses/.
+
+
+# Usage: config.guess
+#
+# Print the host system CPU-VENDOR-OS.
+#
+# configfsf.guess is run and its guess then sharpened up to take advantage
+# of the finer grained CPU types that GMP knows.
+
+
+# Expect to find configfsf.guess in the same directory as this config.guess
+configfsf_guess="`echo \"$0\" | sed 's/config.guess$/configfsf.guess/'`"
+if test "$configfsf_guess" = "$0"; then
+  echo "Cannot derive configfsf.guess from $0" 1>&2
+  exit 1
+fi
+if test -f "$configfsf_guess"; then
+  :
+else
+  echo "$configfsf_guess not found" 1>&2
+  exit 1
+fi
+
+# Setup a $SHELL with which to run configfsf.guess, using the same
+# $CONFIG_SHELL or /bin/sh as autoconf does when running config.guess
+SHELL=${CONFIG_SHELL-/bin/sh}
+
+# Identify ourselves on --version, --help or errors
+if test $# != 0; then
+  echo "(GNU MP wrapped config.guess)"
+  $SHELL $configfsf_guess "$@"
+  exit 1
+fi
+
+guess_full=`$SHELL $configfsf_guess`
+if test $? != 0; then
+  exit 1
+fi
+
+guess_cpu=`echo "$guess_full" | sed 's/-.*$//'`
+guess_rest=`echo "$guess_full" | sed 's/^[^-]*//'`
+exact_cpu=
+
+
+# -------------------------------------------------------------------------
+# The following should look at the current guess and probe the system to
+# establish a better guess in exact_cpu.  Leave exact_cpu empty if probes
+# can't be done, or don't work.
+#
+# When a number of probes are done, test -z "$exact_cpu" can be used instead
+# of putting each probe under an "else" of the preceeding.  That can stop
+# the code getting horribly nested and marching off the right side of the
+# screen.
+
+# Note that when a compile-and-link is done in one step we need to remove .o
+# files, since lame C compilers generate these even when not asked.
+#
+
+# CC_FOR_BUILD -- compiler used by this script. Note that the use of a
+# compiler to aid in system detection is discouraged as it requires
+# temporary files to be created and, as you can see below, it is a
+# headache to deal with in a portable fashion.
+
+# Historically, `CC_FOR_BUILD' used to be named `HOST_CC'. We still
+# use `HOST_CC' if defined, but it is deprecated.
+
+# Portable tmp directory creation inspired by the Autoconf team.
+
+set_cc_for_build='
+trap "exitcode=\$?; (rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null) && exit \$exitcode" 0 ;
+trap "rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null; exit 1" 1 2 13 15 ;
+: ${TMPDIR=/tmp} ;
+ { tmp=`(umask 077 && mktemp -d "$TMPDIR/cgXXXXXX") 2>/dev/null` && test -n "$tmp" && test -d "$tmp" ; } ||
+ { test -n "$RANDOM" && tmp=$TMPDIR/cg$$-$RANDOM && (umask 077 && mkdir $tmp) ; } ||
+ { tmp=$TMPDIR/cg-$$ && (umask 077 && mkdir $tmp) && echo "Warning: creating insecure temp directory" >&2 ; } ||
+ { echo "$me: cannot create a temporary directory in $TMPDIR" >&2 ; exit 1 ; } ;
+dummy=$tmp/dummy ;
+tmpfiles="$dummy.c $dummy.o $dummy.rel $dummy $dummy.core ${dummy}0.s" ;
+case $CC_FOR_BUILD,$HOST_CC,$CC in
+ ,,)    echo "int x;" > $dummy.c ;
+	for c in cc gcc c89 c99 ; do
+	  if ($c -c -o $dummy.o $dummy.c) >/dev/null 2>&1 ; then
+	     CC_FOR_BUILD="$c"; break ;
+	  fi ;
+	done ;
+	if test x"$CC_FOR_BUILD" = x ; then
+	  CC_FOR_BUILD=no_compiler_found ;
+	fi
+	;;
+ ,,*)   CC_FOR_BUILD=$CC ;;
+ ,*,*)  CC_FOR_BUILD=$HOST_CC ;;
+esac ; set_cc_for_build= ;'
+
+
+case "$guess_full" in
+
+alpha-*-*)
+  eval $set_cc_for_build
+  # configfsf.guess detects exact alpha cpu types for OSF and GNU/Linux, but
+  # not for *BSD and other systems.  We try to get an exact type for any
+  # plain "alpha" it leaves.
+  #
+  # configfsf.guess used to have a block of code not unlike this, but these
+  # days does its thing with Linux kernel /proc/cpuinfo or OSF psrinfo.
+  #
+  cat <<EOF >${dummy}0.s
+	.data
+Lformat:
+	.byte 37,100,45,37,120,10,0	# "%d-%x\n"
+	.text
+	.globl main
+	.align 4
+	.ent main
+main:
+	.frame \$30,16,\$26,0
+	ldgp \$29,0(\$27)
+	.prologue 1
+	.long 0x47e03d91 # implver \$17
+	lda \$2,-1
+	.long 0x47e20c21 # amask \$2,\$1
+	lda \$16,Lformat
+	not \$1,\$18
+	jsr \$26,printf
+	ldgp \$29,0(\$26)
+	mov 0,\$16
+	jsr \$26,exit
+	.end main
+EOF
+  $CC_FOR_BUILD ${dummy}0.s -o $dummy 2>/dev/null
+  if test "$?" = 0 ; then
+    case `$dummy` in
+    0-0)	exact_cpu=alpha      ;;
+    1-0)	exact_cpu=alphaev5   ;;
+    1-1)	exact_cpu=alphaev56  ;;
+    1-101)	exact_cpu=alphapca56 ;;
+    2-303)	exact_cpu=alphaev6   ;;
+    2-307)	exact_cpu=alphaev67  ;;
+    2-1307)	exact_cpu=alphaev68  ;;
+    esac
+  fi
+  ;;
+
+arm*-*-*)
+  cpu_code=`sed -n 's/^CPU part.*\(0x.*\)$/\1/p' /proc/cpuinfo 2>/dev/null | head -n 1 2>/dev/null`
+  case "$cpu_code" in
+      0xa10 | 0xa11 | 0xb11)			# v4 strongarm/sa1100
+		exact_cpu="armsa1";;
+      0x915 | 0x925 | \
+      0x920 | 0x922 | 0x940)			# v4
+		exact_cpu="arm9tdmi";;
+      0x210 | 0x290 | 0x2d0 | \
+      0x212 | 0x292 | 0x2d2 | \
+      0x411)	exact_cpu="armxscale";;		# v5 pxa2xx
+      0x926 | 0x946 | 0x966 | 0x968)		# v5te/v5tej
+		exact_cpu="arm9te";;
+      0xa20 | 0xa22 | 0xa26)			# v5te
+		exact_cpu="arm10";;
+      0xb02)	exact_cpu="arm11mpcore";;	# v6
+      0xb36)	exact_cpu="arm1136";;		# v6
+      0xb56)	exact_cpu="arm1156";;		# v6t2
+      0xb76)	exact_cpu="arm1176";;		# v6
+      0xc05)	exact_cpu="armcortexa5";;	# v7a
+      0xc07)	exact_cpu="armcortexa7";;	# v7a
+      0xc08)	exact_cpu="armcortexa8";;	# v7a
+      0xc09)	exact_cpu="armcortexa9";;	# v7a
+      0xc0f)	exact_cpu="armcortexa15";;	# v7a
+      0xc14)	exact_cpu="armcortexr4";;	# v7r
+      0xc15)	exact_cpu="armcortexr5";;	# v7r
+      0xc23)	exact_cpu="armcortexm3";;	# v7m
+      *)	exact_cpu=$guess_cpu;;
+  esac
+  exact_cpu="${exact_cpu}`sed -n 's;^Features.*\(neon\).*;\1;p' /proc/cpuinfo 2>/dev/null | head -n 1 2>/dev/null`"
+  ;;
+
+ia64*-*-*)
+  eval $set_cc_for_build
+  # CPUID[3] bits 24 to 31 is the processor family.  itanium2 is documented
+  # as 0x1f, plain itanium has been seen returning 0x07 on two systems, but
+  # haven't found any documentation on it as such.
+  #
+  # Defining both getcpuid and _getcpuid lets us ignore whether the system
+  # expects underscores or not.
+  #
+  # "unsigned long long" is always 64 bits, in fact on hpux in ilp32 mode
+  # (which is the default there), it's the only 64-bit type.
+  #
+  cat >${dummy}0.s <<EOF
+	.text
+	.global	_getcpuid
+	.proc	_getcpuid
+_getcpuid:
+	mov	r8 = CPUID[r32] ;;
+	br.ret.sptk.many rp ;;
+	.endp	_getcpuid
+	.global	getcpuid
+	.proc	getcpuid
+getcpuid:
+	mov	r8 = CPUID[r32] ;;
+	br.ret.sptk.many rp ;;
+	.endp	getcpuid
+EOF
+  cat >$dummy.c <<EOF
+#include <stdio.h>
+unsigned long long getcpuid ();
+int
+main ()
+{
+  if (getcpuid(0LL) == 0x49656E69756E6547LL && getcpuid(1LL) == 0x6C65746ELL)
+    {
+      /* "GenuineIntel" */
+      switch ((getcpuid(3LL) >> 24) & 0xFF) {
+      case 0x07: puts ("itanium");  break;
+      case 0x1F: puts ("itanium2"); break; /* McKinley, Madison */
+      case 0x20: puts ("itanium2"); break; /* Montecito */
+      }
+    }
+  return 0;
+}
+EOF
+  if $CC_FOR_BUILD ${dummy}0.s $dummy.c -o $dummy >/dev/null 2>&1; then
+    exact_cpu=`$dummy`
+  fi
+  ;;
+
+mips-*-irix[6789]*)
+  # IRIX 6 and up always has a 64-bit mips cpu
+  exact_cpu=mips64
+  ;;
+
+m68k-*-*)
+  eval $set_cc_for_build
+  # NetBSD (and presumably other *BSD) "sysctl hw.model" gives for example
+  #   hw.model = Apple Macintosh Quadra 610  (68040)
+  exact_cpu=`(sysctl hw.model) 2>/dev/null | sed -n 's/^.*\(680[012346]0\).*$/m\1/p'`
+  if test -z "$exact_cpu"; then
+    # Linux kernel 2.2 gives for example "CPU: 68020" (tabs in between).
+    exact_cpu=`sed -n 's/^CPU:.*\(680[012346]0\).*$/m\1/p' /proc/cpuinfo 2>/dev/null`
+  fi
+  if test -z "$exact_cpu"; then
+    # Try: movel #0,%d0; rts
+    # This is to check the compiler and our asm code works etc, before
+    # assuming failures below indicate cpu characteristics.
+    # .byte is used to avoid problems with assembler syntax variations.
+    # For testing, provoke failures by adding "illegal" possibly as
+    # ".byte 0x4A, 0xFC"
+    cat >${dummy}0.s <<EOF
+	.text
+	.globl main
+	.globl _main
+main:
+_main:
+	.byte	0x70, 0x00
+	.byte	0x4e, 0x75
+EOF
+
+    if ($CC_FOR_BUILD ${dummy}0.s -o $dummy && $dummy) >/dev/null 2>&1; then
+
+      # $SHELL -c is used to execute $dummy below, since ($dummy)
+      # 2>/dev/null still prints the SIGILL message on some shells.
+      #
+        # Try: movel #0,%d0
+        #      rtd #0
+        cat >${dummy}0.s <<EOF
+	.text
+	.globl main
+	.globl _main
+main:
+_main:
+	.byte	0x70, 0x00
+	.byte	0x4e, 0x74, 0x00, 0x00
+EOF
+        if $CC_FOR_BUILD ${dummy}0.s -o $dummy >/dev/null 2>&1; then
+          $SHELL -c $dummy >/dev/null 2>&1
+	  if test $? != 0; then
+            exact_cpu=m68000    # because rtd didn't work
+          fi
+        fi
+      #
+
+      if test -z "$exact_cpu"; then
+        # Try: trapf
+        #      movel #0,%d0
+        #      rts
+        # Another possibility for identifying 68000 and 68010 is the
+        # different value stored by "movem a0,(a0)+"
+        cat >${dummy}0.s <<EOF
+	.text
+	.globl main
+	.globl _main
+main:
+_main:
+	.byte	0x51, 0xFC
+	.byte	0x70, 0x00
+	.byte	0x4e, 0x75
+EOF
+        if $CC_FOR_BUILD ${dummy}0.s -o $dummy >/dev/null 2>&1; then
+          $SHELL -c $dummy >/dev/null 2>&1
+	  if test $? != 0; then
+            exact_cpu=m68010    # because trapf didn't work
+          fi
+        fi
+      fi
+
+      if test -z "$exact_cpu"; then
+        # Try: bfffo %d1{0:31},%d0
+        #      movel #0,%d0
+        #      rts
+        cat >${dummy}0.s <<EOF
+	.text
+	.globl main
+	.globl _main
+main:
+_main:
+	.byte	0xED, 0xC1, 0x00, 0x1F
+	.byte	0x70, 0x00
+	.byte	0x4e, 0x75
+EOF
+        if $CC_FOR_BUILD ${dummy}0.s -o $dummy >/dev/null 2>&1; then
+          $SHELL -c $dummy >/dev/null 2>&1
+	  if test $? != 0; then
+            exact_cpu=m68360  # cpu32, because bfffo didn't work
+          fi
+        fi
+      fi
+
+      if test -z "$exact_cpu"; then
+        # FIXME: Now we know 68020 or up, but how to detect 030, 040 and 060?
+        exact_cpu=m68020
+      fi
+    fi
+  fi
+  if test -z "$exact_cpu"; then
+    case "$guess_full" in
+      *-*-next* | *-*-openstep*)  # NeXTs are 68020 or better
+        exact_cpu=m68020 ;;
+    esac
+  fi
+  ;;
+
+
+rs6000-*-* | powerpc*-*-*)
+  # Enhancement: On MacOS the "machine" command prints for instance
+  # "ppc750".  Interestingly on powerpc970-apple-darwin6.8.5 it prints
+  # "ppc970" where there's no actual #define for 970 from NXGetLocalArchInfo
+  # (as noted below).  But the man page says the command is still "under
+  # development", so it doesn't seem wise to use it just yet, not while
+  # there's an alternative.
+  #
+  # Try to read the PVR.  mfpvr is a protected instruction, NetBSD, MacOS
+  # and AIX don't allow it in user mode, but the Linux kernel does.
+  #
+  # Using explicit bytes for mfpvr avoids worrying about assembler syntax
+  # and underscores.  "char"s are used instead of "int"s to avoid worrying
+  # whether sizeof(int)==4 or if it's the right endianness.
+  #
+  # Note this is no good on AIX, since a C function there is the address of
+  # a function descriptor, not actual code.  But this doesn't matter since
+  # AIX doesn't allow mfpvr anyway.
+  #
+  eval $set_cc_for_build
+  cat >$dummy.c <<\EOF
+#include <stdio.h>
+struct {
+  int   n;  /* force 4-byte alignment */
+  char  a[8];
+} getpvr = {
+  0,
+  {
+    0x7c, 0x7f, 0x42, 0xa6,  /* mfpvr r3 */
+    0x4e, 0x80, 0x00, 0x20,  /* blr      */
+  }
+};
+int
+main ()
+{
+  unsigned  (*fun)();
+  unsigned  pvr;
+
+  /* a separate "fun" variable is necessary for gcc 2.95.2 on MacOS,
+     it gets a compiler error on a combined cast and call */
+  fun = (unsigned (*)()) getpvr.a;
+  pvr = (*fun) ();
+
+  switch (pvr >> 16) {
+  case 0x0001: puts ("powerpc601");  break;
+  case 0x0003: puts ("powerpc603");  break;
+  case 0x0004: puts ("powerpc604");  break;
+  case 0x0006: puts ("powerpc603e"); break;
+  case 0x0007: puts ("powerpc603e"); break;  /* 603ev */
+  case 0x0008: puts ("powerpc750");  break;
+  case 0x0009: puts ("powerpc604e"); break;
+  case 0x000a: puts ("powerpc604e"); break;  /* 604ev5 */
+  case 0x000c: puts ("powerpc7400"); break;
+  case 0x0041: puts ("powerpc630");  break;
+  case 0x0050: puts ("powerpc860");  break;
+  case 0x8000: puts ("powerpc7450"); break;
+  case 0x8001: puts ("powerpc7455"); break;
+  case 0x8002: puts ("powerpc7457"); break;
+  case 0x8003: puts ("powerpc7447"); break; /* really 7447A */
+  case 0x800c: puts ("powerpc7410"); break;
+  }
+  return 0;
+}
+EOF
+  if ($CC_FOR_BUILD $dummy.c -o $dummy) >/dev/null 2>&1; then
+    # This style construct is needed on AIX 4.3 to suppress the SIGILL error
+    # from (*fun)().  Using $SHELL -c $dummy 2>/dev/null doesn't work.
+    { x=`$dummy`; } 2>/dev/null
+    if test -n "$x"; then
+      exact_cpu=$x
+    fi
+  fi
+
+  # Grep the linux kernel /proc/cpuinfo pseudo-file.
+  # Anything unrecognised is ignored, since of course we mustn't spit out
+  # a cpu type config.sub doesn't know.
+  if test -z "$exact_cpu" && test -f /proc/cpuinfo; then
+    x=`grep "^cpu[ 	]" /proc/cpuinfo | head -n 1`
+    x=`echo $x | sed -n 's/^cpu[ 	]*:[ 	]*\([A-Za-z0-9]*\).*/\1/p'`
+    x=`echo $x | sed 's/PPC//'`
+    case $x in
+      601)     exact_cpu="power" ;;
+      603ev)   exact_cpu="powerpc603e" ;;
+      604ev5)  exact_cpu="powerpc604e" ;;
+      970??)   exact_cpu="powerpc970" ;;
+      603 | 603e | 604 | 604e | 750 | 821 | 860)
+        exact_cpu="powerpc$x" ;;
+      POWER[4-9]*)
+        exact_cpu=`echo $x | sed -e "s;POWER;power;" -e "s;[a-zA-Z]*$;;"` ;;
+    esac
+  fi
+
+  if test -z "$exact_cpu"; then
+    # On AIX, try looking at _system_configuration.  This is present in
+    # version 4 at least.
+    cat >$dummy.c <<EOF
+#include <stdio.h>
+#include <sys/systemcfg.h>
+int
+main ()
+{
+  switch (_system_configuration.implementation) {
+  /* Old versions of AIX don't have all these constants,
+     use ifdef for safety. */
+#ifdef POWER_RS2
+  case POWER_RS2:    puts ("power2");     break;
+#endif
+#ifdef POWER_601
+  case POWER_601:    puts ("power");      break;
+#endif
+#ifdef POWER_603
+  case POWER_603:    puts ("powerpc603"); break;
+#endif
+#ifdef POWER_604
+  case POWER_604:    puts ("powerpc604"); break;
+#endif
+#ifdef POWER_620
+  case POWER_620:    puts ("powerpc620"); break;
+#endif
+#ifdef POWER_630
+  case POWER_630:    puts ("powerpc630"); break;
+#endif
+  /* Dunno what this is, leave it out for now.
+  case POWER_A35:    puts ("powerpca35"); break;
+  */
+  /* This is waiting for a bit more info.
+  case POWER_RS64II: puts ("powerpcrs64ii"); break;
+  */
+#ifdef POWER_4
+  case POWER_4:    puts ("power4"); break;
+#endif
+#ifdef POWER_5
+  case POWER_5:    puts ("power5"); break;
+#endif
+#ifdef POWER_6
+  case POWER_6:    puts ("power6"); break;
+#endif
+#ifdef POWER_7
+  case POWER_7:    puts ("power7"); break;
+#endif
+#ifdef POWER_8
+  case POWER_8:    puts ("power8"); break;
+#endif
+  default:
+    if (_system_configuration.architecture == POWER_RS)
+      puts ("power");
+    else if (_system_configuration.width == 64)
+      puts ("powerpc64");
+  }
+  return 0;
+}
+EOF
+    if ($CC_FOR_BUILD $dummy.c -o $dummy) >/dev/null 2>&1; then
+      x=`$dummy`
+      if test -n "$x"; then
+        exact_cpu=$x
+      fi
+    fi
+  fi
+
+  if test -z "$exact_cpu"; then
+    # On MacOS X (or any Mach-O presumably), NXGetLocalArchInfo cpusubtype
+    # can tell us the exact cpu.
+    cat >$dummy.c <<EOF
+#include <stdio.h>
+#include <mach-o/arch.h>
+int
+main (void)
+{
+  const NXArchInfo *a = NXGetLocalArchInfo();
+  if (a->cputype == CPU_TYPE_POWERPC)
+    {
+      switch (a->cpusubtype) {
+      /* The following known to Darwin 1.3. */
+      case CPU_SUBTYPE_POWERPC_601:   puts ("powerpc601");  break;
+      case CPU_SUBTYPE_POWERPC_602:   puts ("powerpc602");  break;
+      case CPU_SUBTYPE_POWERPC_603:   puts ("powerpc603");  break;
+      case CPU_SUBTYPE_POWERPC_603e:  puts ("powerpc603e"); break;
+      case CPU_SUBTYPE_POWERPC_603ev: puts ("powerpc603e"); break;
+      case CPU_SUBTYPE_POWERPC_604:   puts ("powerpc604");  break;
+      case CPU_SUBTYPE_POWERPC_604e:  puts ("powerpc604e"); break;
+      case CPU_SUBTYPE_POWERPC_620:   puts ("powerpc620");  break;
+      case CPU_SUBTYPE_POWERPC_750:   puts ("powerpc750");  break;
+      case CPU_SUBTYPE_POWERPC_7400:  puts ("powerpc7400"); break;
+      case CPU_SUBTYPE_POWERPC_7450:  puts ("powerpc7450"); break;
+      /* Darwin 6.8.5 doesn't define the following */
+      case 0x8001:                    puts ("powerpc7455"); break;
+      case 0x8002:                    puts ("powerpc7457"); break;
+      case 0x8003:                    puts ("powerpc7447"); break;
+      case 100:                       puts ("powerpc970");  break;
+      }
+    }
+  return 0;
+}
+EOF
+    if ($CC_FOR_BUILD $dummy.c -o $dummy) >/dev/null 2>&1; then
+      x=`$dummy`
+      if test -n "$x"; then
+        exact_cpu=$x
+      fi
+    fi
+  fi
+  ;;
+
+sparc-*-* | sparc64-*-*)
+  # If we can recognise an actual v7 then $exact_cpu is set to "sparc" so as
+  # to short-circuit subsequent tests.
+
+  # Grep the linux kernel /proc/cpuinfo pseudo-file.
+  # A typical line is "cpu\t\t: TI UltraSparc II  (BlackBird)"
+  # See arch/sparc/kernel/cpu.c and arch/sparc64/kernel/cpu.c.
+  #
+  if test -f /proc/cpuinfo; then
+    if grep 'cpu.*Cypress' /proc/cpuinfo >/dev/null; then
+      exact_cpu="sparc"   # ie. v7
+    elif grep 'cpu.*Power-UP' /proc/cpuinfo >/dev/null; then
+      exact_cpu="sparc"   # ie. v7
+    elif grep 'cpu.*HyperSparc' /proc/cpuinfo >/dev/null; then
+      exact_cpu="sparcv8"
+    elif grep 'cpu.*SuperSparc' /proc/cpuinfo >/dev/null; then
+      exact_cpu="supersparc"
+    elif grep 'cpu.*MicroSparc' /proc/cpuinfo >/dev/null; then
+      exact_cpu="microsparc"
+    elif grep 'cpu.*MB86904' /proc/cpuinfo >/dev/null; then
+      # actually MicroSPARC-II
+      exact_cpu=microsparc
+    elif grep 'cpu.*UltraSparc T5' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparct5"
+    elif grep 'cpu.*UltraSparc T4' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparct4"
+    elif grep 'cpu.*UltraSparc T3' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparct3"
+    elif grep 'cpu.*UltraSparc T2' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparct2"
+    elif grep 'cpu.*UltraSparc T1' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparct1"
+    elif grep 'cpu.*UltraSparc III' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparc3"
+    elif grep 'cpu.*UltraSparc IIi' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparc2i"
+    elif grep 'cpu.*UltraSparc II' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparc2"
+    elif grep 'cpu.*UltraSparc' /proc/cpuinfo >/dev/null; then
+      exact_cpu="ultrasparc"
+    fi
+  fi
+
+  # Need to invoke this for setup of $dummy
+  eval $set_cc_for_build
+
+  # Grep the output from sysinfo on SunOS.
+  # sysinfo has been seen living in /bin or in /usr/kvm
+  #	cpu0 is a "SuperSPARC Model 41 SPARCmodule" CPU
+  #	cpu0 is a "75 MHz TI,TMS390Z55" CPU
+  #
+  if test -z "$exact_cpu"; then
+    for i in sysinfo /usr/kvm/sysinfo; do
+      if $SHELL -c $i 2>/dev/null >$dummy; then
+        if grep 'cpu0 is a "SuperSPARC' $dummy >/dev/null; then
+          exact_cpu=supersparc
+          break
+        elif grep 'cpu0 is a .*TMS390Z5.' $dummy >/dev/null; then
+          # TMS390Z50 and TMS390Z55
+          exact_cpu=supersparc
+          break
+        fi
+      fi
+    done
+  fi
+
+  # Grep the output from prtconf on Solaris.
+  # Use an explicit /usr/sbin, since that directory might not be in a normal
+  # user's path.
+  #
+  #     SUNW,UltraSPARC (driver not attached)
+  #     SUNW,UltraSPARC-II (driver not attached)
+  #     SUNW,UltraSPARC-IIi (driver not attached)
+  #     SUNW,UltraSPARC-III+ (driver not attached)
+  #     Ross,RT625 (driver not attached)
+  #     TI,TMS390Z50 (driver not attached)
+  #
+  # /usr/sbin/sysdef prints similar information, but includes all loadable
+  # cpu modules, not just the real cpu.
+  #
+  # We first try a plain prtconf, since that is known to work on older systems.
+  # But for newer T1 systems, that doesn't produce any useful output, we need
+  # "prtconf -vp" there.
+  #
+  for prtconfopt in "" "-vp"; do
+    if test -z "$exact_cpu"; then
+      if $SHELL -c "/usr/sbin/prtconf $prtconfopt" 2>/dev/null >$dummy; then
+	if grep 'SUNW,UltraSPARC-T5' $dummy >/dev/null; then
+	  exact_cpu=ultrasparct5
+	elif grep 'SUNW,UltraSPARC-T4' $dummy >/dev/null; then
+	  exact_cpu=ultrasparct4
+	elif grep 'SUNW,UltraSPARC-T3' $dummy >/dev/null; then
+	  exact_cpu=ultrasparct3
+	elif grep 'SUNW,UltraSPARC-T2' $dummy >/dev/null; then
+	  exact_cpu=ultrasparct2
+	elif grep 'SUNW,UltraSPARC-T1' $dummy >/dev/null; then
+	  exact_cpu=ultrasparct1
+	elif grep 'SUNW,UltraSPARC-III' $dummy >/dev/null; then
+	  exact_cpu=ultrasparc3
+	elif grep 'SUNW,UltraSPARC-IIi' $dummy >/dev/null; then
+	  exact_cpu=ultrasparc2i
+	elif grep 'SUNW,UltraSPARC-II' $dummy >/dev/null; then
+	  exact_cpu=ultrasparc2
+	elif grep 'SUNW,UltraSPARC' $dummy >/dev/null; then
+	  exact_cpu=ultrasparc
+	elif grep 'Ross,RT62.' $dummy >/dev/null; then
+	  # RT620, RT625, RT626 hypersparcs (v8).
+	  exact_cpu=sparcv8
+	elif grep 'TI,TMS390Z5.' $dummy >/dev/null; then
+	  # TMS390Z50 and TMS390Z55
+	  exact_cpu=supersparc
+	elif grep 'TI,TMS390S10' $dummy >/dev/null; then
+	  exact_cpu=microsparc
+	elif grep 'FMI,MB86904' $dummy >/dev/null; then
+	  # actually MicroSPARC-II
+	  exact_cpu=microsparc
+	fi
+      fi
+    fi
+  done
+
+  # Grep the output from sysctl hw.model on sparc or sparc64 *BSD.
+  # Use an explicit /sbin, since that directory might not be in a normal
+  # user's path.  Example outputs,
+  #
+  #     hw.model: Sun Microsystems UltraSparc-IIi
+  #
+  if test -z "$exact_cpu"; then
+    if $SHELL -c "/sbin/sysctl hw.model" 2>/dev/null >$dummy; then
+      if grep -i 'UltraSparc-T5' $dummy >/dev/null; then
+        exact_cpu=ultrasparct5
+      elif grep -i 'UltraSparc-T4' $dummy >/dev/null; then
+        exact_cpu=ultrasparct4
+      elif grep -i 'UltraSparc-T3' $dummy >/dev/null; then
+        exact_cpu=ultrasparct3
+      elif grep -i 'UltraSparc-T2' $dummy >/dev/null; then
+        exact_cpu=ultrasparct2
+      elif grep -i 'UltraSparc-T1' $dummy >/dev/null; then
+        exact_cpu=ultrasparct1
+      elif grep -i 'UltraSparc-III' $dummy >/dev/null; then
+        exact_cpu=ultrasparc3
+      elif grep -i 'UltraSparc-IIi' $dummy >/dev/null; then
+        exact_cpu=ultrasparc2i
+      elif grep -i 'UltraSparc-II' $dummy >/dev/null; then
+        exact_cpu=ultrasparc2
+      elif grep -i 'UltraSparc' $dummy >/dev/null; then
+        exact_cpu=ultrasparc
+      elif grep 'TMS390Z5.' $dummy >/dev/null; then
+        # TMS390Z50 and TMS390Z55
+        exact_cpu=supersparc
+      elif grep 'TMS390S10' $dummy >/dev/null; then
+        exact_cpu=microsparc
+      elif grep 'MB86904' $dummy >/dev/null; then
+        # actually MicroSPARC-II
+        exact_cpu=microsparc
+      elif grep 'MB86907' $dummy >/dev/null; then
+        exact_cpu=turbosparc
+      fi
+    fi
+  fi
+
+  # sun4m and sun4d are v8s of some sort, sun4u is a v9 of some sort
+  #
+  if test -z "$exact_cpu"; then
+    case `uname -m` in
+      sun4[md]) exact_cpu=sparcv8 ;;
+      sun4u)    exact_cpu=sparcv9 ;;
+    esac
+  fi
+  ;;
+
+
+# Recognise x86 processors using a tricky cpuid with 4 arguments, repeating
+# arguments; for x86-64 we effectively pass the 1st in rdx and the 2nd in rcx.
+# This allows the same asm to work for both standard and Windoze calling
+# conventions.
+
+i?86-*-* | amd64-*-* | x86_64-*-*)
+  eval $set_cc_for_build
+
+  cat <<EOF >$dummy.c
+#include <string.h>
+#include <stdio.h>
+#define CPUID(a,b) cpuid(b,a,a,b)
+#if __cplusplus
+extern "C"
+#endif
+unsigned int cpuid (int, char *, char *, int);
+int
+main ()
+{
+  char vendor_string[13];
+  char feature_string[12];
+  long fms;
+  int family, model;
+  const char *modelstr, *suffix;
+  int cpu_64bit = 0, cpu_avx = 0;
+  int cpuid_64bit, cpuid_avx, cpuid_osxsave;
+
+  CPUID (vendor_string, 0);
+  vendor_string[12] = 0;
+
+  fms = CPUID (feature_string, 1);
+
+  family = ((fms >> 8) & 0xf) + ((fms >> 20) & 0xff);
+  model = ((fms >> 4) & 0xf) + ((fms >> 12) & 0xf0);
+
+  cpuid_avx     = (feature_string[11] >> 4) & 1;
+  cpuid_osxsave = (feature_string[11] >> 3) & 1;
+
+  modelstr = "$guess_cpu";
+
+  /**************************************************/
+  /*** WARNING: keep this list in sync with fat.c ***/
+  /**************************************************/
+  if (strcmp (vendor_string, "GenuineIntel") == 0)
+    {
+      switch (family)
+	{
+	case 5:
+	  if (model <= 2)	modelstr = "pentium";
+	  else if (model >= 4)	modelstr = "pentiummmx";
+	  break;
+	case 6:
+          if (model <= 1)                                   modelstr = "pentiumpro";
+          else if (model <= 6)                              modelstr = "pentium2";
+          else if (model <= 8)                              modelstr = "pentium3";
+          else if (model <= 9)                              modelstr = "pentiumm";
+          else if (model <= 0x0c)                           modelstr = "pentium3";
+          else if (model <= 0x0e)                           modelstr = "pentiumm";
+          else if (model <= 0x19) cpu_64bit = 1,            modelstr = "core2";
+          else if (model == 0x1a) cpu_64bit = 1,            modelstr = "nehalem";    /* NHM Gainestown */
+          else if (model == 0x1c) cpu_64bit = 1,            modelstr = "atom";       /* Silverthorne */
+          else if (model == 0x1d) cpu_64bit = 1,            modelstr = "core2";      /* PNR Dunnington */
+          else if (model == 0x1e) cpu_64bit = 1,            modelstr = "nehalem";    /* NHM Lynnfield/Jasper */
+          else if (model == 0x25) cpu_64bit = 1,            modelstr = "westmere";   /* WSM Clarkdale/Arrandale */
+          else if (model == 0x26) cpu_64bit = 1,            modelstr = "atom";       /* Lincroft */
+          else if (model == 0x27) cpu_64bit = 1,            modelstr = "atom";       /* Saltwell */
+          else if (model == 0x2a) cpu_64bit = 1, cpu_avx=1, modelstr = "sandybridge";/* SB */
+          else if (model == 0x2c) cpu_64bit = 1,            modelstr = "westmere";   /* WSM Gulftown */
+          else if (model == 0x2d) cpu_64bit = 1, cpu_avx=1, modelstr = "sandybridge";/* SBC-EP */
+          else if (model == 0x2e) cpu_64bit = 1,            modelstr = "nehalem";    /* NHM Beckton */
+          else if (model == 0x2f) cpu_64bit = 1,            modelstr = "westmere";   /* WSM Eagleton */
+          else if (model == 0x36) cpu_64bit = 1,            modelstr = "atom";       /* Cedarview/Saltwell */
+          else if (model == 0x37) cpu_64bit = 1,            modelstr = "silvermont"; /* Silvermont */
+          else if (model == 0x3a) cpu_64bit = 1, cpu_avx=1, modelstr = "ivybridge";  /* IBR */
+          else if (model == 0x3c) cpu_64bit = 1, cpu_avx=1, modelstr = "haswell";    /* Haswell client */
+          else if (model == 0x3d) cpu_64bit = 1, cpu_avx=1, modelstr = "broadwell";  /* Broadwell */
+          else if (model == 0x3e) cpu_64bit = 1, cpu_avx=1, modelstr = "ivybridge";  /* Ivytown */
+          else if (model == 0x3f) cpu_64bit = 1, cpu_avx=1, modelstr = "haswell";    /* Haswell server */
+          else if (model == 0x45) cpu_64bit = 1, cpu_avx=1, modelstr = "haswell";    /* Haswell ULT */
+          else if (model == 0x46) cpu_64bit = 1, cpu_avx=1, modelstr = "haswell";    /* Crystal Well */
+          else if (model == 0x47) cpu_64bit = 1, cpu_avx=1, modelstr = "broadwell";  /* Broadwell */
+          else if (model == 0x4a) cpu_64bit = 1,            modelstr = "silvermont"; /* Silvermont */
+          else if (model == 0x4c) cpu_64bit = 1,            modelstr = "silvermont"; /* Airmont */
+          else if (model == 0x4d) cpu_64bit = 1,            modelstr = "silvermont"; /* Silvermont/Avoton */
+          else if (model == 0x4e) cpu_64bit = 1, cpu_avx=1, modelstr = "skylake";    /* Skylake client */
+          else if (model == 0x4f) cpu_64bit = 1, cpu_avx=1, modelstr = "broadwell";  /* Broadwell server */
+          else if (model == 0x55) cpu_64bit = 1, cpu_avx=1, modelstr = "skylake";    /* Skylake server */
+          else if (model == 0x56) cpu_64bit = 1, cpu_avx=1, modelstr = "broadwell";  /* Broadwell microserver */
+          else if (model == 0x57) cpu_64bit = 1,            modelstr = "knightslanding"; /* aka Xeon Phi */
+          else if (model == 0x5a) cpu_64bit = 1,            modelstr = "silvermont"; /* Silvermont */
+          else if (model == 0x5c) cpu_64bit = 1,            modelstr = "goldmont";   /* Goldmont */
+          else if (model == 0x5e) cpu_64bit = 1, cpu_avx=1, modelstr = "skylake";    /* Skylake */
+          else if (model == 0x5f) cpu_64bit = 1,            modelstr = "goldmont";   /* Goldmont */
+          else if (model == 0x8e) cpu_64bit = 1, cpu_avx=1, modelstr = "cabylake";   /* Capylake Y/U */
+          else if (model == 0x9e) cpu_64bit = 1, cpu_avx=1, modelstr = "cabylake";   /* Capylake desktop */
+          else                    cpu_64bit = 1,            modelstr = "nehalem";    /* default */
+
+	  if (strcmp (modelstr, "haswell") == 0)
+	    {
+	      /* Some Haswells lack BMI2.  Let them appear as Sandybridges for
+		 now.  */
+	      CPUID (feature_string, 7);
+	      if ((feature_string[0 + 8 / 8] & (1 << (8 % 8))) == 0)
+		modelstr = "sandybridge";
+	    }
+
+	  break;
+	case 15:
+	  cpu_64bit = 1, modelstr = "pentium4";
+	  break;
+	}
+    }
+  else if (strcmp (vendor_string, "AuthenticAMD") == 0)
+    {
+      switch (family)
+	{
+	case 5:
+	  if (model <= 3)	modelstr = "k5";
+	  else if (model <= 7)	modelstr = "k6";
+	  else if (model == 8)	modelstr = "k62";
+	  else if (model == 9)	modelstr = "k63";
+	  else if (model == 10) modelstr = "geode";
+	  else if (model == 13) modelstr = "k63";
+	  break;
+	case 6:
+	  modelstr = "athlon";
+	  break;
+	case 15:		/* K8, K9 */
+	  cpu_64bit = 1, modelstr = "k8";
+	  break;
+	case 16:		/* K10 */
+	  cpu_64bit = 1, modelstr = "k10";
+	  break;
+	case 17:		/* Hybrid k8/k10, claim k8 */
+	  cpu_64bit = 1, modelstr = "k8";
+	  break;
+	case 18:		/* Llano, uses K10 core */
+	  cpu_64bit = 1, modelstr = "k10";
+	  break;
+	case 19:		/* AMD Internal, assume future K10 */
+	  cpu_64bit = 1, modelstr = "k10";
+	  break;
+	case 20:		/* Bobcat */
+	  cpu_64bit = 1, modelstr = "bobcat";
+	  break;
+	case 21:		/* Bulldozer */
+	  cpu_64bit = 1, cpu_avx = 1;
+	  if (model <= 1)
+	    modelstr = "bulldozer";
+	  else if (model < 0x20)	/* really 2, [0x10-0x20) */
+	    modelstr = "piledriver";
+	  else if (model < 0x40)	/* really [0x30-0x40) */
+	    modelstr = "steamroller";
+	  else				/* really [0x60-0x70) */
+	    modelstr = "excavator";
+	  break;
+	case 22:		/* Jaguar, an improved bobcat */
+	  cpu_64bit = 1, cpu_avx = 1, modelstr = "jaguar";
+	  break;
+	}
+    }
+  else if (strcmp (vendor_string, "CyrixInstead") == 0)
+    {
+      /* Should recognize Cyrix' processors too.  */
+    }
+  else if (strcmp (vendor_string, "CentaurHauls") == 0)
+    {
+      switch (family)
+	{
+	case 6:
+	  if (model < 9)	modelstr = "viac3";
+	  else if (model < 15)	modelstr = "viac32";
+	  else			cpu_64bit = 1, modelstr = "nano";
+	  break;
+	}
+    }
+
+  CPUID (feature_string, 0x80000001);
+  cpuid_64bit = (feature_string[7] >> 5) & 1;
+
+  suffix = "";
+
+  if (cpuid_64bit && ! cpu_64bit)
+    /* If our cpuid-based CPU identification thinks this is a 32-bit CPU but
+       cpuid claims AMD64 capabilities, then revert to the generic "x86_64".
+       This is of course wrong, but it can happen in some virtualisers and
+       emulators, and this workaround allows for successful 64-bit builds.  */
+    modelstr = "x86_64";
+  else if (cpu_avx && ! (cpuid_avx && cpuid_osxsave))
+    /* For CPUs nominally capable of executing AVX, append "noavx" when not
+       both the AVX and OSXSAVE cpuid bits are set.  We tolerate weirdness
+       here, as some virtualisers set a broken cpuid state here, while other
+       virtualisers allow users to set a broken state.  */
+    suffix = "noavx";
+
+  printf ("%s%s", modelstr, suffix);
+  return 0;
+}
+EOF
+
+# The rcx/ecx zeroing here and in the variant below is needed for the BMI2
+# check.
+
+  cat <<EOF >${dummy}0.s
+	.globl cpuid
+	.globl _cpuid
+cpuid:
+_cpuid:
+	push	%rbx
+	mov	%rdx, %r8
+	mov	%ecx, %eax
+	xor	%ecx, %ecx
+	.byte	0x0f
+	.byte	0xa2
+	mov	%ebx, (%r8)
+	mov	%edx, 4(%r8)
+	mov	%ecx, 8(%r8)
+	pop	%rbx
+	ret
+EOF
+
+  if ($CC_FOR_BUILD ${dummy}0.s $dummy.c -o $dummy) >/dev/null 2>&1; then
+    # On 80386 and early 80486 cpuid is not available and will result in a
+    # SIGILL message, hence 2>/dev/null.
+    #
+    # On i386-unknown-freebsd4.9, "/bin/sh -c ./dummy" seems to send an
+    # "Illegal instruction (core dumped)" message to stdout, so we test $?
+    # to check if the program run was successful.
+    #
+    x=`$SHELL -c $dummy 2>/dev/null`
+    if test $? = 0 && test -n "$x"; then
+      exact_cpu=$x
+    fi
+  fi
+
+  cat <<EOF >${dummy}0.s
+	.globl cpuid
+	.globl _cpuid
+cpuid:
+_cpuid:
+	pushl %esi
+	pushl %ebx
+	movl 24(%esp),%eax
+	xor	%ecx, %ecx
+	.byte 0x0f
+	.byte 0xa2
+	movl 20(%esp),%esi
+	movl %ebx,(%esi)
+	movl %edx,4(%esi)
+	movl %ecx,8(%esi)
+	popl %ebx
+	popl %esi
+	ret
+EOF
+
+  if test -z "$exact_cpu"; then
+  if ($CC_FOR_BUILD ${dummy}0.s $dummy.c -o $dummy) >/dev/null 2>&1; then
+    # On 80386 and early 80486 cpuid is not available and will result in a
+    # SIGILL message, hence 2>/dev/null.
+    #
+    # On i386-unknown-freebsd4.9, "/bin/sh -c ./dummy" seems to send an
+    # "Illegal instruction (core dumped)" message to stdout, so we test $?
+    # to check if the program run was successful.
+    #
+    x=`$SHELL -c $dummy 2>/dev/null`
+    if test $? = 0 && test -n "$x"; then
+      exact_cpu=$x
+    fi
+  fi
+  fi
+
+  # We need to remove some .o files here since lame C compilers
+  # generate these even when not asked.
+  ;;
+
+s390*-*-*)
+  model=`grep "^processor 0: version =" /proc/cpuinfo | sed -e 's/.*machine = //'`
+  case $model in
+    2064 | 2066) zcpu="z900" ;;
+    2084 | 2086) zcpu="z990" ;;
+    2094 | 2096) zcpu="z9"   ;;
+    2097 | 2098) zcpu="z10"  ;;
+    2817 | 2818 | *) zcpu="z196" ;;
+  esac
+  case "$guess_full" in
+    s390x-*-*) exact_cpu=${zcpu}    ;;
+    s390-*-*)  exact_cpu=${zcpu}esa ;;
+  esac
+  ;;
+
+esac
+
+
+
+# -------------------------------------------------------------------------
+# Use an exact cpu, if possible
+
+if test -n "$exact_cpu"; then
+  echo "$exact_cpu$guess_rest"
+else
+  echo "$guess_full"
+fi
+exit 0
+
+
+
+# Local variables:
+# fill-column: 76
+# End:

@@ -1,0 +1,5 @@
+[n, a, b] -> { : exists e : 1 <= a <= 7e and 9e <= b <= n }
+
+-1
+
+[n, a, b] -> { [i] : n <= 2i }

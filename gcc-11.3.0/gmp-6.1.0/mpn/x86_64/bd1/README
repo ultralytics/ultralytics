@@ -1,0 +1,11 @@
+This directory contains code for AMD bulldozer including its piledriver update.
+
+We currently make limited use of SIMD instructions, both via the MPN_PATH and
+via inclusion of x86_64/fastsse files.
+
+The bd1 cores share one SIMD/FPU pipeline for two integer units.  This probably
+means that an all-core GMP load (such as a HPC load) might run slower if there
+is significant SIMD dependency.
+
+We should perhaps allow a special 'bd1nosimd' pseudo cpu-name excluding any
+SIMD code.

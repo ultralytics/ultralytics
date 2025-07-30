@@ -1,0 +1,7 @@
+# Check that the right lower bound is chosen for unrolling.
+# Older versions of isl would pick a lower bound that resulted
+# in a number of slices that exceeds the maximal value of an integer
+# and then only generated code for a truncated number (zero) of slices.
+[nn, t1, g] -> { A[a, b, c] -> [c] : exists (e0 = [(2 + a)/393216], e1 = [(t1 - c)/128]: 128g = b - c and 393216e0 = 2 + a and 128e1 = t1 - c and c <= 130 and c >= 6 - nn + b and c <= 128 + b and nn >= 137 and t1 >= 0 and c >= 1 and a <= -2 + nn and a >= 1 and nn <= 9223372036854775807 and b >= 1 and b <= -2 + nn and t1 <= 127) }
+[nn, t1, g] -> { : nn <= 9223372036854775807 and nn >= 137 and t1 >= 0 and t1 <= 127 }
+{ [c] -> unroll[x] }

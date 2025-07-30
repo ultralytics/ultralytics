@@ -1,0 +1,4 @@
+{ S_0[t, i] -> [o0, 1, o2, 0, t, 0, i] : 4o2 >= -4 + t + i - 2o0 and 4o2 >= -3 - t + i + 2o0 and 2o0 <= 1 + t and 2o0 >= t and 4o2 <= -1 + t + i - 2o0 and t >= 0 and t <= 7 and i >= 1 and i <= 8; S_0[t, i] -> [o0, 0, o2, 0, t, 0, i] : 4o2 >= t + i - 2o0 and 4o2 <= -t + i + 2o0 and 2o0 <= 1 + t and 2o0 >= t and t >= 0 and t <= 7 and i >= 1 and i <= 8 }
+{:}
+{ [i0, 1, i2, i3, i4, i5, i6] -> separation_class[[2] -> [0]] : i2 <= 1 and i2 >= 0 and i0 <= 3 and i0 >= 1; [i0, 0, 1, i3, i4, i5, i6] -> separation_class[[2] -> [0]] : i0 <= 3 and i0 >= 1; [i0, i1, i2, i3, i4, i5, i6] -> unroll[1] }
+

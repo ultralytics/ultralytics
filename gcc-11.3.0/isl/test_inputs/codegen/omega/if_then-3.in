@@ -1,0 +1,3 @@
+[n] -> { s0[In_1] -> [In_1,0] : In_1 >= 1 and In_1 <= 100 and n >= 2; s1[In_1, In_2] -> [In_1, In_2] : In_1 >= 1 and In_1 <= 100 and In_2 >= 1 and In_2 <= 100 and n >= 2; s2[In_1, In_2] -> [In_1, In_2] : In_1 >= 1 and In_1 <= 100 and In_2 >= 1 and In_2 <= 100 }
+{  :  }
+[n] -> { [i0,i1] -> separate[o0] : o0 >= 0; [i0,i1] -> atomic[o0] : o0 <= -1 }

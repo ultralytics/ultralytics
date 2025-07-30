@@ -1,0 +1,3 @@
+[n, lb, ub] -> { s1[k, i, j] -> [k, i, 1, j, 0, 0, 0, 0] : k >= 1 and j >= k and j <= n and j <= ub and i >= k and i <= n and j >= lb; s3[k, i, lb, k, i] -> [k, i, 1, lb, -1, k, i, 0] : k >= 1 and k <= -1 + lb and lb <= n and ub >= lb and i >= k and i <= n; s0[k, i] -> [k, i, 0, 0, 0, 0, 0, 0] : k >= 1 and k >= lb and i >= 1 + k and i <= n and k <= ub; s2[k, i] -> [k, i, 0, 0, 1, 0, 0, 0] : k >= 1 and k >= lb and k <= ub and ub <= -1 + n and i >= 1 + k and i <= n }
+[lb, n, ub] -> {  : ub <= n and lb >= 1 }
+[n, lb, ub] -> { [i0, i1, i2, i3, i4, i5, i6, i7] -> atomic[o0] : o0 <= 7; [i0, i1, i2, i3, i4, i5, i6, i7] -> separate[o0] : o0 >= 8 }

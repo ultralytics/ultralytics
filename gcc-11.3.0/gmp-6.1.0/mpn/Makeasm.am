@@ -1,0 +1,118 @@
+## Automake asm file rules.
+
+# Copyright 1996, 1998-2002 Free Software Foundation, Inc.
+#
+#  This file is part of the GNU MP Library.
+#
+#  The GNU MP Library is free software; you can redistribute it and/or modify
+#  it under the terms of either:
+#
+#    * the GNU Lesser General Public License as published by the Free
+#      Software Foundation; either version 3 of the License, or (at your
+#      option) any later version.
+#
+#  or
+#
+#    * the GNU General Public License as published by the Free Software
+#      Foundation; either version 2 of the License, or (at your option) any
+#      later version.
+#
+#  or both in parallel, as here.
+#
+#  The GNU MP Library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+#  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#  for more details.
+#
+#  You should have received copies of the GNU General Public License and the
+#  GNU Lesser General Public License along with the GNU MP Library.  If not,
+#  see https://www.gnu.org/licenses/.
+
+
+# COMPILE minus CC.
+#
+COMPILE_FLAGS = $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $(ASMFLAGS)
+
+# Flags used for preprocessing (in ansi2knr rules).
+#
+PREPROCESS_FLAGS = $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS)
+
+
+# Recent versions of automake (1.5 and up for instance) append automake
+# generated suffixes to this $(SUFFIXES) list.  This is essential for us,
+# since .c must come after .s, .S and .asm.  If .c is before .s, for
+# instance, then in the mpn directory "make" will see add_n.c mentioned in
+# an explicit rule (the ansi2knr stuff) and decide it must have add_n.c,
+# even if add_n.c doesn't exist but add_n.s does.  See GNU make
+# documentation "(make)Implicit Rule Search", part 5c.
+#
+# On IRIX 6 native make this doesn't work properly though.  Somehow .c
+# remains ahead of .s, perhaps because .c.s is a builtin rule.  .asm works
+# fine though, and mpn/mips3 uses this.
+#
+SUFFIXES = .s .S .asm
+
+
+# .s assembler, no preprocessing.
+#
+.s.o:
+	$(CCAS) $(COMPILE_FLAGS) `test -f '$<' || echo '$(srcdir)/'`$<
+.s.obj:
+	$(CCAS) $(COMPILE_FLAGS) `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi`
+.s.lo:
+	$(LIBTOOL) --mode=compile --tag=CC $(CCAS) $(COMPILE_FLAGS) `test -f '$<' || echo '$(srcdir)/'`$<
+
+
+# can be overridden during development, eg. "make RM_TMP=: mul_1.lo"
+RM_TMP = rm -f
+
+
+# .S assembler, preprocessed with cpp.
+#
+# It's necessary to run $(CPP) separately, since it seems not all compilers
+# recognise .S files, in particular "cc" on HP-UX 10 and 11 doesn't (and
+# will silently do nothing if given a .S).
+#
+# For .lo we need a helper script, as described below for .asm.lo.
+#
+.S.o:
+	$(CPP) $(PREPROCESS_FLAGS) `test -f '$<' || echo '$(srcdir)/'`$< | grep -v '^#' >tmp-$*.s
+	$(CCAS) $(COMPILE_FLAGS) tmp-$*.s -o $@
+	$(RM_TMP) tmp-$*.s
+.S.obj:
+	$(CPP) $(PREPROCESS_FLAGS) `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi` | grep -v '^#' >tmp-$*.s
+	$(CCAS) $(COMPILE_FLAGS) tmp-$*.s -o $@
+	$(RM_TMP) tmp-$*.s
+.S.lo:
+	$(LIBTOOL) --mode=compile --tag=CC $(top_srcdir)/mpn/cpp-ccas --cpp="$(CPP) $(PREPROCESS_FLAGS)" $(CCAS) $(COMPILE_FLAGS) `test -f '$<' || echo '$(srcdir)/'`$<
+
+
+# .asm assembler, preprocessed with m4.
+#
+# .o and .obj are non-PIC and just need m4 followed by a compile.
+#
+# .lo is a bit tricky.  Libtool (as of version 1.5) has foo.lo as a little
+# text file, and .libs/foo.o and foo.o as the PIC and non-PIC objects,
+# respectively.  It'd be asking for lots of trouble to try to create foo.lo
+# ourselves, so instead arrange to invoke libtool like a --mode=compile, but
+# with a special m4-ccas script which first m4 preprocesses, then compiles.
+# --tag=CC is necessary since foo.asm is otherwise unknown to libtool.
+#
+# Libtool adds -DPIC when building a shared object and the .asm files look
+# for that.  But it should be noted that the other PIC flags are on occasion
+# important too, in particular FreeBSD 2.2.8 gas 1.92.3 requires -k before
+# it accepts PIC constructs like @GOT, and gcc adds that flag only under
+# -fPIC.  (Later versions of gas are happy to accept PIC stuff any time.)
+#
+.asm.o:
+	$(M4) -DOPERATION_$* `test -f '$<' || echo '$(srcdir)/'`$< >tmp-$*.s
+	$(CCAS) $(COMPILE_FLAGS) tmp-$*.s -o $@
+	$(RM_TMP) tmp-$*.s
+.asm.obj:
+	$(M4) -DOPERATION_$* `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi` >tmp-$*.s
+	$(CCAS) $(COMPILE_FLAGS) tmp-$*.s -o $@
+	$(RM_TMP) tmp-$*.s
+.asm.lo:
+	$(LIBTOOL) --mode=compile --tag=CC $(top_srcdir)/mpn/m4-ccas --m4="$(M4)" $(CCAS) $(COMPILE_FLAGS) `test -f '$<' || echo '$(srcdir)/'`$<

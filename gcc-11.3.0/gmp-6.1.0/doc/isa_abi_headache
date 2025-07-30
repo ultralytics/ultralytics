@@ -1,0 +1,128 @@
+Copyright 2000 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+Terms Used In This Document:
+  ISA = Instruction Set Architecture.   The instructions the current
+        processor provides.
+  ABI = Application Binary Interface.  Specifies calling convention,
+        type sizes, etc.
+  AR64 = Arithmetic operations are 64-bit using 64-bit instructions
+	 (E.g., addition, subtraction, load, store, of 64-bit integer types
+	 are done with single instructions, not 32 bits at a time.)
+  Environment = The operating system and compiler.
+
+GMP is a very complex package to build since its speed is very
+sensitive to the ISA and ABI.  For example, if the ISA provides 64-bit
+instructions, it is crucial that GMP is configured to use them.
+
+Most environments that run on a 64-bit ISA provide more than one ABI.
+Typically one of the supported ABI's is a backward compatible 32-bit
+ABI, and one ABI provides 64-bit addressing and `long' (sometimes
+known as LP64).  But a few environments (IRIX, HP-UX) provide
+intermediate ABI's using 32-bit addressing but allow efficient 64-bit
+operations through a `long long' type.  For the latter to be useful to
+GMP, the ABI must allow operations using the native 64-bit
+instructions provided by the ISA, and allow passing of 64-bit
+quantities atomically.
+
+The ABI is typically chosen by means of command line options to the
+compiler tools (gcc, cc, c89, nm, ar, ld, as).  Different environments
+use different defaults, but as of this writing (May 2000) the
+dominating default is to the plain 32-bit ABI in its most arcane form.
+
+The GMP 3.0.x approach was to compile using the ABI that gives the
+best performance.  That places the burden on users to pass special
+options to the compiler when they compile their GMP applications.
+That approach has its advantages and disadvantages.  The main
+advantage is that users don't unknowingly get bad GMP performance.
+The main disadvantage is that users' compiles (actually links) will
+fail unless they pass special compiler options.
+
+** SPARC
+
+System vendors often confuse ABI, ISA, and implementation.  The worst
+case is Solaris, were the unbundled compiler confuses ISA and ABI, and
+the options have very confusing names.
+
+     option		interpretation
+     ======		==============
+cc   -xarch=v8plus	ISA=sparcv9, ABI=V8plus (PTR=32, see below)
+gcc  -mv8plus		ISA=sparcv9, ABI=V8plus (see below)
+cc   -xarch=v9		ISA=sparcv9, ABI=V9 (implying AR=64, PTR=64)
+
+It's hard to believe, but the option v8plus really means ISA=V9!
+
+Solaris releases prior to version 7 running on a V9 CPU fails to
+save/restore the upper 32 bits of the `i' and `l' registers.  The
+`v8plus' option generates code that use as many V9 features as
+possible under such circumstances.
+
+** MIPS
+
+The IRIX 6 compilers gets things right.  They have a clear
+understanding of the differences between ABI and ISA.  The option
+names are descriptive.
+
+     option		interpretation
+     ======		==============
+cc   -n32		ABI=n32 (implying AR=64, PTR=32)
+gcc  -mabi=n32		ABI=n32 (implying AR=64, PTR=32)
+cc   -64		ABI=64 (implying AR=64, PTR=64)
+gcc  -mabi=64		ABI=64 (implying AR=64, PTR=64)
+cc   -mips3		ISA=mips3
+gcc  -mips3		ISA=mips3
+cc   -mips4		ISA=mips4
+gcc  -mips4		ISA=mips4
+
+** HP-PA
+
+HP-UX is somewhat weird, but not as broken as Solaris.
+
+     option		interpretation
+     ======		==============
+cc   +DA2.0		ABI=32bit (implying AR=64, PTR=32)
+cc   +DD64		ABI=64bit (implying AR=64, PTR=64)
+
+Code performing 64-bit arithmetic in the HP-UX 32-bit is not
+compatible with the 64-bit ABI; the former has a calling convention
+that passes/returns 64-bit integer quantities as two 32-bit chunks.
+
+** PowerPC
+
+While the PowerPC ABI's are capable of supporting 64-bit
+registers/operations, the compilers under AIX are similar to Solaris'
+cc in that they don't currently provide any 32-bit addressing with
+64-bit arithmetic.
+
+     option			interpretation
+     ======			==============
+cc   -q64			ABI=64bit (implying AR=64, PTR=64)
+gcc  -maix64 -mpowerpc64	ABI=64bit (implying AR=64, PTR=64)

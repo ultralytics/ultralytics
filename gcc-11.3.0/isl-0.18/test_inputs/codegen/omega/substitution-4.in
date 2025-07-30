@@ -1,0 +1,3 @@
+[n] -> { s0[i] -> [i] : exists (e0 = [(-1 - n + i)/18]: 18e0 = -1 - n + i and i <= 16 + n and i >= 1 + n) }
+{  :  }
+[n] -> { [i0] -> separate[o0] : o0 >= 0; [i0] -> atomic[o0] : o0 <= -1 }

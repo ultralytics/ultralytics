@@ -1,0 +1,88 @@
+Copyright 2001, 2003, 2004 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+                  GMP PERL MODULE INSTALLATION
+
+
+This module can be compiled within the GMP source directory or moved
+elsewhere and compiled.  An installed GMP can be used, or a specified
+GMP build tree.  Both static and shared GMP builds will work.
+
+The simplest case is when GMP has been installed to a standard system
+location
+
+	perl Makefile.PL
+	make
+
+If not yet installed then the top-level GMP build directory must be
+specified
+
+	perl Makefile.PL GMP_BUILDDIR=/my/gmp/build
+	make
+
+In any case, with the module built, the sample program provided can be
+run
+
+	perl -Iblib/arch sample.pl
+
+If you built a shared version of libgmp but haven't yet installed it,
+then it might be necessary to add a run-time path to it.  For example
+
+	LD_LIBRARY_PATH=/my/gmp/build/.libs perl -Iblib/arch sample.pl
+
+Documentation is provided in pod format in GMP.pm, and will have been
+"man"-ified in the module build
+
+	man -l blib/man3/GMP.3pm
+or
+	man -M`pwd`/blib GMP
+
+A test script is provided, running a large number of more or less
+trivial checks
+
+	make test
+
+The module and its documentation can be installed in the usual way
+
+	make install
+
+This will be into /usr/local or wherever the perl Config module
+directs, but that can be controlled back at the Makefile.PL stage with
+the usual ExtUtils::MakeMaker options.
+
+Once installed, programs using the GMP module become simply
+
+	perl sample.pl
+
+And the documentation read directly too
+
+	man GMP

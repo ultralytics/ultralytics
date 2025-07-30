@@ -1,0 +1,7 @@
+# Check that conditions are hoisted up from the innermost loop
+[n] -> { a[i,j,k,l] -> [i,j,0,k,l] :
+	    0 <= i,j,k,l <= n and (i = 0 or j = 0 or i = n or j = n);
+	 b[i,j,k,l] -> [i,j,1,k,l] :
+	    0 <= i,j,k,l <= n and (i = 0 or j = 0 or i = n or j = n) }
+{ : }
+{ [i,j,t,k,l] -> atomic[x] }

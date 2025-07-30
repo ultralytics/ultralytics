@@ -1,0 +1,23 @@
+Authors of MPFR (in chronological order of initial contribution):
+
+Guillaume Hanrot        Main author
+Fabrice Rouillier       Original version of mul_ui.c, gmp_op.c
+Paul Zimmermann         Main author
+Sylvie Boldo            Original version of agm.c and log.c
+Jean-Luc Rémy           Original version of zeta.c
+Emmanuel Jeandel        Original version of exp3.c, const_pi.c, sincos.c
+Mathieu Dutour          acos.c, asin.c, atan.c and early gamma.c
+Vincent Lefèvre         Main author
+David Daney             Hyperbolic and inverse hyperbolic functions, base-2
+                        and base-10 exponential and logarithm, factorial
+Alain Delplanque        Rewritten get_str.c
+Ludovic Meunier         Error function (erf.c)
+Patrick Pélissier       Main author
+Laurent Fousse          Original version of sum.c
+Damien Stehlé           Function mpfr_get_ld_2exp
+Philippe Théveny        Main author
+Sylvain Chevillard      Original version of ai.c
+
+The main authors are included in the MPFR mailing-list <mpfr@inria.fr>.
+This is the preferred way to contact us. For further information, please
+look at the MPFR web page <http://www.mpfr.org/>.

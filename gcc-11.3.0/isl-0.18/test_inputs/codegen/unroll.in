@@ -1,0 +1,5 @@
+# Test that unrolling takes into account stride constraints.
+# If it didn't, it would run essentially forever on this example.
+[n] -> { A[i] -> [i] : exists a : i = 100000000 a and 0 <= a <= 2 }
+{:}
+{ [i] -> unroll[0] }

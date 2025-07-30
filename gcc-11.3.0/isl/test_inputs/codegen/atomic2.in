@@ -1,0 +1,4 @@
+# Check that isl properly handles atomic domains that are unions.
+[nn, b0] -> { A[a] -> [a, 0, b0] : exists (e0 = [(b0 - a)/32768]: 32768e0 = b0 - a and a >= 1 and b0 >= 0 and b0 <= 32767 and a <= 65534) }
+[nn, b0] -> { : b0 >= 0 and b0 <= 32767 }
+[nn, b0] -> { [a, b, c] -> atomic[2] : c >= 1; [a, 0, c] -> atomic[2] }

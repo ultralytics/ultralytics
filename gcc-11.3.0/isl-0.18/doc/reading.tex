@@ -1,0 +1,46 @@
+\textcite{Verdoolaege2016tutorial} describes the concepts behind
+\isl in some detail, mainly focusing on Presburger formulas,
+but also including some information on polyhedral compilation,
+especially on dependence analysis.
+Individual aspects of \isl are described in the following publications.
+\begin{itemize}
+\item
+\textcite{Verdoolaege2009equivalence} introduce \isl as a library
+for manipulating sets of integers defined by linear inequalities and
+integer divisions that is used in their equivalence checker.
+
+\item
+\textcite{Verdoolaege2010isl} provides a more detailed description
+of \isl at the time and still stands as the official reference for
+\isl.  However, many features were only added later on and one or
+more of the publications below may be more appropriate as
+a reference to these features.
+
+\item
+\textcite[Section 5.1]{Verdoolaege2010networks} provides some
+details on the dataflow analysis step, but also see
+\textcite[Chapter 6]{Verdoolaege2016tutorial} and
+\textcite{Verdoolaege2016reordering} for a more recent treatment.
+
+\item The concepts of structured and named spaces and the manipulation
+of sets containing elements in different spaces were introduced
+by \textcite{Verdoolaege2011iscc}.
+
+\item The transitive closure operation is described
+by \textcite{Verdoolaege2011closure}.
+
+\item The scheduler is briefly described by
+\textcite[Section 6.2]{Verdoolaege2013PPCG} and
+\textcite[Section 2.4]{Verdoolaege2016reordering}.
+
+\item Schedule trees started out as ``trees of bands''
+\parencite[Section 6.2]{Verdoolaege2013PPCG}, were formally
+introduced by \textcite{Verdoolaege2014impact}, and were
+slightly refined by \textcite{Grosser2015AST}.
+
+\item The coalescing operation is described by
+\textcite{Verdoolaege2015impact}.
+
+\item The AST generator is described by \textcite{Grosser2015AST}.
+
+\end{itemize}

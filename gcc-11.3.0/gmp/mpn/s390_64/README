@@ -1,0 +1,88 @@
+Copyright 2011 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+There are 5 generations of 64-but s390 processors, z900, z990, z9,
+z10, and z196.  The current GMP code was optimised for the two oldest,
+z900 and z990.
+
+
+mpn_copyi
+
+This code makes use of a loop around MVC.  It almost surely runs very
+close to optimally.  A small improvement could be done by using one
+MVC for size 256 bytes, now we use two (we use an extra MVC when
+copying any multiple of 256 bytes).
+
+
+mpn_copyd
+
+We have tried several feed-in variants here, branch tree, jump table
+and computed goto.  The fastest (on z990) turned out to be computed
+goto.
+
+An approach not tried is EX of LMG and STMG, modifying the register set
+on-the-fly.  Using that trick, we could completely avoid using
+separate feed-in paths.
+
+
+mpn_lshift, mpn_rshift
+
+The current code runs at pipeline decode bandwidth on z990.
+
+
+mpn_add_n, mpn_sub_n
+
+The current code is 4-way unrolled.  It should be unrolled more, at
+least 8x, in order to reach 2.5 c/l.
+
+
+mpn_mul_1, mpn_addmul_1, mpn_submul_1
+
+The current code is very naive, but due to the non-pipelined nature of
+MLGR on z900 and z990, more sophisticated code would not gain much.
+
+On z10 one would need to cluster at least 4 MLGR together, in order to
+reduce stalling.
+
+On z196, one surely want to use unrolling and pipelining, to perhaps
+reach around 12 c/l.  A major issue here and on z10 is ALCGR's 3 cycle
+stalling.
+
+
+mpn_mul_2, mpn_addmul_2
+
+At least for older machines (z900, z990) with very slow MLGR, we
+should use Karatsuba's algorithm on 2-limb units, making mul_2 and
+addmul_2 the main multiplication primitives.  The newer machines might
+benefit less from this approach, perhaps in particular z10, where MLGR
+clustering is more important.
+
+With Karatsuba, one could hope for around 16 cycles per accumulated
+128 cross product, on z990.

@@ -1,0 +1,3 @@
+{ s0[In_1, In_2, In_3, In_4, In_5] -> [In_1, In_2, In_3, In_4, In_5] : In_1 >= 5 and In_1 <= 60 and In_2 >= 1 and In_2 <= 100 and In_3 >= 1 and In_3 <= 100 and In_4 >= 1 and In_4 <= 100 and In_5 >= 1 and In_5 <= 100; s1[In_1, In_2, In_3, In_4, In_5] -> [In_1, In_2, In_3, In_4, In_5] : In_1 >= 1 and In_1 <= 100 and In_2 >= 1 and In_2 <= 100 and In_3 >= 1 and In_3 <= 100 and In_4 >= 1 and In_4 <= 100 and In_5 >= 1 and In_5 <= 100 }
+{  :  }
+{ [i0, i1, i2, i3, i4] -> separate[o0] : o0 >= 3; [i0, i1, i2, i3, i4] -> atomic[o0] : o0 <= 2 }

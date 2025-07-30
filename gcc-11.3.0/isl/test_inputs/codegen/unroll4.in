@@ -1,0 +1,5 @@
+# Check that the generated code does not contain two declarations
+# of the same variable in the same scope.
+[t1, t2, g] -> { write_shared_A[a, b, c] -> [0, a, b, c] : exists (e0, e1 = [(-t1 + b)/4], e2 = [(-t2 + c)/32]: 4e1 = -t1 + b and 32e2 = -t2 + c and e0 <= 2 + 3g and e0 >= 3g and a <= 4 and a >= 3 and t2 >= 0 and t1 <= 3 and 2e0 >= 5 - c + 6g and 2e0 <= 36 - c + 6g and 2e0 >= 5 - b + 6g and 2e0 <= 8 - b + 6g and 2e0 <= 638 - c and 2e0 <= 638 - b and 2e0 >= 2 - a + 6g and 2e0 >= -8 + a + 6g and 2e0 <= 1 + a + 6g and 2e0 <= 11 - a + 6g and e0 >= 0 and e0 <= 254 and t1 >= 0 and t2 <= 31 and b >= 1 and b <= 126 and c >= 1 and c <= 126 and g <= 3 and g >= 0) }
+[t1, t2, g] -> { : g <= 3 and g >= 0 and t1 >= 0 and t1 <= 3 and t2 >= 0 and t2 <= 5 }
+[t1, t2] -> { [i0, i1, i2, i3] -> unroll[x] }

@@ -1,0 +1,125 @@
+Copyright 1997, 1999-2002 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+This directory contains mpn functions for 64-bit V9 SPARC
+
+RELEVANT OPTIMIZATION ISSUES
+
+Notation:
+  IANY = shift/add/sub/logical/sethi
+  IADDLOG = add/sub/logical/sethi
+  MEM = ld*/st*
+  FA = fadd*/fsub*/f*to*/fmov*
+  FM = fmul*
+
+UltraSPARC can issue four instructions per cycle, with these restrictions:
+* Two IANY instructions, but only one of these may be a shift.  If there is a
+  shift and an IANY instruction, the shift must precede the IANY instruction.
+* One FA.
+* One FM.
+* One branch.
+* One MEM.
+* IANY/IADDLOG/MEM must be insn 1, 2, or 3 in an issue bundle.  Taken branches
+  should not be in slot 4, since that makes the delay insn come from separate
+  bundle.
+* If two IANY/IADDLOG instructions are to be executed in the same cycle and one
+  of these is setting the condition codes, that instruction must be the second
+  one.
+
+To summarize, ignoring branches, these are the bundles that can reach the peak
+execution speed:
+
+insn1	iany	iany	mem	iany	iany	mem	iany	iany	mem
+insn2	iaddlog	mem	iany	mem	iaddlog	iany	mem	iaddlog	iany
+insn3	mem	iaddlog	iaddlog	fa	fa	fa	fm	fm	fm
+insn4	fa/fm	fa/fm	fa/fm	fm	fm	fm	fa	fa	fa
+
+The 64-bit integer multiply instruction mulx takes from 5 cycles to 35 cycles,
+depending on the position of the most significant bit of the first source
+operand.  When used for 32x32->64 multiplication, it needs 20 cycles.
+Furthermore, it stalls the processor while executing.  We stay away from that
+instruction, and instead use floating-point operations.
+
+Floating-point add and multiply units are fully pipelined.  The latency for
+UltraSPARC-1/2 is 3 cycles and for UltraSPARC-3 it is 4 cycles.
+
+Integer conditional move instructions cannot dual-issue with other integer
+instructions.  No conditional move can issue 1-5 cycles after a load.  (This
+might have been fixed for UltraSPARC-3.)
+
+The UltraSPARC-3 pipeline is very simular to the one of UltraSPARC-1/2 , but is
+somewhat slower.  Branches execute slower, and there may be other new stalls.
+But integer multiply doesn't stall the entire CPU and also has a much lower
+latency.  But it's still not pipelined, and thus useless for our needs.
+
+STATUS
+
+* mpn_lshift, mpn_rshift: The current code runs at 2.0 cycles/limb on
+  UltraSPARC-1/2 and 2.65 on UltraSPARC-3.  For UltraSPARC-1/2, the IEU0
+  functional unit is saturated with shifts.
+
+* mpn_add_n, mpn_sub_n: The current code runs at 4 cycles/limb on
+  UltraSPARC-1/2 and 4.5 cycles/limb on UltraSPARC-3.  The 4 instruction
+  recurrency is the speed limiter.
+
+* mpn_addmul_1: The current code runs at 14 cycles/limb asymptotically on
+  UltraSPARC-1/2 and 17.5 cycles/limb on UltraSPARC-3.  On UltraSPARC-1/2, the
+  code sustains 4 instructions/cycle.  It might be possible to invent a better
+  way of summing the intermediate 49-bit operands, but it is unlikely that it
+  will save enough instructions to save an entire cycle.
+
+  The load-use of the u operand is not enough scheduled for good L2 cache
+  performance.  The UltraSPARC-1/2 L1 cache is direct mapped, and since we use
+  temporary stack slots that will conflict with the u and r operands, we miss
+  to L2 very often.  The load-use of the std/ldx pairs via the stack are
+  perhaps over-scheduled.
+
+  It would be possible to save two instructions: (1) The mov could be avoided
+  if the std/ldx were less scheduled.  (2) The ldx of the r operand could be
+  split into two ld instructions, saving the shifts/masks.
+
+  It should be possible to reach 14 cycles/limb for UltraSPARC-3 if the fp
+  operations where rescheduled for this processor's 4-cycle latency.
+
+* mpn_mul_1: The current code is a straightforward edit of the mpn_addmul_1
+  code.  It would be possible to shave one or two cycles from it, with some
+  labour.
+
+* mpn_submul_1: Simpleminded code just calling mpn_mul_1 + mpn_sub_n.  This
+  means that it runs at 18 cycles/limb on UltraSPARC-1/2 and 23 cycles/limb on
+  UltraSPARC-3.  It would be possible to either match the mpn_addmul_1
+  performance, or in the worst case use one more instruction group.
+
+* US1/US2 cache conflict resolving.  The direct mapped L1 date cache of US1/US2
+  is a problem for mul_1, addmul_1 (and a prospective submul_1).  We should
+  allocate a larger cache area, and put the stack temp area in a place that
+  doesn't cause cache conflicts.

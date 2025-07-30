@@ -1,0 +1,115 @@
+# Data file for mpc_add.
+#
+# Copyright (C) 2008 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX_RE INEX_IM PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP1_RE  OP1_RE  PREC_OP1_IM  OP1_IM  PREC_OP2_RE  OP2_RE  PREC_OP2_IM  OP2_IM  RND_RE  RND_IM
+#
+# where op1 = op1_re + i * op1_im, op2 = op2_re + i * op2_im, rop = rop_re + i * rop_im,
+# The data are read from the file and stored in variables op1, op2, rop using
+# rounding to nearest when needed, for instance: rop_re is ROP_RE rounded to
+# nearest to the precision of PREC_ROP_RE.
+# ROP_RE is checked against Re(op1 + op2) rounded to the precision PREC_ROP_RE
+#   in the direction RND_RE
+# ROP_IM is checked against Im(op1 + op2) rounded to the precision PREC_ROP_IM
+#   in the direction RND_IM
+# INEX_RE is the ternary value for the real part with the following notation:
+# "?" ternary value not checked
+# "+" if ROP_RE is greater than the exact mathematical result
+# "0" if ROP_RE is exactly the mathematical result
+# "-" if ROP_RE is less than the exact mathematical result
+# (m.m. INEX_IM)
+# rounding modes notation:
+# "N" is rounding to nearest
+# "Z" is rounding towards zero
+# "U" is rounding towards plus infinity
+# "D" is rounding towards minus infinity
+# Use prefixes "0b" for values in base two, "0x" for values in base sixteen,
+#   no prefix for value in base ten.
+# In all bases, "nan" is NaN, "inf" is infinity;
+# The sign of the result is checked with "+inf", "-inf", "-0", or "+0".
+
+# special values (following ISO C99 standard)
+0 0 53 -inf 53 -inf    53 -inf 53 -inf 53 -inf 53 -inf N Z
+0 0 53 -inf 53  nan    53 -inf 53 +inf 53   +1 53 -inf Z U
+0 0 53 +inf 53 -inf    53 +inf 53 -inf 53 +inf 53   +0 U D
+0 0 53 +inf 53 +inf    53 +inf 53 +inf 53   -0 53   -1 D N
+0 0 53 -inf 53 -inf    53 -inf 53 -inf 53   -0 53   -1 N U
+0 0 53  nan 53  nan    53 -inf 53 +inf 53 +inf 53  nan Z D # check this is true in ISO C99
+0 0 53  nan 53 -inf    53 +inf 53 -inf 53  nan 53   -1 U N
+0 0 53 +inf 53  nan    53 +inf 53 +inf 53   -0 53  nan D Z
+0 0 53  nan 53  nan    53 -inf 53 -inf 53  nan 53  nan N D
+
+0 0 53 +inf 53 -inf    53   -1 53 -inf 53 +inf 53   -1 N D
+0 0 53  nan 53   +1    53 -inf 53   +1 53 +inf 53   -0 Z N
+0 0 53   +1 53 -inf    53   +1 53 -inf 53   -0 53   +1 U Z
+0 0 53 +inf 53   +1    53 +inf 53   +1 53   -0 53   -0 D U
+0 0 53 +inf 53  nan    53   -1 53 -inf 53 +inf 53  nan N N
+0 0 53  nan 53   +2    53 -inf 53   +1 53  nan 53   +1 Z Z
+0 0 53   +1 53  nan    53   +1 53 -inf 53   -0 53  nan U U # check this
+0 0 53  nan 53  nan    53 +inf 53   +1 53  nan 53  nan D D
+
+0 0 53   -0 53  nan    53   -0 53 -inf 53   +0 53 +inf D D
+0 0 53 -inf 53   +0    53 -inf 53   +0 53   +1 53   -0 N Z
+0 0 53   +0 53 -inf    53   +0 53 -inf 53   -0 53   -0 Z U
+0 0 53  nan 53  nan    53 +inf 53   +0 53 -inf 53  nan U D # check
+0 0 53  nan 53 -inf    53   -0 53 -inf 53  nan 53   -1 D N
+0 0 53 -inf 53  nan    53 -inf 53   +0 53   +0 53  nan N U
+0 0 53  nan 53  nan    53   +0 53 -inf 53  nan 53  nan Z D
+
+0 0 53   +0 53   -0    53   +0 53   +1 53   -0 53   -1 Z D
+0 0 53   -1 53   -0    53   -1 53   -0 53   +0 53   -0 U N
+0 0 53  nan 53 +inf    53   -0 53   +1 53  nan 53 +inf D Z
+0 0 53   +0 53  nan    53   +1 53   -0 53   -1 53  nan N D
+0 0 53  nan 53   +1    53   +0 53   +1 53  nan 53   -0 Z N
+0 0 53  nan 53  nan    53   -1 53   -0 53  nan 53  nan U Z
+
+0 0 53   +0 53   +0    53   -0 53   +0 53   +0 53   -0 U Z
+0 0 53  nan 53 -inf    53   +0 53   -0 53  nan 53 -inf D U
+0 0 53   -1 53  nan    53   +0 53   +0 53   -1 53  nan N N
+0 0 53  nan 53   -0    53   -0 53   -0 53  nan 53   -0 Z Z
+0 0 53  nan 53  nan    53   -0 53   +0 53  nan 53  nan U U
+
+0 0 53  nan 53  nan    53  nan 53 -inf 53  nan 53 +inf U U # check
+0 0 53 +inf 53  nan    53 +inf 53  nan 53   -1 53  nan D D
+0 0 53  nan 53 -inf    53  nan 53 -inf 53  nan 53   -0 N Z
+0 0 53  nan 53  nan    53 -inf 53  nan 53  nan 53  nan Z U # check
+
+0 0 53  nan 53  nan    53   +1 53  nan 53  nan 53   -1 Z U
+0 0 53  nan 53  nan    53  nan 53   +1 53   -0 53  nan U D
+0 0 53  nan 53  nan    53   -1 53  nan 53  nan 53  nan D N
+
+0 0 53  nan 53  nan    53  nan 53   +0 53   +0 53  nan D N
+0 0 53  nan 53  nan    53   +0 53  nan 53  nan 53  nan N U
+
+0 0 53  nan 53  nan    53  nan 53  nan 53  nan 53  nan N U
+
+# pure real argument
++ 0 53  0x10000000000001p-52  53 -0    53 +1 53 -0 53 0x10000000000001p-105 53 -0 N N
+- 0 53  0x10000000000000p-52  53 -0    53 +1 53 -0 53 0x10000000000001p-105 53 -0 Z Z
++ 0 53  0x10000000000001p-52  53 -0    53 +1 53 -0 53 0x10000000000001p-105 53 -0 U U
+- 0 53  0x10000000000000p-52  53 -0    53 +1 53 -0 53 0x10000000000001p-105 53 -0 D D
+
+# pure imaginary argument
+0 + 53 -0 53  0x10000000000001p-52     53 -0 53 0x10000000000001p-105 53 -0 53 +1 N N
+0 - 53 +0 53  0x10000000000000p-52     53 +0 53 0x10000000000001p-105 53 -0 53 +1 Z Z
+0 + 53 +0 53  0x10000000000001p-52     53 +0 53 0x10000000000001p-105 53 -0 53 +1 U U
+0 - 53 -0 53  0x10000000000000p-52     53 -0 53 0x10000000000001p-105 53 -0 53 +1 D D
+

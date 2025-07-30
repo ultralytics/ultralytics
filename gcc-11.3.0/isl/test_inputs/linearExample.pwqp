@@ -1,0 +1,1 @@
+[N, M, L] -> { [i, j, k] -> ((1/2 * i + 5 * j) + 1/7 * k) : i >= 0 and k >= -N + i and k >= -M - j and j <= L + i and L >= 0 and L >= -M }

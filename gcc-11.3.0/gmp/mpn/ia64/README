@@ -1,0 +1,281 @@
+Copyright 2000-2005 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+                      IA-64 MPN SUBROUTINES
+
+
+This directory contains mpn functions for the IA-64 architecture.
+
+
+CODE ORGANIZATION
+
+	mpn/ia64          itanium-2, and generic ia64
+
+The code here has been optimized primarily for Itanium 2.  Very few Itanium 1
+chips were ever sold, and Itanium 2 is more powerful, so the latter is what
+we concentrate on.
+
+
+
+CHIP NOTES
+
+The IA-64 ISA keeps instructions three and three in 128 bit bundles.
+Programmers/compilers need to put explicit breaks `;;' when there are WAW or
+RAW dependencies, with some notable exceptions.  Such "breaks" are typically
+at the end of a bundle, but can be put between operations within some bundle
+types too.
+
+The Itanium 1 and Itanium 2 implementations can under ideal conditions
+execute two bundles per cycle.  The Itanium 1 allows 4 of these instructions
+to do integer operations, while the Itanium 2 allows all 6 to be integer
+operations.
+
+Taken cloop branches seem to insert a bubble into the pipeline most of the
+time on Itanium 1.
+
+Loads to the fp registers bypass the L1 cache and thus get extremely long
+latencies, 9 cycles on the Itanium 1 and 6 cycles on the Itanium 2.
+
+The software pipeline stuff using br.ctop instruction causes delays, since
+many issue slots are taken up by instructions with zero predicates, and
+since many extra instructions are needed to set things up.  These features
+are clearly designed for code density, not speed.
+
+Misc pipeline limitations (Itanium 1):
+* The getf.sig instruction can only execute in M0.
+* At most four integer instructions/cycle.
+* Nops take up resources like any plain instructions.
+
+Misc pipeline limitations (Itanium 2):
+* The getf.sig instruction can only execute in M0.
+* Nops take up resources like any plain instructions.
+
+
+ASSEMBLY SYNTAX
+
+.align pads with nops in a text segment, but gas 2.14 and earlier
+incorrectly byte-swaps its nop bundle in big endian mode (eg. hpux), making
+it come out as break instructions.  We use the ALIGN() macro in
+mpn/ia64/ia64-defs.m4 when it might be executed across.  That macro
+suppresses any .align if the problem is detected by configure.  Lack of
+alignment might hurt performance but will at least be correct.
+
+foo:: to create a global symbol is not accepted by gas.  Use separate
+".global foo" and "foo:" instead.
+
+.global is the standard global directive.  gas accepts .globl, but hpux "as"
+doesn't.
+
+.proc / .endp generates the appropriate .type and .size information for ELF,
+so the latter directives don't need to be given explicitly.
+
+.pred.rel "mutex"... is standard for annotating predicate register
+relationships.  gas also accepts .pred.rel.mutex, but hpux "as" doesn't.
+
+.pred directives can't be put on a line with a label, like
+".Lfoo: .pred ...", the HP assembler on HP-UX 11.23 rejects that.
+gas is happy with it, and past versions of HP had seemed ok.
+
+// is the standard comment sequence, but we prefer "C" since it inhibits m4
+macro expansion.  See comments in ia64-defs.m4.
+
+
+REGISTER USAGE
+
+Special:
+   r0: constant 0
+   r1: global pointer (gp)
+   r8: return value
+   r12: stack pointer (sp)
+   r13: thread pointer (tp)
+Caller-saves: r8-r11 r14-r31 f6-f15 f32-f127
+Caller-saves but rotating: r32-
+
+
+================================================================
+mpn_add_n, mpn_sub_n:
+
+The current code runs at 1.25 c/l on Itanium 2.
+
+================================================================
+mpn_mul_1:
+
+The current code runs at 2 c/l on Itanium 2.
+
+Using a blocked approach, working off of 4 separate places in the operands,
+one could make use of the xma accumulation, and approach 1 c/l.
+
+	ldf8 [up]
+	xma.l
+	xma.hu
+	stf8  [wrp]
+
+================================================================
+mpn_addmul_1:
+
+The current code runs at 2 c/l on Itanium 2.
+
+It seems possible to use a blocked approach, as with mpn_mul_1.  We should
+read rp[] to integer registers, allowing for just one getf.sig per cycle.
+
+	ld8  [rp]
+	ldf8 [up]
+	xma.l
+	xma.hu
+	getf.sig
+	add+add+cmp+cmp
+	st8  [wrp]
+
+These 10 instructions can be scheduled to approach 1.667 cycles, and with
+the 4 cycle latency of xma, this means we need at least 3 blocks.  Using
+ldfp8 we could approach 1.583 c/l.
+
+================================================================
+mpn_submul_1:
+
+The current code runs at 2.25 c/l on Itanium 2.  Getting to 2 c/l requires
+ldfp8 with all alignment headache that implies.
+
+================================================================
+mpn_addmul_N
+
+For best speed, we need to give up using mpn_addmul_2 as the main multiply
+building block, and instead take multiple v limbs per loop.  For the Itanium
+1, we need to take about 8 limbs at a time for full speed.  For the Itanium
+2, something like mpn_addmul_4 should be enough.
+
+The add+cmp+cmp+add we use on the other codes is optimal for shortening
+recurrencies (1 cycle) but the sequence takes up 4 execution slots.  When
+recurrency depth is not critical, a more standard 3-cycle add+cmp+add is
+better.
+
+/* First load the 8 values from v */
+	ldfp8		v0, v1 = [r35], 16;;
+	ldfp8		v2, v3 = [r35], 16;;
+	ldfp8		v4, v5 = [r35], 16;;
+	ldfp8		v6, v7 = [r35], 16;;
+
+/* In the inner loop, get a new U limb and store a result limb. */
+	mov		lc = un
+Loop:	ldf8		u0 = [r33], 8
+	ld8		r0 = [r32]
+	xma.l		lp0 = v0, u0, hp0
+	xma.hu		hp0 = v0, u0, hp0
+	xma.l		lp1 = v1, u0, hp1
+	xma.hu		hp1 = v1, u0, hp1
+	xma.l		lp2 = v2, u0, hp2
+	xma.hu		hp2 = v2, u0, hp2
+	xma.l		lp3 = v3, u0, hp3
+	xma.hu		hp3 = v3, u0, hp3
+	xma.l		lp4 = v4, u0, hp4
+	xma.hu		hp4 = v4, u0, hp4
+	xma.l		lp5 = v5, u0, hp5
+	xma.hu		hp5 = v5, u0, hp5
+	xma.l		lp6 = v6, u0, hp6
+	xma.hu		hp6 = v6, u0, hp6
+	xma.l		lp7 = v7, u0, hp7
+	xma.hu		hp7 = v7, u0, hp7
+	getf.sig	l0 = lp0
+	getf.sig	l1 = lp1
+	getf.sig	l2 = lp2
+	getf.sig	l3 = lp3
+	getf.sig	l4 = lp4
+	getf.sig	l5 = lp5
+	getf.sig	l6 = lp6
+	add+cmp+add	xx, l0, r0
+	add+cmp+add	acc0, acc1, l1
+	add+cmp+add	acc1, acc2, l2
+	add+cmp+add	acc2, acc3, l3
+	add+cmp+add	acc3, acc4, l4
+	add+cmp+add	acc4, acc5, l5
+	add+cmp+add	acc5, acc6, l6
+	getf.sig	acc6 = lp7
+	st8		[r32] = xx, 8
+	br.cloop Loop
+
+	49 insn at max 6 insn/cycle:		8.167 cycles/limb8
+	11 memops at max 2 memops/cycle:	5.5 cycles/limb8
+	16 fpops at max 2 fpops/cycle:		8 cycles/limb8
+	21 intops at max 4 intops/cycle:	5.25 cycles/limb8
+	11+21 memops+intops at max 4/cycle	8 cycles/limb8
+
+================================================================
+mpn_lshift, mpn_rshift
+
+The current code runs at 1 cycle/limb on Itanium 2.
+
+Using 63 separate loops, we could use the double-word shrp instruction.
+That instruction has a plain single-cycle latency.  We need 63 loops since
+this instruction only accept immediate count.  That would lead to a somewhat
+silly code size, but the speed would be 0.75 c/l on Itanium 2 (by using shrp
+each cycle plus shl/shr going down I1 for a further limb every second
+cycle).
+
+================================================================
+mpn_copyi, mpn_copyd
+
+The current code runs at 0.5 c/l on Itanium 2.  But that is just for L1
+cache hit.  The 4-way unrolled loop takes just 2 cycles, and thus load-use
+scheduling isn't great.  It might be best to actually use modulo scheduled
+loops, since that will allow us to do better load-use scheduling without too
+much unrolling.
+
+Depending on size or operand alignment, we get 1 c/l or 0.5 c/l on Itanium
+2, according to tune/speed.  Cache bank conflicts?
+
+
+
+REFERENCES
+
+Intel Itanium Architecture Software Developer's Manual, volumes 1 to 3,
+Intel document 245317-004, 245318-004, 245319-004 October 2002.  Volume 1
+includes an Itanium optimization guide.
+
+Intel Itanium Processor-specific Application Binary Interface (ABI), Intel
+document 245370-003, May 2001.  Describes C type sizes, dynamic linking,
+etc.
+
+Intel Itanium Architecture Assembly Language Reference Guide, Intel document
+248801-004, 2000-2002.  Describes assembly instruction syntax and other
+directives.
+
+Itanium Software Conventions and Runtime Architecture Guide, Intel document
+245358-003, May 2001.  Describes calling conventions, including stack
+unwinding requirements.
+
+Intel Itanium Processor Reference Manual for Software Optimization, Intel
+document 245473-003, November 2001.
+
+Intel Itanium-2 Processor Reference Manual for Software Development and
+Optimization, Intel document 251110-003, May 2004.
+
+All the above documents can be found online at
+
+    http://developer.intel.com/design/itanium/manuals.htm

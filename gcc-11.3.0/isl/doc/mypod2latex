@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+use strict;
+use Pod::LaTeX;
+
+my ($in, $out) = @ARGV;
+
+my $parser = new Pod::LaTeX(
+		AddPreamble => 0,
+		AddPostamble => 0,
+		LevelNoNum => 5,
+	     );
+
+$parser->parse_from_file($in, $out);

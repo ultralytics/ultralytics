@@ -1,0 +1,3 @@
+[m, n] -> { s0[In_1] -> [In_1] : exists (e0 = [(m)/32]: 32e0 <= m and 32e0 >= -31 + m and 4e0 <= In_1 and In_1 <= n) }
+{  :  }
+[m, n] -> { [i0] -> separate[o0] : o0 >= 0; [i0] -> atomic[o0] : o0 <= -1 }

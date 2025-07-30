@@ -1,0 +1,4 @@
+# Check that the stride of the second loop is properly detected
+[n] -> { S_2[k, j] -> [o0, o0, o2, k, k, j, 1] : exists (e0 = floor((o2)/32), e1 = floor((o0)/32): 32e0 = o2 and 32e1 = o0 and o0 <= k and o0 >= -31 + k and k >= 0 and j <= -1 + n and o2 <= j and o2 >= -31 + j and j >= 1 + k); S_6[k, i, j] -> [o0, o1, o2, k, i, j, 0] : exists (e0 = floor((o0)/32), e1 = floor((o1)/32), e2 = floor((o2)/32): 32e0 = o0 and 32e1 = o1 and 32e2 = o2 and o0 <= k and o0 >= -31 + k and o1 <= i and o1 >= -31 + i and o2 <= j and o2 >= -31 + j and k >= 0 and i >= 1 + k and j <= -1 + n and j >= 1 + k and i <= -1 + n) }
+{  :  }
+{ [a,b,c,d,e,f,g] -> atomic[x] : x < 3; [a,b,c,d,e,f,g] -> separate[x] : x >= 3  }

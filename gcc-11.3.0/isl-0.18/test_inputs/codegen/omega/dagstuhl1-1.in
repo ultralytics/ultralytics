@@ -1,0 +1,3 @@
+{s0[p,i,j] -> [p,i,j] : 0 <= i,j <= 9 && p = i+10j}
+{  :  }
+{ [p,i,j] -> separate[o0] : o0 >= 2; [p,i,j] -> atomic[o0] : o0 <= 1 }

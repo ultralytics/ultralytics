@@ -1,0 +1,3 @@
+[niter] -> { S_4[-1 + niter, i] -> [o0, o1, o2, o3, o4, o5, o6, o7, 4] : exists (e0 = [(o0)/32], e1 = [(o1)/32], e2 = [(o2)/32], e3 = [(o3)/32], e4 = [(-31i + o5)/32], e5 = [(-i - o4 + o6)/32], e6 = [(-o4 + o7)/32], e7 = [(-1 + niter - o4)/32]: 32e0 = o0 and 32e1 = o1 and 32e2 = o2 and 32e3 = o3 and 32e4 = -31i + o5 and 32e5 = -i - o4 + o6 and 32e6 = -o4 + o7 and 32e7 = -1 + niter - o4 and o0 <= -1 + niter and o0 >= -32 + niter and o1 <= -i and o1 >= -31 - i and o2 <= -1 + niter + i and o2 >= -32 + niter + i and o3 <= 1023 + niter and o3 >= 992 + niter and o4 >= 0 and o4 <= 31 and o5 >= 0 and o5 <= 31 and o6 >= 0 and o6 <= 31 and o7 >= 0 and o7 <= 31 and i <= 1023 and i >= 0 and niter >= 1) }
+[niter] -> {  : niter <= 8192 and niter >= 1 }
+[niter] -> {  }

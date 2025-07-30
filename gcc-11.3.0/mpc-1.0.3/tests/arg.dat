@@ -1,0 +1,74 @@
+# Data file for mpc_arg.
+#
+# Copyright (C) 2008 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX  PREC_ROP  ROP  PREC_ROP_IM  ROP_IM  PREC_OP_RE  OP_RE  PREC_OP_IM  OP_IM  RND
+#
+# where op = op_re + i * op_im.
+# See abs.dat for other details.
+
+# special values (following ISO C99 standard)
++ 53 -0x96CBE3F9990E9p-50    53 -inf 53 -inf N
++ 53 -0x3243F6A8885A3p-48    53 -inf 53   -1 N
++ 53 -0x3243F6A8885A3p-48    53 -inf 53   -0 N
+- 53 +0x3243F6A8885A3p-48    53 -inf 53   +0 N
+- 53 +0x3243F6A8885A3p-48    53 -inf 53   +1 N
+- 53 +0x96CBE3F9990E9p-50    53 -inf 53 +inf N
+0 53                  nan    53 -inf 53  nan N
++ 53 -0x3243F6A8885A3p-49    53   -1 53 -inf N
++ 53 -0x3243F6A8885A3p-48    53   -1 53   -0 N
+- 53 +0x3243F6A8885A3p-48    53   -1 53   +0 N
+- 53 +0x3243F6A8885A3p-49    53   -1 53 +inf N
+0 53                  nan    53   -1 53  nan N
++ 53 -0x3243F6A8885A3p-49    53   -0 53 -inf N
++ 53 -0x3243F6A8885A3p-49    53   -0 53   -1 N
++ 53 -0x3243F6A8885A3p-48    53   -0 53   -0 N
+- 53 +0x3243F6A8885A3p-48    53   -0 53   +0 N
+- 53 +0x3243F6A8885A3p-49    53   -0 53   +1 N
+- 53 +0x3243F6A8885A3p-49    53   -0 53 +inf N
+0 53                  nan    53   -0 53  nan N
++ 53 -0x3243F6A8885A3p-49    53   +0 53 -inf N
++ 53 -0x3243F6A8885A3p-49    53   +0 53   -1 N
+0 53                   -0    53   +0 53   -0 N
+0 53                   +0    53   +0 53   +0 N
+- 53 +0x3243F6A8885A3p-49    53   +0 53   +1 N
+- 53 +0x3243F6A8885A3p-49    53   +0 53 +inf N
+0 53                  nan    53   +0 53  nan N
++ 53 -0x3243F6A8885A3p-49    53   +1 53 -inf N
+0 53                   -0    53   +1 53   -0 N
+0 53                   +0    53   +1 53   +0 N
+- 53 +0x3243F6A8885A3p-49    53   +1 53 +inf N
+0 53                  nan    53   +1 53  nan N
++ 53 -0x3243F6A8885A3p-50    53 +inf 53 -inf N
+0 53                   -0    53 +inf 53   -1 N
+0 53                   -0    53 +inf 53   -0 N
+0 53                   +0    53 +inf 53   +0 N
+0 53                   +0    53 +inf 53   +1 N
+- 53 +0x3243F6A8885A3p-50    53 +inf 53 +inf N
+0 53                  nan    53 +inf 53  nan N
+0 53                  nan    53  nan 53 -inf N
+0 53                  nan    53  nan 53   -1 N
+0 53                  nan    53  nan 53   -0 N
+0 53                  nan    53  nan 53   +0 N
+0 53                  nan    53  nan 53   +1 N
+0 53                  nan    53  nan 53 +inf N
+0 53                  nan    53  nan 53  nan N
+

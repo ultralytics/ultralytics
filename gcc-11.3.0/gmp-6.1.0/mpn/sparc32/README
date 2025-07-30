@@ -1,0 +1,71 @@
+Copyright 1996, 2001 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+This directory contains mpn functions for various SPARC chips.  Code that
+runs only on version 8 SPARC implementations, is in the v8 subdirectory.
+
+RELEVANT OPTIMIZATION ISSUES
+
+  Load and Store timing
+
+On most early SPARC implementations, the ST instructions takes multiple
+cycles, while a STD takes just a single cycle more than an ST.  For the CPUs
+in SPARCstation I and II, the times are 3 and 4 cycles, respectively.
+Therefore, combining two ST instructions into a STD when possible is a
+significant optimization.
+
+Later SPARC implementations have single cycle ST.
+
+For SuperSPARC, we can perform just one memory instruction per cycle, even
+if up to two integer instructions can be executed in its pipeline.  For
+programs that perform so many memory operations that there are not enough
+non-memory operations to issue in parallel with all memory operations, using
+LDD and STD when possible helps.
+
+UltraSPARC-1/2 has very slow integer multiplication.  In the v9 subdirectory,
+we therefore use floating-point multiplication.
+
+STATUS
+
+1. On a SuperSPARC, mpn_lshift and mpn_rshift run at 3 cycles/limb, or 2.5
+   cycles/limb asymptotically.  We could optimize speed for special counts
+   by using ADDXCC.
+
+2. On a SuperSPARC, mpn_add_n and mpn_sub_n runs at 2.5 cycles/limb, or 2
+   cycles/limb asymptotically.
+
+3. mpn_mul_1 runs at what is believed to be optimal speed.
+
+4. On SuperSPARC, mpn_addmul_1 and mpn_submul_1 could both be improved by a
+   cycle by avoiding one of the add instructions.  See a29k/addmul_1.
+
+The speed of the code for other SPARC implementations is uncertain.

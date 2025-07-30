@@ -1,0 +1,73 @@
+Copyright 1999, 2001-2017 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
+
+This file is part of the GNU MPFR Library.
+
+The GNU MPFR Library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 3 of the License, or (at your
+option) any later version.
+
+The GNU MPFR Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the GNU MPFR Library; see the file COPYING.LESSER.  If not, see
+http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
+51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+
+##############################################################################
+
+Known bugs:
+
+* The overflow/underflow exceptions may be badly handled in some functions;
+  specially when the intermediary internal results have exponent which
+  exceeds the hardware limit (2^30 for a 32 bits CPU, and 2^62 for a 64 bits
+  CPU) or the exact result is close to an overflow/underflow threshold.
+
+* Under Linux/x86 with the traditional FPU, some functions do not work
+  if the FPU rounding precision has been changed to single (this is a
+  bad practice and should be useless, but one never knows what other
+  software will do).
+
+* Some functions do not use MPFR_SAVE_EXPO_* macros, thus do not behave
+  correctly in a reduced exponent range.
+
+* Function hypot gives incorrect result when on the one hand the difference
+  between parameters' exponents is near 2*MPFR_EMAX_MAX and on the other hand
+  the output precision or the precision of the parameter with greatest
+  absolute value is greater than 2*MPFR_EMAX_MAX-4.
+
+Potential bugs:
+
+* Possible incorrect results due to internal underflow, which can lead to
+  a huge loss of accuracy while the error analysis doesn't take that into
+  account. If the underflow occurs at the last function call (just before
+  the MPFR_CAN_ROUND), the result should be correct (or MPFR gets into an
+  infinite loop). TODO: check the code and the error analysis.
+
+* Possible integer overflows on some machines.
+
+* Possible bugs with huge precisions (> 2^30).
+
+* Possible bugs if the chosen exponent range does not allow to represent
+  the range [1/16, 16].
+
+* Possible infinite loop in some functions for particular cases: when
+  the exact result is an exactly representable number or the middle of
+  consecutive two such numbers. However for non-algebraic functions, it is
+  believed that no such case exists, except the well-known cases like cos(0)=1,
+  exp(0)=1, and so on, and the x^y function when y is an integer or y=1/2^k.
+
+* The mpfr_set_ld function may be quite slow if the long double type has an
+  exponent of more than 15 bits.
+
+* mpfr_set_d may give wrong results on some non-IEEE architectures.
+
+* Error analysis for some functions may be incorrect (out-of-date due
+  to modifications in the code?).
+
+* Possible use of non-portable feature (pre-C99) of the integer division
+  with negative result.

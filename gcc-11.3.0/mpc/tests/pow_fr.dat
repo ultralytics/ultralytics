@@ -1,0 +1,74 @@
+# Data file for mpc_pow_fr.
+#
+# Copyright (C) 2011 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# For explanations on the file format, see add_fr.dat.
+
+0 0 5 -9 5 46   5 3 5 2  3 3 N N
+
+# (-0 -0.75)^4 = (0.31640625 -0) is rounded to (0.375 -0)
++ 0 2 0x3p-3 2 -0    2 -0 2 -0x3p-2   2 4 N N
+0 0 8 0x51p-8 2 -0   2 -0 2 -0x3p-2   2 4 N N
+# (+0 -0.75)^4 = (0.31640625 +0) is rounded to (0.375 +0)
++ 0 2 0x3p-3 2 +0    2 +0 2 -0x3p-2   2 4 N N
+0 0 8 0x51p-8 2 +0   2 +0 2 -0x3p-2   2 4 N N
+# (-0 0.75)^5 = (0.31640625 +0) is rounded to (0.375 +0)
++ 0 2 0x3p-3 2 +0    2 -0 2 0x3p-2   2 4 N N
+0 0 8 0x51p-8 2 +0   2 -0 2 0x3p-2   2 4 N N
+# (+0 0.75)^5 = (0.31640625 -0) is rounded to (0.375 -0)
++ 0 2 0x3p-3 2 -0    2 +0 2 0x3p-2   2 4 N N
+0 0 8 0x51p-8 2 -0   2 +0 2 0x3p-2   2 4 N N
+
+# (-0 -0.75)^5 = (-0 -0.2373046875) is rounded to (-0 -0.25)
+0 - 2 -0 2 -0x1p-2   2 -0 2 -0x3p-2   3 5 N N
+0 0 8 -0 8 -0xf3p-10 2 -0 2 -0x3p-2   3 5 N N
+# (+0 -0.75)^5 = (+0 -0.2373046875) is rounded to (+0 -0.25)
+0 - 2 +0 2 -0x1p-2   2 +0 2 -0x3p-2   3 5 N N
+0 0 8 +0 8 -0xf3p-10 2 +0 2 -0x3p-2   3 5 N N
+# (-0 0.75)^5 = (-0 0.2373046875) is rounded to (-0 0.25)
+0 + 2 -0 2 0x1p-2   2 -0 2 0x3p-2   3 5 N N
+0 0 8 -0 8 0xf3p-10 2 -0 2 0x3p-2   3 5 N N
+# (+0 0.75)^5 = (+0 0.2373046875) is rounded to (+0 0.25)
+0 + 2 +0 2 0x1p-2   2 +0 2 0x3p-2   3 5 N N
+0 0 8 +0 8 0xf3p-10 2 +0 2 0x3p-2   3 5 N N
+
+# (-0 -0.75)^6 = (-0.177978515625 +0) is rounded to (-0.1875 +0)
+- 0 2 -0x3p-4 2 +0   2 -0 2 -0x3p-2   3 6 N N
++ 0 8 -0x5bp-9 8 +0  2 -0 2 -0x3p-2   3 6 N N
+# (+0 -0.75)^6 = (-0.177978515625 -0) is rounded to (-0.1875 -0)
+- 0 2 -0x3p-4 2 -0   2 +0 2 -0x3p-2   3 6 N N
++ 0 8 -0x5bp-9 8 -0  2 +0 2 -0x3p-2   3 6 N N
+# (-0 0.75)^6 = (-0.177978515625 -0) is rounded to (-0.1875 -0)
+- 0 2 -0x3p-4 2 -0   2 -0 2 0x3p-2   3 6 N N
++ 0 8 -0x5bp-9 8 -0  2 -0 2 0x3p-2   3 6 N N
+# (+0 0.75)^6 = (-0.177978515625 +0) is rounded to (-0.1875 +0)
+- 0 2 -0x3p-4 2 +0   2 +0 2 0x3p-2   3 6 N N
++ 0 8 -0x5bp-9 8 +0  2 +0 2 0x3p-2   3 6 N N
+
+# (-0 -0.75)^7 = (+0 0.13348388671875) is rounded to (+0 0.125)
+0 - 2 +0 2 0x1p-3   2 -0 2 -0x3p-2   3 7 N N
+0 + 8 +0 8 0x89p-10 2 -0 2 -0x3p-2   3 7 N N
+# (+0 -0.75)^7 = (-0 0.13348388671875) is rounded to (-0 0.125)
+0 - 2 -0 2 0x1p-3   2 +0 2 -0x3p-2   3 7 N N
+0 + 8 -0 8 0x89p-10 2 +0 2 -0x3p-2   3 7 N N
+# (-0 0.75)^7 = (+0 -0.13348388671875) is rounded to (+0 -0.125)
+0 + 2 +0 2 -0x1p-3   2 -0 2 0x3p-2   3 7 N N
+0 - 8 +0 8 -0x89p-10 2 -0 2 0x3p-2   3 7 N N
+# (+0 0.75)^7 = (-0 -0.13348388671875) is rounded to (-0 -0.125)
+0 + 2 -0 2 -0x1p-3   2 +0 2 0x3p-2   3 7 N N
+0 - 8 -0 8 -0x89p-10 2 +0 2 0x3p-2   3 7 N N

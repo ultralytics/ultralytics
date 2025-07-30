@@ -1,0 +1,1 @@
+[N, M] -> { [i, j] -> ((N * i + (1/5 * N + N^2) * i^2) + 5 * j) : i <= N and j >= 0 and j <= i and M >= 0 }

@@ -1,0 +1,3 @@
+[np, morb] -> { s0[mp, mq, mi] -> [mi, mq, mp, 0] : mq >= 1 and mq <= mp and mp <= np and mi >= 1 and mi <= morb; s1[mp, mq, mi] -> [mi, mp, mq, 1] : mq >= 1 and mq <= mp and mp <= np and mi >= 1 and mi <= morb }
+{  :  }
+[np, morb] -> { [i0, i1, i2, i3] -> atomic[o0] : o0 <= 1; [i0, i1, i2, i3] -> separate[o0] : o0 >= 2 }

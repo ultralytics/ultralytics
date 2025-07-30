@@ -1,0 +1,139 @@
+# Data file for mpc_sqrt.
+#
+# Copyright (C) 2008, 2010 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX_RE  INEX_IM  PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP_RE  OP_RE  PREC_OP_IM  OP_IM  RND_RE  RND_IM
+#
+# see sin.dat for precisions
+
+# special values (following ISO C99 standard)
+0 0 53 +inf 53 -inf     53 -inf 53 -inf N N
+0 0 53   +0 53 -inf     53 -inf 53   -1 N N
+0 0 53   +0 53 -inf     53 -inf 53   -0 N N
+0 0 53   +0 53 +inf     53 -inf 53   +0 N N
+0 0 53   +0 53 +inf     53 -inf 53   +1 N N
+0 0 53 +inf 53 +inf     53 -inf 53 +inf N N
+0 0 53  nan 53  inf     53 -inf 53  nan N N
+0 0 53 +inf 53 -inf     53   -1 53 -inf N N
+0 0 53   +0 53   -1     53   -1 53   -0 N N
+0 0 53   +0 53   +1     53   -1 53   +0 N N
+0 0 53 +inf 53 +inf     53   -1 53 +inf N N
+0 0 53  nan 53  nan     53   -1 53  nan N N
+0 0 53 +inf 53 -inf     53   -0 53 -inf N N
+0 0 53   +1 53   -1     53   -0 53   -2 N N
+0 0 53   +0 53   -0     53   -0 53   -0 N N
+0 0 53   +0 53   +0     53   -0 53   +0 N N
+0 0 53   +1 53   +1     53   -0 53   +2 N N
+0 0 53 +inf 53 +inf     53   -0 53 +inf N N
+0 0 53  nan 53  nan     53   -0 53  nan N N
+0 0 53 +inf 53 -inf     53   +0 53 -inf N N
+0 0 53   +1 53   -1     53   +0 53   -2 N N
+0 0 53   +0 53   -0     53   +0 53   -0 N N
+0 0 53   +0 53   +0     53   +0 53   +0 N N
+0 0 53   +1 53   +1     53   +0 53   +2 N N
+0 0 53 +inf 53 +inf     53   +0 53 +inf N N
+0 0 53  nan 53  nan     53   +0 53  nan N N
+0 0 53 +inf 53 -inf     53   +1 53 -inf N N
+0 0 53   +1 53   -0     53   +1 53   -0 N N
+0 0 53   +1 53   +0     53   +1 53   +0 N N
+0 0 53 +inf 53 +inf     53   +1 53 +inf N N
+0 0 53  nan 53  nan     53   +1 53  nan N N
+0 0 53 +inf 53 -inf     53 +inf 53 -inf N N
+0 0 53 +inf 53   -0     53 +inf 53   -1 N N
+0 0 53 +inf 53   -0     53 +inf 53   -0 N N
+0 0 53 +inf 53   +0     53 +inf 53   +0 N N
+0 0 53 +inf 53   +0     53 +inf 53   +1 N N
+0 0 53 +inf 53 +inf     53 +inf 53 +inf N N
+0 0 53 +inf 53  nan     53 +inf 53  nan N N
+0 0 53 +inf 53 -inf     53  nan 53 -inf N N
+0 0 53  nan 53  nan     53  nan 53   -1 N N
+0 0 53  nan 53  nan     53  nan 53   -0 N N
+0 0 53  nan 53  nan     53  nan 53   +0 N N
+0 0 53  nan 53  nan     53  nan 53   +1 N N
+0 0 53 +inf 53 +inf     53  nan 53 +inf N N
+0 0 53  nan 53  nan     53  nan 53  nan N N
+
+# purely real argument
+# sqrt(x +i*0) = sqrt(x) +i*0, when x>0
+# sqrt(x -i*0) = sqrt(x) -i*0, when x>0
+# sqrt(x +i*0) = +0 +i*sqrt(-x) +i*0, when x<0
+# sqrt(x -i*0) = +0 -i*sqrt(-x) +i*0, when x<0
++ 0 53  0x16a09e667f3bcdp-52 53                    +0    53  2 17 +0 N N
+0 + 53                    +0 53  0x16a09e667f3bcdp-52    54 -2 16 +0 Z N
++ 0 53  0x16a09e667f3bcdp-52 53                    -0    55  2 15 -0 U N
+0 - 53                    +0 53 -0x16a09e667f3bcdp-52    56 -2 14 -0 D N
+- 0 53  0x5a827999fcef30p-54 53                    +0    57  2 13 +0 Z Z
+0 - 53                    +0 53  0x5a827999fcef30p-54    58 -2 12 +0 U Z
+- 0 53  0x5a827999fcef30p-54 53                    -0    59  2 11 -0 D Z
+0 + 53                    +0 53 -0x5a827999fcef30p-54    60 -2 10 -0 N Z
++ 0 53  0x16a09e667f3bcdp-52 53                    +0    61  2  9 +0 U U
+0 + 53                    +0 53  0x16a09e667f3bcdp-52    62 -2  8 +0 D U
++ 0 53  0x16a09e667f3bcdp-52 53                    -0    63  2  7 -0 N U
+0 + 53                    +0 53 -0x5a827999fcef30p-54    64 -2  6 -0 Z U
+- 0 53  0x5a827999fcef30p-54 53                    +0    65  2  5 +0 D D
+0 - 53                    +0 53  0x5a827999fcef30p-54    66 -2  4 +0 N D
+- 0 53  0x5a827999fcef30p-54 53                    -0    67  2  3 -0 Z D
+0 - 53                    +0 53 -0x16a09e667f3bcdp-52    68 -2  2 -0 U D
+
+# purely imaginary argument
+# sqrt(+/-0 +i*y) = sqrt(y/2) * (1 +i), when y >0
+# sqrt(+/-0 +i*y) = sqrt(-y/2) * (1 -i), when y < 0
++ + 53 0x16a09e667f3bcdp-52 53  0x16a09e667f3bcdp-52    53 +0 53  4 N N
+- + 53 0x5a827999fcef30p-54 53  0x16a09e667f3bcdp-52    51 -0 54  4 Z N
++ - 53 0x16a09e667f3bcdp-52 53 -0x16a09e667f3bcdp-52    49 +0 55 -4 U N
+- - 53 0x5a827999fcef30p-54 53 -0x16a09e667f3bcdp-52    47 -0 56 -4 D N
+- - 53 0x5a827999fcef30p-54 53  0x5a827999fcef30p-54    45 +0 57  4 Z Z
++ - 53 0x16a09e667f3bcdp-52 53  0x5a827999fcef30p-54    43 -0 58  4 U Z
+- + 53 0x5a827999fcef30p-54 53 -0x5a827999fcef30p-54    41 +0 59 -4 D Z
++ + 53 0x16a09e667f3bcdp-52 53 -0x5a827999fcef30p-54    39 -0 60 -4 N Z
++ + 53 0x16a09e667f3bcdp-52 53  0x16a09e667f3bcdp-52    37 +0 61  4 U U
+- + 53 0x5a827999fcef30p-54 53  0x16a09e667f3bcdp-52    35 -0 62  4 D U
++ + 53 0x16a09e667f3bcdp-52 53 -0x5a827999fcef30p-54    33 +0 63 -4 N U
+- + 53 0x5a827999fcef30p-54 53 -0x5a827999fcef30p-54    31 -0 64 -4 Z U
+- - 53 0x5a827999fcef30p-54 53  0x5a827999fcef30p-54    29 +0 65  4 D D
++ - 53 0x16a09e667f3bcdp-52 53  0x5a827999fcef30p-54    27 -0 66  4 N D
+- - 53 0x5a827999fcef30p-54 53 -0x16a09e667f3bcdp-52    25 +0 67 -4 Z D
++ - 53 0x16a09e667f3bcdp-52 53 -0x16a09e667f3bcdp-52    23 -0 68 -4 U D
+
+# bugs fixed in r160 2008-07-15
+- + 19 0b11101001001001001100p+39 19 -0b1010110101100111011p-236    19 0b1.101010001010100000p+117 19 -0b1.001110111101100001p-158 N Z
+- + 2 0b11p+100 2 -0b11p+100    2         -0 2 -0b11p+203 N Z
+0 + 2         0 2 -0b10p+117    2 -0b11p+235 2         -0 N Z
+
+# close to infinite loop reported by Emmanuel Thome, 22 Oct 2010,
+# and all its variants of signs and directed roundings
+- + 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 N N
++ + 375 0x1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 U U
+- - 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 D D
+- + 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 D U
+- - 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 Z Z
+- - 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 N N
++ + 375 0x1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004 375  -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 U U
+- - 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 D D
+- + 375 1 375  -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 Z Z
++ - 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 1 375 -1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 N N
++ + 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 0x1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004 375 -1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 U U
+- - 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 -1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 D D
+- - 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 1 375 -1 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 Z Z
++ + 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 -1 375 -1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 N N
++ + 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281177 375 -1 375 -1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 U U
+- - 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 -0x1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004 375 -1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 D D
+- + 375 0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef5fffffffffffffffffffffffffffffffffffffffffffep-202281177 375 -1 375 -1 375 -0xf.8a8aae3080b3dd665e316d262fd54c1ca22a83dc9acb92ef6p-202281176 Z Z

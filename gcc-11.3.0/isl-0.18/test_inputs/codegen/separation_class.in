@@ -1,0 +1,6 @@
+{ A[i,j] -> [([i/10]),[j/10],i,j] : 0 <= i,j and i + j <= 100 }
+{ : }
+{ [a,b,c,d] -> separation_class[[0]->[0]] :
+	exists b': 0 <= 10a,10b' and 10a+9+10b'+9 <= 100;
+  [a,b,c,d] -> separation_class[[1]->[0]] :
+	0 <= 10a,10b and 10a+9+10b+9 <= 100 }

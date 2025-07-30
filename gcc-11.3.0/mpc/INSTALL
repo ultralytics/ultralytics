@@ -1,0 +1,101 @@
+Copyright (C) INRIA 2003, 2005, 2007, 2008, 2009, 2010, 2011, 2012, 2014
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved. This file is offered as-is,
+without any warranty.
+
+
+                        Installing GNU MPC
+                        ==================
+
+This is for the impatient, for deeper explanations see the chapter
+"Installing GNU MPC" in the Texinfo documentation (type 'info mpc.info').
+
+0. You first need to install GMP, the GNU Multiprecision Arithmetic Library,
+   see <http://gmplib.org/>, and GNU MPFR, see <http://www.mpfr.org>.
+   GNU MPC requires GMP version 4.3.2 or later
+   and GNU MPFR version 2.4.2 or later.
+
+1. In the directory of the GNU MPC archive, type
+
+      tar xzf mpc-1.0.3.tar.gz
+      cd mpc-1.0.3
+      ./configure
+      make
+
+   This assumes that GMP and GNU MPFR are installed in a directory searched
+   by default by the compiler. Otherwise, use --with-gmp=DIR or
+   --with-mpfr=DIR with ./configure (see the Texinfo documentation).
+
+2. You should run the test suite, type
+
+      make check
+
+   If any error occurs, please report it on the mailing list
+   <mpc-discuss@lists.gforge.inria.fr>, or file a bug at the bug tracker
+   <https://gforge.inria.fr/tracker/?atid=607&group_id=131&func=browse> .
+
+3. To install the GNU MPC library, type
+
+      make install
+
+   By default, the files are copied into subdirectories of /usr/local.
+   You need write permissions on these directories, or pass an alternative
+   installation directory using the --prefix option to ./configure.
+
+4. You can optionally create documentation, type
+
+      make dvi
+
+   or
+
+      make ps
+
+   This requires the Texinfo package (version 4.2 at least).
+
+In case of difficulties, please send a description of the problem to
+<mpc-discuss@lists.gforge.inria.fr>.
+
+##############################################################################
+
+Note for AIX users:
+===================
+
+If GMP was built with the 64-bit ABI, before building and testing GNU MPC,
+it might be necessary to set the OBJECT_MODE environment variable to 64
+by, e.g.,
+   export OBJECT_MODE=64
+This has been tested with the C compiler IBM XL C/C++ Enterprise Edition
+V8.0 for AIX, version: 08.00.0000.0021, GMP 4.2.4 and GNU MPFR 2.4.1.
+
+##############################################################################
+
+Note for Windows users:
+=======================
+
+There is a special file Makefile.vc for Windows, contributed by Mickaël
+Gastineau. This file works both for the Windows Server 2003 R2 Platform SDK,
+and for the Windows SDK of Vista. To use it, simply replace "make" by
+"nmake /f makefile.vc" in the above instructions:
+
+compilation :
+nmake /f makefile.vc GMP=<gmp_install_dir> MPFR=<mpfr_install_dir>
+
+clean :
+nmake /f makefile.vc GMP=<gmp_install_dir> MPFR=<mpfr_install_dir> clean
+
+check :
+nmake /f makefile.vc GMP=<gmp_install_dir> MPFR=<mpfr_install_dir> check
+
+If you want to compile mpc with mingw in the msys shell, you might need to
+add the following to the configure command (or in your environment):
+
+LDFLAGS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
+
+In addition, you might need to give the following additional argument to
+configure (reported for mpc-0.9):
+
+CPP="x86_64-w64-mingw32-gcc -E"
+
+(reported by Sisyphus)

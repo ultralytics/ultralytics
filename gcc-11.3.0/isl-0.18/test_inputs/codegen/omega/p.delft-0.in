@@ -1,0 +1,3 @@
+[P2, P1] -> { s0[In_1, In_1, In_3, In_3] -> [In_1, In_1, In_3, In_3] : exists (e0 = [(-2P2 - 2In_1 + In_3)/3]: P1 = P2 and 3e0 = -2P2 - 2In_1 + In_3 and P2 >= 0 and P2 <= 3 and In_1 <= 4 - P2 and In_1 >= 0 and In_1 <= 2 and In_3 >= 0 and In_3 <= 3) }
+{  :  }
+[P2, P1] -> { [i0, i1, i2, i3] -> separate[o0] : o0 >= 3; [i0, i1, i2, i3] -> atomic[o0] : o0 <= 2 }

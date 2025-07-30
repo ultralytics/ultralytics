@@ -1,0 +1,5 @@
+The tests in this directory have been adapted from the corresponding omega+
+test cases.
+The options have been derived semi-automatically and may not always
+correspond to the intended meaning of the specified "effort" in the omega+
+test cases.

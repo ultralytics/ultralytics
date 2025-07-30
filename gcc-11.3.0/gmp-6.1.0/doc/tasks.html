@@ -1,0 +1,896 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>GMP Itemized Development Tasks</title>
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="stylesheet" href="gmp.css">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+
+<center>
+  <h1>
+    GMP Itemized Development Tasks
+  </h1>
+</center>
+
+<font size=-1>
+<pre>
+Copyright 2000-2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+</pre>
+</font>
+
+<hr>
+<!-- NB. timestamp updated automatically by emacs -->
+  This file current as of 29 Jan 2014.  An up-to-date version is available at
+  <a href="https://gmplib.org/tasks.html">https://gmplib.org/tasks.html</a>.
+  Please send comments about this page to gmp-devel<font>@</font>gmplib.org.
+
+<p> These are itemized GMP development tasks.  Not all the tasks
+    listed here are suitable for volunteers, but many of them are.
+    Please see the <a href="projects.html">projects file</a> for more
+    sizeable projects.
+
+<p> CAUTION: This file needs updating.  Many of the tasks here have
+either already been taken care of, or have become irrelevant.
+
+<h4>Correctness and Completeness</h4>
+<ul>
+<li> <code>_LONG_LONG_LIMB</code> in gmp.h is not namespace clean.  Reported
+     by Patrick Pelissier.
+     <br>
+     We sort of mentioned <code>_LONG_LONG_LIMB</code> in past releases, so
+     need to be careful about changing it.  It used to be a define
+     applications had to set for long long limb systems, but that in
+     particular is no longer relevant now that it's established automatically.
+<li> The various reuse.c tests need to force reallocation by calling
+     <code>_mpz_realloc</code> with a small (1 limb) size.
+<li> One reuse case is missing from mpX/tests/reuse.c:
+     <code>mpz_XXX(a,a,a)</code>.
+<li> Make the string reading functions allow the `0x' prefix when the base is
+     explicitly 16.  They currently only allow that prefix when the base is
+     unspecified (zero).
+<li> <code>mpf_eq</code> is not always correct, when one operand is
+     1000000000... and the other operand is 0111111111..., i.e., extremely
+     close.  There is a special case in <code>mpf_sub</code> for this
+     situation; put similar code in <code>mpf_eq</code>.  [In progress.]
+<li> <code>mpf_eq</code> doesn't implement what gmp.texi specifies.  It should
+     not use just whole limbs, but partial limbs.  [In progress.]
+<li> <code>mpf_set_str</code> doesn't validate it's exponent, for instance
+     garbage 123.456eX789X is accepted (and an exponent 0 used), and overflow
+     of a <code>long</code> is not detected.
+<li> <code>mpf_add</code> doesn't check for a carry from truncated portions of
+     the inputs, and in that respect doesn't implement the "infinite precision
+     followed by truncate" specified in the manual.
+<li> Windows DLLs: tests/mpz/reuse.c and tests/mpf/reuse.c initialize global
+     variables with pointers to <code>mpz_add</code> etc, which doesn't work
+     when those routines are coming from a DLL (because they're effectively
+     function pointer global variables themselves).  Need to rearrange perhaps
+     to a set of calls to a test function rather than iterating over an array.
+<li> <code>mpz_pow_ui</code>: Detect when the result would be more memory than
+     a <code>size_t</code> can represent and raise some suitable exception,
+     probably an alloc call asking for <code>SIZE_T_MAX</code>, and if that
+     somehow succeeds then an <code>abort</code>.  Various size overflows of
+     this kind are not handled gracefully, probably resulting in segvs.
+     <br>
+     In <code>mpz_n_pow_ui</code>, detect when the count of low zero bits
+     exceeds an <code>unsigned long</code>.  There's a (small) chance of this
+     happening but still having enough memory to represent the value.
+     Reported by Winfried Dreckmann in for instance <code>mpz_ui_pow_ui (x,
+     4UL, 1431655766UL)</code>.
+<li> <code>mpf</code>: Detect exponent overflow and raise some exception.
+     It'd be nice to allow the full <code>mp_exp_t</code> range since that's
+     how it's been in the past, but maybe dropping one bit would make it
+     easier to test if e1+e2 goes out of bounds.
+</ul>
+
+
+
+<h4>Machine Independent Optimization</h4>
+<ul>
+<li> <code>mpf_cmp</code>: For better cache locality, don't test for low zero
+     limbs until the high limbs fail to give an ordering.  Reduce code size by
+     turning the three <code>mpn_cmp</code>'s into a single loop stopping when
+     the end of one operand is reached (and then looking for a non-zero in the
+     rest of the other).
+<li> <code>mpf_mul_2exp</code>, <code>mpf_div_2exp</code>: The use of
+     <code>mpn_lshift</code> for any size&lt;=prec means repeated
+     <code>mul_2exp</code> and <code>div_2exp</code> calls accumulate low zero
+     limbs until size==prec+1 is reached.  Those zeros will slow down
+     subsequent operations, especially if the value is otherwise only small.
+     If low bits of the low limb are zero, use <code>mpn_rshift</code> so as
+     to not increase the size.
+<li> <code>mpn_dc_sqrtrem</code>, <code>mpn_sqrtrem2</code>: Don't use
+     <code>mpn_add_1</code> and <code>mpn_sub_1</code> for 1 limb operations,
+     instead <code>ADDC_LIMB</code> and <code>SUBC_LIMB</code>.
+<li> <code>mpn_sqrtrem2</code>: Use plain variables for <code>sp[0]</code> and
+     <code>rp[0]</code> calculations, so the compiler needn't worry about
+     aliasing between <code>sp</code> and <code>rp</code>.
+<li> <code>mpn_sqrtrem</code>: Some work can be saved in the last step when
+     the remainder is not required, as noted in Paul's paper.
+<li> <code>mpq_add</code>, <code>mpq_sub</code>: The gcd fits a single limb
+     with high probability and in this case <code>binvert_limb</code> could
+     be used to calculate the inverse just once for the two exact divisions
+     "op1.den / gcd" and "op2.den / gcd", rather than letting
+     <code>mpn_bdiv_q_1</code> do it each time.  This would require calling
+     <code>mpn_pi1_bdiv_q_1</code>.
+<li> <code>mpn_gcdext</code>: Don't test <code>count_leading_zeros</code> for
+     zero, instead check the high bit of the operand and avoid invoking
+     <code>count_leading_zeros</code>.  This is an optimization on all
+     machines, and significant on machines with slow
+     <code>count_leading_zeros</code>, though it's possible an already
+     normalized operand might not be encountered very often.
+<li> Rewrite <code>umul_ppmm</code> to use floating-point for generating the
+     most significant limb (if <code>GMP_LIMB_BITS</code> &lt= 52 bits).
+     (Peter Montgomery has some ideas on this subject.)
+<li> Improve the default <code>umul_ppmm</code> code in longlong.h: Add partial
+     products with fewer operations.
+<li> Consider inlining <code>mpz_set_ui</code>.  This would be both small and
+     fast, especially for compile-time constants, but would make application
+     binaries depend on having 1 limb allocated to an <code>mpz_t</code>,
+     preventing the "lazy" allocation scheme below.
+<li> Consider inlining <code>mpz_[cft]div_ui</code> and maybe
+     <code>mpz_[cft]div_r_ui</code>.  A <code>__gmp_divide_by_zero</code>
+     would be needed for the divide by zero test, unless that could be left to
+     <code>mpn_mod_1</code> (not sure currently whether all the risc chips
+     provoke the right exception there if using mul-by-inverse).
+<li> Consider inlining: <code>mpz_fits_s*_p</code>.  The setups for
+     <code>LONG_MAX</code> etc would need to go into gmp.h, and on Cray it
+     might, unfortunately, be necessary to forcibly include &lt;limits.h&gt;
+     since there's no apparent way to get <code>SHRT_MAX</code> with an
+     expression (since <code>short</code> and <code>unsigned short</code> can
+     be different sizes).
+<li> <code>mpz_powm</code> and <code>mpz_powm_ui</code> aren't very fast on one
+     or two limb moduli, due to a lot of function call overheads.  These could
+     perhaps be handled as special cases.
+<li> Make sure <code>mpz_powm_ui</code> is never slower than the corresponding
+     computation using <code>mpz_powm</code>.
+<li> <code>mpz_powm</code> REDC should do multiplications by <code>g[]</code>
+     using the division method when they're small, since the REDC form of a
+     small multiplier is normally a full size product.  Probably would need a
+     new tuned parameter to say what size multiplier is "small", as a function
+     of the size of the modulus.
+<li> <code>mpn_gcd</code> might be able to be sped up on small to moderate
+     sizes by improving <code>find_a</code>, possibly just by providing an
+     alternate implementation for CPUs with slowish
+     <code>count_leading_zeros</code>.
+<li> <code>mpf_set_str</code> produces low zero limbs when a string has a
+     fraction but is exactly representable, eg. 0.5 in decimal.  These could be
+     stripped to save work in later operations.
+<li> <code>mpz_and</code>, <code>mpz_ior</code> and <code>mpz_xor</code> should
+     use <code>mpn_and_n</code> etc for the benefit of the small number of
+     targets with native versions of those routines.  Need to be careful not to
+     pass size==0.  Is some code sharing possible between the <code>mpz</code>
+     routines?
+<li> <code>mpf_add</code>: Don't do a copy to avoid overlapping operands
+     unless it's really necessary (currently only sizes are tested, not
+     whether r really is u or v).
+<li> <code>mpf_add</code>: Under the check for v having no effect on the
+     result, perhaps test for r==u and do nothing in that case, rather than
+     currently it looks like an <code>MPN_COPY_INCR</code> will be done to
+     reduce prec+1 limbs to prec.
+<li> <code>mpf_div_ui</code>: Instead of padding with low zeros, call
+     <code>mpn_divrem_1</code> asking for fractional quotient limbs.
+<li> <code>mpf_div_ui</code>: Eliminate <code>TMP_ALLOC</code>.  When r!=u
+     there's no overlap and the division can be called on those operands.
+     When r==u and is prec+1 limbs, then it's an in-place division.  If r==u
+     and not prec+1 limbs, then move the available limbs up to prec+1 and do
+     an in-place there.
+<li> <code>mpf_div_ui</code>: Whether the high quotient limb is zero can be
+     determined by testing the dividend for high&lt;divisor.  When non-zero, the
+     division can be done on prec dividend limbs instead of prec+1.  The result
+     size is also known before the division, so that can be a tail call (once
+     the <code>TMP_ALLOC</code> is eliminated).
+<li> <code>mpn_divrem_2</code> could usefully accept unnormalized divisors and
+     shift the dividend on-the-fly, since this should cost nothing on
+     superscalar processors and avoid the need for temporary copying in
+     <code>mpn_tdiv_qr</code>.
+<li> <code>mpf_sqrt</code>: If r!=u, and if u doesn't need to be padded with
+     zeros, then there's no need for the tp temporary.
+<li> <code>mpq_cmp_ui</code> could form the <code>num1*den2</code> and
+     <code>num2*den1</code> products limb-by-limb from high to low and look at
+     each step for values differing by more than the possible carry bit from
+     the uncalculated portion.
+<li> <code>mpq_cmp</code> could do the same high-to-low progressive multiply
+     and compare.  The benefits of karatsuba and higher multiplication
+     algorithms are lost, but if it's assumed only a few high limbs will be
+     needed to determine an order then that's fine.
+<li> <code>mpn_add_1</code>, <code>mpn_sub_1</code>, <code>mpn_add</code>,
+     <code>mpn_sub</code>: Internally use <code>__GMPN_ADD_1</code> etc
+     instead of the functions, so they get inlined on all compilers, not just
+     gcc and others with <code>inline</code> recognised in gmp.h.
+     <code>__GMPN_ADD_1</code> etc are meant mostly to support application
+     inline <code>mpn_add_1</code> etc and if they don't come out good for
+     internal uses then special forms can be introduced, for instance many
+     internal uses are in-place.  Sometimes a block of code is executed based
+     on the carry-out, rather than using it arithmetically, and those places
+     might want to do their own loops entirely.
+<li> <code>__gmp_extract_double</code> on 64-bit systems could use just one
+     bitfield for the mantissa extraction, not two, when endianness permits.
+     Might depend on the compiler allowing <code>long long</code> bit fields
+     when that's the only actual 64-bit type.
+<li> tal-notreent.c could keep a block of memory permanently allocated.
+     Currently the last nested <code>TMP_FREE</code> releases all memory, so
+     there's an allocate and free every time a top-level function using
+     <code>TMP</code> is called.  Would need
+     <code>mp_set_memory_functions</code> to tell tal-notreent.c to release
+     any cached memory when changing allocation functions though.
+<li> <code>__gmp_tmp_alloc</code> from tal-notreent.c could be partially
+     inlined.  If the current chunk has enough room then a couple of pointers
+     can be updated.  Only if more space is required then a call to some sort
+     of <code>__gmp_tmp_increase</code> would be needed.  The requirement that
+     <code>TMP_ALLOC</code> is an expression might make the implementation a
+     bit ugly and/or a bit sub-optimal.
+<pre>
+#define TMP_ALLOC(n)
+  ((ROUND_UP(n) &gt; current-&gt;end - current-&gt;point ?
+     __gmp_tmp_increase (ROUND_UP (n)) : 0),
+     current-&gt;point += ROUND_UP (n),
+     current-&gt;point - ROUND_UP (n))
+</pre>
+<li> <code>__mp_bases</code> has a lot of data for bases which are pretty much
+     never used.  Perhaps the table should just go up to base 16, and have
+     code to generate data above that, if and when required.  Naturally this
+     assumes the code would be smaller than the data saved.
+<li> <code>__mp_bases</code> field <code>big_base_inverted</code> is only used
+     if <code>USE_PREINV_DIVREM_1</code> is true, and could be omitted
+     otherwise, to save space.
+<li> <code>mpz_get_str</code>, <code>mtox</code>: For power-of-2 bases, which
+     are of course fast, it seems a little silly to make a second pass over
+     the <code>mpn_get_str</code> output to convert to ASCII.  Perhaps combine
+     that with the bit extractions.
+<li> <code>mpz_gcdext</code>: If the caller requests only the S cofactor (of
+     A), and A&lt;B, then the code ends up generating the cofactor T (of B) and
+     deriving S from that.  Perhaps it'd be possible to arrange to get S in
+     the first place by calling <code>mpn_gcdext</code> with A+B,B.  This
+     might only be an advantage if A and B are about the same size.
+<li> <code>mpz_n_pow_ui</code> does a good job with small bases and stripping
+     powers of 2, but it's perhaps a bit too complicated for what it gains.
+     The simpler <code>mpn_pow_1</code> is a little faster on small exponents.
+     (Note some of the ugliness in <code>mpz_n_pow_ui</code> is due to
+     supporting <code>mpn_mul_2</code>.)
+     <br>
+     Perhaps the stripping of 2s in <code>mpz_n_pow_ui</code> should be
+     confined to single limb operands for simplicity and since that's where
+     the greatest gain would be.
+     <br>
+     Ideally <code>mpn_pow_1</code> and <code>mpz_n_pow_ui</code> would be
+     merged.  The reason <code>mpz_n_pow_ui</code> writes to an
+     <code>mpz_t</code> is that its callers leave it to make a good estimate
+     of the result size.  Callers of <code>mpn_pow_1</code> already know the
+     size by separate means (<code>mp_bases</code>).
+<li> <code>mpz_invert</code> should call <code>mpn_gcdext</code> directly.
+</ul>
+
+
+<h4>Machine Dependent Optimization</h4>
+<ul>
+<li> <code>invert_limb</code> on various processors might benefit from the
+     little Newton iteration done for alpha and ia64.
+<li> Alpha 21264: <code>mpn_addlsh1_n</code> could be implemented with
+     <code>mpn_addmul_1</code>, since that code at 3.5 is a touch faster than
+     a separate <code>lshift</code> and <code>add_n</code> at
+     1.75+2.125=3.875.  Or very likely some specific <code>addlsh1_n</code>
+     code could beat both.
+<li> Alpha 21264: Improve feed-in code for <code>mpn_mul_1</code>,
+     <code>mpn_addmul_1</code>, and <code>mpn_submul_1</code>.
+<li> Alpha 21164: Rewrite <code>mpn_mul_1</code>, <code>mpn_addmul_1</code>,
+     and <code>mpn_submul_1</code> for the 21164.  This should use both integer
+     multiplies and floating-point multiplies.  For the floating-point
+     operations, the single-limb multiplier should be split into three 21-bit
+     chunks, or perhaps even better in four 16-bit chunks.  Probably possible
+     to reach 9 cycles/limb.
+<li> Alpha: GCC 3.4 will introduce <code>__builtin_ctzl</code>,
+     <code>__builtin_clzl</code> and <code>__builtin_popcountl</code> using
+     the corresponding CIX <code>ct</code> instructions, and
+     <code>__builtin_alpha_cmpbge</code>.  These should give GCC more
+     information about scheduling etc than the <code>asm</code> blocks
+     currently used in longlong.h and gmp-impl.h.
+<li> Alpha Unicos: Apparently there's no <code>alloca</code> on this system,
+     making <code>configure</code> choose the slower
+     <code>malloc-reentrant</code> allocation method.  Is there a better way?
+     Maybe variable-length arrays per notes below.
+<li> Alpha Unicos 21164, 21264: <code>.align</code> is not used since it pads
+     with garbage.  Does the code get the intended slotting required for the
+     claimed speeds?  <code>.align</code> at the start of a function would
+     presumably be safe no matter how it pads.
+<li> ARM V5: <code>count_leading_zeros</code> can use the <code>clz</code>
+     instruction.  For GCC 3.4 and up, do this via <code>__builtin_clzl</code>
+     since then gcc knows it's "predicable".
+<li> Itanium: GCC 3.4 introduces <code>__builtin_popcount</code> which can be
+     used instead of an <code>asm</code> block.  The builtin should give gcc
+     more opportunities for scheduling, bundling and predication.
+     <code>__builtin_ctz</code> similarly (it just uses popcount as per
+     current longlong.h).
+<li> UltraSPARC/64: Optimize <code>mpn_mul_1</code>, <code>mpn_addmul_1</code>,
+     for s2 &lt; 2^32 (or perhaps for any zero 16-bit s2 chunk).  Not sure how
+     much this can improve the speed, though, since the symmetry that we rely
+     on is lost.  Perhaps we can just gain cycles when s2 &lt; 2^16, or more
+     accurately, when two 16-bit s2 chunks which are 16 bits apart are zero.
+<li> UltraSPARC/64: Write native <code>mpn_submul_1</code>, analogous to
+     <code>mpn_addmul_1</code>.
+<li> UltraSPARC/64: Write <code>umul_ppmm</code>.  Using four
+     "<code>mulx</code>"s either with an asm block or via the generic C code is
+     about 90 cycles.  Try using fp operations, and also try using karatsuba
+     for just three "<code>mulx</code>"s.
+<li> UltraSPARC/32: Rewrite <code>mpn_lshift</code>, <code>mpn_rshift</code>.
+     Will give 2 cycles/limb.  Trivial modifications of mpn/sparc64 should do.
+<li> UltraSPARC/32: Write special mpn_Xmul_1 loops for s2 &lt; 2^16.
+<li> UltraSPARC/32: Use <code>mulx</code> for <code>umul_ppmm</code> if
+     possible (see commented out code in longlong.h).  This is unlikely to
+     save more than a couple of cycles, so perhaps isn't worth bothering with.
+<li> UltraSPARC/32: On Solaris gcc doesn't give us <code>__sparc_v9__</code>
+     or anything to indicate V9 support when -mcpu=v9 is selected.  See
+     gcc/config/sol2-sld-64.h.  Will need to pass something through from
+     ./configure to select the right code in longlong.h.  (Currently nothing
+     is lost because <code>mulx</code> for multiplying is commented out.)
+<li> UltraSPARC/32: <code>mpn_divexact_1</code> and
+     <code>mpn_modexact_1c_odd</code> can use a 64-bit inverse and take
+     64-bits at a time from the dividend, as per the 32-bit divisor case in
+     mpn/sparc64/mode1o.c.  This must be done in assembler, since the full
+     64-bit registers (<code>%gN</code>) are not available from C.
+<li> UltraSPARC/32: <code>mpn_divexact_by3c</code> can work 64-bits at a time
+     using <code>mulx</code>, in assembler.  This would be the same as for
+     sparc64.
+<li> UltraSPARC: <code>binvert_limb</code> might save a few cycles from
+     masking down to just the useful bits at each point in the calculation,
+     since <code>mulx</code> speed depends on the highest bit set.  Either
+     explicit masks or small types like <code>short</code> and
+     <code>int</code> ought to work.
+<li> Sparc64 HAL R1 <code>popc</code>: This chip reputedly implements
+     <code>popc</code> properly (see gcc sparc.md).  Would need to recognise
+     it as <code>sparchalr1</code> or something in configure / config.sub /
+     config.guess.  <code>popc_limb</code> in gmp-impl.h could use this (per
+     commented out code).  <code>count_trailing_zeros</code> could use it too.
+<li> PA64: Improve <code>mpn_addmul_1</code>, <code>mpn_submul_1</code>, and
+     <code>mpn_mul_1</code>.  The current code runs at 11 cycles/limb.  It
+     should be possible to saturate the cache, which will happen at 8
+     cycles/limb (7.5 for mpn_mul_1).  Write special loops for s2 &lt; 2^32;
+     it should be possible to make them run at about 5 cycles/limb.
+<li> PPC601: See which of the power or powerpc32 code runs better.  Currently
+     the powerpc32 is used, but only because it's the default for
+     <code>powerpc*</code>.
+<li> PPC630: Rewrite <code>mpn_addmul_1</code>, <code>mpn_submul_1</code>, and
+     <code>mpn_mul_1</code>.  Use both integer and floating-point operations,
+     possibly two floating-point and one integer limb per loop.  Split operands
+     into four 16-bit chunks for fast fp operations.  Should easily reach 9
+     cycles/limb (using one int + one fp), but perhaps even 7 cycles/limb
+     (using one int + two fp).
+<li> PPC630: <code>mpn_rshift</code> could do the same sort of unrolled loop
+     as <code>mpn_lshift</code>.  Some judicious use of m4 might let the two
+     share source code, or with a register to control the loop direction
+     perhaps even share object code.
+<li> Implement <code>mpn_mul_basecase</code> and <code>mpn_sqr_basecase</code>
+     for important machines.  Helping the generic sqr_basecase.c with an
+     <code>mpn_sqr_diagonal</code> might be enough for some of the RISCs.
+<li> POWER2/POWER2SC: Schedule <code>mpn_lshift</code>/<code>mpn_rshift</code>.
+     Will bring time from 1.75 to 1.25 cycles/limb.
+<li> X86: Optimize non-MMX <code>mpn_lshift</code> for shifts by 1.  (See
+     Pentium code.)
+<li> X86: Good authority has it that in the past an inline <code>rep
+     movs</code> would upset GCC register allocation for the whole function.
+     Is this still true in GCC 3?  It uses <code>rep movs</code> itself for
+     <code>__builtin_memcpy</code>.  Examine the code for some simple and
+     complex functions to find out.  Inlining <code>rep movs</code> would be
+     desirable, it'd be both smaller and faster.
+<li> Pentium P54: <code>mpn_lshift</code> and <code>mpn_rshift</code> can come
+     down from 6.0 c/l to 5.5 or 5.375 by paying attention to pairing after
+     <code>shrdl</code> and <code>shldl</code>, see mpn/x86/pentium/README.
+<li> Pentium P55 MMX: <code>mpn_lshift</code> and <code>mpn_rshift</code>
+     might benefit from some destination prefetching.
+<li> PentiumPro: <code>mpn_divrem_1</code> might be able to use a
+     mul-by-inverse, hoping for maybe 30 c/l.
+<li> K7: <code>mpn_lshift</code> and <code>mpn_rshift</code> might be able to
+     do something branch-free for unaligned startups, and shaving one insn
+     from the loop with alternative indexing might save a cycle.
+<li> PPC32: Try using fewer registers in the current <code>mpn_lshift</code>.
+     The pipeline is now extremely deep, perhaps unnecessarily deep.
+<li> Fujitsu VPP: Vectorize main functions, perhaps in assembly language.
+<li> Fujitsu VPP: Write <code>mpn_mul_basecase</code> and
+     <code>mpn_sqr_basecase</code>.  This should use a "vertical multiplication
+     method", to avoid carry propagation.  splitting one of the operands in
+     11-bit chunks.
+<li> Pentium: <code>mpn_lshift</code> by 31 should use the special rshift
+     by 1 code, and vice versa <code>mpn_rshift</code> by 31 should use the
+     special lshift by 1.  This would be best as a jump across to the other
+     routine, could let both live in lshift.asm and omit rshift.asm on finding
+     <code>mpn_rshift</code> already provided.
+<li> Cray T3E: Experiment with optimization options.  In particular,
+     -hpipeline3 seems promising.  We should at least up -O to -O2 or -O3.
+<li> Cray: <code>mpn_com</code> and <code>mpn_and_n</code> etc very probably
+     wants a pragma like <code>MPN_COPY_INCR</code>.
+<li> Cray vector systems: <code>mpn_lshift</code>, <code>mpn_rshift</code>,
+     <code>mpn_popcount</code> and <code>mpn_hamdist</code> are nice and small
+     and could be inlined to avoid function calls.
+<li> Cray: Variable length arrays seem to be faster than the tal-notreent.c
+     scheme.  Not sure why, maybe they merely give the compiler more
+     information about aliasing (or the lack thereof).  Would like to modify
+     <code>TMP_ALLOC</code> to use them, or introduce a new scheme.  Memory
+     blocks wanted unconditionally are easy enough, those wanted only
+     sometimes are a problem.  Perhaps a special size calculation to ask for a
+     dummy length 1 when unwanted, or perhaps an inlined subroutine
+     duplicating code under each conditional.  Don't really want to turn
+     everything into a dog's dinner just because Cray don't offer an
+     <code>alloca</code>.
+<li> Cray: <code>mpn_get_str</code> on power-of-2 bases ought to vectorize.
+     Does it?  <code>bits_per_digit</code> and the inner loop over bits in a
+     limb might prevent it.  Perhaps special cases for binary, octal and hex
+     would be worthwhile (very possibly for all processors too).
+<li> S390: <code>BSWAP_LIMB_FETCH</code> looks like it could be done with
+     <code>lrvg</code>, as per glibc sysdeps/s390/s390-64/bits/byteswap.h.
+     This is only for 64-bit mode or something is it, since 32-bit mode has
+     other code?  Also, is it worth using for <code>BSWAP_LIMB</code> too, or
+     would that mean a store and re-fetch?  Presumably that's what comes out
+     in glibc.
+<li> Improve <code>count_leading_zeros</code> for 64-bit machines:
+  <pre>
+	   if ((x &gt&gt 32) == 0) { x &lt&lt= 32; cnt += 32; }
+	   if ((x &gt&gt 48) == 0) { x &lt&lt= 16; cnt += 16; }
+	   ... </pre>
+<li> IRIX 6 MIPSpro compiler has an <code>__inline</code> which could perhaps
+     be used in <code>__GMP_EXTERN_INLINE</code>.  What would be the right way
+     to identify suitable versions of that compiler?
+<li> IRIX <code>cc</code> is rumoured to have an <code>_int_mult_upper</code>
+     (in <code>&lt;intrinsics.h&gt;</code> like Cray), but it didn't seem to
+     exist on some IRIX 6.5 systems tried.  If it does actually exist
+     somewhere it would very likely be an improvement over a function call to
+     umul.asm.
+<li> <code>mpn_get_str</code> final divisions by the base with
+     <code>udiv_qrnd_unnorm</code> could use some sort of multiply-by-inverse
+     on suitable machines.  This ends up happening for decimal by presenting
+     the compiler with a run-time constant, but the same for other bases would
+     be good.  Perhaps use could be made of the fact base&lt;256.
+<li> <code>mpn_umul_ppmm</code>, <code>mpn_udiv_qrnnd</code>: Return a
+     structure like <code>div_t</code> to avoid going through memory, in
+     particular helping RISCs that don't do store-to-load forwarding.  Clearly
+     this is only possible if the ABI returns a structure of two
+     <code>mp_limb_t</code>s in registers.
+     <br>
+     On PowerPC, structures are returned in memory on AIX and Darwin.  In SVR4
+     they're returned in registers, except that draft SVR4 had said memory, so
+     it'd be prudent to check which is done.  We can jam the compiler into the
+     right mode if we know how, since all this is purely internal to libgmp.
+     (gcc has an option, though of course gcc doesn't matter since we use
+     inline asm there.)
+</ul>
+
+<h4>New Functionality</h4>
+<ul>
+<li> Maybe add <code>mpz_crr</code> (Chinese Remainder Reconstruction).
+<li> Let `0b' and `0B' mean binary input everywhere.
+<li> <code>mpz_init</code> and <code>mpq_init</code> could do lazy allocation.
+     Set <code>ALLOC(var)</code> to 0 to indicate nothing allocated, and let
+     <code>_mpz_realloc</code> do the initial alloc.  Set
+     <code>z-&gt;_mp_d</code> to a dummy that <code>mpz_get_ui</code> and
+     similar can unconditionally fetch from.  Niels Möller has had a go at
+     this.
+     <br>
+     The advantages of the lazy scheme would be:
+     <ul>
+     <li> Initial allocate would be the size required for the first value
+          stored, rather than getting 1 limb in <code>mpz_init</code> and then
+          more or less immediately reallocating.
+     <li> <code>mpz_init</code> would only store magic values in the
+          <code>mpz_t</code> fields, and could be inlined.
+     <li> A fixed initializer could even be used by applications, like
+          <code>mpz_t z = MPZ_INITIALIZER;</code>, which might be convenient
+          for globals.
+     </ul>
+     The advantages of the current scheme are:
+     <ul>
+     <li> <code>mpz_set_ui</code> and other similar routines needn't check the
+          size allocated and can just store unconditionally.
+     <li> <code>mpz_set_ui</code> and perhaps others like
+          <code>mpz_tdiv_r_ui</code> and a prospective
+          <code>mpz_set_ull</code> could be inlined.
+     </ul>
+<li> Add <code>mpf_out_raw</code> and <code>mpf_inp_raw</code>.  Make sure
+     format is portable between 32-bit and 64-bit machines, and between
+     little-endian and big-endian machines.  A format which MPFR can use too
+     would be good.
+<li> <code>mpn_and_n</code> ... <code>mpn_copyd</code>: Perhaps make the mpn
+     logops and copys available in gmp.h, either as library functions or
+     inlines, with the availability of library functions instantiated in the
+     generated gmp.h at build time.
+<li> <code>mpz_set_str</code> etc variants taking string lengths rather than
+     null-terminators.
+<li> <code>mpz_andn</code>, <code>mpz_iorn</code>, <code>mpz_nand</code>,
+     <code>mpz_nior</code>, <code>mpz_xnor</code> might be useful additions,
+     if they could share code with the current such functions (which should be
+     possible).
+<li> <code>mpz_and_ui</code> etc might be of use sometimes.  Suggested by
+     Niels Möller.
+<li> <code>mpf_set_str</code> and <code>mpf_inp_str</code> could usefully
+     accept 0x, 0b etc when base==0.  Perhaps the exponent could default to
+     decimal in this case, with a further 0x, 0b etc allowed there.
+     Eg. 0xFFAA@0x5A.  A leading "0" for octal would match the integers, but
+     probably something like "0.123" ought not mean octal.
+<li> <code>GMP_LONG_LONG_LIMB</code> or some such could become a documented
+     feature of gmp.h, so applications could know whether to
+     <code>printf</code> a limb using <code>%lu</code> or <code>%Lu</code>.
+<li> <code>GMP_PRIdMP_LIMB</code> and similar defines following C99
+     &lt;inttypes.h&gt; might be of use to applications printing limbs.  But
+     if <code>GMP_LONG_LONG_LIMB</code> or whatever is added then perhaps this
+     can easily enough be left to applications.
+<li> <code>gmp_printf</code> could accept <code>%b</code> for binary output.
+     It'd be nice if it worked for plain <code>int</code> etc too, not just
+     <code>mpz_t</code> etc.
+<li> <code>gmp_printf</code> in fact could usefully accept an arbitrary base,
+     for both integer and float conversions.  A base either in the format
+     string or as a parameter with <code>*</code> should be allowed.  Maybe
+     <code>&amp;13b</code> (b for base) or something like that.
+<li> <code>gmp_printf</code> could perhaps accept <code>mpq_t</code> for float
+     conversions, eg. <code>"%.4Qf"</code>.  This would be merely for
+     convenience, but still might be useful.  Rounding would be the same as
+     for an <code>mpf_t</code> (ie. currently round-to-nearest, but not
+     actually documented).  Alternately, perhaps a separate
+     <code>mpq_get_str_point</code> or some such might be more use.  Suggested
+     by Pedro Gimeno.
+<li> <code>mpz_rscan0</code> or <code>mpz_revscan0</code> or some such
+     searching towards the low end of an integer might match
+     <code>mpz_scan0</code> nicely.  Likewise for <code>scan1</code>.
+     Suggested by Roberto Bagnara.
+<li> <code>mpz_bit_subset</code> or some such to test whether one integer is a
+     bitwise subset of another might be of use.  Some sort of return value
+     indicating whether it's a proper or non-proper subset would be good and
+     wouldn't cost anything in the implementation.  Suggested by Roberto
+     Bagnara.
+<li> <code>mpf_get_ld</code>, <code>mpf_set_ld</code>: Conversions between
+     <code>mpf_t</code> and <code>long double</code>, suggested by Dan
+     Christensen.  Other <code>long double</code> routines might be desirable
+     too, but <code>mpf</code> would be a start.
+     <br>
+     <code>long double</code> is an ANSI-ism, so everything involving it would
+     need to be suppressed on a K&amp;R compiler.
+     <br>
+     There'd be some work to be done by <code>configure</code> to recognise
+     the format in use, MPFR has a start on this.  Often <code>long
+     double</code> is the same as <code>double</code>, which is easy but
+     pretty pointless.  A single float format detector macro could look at
+     <code>double</code> then <code>long double</code>
+     <br>
+     Sometimes there's a compiler option for the size of a <code>long
+     double</code>, eg. xlc on AIX can use either 64-bit or 128-bit.  It's
+     probably simplest to regard this as a compiler compatibility issue, and
+     leave it to users or sysadmins to ensure application and library code is
+     built the same.
+<li> <code>mpz_sqrt_if_perfect_square</code>: When
+     <code>mpz_perfect_square_p</code> does its tests it calculates a square
+     root and then discards it.  For some applications it might be useful to
+     return that root.  Suggested by Jason Moxham.
+<li> <code>mpz_get_ull</code>, <code>mpz_set_ull</code>,
+     <code>mpz_get_sll</code>, <code>mpz_get_sll</code>: Conversions for
+     <code>long long</code>.  These would aid interoperability, though a
+     mixture of GMP and <code>long long</code> would probably not be too
+     common.  Since <code>long long</code> is not always available (it's in
+     C99 and GCC though), disadvantages of using <code>long long</code> in
+     libgmp.a would be
+     <ul>
+     <li> Library contents vary according to the build compiler.
+     <li> gmp.h would need an ugly <code>#ifdef</code> block to decide if the
+          application compiler could take the <code>long long</code>
+          prototypes.
+     <li> Some sort of <code>LIBGMP_HAS_LONGLONG</code> might be wanted to
+          indicate whether the functions are available.  (Applications using
+          autoconf could probe the library too.)
+     </ul>
+     It'd be possible to defer the need for <code>long long</code> to
+     application compile time, by having something like
+     <code>mpz_set_2ui</code> called with two halves of a <code>long
+     long</code>.  Disadvantages of this would be,
+     <ul>
+     <li> Bigger code in the application, though perhaps not if a <code>long
+          long</code> is normally passed as two halves anyway.
+     <li> <code>mpz_get_ull</code> would be a rather big inline, or would have
+          to be two function calls.
+     <li> <code>mpz_get_sll</code> would be a worse inline, and would put the
+          treatment of <code>-0x10..00</code> into applications (see
+          <code>mpz_get_si</code> correctness above).
+     <li> Although having libgmp.a independent of the build compiler is nice,
+          it sort of sacrifices the capabilities of a good compiler to
+          uniformity with inferior ones.
+     </ul>
+     Plain use of <code>long long</code> is probably the lesser evil, if only
+     because it makes best use of gcc.  In fact perhaps it would suffice to
+     guarantee <code>long long</code> conversions only when using GCC for both
+     application and library.  That would cover free software, and we can
+     worry about selected vendor compilers later.
+     <br>
+     In C++ the situation is probably clearer, we demand fairly recent C++ so
+     <code>long long</code> should be available always.  We'd probably prefer
+     to have the C and C++ the same in respect of <code>long long</code>
+     support, but it would be possible to have it unconditionally in gmpxx.h,
+     by some means or another.
+<li> <code>mpz_strtoz</code> parsing the same as <code>strtol</code>.
+     Suggested by Alexander Kruppa.
+</ul>
+
+
+<h4>Configuration</h4>
+
+<ul>
+<li> Alpha ev7, ev79: Add code to config.guess to detect these.  Believe ev7
+     will be "3-1307" in the current switch, but need to verify that.  (On
+     OSF, current configfsf.guess identifies ev7 using psrinfo, we need to do
+     it ourselves for other systems.)
+<li> Alpha OSF: Libtool (version 1.5) doesn't seem to recognise this system is
+     "pic always" and ends up running gcc twice with the same options.  This
+     is wasteful, but harmless.  Perhaps a newer libtool will be better.
+<li> ARM: <code>umul_ppmm</code> in longlong.h always uses <code>umull</code>,
+     but is that available only for M series chips or some such?  Perhaps it
+     should be configured in some way.
+<li> HPPA: config.guess should recognize 7000, 7100, 7200, and 8x00.
+<li> HPPA: gcc 3.2 introduces a <code>-mschedule=7200</code> etc parameter,
+     which could be driven by an exact hppa cpu type.
+<li> Mips: config.guess should say mipsr3000, mipsr4000, mipsr10000, etc.
+     "hinv -c processor" gives lots of information on Irix.  Standard
+     config.guess appends "el" to indicate endianness, but
+     <code>AC_C_BIGENDIAN</code> seems the best way to handle that for GMP.
+<li> PowerPC: The function descriptor nonsense for AIX is currently driven by
+     <code>*-*-aix*</code>.  It might be more reliable to do some sort of
+     feature test, examining the compiler output perhaps.  It might also be
+     nice to merge the aix.m4 files into powerpc-defs.m4.
+<li> config.m4 is generated only by the configure script, it won't be
+     regenerated by config.status.  Creating it as an <code>AC_OUTPUT</code>
+     would work, but it might upset "make" to have things like <code>L$</code>
+     get into the Makefiles through <code>AC_SUBST</code>.
+     <code>AC_CONFIG_COMMANDS</code> would be the alternative.  With some
+     careful m4 quoting the <code>changequote</code> calls might not be
+     needed, which might free up the order in which things had to be output.
+<li> Automake: Latest automake has a <code>CCAS</code>, <code>CCASFLAGS</code>
+     scheme.  Though we probably wouldn't be using its assembler support we
+     could try to use those variables in compatible ways.
+<li> <code>GMP_LDFLAGS</code> could probably be done with plain
+     <code>LDFLAGS</code> already used by automake for all linking.  But with
+     a bit of luck the next libtool will pass pretty much all
+     <code>CFLAGS</code> through to the compiler when linking, making
+     <code>GMP_LDFLAGS</code> unnecessary.
+<li> mpn/Makeasm.am uses <code>-c</code> and <code>-o</code> together in the
+     .S and .asm rules, but apparently that isn't completely portable (there's
+     an autoconf <code>AC_PROG_CC_C_O</code> test for it).  So far we've not
+     had problems, but perhaps the rules could be rewritten to use "foo.s" as
+     the temporary, or to do a suitable "mv" of the result.  The only danger
+     from using foo.s would be if a compile failed and the temporary foo.s
+     then looked like the primary source.  Hopefully if the
+     <code>SUFFIXES</code> are ordered to have .S and .asm ahead of .s that
+     wouldn't happen.  Might need to check.
+</ul>
+
+
+<h4>Random Numbers</h4>
+<ul>
+<li> <code>_gmp_rand</code> is not particularly fast on the linear
+     congruential algorithm and could stand various improvements.
+     <ul>
+     <li> Make a second seed area within <code>gmp_randstate_t</code> (or
+          <code>_mp_algdata</code> rather) to save some copying.
+     <li> Make a special case for a single limb <code>2exp</code> modulus, to
+          avoid <code>mpn_mul</code> calls.  Perhaps the same for two limbs.
+     <li> Inline the <code>lc</code> code, to avoid a function call and
+          <code>TMP_ALLOC</code> for every chunk.
+     <li> Perhaps the <code>2exp</code> and general LC cases should be split,
+          for clarity (if the general case is retained).
+     </ul>
+<li> <code>gmp_randstate_t</code> used for parameters perhaps should become
+     <code>gmp_randstate_ptr</code> the same as other types.
+<li> Some of the empirical randomness tests could be included in a "make
+     check".  They ought to work everywhere, for a given seed at least.
+</ul>
+
+
+<h4>C++</h4>
+<ul>
+<li> <code>mpz_class(string)</code>, etc: Use the C++ global locale to
+     identify whitespace.
+     <br>
+     <code>mpf_class(string)</code>: Use the C++ global locale decimal point,
+     rather than the C one.
+     <br>
+     Consider making these variant <code>mpz_set_str</code> etc forms
+     available for <code>mpz_t</code> too, not just <code>mpz_class</code>
+     etc.
+<li> <code>mpq_class operator+=</code>: Don't emit an unnecessary
+     <code>mpq_set(q,q)</code> before <code>mpz_addmul</code> etc.
+<li> Put various bits of gmpxx.h into libgmpxx, to avoid excessive inlining.
+     Candidates for this would be,
+     <ul>
+     <li> <code>mpz_class(const char *)</code>, etc: since they're normally
+          not fast anyway, and we can hide the exception <code>throw</code>.
+     <li> <code>mpz_class(string)</code>, etc: to hide the <code>cstr</code>
+          needed to get to the C conversion function.
+     <li> <code>mpz_class string, char*</code> etc constructors: likewise to
+          hide the throws and conversions.
+     <li> <code>mpz_class::get_str</code>, etc: to hide the <code>char*</code>
+          to <code>string</code> conversion and free.  Perhaps
+          <code>mpz_get_str</code> can write directly into a
+          <code>string</code>, to avoid copying.
+          <br>
+          Consider making such <code>string</code> returning variants
+          available for use with plain <code>mpz_t</code> etc too.
+     </ul>
+</ul>
+
+<h4>Miscellaneous</h4>
+<ul>
+<li> <code>mpz_gcdext</code> and <code>mpn_gcdext</code> ought to document
+     what range of values the generated cofactors can take, and preferably
+     ensure the definition uniquely specifies the cofactors for given inputs.
+     A basic extended Euclidean algorithm or multi-step variant leads to
+     |x|&lt;|b| and |y|&lt;|a| or something like that, but there's probably
+     two solutions under just those restrictions.
+<li> demos/factorize.c: use <code>mpz_divisible_ui_p</code> rather than
+     <code>mpz_tdiv_qr_ui</code>.  (Of course dividing multiple primes at a
+     time would be better still.)
+<li> The various test programs use quite a bit of the main
+     <code>libgmp</code>.  This establishes good cross-checks, but it might be
+     better to use simple reference routines where possible.  Where it's not
+     possible some attention could be paid to the order of the tests, so a
+     <code>libgmp</code> routine is only used for tests once it seems to be
+     good.
+<li> <code>MUL_FFT_THRESHOLD</code> etc: the FFT thresholds should allow a
+     return to a previous k at certain sizes.  This arises basically due to
+     the step effect caused by size multiples effectively used for each k.
+     Looking at a graph makes it fairly clear.
+<li> <code>__gmp_doprnt_mpf</code> does a rather unattractive round-to-nearest
+     on the string returned by <code>mpf_get_str</code>.  Perhaps some variant
+     of <code>mpf_get_str</code> could be made which would better suit.
+</ul>
+
+
+<h4>Aids to Development</h4>
+<ul>
+<li> Add <code>ASSERT</code>s at the start of each user-visible mpz/mpq/mpf
+     function to check the validity of each <code>mp?_t</code> parameter, in
+     particular to check they've been <code>mp?_init</code>ed.  This might
+     catch elementary mistakes in user programs.  Care would need to be taken
+     over <code>MPZ_TMP_INIT</code>ed variables used internally.  If nothing
+     else then consistency checks like size&lt;=alloc, ptr not
+     <code>NULL</code> and ptr+size not wrapping around the address space,
+     would be possible.  A more sophisticated scheme could track
+     <code>_mp_d</code> pointers and ensure only a valid one is used.  Such a
+     scheme probably wouldn't be reentrant, not without some help from the
+     system.
+<li> tune/time.c could try to determine at runtime whether
+     <code>getrusage</code> and <code>gettimeofday</code> are reliable.
+     Currently we pretend in configure that the dodgy m68k netbsd 1.4.1
+     <code>getrusage</code> doesn't exist.  If a test might take a long time
+     to run then perhaps cache the result in a file somewhere.
+<li> tune/time.c could choose the default precision based on the
+     <code>speed_unittime</code> determined, independent of the method in use.
+<li> Cray vector systems: CPU frequency could be determined from
+     <code>sysconf(_SC_CLK_TCK)</code>, since it seems to be clock cycle
+     based.  Is this true for all Cray systems?  Would like some documentation
+     or something to confirm.
+</ul>
+
+
+<h4>Documentation</h4>
+<ul>
+<li> <code>mpz_inp_str</code> (etc) doesn't say when it stops reading digits.
+<li> <code>mpn_get_str</code> isn't terribly clear about how many digits it
+     produces.  It'd probably be possible to say at most one leading zero,
+     which is what both it and <code>mpz_get_str</code> currently do.  But
+     want to be careful not to bind ourselves to something that might not suit
+     another implementation.
+<li> <code>va_arg</code> doesn't do the right thing with <code>mpz_t</code>
+     etc directly, but instead needs a pointer type like <code>MP_INT*</code>.
+     It'd be good to show how to do this, but we'd either need to document
+     <code>mpz_ptr</code> and friends, or perhaps fallback on something
+     slightly nasty with <code>void*</code>.
+</ul>
+
+
+<h4>Bright Ideas</h4>
+
+<p> The following may or may not be feasible, and aren't likely to get done in the
+near future, but are at least worth thinking about.
+
+<ul>
+<li> Reorganize longlong.h so that we can inline the operations even for the
+     system compiler.  When there is no such compiler feature, make calls to
+     stub functions.  Write such stub functions for as many machines as
+     possible.
+<li> longlong.h could declare when it's using, or would like to use,
+     <code>mpn_umul_ppmm</code>, and the corresponding umul.asm file could be
+     included in libgmp only in that case, the same as is effectively done for
+     <code>__clz_tab</code>.  Likewise udiv.asm and perhaps cntlz.asm.  This
+     would only be a very small space saving, so perhaps not worth the
+     complexity.
+<li> longlong.h could be built at configure time by concatenating or
+     #including fragments from each directory in the mpn path.  This would
+     select CPU specific macros the same way as CPU specific assembler code.
+     Code used would no longer depend on cpp predefines, and the current
+     nested conditionals could be flattened out.
+<li> <code>mpz_get_si</code> returns 0x80000000 for -0x100000000, whereas it's
+     sort of supposed to return the low 31 (or 63) bits.  But this is
+     undocumented, and perhaps not too important.
+<li> <code>mpz_init_set*</code> and <code>mpz_realloc</code> could allocate
+     say an extra 16 limbs over what's needed, so as to reduce the chance of
+     having to do a reallocate if the <code>mpz_t</code> grows a bit more.
+     This could only be an option, since it'd badly bloat memory usage in
+     applications using many small values.
+<li> <code>mpq</code> functions could perhaps check for numerator or
+     denominator equal to 1, on the assumption that integers or
+     denominator-only values might be expected to occur reasonably often.
+<li> <code>count_trailing_zeros</code> is used on more or less uniformly
+     distributed numbers in a couple of places.  For some CPUs
+     <code>count_trailing_zeros</code> is slow and it's probably worth handling
+     the frequently occurring 0 to 2 trailing zeros cases specially.
+<li> <code>mpf_t</code> might like to let the exponent be undefined when
+     size==0, instead of requiring it 0 as now.  It should be possible to do
+     size==0 tests before paying attention to the exponent.  The advantage is
+     not needing to set exp in the various places a zero result can arise,
+     which avoids some tedium but is otherwise perhaps not too important.
+     Currently <code>mpz_set_f</code> and <code>mpf_cmp_ui</code> depend on
+     exp==0, maybe elsewhere too.
+<li> <code>__gmp_allocate_func</code>: Could use GCC <code>__attribute__
+     ((malloc))</code> on this, though don't know if it'd do much.  GCC 3.0
+     allows that attribute on functions, but not function pointers (see info
+     node "Attribute Syntax"), so would need a new autoconf test.  This can
+     wait until there's a GCC that supports it.
+<li> <code>mpz_add_ui</code> contains two <code>__GMPN_COPY</code>s, one from
+     <code>mpn_add_1</code> and one from <code>mpn_sub_1</code>.  If those two
+     routines were opened up a bit maybe that code could be shared.  When a
+     copy needs to be done there's no carry to append for the add, and if the
+     copy is non-empty no high zero for the sub.
+</ul>
+
+
+<h4>Old and Obsolete Stuff</h4>
+
+<p> The following tasks apply to chips or systems that are old and/or obsolete.
+It's unlikely anything will be done about them unless anyone is actively using
+them.
+
+<ul>
+<li> Sparc32: The integer based udiv_nfp.asm used to be selected by
+     <code>configure --nfp</code> but that option is gone now that autoconf is
+     used.  The file could go somewhere suitable in the mpn search if any
+     chips might benefit from it, though it's possible we don't currently
+     differentiate enough exact cpu types to do this properly.
+<li> VAX D and G format <code>double</code> floats are straightforward and
+     could perhaps be handled directly in <code>__gmp_extract_double</code>
+     and maybe in <code>mpn_get_d</code>, rather than falling back on the
+     generic code.  (Both formats are detected by <code>configure</code>.)
+</ul>
+
+
+<hr>
+
+</body>
+</html>
+
+<!--
+Local variables:
+eval: (add-hook 'write-file-hooks 'time-stamp)
+time-stamp-start: "This file current as of "
+time-stamp-format: "%:d %3b %:y"
+time-stamp-end: "\\."
+time-stamp-line-limit: 50
+End:
+-->

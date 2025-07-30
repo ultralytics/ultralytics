@@ -1,0 +1,208 @@
+Copyright 1996, 1997, 1999-2005 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+This directory contains mpn functions optimized for DEC Alpha processors.
+
+ALPHA ASSEMBLY RULES AND REGULATIONS
+
+The `.prologue N' pseudo op marks the end of instruction that needs special
+handling by unwinding.  It also says whether $27 is really needed for computing
+the gp.  The `.mask M' pseudo op says which registers are saved on the stack,
+and at what offset in the frame.
+
+Cray T3 code is very very different...
+
+"$6" / "$f6" etc is the usual syntax for registers, but on Unicos instead "r6"
+/ "f6" is required.  We use the "r6" / "f6" forms, and have m4 defines expand
+them to "$6" or "$f6" where necessary.
+
+"0x" introduces a hex constant in gas and DEC as, but on Unicos "^X" is
+required.  The X() macro accommodates this difference.
+
+"cvttqc" is required by DEC as, "cvttq/c" is required by Unicos, and gas will
+accept either.  We use cvttqc and have an m4 define expand to cvttq/c where
+necessary.
+
+"not" as an alias for "ornot r31, ..." is available in gas and DEC as, but not
+the Unicos assembler.  The full "ornot" must be used.
+
+"unop" is not available in Unicos.  We make an m4 define to the usual "ldq_u
+r31,0(r30)", and in fact use that define on all systems since it comes out the
+same.
+
+"!literal!123" etc explicit relocations as per Tru64 4.0 are apparently not
+available in older alpha assemblers (including gas prior to 2.12), according to
+the GCC manual, so the assembler macro forms must be used (eg. ldgp).
+
+
+
+RELEVANT OPTIMIZATION ISSUES
+
+EV4
+
+1. This chip has very limited store bandwidth.  The on-chip L1 cache is write-
+   through, and a cache line is transferred from the store buffer to the off-
+   chip L2 in as much 15 cycles on most systems.  This delay hurts mpn_add_n,
+   mpn_sub_n, mpn_lshift, and mpn_rshift.
+
+2. Pairing is possible between memory instructions and integer arithmetic
+   instructions.
+
+3. mulq and umulh are documented to have a latency of 23 cycles, but 2 of these
+   cycles are pipelined.  Thus, multiply instructions can be issued at a rate
+   of one each 21st cycle.
+
+EV5
+
+1. The memory bandwidth of this chip is good, both for loads and stores.  The
+   L1 cache can handle two loads or one store per cycle, but two cycles after a
+   store, no ld can issue.
+
+2. mulq has a latency of 12 cycles and an issue rate of 1 each 8th cycle.
+   umulh has a latency of 14 cycles and an issue rate of 1 each 10th cycle.
+   (Note that published documentation gets these numbers slightly wrong.)
+
+3. mpn_add_n.  With 4-fold unrolling, we need 37 instructions, whereof 12
+   are memory operations.  This will take at least
+	ceil(37/2) [dual issue] + 1 [taken branch] = 19 cycles
+   We have 12 memory cycles, plus 4 after-store conflict cycles, or 16 data
+   cache cycles, which should be completely hidden in the 19 issue cycles.
+   The computation is inherently serial, with these dependencies:
+
+	       ldq  ldq
+		 \  /\
+	  (or)   addq |
+	   |\   /   \ |
+	   | addq  cmpult
+	    \  |     |
+	     cmpult  |
+		 \  /
+		  or
+
+   I.e., 3 operations are needed between carry-in and carry-out, making 12
+   cycles the absolute minimum for the 4 limbs.  We could replace the `or' with
+   a cmoveq/cmovne, which could issue one cycle earlier that the `or', but that
+   might waste a cycle on EV4.  The total depth remain unaffected, since cmov
+   has a latency of 2 cycles.
+
+     addq
+     /   \
+   addq  cmpult
+     |      \
+   cmpult -> cmovne
+
+  Montgomery has a slightly different way of computing carry that requires one
+  less instruction, but has depth 4 (instead of the current 3).  Since the code
+  is currently instruction issue bound, Montgomery's idea should save us 1/2
+  cycle per limb, or bring us down to a total of 17 cycles or 4.25 cycles/limb.
+  Unfortunately, this method will not be good for the EV6.
+
+4. addmul_1 and friends: We previously had a scheme for splitting the single-
+   limb operand in 21-bits chunks and the multi-limb operand in 32-bit chunks,
+   and then use FP operations for every 2nd multiply, and integer operations
+   for every 2nd multiply.
+
+   But it seems much better to split the single-limb operand in 16-bit chunks,
+   since we save many integer shifts and adds that way.  See powerpc64/README
+   for some more details.
+
+EV6
+
+Here we have a really parallel pipeline, capable of issuing up to 4 integer
+instructions per cycle.  In actual practice, it is never possible to sustain
+more than 3.5 integer insns/cycle due to rename register shortage.  One integer
+multiply instruction can issue each cycle.  To get optimal speed, we need to
+pretend we are vectorizing the code, i.e., minimize the depth of recurrences.
+
+There are two dependencies to watch out for.  1) Address arithmetic
+dependencies, and 2) carry propagation dependencies.
+
+We can avoid serializing due to address arithmetic by unrolling loops, so that
+addresses don't depend heavily on an index variable.  Avoiding serializing
+because of carry propagation is trickier; the ultimate performance of the code
+will be determined of the number of latency cycles it takes from accepting
+carry-in to a vector point until we can generate carry-out.
+
+Most integer instructions can execute in either the L0, U0, L1, or U1
+pipelines.  Shifts only execute in U0 and U1, and multiply only in U1.
+
+CMOV instructions split into two internal instructions, CMOV1 and CMOV2.  CMOV
+split the mapping process (see pg 2-26 in cmpwrgd.pdf), suggesting the CMOV
+should always be placed as the last instruction of an aligned 4 instruction
+block, or perhaps simply avoided.
+
+Perhaps the most important issue is the latency between the L0/U0 and L1/U1
+clusters; a result obtained on either cluster has an extra cycle of latency for
+consumers in the opposite cluster.  Because of the dynamic nature of the
+implementation, it is hard to predict where an instruction will execute.
+
+
+
+REFERENCES
+
+"Alpha Architecture Handbook", version 4, Compaq, October 1998, order number
+EC-QD2KC-TE.
+
+"Alpha 21164 Microprocessor Hardware Reference Manual", Compaq, December 1998,
+order number EC-QP99C-TE.
+
+"Alpha 21264/EV67 Microprocessor Hardware Reference Manual", revision 1.4,
+Compaq, September 2000, order number DS-0028B-TE.
+
+"Compiler Writer's Guide for the Alpha 21264", Compaq, June 1999, order number
+EC-RJ66A-TE.
+
+All of the above are available online from
+
+  http://ftp.digital.com/pub/Digital/info/semiconductor/literature/dsc-library.html
+  ftp://ftp.compaq.com/pub/products/alphaCPUdocs
+
+"Tru64 Unix Assembly Language Programmer's Guide", Compaq, March 1996, part
+number AA-PS31D-TE.
+
+"Digital UNIX Calling Standard for Alpha Systems", Digital Equipment Corp,
+March 1996, part number AA-PY8AC-TE.
+
+The above are available online,
+
+  http://h30097.www3.hp.com/docs/pub_page/V40F_DOCS.HTM
+
+(Dunno what h30097 means in this URL, but if it moves try searching for "tru64
+online documentation" from the main www.hp.com page.)
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 79
+End:

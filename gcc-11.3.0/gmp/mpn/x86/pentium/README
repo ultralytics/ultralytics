@@ -1,0 +1,181 @@
+Copyright 1996, 1999-2001, 2003 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+                   INTEL PENTIUM P5 MPN SUBROUTINES
+
+
+This directory contains mpn functions optimized for Intel Pentium (P5,P54)
+processors.  The mmx subdirectory has additional code for Pentium with MMX
+(P55).
+
+
+STATUS
+
+                                cycles/limb
+
+	mpn_add_n/sub_n            2.375
+
+	mpn_mul_1                 12.0
+	mpn_add/submul_1          14.0
+
+	mpn_mul_basecase          14.2 cycles/crossproduct (approx)
+
+	mpn_sqr_basecase           8 cycles/crossproduct (approx)
+                                   or 15.5 cycles/triangleproduct (approx)
+
+	mpn_l/rshift               5.375 normal (6.0 on P54)
+				   1.875 special shift by 1 bit
+
+	mpn_divrem_1              44.0
+	mpn_mod_1                 28.0
+	mpn_divexact_by3          15.0
+
+	mpn_copyi/copyd            1.0
+
+Pentium MMX gets the following improvements
+
+	mpn_l/rshift               1.75
+
+	mpn_mul_1                 12.0 normal, 7.0 for 16-bit multiplier
+
+
+mpn_add_n and mpn_sub_n run at asymptotically 2 cycles/limb.  Due to loop
+overhead and other delays (cache refill?), they run at or near 2.5
+cycles/limb.
+
+mpn_mul_1, mpn_addmul_1, mpn_submul_1 all run 1 cycle faster than they
+should.  Intel documentation says a mul instruction is 10 cycles, but it
+measures 9 and the routines using it run as 9.
+
+
+
+P55 MMX AND X87
+
+The cost of switching between MMX and x87 floating point on P55 is about 100
+cycles (fld1/por/emms for instance).  In order to avoid that the two aren't
+mixed and currently that means using MMX and not x87.
+
+MMX offers a big speedup for lshift and rshift, and a nice speedup for
+16-bit multipliers in mpn_mul_1.  If fast code using x87 is found then
+perhaps the preference for MMX will be reversed.
+
+
+
+
+P54 SHLDL
+
+mpn_lshift and mpn_rshift run at about 6 cycles/limb on P5 and P54, but the
+documentation indicates that they should take only 43/8 = 5.375 cycles/limb,
+or 5 cycles/limb asymptotically.  The P55 runs them at the expected speed.
+
+It seems that on P54 a shldl or shrdl allows pairing in one following cycle,
+but not two.  For example, back to back repetitions of the following
+
+	shldl(	%cl, %eax, %ebx)
+	xorl	%edx, %edx
+	xorl	%esi, %esi
+
+run at 5 cycles, as expected, but repetitions of the following run at 7
+cycles, whereas 6 would be expected (and is achieved on P55),
+
+	shldl(	%cl, %eax, %ebx)
+	xorl	%edx, %edx
+	xorl	%esi, %esi
+	xorl	%edi, %edi
+	xorl	%ebp, %ebp
+
+Three xorls run at 7 cycles too, so it doesn't seem to be just that pairing
+inhibited is only in the second following cycle (or something like that).
+
+Avoiding this problem would bring P54 shifts down from 6.0 c/l to 5.5 with a
+pattern of shift, 2 loads, shift, 2 stores, shift, etc.  A start has been
+made on something like that, but it's not yet complete.
+
+
+
+
+OTHER NOTES
+
+Prefetching Destinations
+
+    Pentium doesn't allocate cache lines on writes, unlike most other modern
+    processors.  Since the functions in the mpn class do array writes, we
+    have to handle allocating the destination cache lines by reading a word
+    from it in the loops, to achieve the best performance.
+
+Prefetching Sources
+
+    Prefetching of sources is pointless since there's no out-of-order loads.
+    Any load instruction blocks until the line is brought to L1, so it may
+    as well be the load that wants the data which blocks.
+
+Data Cache Bank Clashes
+
+    Pairing of memory operations requires that the two issued operations
+    refer to different cache banks (ie. different addresses modulo 32
+    bytes).  The simplest way to ensure this is to read/write two words from
+    the same object.  If we make operations on different objects, they might
+    or might not be to the same cache bank.
+
+PIC %eip Fetching
+
+    A simple call $+5 and popl can be used to get %eip, there's no need to
+    balance calls and returns since P5 doesn't have any return stack branch
+    prediction.
+
+Float Multiplies
+
+    fmul is pairable and can be issued every 2 cycles (with a 4 cycle
+    latency for data ready to use).  This is a lot better than integer mull
+    or imull at 9 cycles non-pairing.  Unfortunately the advantage is
+    quickly eaten away by needing to throw data through memory back to the
+    integer registers to adjust for fild and fist being signed, and to do
+    things like propagating carry bits.
+
+
+
+
+
+REFERENCES
+
+"Intel Architecture Optimization Manual", 1997, order number 242816.  This
+is mostly about P5, the parts about P6 aren't relevant.  Available on-line:
+
+        http://download.intel.com/design/PentiumII/manuals/242816.htm
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

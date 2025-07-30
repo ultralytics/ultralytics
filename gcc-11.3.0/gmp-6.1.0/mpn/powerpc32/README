@@ -1,0 +1,180 @@
+Copyright 2002, 2005 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+                    POWERPC 32-BIT MPN SUBROUTINES
+
+
+This directory contains mpn functions for various 32-bit PowerPC chips.
+
+
+CODE ORGANIZATION
+
+	directory	  used for
+	================================================
+	powerpc           generic, 604, 604e, 744x, 745x
+	powerpc/750       740, 750, 7400, 7410
+
+
+The top-level powerpc directory is currently mostly aimed at 604/604e but
+should be reasonable on all powerpcs.
+
+
+
+STATUS
+
+The code is quite well optimized for the 604e, other chips have had less
+attention.
+
+Altivec SIMD available in 74xx might hold some promise, but unfortunately
+GMP only guarantees 32-bit data alignment, so there's lots of fiddling
+around with partial operations at the start and end of limb vectors.  A
+128-bit limb would be a novel idea, but is unlikely to be practical, since
+it would have to work with ordinary +, -, * etc in the C code.
+
+Also, Altivec isn't very well suited for the GMP multiplication needs.
+Using floating-point based multiplication has much better better performance
+potential for all current powerpcs, both the ones with slow integer multiply
+units (603, 740, 750, 7400, 7410) and those with fast (604, 604e, 744x,
+745x).  This is because all powerpcs do some level of pipelining in the FPU:
+
+603 and 750 can sustain one fmadd every 2nd cycle.
+604 and 604e can sustain one fmadd per cycle.
+7400 and 7410 can sustain 3 fmadd in 4 cycles.
+744x and 745x can sustain 4 fmadd in 5 cycles.
+
+
+
+REGISTER NAMES
+
+The normal powerpc convention is to give registers as plain numbers, like
+"mtctr 6", but on Apple MacOS X (powerpc*-*-rhapsody* and
+powerpc*-*-darwin*) the assembler demands an "r" like "mtctr r6".  Note
+however when register 0 in an instruction means a literal zero the "r" is
+omitted, for instance "lwzx r6,0,r7".
+
+The GMP code uses the "r" forms, powerpc-defs.m4 transforms them to plain
+numbers according to what GMP_ASM_POWERPC_R_REGISTERS finds is needed.
+(Note that this style isn't fully general, as the identifier r4 and the
+register r4 will not be distinguishable on some systems.  However, this is
+not a problem for the limited GMP assembly usage.)
+
+
+
+GLOBAL REFERENCES
+
+Linux non-PIC
+	lis	9, __gmp_binvert_limb_table@ha
+	rlwinm	11, 5, 31, 25, 31
+	la	9, __gmp_binvert_limb_table@l(9)
+	lbzx	11, 9, 11
+
+Linux PIC (FIXME)
+.LCL0:
+	.long .LCTOC1-.LCF0
+	bcl	20, 31, .LCF0
+.LCF0:
+	mflr	30
+	lwz	7, .LCL0-.LCF0(30)
+	add	30, 7, 30
+	lwz	11, .LC0-.LCTOC1(30)
+	rlwinm	3, 5, 31, 25, 31
+	lbzx	7, 11, 3
+
+AIX (always PIC)
+LC..0:
+	.tc __gmp_binvert_limb_table[TC],__gmp_binvert_limb_table[RW]
+	lwz	9, LC..0(2)
+	rlwinm	0, 5, 31, 25, 31
+	lbzx	0, 9, 0
+
+Darwin (non-PIC)
+	lis	r2, ha16(___gmp_binvert_limb_table)
+	rlwinm	r9, r5, 31, 25, 31
+	la	r2, lo16(___gmp_binvert_limb_table)(r2)
+	lbzx	r0, r2, r9
+Darwin (PIC)
+	mflr	r0
+	bcl	20, 31, L0001$pb
+L0001$pb:
+	mflr	r7
+	mtlr	r0
+	addis	r2, r7, ha16(L___gmp_binvert_limb_table$non_lazy_ptr-L0001$pb)
+	rlwinm	r9, r5, 31, 25, 31
+	lwz	r2, lo16(L___gmp_binvert_limb_table$non_lazy_ptr-L0001$pb)(r2)
+	lbzx	r0, r2, r9
+------
+	.non_lazy_symbol_pointer
+L___gmp_binvert_limb_table$non_lazy_ptr:
+	.indirect_symbol ___gmp_binvert_limb_table
+	.long	0
+	.subsections_via_symbols
+
+
+For GNU/Linux and Darwin, we might want to duplicate __gmp_binvert_limb_table
+into the text section in this file.  We should thus be able to reach it like
+this:
+
+	blr	L0
+L0:	mflr	r2
+	rlwinm	r9, r5, 31, 25, 31
+	addi	r9, r9, lo16(local_binvert_table-L0)
+	lbzx	r0, r2, r9
+
+
+
+REFERENCES
+
+PowerPC Microprocessor Family: The Programming Environments for 32-bit
+Microprocessors, IBM document G522-0290-01, 2000.
+
+PowerPC 604e RISC Microprocessor User's Manual with Supplement for PowerPC
+604 Microprocessor, IBM document G552-0330-00, Freescale document
+MPC604EUM/AD, 3/1998.
+
+MPC7410/MPC7400 RISC Microprocessor User's Manual, Freescale document
+MPC7400UM/D, rev 1, 11/2002.
+
+MPC7450 RISC Microprocessor Family Reference Manual, Freescale document
+MPC7450UM, rev 5, 1/2005.
+
+The above are available online from
+
+	http://www.ibm.com/chips/techlib/techlib.nsf/productfamilies/PowerPC
+	http://www.freescale.com/PowerPC
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

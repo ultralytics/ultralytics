@@ -1,0 +1,32 @@
+# Data file for mpc_exp.
+#
+# Copyright (C) 2008, 2010, 2012 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX_RE  INEX_IM  PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP1_RE  OP1_RE  PREC_OP1_IM  OP1_IM  PREC_OP2_RE  OP2_RE  PREC_OP2_IM  OP2_IM  PREC_OP3_RE  OP3_RE  PREC_OP3_IM  OP3_IM  RND_RE  RND_IM
+#
+# see sin.dat for precisions
+
++ - 53 -0x189281b52abc03p-55 53 0x178a1d3cd134e5p-49  53 0x16A09E667F3BCDp-52 53 0x9CC470A049097p-50 53 0x23C6EF372FE95p-48 53 0x9CC470A049097p-50 53 0xA953FD4E97C75p-50 53 0x16A09E667F3BCDp-51 N N
++ + 53 -0x178a1d3cd134e5p-49 53 -0x189281b52abc03p-55  53 -0x9CC470A049097p-50 53 0x16A09E667F3BCDp-52 53 0x23C6EF372FE95p-48 53 0x9CC470A049097p-50 53 -0x16A09E667F3BCDp-51 53 0xA953FD4E97C75p-50 N N
++ + 53 -0x178a1d3cd134e5p-49 53 -0x189281b52abc03p-55  53 -0x9CC470A049097p-50 53 0x16A09E667F3BCDp-52 53 0x23C6EF372FE95p-48 53 0x9CC470A049097p-50 53 -0x16A09E667F3BCDp-51 53 0xA953FD4E97C75p-50 U U
+0 0 10 0 10 0  10 7 10 5 10 3 10 -12 10 -81 10 69 N N
+0 0 10 0 10 0  10 7 10 5 10 3 10 -12 10 -81 10 69 Z D
+0 0 2 1 2 1    7 99 7 98 7 97 7 96 7 -194 15 -19009 N N

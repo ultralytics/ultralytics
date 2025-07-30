@@ -1,0 +1,124 @@
+Copyright 2001 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+                   INTEL PENTIUM-4 MPN SUBROUTINES
+
+
+This directory contains mpn functions optimized for Intel Pentium-4.
+
+The mmx subdirectory has routines using MMX instructions, the sse2
+subdirectory has routines using SSE2 instructions.  All P4s have these, the
+separate directories are just so configure can omit that code if the
+assembler doesn't support it.
+
+
+STATUS
+
+                                cycles/limb
+
+	mpn_add_n/sub_n            4 normal, 6 in-place
+
+	mpn_mul_1                  4 normal, 6 in-place
+	mpn_addmul_1               6
+	mpn_submul_1               7
+
+	mpn_mul_basecase           6 cycles/crossproduct (approx)
+
+	mpn_sqr_basecase           3.5 cycles/crossproduct (approx)
+                                   or 7.0 cycles/triangleproduct (approx)
+
+	mpn_l/rshift               1.75
+
+
+
+The shifts ought to be able to go at 1.5 c/l, but not much effort has been
+applied to them yet.
+
+In-place operations, and all addmul, submul, mul_basecase and sqr_basecase
+calls, suffer from pipeline anomalies associated with write combining and
+movd reads and writes to the same or nearby locations.  The movq
+instructions do not trigger the same hardware problems.  Unfortunately,
+using movq and splitting/combining seems to require too many extra
+instructions to help.  Perhaps future chip steppings will be better.
+
+
+
+NOTES
+
+The Pentium-4 pipeline "Netburst", provides for quite a number of surprises.
+Many traditional x86 instructions run very slowly, requiring use of
+alterative instructions for acceptable performance.
+
+adcl and sbbl are quite slow at 8 cycles for reg->reg.  paddq of 32-bits
+within a 64-bit mmx register seems better, though the combination
+paddq/psrlq when propagating a carry is still a 4 cycle latency.
+
+incl and decl should be avoided, instead use add $1 and sub $1.  Apparently
+the carry flag is not separately renamed, so incl and decl depend on all
+previous flags-setting instructions.
+
+shll and shrl have a 4 cycle latency, or 8 times the latency of the fastest
+integer instructions (addl, subl, orl, andl, and some more).  shldl and
+shrdl seem to have 13 and 15 cycles latency, respectively.  Bizarre.
+
+movq mmx -> mmx does have 6 cycle latency, as noted in the documentation.
+pxor/por or similar combination at 2 cycles latency can be used instead.
+The movq however executes in the float unit, thereby saving MMX execution
+resources.  With the right juggling, data moves shouldn't be on a dependent
+chain.
+
+L1 is write-through, but the write-combining sounds like it does enough to
+not require explicit destination prefetching.
+
+xmm registers so far haven't found a use, but not much effort has been
+expended.  A configure test for whether the operating system knows
+fxsave/fxrestor will be needed if they're used.
+
+
+
+REFERENCES
+
+Intel Pentium-4 processor manuals,
+
+	http://developer.intel.com/design/pentium4/manuals
+
+"Intel Pentium 4 Processor Optimization Reference Manual", Intel, 2001,
+order number 248966.  Available on-line:
+
+	http://developer.intel.com/design/pentium4/manuals/248966.htm
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

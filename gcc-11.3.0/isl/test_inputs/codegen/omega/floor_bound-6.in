@@ -1,0 +1,3 @@
+[m, n] -> { s0[In_1] -> [In_1] : exists (e0 = [(1 + m)/8], e1 = [(e0)/4]: 8e0 <= m and 8e0 >= -6 + m and 4e1 <= In_1 and In_1 <= n and 32e1 <= 1 + m and 32e1 >= -30 + m) }
+{  :  }
+[m, n] -> { [i0] -> separate[o0] : o0 >= 0; [i0] -> atomic[o0] : o0 <= -1 }

@@ -1,0 +1,1165 @@
+\input texinfo
+@setfilename mpc.info
+@include version.texi
+@settitle GNU MPC @value{VERSION}
+@synindex tp fn
+
+@set MINGMP 4.3.2
+@set MINMPFR 2.4.2
+
+@set AUTHORS Andreas Enge, Philippe Th@'eveny, Paul Zimmermann
+
+@copying
+This manual is for GNU MPC, a library for multiple precision complex arithmetic,
+version @value{VERSION} of @value{UPDATED-MONTH}.
+
+Copyright @copyright{} 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 INRIA
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections. A copy of the license is included in the section
+entitled ``GNU Free Documentation License.''
+@end quotation
+@end copying
+
+@iftex
+@afourpaper
+@end iftex
+@tex
+\global\parindent=0pt
+\global\parskip=8pt
+\global\baselineskip=13pt
+@end tex
+
+@dircategory GNU Packages
+@direntry
+* mpc: (mpc)Multiple Precision Complex Library.
+@end direntry
+
+
+@titlepage
+@title GNU MPC
+@subtitle The GNU Multiple Precision Complex Library
+@subtitle Edition @value{VERSION}
+@subtitle @value{UPDATED-MONTH}
+@author @value{AUTHORS}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+
+@ifnottex
+@node Top
+@top GNU MPC
+
+This manual documents how to install and use the GNU Multiple Precision
+Complex Library, version @value{VERSION}
+@end ifnottex
+
+@menu
+* Copying::                     GNU MPC Copying Conditions (LGPL).
+* Introduction to GNU MPC::         Brief introduction to GNU MPC.
+* Installing GNU MPC::              How to configure and compile the GNU MPC library.
+* Reporting Bugs::              How to usefully report bugs.
+* GNU MPC Basics::                  What every GNU MPC user should know.
+* Complex Functions::           Functions for arithmetic on complex numbers.
+* References::
+* Concept Index::
+* Function Index::
+* GNU Free Documentation License::
+@end menu
+
+@c  @times{} made available as a "x" in info and html (already works in tex).
+@ifnottex
+@macro times
+x
+@end macro
+@end ifnottex
+
+
+@node Copying
+@unnumbered GNU MPC Copying Conditions
+@cindex Copying conditions
+@cindex Conditions for copying GNU MPC
+
+GNU MPC is free software; you can redistribute it and/or modify it under
+the terms of the GNU Lesser General Public License as published by the
+Free Software Foundation; either version 3 of the License, or (at your
+option) any later version.
+
+GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program. If not, see @uref{http://www.gnu.org/licenses/}.
+
+
+@node Introduction to GNU MPC
+@chapter Introduction to GNU MPC
+
+
+GNU MPC is a portable library written in C for arbitrary precision arithmetic
+on complex numbers providing correct rounding. It implements a multiprecision
+equivalent of the C99 standard.
+It builds upon the GNU MP and the GNU MPFR libraries.
+
+@section How to use this Manual
+
+Everyone should read @ref{GNU MPC Basics}.  If you need to install the library
+yourself, you need to read @ref{Installing GNU MPC}, too.
+
+The remainder of the manual can be used for later reference, although it is
+probably a good idea to skim through it.
+
+@node Installing GNU MPC
+@chapter Installing GNU MPC
+@cindex Installation
+
+To build GNU MPC, you first have to install GNU MP (version @value{MINGMP} or higher) and
+GNU MPFR (version @value{MINMPFR} or higher) on your computer.  You need a C compiler;
+GCC version 4.4 or higher is recommended, since GNU MPC may trigger a bug in previous
+versions, see the thread at
+@uref{http://lists.gforge.inria.fr/pipermail/mpc-discuss/2011-February/000823.html}.
+And you need a
+standard Unix @samp{make} program, plus some other standard Unix utility
+programs.
+
+Here are the steps needed to install the library on Unix systems:
+
+@enumerate
+@item
+@samp{tar xzf mpc-@value{VERSION}.tar.gz}
+
+@item
+@samp{cd mpc-@value{VERSION}}
+
+@item
+@samp{./configure}
+
+if GMP and GNU MPFR are installed into standard directories, that is, directories
+that are searched by default by the compiler and the linking tools.
+
+@samp{./configure --with-gmp=<gmp_install_dir>}
+
+is used to indicate a different location where GMP is
+installed. Alternatively, you can specify directly GMP include and GMP lib
+directories with @samp{./configure --with-gmp-lib=<gmp_lib_dir>
+--with-gmp-include=<gmp_include_dir>}.
+
+@samp{./configure --with-mpfr=<mpfr_install_dir>}
+
+is used to indicate a different location where GNU MPFR is
+installed. Alternatively, you can specify directly GNU MPFR include and GNU MPFR lib
+directories with @samp{./configure --with-mpf-lib=<mpfr_lib_dir>
+--with-mpfr-include=<mpfr_include_dir>}.
+
+Another useful parameter is @samp{--prefix}, which can be used to
+specify an alternative installation location instead of
+@file{/usr/local}; see @samp{make install} below.
+
+To enable checking for memory leaks using @command{valgrind} during
+@code{make check}, add the parameter @code{--enable-valgrind-tests}.
+
+If for debugging purposes you wish to log calls to GNU MPC functions from
+within your code, add the parameter @samp{--enable-logging}.
+In your code, replace the inclusion of @file{mpc.h} by @file{mpc-log.h}
+and link the executable dynamically.
+Then all calls to functions with only complex arguments are printed to
+@file{stderr} in the following form: First, the function name is given,
+followed by its type such as @samp{c_cc}, meaning that the function has
+one complex result (one @samp{c} in front of the @samp{_}), computed from
+two complex arguments (two @samp{c} after the @samp{_}). Then, the
+precisions of the real and the imaginary part of the first result is given,
+followed by the second one and so on. Finally, for each argument, the
+precisions of its real and imaginary part are specified and the argument
+itself is printed in hexadecimal via the function
+@code{mpc_out_str}
+(@pxref{String and Stream Input and Output}).
+The option requires a dynamic library, so it may not be combined with
+@code{--disable-shared}.
+
+Use @samp{./configure --help} for an exhaustive list of parameters.
+
+@item
+@samp{make}
+
+This compiles GNU MPC in the working directory.
+
+@item
+@samp{make check}
+
+This will make sure GNU MPC was built correctly.
+
+If you get error messages, please report them to
+@samp{mpc-discuss@@lists.gforge.inria.fr} (@xref{Reporting Bugs}, for
+information on what to include in useful bug reports).
+
+@item
+@samp{make install}
+
+This will copy the file @file{mpc.h} to the directory
+@file{/usr/local/include}, the file @file{libmpc.a} to the directory
+@file{/usr/local/lib}, and the file @file{mpc.info} to the directory
+@file{/usr/local/share/info} (or if you passed the @samp{--prefix} option to
+@file{configure}, using the prefix directory given as argument to
+@samp{--prefix} instead of @file{/usr/local}). Note: you need write permissions
+on these directories.
+
+@end enumerate
+
+
+@section Other `make' Targets
+
+There are some other useful make targets:
+
+@itemize @bullet
+@item
+@samp{info}
+
+Create an info version of the manual, in @file{mpc.info}.
+
+@item
+@samp{pdf}
+
+Create a PDF version of the manual, in @file{doc/mpc.pdf}.
+
+@item
+@samp{dvi}
+
+Create a DVI version of the manual, in @file{doc/mpc.dvi}.
+
+@item
+@samp{ps}
+
+Create a Postscript version of the manual, in @file{doc/mpc.ps}.
+
+@item
+@samp{html}
+
+Create an HTML version of the manual, in several pages in the
+directory @file{doc/mpc.html}; if you want only one output HTML file,
+then type @samp{makeinfo --html --no-split mpc.texi} instead.
+
+@item
+@samp{clean}
+
+Delete all object files and archive files, but not the configuration files.
+
+@item
+@samp{distclean}
+
+Delete all files not included in the distribution.
+
+@item
+@samp{uninstall}
+
+Delete all files copied by @samp{make install}.
+@end itemize
+
+
+
+@section Known Build Problems
+
+On AIX, if GMP was built with the 64-bit ABI, before building and testing GNU MPC,
+it might be necessary to set the @samp{OBJECT_MODE} environment variable to 64
+by, e.g.,
+
+@samp{export OBJECT_MODE=64}
+
+This has been tested with the C compiler IBM XL C/C++ Enterprise Edition
+V8.0 for AIX, version: 08.00.0000.0021, GMP 4.2.4 and GNU MPFR 2.4.1.
+
+Please report any other problems you encounter to
+@samp{mpc-discuss@@lists.gforge.inria.fr}.
+@xref{Reporting Bugs}.
+
+@node Reporting Bugs
+@chapter Reporting Bugs
+@cindex Reporting bugs
+
+If you think you have found a bug in the GNU MPC library,
+please investigate
+and report it. We have made this library available to you, and it is not to ask
+too much from you, to ask you to report the bugs that you find.
+
+There are a few things you should think about when you put your bug report
+together.
+
+You have to send us a test case that makes it possible for us to reproduce the
+bug.  Include instructions on how to run the test case.
+
+You also have to explain what is wrong; if you get a crash, or if the results
+printed are incorrect and in that case, in what way.
+
+Please include compiler version information in your bug report.
+This can be extracted using @samp{gcc -v},
+or @samp{cc -V} on some machines.
+Also, include the output from @samp{uname -a}.
+
+If your bug report is good, we will do our best to help you to get a corrected
+version of the library; if the bug report is poor, we will not do anything about
+it (aside of chiding you to send better bug reports).
+
+Send your bug report to: @samp{mpc-discuss@@lists.gforge.inria.fr}.
+
+If you think something in this manual is unclear, or downright incorrect, or if
+the language needs to be improved, please send a note to the same address.
+
+@node GNU MPC Basics
+@chapter GNU MPC Basics
+
+
+@cindex @file{mpc.h}
+All declarations needed to use GNU MPC are collected in the include file
+@file{mpc.h}.  It is designed to work with both C and C++ compilers.
+You should include that file in any program using the GNU MPC library
+by adding the line
+@example
+   #include "mpc.h"
+@end example
+
+@section Nomenclature and Types
+
+@cindex Complex number
+@tindex @code{mpc_t}
+@noindent
+@dfn{Complex number} or @dfn{Complex} for short, is a pair of two
+arbitrary precision floating-point numbers (for the real and imaginary parts).
+The C data type for such objects is @code{mpc_t}.
+
+@cindex Precision
+@tindex @code{mpfr_prec_t}
+@noindent
+The @dfn{Precision} is the number of bits used to represent the mantissa
+of the real and imaginary parts;
+the corresponding C data type is @code{mpfr_prec_t}.
+For more details on the allowed precision range,
+@ifinfo
+@pxref{Nomenclature and Types,,, mpfr.info,GNU MPFR}.
+@end ifinfo
+@ifnotinfo
+see Section ``Nomenclature and Types'' in @cite{GNU MPFR}.
+@end ifnotinfo
+
+@cindex Rounding Mode
+@tindex @code{mpc_rnd_t}
+@noindent
+The @dfn{rounding mode} specifies the way to round the result of a
+complex operation, in case the exact result can not be represented
+exactly in the destination mantissa;
+the corresponding C data type is @code{mpc_rnd_t}.
+A complex rounding mode is a pair of two rounding modes: one for the real
+part, one for the imaginary part.
+
+@section Function Classes
+
+There is only one class of functions in the GNU MPC library, namely functions for
+complex arithmetic. The function names begin with @code{mpc_}. The
+associated type is @code{mpc_t}.
+
+
+@section GNU MPC Variable Conventions
+
+As a general rule, all GNU MPC functions expect output arguments before input
+arguments.  This notation is based on an analogy with the assignment operator.
+
+GNU MPC allows you to use the same variable for both input and output in the same
+expression.  For example, the main function for floating-point multiplication,
+@code{mpc_mul}, can be used like this: @code{mpc_mul (x, x, x, rnd_mode)}.
+This
+computes the square of @var{x} with rounding mode @code{rnd_mode}
+and puts the result back in @var{x}.
+
+Before you can assign to an GNU MPC variable, you need to initialize it by calling
+one of the special initialization functions.  When you are done with a
+variable, you need to clear it out, using one of the functions for that
+purpose.
+
+A variable should only be initialized once, or at least cleared out between
+each initialization.  After a variable has been initialized, it may be
+assigned to any number of times.
+
+For efficiency reasons, avoid to initialize and clear out a variable in loops.
+Instead, initialize it before entering the loop, and clear it out after the
+loop has exited.
+
+You do not need to be concerned about allocating additional space for GNU MPC
+variables, since each of its real and imaginary part
+has a mantissa of fixed size.
+Hence unless you change its precision, or clear and reinitialize it,
+a complex variable will have the same allocated space during all its
+life.
+
+
+@section Rounding Modes
+
+A complex rounding mode is of the form @code{MPC_RNDxy} where
+@code{x} and @code{y} are one of @code{N} (to nearest), @code{Z} (towards
+zero), @code{U} (towards plus infinity), @code{D} (towards minus infinity).
+The first letter refers to the rounding mode for the real part,
+and the second one for the imaginary part.
+For example @code{MPC_RNDZU} indicates to round the real part towards zero,
+and the imaginary part towards plus infinity.
+
+The @samp{round to nearest} mode works as in the IEEE P754 standard: in case
+the number to be rounded lies exactly in the middle of two representable
+numbers, it is rounded to the one with the least significant bit set to zero.
+For example, the number 5, which is represented by (101) in binary, is rounded
+to (100)=4 with a precision of two bits, and not to (110)=6.
+
+
+@anchor{return-value}
+@section Return Value
+
+Most GNU MPC functions have a return value of type @code{int}, which is used
+to indicate the position of the rounded real and imaginary parts with respect
+to the exact (infinite precision) values.
+If this integer is @code{i}, the macros @code{MPC_INEX_RE(i)} and
+@code{MPC_INEX_IM(i)} give 0 if the corresponding rounded value is exact,
+a negative value if the rounded value is less than the exact one,
+and a positive value if it is greater than the exact one.
+Similarly, functions computing a result of type @code{mpfr_t}
+return an integer that is 0, positive or negative depending on
+whether the rounded value is the same, larger or smaller then
+the exact result.
+
+Some functions, such as @code{mpc_sin_cos}, compute two complex results;
+the macros @code{MPC_INEX1(i)} and @code{MPC_INEX2(i)}, applied to
+the return value @code{i} of such a function, yield the exactness value
+corresponding to the first or the second computed value, respectively.
+
+
+@section Branch Cuts And Special Values
+
+Some complex functions have branch cuts, across which the function is
+discontinous. In GNU MPC, the branch cuts chosen are the same as those
+specified for the corresponding functions in the ISO C99 standard.
+
+Likewise, when evaluated at a point whose real or imaginary part is
+either infinite or a NaN or a signed zero, a function returns the same
+value as those specified for the corresponding function in the ISO C99
+standard.
+
+
+@node Complex Functions
+@chapter Complex Functions
+@cindex Complex functions
+
+The complex functions expect arguments of type @code{mpc_t}.
+
+The GNU MPC floating-point functions have an interface that is similar to the
+GNU MP
+integer functions.  The function prefix for operations on complex numbers is
+@code{mpc_}.
+
+@cindex User-defined precision
+The precision of a computation is defined as follows: Compute the requested
+operation exactly (with ``infinite precision''), and round the result to
+the destination variable precision with the given rounding mode.
+
+The GNU MPC complex functions are intended to be a smooth extension
+of the IEEE P754 arithmetic. The results obtained on one
+computer should not differ from the results obtained on a computer with a
+different word size.
+
+
+@menu
+* Initializing Complex Numbers::
+* Assigning Complex Numbers::
+* Converting Complex Numbers::
+* String and Stream Input and Output::
+* Complex Comparison::
+* Projection & Decomposing::
+* Basic Arithmetic::
+* Power Functions and Logarithm::
+* Trigonometric Functions::
+* Miscellaneous Complex Functions::
+* Advanced Functions::
+* Internals::
+@end menu
+
+@node Initializing Complex Numbers
+@section Initialization Functions
+
+An @code{mpc_t} object must be initialized before storing the first value in
+it.  The functions @code{mpc_init2} and @code{mpc_init3}
+are used for that purpose.
+
+@deftypefun void mpc_init2 (mpc_t @var{z}, mpfr_prec_t @var{prec})
+Initialize @var{z} to precision @var{prec} bits
+and set its real and imaginary parts to NaN.
+Normally, a variable should be initialized once only
+or at least be cleared, using @code{mpc_clear}, between initializations.
+@end deftypefun
+
+@deftypefun void mpc_init3 (mpc_t @var{z}, mpfr_prec_t @var{prec_r}, mpfr_prec_t @var{prec_i})
+Initialize @var{z} with the precision of its real part being
+@var{prec_r} bits and the precision of its imaginary part being
+@var{prec_i} bits, and set the real and imaginary parts to NaN.
+@end deftypefun
+
+@deftypefun void mpc_clear (mpc_t @var{z})
+Free the space occupied by @var{z}.  Make sure to call this function for all
+@code{mpc_t} variables when you are done with them.
+@end deftypefun
+
+@need 2000
+Here is an example on how to initialize complex variables:
+@example
+@{
+  mpc_t x, y;
+  mpc_init2 (x, 256);		/* precision @emph{exactly} 256 bits */
+  mpc_init3 (y, 100, 50);	/* 100/50 bits for the real/imaginary part */
+  @dots{}
+  mpc_clear (x);
+  mpc_clear (y);
+@}
+@end example
+
+The following function is useful for changing the precision during a
+calculation.  A typical use would be for adjusting the precision gradually in
+iterative algorithms like Newton-Raphson, making the computation precision
+closely match the actual accurate part of the numbers.
+
+@deftypefun void mpc_set_prec (mpc_t @var{x}, mpfr_prec_t @var{prec})
+Reset the precision of @var{x} to be @strong{exactly} @var{prec} bits,
+and set its real/imaginary parts to NaN.
+The previous value stored in @var{x} is lost. It is equivalent to
+a call to @code{mpc_clear(x)} followed by a call to
+@code{mpc_init2(x, prec)}, but more efficient as no allocation is done in
+case the current allocated space for the mantissa of @var{x} is sufficient.
+@end deftypefun
+
+@deftypefun mpfr_prec_t mpc_get_prec (mpc_t @var{x})
+If the real and imaginary part of @var{x} have the same precision, it is returned,
+otherwise, 0 is returned.
+@end deftypefun
+
+@deftypefun void mpc_get_prec2 (mpfr_prec_t* @var{pr}, mpfr_prec_t* @var{pi}, mpc_t @var{x})
+Returns the precision of the real part of @var{x} via @var{pr} and of its imaginary part
+via @var{pi}.
+@end deftypefun
+
+
+@node Assigning Complex Numbers
+@section Assignment Functions
+@cindex Complex assignment functions
+
+These functions assign new values to already initialized complex numbers
+(@pxref{Initializing Complex Numbers}).
+When using any functions with @code{intmax_t} or @code{uintmax_t}
+parameters, you must include
+@code{<stdint.h>} or @code{<inttypes.h>} @emph{before} @file{mpc.h}, to allow
+@file{mpc.h} to define prototypes for these functions.
+Similarly, functions with parameters of type @code{complex} or
+@code{long complex} are defined only if @code{<complex.h>} is included
+@emph{before} @file{mpc.h}.
+If you need assignment functions that are not in the current API, you can
+define them using the @code{MPC_SET_X_Y} macro (@pxref{Advanced Functions}).
+
+@deftypefun int mpc_set (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set the value of @var{rop} from @var{op}, rounded to the precision of @var{rop}
+with the given rounding mode @var{rnd}.
+@end deftypefun
+
+@deftypefun int mpc_set_ui (mpc_t @var{rop}, unsigned long int @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_si (mpc_t @var{rop}, long int @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_uj (mpc_t @var{rop}, uintmax_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_sj (mpc_t @var{rop}, intmax_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_d (mpc_t @var{rop}, double @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_ld (mpc_t @var{rop}, long double @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_dc (mpc_t @var{rop}, double _Complex @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_ldc (mpc_t @var{rop}, long double _Complex @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_z (mpc_t @var{rop}, mpz_t @var{op} mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_q (mpc_t @var{rop}, mpq_t @var{op} mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_f (mpc_t @var{rop}, mpf_t @var{op} mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_fr (mpc_t @var{rop}, mpfr_t @var{op}, mpc_rnd_t @var{rnd})
+Set the value of @var{rop} from @var{op}, rounded to the precision of
+@var{rop} with the given rounding mode @var{rnd}.
+The argument @var{op} is interpreted as real, so the imaginary part of
+@var{rop} is set to zero with a positive sign.
+Please note that even a @code{long int} may have to be rounded, if the
+destination precision is less than the machine word width.
+For @code{mpc_set_d}, be careful that the input number @var{op} may not be
+exactly representable as a double-precision number (this happens for 0.1 for
+instance), in which case it is first rounded by the C compiler to a
+double-precision number, and then only to a complex number.
+@end deftypefun
+
+@deftypefun int mpc_set_ui_ui (mpc_t @var{rop}, unsigned long int @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_si_si (mpc_t @var{rop}, long int @var{op1}, long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_uj_uj (mpc_t @var{rop}, uintmax_t @var{op1}, uintmax_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_sj_sj (mpc_t @var{rop}, intmax_t @var{op1}, intmax_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_d_d (mpc_t @var{rop}, double @var{op1}, double @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_ld_ld (mpc_t @var{rop}, long double @var{op1}, long double @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_z_z (mpc_t @var{rop}, mpz_t @var{op1}, mpz_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_q_q (mpc_t @var{rop}, mpq_t @var{op1}, mpq_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_f_f (mpc_t @var{rop}, mpf_t @var{op1}, mpf_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_set_fr_fr (mpc_t @var{rop}, mpfr_t @var{op1}, mpfr_t @var{op2}, mpc_rnd_t @var{rnd})
+Set the real part of @var{rop} from @var{op1}, and its imaginary part from
+@var{op2}, according to the rounding mode @var{rnd}.
+
+Beware that the behaviour of @code{mpc_set_fr_fr} is undefined if @var{op1}
+or @var{op2} is a pointer to the real or imaginary part of @var{rop}.
+To exchange the real and the imaginary part of a complex number, either use
+@code{mpfr_swap (mpc_realref (rop), mpc_imagref (rop))}, which also exchanges
+the precisions of the two parts; or use a temporary variable.
+@end deftypefun
+
+For functions assigning complex variables from strings or input streams,
+@pxref{String and Stream Input and Output}.
+
+@deftypefun void mpc_set_nan (mpc_t @var{rop})
+Set @var{rop} to Nan+i*NaN.
+@end deftypefun
+
+@deftypefun void mpc_swap (mpc_t @var{op1}, mpc_t @var{op2})
+Swap the values of @var{op1} and @var{op2} efficiently. Warning: The
+precisions are exchanged, too; in case these are different,
+@code{mpc_swap} is thus not equivalent to three @code{mpc_set} calls using a
+third auxiliary variable.
+@end deftypefun
+
+
+@node Converting Complex Numbers
+@section Conversion Functions
+@cindex Conversion functions
+
+The following functions are available only if @code{<complex.h>}
+is included @emph{before} @file{mpc.h}.
+
+@deftypefun double _Complex mpc_get_dc (mpc_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx {long double _Complex} mpc_get_ldc (mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Convert @var{op} to a C complex number, using the rounding mode @var{rnd}.
+@end deftypefun
+
+
+For functions converting complex variables to strings or stream output,
+@pxref{String and Stream Input and Output}.
+
+
+@node String and Stream Input and Output
+@section String and Stream Input and Output
+@cindex String and stream input and output
+
+@deftypefun int mpc_strtoc (mpc_t @var{rop}, const char *@var{nptr}, char **@var{endptr}, int @var{base}, mpc_rnd_t @var{rnd})
+Read a complex number from a string @var{nptr} in base @var{base}, rounded to
+the precision of @var{rop} with the given rounding mode @var{rnd}.
+The @var{base} must be either 0 or a number from 2 to 36 (otherwise the
+behaviour is undefined).
+If @var{nptr} starts with valid data, the result is stored in @var{rop},
+the usual inexact value is returned (@pxref{return-value,, Return
+Value}) and, if @var{endptr} is not the null pointer,
+@var{*endptr} points to the character just after the valid data.
+Otherwise, @var{rop} is set to @code{NaN + i * NaN}, -1 is returned and,
+if @var{endptr} is not the null pointer,
+the value of @var{nptr} is stored in the location referenced by
+@var{endptr}.
+
+The expected form of a complex number string is either a real number (an
+optional leading whitespace, an optional sign followed by a floating-point
+number), or a pair of real numbers in parentheses separated by whitespace. If
+a real number is read, the missing imaginary part is set to +0.
+The form of a floating-point number depends on the base and is described
+in the documentation of @code{mpfr_strtofr}
+@ifinfo
+(@pxref{Assignment Functions,,, mpfr.info,GNU MPFR}).
+@end ifinfo
+@ifnotinfo
+in the GNU MPFR manual.
+@end ifnotinfo
+For instance, @code{"3.1415926"}, @code{"(1.25e+7 +.17)"}, @code{"(@@nan@@
+2)"} and @code{"(-0 -7)"} are valid strings for @var{base} = 10.
+If @var{base} = 0, then a prefix may be used to indicate the base in which the
+floating-point number is written. Use prefix '0b' for binary numbers, prefix
+'0x' for hexadecimal numbers, and no prefix for decimal numbers.
+The real and imaginary part may then be written in different bases.
+For instance, @code{"(1.024e+3 +2.05e+3)"} and @code{"(0b1p+10 +0x802)"} are
+valid strings for @code{base}=0 and represent the same value.
+@end deftypefun
+
+@deftypefun int mpc_set_str (mpc_t @var{rop}, const char *@var{s}, int @var{base}, mpc_rnd_t rnd)
+Set @var{rop} to the value of the string @var{s} in base @var{base}, rounded
+to the precision of @var{rop} with the given rounding mode @var{rnd}.
+See the documentation of @code{mpc_strtoc} for a detailed description of the
+valid string formats.
+Contrarily to @code{mpc_strtoc}, @code{mpc_set_str} requires the @emph{whole}
+string to represent a valid complex number (potentially followed by
+additional white space).
+This function returns the usual inexact value (@pxref{return-value,, Return
+Value}) if the entire string up to the final null character is a valid number
+in base @var{base}; otherwise it returns @minus{}1, and @var{rop} is set to
+NaN+i*NaN.
+@end deftypefun
+
+@deftypefun {char *} mpc_get_str (int @var{b}, size_t @var{n}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Convert @var{op} to a string containing its real and imaginary parts,
+separated by a space and enclosed in a pair of parentheses.
+The numbers are written in base @var{b} (which may vary from 2 to 36) and
+rounded according to @var{rnd}. The number of significant digits, at least 2,
+is given by @var{n}. It is also possible to let
+@var{n} be zero, in which case the number of digits is chosen large
+enough so that re-reading the printed value with the same precision, assuming
+both output and input use rounding to nearest, will recover the original value
+of @var{op}.
+Note that @code{mpc_get_str} uses the decimal point of the current locale
+if available, and @samp{.} otherwise.
+
+The string is generated using the current memory allocation function
+(@code{malloc} by default, unless it has been modified using the custom
+memory allocation interface of @code{gmp}); once it is not needed any more,
+it should be freed by calling @code{mpc_free_str}.
+@end deftypefun
+
+@deftypefun {void} mpc_free_str (char *@var{str})
+Free the string @var{str}, which needs to have been allocated by
+a call to @code{mpc_get_str}.
+@end deftypefun
+
+The following two functions read numbers from input streams and write
+them to output streams.
+When using any of these functions, you need to include @file{stdio.h}
+@emph{before} @file{mpc.h}.
+
+@deftypefun int mpc_inp_str (mpc_t @var{rop}, FILE *@var{stream}, size_t *@var{read}, int @var{base}, mpc_rnd_t @var{rnd})
+Input a string in base @var{base} in the same format as for @code{mpc_strtoc}
+from stdio stream @var{stream}, rounded according to @var{rnd}, and put the
+read complex number into @var{rop}.
+If @var{stream} is the null pointer, @var{rop} is read from @code{stdin}.
+Return the usual inexact value; if an error occurs, set @var{rop} to @code{NaN
++ i * NaN} and return -1.
+If @var{read} is not the null pointer, it is set to the number of read
+characters.
+
+Unlike @code{mpc_strtoc}, the function @code{mpc_inp_str} does not possess
+perfect knowledge of the string to transform and has to read it
+character by character, so it behaves slightly differently: It tries
+to read a string describing a complex number and processes this string
+through a call to @code{mpc_set_str}. Precisely, after skipping optional
+whitespace, a minimal string is read according to the regular expression
+@code{mpfr | '(' \s* mpfr \s+ mpfr \s* ')'}, where @code{\s} denotes a whitespace,
+and @code{mpfr} is either a string containing neither whitespaces nor
+parentheses, or @code{nan(n-char-sequence)} or @code{@@nan@@(n-char-sequence)}
+(regardless of capitalisation) with @code{n-char-sequence} a string
+of ascii letters, digits or @code{'_'}.
+
+For instance, upon input of @code{"nan(13 1)"}, the function
+@code{mpc_inp_str} starts to recognise a value of NaN followed by an
+n-char-sequence indicated by the opening parenthesis; as soon as the
+space is reached, it becocmes clear that the expression in parentheses
+is not an n-char-sequence, and the error flag -1 is returned after 6
+characters have been consumed from the stream (the whitespace itself
+remaining in the stream).
+The function @code{mpc_strtoc}, on the other hand, may track back
+when reaching the whitespace; it treats the string as the two successive
+complex numbers @code{NaN + i * 0} and @code{13 + i}.
+It is thus recommended to have a whitespace follow each floating point number
+to avoid this problem.
+@end deftypefun
+
+@deftypefun size_t mpc_out_str (FILE *@var{stream}, int @var{base}, size_t @var{n_digits}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Output @var{op} on stdio stream @var{stream} in
+base @var{base}, rounded according to @var{rnd}, in the same format
+as for @code{mpc_strtoc}
+If @var{stream} is the null pointer, @var{rop} is written to @code{stdout}.
+
+Return the number of characters written.
+@end deftypefun
+
+
+@node Complex Comparison
+@section Comparison Functions
+@cindex Complex comparisons functions
+@cindex Comparison functions
+
+@deftypefn Function int mpc_cmp (mpc_t @var{op1}, mpc_t @var{op2})
+@deftypefnx Function int mpc_cmp_si_si (mpc_t @var{op1}, long int @var{op2r}, long int @var{op2i})
+@deftypefnx Macro int mpc_cmp_si (mpc_t @var{op1}, long int @var{op2})
+
+Compare @var{op1} and @var{op2}, where in the case of @code{mpc_cmp_si_si},
+@var{op2} is taken to be @var{op2r} + i @var{op2i}.
+The return value @var{c} can be decomposed into @code{x = MPC_INEX_RE(c)}
+and @code{y = MPC_INEX_IM(c)}, such that @var{x} is
+positive if the real part of @var{op1} is greater than that of @var{op2},
+zero if both real parts are equal, and negative if the real part of @var{op1}
+is less than that of @var{op2}, and likewise for @var{y}.
+Both @var{op1} and @var{op2} are considered to their full own precision,
+which may differ.
+It is not allowed that one of the operands has a NaN (Not-a-Number) part.
+
+The storage of the return value is such that equality can be simply checked
+with @code{mpc_cmp (op1, op2) == 0}.
+@end deftypefn
+
+
+@node Projection & Decomposing
+@section Projection and Decomposing Functions
+@cindex Projection and Decomposing Functions
+
+@deftypefn Function int mpc_real (mpfr_t @var{rop}, mpc_t @var{op}, mpfr_rnd_t @var{rnd})
+Set @var{rop} to the value of the real part of @var{op} rounded
+in the direction @var{rnd}.
+@end deftypefn
+
+@deftypefn Function int mpc_imag (mpfr_t @var{rop}, mpc_t @var{op}, mpfr_rnd_t @var{rnd})
+Set @var{rop} to the value of the imaginary part of @var{op} rounded in the
+direction @var{rnd}.
+@end deftypefn
+
+@deftypefn Macro mpfr_t mpc_realref (mpc_t @var{op})
+@deftypefnx Macro mpfr_t mpc_imagref (mpc_t @var{op})
+Return a reference to the real part and imaginary part of @var{op},
+respectively. The @code{mpfr} functions can be used on the result of these
+macros (note that the @code{mpfr_t} type is itself a pointer).
+@end deftypefn
+
+@deftypefn Function int mpc_arg (mpfr_t @var{rop}, mpc_t @var{op}, mpfr_rnd_t @var{rnd})
+Set @var{rop} to the argument of @var{op}, with a branch cut along the
+negative real axis.
+@end deftypefn
+
+@deftypefn Function int mpc_proj (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Compute a projection of @var{op} onto the Riemann sphere. Set @var{rop} to
+@var{op} rounded in the direction @var{rnd}, except when at least one part of
+@var{op} is infinite (even if the other part is a NaN) in which case the real
+part of @var{rop} is set to plus infinity and its imaginary part to a signed
+zero with the same sign as the imaginary part of @var{op}.
+@end deftypefn
+
+
+@node Basic Arithmetic
+@section Basic Arithmetic Functions
+@cindex Complex arithmetic functions
+@cindex Arithmetic functions
+
+All the following functions are designed in such a way that, when working
+with real numbers instead of complex numbers, their complexity should
+essentially be the same as with the GNU MPFR library, with only a marginal
+overhead due to the GNU MPC layer.
+
+@deftypefun int mpc_add (mpc_t @var{rop}, mpc_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_add_ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_add_fr (mpc_t @var{rop}, mpc_t @var{op1}, mpfr_t @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1} @math{+} @var{op2} rounded according to @var{rnd}.
+@end deftypefun
+
+@deftypefn Function int mpc_sub (mpc_t @var{rop}, mpc_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefnx Function int mpc_sub_fr (mpc_t @var{rop}, mpc_t @var{op1}, mpfr_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefnx Function int mpc_fr_sub (mpc_t @var{rop}, mpfr_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefnx Function int mpc_sub_ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefnx Macro int mpc_ui_sub (mpc_t @var{rop}, unsigned long int @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefnx Function int mpc_ui_ui_sub (mpc_t @var{rop}, unsigned long int @var{re1}, unsigned long int @var{im1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1} @minus{} @var{op2} rounded according to @var{rnd}.
+For @code{mpc_ui_ui_sub}, @var{op1} is @var{re1} + @var{im1}.
+@end deftypefn
+
+@deftypefun int mpc_neg (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @minus{}@var{op} rounded according to @var{rnd}.
+Just changes the sign if @var{rop} and @var{op} are the same variable.
+@end deftypefun
+
+@deftypefun int mpc_mul (mpc_t @var{rop}, mpc_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_mul_ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_mul_si (mpc_t @var{rop}, mpc_t @var{op1}, long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_mul_fr (mpc_t @var{rop}, mpc_t @var{op1}, mpfr_t @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1} times @var{op2} rounded according to @var{rnd}.
+Note: for @code{mpc_mul}, in case @var{op1} and @var{op2} have the same value,
+use @code{mpc_sqr} for better efficiency.
+@end deftypefun
+
+@deftypefun int mpc_mul_i (mpc_t @var{rop}, mpc_t @var{op}, int @var{sgn}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op} times the imaginary unit i if @var{sgn} is
+non-negative, set @var{rop} to @var{op} times -i otherwise,
+in both cases rounded according to @var{rnd}.
+@end deftypefun
+
+@deftypefun int mpc_sqr (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the square of @var{op} rounded according to @var{rnd}.
+@end deftypefun
+
+@deftypefun int mpc_fma (mpc_t @var{rop}, mpc_t @var{op1}, mpc_t @var{op2}, mpc_t @var{op3}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1}*@var{op2}+@var{op3},
+rounded according to @var{rnd}, with only one final rounding.
+@end deftypefun
+
+@deftypefun int mpc_div (mpc_t @var{rop}, mpc_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_div_ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_div_fr (mpc_t @var{rop}, mpc_t @var{op1}, mpfr_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_ui_div (mpc_t @var{rop}, unsigned long int @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_fr_div (mpc_t @var{rop}, mpfr_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1}/@var{op2} rounded according to @var{rnd}.
+@end deftypefun
+
+@deftypefun int mpc_conj (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the conjugate of @var{op} rounded according to @var{rnd}.
+Just changes the sign of the imaginary part
+if @var{rop} and @var{op} are the same variable.
+@end deftypefun
+
+@deftypefun int mpc_abs (mpfr_t @var{rop}, mpc_t @var{op}, mpfr_rnd_t @var{rnd})
+Set the floating-point number @var{rop} to the absolute value of @var{op},
+rounded in the direction @var{rnd}.
+@end deftypefun
+
+@deftypefun int mpc_norm (mpfr_t @var{rop}, mpc_t @var{op}, mpfr_rnd_t @var{rnd})
+Set the floating-point number @var{rop} to the norm of @var{op}
+(i.e., the square of its absolute value),
+rounded in the direction @var{rnd}.
+@end deftypefun
+
+@deftypefun int mpc_mul_2ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_mul_2si (mpc_t @var{rop}, mpc_t @var{op1}, long int @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1} times 2 raised to @var{op2}
+rounded according to @var{rnd}. Just modifies the exponents
+of the real and imaginary parts by @var{op2}
+when @var{rop} and @var{op1} are identical.
+@end deftypefun
+
+@deftypefun int mpc_div_2ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long int @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_div_2si (mpc_t @var{rop}, mpc_t @var{op1}, long int @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1} divided by 2 raised to @var{op2}
+rounded according to @var{rnd}. Just modifies the exponents
+of the real and imaginary parts by @var{op2}
+when @var{rop} and @var{op1} are identical.
+@end deftypefun
+
+
+@node Power Functions and Logarithm
+@section Power Functions and Logarithm
+@cindex Power functions
+@cindex Logarithm
+
+@deftypefun int mpc_sqrt (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the square root of @var{op} rounded according to @var{rnd}.
+The returned value @var{rop} has a non-negative real part, and if its real
+part is zero, a non-negative imaginary part.
+@end deftypefun
+
+@deftypefun int mpc_pow (mpc_t @var{rop}, mpc_t @var{op1}, mpc_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_pow_d (mpc_t @var{rop}, mpc_t @var{op1}, double @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_pow_ld (mpc_t @var{rop}, mpc_t @var{op1}, long double @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_pow_si (mpc_t @var{rop}, mpc_t @var{op1}, long @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_pow_ui (mpc_t @var{rop}, mpc_t @var{op1}, unsigned long @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_pow_z (mpc_t @var{rop}, mpc_t @var{op1}, mpz_t @var{op2}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_pow_fr (mpc_t @var{rop}, mpc_t @var{op1}, mpfr_t @var{op2}, mpc_rnd_t @var{rnd})
+Set @var{rop} to @var{op1} raised to the power @var{op2}, rounded according
+to @var{rnd}.
+For @code{mpc_pow_d}, @code{mpc_pow_ld}, @code{mpc_pow_si}, @code{mpc_pow_ui},
+@code{mpc_pow_z} and @code{mpc_pow_fr},
+the imaginary part of @var{op2} is considered as +0.
+When both @var{op1} and @var{op2} are zero, the result has real part 1,
+and imaginary part 0, with sign being the opposite of that of @var{op2}.
+@end deftypefun
+
+@deftypefun int mpc_exp (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the exponential of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_log (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_log10 (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the natural and base-10 logarithm of @var{op} respectively,
+rounded according to @var{rnd} with the precision of @var{rop}.
+The principal branch is chosen, with the branch cut on the negative real axis,
+so that the imaginary part of the result lies in
+@math{]-\pi , \pi]} and @math{]-\pi/log(10) , \pi/log(10)]} respectively.
+@end deftypefun
+
+
+@node Trigonometric Functions
+@section Trigonometric Functions
+@cindex Trigonometric functions
+
+@deftypefun int mpc_sin (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the sine of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_cos (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the cosine of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_sin_cos (mpc_t @var{rop_sin}, mpc_t @var{rop_cos}, mpc_t @var{op}, mpc_rnd_t @var{rnd_sin}, mpc_rnd_t @var{rnd_cos})
+Set @var{rop_sin} to the sine of @var{op},
+rounded according to @var{rnd_sin} with the precision of @var{rop_sin},
+and @var{rop_cos} to the cosine of @var{op},
+rounded according to @var{rnd_cos} with the precision of @var{rop_cos}.
+@end deftypefun
+
+@deftypefun int mpc_tan (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the tangent of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_sinh (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the hyperbolic sine of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_cosh (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the hyperbolic cosine of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_tanh (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the hyperbolic tangent of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_asin (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_acos (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_atan (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the inverse sine, inverse cosine, inverse tangent of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+@end deftypefun
+
+@deftypefun int mpc_asinh (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_acosh (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+@deftypefunx int mpc_atanh (mpc_t @var{rop}, mpc_t @var{op}, mpc_rnd_t @var{rnd})
+Set @var{rop} to the inverse hyperbolic sine, inverse hyperbolic cosine,
+inverse hyperbolic tangent of @var{op},
+rounded according to @var{rnd} with the precision of @var{rop}.
+The branch cut of @var{mpc_acosh} is @math{(-\infty, 1)}.
+@end deftypefun
+
+@node Miscellaneous Complex Functions
+@section Miscellaneous Functions
+@cindex Miscellaneous complex functions
+
+@deftypefun int mpc_urandom (mpc_t @var{rop}, gmp_randstate_t @var{state})
+Generate a uniformly distributed random complex in the unit square @math{[0,
+1] @times [0, 1]}. Return 0, unless an exponent in the real or imaginary part
+is not in the current exponent range, in which case that part is set to NaN
+and a zero value is returned. The second argument is a @code{gmp_randstate_t}
+structure which should be created using the GMP @code{rand_init} function, see
+the GMP manual.
+@end deftypefun
+
+@deftypefun {const char *} mpc_get_version (void)
+Return the GNU MPC version, as a null-terminated string.
+@end deftypefun
+
+@defmac MPC_VERSION
+@defmacx MPC_VERSION_MAJOR
+@defmacx MPC_VERSION_MINOR
+@defmacx MPC_VERSION_PATCHLEVEL
+@defmacx MPC_VERSION_STRING
+@code{MPC_VERSION} is the version of GNU MPC as a preprocessing constant.
+@code{MPC_VERSION_MAJOR}, @code{MPC_VERSION_MINOR} and
+@code{MPC_VERSION_PATCHLEVEL} are respectively the major, minor and
+patch level of GNU MPC version, as preprocessing constants.
+@code{MPC_VERSION_STRING} is the version as a string constant, which
+can be compared to the result of @code{mpc_get_version} to check at
+run time the header file and library used match:
+@example
+if (strcmp (mpc_get_version (), MPC_VERSION_STRING))
+  fprintf (stderr, "Warning: header and library do not match\n");
+@end example
+Note: Obtaining different strings is not necessarily an error, as in
+general, a program compiled with some old GNU MPC version can be
+dynamically linked with a newer GNU MPC library version (if allowed by the
+library versioning system).
+@end defmac
+
+@deftypefn Macro long MPC_VERSION_NUM (@var{major}, @var{minor}, @var{patchlevel})
+Create an integer in the same format as used by @code{MPC_VERSION} from the
+given @var{major}, @var{minor} and @var{patchlevel}.
+Here is an example of how to check the GNU MPC version at compile time:
+@example
+#if (!defined(MPC_VERSION) || (MPC_VERSION<MPC_VERSION_NUM(2,1,0)))
+# error "Wrong GNU MPC version."
+#endif
+@end example
+@end deftypefn
+
+@node Advanced Functions
+@section Advanced Functions
+
+@defmac MPC_SET_X_Y (@var{real_suffix}, @var{imag_suffix}, @var{rop}, @var{real}, @var{imag}, @var{rnd})
+The macro MPC_SET_X_Y is designed to serve as the body of an assignment
+function and cannot be used by itself.
+The @var{real_suffix} and @var{imag_suffix} parameters are the
+types of the real and imaginary part, that is, the @code{x} in the
+@code{mpfr_set_x} function one would use to set the part;
+for the mpfr type, use @code{fr}.
+@var{real} (respectively @var{imag}) is the value you want to assign to the
+real (resp. imaginary) part, its type must conform to @var{real_suffix}
+(resp. @var{imag_suffix}).
+@var{rnd} is the @code{mpc_rnd_t} rounding mode.
+The return value is the usual inexact value (@pxref{return-value,, Return
+Value}).
+
+For instance, you can define mpc_set_ui_fr as follows:
+@example
+int mpc_set_ui_fr (mpc_t rop, long int re, double im, mpc_rnd_t rnd)
+    MPC_SET_X_Y (ui, fr, rop, re, im, rnd);
+@end example
+@end defmac
+
+
+@node Internals
+@section Internals
+
+These macros and
+functions are mainly designed for the implementation of GNU MPC,
+but may be useful for users too.
+However, no upward compatibility is guaranteed.
+You need to include @code{mpc-impl.h} to use them.
+
+The macro @code{MPC_MAX_PREC(z)} gives the maximum of the precisions
+of the real and imaginary parts of a complex number.
+
+
+@node References
+@unnumbered References
+
+@itemize @bullet
+
+@item
+Torbj@"orn Granlund et al.
+@code{gmp} -- GNU multiprecision library.
+Version 4.2.4, @url{http://gmplib.org/}.
+
+@item
+Guillaume Hanrot, Vincent Lef@`evre, Patrick P@'elissier, Paul Zimmermann et al.
+@code{mpfr} -- A library for multiple-precision floating-point computations with exact rounding.
+Version 2.4.1, @url{http://www.mpfr.org}.
+
+@item
+IEEE standard for binary floating-point arithmetic, Technical Report
+ANSI-IEEE Standard 754-1985, New York, 1985.
+Approved March 21, 1985: IEEE Standards Board; approved July 26,
+  1985: American National Standards Institute, 18 pages.
+
+@item
+Donald E. Knuth, "The Art of Computer Programming", vol 2,
+"Seminumerical Algorithms", 2nd edition, Addison-Wesley, 1981.
+
+@item
+ISO/IEC 9899:1999, Programming languages — C.
+
+@end itemize
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
+
+@node Function Index
+@unnumbered Function Index
+@printindex fn
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+@include fdl-1.3.texi
+
+@ifnothtml
+@contents
+@end ifnothtml
+
+@bye

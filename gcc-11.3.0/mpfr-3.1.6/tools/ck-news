@@ -1,0 +1,48 @@
+#!/usr/bin/env perl
+
+# Note: this script must not be used to build MPFR due to the
+# dependency on perl, but this is OK for "make dist".
+
+# Copyright 2016-2017 Free Software Foundation, Inc.
+# This script is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+use strict;
+use Cwd;
+
+if (! -d 'src')
+  {
+    getcwd() =~ m,/tools$,
+      or die "Execute $0 from the MPFR source directory\n";
+    chdir '..' or die "$!\n$0: can't change cwd\n";
+  }
+
+open VERSION, '<', 'VERSION'
+  or die "$!\n$0: can't open VERSION file\n";
+my $version = do { local $/; <VERSION> };
+close VERSION or die "$!\n$0: can't close VERSION file\n";
+
+my ($base,$mv,$pl,$suf) = $version =~ /^((\d+\.\d+)\.(\d+))(-\S+)?/
+  or die "$0: bad VERSION format\n";
+
+my $r1 = qr/^Changes from version/;
+my $r2 = qr/ to version \Q$base\E:/;
+my $rx = $pl ? qr/$r1 \Q$mv\E\.@{[$pl-1]}$r2/ : qr/${r1}s? \S+\.[0*]$r2/;
+
+open NEWS, '<', 'NEWS'
+  or die "$!\n$0: can't open NEWS file\n";
+my $ok;
+while (<NEWS>)
+  {
+    /$rx/ and $ok = 1;
+    $suf ne '-dev' && /FIXME|TODO/ and $! = 2, die "$0: $& in NEWS file";
+  }
+close NEWS or die "$!\n$0: can't close NEWS file\n";
+
+$ok or $! = 1, die "$0: missing or bad change log in NEWS file\n";

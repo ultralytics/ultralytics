@@ -1,0 +1,174 @@
+Copyright 2000, 2001 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+                      AMD K7 MPN SUBROUTINES
+
+
+This directory contains code optimized for the AMD Athlon CPU.
+
+The mmx subdirectory has routines using MMX instructions.  All Athlons have
+MMX, the separate directory is just so that configure can omit it if the
+assembler doesn't support MMX.
+
+
+
+STATUS
+
+Times for the loops, with all code and data in L1 cache.
+
+                               cycles/limb
+	mpn_add/sub_n             1.6
+
+	mpn_copyi                 0.75 or 1.0   \ varying with data alignment
+	mpn_copyd                 0.75 or 1.0   /
+
+	mpn_divrem_1             17.0 integer part, 15.0 fractional part
+	mpn_mod_1                17.0
+	mpn_divexact_by3          8.0
+
+	mpn_l/rshift              1.2
+
+	mpn_mul_1                 3.4
+	mpn_addmul/submul_1       3.9
+
+	mpn_mul_basecase          4.42 cycles/crossproduct (approx)
+        mpn_sqr_basecase          2.3 cycles/crossproduct (approx)
+				  or 4.55 cycles/triangleproduct (approx)
+
+Prefetching of sources hasn't yet been tried.
+
+
+
+NOTES
+
+cmov, MMX, 3DNow and some extensions to MMX and 3DNow are available.
+
+Write-allocate L1 data cache means prefetching of destinations is unnecessary.
+
+Floating point multiplications can be done in parallel with integer
+multiplications, but there doesn't seem to be any way to make use of this.
+
+Unsigned "mul"s can be issued every 3 cycles.  This suggests 3 is a limit on
+the speed of the multiplication routines.  The documentation shows mul
+executing in IEU0 (or maybe in IEU0 and IEU1 together), so it might be that,
+to get near 3 cycles code has to be arranged so that nothing else is issued
+to IEU0.  A busy IEU0 could explain why some code takes 4 cycles and other
+apparently equivalent code takes 5.
+
+
+
+OPTIMIZATIONS
+
+Unrolled loops are used to reduce looping overhead.  The unrolling is
+configurable up to 32 limbs/loop for most routines and up to 64 for some.
+The K7 has 64k L1 code cache so quite big unrolling is allowable.
+
+Computed jumps into the unrolling are used to handle sizes not a multiple of
+the unrolling.  An attractive feature of this is that times increase
+smoothly with operand size, but it may be that some routines should just
+have simple loops to finish up, especially when PIC adds between 2 and 16
+cycles to get %eip.
+
+Position independent code is implemented using a call to get %eip for the
+computed jumps and a ret is always done, rather than an addl $4,%esp or a
+popl, so the CPU return address branch prediction stack stays synchronised
+with the actual stack in memory.
+
+Branch prediction, in absence of any history, will guess forward jumps are
+not taken and backward jumps are taken.  Where possible it's arranged that
+the less likely or less important case is under a taken forward jump.
+
+
+
+CODING
+
+Instructions in general code have been shown grouped if they can execute
+together, which means up to three direct-path instructions which have no
+successive dependencies.  K7 always decodes three and has out-of-order
+execution, but the groupings show what slots might be available and what
+dependency chains exist.
+
+When there's vector-path instructions an effort is made to get triplets of
+direct-path instructions in between them, even if there's dependencies,
+since this maximizes decoding throughput and might save a cycle or two if
+decoding is the limiting factor.
+
+
+
+INSTRUCTIONS
+
+adcl       direct
+divl       39 cycles back-to-back
+lodsl,etc  vector
+loop       1 cycle vector (decl/jnz opens up one decode slot)
+movd reg   vector
+movd mem   direct
+mull       issue every 3 cycles, latency 4 cycles low word, 6 cycles high word
+popl	   vector (use movl for more than one pop)
+pushl	   direct, will pair with a load
+shrdl %cl  vector, 3 cycles, seems to be 3 decode too
+xorl r,r   false read dependency recognised
+
+
+
+REFERENCES
+
+"AMD Athlon Processor X86 Code Optimization Guide", AMD publication number
+22007, revision K, February 2002.  Available on-line,
+
+http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/22007.pdf
+
+"3DNow Technology Manual", AMD publication number 21928G/0-March 2000.
+This describes the femms and prefetch instructions.  Available on-line,
+
+http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/21928.pdf
+
+"AMD Extensions to the 3DNow and MMX Instruction Sets Manual", AMD
+publication number 22466, revision D, March 2000.  This describes
+instructions added in the Athlon processor, such as pswapd and the extra
+prefetch forms.  Available on-line,
+
+http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/22466.pdf
+
+"3DNow Instruction Porting Guide", AMD publication number 22621, revision B,
+August 1999.  This has some notes on general Athlon optimizations as well as
+3DNow.  Available on-line,
+
+http://www.amd.com/us-en/assets/content_type/white_papers_and_tech_docs/22621.pdf
+
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

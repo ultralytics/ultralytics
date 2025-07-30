@@ -1,0 +1,10 @@
+# Check that the most appropriate lower bound is selected
+[t1,t2]->{ S[i,j] -> [i,j] : exists (alpha, beta :
+    0 <= i <= 1 &&
+    t1 = j+128alpha &&
+    0 <= j+2beta < 128 &&
+    510 <= t2+2beta <= 514 &&
+    0 <= 2beta - t2 <= 5
+)}
+[t1,t2] -> {: 125 <= t1 <= 127 and 254 <= t2 < 257}
+{[i,j] -> unroll[x]}

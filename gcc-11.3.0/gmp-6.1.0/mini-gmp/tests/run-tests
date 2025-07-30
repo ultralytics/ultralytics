@@ -1,0 +1,123 @@
+#! /bin/sh
+
+# Copyright (C) 2000-2002, 2004, 2005, 2011, 2012  Niels Möller
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+failed=0
+all=0
+
+debug='no'
+testflags=''
+
+if [ -z "$srcdir" ] ; then
+  srcdir=`pwd`
+fi
+
+export srcdir
+
+# When used in make rules, we sometimes get the filenames VPATH
+# expanded, but usually not.
+find_program () {
+    case "$1" in
+	*/*)
+	  echo "$1"
+	  ;;
+	*)
+	  if [ -x "$1" ] ; then
+	      echo "./$1"
+	  else
+	      echo "$srcdir/$1"
+	  fi
+	  ;;
+    esac
+}
+
+env_program () {
+  if [ -x "$1" ] ; then
+    if "$1"; then : ; else
+      echo FAIL: $1
+      exit 1
+    fi
+  fi
+}
+
+test_program () {
+  testname=`basename "$1" .exe`
+  testname=`basename "$testname" -test`
+  if [ -z "$EMULATOR" ] || head -1 "$1" | grep '^#!' > /dev/null; then
+    "$1" $testflags
+  else
+    $EMULATOR "$1" $testflags
+  fi
+  case "$?" in
+      0)
+	echo PASS: $testname
+	all=`expr $all + 1`
+	;;
+      77)
+	echo SKIP: $testname
+      ;;
+      *)
+	echo FAIL: $testname
+	failed=`expr $failed + 1`
+	all=`expr $all + 1`
+	;;
+  esac
+}
+
+env_program `find_program setup-env`
+
+while test $# != 0
+do
+  case "$1" in
+  --debug)
+    debug=yes
+    ;;
+  -v)
+    testflags='-v'
+    ;;
+  -*)
+    echo >&2 'Unknown option `'"$1'"
+    exit 1
+    ;;
+  *)
+    break
+    ;;
+  esac
+  shift
+done
+
+if [ $# -eq 0 ] ; then
+  for f in *-test; do test_program "./$f"; done
+else
+  for f in "$@" ; do test_program `find_program "$f"`; done
+fi
+
+if [ $failed -eq 0 ] ; then
+  banner="All $all tests passed"
+else
+  banner="$failed of $all tests failed"
+fi
+dashes=`echo "$banner" | sed s/./=/g`
+echo "$dashes"
+echo "$banner"
+echo "$dashes"
+
+if [ "x$debug" = xno ] ; then
+  env_program `find_program teardown-env`
+fi
+
+[ "$failed" -eq 0 ]

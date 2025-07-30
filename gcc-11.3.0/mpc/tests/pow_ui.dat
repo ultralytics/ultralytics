@@ -1,0 +1,102 @@
+# Data file for mpc_pow_ui.
+#
+# Copyright (C) 2010, 2011, 2012 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX_RE INEX_IM PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP1_RE  OP1_RE  PREC_OP1_IM  OP1_IM  OP2  RND_RE  RND_IM
+#
+# For further details, see add_fr.dat.
+
+# special cases, copied from pow.dat
+0 0 53   +1 53    0    53  nan 53   +0  +0 N N
+0 0 53  nan 53  nan    53  nan 53   +0  +1 N N
+0 0 53  inf 53  nan    53 +inf 53   +0  +1 N N
+0 0 53 +inf 53  nan    53 +inf 53   +1  +1 N N
+0 0 53 +inf 53  nan    53 +inf 53   -1  +1 N N
+0 0 53 +inf 53  nan    53 -inf 53   +0  +1 N N
+0 0 53 +inf 53  nan    53 -inf 53   +1  +1 N N
+0 0 53 +inf 53  nan    53 -inf 53   -1  +1 N N
+
+0 0 53   +1 53   +0    53   +0 53   +0  +0 N N
+0 0 53   +0 53   +0    53   +0 53   +0  +1 N N
+
+0 0 53   +1 53   +0    53   +0 53   +1  +0 N N
+0 0 53   +1 53   -0    53   +0 53   +1  +0 N D
+0 0 53   +1 53   +0    53   -0 53   +1  +0 N N
+0 0 53   +1 53   +0    53   -1 53   +0  +0 N N
+0 0 53   +1 53   -0    53   -1 53   -0  +0 N N
+0 0 53   +1 53   -0    53   -0 53   -1  +0 N N
+0 0 53   +1 53   -0    53   +0 53   -1  +0 N N
+
+0 0 53   +1 53   +0    53 +inf 53   +2  +0 N N
+0 0 53   +1 53   +0    53 +inf 53   -0  +0 N N
+0 0 53   +1 53   +0    53   +2 53 +inf  +0 N N
+0 0 53   +1 53   +0    53   +2 53   +0  +0 N N
+0 0 53   +1 53   +0    53   +0 53   +2  +0 N N
+0 0 53   +1 53   +0    53   +0 53 +inf  +0 N N
+0 0 53   +1 53   +0    53   -0 53   +2  +0 N N
+0 0 53   +1 53   +0    53   -0 53 +inf  +0 N N
+0 0 53   +1 53   +0    53   -5 53 +inf  +0 N N
+0 0 53   +1 53   +0    53   -2 53   +0  +0 N N
+0 0 53   +1 53   +0    53 -inf 53   +0  +0 N N
+0 0 53   +1 53   +0    53 -inf 53   +3  +0 N N
+0 0 53   +1 53   -0    53 +0.5 53 -0.5  +0 N N
+0 0 53   +1 53   -0    53 +0.5 53   +0  +0 N N
+0 0 53   +1 53   -0    53 +0.5 53   -0  +0 N N
+0 0 53   +1 53   -0    53 -0.5 53   -0  +0 N N
+0 0 53   +1 53   -0    53   +0 53 -0.5  +0 N N
+0 0 53   +1 53   -0    53   -0 53 -0.5  +0 N N
+0 0 53   +9 53   +0    53   +3 53   +0  +2 N N
+0 0 53   +1 53   +0    53   +1 53   +0  +4 N N
+0 0 53   +1 53   -0    53   +1 53   -0  +4 N N
+0 0 53 0.25 53   -0    53 +0.5 53   -0  +2 N N
+
+0 0 53    1 53    0    53   +2 53   -1  +0 N N
+0 0 53    1 53    0    53   -2 53   -1  +0 N N
+0 0 53    1 53    0    53   -2 53   -0  +0 N N
+0 0 53    1 53    0    53 +0.5 53 +0.5  +0 N N
+0 0 53    1 53    0    53 -0.5 53 +0.5  +0 N N
+0 0 53    1 53    0    53 -0.5 53   +0  +0 N N
+0 0 53    1 53    0    53   +0 53 +0.5  +0 N N
+0 0 53    1 53    0    53   -0 53 +0.5  +0 N N
+0 0 53    1 53    0    53   -0 53   -4  +0 N N
+0 0 53    1 53    0    53   +0 53   -4  +0 N N
+0 0 53    1 53    0    53   -1 53   -0  +0 N N
+0 0 53    1 53    0    53   -1 53   +0  +0 N N
+
+0 0 53    4 53    0    53   +2 53   -0  +2 N N
+0 0 53    1 53    0    53   +1 53   +0  +2 N N
+0 0 53    1 53    0    53   +1 53   -0  +2 N N
+
+# overflow
+? ? 53 +inf 53 +inf    53 1e100000000  53 1e100000000   1000000000 N N
+# underflow
+? ? 53    0 53    0    53 1e-100000000 53 1e-100000000  1000000000 N N
+# cannot round after one loop
+? ? 420  -0x1.c3fb41a71665f9a144927e70cbc2dc899e9e30880c0b5aa924ad8a538b4cd06e503f38bdbb7cfcfded29f7504fe0c91ecd4230984@-187 420 -0xc.82a09ac98133eb05b2643c98eb1c8e1a1609e75f682b14098176abd6c8b4b3c6c72dadaf8929f9bd87f8c78d03361bacb9fb13140@-292  420 0x1.cf13ce58adc4e639fd1c3063ffc9291433647999951bc04ba6797ec4de0335336ad0a28df18573d3b6322ebab662c08eadaed4a8e@-8 420 0x3.cf71d602ca6f754ebd6af522154f3ee1c46da0a52deb1f60016fca4b1e0b4b447b752169e837bb1866aa3734850cd158a7e3ca33c@-9  24 N N
+# exact result
+0 0  5 -9 5 46  5 3 5 2  3 D U
+
+# special cases with exponents 1 and 2
+0 0 53  3 53  4  53 3 53 4 1 N N
+0 0 53 -7 53 24  53 3 53 4 2 N N
+
+# coverage test
++ - 2 1 2 1 100 0x8ac78f4e6aec091921cbdc891p-99 100 0x4a5f2972ea662e1cc0caebb81p-100 3 N N

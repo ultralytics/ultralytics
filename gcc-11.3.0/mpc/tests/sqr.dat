@@ -1,0 +1,170 @@
+# Data file for mpc_sqr.
+#
+# Copyright (C) 2008, 2010, 2012 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP_RE  OP_RE  PREC_OP_IM  OP_IM  RND_RE  RND_IM
+#
+# see sin.dat for precisions
+
+# special values (following ISO C99 standard)
+0 0 53  nan 53 +inf     53 -inf 53 -inf N N
+0 0 53 +inf 53 +inf     53 -inf 53   -1 N N
+0 0 53 +inf 53  nan     53 -inf 53   -0 N N
+0 0 53 +inf 53  nan     53 -inf 53   +0 N N
+0 0 53 +inf 53 -inf     53 -inf 53   +1 N N
+0 0 53  nan 53 -inf     53 -inf 53 +inf N N
+0 0 53  nan 53  nan     53 -inf 53  nan N N
+0 0 53 -inf 53 +inf     53   -1 53 -inf N N
+0 0 53   +1 53   +0     53   -1 53   -0 N N
+0 0 53   +1 53   -0     53   -1 53   +0 N N
+0 0 53 -inf 53 -inf     53   -1 53 +inf N N
+0 0 53  nan 53  nan     53   -1 53  nan N N
+0 0 53 -inf 53  nan     53   -0 53 -inf N N
+0 0 53   -1 53   +0     53   -0 53   -1 N N
+0 0 53    0 53   +0     53   -0 53   -0 N N
+0 0 53    0 53   -0     53   -0 53   +0 N N
+0 0 53   -1 53   -0     53   -0 53   +1 N N
+0 0 53 -inf 53  nan     53   -0 53 +inf N N
+0 0 53  nan 53  nan     53   -0 53  nan N N
+0 0 53 -inf 53  nan     53   +0 53 -inf N N
+0 0 53   -1 53   -0     53   +0 53   -1 N N
+0 0 53    0 53   -0     53   +0 53   -0 N N
+0 0 53    0 53   +0     53   +0 53   +0 N N
+0 0 53   -1 53   +0     53   +0 53   +1 N N
+0 0 53 -inf 53  nan     53   +0 53 +inf N N
+0 0 53  nan 53  nan     53   +0 53  nan N N
+0 0 53 -inf 53 -inf     53   +1 53 -inf N N
+0 0 53   +1 53   -0     53   +1 53   -0 N N
+0 0 53   +1 53   +0     53   +1 53   +0 N N
+0 0 53 -inf 53 +inf     53   +1 53 +inf N N
+0 0 53  nan 53  nan     53   +1 53  nan N N
+0 0 53  nan 53 -inf     53 +inf 53 -inf N N
+0 0 53 +inf 53 -inf     53 +inf 53   -1 N N
+0 0 53 +inf 53  nan     53 +inf 53   -0 N N
+0 0 53 +inf 53  nan     53 +inf 53   +0 N N
+0 0 53 +inf 53 +inf     53 +inf 53   +1 N N
+0 0 53  nan 53 +inf     53 +inf 53 +inf N N
+0 0 53  nan 53  nan     53 +inf 53  nan N N
+0 0 53  nan 53  nan     53  nan 53 -inf N N
+0 0 53  nan 53  nan     53  nan 53   -1 N N
+0 0 53  nan 53  nan     53  nan 53   -0 N N
+0 0 53  nan 53  nan     53  nan 53   +0 N N
+0 0 53  nan 53  nan     53  nan 53   +1 N N
+0 0 53  nan 53  nan     53  nan 53 +inf N N
+0 0 53  nan 53  nan     53  nan 53  nan N N
+
+# pure real argument
++ 0 53 0x12345676543230p+52  2 +0    53  0x1111111000000f 17 +0 N N
+- 0 53 0x1234567654322fp+52  3 -0    54 -0x1111111000000f 16 +0 Z N
++ 0 53 0x12345676543230p+52  4 -0    55  0x1111111000000f 15 -0 U N
+- 0 53 0x1234567654322fp+52  5 +0    56 -0x1111111000000f 14 -0 D N
+- 0 53 0x1234567654322fp+52  6 +0    57  0x1111111000000f 13 +0 Z Z
++ 0 53 0x12345676543230p+52  7 -0    58 -0x1111111000000f 12 +0 U Z
+- 0 53 0x1234567654322fp+52  8 -0    59  0x1111111000000f 11 -0 D Z
++ 0 53 0x12345676543230p+52  9 +0    60 -0x1111111000000f 10 -0 N Z
++ 0 53 0x12345676543230p+52 10 +0    61  0x1111111000000f  9 +0 U U
+- 0 53 0x1234567654322fp+52 11 -0    62 -0x1111111000000f  8 +0 D U
++ 0 53 0x12345676543230p+52 12 -0    63  0x1111111000000f  7 -0 N U
+- 0 53 0x1234567654322fp+52 13 +0    64 -0x1111111000000f  6 -0 Z U
+- 0 53 0x1234567654322fp+52 14 +0    65  0x1111111000000f  5 +0 D D
++ 0 53 0x12345676543230p+52 15 -0    66 -0x1111111000000f  4 +0 N D
+- 0 53 0x1234567654322fp+52 16 -0    67  0x1111111000000f  3 -0 Z D
++ 0 53 0x12345676543230p+52 17 +0    68 -0x1111111000000f  2 -0 U D
+
+# pure imaginary argument
+- 0 53 -0xE1000002000000p+56 53 +0    53 +0 53  0xf0000001111111 N N
++ 0 53 -0xe1000001fffff8p+56 52 -0    51 -0 54  0xf0000001111111 Z N
++ 0 53 -0xe1000001fffff8p+56 51 -0    49 +0 55 -0xf0000001111111 U N
+- 0 53 -0xe1000002000000p+56 50 +0    47 -0 56 -0xf0000001111111 D N
++ 0 53 -0xe1000001fffff8p+56 49 +0    45 +0 57  0xf0000001111111 Z Z
++ 0 53 -0xe1000001fffff8p+56 48 -0    43 -0 58  0xf0000001111111 U Z
+- 0 53 -0xe1000002000000p+56 47 -0    41 +0 59 -0xf0000001111111 D Z
+- 0 53 -0xe1000002000000p+56 46 +0    39 -0 60 -0xf0000001111111 N Z
++ 0 53 -0xe1000001fffff8p+56 45 +0    37 +0 61  0xf0000001111111 U U
+- 0 53 -0xe1000002000000p+56 44 -0    35 -0 62  0xf0000001111111 D U
+- 0 53 -0xe1000002000000p+56 43 -0    33 +0 63 -0xf0000001111111 N U
++ 0 53 -0xe1000001fffff8p+56 42 +0    31 -0 64 -0xf0000001111111 Z U
+- 0 53 -0xe1000002000000p+56 41 +0    29 +0 65  0xf0000001111111 D D
+- 0 53 -0xe1000002000000p+56 40 -0    27 -0 66  0xf0000001111111 N D
++ 0 53 -0xe1000001fffff8p+56 39 -0    25 +0 67 -0xf0000001111111 Z D
++ 0 53 -0xe1000001fffff8p+56 38 +0    23 -0 68 -0xf0000001111111 U D
+
+# IEEE-754 double precision
+- + 53  0x10000000020000p+04   53  0x10000000effff         53  0x400008000180fp-22   53  0x7ffff0077efcbp-32   N N
+- - 53  0x3ffffffffffffd       53  0x7ffffffffffff4p+52    53  0x1fffffffffffff      53  0x1ffffffffffffe      Z N
++ + 53  0x1c16e5d4c4d5e7p-45   53 -0x7ffffff800007p-47     53  0xf                   53 -0x1111111000000fp-53  U N
+- + 53  0xfdbac097c8dc50p+2096 53  0x7f6e5d4c3b2a2p+1036   53  0xfedcba9876543p+1024 53  0x10000000000001p-42  D N
++ - 53 -0x10000000020000p+04   53  0x10000000efffefp-04    53  0x7ffff0077efcbp-32   53  0x400008000180fp-22   Z Z
++ + 53  0x3ffffffffffffe       53 -0x7ffffffffffff4p+52    53  0x1fffffffffffff      53 -0x1ffffffffffffe      U Z
+- - 53  0xe0b72ea626af3p-44    53  0x7ffffff800007p-47     53  0xf                   53  0x1111111000000fp-53  D Z
+- - 53 -0xfdbac097c8dc58p+2096 53  0x7f6e5d4c3b2a1cp+1032  53 -0x10000000000001p-42  53 -0xfedcba9876543p+1024 N Z
++ + 53  0x10000000020001p+04   53 -0x10000000efffefp-04    53  0x400008000180fp-22   53 -0x7ffff0077efcbp-32   U U
+- + 53 -0x3ffffffffffffe       53 -0x7ffffffffffff4p+52    53 -0x1ffffffffffffe      53  0x1fffffffffffff      D U
+- + 53 -0x1C16E5D4C4D5E7p-45   53  0x1ffffffe00001dp-49    53 -0x1111111000000fp-53  53 -0xf                   N U
++ + 53 -0xfdbac097c8dc50p+2096 53 -0x7f6e5d4c3b2a1cp+1032  53  0x10000000000001p-42  53 -0xfedcba9876543p+1024 Z U
+- - 53 -0x10000000020001p+04   53 -0x10000000effff         53 -0x7ffff0077efcbp-32   53  0x400008000180fp-22   D D
+- - 53  0x3ffffffffffffd       53 -0x7ffffffffffff8p+52    53 -0x1fffffffffffff      53  0x1ffffffffffffe      N D
++ - 53 -0xE0B72EA626AF3p-44    53 -0x1FFFFFFE00001Dp-49    53  0x1111111000000fp-53  53 -0xf                   Z D
++ - 53  0xfdbac097c8dc58p+2096 53 -0x7f6e5d4c3b2a2p+1036   53 -0xfedcba9876543p+1024 53  0x10000000000001p-42  U D
+
+# improve test coverage:
+# For op=x+i*y, we need a case where x+y and x-y are inexact at the
+# higher computing precision, and where x and y do not have too
+# distinct exponents so that Karatsuba gets triggered...
+# (2^44 + i*(2^29 + 1))^2 \approx (2^88-2^58) + i*2^45*(2^29+1)
++ 0 30 309485009533114692573069312 30 18889465966662952943616  30 17592186044416 30 536870913 N N
+# ...and a case where x+y or x-y are 0.
+0 0 4 0 4 2  4 1 4 1 N N
+
+# a few values, previously hard-coded in tsqr.c
+0 0 8 7 8 24  8 4 8 3 N N
++ + 8 0b1.1000111e-3 8 0b1.1100111e-3  27 0b1.11111011011000010101000000e-2 27 0b1.11010001010110111001110001e-3 N N
+
+# bug 20090930, infinite loop
++ + 3464 inf 3464 inf  866 -0x2.5763c6519ef1510f8afa101a210b8030b1909cc17004db561a25d9b53e2c08c41c01e8bbac5af6299b9d8786030aa14943d841798c8c369287942e4d4cec42a60ab0922af931159805e631128e97f973754ad53972d5d320a651a3b4a667f0ef2b92dbd698d159c3642675140@192158913 866 -0xd.15f2d530934dd930d66e89d70762d2337a8f973dd6915eb6b532fd372fcc955df1d852632d4e46fe64154ceda991a1302caf1b0ec622497e3e5724dd05b1c89a06e28d7e18e8af58f5ff4c9998cb31714688867524f41e0b31e847c1bf40de5127f858069998efd7c3e599080@192158893 N N
+
+# bug 20091001, infinite loop
+? + 2256 0 2256 -0  564 0xc.87999bfd1cb1a64288881e214b7cf1af979863b23c030b79c4a8bebb39177967608388a2e4df527977e7755a25df8af8f72fdd6dd2f42bd00de83088b4e9b59ce85caf2e6b0c0@-184298749 564 -0x2.5109af459d4daf357e09475ec991cdc9b02c8f7dfacdc060d2a24710d09c997f8aea6dbd46f10828c30b583fdcc90d7dcbb895689d594d3813db40784d2309e450d1fb6e38da8@-184298726 N N
+
+# (x+x*i)^2 = 0+2*x^2*i with exact real part
+0 0 100 0 100 304831530559368   100 12345678 100 12345678 N N
+0 0 1000 0 100 304831530559368   100 12345678 100 12345678 N N
+# intermediate overflow- and underflows
+0 + 100 0 100 +inf  100 0x1@225000750 100 0x1@225000750 N N
+0 + 10000 0 10000 +inf  100 0x1@225000750 100 0x1@225000750 N N
+0 - 100 0 100 +0  100 0x1@-225000750 100 0x1@-225000750 N N
+0 + 100 0 100 -0  100 0x1@-225000750 100 -0x1@-225000750 N N
+0 - 10000 0 10000 +0  100 0x1@-225000750 100 0x1@-225000750 N N
+0 + 10000 0 10000 -0  100 0x1@-225000750 100 -0x1@-225000750 N N
+
+# intermediate overflow in Karatsuba found by hydra, simplified test case
+- - 100 -inf 100 -inf  593 -0xf@192058806 593 0x1@192058873 N N
+# another interesting one with not exactly the same behaviour
+- - 100 -inf 100 -inf  100 -0xf@192058806 100 0x1@192058873 N N
+0 + 100 0 100 inf  100 0x1@192058806  100 0x1@192058806 N N
+# Re(op)*Im(op) can be computed, but multiplication by 2 triggers overflow
+0 + 100 0 100 inf  100 0b1@536870911  100 0b1@536870911 N N
+0 - 10 0 10 0b1.111111111e1073741822  100 0b1@536870911  100 0b1@536870911 N D
+0 - 10 0 10 0b1.111111111e1073741822  100 0b1@536870912  100 0b1@536870912 N D
+0 0 10 0 10 0b1e-1073741823  100 0b1@-536870912  100 0b1@-536870912 N N
+0 - 10 0 10 0  100 0b1@-536870913  100 0b1@-536870913 N N
+0 + 10 0 10 0b1@-1073741824  100 0b1@-536870913  100 0b1@-536870913 N U
++ - 10 0b1e-1073741824 10 0  100 0b1@-536870912  100 0b1@-536870913 N N

@@ -1,0 +1,426 @@
+# Makefile for the MPC library (Windows version).
+#
+# Copyright (C) INRIA - CNRS, 2002, 2004, 2005, 2007, 2008, 2009, 2010, 2011, 2012, 2014, 2015
+#
+# This file is part of the MPC Library.
+#
+# The MPC Library is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at your
+# option) any later version.
+#
+# The MPC Library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with the MPC Library; see the file COPYING.LIB.  If not, write to
+# the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+# MA 02111-1307, USA.
+#
+
+# usage:
+#  nmake /f Makefile.vc clean
+#       clean the temporaries objects
+#
+#  nmake /f Makefile.vc  STATIC=0|1 GMPDIR=gmpdirectory MPFRDIR=mpfrdirectory
+#      compile MPC
+#
+#  nmake /f Makefile.vc  STATIC=0|1 install GMPDIR=gmpdirectory MPFRDIR=mpfrdirectory  DESTDIR=installdirectory
+#      install MPC to installdirectory
+#
+#  nmake /f Makefile.vc  STATIC=0|1 check GMPDIR=gmpdirectory MPFRDIR=mpfrdirectory
+#      perform tests on MPC
+#
+#  GMPDIR : specify the location where GMP is installed
+#  MPFRDIR : specify the location where MPFR is installed
+#  DESTDIR : specify the location where MPC will be installed
+#  STATIC  : specify if a static or dynamic library of MPC will be created
+#            STATIC=1  : build a static library
+#            STATIC=0  : build a dynamic library (DLL)
+#            A dynamic library is created by default if STATIC is omitted (STATIC=0)
+#  ENABLELOGGING  : specify if MPC functions calls are logged
+#            ENABLELOGGING=1  : MPC functions calls are logged
+#            ENABLELOGGING=0  : MPC functions calls are not logged (default)
+#            Functions calls are not logged by default if ENABLELOGGING is omitted (ENABLELOGGING=0)
+
+
+CPP = cl.exe
+CC = cl.exe
+CDEFAULTFLAGS=/O2 /GR- /MD /nologo /EHs
+
+VERSION=1.0.3
+
+######################## do not edit below this line ##########################
+
+DIRMPC=.\src
+DIRMPCTESTS=.\tests\\
+
+!if "$(STATIC)" == "0"
+LIBRARY = libmpc.dll
+LINKER = link.exe /DLL
+GMPMUSTBEDLL=/D__GMP_LIBGMP_DLL
+!else
+LIBRARY = libmpc.lib
+LINKER = lib.exe
+GMPMUSTBEDLL=
+!endif
+
+#check for logging. if yes then add logging.c to the library
+!if "$(ENABLELOGGING)" == "1"
+CPPOBJECTS_LOGGING = $(DIRMPC)\logging.obj
+CPPLINKOBJECTS_LOGGING = logging.obj
+LIBS_LOGGING = kernel32.lib
+!else
+CPPOBJECTS_LOGGING =
+CPPLINKOBJECTS_LOGGING =
+LIBS_LOGGING =
+!endif
+
+
+INCLUDES = /I$(DIRMPC) /I$(GMPDIR)\include  /I$(MPFR)\include
+CKERNELFLAGS = $(CDEFAULTFLAGS) $(GMPMUSTBEDLL)   $(INCLUDES)
+CFLAGS = $(CKERNELFLAGS)  /D__MPC_WITHIN_MPC /D_GMP_IEEE_FLOATS /DHAVE_CONFIG_H
+
+TESTCOMPILE=$(CC) $(CKERNELFLAGS) $(DIRMPCTESTS)\tgeneric.c $(DIRMPCTESTS)\comparisons.c $(DIRMPCTESTS)\read_data.c $(DIRMPCTESTS)\random.c $(DIRMPCTESTS)
+MIDTESTCOMPILE=/link  /out:$(DIRMPCTESTS)
+ENDTESTCOMPILE=/LIBPATH:"$(GMPDIR)\lib" libmpc.lib libmpfr.lib libgmp.lib $(LIBS_LOGGING)
+
+
+#generate the CPPOBJECTS : goto src and execute
+# ls *.c | sed "s/\.c/\.obj/" | awk ' { printf("$(DIRMPC)\\%s \\\n",$1); } '
+#generate the CPPLINKOBJECTS : goto src and execute
+# ls *.c | sed "s/\.c/\.obj/" | awk ' { printf("%s \\\n",$1); } '
+#generate the list for tests : goto tests and execute
+# ls t*.c | sed "s/\.c//" | grep -v tgeneric| grep -v comparisons | grep -v read_data | grep -v random | awk ' { printf("\t$(TESTCOMPILE)%s.c  $(MIDTESTCOMPILE)%s.exe $(ENDTESTCOMPILE)\n\tcd $(DIRMPCTESTS) && %s.exe && cd ..\n",$1,$1,$1,$1); } '
+
+LIBRARYLIB = libmpc.lib
+
+CPPOBJECTS =$(DIRMPC)\abs.obj \
+$(DIRMPC)\acos.obj \
+$(DIRMPC)\acosh.obj \
+$(DIRMPC)\add.obj \
+$(DIRMPC)\add_fr.obj \
+$(DIRMPC)\add_si.obj \
+$(DIRMPC)\add_ui.obj \
+$(DIRMPC)\arg.obj \
+$(DIRMPC)\asin.obj \
+$(DIRMPC)\asinh.obj \
+$(DIRMPC)\atan.obj \
+$(DIRMPC)\atanh.obj \
+$(DIRMPC)\clear.obj \
+$(DIRMPC)\cmp.obj \
+$(DIRMPC)\cmp_si_si.obj \
+$(DIRMPC)\conj.obj \
+$(DIRMPC)\cos.obj \
+$(DIRMPC)\cosh.obj \
+$(DIRMPC)\div.obj \
+$(DIRMPC)\div_2ui.obj \
+$(DIRMPC)\div_fr.obj \
+$(DIRMPC)\div_ui.obj \
+$(DIRMPC)\exp.obj \
+$(DIRMPC)\fma.obj \
+$(DIRMPC)\fr_div.obj \
+$(DIRMPC)\fr_sub.obj \
+$(DIRMPC)\get_prec.obj \
+$(DIRMPC)\get_prec2.obj \
+$(DIRMPC)\get_version.obj \
+$(DIRMPC)\get_x.obj \
+$(DIRMPC)\imag.obj \
+$(DIRMPC)\init2.obj \
+$(DIRMPC)\init3.obj \
+$(DIRMPC)\inp_str.obj \
+$(DIRMPC)\log.obj \
+$(DIRMPC)\log10.obj \
+$(DIRMPC)\mem.obj \
+$(DIRMPC)\mul.obj \
+$(DIRMPC)\mul_2ui.obj \
+$(DIRMPC)\mul_fr.obj \
+$(DIRMPC)\mul_i.obj \
+$(DIRMPC)\mul_si.obj \
+$(DIRMPC)\mul_ui.obj \
+$(DIRMPC)\neg.obj \
+$(DIRMPC)\norm.obj \
+$(DIRMPC)\out_str.obj \
+$(DIRMPC)\pow.obj \
+$(DIRMPC)\pow_d.obj \
+$(DIRMPC)\pow_fr.obj \
+$(DIRMPC)\pow_ld.obj \
+$(DIRMPC)\pow_si.obj \
+$(DIRMPC)\pow_ui.obj \
+$(DIRMPC)\pow_z.obj \
+$(DIRMPC)\proj.obj \
+$(DIRMPC)\real.obj \
+$(DIRMPC)\set.obj \
+$(DIRMPC)\set_prec.obj \
+$(DIRMPC)\set_str.obj \
+$(DIRMPC)\set_x.obj \
+$(DIRMPC)\set_x_x.obj \
+$(DIRMPC)\sin.obj \
+$(DIRMPC)\sin_cos.obj \
+$(DIRMPC)\sinh.obj \
+$(DIRMPC)\sqr.obj \
+$(DIRMPC)\sqrt.obj \
+$(DIRMPC)\strtoc.obj \
+$(DIRMPC)\sub.obj \
+$(DIRMPC)\sub_fr.obj \
+$(DIRMPC)\sub_ui.obj \
+$(DIRMPC)\swap.obj \
+$(DIRMPC)\tan.obj \
+$(DIRMPC)\tanh.obj \
+$(DIRMPC)\uceil_log2.obj \
+$(DIRMPC)\ui_div.obj \
+$(DIRMPC)\ui_ui_sub.obj $(CPPOBJECTS_LOGGING) \
+$(DIRMPC)\urandom.obj 
+
+CPPLINKOBJECTS = abs.obj \
+acos.obj \
+acosh.obj \
+add.obj \
+add_fr.obj \
+add_si.obj \
+add_ui.obj \
+arg.obj \
+asin.obj \
+asinh.obj \
+atan.obj \
+atanh.obj \
+clear.obj \
+cmp.obj \
+cmp_si_si.obj \
+conj.obj \
+cos.obj \
+cosh.obj \
+div.obj \
+div_2ui.obj \
+div_fr.obj \
+div_ui.obj \
+exp.obj \
+fma.obj \
+fr_div.obj \
+fr_sub.obj \
+get_prec.obj \
+get_prec2.obj \
+get_version.obj \
+get_x.obj \
+imag.obj \
+init2.obj \
+init3.obj \
+inp_str.obj \
+log.obj \
+log10.obj \
+mem.obj \
+mul.obj \
+mul_2ui.obj \
+mul_fr.obj \
+mul_i.obj \
+mul_si.obj \
+mul_ui.obj \
+neg.obj \
+norm.obj \
+out_str.obj \
+pow.obj \
+pow_d.obj \
+pow_fr.obj \
+pow_ld.obj \
+pow_si.obj \
+pow_ui.obj \
+pow_z.obj \
+proj.obj \
+real.obj \
+set.obj \
+set_prec.obj \
+set_str.obj \
+set_x.obj \
+set_x_x.obj \
+sin.obj \
+sin_cos.obj \
+sinh.obj \
+sqr.obj \
+sqrt.obj \
+strtoc.obj \
+sub.obj \
+sub_fr.obj \
+sub_ui.obj \
+swap.obj \
+tan.obj \
+tanh.obj \
+uceil_log2.obj \
+ui_div.obj \
+ui_ui_sub.obj $(CPPLINKOBJECTS_LOGGING)  \
+urandom.obj 
+
+#
+# Link target: automatically builds its object dependencies before
+# executing its link command.
+#
+
+$(LIBRARY): $(DIRMPC)config.h $(CPPOBJECTS)
+	$(LINKER) /out:$@ $(CPPLINKOBJECTS) /LIBPATH:"$(GMPDIR)\lib" libmpfr.lib libgmp.lib $(LIBS_LOGGING)
+
+$(DIRMPC)config.h :
+	echo #define PACKAGE_STRING "mpc"           >$(DIRMPC)\config.h
+	echo #define PACKAGE_VERSION "$(VERSION)"   >>$(DIRMPC)\config.h
+	echo #define STDC_HEADERS 1                 >>$(DIRMPC)\config.h
+	echo #define dlsym(handle, name) GetProcAddress(GetModuleHandle(handle), name)   >>$(DIRMPC)\config.h
+	echo #include "windows.h"   >>$(DIRMPC)\config.h
+
+
+#
+# Clean target: "nmake /f Makefile.vc clean" to remove unwanted
+#               objects and executables.
+#
+
+clean:
+	del *.obj $(CPPLINKOBJECTS) $(LIBRARY) *.tlh  $(DIRMPC)config.h *.dll *.lib *.exe
+
+
+
+#
+# install target: "nmake /f Makefile.vc install DESTDIR=xxx" to perform the installation.
+#
+
+install: $(LIBRARY)
+	-mkdir $(DESTDIR)
+	-mkdir $(DESTDIR)\include
+	copy $(DIRMPC)\mpc.h $(DESTDIR)\include
+	-mkdir $(DESTDIR)\lib
+	copy $(LIBRARY) $(DESTDIR)\lib
+	copy $(LIBRARYLIB) $(DESTDIR)\lib
+
+#
+# check target: "nmake /f Makefile.vc check GMPDIR=xxx MPFRDIR=xxx" to perform the installation.
+#
+check : test
+test :
+	-copy $(GMPDIR)\lib\*gmp*.dll $(DIRMPCTESTS)
+	-copy $(MPFRDIR)\lib\*mpfr*.dll $(DIRMPCTESTS)
+	copy $(LIBRARY)  $(DIRMPCTESTS)
+	$(TESTCOMPILE)tabs.c  $(MIDTESTCOMPILE)tabs.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tabs.exe && cd ..
+	$(TESTCOMPILE)tacos.c  $(MIDTESTCOMPILE)tacos.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tacos.exe && cd ..
+	$(TESTCOMPILE)tacosh.c  $(MIDTESTCOMPILE)tacosh.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tacosh.exe && cd ..
+	$(TESTCOMPILE)tadd.c  $(MIDTESTCOMPILE)tadd.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tadd.exe && cd ..
+	$(TESTCOMPILE)tadd_fr.c  $(MIDTESTCOMPILE)tadd_fr.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tadd_fr.exe && cd ..
+	$(TESTCOMPILE)tadd_si.c  $(MIDTESTCOMPILE)tadd_si.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tadd_si.exe && cd ..
+	$(TESTCOMPILE)tadd_ui.c  $(MIDTESTCOMPILE)tadd_ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tadd_ui.exe && cd ..
+	$(TESTCOMPILE)targ.c  $(MIDTESTCOMPILE)targ.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && targ.exe && cd ..
+	$(TESTCOMPILE)tasin.c  $(MIDTESTCOMPILE)tasin.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tasin.exe && cd ..
+	$(TESTCOMPILE)tasinh.c  $(MIDTESTCOMPILE)tasinh.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tasinh.exe && cd ..
+	$(TESTCOMPILE)tatan.c  $(MIDTESTCOMPILE)tatan.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tatan.exe && cd ..
+	$(TESTCOMPILE)tatanh.c  $(MIDTESTCOMPILE)tatanh.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tatanh.exe && cd ..
+	$(TESTCOMPILE)tconj.c  $(MIDTESTCOMPILE)tconj.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tconj.exe && cd ..
+	$(TESTCOMPILE)tcos.c  $(MIDTESTCOMPILE)tcos.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tcos.exe && cd ..
+	$(TESTCOMPILE)tcosh.c  $(MIDTESTCOMPILE)tcosh.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tcosh.exe && cd ..
+	$(TESTCOMPILE)tdiv.c  $(MIDTESTCOMPILE)tdiv.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tdiv.exe && cd ..
+	$(TESTCOMPILE)tdiv_2ui.c  $(MIDTESTCOMPILE)tdiv_2ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tdiv_2ui.exe && cd ..
+	$(TESTCOMPILE)tdiv_fr.c  $(MIDTESTCOMPILE)tdiv_fr.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tdiv_fr.exe && cd ..
+	$(TESTCOMPILE)tdiv_ui.c  $(MIDTESTCOMPILE)tdiv_ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tdiv_ui.exe && cd ..
+	$(TESTCOMPILE)texp.c  $(MIDTESTCOMPILE)texp.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && texp.exe && cd ..
+	$(TESTCOMPILE)tfma.c  $(MIDTESTCOMPILE)tfma.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tfma.exe && cd ..
+	$(TESTCOMPILE)tfr_div.c  $(MIDTESTCOMPILE)tfr_div.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tfr_div.exe && cd ..
+	$(TESTCOMPILE)tfr_sub.c  $(MIDTESTCOMPILE)tfr_sub.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tfr_sub.exe && cd ..
+	$(TESTCOMPILE)tget_version.c  $(MIDTESTCOMPILE)tget_version.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tget_version.exe && cd ..
+	$(TESTCOMPILE)timag.c  $(MIDTESTCOMPILE)timag.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && timag.exe && cd ..
+	$(TESTCOMPILE)tio_str.c  $(MIDTESTCOMPILE)tio_str.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tio_str.exe && cd ..
+	$(TESTCOMPILE)tlog.c  $(MIDTESTCOMPILE)tlog.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tlog.exe && cd ..
+	$(TESTCOMPILE)tlog10.c  $(MIDTESTCOMPILE)tlog10.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tlog10.exe && cd ..
+	$(TESTCOMPILE)tmul.c  $(MIDTESTCOMPILE)tmul.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tmul.exe && cd ..
+	$(TESTCOMPILE)tmul_2ui.c  $(MIDTESTCOMPILE)tmul_2ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tmul_2ui.exe && cd ..
+	$(TESTCOMPILE)tmul_fr.c  $(MIDTESTCOMPILE)tmul_fr.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tmul_fr.exe && cd ..
+	$(TESTCOMPILE)tmul_i.c  $(MIDTESTCOMPILE)tmul_i.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tmul_i.exe && cd ..
+	$(TESTCOMPILE)tmul_si.c  $(MIDTESTCOMPILE)tmul_si.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tmul_si.exe && cd ..
+	$(TESTCOMPILE)tmul_ui.c  $(MIDTESTCOMPILE)tmul_ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tmul_ui.exe && cd ..
+	$(TESTCOMPILE)tneg.c  $(MIDTESTCOMPILE)tneg.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tneg.exe && cd ..
+	$(TESTCOMPILE)tnorm.c  $(MIDTESTCOMPILE)tnorm.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tnorm.exe && cd ..
+	$(TESTCOMPILE)tpow.c  $(MIDTESTCOMPILE)tpow.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow.exe && cd ..
+	$(TESTCOMPILE)tpow_d.c  $(MIDTESTCOMPILE)tpow_d.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow_d.exe && cd ..
+	$(TESTCOMPILE)tpow_fr.c  $(MIDTESTCOMPILE)tpow_fr.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow_fr.exe && cd ..
+	$(TESTCOMPILE)tpow_ld.c  $(MIDTESTCOMPILE)tpow_ld.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow_ld.exe && cd ..
+	$(TESTCOMPILE)tpow_si.c  $(MIDTESTCOMPILE)tpow_si.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow_si.exe && cd ..
+	$(TESTCOMPILE)tpow_ui.c  $(MIDTESTCOMPILE)tpow_ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow_ui.exe && cd ..
+	$(TESTCOMPILE)tpow_z.c  $(MIDTESTCOMPILE)tpow_z.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tpow_z.exe && cd ..
+	$(TESTCOMPILE)tprec.c  $(MIDTESTCOMPILE)tprec.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tprec.exe && cd ..
+	$(TESTCOMPILE)tproj.c  $(MIDTESTCOMPILE)tproj.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tproj.exe && cd ..
+	$(TESTCOMPILE)treal.c  $(MIDTESTCOMPILE)treal.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && treal.exe && cd ..
+	$(TESTCOMPILE)treimref.c  $(MIDTESTCOMPILE)treimref.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && treimref.exe && cd ..
+	$(TESTCOMPILE)tset.c  $(MIDTESTCOMPILE)tset.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tset.exe && cd ..
+	$(TESTCOMPILE)tsin.c  $(MIDTESTCOMPILE)tsin.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsin.exe && cd ..
+	$(TESTCOMPILE)tsin_cos.c  $(MIDTESTCOMPILE)tsin_cos.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsin_cos.exe && cd ..
+	$(TESTCOMPILE)tsinh.c  $(MIDTESTCOMPILE)tsinh.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsinh.exe && cd ..
+	$(TESTCOMPILE)tsqr.c  $(MIDTESTCOMPILE)tsqr.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsqr.exe && cd ..
+	$(TESTCOMPILE)tsqrt.c  $(MIDTESTCOMPILE)tsqrt.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsqrt.exe && cd ..
+	$(TESTCOMPILE)tstrtoc.c  $(MIDTESTCOMPILE)tstrtoc.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tstrtoc.exe && cd ..
+	$(TESTCOMPILE)tsub.c  $(MIDTESTCOMPILE)tsub.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsub.exe && cd ..
+	$(TESTCOMPILE)tsub_fr.c  $(MIDTESTCOMPILE)tsub_fr.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsub_fr.exe && cd ..
+	$(TESTCOMPILE)tsub_ui.c  $(MIDTESTCOMPILE)tsub_ui.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tsub_ui.exe && cd ..
+	$(TESTCOMPILE)tswap.c  $(MIDTESTCOMPILE)tswap.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tswap.exe && cd ..
+	$(TESTCOMPILE)ttan.c  $(MIDTESTCOMPILE)ttan.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && ttan.exe && cd ..
+	$(TESTCOMPILE)ttanh.c  $(MIDTESTCOMPILE)ttanh.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && ttanh.exe && cd ..
+	$(TESTCOMPILE)tui_div.c  $(MIDTESTCOMPILE)tui_div.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tui_div.exe && cd ..
+	$(TESTCOMPILE)tui_ui_sub.c  $(MIDTESTCOMPILE)tui_ui_sub.exe $(ENDTESTCOMPILE)
+	cd $(DIRMPCTESTS) && tui_ui_sub.exe && cd ..
+	@echo --------------------------------------------------
+	@echo All tests passed
+	@echo --------------------------------------------------

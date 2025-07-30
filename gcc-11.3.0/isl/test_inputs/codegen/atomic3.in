@@ -1,0 +1,5 @@
+# Check that isl is not confused by inconsistent
+# separation_class and atomic options.
+{ sync[] -> [i, 0] : 0 <= i <= 64 }
+{ : }
+{ [i, 0] -> separation_class[[1] -> [0]] : 1 <= i <= 62; [i, 0] -> atomic[1]}

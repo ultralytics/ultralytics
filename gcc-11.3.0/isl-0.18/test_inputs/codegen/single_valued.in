@@ -1,0 +1,5 @@
+# Check that isl recognizes that the inverse schedule is single-valued
+# and does not end up in an infinite recursion.
+[t1] -> {S[c2] -> [c2]: t1 <= c2 <= 134 and (c2+t1) % 128 = 0 and c2 > 0}
+[t1] -> {: t1 > 0}
+[t1] -> {}

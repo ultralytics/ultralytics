@@ -1,0 +1,67 @@
+#!/usr/bin/env perl
+
+# Note: this script must not be used to build MPFR due to the
+# dependency on perl, but this is OK for "make dist".
+
+# Copyright 2010-2017 Free Software Foundation, Inc.
+# This script is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+use strict;
+use Cwd;
+
+if (! -d 'src')
+  {
+    getcwd() =~ m,/tools$,
+      or die "Execute $0 from the MPFR source directory\n";
+    chdir '..' or die "$!\n$0: can't change cwd\n";
+  }
+
+open VERSION, '<', 'VERSION'
+  or die "$!\n$0: can't open VERSION file\n";
+my $version = do { local $/; <VERSION> };
+close VERSION or die "$!\n$0: can't close VERSION file\n";
+
+my ($mv,$pl,$suf) = $version =~ /^(\d+\.\d+)\.(\d+)(-\S+)?/
+  or die "$0: bad VERSION format\n";
+
+open MF, '<', 'src/Makefile.am'
+  or die "$!\n$0: can't open Makefile.am file\n";
+my $cur = 0;
+my $age = -1;
+my $vinfo;  # expected -version-info value
+while (<MF>)
+  {
+    last if $cur && ! /^\s*(#.*)$/;
+    /^#\s+(\d+\.\d+)\.x\s+(\d+):x:(\d+)/ or next;
+    $2 == ++$cur or die "$0: bad CURRENT ($2)";
+    $3 == 0 || $3 == $age + 1 or die "$0: bad AGE ($3)";
+    $age = $3;
+    $mv eq $1 and $vinfo = "$cur:$pl:$age";
+  }
+/^libmpfr_la_LDFLAGS\s+=.*\s-version-info\s+(\d+:\d+:\d+)\s/
+  or die "$0: missing correct libmpfr_la_LDFLAGS line";
+close MF or die "$!\n$0: can't close Makefile.am file\n";
+$suf eq '-dev' || $vinfo eq $1
+  or die "$0: bad -version-info value ($1 instead of $vinfo)\n";
+
+open CONFIGURE, '<', 'configure.ac'
+  or die "$!\n$0: can't open configure.ac file\n";
+my $dllversion = $cur - $age;
+my $dllvinconf;
+while (<CONFIGURE>)
+  {
+    /^\s*LIBMPFR_LDFLAGS\s*=.*-Wl,--output-def,\.libs\/libmpfr-(\d+)\.dll\.def/
+      and $dllvinconf = $1, last;
+  }
+close CONFIGURE or die "$!\n$0: can't close configure.ac file\n";
+defined $dllvinconf or die "$0: missing correct LIBMPFR_LDFLAGS line\n";
+$suf eq '-dev' || $dllversion eq $dllvinconf
+  or die "$0: bad libmpfr.dll-version value (libmpfr-$dllvinconf.dll.def".
+  " instead of libmpfr-$dllversion.dll.def)\n";

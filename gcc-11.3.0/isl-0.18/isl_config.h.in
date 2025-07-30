@@ -1,0 +1,208 @@
+/* isl_config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define if HeaderSearchOptions::AddPath takes 4 arguments */
+#undef ADDPATH_TAKES_4_ARGUMENTS
+
+/* Clang installation prefix */
+#undef CLANG_PREFIX
+
+/* Define if CompilerInstance::createDiagnostics takes argc and argv */
+#undef CREATEDIAGNOSTICS_TAKES_ARG
+
+/* Define if CompilerInstance::createPreprocessor takes TranslationUnitKind */
+#undef CREATEPREPROCESSOR_TAKES_TUKIND
+
+/* Define if TargetInfo::CreateTargetInfo takes pointer */
+#undef CREATETARGETINFO_TAKES_POINTER
+
+/* Define if TargetInfo::CreateTargetInfo takes shared_ptr */
+#undef CREATETARGETINFO_TAKES_SHARED_PTR
+
+/* Define if Driver constructor takes default image name */
+#undef DRIVER_CTOR_TAKES_DEFAULTIMAGENAME
+
+/* Define to Diagnostic for older versions of clang */
+#undef DiagnosticsEngine
+
+/* most gcc compilers know a function __attribute__((__warn_unused_result__))
+   */
+#undef GCC_WARN_UNUSED_RESULT
+
+/* Define if llvm/ADT/OwningPtr.h exists */
+#undef HAVE_ADT_OWNINGPTR_H
+
+/* Define if clang/Basic/DiagnosticOptions.h exists */
+#undef HAVE_BASIC_DIAGNOSTICOPTIONS_H
+
+/* Define if Driver constructor takes CXXIsProduction argument */
+#undef HAVE_CXXISPRODUCTION
+
+/* Define to 1 if you have the declaration of `ffs', and to 0 if you don't. */
+#undef HAVE_DECL_FFS
+
+/* Define to 1 if you have the declaration of `mp_get_memory_functions', and
+   to 0 if you don't. */
+#undef HAVE_DECL_MP_GET_MEMORY_FUNCTIONS
+
+/* Define to 1 if you have the declaration of `snprintf', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SNPRINTF
+
+/* Define to 1 if you have the declaration of `strcasecmp', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRCASECMP
+
+/* Define to 1 if you have the declaration of `strncasecmp', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRNCASECMP
+
+/* Define to 1 if you have the declaration of `_BitScanForward', and to 0 if
+   you don't. */
+#undef HAVE_DECL__BITSCANFORWARD
+
+/* Define to 1 if you have the declaration of `_snprintf', and to 0 if you
+   don't. */
+#undef HAVE_DECL__SNPRINTF
+
+/* Define to 1 if you have the declaration of `_stricmp', and to 0 if you
+   don't. */
+#undef HAVE_DECL__STRICMP
+
+/* Define to 1 if you have the declaration of `_strnicmp', and to 0 if you
+   don't. */
+#undef HAVE_DECL__STRNICMP
+
+/* Define to 1 if you have the declaration of `__builtin_ffs', and to 0 if you
+   don't. */
+#undef HAVE_DECL___BUILTIN_FFS
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if Driver constructor takes IsProduction argument */
+#undef HAVE_ISPRODUCTION
+
+/* Define if clang/Lex/PreprocessorOptions.h exists */
+#undef HAVE_LEX_PREPROCESSOROPTIONS_H
+
+/* Define to 1 if you have the `gmp' library (-lgmp). */
+#undef HAVE_LIBGMP
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if SourceManager has a setMainFileID method */
+#undef HAVE_SETMAINFILEID
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* define if your compiler has __attribute__ */
+#undef HAVE___ATTRIBUTE__
+
+/* Return type of HandleTopLevelDeclReturn */
+#undef HandleTopLevelDeclContinue
+
+/* Return type of HandleTopLevelDeclReturn */
+#undef HandleTopLevelDeclReturn
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define if CompilerInvocation::setLangDefaults takes 5 arguments */
+#undef SETLANGDEFAULTS_TAKES_5_ARGUMENTS
+
+/* The size of `char', as computed by sizeof. */
+#undef SIZEOF_CHAR
+
+/* The size of `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of `long', as computed by sizeof. */
+#undef SIZEOF_LONG
+
+/* The size of `short', as computed by sizeof. */
+#undef SIZEOF_SHORT
+
+/* The size of `void*', as computed by sizeof. */
+#undef SIZEOF_VOIDP
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define if Driver::BuildCompilation takes ArrayRef */
+#undef USE_ARRAYREF
+
+/* use gmp to implement isl_int */
+#undef USE_GMP_FOR_MP
+
+/* use imath to implement isl_int */
+#undef USE_IMATH_FOR_MP
+
+/* Use small integer optimization */
+#undef USE_SMALL_INT_OPT
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to getParamType for newer versions of clang */
+#undef getArgType
+
+/* Define to getHostTriple for older versions of clang */
+#undef getDefaultTargetTriple
+
+/* Define to getInstantiationLineNumber for older versions of clang */
+#undef getExpansionLineNumber
+
+/* Define to getNumParams for newer versions of clang */
+#undef getNumArgs
+
+/* Define to getResultType for older versions of clang */
+#undef getReturnType
+
+/* Define to InitializeBuiltins for older versions of clang */
+#undef initializeBuiltins
+
+#include <isl_config_post.h>

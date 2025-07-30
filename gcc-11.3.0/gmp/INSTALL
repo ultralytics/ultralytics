@@ -1,0 +1,80 @@
+Copyright 1996, 1997, 1999-2002, 2006 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+                          INSTALLING GNU MP
+                          =================
+
+
+These instructions are only for the impatient.  Others should read the install
+instructions in gmp.info.  Use
+
+	info -f doc/gmp.info
+
+from the gmp source directory.
+
+Here are some brief instructions on how to install GMP.  First you need to
+compile.  Since you're impatient, try this
+
+	./configure
+	make
+	make check		<= VERY IMPORTANT!!
+
+If that fails, or you care about the performance of GMP, you need to read the
+full instructions in the chapter "Installing GMP" in the manual.
+
+You should not skip the "make check" part; the risk that the GMP sources are
+miscompiled are unfortunately quite high.  And if they indeed are, "make check"
+is very likely to trigger the compiler-introduced bug.
+
+Optionally, you can install the library with the following command.  This will
+be to /usr/local by default, and you'll probably need to be "root" to be able
+to write there.
+
+	make install
+
+To create the printable documentation from the texinfo source, type "make
+gmp.dvi" or "make gmp.ps".  This requires various "tex" commands.
+
+If you are new to GMP, it is a good idea you at least read the chapter "GMP
+Basics" in the manual.
+
+Some known build problems are noted in the "Installing GMP" chapter of
+the manual.  Please report other problems to gmp-bugs@gmplib.org.
+
+The GMP web site is located here: https://gmplib.org/.
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 78
+End:

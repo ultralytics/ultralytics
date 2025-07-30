@@ -1,0 +1,37 @@
+All current (2001) S/390 and z/Architecture machines are single-issue,
+but some newer machines have a deep pipeline.  Software-pipelining is
+therefore beneficial.
+
+* mpn_add_n, mpn_sub_n: Use code along the lines below.  Two-way unrolling
+  would be adequate.
+
+  mp_limb_t
+  mpn_add_n (mp_ptr rp, mp_srcptr up, mp_srcptr vp, mp_size_t n)
+  {
+    mp_limb_t a, b, r, cy;
+    mp_size_t i;
+    mp_limb_t mm = -1;
+
+    cy = 0;
+    up += n;
+    vp += n;
+    rp += n;
+    i = -n;
+    do
+      {
+	a = up[i];
+	b = vp[i];
+	r = a + b + cy;
+	rp[i] = r;
+	cy = (((a & b) | ((a | b) & (r ^ mm)))) >> 31;
+	i++;
+      }
+    while (i < 0);
+    return cy;
+  }
+
+* mpn_lshift, mpn_rshift: Use SLDL/SRDL, and two-way unrolling.
+
+* mpn_mul_1, mpn_addmul_1, mpn_submul_1: For machines with just signed
+  multiply (MR), use two loops, similar to the corresponding VAX or
+  POWER functions.  Handle carry like for mpn_add_n.

@@ -1,0 +1,3 @@
+[exprVar2, exprVar3, exprVar1] -> { s0[In_1] -> [In_1] : exists (e0 = [(-1 - exprVar2 + In_1)/8]: exprVar3 = 0 and 8e0 = -1 - exprVar2 + In_1 and exprVar1 >= 1 and In_1 >= 1 + exprVar1 and In_1 <= 16 and In_1 >= 1 + exprVar2) }
+[exprVar3, exprVar2, exprVar1] -> {  : exists (e0: exprVar3 = 0 and 8e0 >= -15 + exprVar2 and exprVar2 <= 15 and exprVar1 >= 1 and 8e0 <= exprVar2 - exprVar1) }
+[exprVar2, exprVar3, exprVar1] -> { [i0] -> separate[o0] : o0 >= 0; [i0] -> atomic[o0] : o0 <= -1 }

@@ -1,0 +1,3 @@
+{[x]}
+{[x] -> [y] : y = 2x}
+{[y]: Exists ( alpha : 2alpha = y)}

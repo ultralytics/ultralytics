@@ -1,0 +1,3 @@
+[n, m] -> { s0[In_1] -> [In_1] : exists (e0 = [(1 + n)/3]: In_1 >= m and 5e0 >= In_1 and 3e0 <= n and 3e0 >= -1 + n) }
+{  :  }
+[n, m] -> { [i0] -> atomic[o0] : o0 <= -1; [i0] -> separate[o0] : o0 >= 0 }

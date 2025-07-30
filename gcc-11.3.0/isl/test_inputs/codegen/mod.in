@@ -1,0 +1,4 @@
+# check that modulo constraint is generated correctly
+[n, m] -> { A[] -> [] : 2 * (n % 100) = 3 * (m % 200) }
+[n, m] -> { : m, n >= 0 }
+{}

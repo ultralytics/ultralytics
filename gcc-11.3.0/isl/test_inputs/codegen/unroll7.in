@@ -1,0 +1,5 @@
+# Check that some code is generated.
+# Older versions of isl would abort on unknown divs.
+{ S[i,j] -> [i,j]: exists (alpha, beta: j=i+4alpha +3beta and 0 <= alpha < 24 and 0 <= beta and 0 <= i,j < 5) }
+{ : }
+{ [i,j] -> unroll[x] }

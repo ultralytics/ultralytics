@@ -1,0 +1,476 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>GMP Development Projects</title>
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="stylesheet" href="gmp.css">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+
+<center>
+  <h1>
+    GMP Development Projects
+  </h1>
+</center>
+
+<font size=-1>
+<pre>
+Copyright 2000-2006, 2008-2011 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+</pre>
+</font>
+
+<hr>
+<!-- NB. timestamp updated automatically by emacs -->
+  This file current as of 29 Jan 2014.  An up-to-date version is available at
+  <a href="https://gmplib.org/projects.html">https://gmplib.org/projects.html</a>.
+  Please send comments about this page to gmp-devel<font>@</font>gmplib.org.
+
+<p> This file lists projects suitable for volunteers.  Please see the
+    <a href="tasks.html">tasks file</a> for smaller tasks.
+
+<p> If you want to work on any of the projects below, please let
+    gmp-devel<font>@</font>gmplib.org know.  If you want to help with a project
+    that already somebody else is working on, you will get in touch through
+    gmp-devel<font>@</font>gmplib.org.  (There are no email addresses of
+    volunteers below, due to spamming problems.)
+
+<ul>
+<li> <strong>Faster multiplication</strong>
+
+  <ol>
+
+    <li> Work on the algorithm selection code for unbalanced multiplication.
+
+    <li> Implement an FFT variant computing the coefficients mod m different
+	 limb size primes of the form l*2^k+1. i.e., compute m separate FFTs.
+	 The wanted coefficients will at the end be found by lifting with CRT
+	 (Chinese Remainder Theorem).  If we let m = 3, i.e., use 3 primes, we
+	 can split the operands into coefficients at limb boundaries, and if
+	 our machine uses b-bit limbs, we can multiply numbers with close to
+	 2^b limbs without coefficient overflow.  For smaller multiplication,
+	 we might perhaps let m = 1, and instead of splitting our operands at
+	 limb boundaries, split them in much smaller pieces.  We might also use
+	 4 or more primes, and split operands into bigger than b-bit chunks.
+	 By using more primes, the gain in shorter transform length, but lose
+	 in having to do more FFTs, but that is a slight total save.  We then
+	 lose in more expensive CRT. <br><br>
+
+	 <p> [We now have two implementations of this algorithm, one by Tommy
+	 Färnqvist and one by Niels Möller.]
+
+    <li> Work on short products.  Our mullo and mulmid are probably K, but we
+         lack mulhi.
+
+  </ol>
+
+  <p> Another possibility would be an optimized cube.  In the basecase that
+      should definitely be able to save cross-products in a similar fashion to
+      squaring, but some investigation might be needed for how best to adapt
+      the higher-order algorithms.  Not sure whether cubing or further small
+      powers have any particularly important uses though.
+
+
+<li> <strong>Assembly routines</strong>
+
+  <p> Write new and improve existing assembly routines.  The tests/devel
+      programs and the tune/speed.c and tune/many.pl programs are useful for
+      testing and timing the routines you write.  See the README files in those
+      directories for more information.
+
+  <p> Please make sure your new routines are fast for these three situations:
+      <ol>
+	<li> Small operands of less than, say, 10 limbs.
+	<li> Medium size operands, that fit into the cache.
+	<li> Huge operands that does not fit into the cache.
+      </ol>
+
+  <p> The most important routines are mpn_addmul_1, mpn_mul_basecase and
+      mpn_sqr_basecase.  The latter two don't exist for all machines, while
+      mpn_addmul_1 exists for almost all machines.
+
+  <p> Standard techniques for these routines are unrolling, software
+      pipelining, and specialization for common operand values.  For machines
+      with poor integer multiplication, it is sometimes possible to remedy the
+      situation using floating-point operations or SIMD operations such as MMX
+      (x86) (x86), SSE (x86), VMX (PowerPC), VIS (Sparc).
+
+  <p> Using floating-point operations is interesting but somewhat tricky.
+      Since IEEE double has 53 bit of mantissa, one has to split the operands
+      in small pieces, so that no intermediates are greater than 2^53.  For
+      32-bit computers, splitting one operand into 16-bit pieces works.  For
+      64-bit machines, one operand can be split into 21-bit pieces and the
+      other into 32-bit pieces.  (A 64-bit operand can be split into just three
+      21-bit pieces if one allows the split operands to be negative!)
+
+
+<li> <strong>Faster sqrt</strong>
+
+  <p> The current code uses divisions, which are reasonably fast, but it'd be
+      possible to use only multiplications by computing 1/sqrt(A) using this
+      iteration:
+      <pre>
+				    2
+		   x   = x  (3 &minus; A x )/2
+		    i+1	  i	    i  </pre>
+      The square root can then be computed like this:
+      <pre>
+		     sqrt(A) = A x
+				  n  </pre>
+  <p> That final multiply might be the full size of the input (though it might
+      only need the high half of that), so there may or may not be any speedup
+      overall.
+
+  <p> We should probably allow a special exponent-like parameter, to speed
+      computations of a precise square root of a small number in mpf and mpfr.
+
+
+<li> <strong>Nth root</strong>
+
+  <p> Improve mpn_rootrem.  The current code is not too bad, but its time
+      complexity is a function of the input, while it is possible to make
+      the <i>average</i> complexity a function of the output.
+
+
+<li> <strong>Fat binaries</strong>
+
+  <p> Add more functions to the set of fat functions.
+
+  <p> The speed of multiplication is today highly dependent on combination
+  functions like <code>addlsh1_n</code>.  A fat binary will never use any such
+  functions, since they are classified as optional.  Ideally, we should use
+  them, but making the current compile-time selections of optional functions
+  become run-time selections for fat binaries.
+
+  <p> If we make fat binaries work really well, we should move away frm tehe
+  current configure scheme (at least by default) and instead include all code
+  always.
+
+
+<li> <strong>Exceptions</strong>
+
+  <p> Some sort of scheme for exceptions handling would be desirable.
+      Presently the only thing documented is that divide by zero in GMP
+      functions provokes a deliberate machine divide by zero (on those systems
+      where such a thing exists at least).  The global <code>gmp_errno</code>
+      is not actually documented, except for the old <code>gmp_randinit</code>
+      function.  Being currently just a plain global means it's not
+      thread-safe.
+
+  <p> The basic choices for exceptions are returning an error code or having a
+      handler function to be called.  The disadvantage of error returns is they
+      have to be checked, leading to tedious and rarely executed code, and
+      strictly speaking such a scheme wouldn't be source or binary compatible.
+      The disadvantage of a handler function is that a <code>longjmp</code> or
+      similar recovery from it may be difficult.  A combination would be
+      possible, for instance by allowing the handler to return an error code.
+
+  <p> Divide-by-zero, sqrt-of-negative, and similar operand range errors can
+      normally be detected at the start of functions, so exception handling
+      would have a clean state.  What's worth considering though is that the
+      GMP function detecting the exception may have been called via some third
+      party library or self contained application module, and hence have
+      various bits of state to be cleaned up above it.  It'd be highly
+      desirable for an exceptions scheme to allow for such cleanups.
+
+  <p> The C++ destructor mechanism could help with cleanups both internally and
+      externally, but being a plain C library we don't want to depend on that.
+
+  <p> A C++ <code>throw</code> might be a good optional extra exceptions
+      mechanism, perhaps under a build option.  For
+      GCC <code>-fexceptions</code> will add the necessary frame information to
+      plain C code, or GMP could be compiled as C++.
+
+  <p> Out-of-memory exceptions are expected to be handled by the
+      <code>mp_set_memory_functions</code> routines, rather than being a
+      prospective part of divide-by-zero etc.  Some similar considerations
+      apply but what differs is that out-of-memory can arise deep within GMP
+      internals.  Even fundamental routines like <code>mpn_add_n</code> and
+      <code>mpn_addmul_1</code> can use temporary memory (for instance on Cray
+      vector systems).  Allowing for an error code return would require an
+      awful lot of checking internally.  Perhaps it'd still be worthwhile, but
+      it'd be a lot of changes and the extra code would probably be rather
+      rarely executed in normal usages.
+
+  <p> A <code>longjmp</code> recovery for out-of-memory will currently, in
+      general, lead to memory leaks and may leave GMP variables operated on in
+      inconsistent states.  Maybe it'd be possible to record recovery
+      information for use by the relevant allocate or reallocate function, but
+      that too would be a lot of changes.
+
+  <p> One scheme for out-of-memory would be to note that all GMP allocations go
+      through the <code>mp_set_memory_functions</code> routines.  So if the
+      application has an intended <code>setjmp</code> recovery point it can
+      record memory activity by GMP and abandon space allocated and variables
+      initialized after that point.  This might be as simple as directing the
+      allocation functions to a separate pool, but in general would have the
+      disadvantage of needing application-level bookkeeping on top of the
+      normal system <code>malloc</code>.  An advantage however is that it needs
+      nothing from GMP itself and on that basis doesn't burden applications not
+      needing recovery.  Note that there's probably some details to be worked
+      out here about reallocs of existing variables, and perhaps about copying
+      or swapping between "permanent" and "temporary" variables.
+
+  <p> Applications desiring a fine-grained error control, for instance a
+      language interpreter, would very possibly not be well served by a scheme
+      requiring <code>longjmp</code>.  Wrapping every GMP function call with a
+      <code>setjmp</code> would be very inconvenient.
+
+  <p> Another option would be to let <code>mpz_t</code> etc hold a sort of NaN,
+      a special value indicating an out-of-memory or other failure.  This would
+      be similar to NaNs in mpfr.  Unfortunately such a scheme could only be
+      used by programs prepared to handle such special values, since for
+      instance a program waiting for some condition to be satisfied could
+      become an infinite loop if it wasn't also watching for NaNs.  The work to
+      implement this would be significant too, lots of checking of inputs and
+      intermediate results.  And if <code>mpn</code> routines were to
+      participate in this (which they would have to internally) a lot of new
+      return values would need to be added, since of course there's no
+      <code>mpz_t</code> etc structure for them to indicate failure in.
+
+  <p> Stack overflow is another possible exception, but perhaps not one that
+      can be easily detected in general.  On i386 GNU/Linux for instance GCC
+      normally doesn't generate stack probes for an <code>alloca</code>, but
+      merely adjusts <code>%esp</code>.  A big enough <code>alloca</code> can
+      miss the stack redzone and hit arbitrary data.  GMP stack usage is
+      normally a function of operand size, which might be enough for some
+      applications to know they'll be safe.  Otherwise a fixed maximum usage
+      can probably be obtained by building with
+      <code>--enable-alloca=malloc-reentrant</code> (or
+      <code>notreentrant</code>).  Arranging the default to be
+      <code>alloca</code> only on blocks up to a certain size and
+      <code>malloc</code> thereafter might be a better approach and would have
+      the advantage of not having calculations limited by available stack.
+
+  <p> Actually recovering from stack overflow is of course another problem.  It
+      might be possible to catch a <code>SIGSEGV</code> in the stack redzone
+      and do something in a <code>sigaltstack</code>, on systems which have
+      that, but recovery might otherwise not be possible.  This is worth
+      bearing in mind because there's no point worrying about tight and careful
+      out-of-memory recovery if an out-of-stack is fatal.
+
+  <p> Operand overflow is another exception to be addressed.  It's easy for
+      instance to ask <code>mpz_pow_ui</code> for a result bigger than an
+      <code>mpz_t</code> can possibly represent.  Currently overflows in limb
+      or byte count calculations will go undetected.  Often they'll still end
+      up asking the memory functions for blocks bigger than available memory,
+      but that's by no means certain and results are unpredictable in general.
+      It'd be desirable to tighten up such size calculations.  Probably only
+      selected routines would need checks, if it's assumed say that no input
+      will be more than half of all memory and hence size additions like say
+      <code>mpz_mul</code> won't overflow.
+
+
+<li> <strong>Performance Tool</strong>
+
+  <p> It'd be nice to have some sort of tool for getting an overview of
+      performance.  Clearly a great many things could be done, but some primary
+      uses would be,
+
+      <ol>
+	<li> Checking speed variations between compilers.
+	<li> Checking relative performance between systems or CPUs.
+      </ol>
+
+  <p> A combination of measuring some fundamental routines and some
+      representative application routines might satisfy these.
+
+  <p> The tune/time.c routines would be the easiest way to get good accurate
+      measurements on lots of different systems.  The high level
+      <code>speed_measure</code> may or may not suit, but the basic
+      <code>speed_starttime</code> and <code>speed_endtime</code> would cover
+      lots of portability and accuracy questions.
+
+
+<li> <strong>Using <code>restrict</code></strong>
+
+  <p> There might be some value in judicious use of C99 style
+      <code>restrict</code> on various pointers, but this would need some
+      careful thought about what it implies for the various operand overlaps
+      permitted in GMP.
+
+  <p> Rumour has it some pre-C99 compilers had <code>restrict</code>, but
+      expressing tighter (or perhaps looser) requirements.  Might be worth
+      investigating that before using <code>restrict</code> unconditionally.
+
+  <p> Loops are presumably where the greatest benefit would be had, by allowing
+      the compiler to advance reads ahead of writes, perhaps as part of loop
+      unrolling.  However critical loops are generally coded in assembler, so
+      there might not be very much to gain.  And on Cray systems the explicit
+      use of <code>_Pragma</code> gives an equivalent effect.
+
+  <p> One thing to note is that Microsoft C headers (on ia64 at least) contain
+      <code>__declspec(restrict)</code>, so a <code>#define</code> of
+      <code>restrict</code> should be avoided.  It might be wisest to setup a
+      <code>gmp_restrict</code>.
+
+
+<li> <strong>Prime Testing</strong>
+
+  <p> GMP is not really a number theory library and probably shouldn't have
+      large amounts of code dedicated to sophisticated prime testing
+      algorithms, but basic things well-implemented would suit.  Tests offering
+      certainty are probably all too big or too slow (or both!) to justify
+      inclusion in the main library.  Demo programs showing some possibilities
+      would be good though.
+
+  <p> The present "repetitions" argument to <code>mpz_probab_prime_p</code> is
+      rather specific to the Miller-Rabin tests of the current implementation.
+      Better would be some sort of parameter asking perhaps for a maximum
+      chance 1/2^x of a probable prime in fact being composite.  If
+      applications follow the advice that the present reps gives 1/4^reps
+      chance then perhaps such a change is unnecessary, but an explicitly
+      described 1/2^x would allow for changes in the implementation or even for
+      new proofs about the theory.
+
+  <p> <code>mpz_probab_prime_p</code> always initializes a new
+      <code>gmp_randstate_t</code> for randomized tests, which unfortunately
+      means it's not really very random and in particular always runs the same
+      tests for a given input.  Perhaps a new interface could accept an rstate
+      to use, so successive tests could increase confidence in the result.
+
+  <p> <code>mpn_mod_34lsub1</code> is an obvious and easy improvement to the
+      trial divisions.  And since the various prime factors are constants, the
+      remainder can be tested with something like
+<pre>
+#define MP_LIMB_DIVISIBLE_7_P(n) \
+  ((n) * MODLIMB_INVERSE_7 &lt;= MP_LIMB_T_MAX/7)
+</pre>
+      Which would help compilers that don't know how to optimize divisions by
+      constants, and is even an improvement on current gcc 3.2 code.  This
+      technique works for any modulus, see Granlund and Montgomery "Division by
+      Invariant Integers" section 9.
+
+  <p> The trial divisions are done with primes generated and grouped at
+      runtime.  This could instead be a table of data, with pre-calculated
+      inverses too.  Storing deltas, ie. amounts to add, rather than actual
+      primes would save space.  <code>udiv_qrnnd_preinv</code> style inverses
+      can be made to exist by adding dummy factors of 2 if necessary.  Some
+      thought needs to be given as to how big such a table should be, based on
+      how much dividing would be profitable for what sort of size inputs.  The
+      data could be shared by the perfect power testing.
+
+  <p> Jason Moxham points out that if a sqrt(-1) mod N exists then any factor
+      of N must be == 1 mod 4, saving half the work in trial dividing.  (If
+      x^2==-1 mod N then for a prime factor p we have x^2==-1 mod p and so the
+      jacobi symbol (-1/p)=1.  But also (-1/p)=(-1)^((p-1)/2), hence must have
+      p==1 mod 4.)  But knowing whether sqrt(-1) mod N exists is not too easy.
+      A strong pseudoprime test can reveal one, so perhaps such a test could be
+      inserted part way though the dividing.
+
+  <p> Jon Grantham "Frobenius Pseudoprimes" (www.pseudoprime.com) describes a
+      quadratic pseudoprime test taking about 3x longer than a plain test, but
+      with only a 1/7710 chance of error (whereas 3 plain Miller-Rabin tests
+      would offer only (1/4)^3 == 1/64).  Such a test needs completely random
+      parameters to satisfy the theory, though single-limb values would run
+      faster.  It's probably best to do at least one plain Miller-Rabin before
+      any quadratic tests, since that can identify composites in less total
+      time.
+
+  <p> Some thought needs to be given to the structure of which tests (trial
+      division, Miller-Rabin, quadratic) and how many are done, based on what
+      sort of inputs we expect, with a view to minimizing average time.
+
+  <p> It might be a good idea to break out subroutines for the various tests,
+      so that an application can combine them in ways it prefers, if sensible
+      defaults in <code>mpz_probab_prime_p</code> don't suit.  In particular
+      this would let applications skip tests it knew would be unprofitable,
+      like trial dividing when an input is already known to have no small
+      factors.
+
+  <p> For small inputs, combinations of theory and explicit search make it
+      relatively easy to offer certainty.  For instance numbers up to 2^32
+      could be handled with a strong pseudoprime test and table lookup.  But
+      it's rather doubtful whether a smallnum prime test belongs in a bignum
+      library.  Perhaps if it had other internal uses.
+
+  <p> An <code>mpz_nthprime</code> might be cute, but is almost certainly
+      impractical for anything but small n.
+
+
+<li> <strong>Intra-Library Calls</strong>
+
+  <p> On various systems, calls within libgmp still go through the PLT, TOC or
+      other mechanism, which makes the code bigger and slower than it needs to
+      be.
+
+  <p> The theory would be to have all GMP intra-library calls resolved directly
+      to the routines in the library.  An application wouldn't be able to
+      replace a routine, the way it can normally, but there seems no good
+      reason to do that, in normal circumstances.
+
+  <p> The <code>visibility</code> attribute in recent gcc is good for this,
+      because it lets gcc omit unnecessary GOT pointer setups or whatever if it
+      finds all calls are local and there's no global data references.
+      Documented entrypoints would be <code>protected</code>, and purely
+      internal things not wanted by test programs or anything can be
+      <code>internal</code>.
+
+  <p> Unfortunately, on i386 it seems <code>protected</code> ends up causing
+      text segment relocations within libgmp.so, meaning the library code can't
+      be shared between processes, defeating the purpose of a shared library.
+      Perhaps this is just a gremlin in binutils (debian packaged
+      2.13.90.0.16-1).
+
+  <p> The linker can be told directly (with a link script, or options) to do
+      the same sort of thing.  This doesn't change the code emitted by gcc of
+      course, but it does mean calls are resolved directly to their targets,
+      avoiding a PLT entry.
+
+  <p> Keeping symbols private to libgmp.so is probably a good thing in general
+      too, to stop anyone even attempting to access them.  But some
+      undocumented things will need or want to be kept visible, for use by
+      mpfr, or the test and tune programs.  Libtool has a standard option for
+      selecting public symbols (used now for libmp).
+
+
+<li> <strong>Math functions for the mpf layer</strong>
+
+  <p> Implement the functions of math.h for the GMP mpf layer!	Check the book
+      "Pi and the AGM" by Borwein and Borwein for ideas how to do this.  These
+      functions are desirable: acos, acosh, asin, asinh, atan, atanh, atan2,
+      cos, cosh, exp, log, log10, pow, sin, sinh, tan, tanh.
+
+  <p> Note that the <a href="http://mpfr.org">mpfr</a> functions already
+  provide these functions, and that we usually recommend new programs to use
+  mpfr instead of mpf.
+</ul>
+<hr>
+
+</body>
+</html>
+
+<!--
+Local variables:
+eval: (add-hook 'write-file-hooks 'time-stamp)
+time-stamp-start: "This file current as of "
+time-stamp-format: "%:d %3b %:y"
+time-stamp-end: "\\."
+time-stamp-line-limit: 50
+End:
+-->

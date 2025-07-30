@@ -1,0 +1,6 @@
+# Check that the entire schedule is completely unrolled and
+# in particular that no spurious loop is introduced.
+[t1] -> { write_shared_A[i2] -> [1, 3, 6 + i2, 0, t1] : (exists (e0 = [(-6 + t1 - i2)/128]: 128e0 = -6 + t1 - i2 and i2 <= 122 and i2 >= 1 and t1 >= 0 and t1 <= 127)) or (exists (e0 = [(-6 + t1 - i2)/128]: 128e0 = -6 + t1 - i2 and i2 >= 123 and i2 <= 124 and t1 <= 127 and t1 >= 0 )) }
+[t1] -> { : t1 >= 0 and t1 <= 127 }
+[t1] -> { [i0, i1, i2, i3, i4] -> unroll[o0] }
+

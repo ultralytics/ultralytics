@@ -1,0 +1,118 @@
+# Data file for mpc_exp.
+#
+# Copyright (C) 2008, 2010 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX_RE  INEX_IM  PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP_RE  OP_RE  PREC_OP_IM  OP_IM  RND_RE  RND_IM
+#
+# see sin.dat for precisions
+
+# special values (following ISO C99 standard)
+0 0 53                     0 53                    0     53 -inf 53 -inf N N
+0 0 53                    +0 53                   +0     53 -inf 53   -6 N N
+0 0 53                    -0 53                   +0     53 -inf 53   -4 N N
+0 0 53                    -0 53                   -0     53 -inf 53   -2 N N
+0 0 53                    +0 53                   -0     53 -inf 53   -1 N N
+0 0 53                    +0 53                   -0     53 -inf 53   -0 N N
+0 0 53                    +0 53                   +0     53 -inf 53   +0 N N
+0 0 53                    +0 53                   +0     53 -inf 53   +1 N N
+0 0 53                    -0 53                   +0     53 -inf 53   +2 N N
+0 0 53                    -0 53                   -0     53 -inf 53   +4 N N
+0 0 53                    +0 53                   -0     53 -inf 53   +6 N N
+0 0 53                     0 53                    0     53 -inf 53 +inf N N
+0 0 53                     0 53                    0     53 -inf 53  nan N N
+0 0 53                   nan 53                  nan     53   -1 53 -inf N N
+0 0 53                   nan 53                  nan     53   -1 53 +inf N N
+0 0 53                   nan 53                  nan     53   -1 53  nan N N
+0 0 53                   nan 53                  nan     53   -0 53 -inf N N
+0 0 53                    +1 53                   -0     53   -0 53   -0 N N
+0 0 53                    +1 53                   +0     53   -0 53   +0 N N
+0 0 53                   nan 53                  nan     53   -0 53 +inf N N
+0 0 53                   nan 53                  nan     53   -0 53  nan N N
+0 0 53                   nan 53                  nan     53   +0 53 -inf N N
+0 0 53                    +1 53                   -0     53   +0 53   -0 N N
+0 0 53                    +1 53                   +0     53   +0 53   +0 N N
+0 0 53                   nan 53                  nan     53   +0 53 +inf N N
+0 0 53                   nan 53                  nan     53   +0 53  nan N N
+0 0 53                   nan 53                  nan     53   +1 53 -inf N N
+0 0 53                   nan 53                  nan     53   +1 53 +inf N N
+0 0 53                   nan 53                  nan     53   +1 53  nan N N
+0 0 53                   inf 53                  nan     53 +inf 53 -inf N N
+0 0 53                  +inf 53                 +inf     53 +inf 53   -6 N N
+0 0 53                  -inf 53                 +inf     53 +inf 53   -4 N N
+0 0 53                  -inf 53                 -inf     53 +inf 53   -2 N N
+0 0 53                  +inf 53                 -inf     53 +inf 53   -1 N N
+0 0 53                  +inf 53                   -0     53 +inf 53   -0 N N
+0 0 53                  +inf 53                   +0     53 +inf 53   +0 N N
+0 0 53                  +inf 53                 +inf     53 +inf 53   +1 N N
+0 0 53                  -inf 53                 +inf     53 +inf 53   +2 N N
+0 0 53                  -inf 53                 -inf     53 +inf 53   +4 N N
+0 0 53                  +inf 53                 -inf     53 +inf 53   +6 N N
+0 0 53                   inf 53                  nan     53 +inf 53 +inf N N
+0 0 53                   inf 53                  nan     53 +inf 53  nan N N
+0 0 53                   nan 53                  nan     53  nan 53 -inf N N
+0 0 53                   nan 53                  nan     53  nan 53   -1 N N
+0 0 53                   nan 53                   -0     53  nan 53   -0 N N
+0 0 53                   nan 53                   +0     53  nan 53   +0 N N
+0 0 53                   nan 53                  nan     53  nan 53   +1 N N
+0 0 53                   nan 53                  nan     53  nan 53 +inf N N
+0 0 53                   nan 53                  nan     53  nan 53  nan N N
+
+# purely real argument
+- 0 53 0x1936dc5690c08fp-44  2 +0    53  6 17 +0 N N
+- 0 53 0x4b0556e084f3d0p-60  3 +0    54 -4 16 +0 Z N
++ 0 53 0xec7325c6a6ed70p-53  4 -0    55  2 15 -0 U N
+- 0 53 0x178b56362cef37p-54  5 -0    56 -1 14 -0 D N
+- 0 53 0x3699205c4e74b0p-48  6 +0    57  4 13 +0 Z Z
++ 0 53 0x454aaa8efe0730p-57  7 +0    58 -2 12 +0 U Z
+- 0 53 0x15bf0a8b145769p-51  8 -0    59  1 11 -0 D Z
++ 0 53 0xa2728f889ea6b0p-64  9 -0    60 -6 10 -0 N Z
++ 0 53 0xec7325c6a6ed70p-53 10 +0    61  2  9 +0 U U
+- 0 53 0x178b56362cef37p-54 11 +0    62 -1  8 +0 D U
+- 0 53 0x1936dc5690c08fp-44 12 -0    63  6  7 -0 N U
+- 0 53 0x4b0556e084f3d0p-60 13 -0    64 -4  6 -0 Z U
+- 0 53 0x15bf0a8b145769p-51 14 +0    65  1  5 +0 D D
++ 0 53 0xa2728f889ea6b0p-64 15 +0    66 -6  4 +0 N D
+- 0 53 0x3699205c4e74b0p-48 16 -0    67  4  3 -0 Z D
++ 0 53 0x454aaa8efe0730p-57 17 -0    68 -2  2 -0 U D
+
+# purely imaginary argument
+- + 53  0x1eb9b7097822f5p-53 53 -0x4787c62ac28b0p-52     53 +0 53  6 N N
++ + 53 -0x53aa981b6c9300p-55 53 -0xc1bdceeee0f57p-52     51 -0 54  4 Z N
++ - 53 -0x6a88995d4dc810p-56 53 -0xe8c7b7568da23p-52     49 +0 55 -2 U N
+- + 53  0x114a280fb5068bp-53 53 -0xd76aa47848677p-52     47 -0 56 -1 D N
++ + 53 -0x53aa981b6c9300p-55 53 -0xc1bdceeee0f57p-52     45 +0 57  4 Z Z
++ - 53 -0x6a88995d4dc810p-56 53  0x1d18f6ead1b445p-53    43 -0 58  2 U Z
+- + 53  0x114a280fb5068bp-53 53 -0xd76aa47848677p-52     41 +0 59 -1 D Z
+- - 53  0x1eb9b7097822f5p-53 53  0x4787c62ac28b0p-52     39 -0 60 -6 N Z
++ + 53 -0x6a88995d4dc810p-56 53  0xe8c7b7568da23p-52     37 +0 61  2 U U
+- + 53  0x114a280fb5068bp-53 53  0x1aed548f090cefp-53    35 -0 62  1 D U
+- + 53  0x1eb9b7097822f5p-53 53  0x11e1f18ab0a2c1p-54    33 +0 63 -6 N U
++ + 53 -0x53aa981b6c9300p-55 53  0x1837b9dddc1eafp-53    31 -0 64 -4 Z U
+- - 53  0x114a280fb5068bp-53 53  0xd76aa47848677p-52     29 +0 65  1 D D
+- - 53  0x1eb9b7097822f5p-53 53 -0x11e1f18ab0a2c1p-54    27 -0 66  6 N D
++ - 53 -0x53aa981b6c9300p-55 53  0xc1bdceeee0f57p-52     25 +0 67 -4 Z D
++ - 53 -0x6a88995d4dc810p-56 53 -0xe8c7b7568da23p-52     23 -0 68 -2 U D
+
+# overflow
+- - 2 -inf 2 -inf  53 0x3312ae437f94441ec@-9 53 0xe45f7bab0595dd700@-10 N N
+
+# input close to 0
+? ? 53 1 53 0x5D7A2148071Fp-7213522 53 0x1E02AE0D0F6Fp-7213521 53 0x5D7A2148071Fp-7213522 N N

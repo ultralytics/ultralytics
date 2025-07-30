@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# Copyright 2008-2017 Free Software Foundation, Inc.
+# This script is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# ck-copyright-notice can be run from the tools directory
+dir=$(pwd)
+[ -d src ] || [ "$(basename "$dir")" != tools ] || cd ..
+
+err=0
+
+# Note: if paragraphs are reformatted, this may need to be updated.
+
+yrx="\([0-9][0-9][0-9][0-9]\)"
+
+lgpl=$(sed -n "/version [0-9.]* or any later version/ {
+  s/.*version //
+  s/ or.*//
+  p
+  q
+  }" doc/mpfr.texi)
+
+clyr=$(sed -n "/^r/ {
+  s/.* | $yrx-.*/\1/p
+  q
+  }" ChangeLog)
+
+# Do not use "find ... | while read file do ... done" because the "do"
+# part needs to be run in the current shell, and some shells behave in
+# a different way.
+srctests=$(find examples src tests -name '*.[ch]')
+
+# Take the copyright notice last year of NEWS file as a reference.
+z=$(sed -n "s/^Copyright 2000-$yrx Free Software Foundation.*/\1/p" NEWS)
+
+if [ $z -lt $clyr ]; then
+  echo "The copyright year of NEWS is out-of-date."
+  err=1
+fi
+
+for file in $srctests BUGS INSTALL README TODO configure.ac
+do
+  y=""
+  case $file in
+    tests/RRTest.c)
+      # This file doesn't have a copyright notice, but isn't distributed.
+      continue ;;
+    src/mini-gmp.[ch])
+      # These files may have been added by the user or 3rd party.
+      continue ;;
+    src/mpfr-longlong.h)
+      # This file (which comes from GMP) has a specific copyright notice.
+      continue ;;
+    src/get_patches.c)
+      file="tools/get_patches.sh" ;;
+    */mparam.h)
+      y="2005-" ;;
+  esac
+  grep -q "Copyright $y.*$z Free Software Foundation" "$file" && \
+  grep -q "GNU MPFR Library" "$file" && \
+  grep -q "either version $lgpl of the License" "$file" && continue
+  echo "Possibly missing or incorrect copyright notice in $file"
+  err=1
+done
+
+exit $err

@@ -1,0 +1,159 @@
+Changes in version 1.0.3:
+  - Fixed mpc_pow, see
+    http://lists.gforge.inria.fr/pipermail/mpc-discuss/2014-October/001315.html
+  - #18257: Switched to libtool 2.4.5.
+
+Changes in version 1.0.2:
+  - Fixed mpc_atan, mpc_atanh for (+-0, +-1), see
+    http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57994#c7
+  - Fixed mpc_log10 for purely imaginary argument, see
+    http://lists.gforge.inria.fr/pipermail/mpc-discuss/2012-September/001208.html
+
+Changes in version 1.0.1:
+  - Switched to automake 1.11.6, see
+    https://lists.gnu.org/archive/html/automake/2012-07/msg00023.html
+  - #14669: Fixed extraction of CC from gmp.h
+  - Fixed case of intermediate zero real or imaginary part in mpc_fma,
+    found by hydra with GMP_CHECK_RANDOMIZE=1346362345
+
+Changes in version 1.0:
+  - First release as a GNU package
+  - License change: LGPLv3+ for code, GFDLv1.3+ (with no invariant sections)
+    for documentation
+  - 100% of all lines are covered by tests
+  - Functions renamed:
+    mpc_mul_2exp to mpc_mul_2ui, mpc_div_2exp to mpc_div_2ui
+  - 0^0, which returned (NaN,NaN) previously, now returns (1,+0)
+  - Removed compatibility with K&R compilers, untestable due to lack of
+    such compilers
+  - New functions: mpc_log10, mpc_mul_2si, mpc_div_2si
+  - Speed-ups:
+    - mpc_fma
+  - Bug fixes:
+    - mpc_div and mpc_norm now return a value indicating the effective
+      rounding direction, as the other functions
+    - mpc_mul, mpc_sqr and mpc_norm now return correct results even if there
+      are over- or underflows during the computation
+    - mpc_asin, mpc_proj, mpc_sqr: Wrong result when input variable has
+      infinite part and equals output variable is corrected
+    - mpc_fr_sub: Wrong return value for imaginary part is corrected
+
+Changes in version 0.9:
+  - New functions:
+    - mpc_set_dc, mpc_set_ldc, mpc_get_dc, mpc_get_ldc for converting
+      between mpc type variables and C variables of type double _Complex
+      or long double _Complex
+    - mpc_sin_cos, computing simultaneously the sine and cosine
+  - Speed-ups:
+    - mpc_pow_si through binary exponentiation
+    - mpc_pow_z when the exponent fits in a long
+    - mpc_tan through the use of mpc_sin_cos
+  - Bug fixes:
+    - trigonometric functions: infinite loop due to overflow for large
+      arguments
+    - mpc_exp: close to infinite loop for argument close to 0
+    - mpc_sqrt: close to infinite loop for argument close to 1
+    - mpc_add_si: replaced macro by function, since the macro evaluated the
+      same expression twice
+  - Logging feature for debugging:
+      ./configure --enable-logging
+      #include "mpc-log.h" instead of #include "mpc.h"
+  - Minimally required library versions: gmp 4.3.2, mpfr 2.4.2
+
+Changes in version 0.8.2:
+  - Speed-up of mpc_pow_ui through binary exponentiation
+
+Changes in version 0.8.1:
+  - Bug fixes:
+    - mpc_acosh, mpc_asinh, mpc_atanh: swap of precisions between real and
+      imaginary parts
+    - mpc_atan: memory leak
+    - mpc_log: wrong ternary value in data file; masked by bug in mpfr-2.4.1
+
+Changes in version 0.8 ("Dianthus deltoides"):
+  - New functions:
+    - mpc_asin, mpc_acos, mpc_atan, mpc_asinh, mpc_acosh, mpc_atanh,
+      mpc_pow_d, mpc_pow_ld, mpc_pow_si, mpc_pow_ui, mpc_pow_z, mpc_pow_fr
+  - Bug fixes:
+    - mpc_ui_div: real divisor
+
+Changes in version 0.7 ("Campanula uniflora"):
+  - New functions: mpc_pow, mpc_set_nan, mpc_swap
+  - Bug fixes:
+    - mpc_log: along branch cut
+    - mpc_norm: infinite loop in case of overflow
+    - mpc_ui_div, mpc_div, mpc_fr_div: handling of division by 0 and
+      infinities following the example code of the C99 standard
+    - compilation with g++
+  - Makefile.vc updated (thanks to Mickael Gastineau)
+  - Minimal gmp version is 4.2
+  - Changed MPC_SET_X_Y macro
+  - Functions mpc_random and mpc_random2 removed
+
+Changes in version 0.6 ("Bellis perennis"):
+  - New functions: mpc_get_str, mpc_set_str, mpc_strtoc, mpc_set_uj,
+    mpc_set_sj, mpc_set_ld, mpc_set_ld_ld, mpc_set_si_si, mpc_set_uj_uj,
+    mpc_set_sj_sj, mpc_set_f, mpc_set_f_f, mpc_set_q, mpc_set_q_q, mpc_set_z,
+    mpc_set_z_z and mpc_free_str
+  - New macro: MPC_SET_X_Y
+  - mpc_set_ui_fr removed
+  - Default precision removed, as well as mpc_init and all mpc_init_set*
+    combinations; use mpc_init2 or mpc_init3, followed by mpc_set, instead
+  - mpc_exp, mpc_log, mpc_cos, mpc_sin, mpc_tan, mpc_cosh, mpc_sinh,
+    mpc_tanh and mpc_sqrt return inexact value
+  - inp_str returns inexact value and the number of read characters
+    in an additional parameter
+  - Get default $CC and $CFLAGS from gmp.h (__GMP_CC / __GMP_CFLAGS,
+    which are available as of GMP 4.2.3)
+  - Bug fixes:
+    - mpc_get_version and MPC_VERSION_STRING agree
+    - Compilation on i686-pc-cygwin and i686-pc-mingw32 fixed
+
+Changes in version 0.5.2:
+  - New macros:
+    - version number: MPC_VERSION_NUM, MPC_VERSION
+  - Makefile.vc updated (thanks to Mickael Gastineau)
+  - Compilation on Debian-Gnu-Linux-PowerPC and MacOsX
+    fixed (thanks to Laurent Fousse and Mickael Gastineau)
+
+Changes in version 0.5.1:
+  - New functions:
+    - mpc_set_fr_fr
+    - mpc_real, mpc_imag
+    - mpc_arg, mpc_proj
+  - New macros:
+    - version number: MPC_VERSION_MAJOR, MPC_VERSION_MINOR,
+      MPC_VERSION_PATCHLEVEL, MPC_VERSION_STRING
+    - references to number parts: mpc_realref and mpc_imagref
+  - Test framework rewritten
+  - Configure checks for recent gmp (>= 4.2) and mpfr (>= 2.3.1)
+    libraries
+  - New configure options: --with-gmp-lib, --with-gmp-include,
+     --with-mpfr-lib, and --with-mpfr-include
+  - Export declarations for MSWindows, makefile.vc updated (thanks to
+    Mickael Gastineau)
+  - Optimisations:
+    - cmp_mul_fr, cmp_sin, cmp_cos
+  - Bug fixes:
+    - configure looks for gmp first, then for mpfr
+    - mpc_cos, mpc_div, mpc_div_fr, mpc_fr_sub, mpc_mul_fr, mpc_set_fr,
+      mpc_sqr
+    - fix handling of special values: mpc_exp, mpc_log, mpc_mul, mpc_norm,
+      mpc_sqr, mpc_sqrt
+
+Changes in version 0.5 ("Aconitum neomontanum"):
+  - Support for autotools
+  - New functions:
+     - logarithm
+     - trigonometric functions: mpc_cos, mpc_tan
+     - hyperbolic functions: mpc_cosh, mpc_sinh, mpc_tanh
+  - Bug fixes:
+    - mpc_sqrt with directed rounding
+
+
+Copyright (C) 2008, 2009, 2010, 2011, 2012 INRIA
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved. This file is offered as-is,
+without any warranty.

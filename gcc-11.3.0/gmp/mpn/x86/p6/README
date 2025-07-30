@@ -1,0 +1,125 @@
+Copyright 2000, 2001 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+                      INTEL P6 MPN SUBROUTINES
+
+
+
+This directory contains code optimized for Intel P6 class CPUs, meaning
+PentiumPro, Pentium II and Pentium III.  The mmx and p3mmx subdirectories
+have routines using MMX instructions.
+
+
+
+STATUS
+
+Times for the loops, with all code and data in L1 cache, are as follows.
+Some of these might be able to be improved.
+
+                               cycles/limb
+
+	mpn_add_n/sub_n           3.7
+
+	mpn_copyi                 0.75
+	mpn_copyd                 1.75 (or 0.75 if no overlap)
+
+	mpn_divrem_1             39.0
+	mpn_mod_1                21.5
+	mpn_divexact_by3          8.5
+
+	mpn_mul_1                 5.5
+	mpn_addmul/submul_1       6.35
+
+	mpn_l/rshift              2.5
+
+	mpn_mul_basecase          8.2 cycles/crossproduct (approx)
+	mpn_sqr_basecase          4.0 cycles/crossproduct (approx)
+				  or 7.75 cycles/triangleproduct (approx)
+
+Pentium II and III have MMX and get the following improvements.
+
+	mpn_divrem_1             25.0 integer part, 17.5 fractional part
+
+	mpn_l/rshift              1.75
+
+
+
+
+NOTES
+
+Write-allocate L1 data cache means prefetching of destinations is unnecessary.
+
+Mispredicted branches have a penalty of between 9 and 15 cycles, and even up
+to 26 cycles depending how far speculative execution has gone.  The 9 cycle
+minimum penalty comes from the issue pipeline being 9 stages.
+
+A copy with rep movs seems to copy 16 bytes at a time, since speeds for 4,
+5, 6 or 7 limb operations are all the same.  The 0.75 cycles/limb would be 3
+cycles per 16 byte block.
+
+
+
+
+CODING
+
+Instructions in general code have been shown grouped if they can execute
+together, which means up to three instructions with no successive
+dependencies, and with only the first being a multiple micro-op.
+
+P6 has out-of-order execution, so the groupings are really only showing
+dependent paths where some shuffling might allow some latencies to be
+hidden.
+
+
+
+
+REFERENCES
+
+"Intel Architecture Optimization Reference Manual", 1999, revision 001 dated
+02/99, order number 245127 (order number 730795-001 is in the document too).
+Available on-line:
+
+	http://download.intel.com/design/PentiumII/manuals/245127.htm
+
+"Intel Architecture Optimization Manual", 1997, order number 242816.  This
+is an older document mostly about P5 and not as good as the above.
+Available on-line:
+
+	http://download.intel.com/design/PentiumII/manuals/242816.htm
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

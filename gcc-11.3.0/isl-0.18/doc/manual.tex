@@ -1,0 +1,95 @@
+\documentclass{report}
+\usepackage[T1]{fontenc}
+\usepackage[plainpages=false,pdfpagelabels,breaklinks]{hyperref}
+\usepackage[backend=biber,isbn=false,url=false,doi=true,%
+maxbibnames=99,style=authoryear,sortcites=true,sorting=nyt,backref=true,%
+indexing=true,mincitenames=2,maxcitenames=2,datelabel=comp,dashed=false,%
+useprefix=true]{biblatex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{txfonts}
+\usepackage{aliascnt}
+\usepackage{tikz}
+\usepackage{calc}
+\usepackage[ruled]{algorithm2e}
+\usetikzlibrary{matrix,fit,backgrounds,decorations.pathmorphing,positioning}
+\usepackage{listings}
+
+\addbibresource{isl.bib}
+
+\renewbibmacro*{finentry}{\iflistundef{pageref}{}{\renewcommand{\finentrypunct}{}}\finentry}
+\renewbibmacro*{pageref}{%
+  \iflistundef{pageref}
+    {}
+    {\setunit{\adddot\addspace}\printtext{%
+  \mbox{}\penalty100\hfill\hbox{[\printlist[pageref][-\value{listtotal}]{pageref}]}}}}
+
+\lstset{basicstyle=\tt,flexiblecolumns=false}
+
+\def\vec#1{\mathchoice{\mbox{\boldmath$\displaystyle\bf#1$}}
+{\mbox{\boldmath$\textstyle\bf#1$}}
+{\mbox{\boldmath$\scriptstyle\bf#1$}}
+{\mbox{\boldmath$\scriptscriptstyle\bf#1$}}}
+
+\providecommand{\fract}[1]{\left\{#1\right\}}
+\providecommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+\providecommand{\ceil}[1]{\left\lceil#1\right\rceil}
+\def\sp#1#2{\langle #1, #2 \rangle}
+\def\spv#1#2{\langle\vec #1,\vec #2\rangle}
+
+\newtheorem{theorem}{Theorem}
+\newaliascnt{example}{theorem}
+\newtheorem{example}[example]{Example}
+\newaliascnt{def}{theorem}
+\newtheorem{definition}[def]{Definition}
+\aliascntresetthe{example}
+\aliascntresetthe{def}
+\numberwithin{theorem}{section}
+\numberwithin{def}{section}
+\numberwithin{example}{section}
+
+\newcommand{\algocflineautorefname}{Algorithm}
+\newcommand{\exampleautorefname}{Example}
+\newcommand{\lstnumberautorefname}{Line}
+\renewcommand{\sectionautorefname}{Section}
+\renewcommand{\subsectionautorefname}{Section}
+\renewcommand{\algorithmautorefname}{Algorithm}
+
+\DeclareFieldFormat{date}{\hypertarget{\thefield{entrykey}}{#1}}
+\def\isl{\hyperlink{Verdoolaege2010isl}{\texttt{isl}}\xspace}
+
+\def\Z{\mathbb{Z}}
+\def\Q{\mathbb{Q}}
+
+\def\pdom{\mathop{\rm pdom}\nolimits}
+\def\domain{\mathop{\rm dom}\nolimits}
+\def\range{\mathop{\rm ran}\nolimits}
+\def\identity{\mathop{\rm Id}\nolimits}
+\def\diff{\mathop{\Delta}\nolimits}
+
+\providecommand{\floor}[1]{\left\lfloor#1\right\rfloor}
+
+\begin{document}
+
+\title{Integer Set Library: Manual\\
+\small Version: \input{version} }
+\author{Sven Verdoolaege}
+
+\maketitle
+\tableofcontents
+
+\chapter{User Manual}
+
+\input{user}
+
+\chapter{Implementation Details}
+
+\input{implementation}
+
+\chapter{Further Reading}
+
+\input{reading}
+
+\printbibliography
+
+\end{document}

@@ -1,0 +1,525 @@
+Copyright 1999-2002 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+                      X86 MPN SUBROUTINES
+
+
+This directory contains mpn functions for various 80x86 chips.
+
+
+CODE ORGANIZATION
+
+	x86               i386, generic
+	x86/i486          i486
+	x86/pentium       Intel Pentium (P5, P54)
+	x86/pentium/mmx   Intel Pentium with MMX (P55)
+	x86/p6            Intel Pentium Pro
+	x86/p6/mmx        Intel Pentium II, III
+	x86/p6/p3mmx      Intel Pentium III
+	x86/k6            \ AMD K6
+	x86/k6/mmx        /
+	x86/k6/k62mmx     AMD K6-2
+	x86/k7            \ AMD Athlon
+	x86/k7/mmx        /
+	x86/pentium4      \
+	x86/pentium4/mmx  | Intel Pentium 4
+	x86/pentium4/sse2 /
+
+
+The top-level x86 directory contains blended style code, meant to be
+reasonable on all x86s.
+
+
+
+STATUS
+
+The code is well-optimized for AMD and Intel chips, but there's nothing
+specific for Cyrix chips, nor for actual 80386 and 80486 chips.
+
+
+
+ASM FILES
+
+The x86 .asm files are BSD style assembler code, first put through m4 for
+macro processing.  The generic mpn/asm-defs.m4 is used, together with
+mpn/x86/x86-defs.m4.  See comments in those files.
+
+The code is meant for use with GNU "gas" or a system "as".  There's no
+support for assemblers that demand Intel style code.
+
+
+
+STACK FRAME
+
+m4 macros are used to define the parameters passed on the stack, and these
+act like comments on what the stack frame looks like too.  For example,
+mpn_mul_1() has the following.
+
+        defframe(PARAM_MULTIPLIER, 16)
+        defframe(PARAM_SIZE,       12)
+        defframe(PARAM_SRC,         8)
+        defframe(PARAM_DST,         4)
+
+PARAM_MULTIPLIER becomes `FRAME+16(%esp)', and the others similarly.  The
+return address is at offset 0, but there's not normally any need to access
+that.
+
+FRAME is redefined as necessary through the code so it's the number of bytes
+pushed on the stack, and hence the offsets in the parameter macros stay
+correct.  At the start of a routine FRAME should be zero.
+
+        deflit(`FRAME',0)
+	...
+	deflit(`FRAME',4)
+	...
+	deflit(`FRAME',8)
+	...
+
+Helper macros FRAME_pushl(), FRAME_popl(), FRAME_addl_esp() and
+FRAME_subl_esp() exist to adjust FRAME for the effect of those instructions,
+and can be used instead of explicit definitions if preferred.
+defframe_pushl() is a combination FRAME_pushl() and defframe().
+
+There's generally some slackness in redefining FRAME.  If new values aren't
+going to get used then the redefinitions are omitted to keep from cluttering
+up the code.  This happens for instance at the end of a routine, where there
+might be just four pops and then a ret, so FRAME isn't getting used.
+
+Local variables and saved registers can be similarly defined, with negative
+offsets representing stack space below the initial stack pointer.  For
+example,
+
+	defframe(SAVE_ESI,   -4)
+	defframe(SAVE_EDI,   -8)
+	defframe(VAR_COUNTER,-12)
+
+	deflit(STACK_SPACE, 12)
+
+Here STACK_SPACE gets used in a "subl $STACK_SPACE, %esp" to allocate the
+space, and that instruction must be followed by a redefinition of FRAME
+(setting it equal to STACK_SPACE) to reflect the change in %esp.
+
+Definitions for pushed registers are only put in when they're going to be
+used.  If registers are just saved and restored with pushes and pops then
+definitions aren't made.
+
+
+
+ASSEMBLER EXPRESSIONS
+
+Only addition and subtraction seem to be universally available, certainly
+that's all the Solaris 8 "as" seems to accept.  If expressions are wanted
+then m4 eval() should be used.
+
+In particular note that a "/" anywhere in a line starts a comment in Solaris
+"as", and in some configurations of gas too.
+
+	addl	$32/2, %eax           <-- wrong
+
+	addl	$eval(32/2), %eax     <-- right
+
+Binutils gas/config/tc-i386.c has a choice between "/" being a comment
+anywhere in a line, or only at the start.  FreeBSD patches 2.9.1 to select
+the latter, and from 2.9.5 it's the default for GNU/Linux too.
+
+
+
+ASSEMBLER COMMENTS
+
+Solaris "as" doesn't support "#" commenting, using /* */ instead.  For that
+reason "C" commenting is used (see asm-defs.m4) and the intermediate ".s"
+files have no comments.
+
+Any comments before include(`../config.m4') must use m4 "dnl", since it's
+only after the include that "C" is available.  By convention "dnl" is also
+used for comments about m4 macros.
+
+
+
+TEMPORARY LABELS
+
+Temporary numbered labels like "1:" used as "1f" or "1b" are available in
+"gas" and Solaris "as", but not in SCO "as".  Normal L() labels should be
+used instead, possibly with a counter to make them unique, see jadcl0() in
+x86-defs.m4 for instance.  A separate counter for each macro makes it
+possible to nest them, for instance movl_text_address() can be used within
+an ASSERT().
+
+"1:" etc must be avoided in gcc __asm__ blocks too.  "%=" for generating a
+unique number looks like a good alternative, but is that actually a
+documented feature?  In any case this problem doesn't currently arise.
+
+
+
+ZERO DISPLACEMENTS
+
+In a couple of places addressing modes like 0(%ebx) with a byte-sized zero
+displacement are wanted, rather than (%ebx) with no displacement.  These are
+either for computed jumps or to get desirable code alignment.  Explicit
+.byte sequences are used to ensure the assembler doesn't turn 0(%ebx) into
+(%ebx).  The Zdisp() macro in x86-defs.m4 is used for this.
+
+Current gas 2.9.5 or recent 2.9.1 leave 0(%ebx) as written, but old gas
+1.92.3 changes it.  In general changing would be the sort of "optimization"
+an assembler might perform, hence explicit ".byte"s are used where
+necessary.
+
+
+
+SHLD/SHRD INSTRUCTIONS
+
+The %cl count forms of double shift instructions like "shldl %cl,%eax,%ebx"
+must be written "shldl %eax,%ebx" for some assemblers.  gas takes either,
+Solaris "as" doesn't allow %cl, gcc generates %cl for gas and NeXT (which is
+gas), and omits %cl elsewhere.
+
+For GMP an autoconf test GMP_ASM_X86_SHLDL_CL is used to determine whether
+%cl should be used, and the macros shldl, shrdl, shldw and shrdw in
+mpn/x86/x86-defs.m4 pass through or omit %cl as necessary.  See the comments
+with those macros for usage.
+
+
+
+IMUL INSTRUCTION
+
+GCC config/i386/i386.md (cvs rev 1.187, 21 Oct 00) under *mulsi3_1 notes
+that the following two forms produce identical object code
+
+	imul	$12, %eax
+	imul	$12, %eax, %eax
+
+but that the former isn't accepted by some assemblers, in particular the SCO
+OSR5 COFF assembler.  GMP follows GCC and uses only the latter form.
+
+(This applies only to immediate operands, the three operand form is only
+valid with an immediate.)
+
+
+
+DIRECTION FLAG
+
+The x86 calling conventions say that the direction flag should be clear at
+function entry and exit.  (See iBCS2 and SVR4 ABI books, references below.)
+Although this has been so since the year dot, it's not absolutely clear
+whether it's universally respected.  Since it's better to be safe than
+sorry, GMP follows glibc and does a "cld" if it depends on the direction
+flag being clear.  This happens only in a few places.
+
+
+
+POSITION INDEPENDENT CODE
+
+  Coding Style
+
+    Defining the symbol PIC in m4 processing selects SVR4 / ELF style
+    position independent code.  This is necessary for shared libraries
+    because they can be mapped into different processes at different virtual
+    addresses.  Actually, relocations are allowed but text pages with
+    relocations aren't shared, defeating the purpose of a shared library.
+
+    The GOT is used to access global data, and the PLT is used for
+    functions.  The use of the PLT adds a fixed cost to every function call,
+    and the GOT adds a cost to any function accessing global variables.
+    These are small but might be noticeable when working with small
+    operands.
+
+  Scope
+
+    It's intended, as a matter of policy, that references within libgmp are
+    resolved within libgmp.  Certainly there's no need for an application to
+    replace any internals, and we take the view that there's no value in an
+    application subverting anything documented either.
+
+    Resolving references within libgmp in theory means calls can be made with a
+    plain PC-relative call instruction, which is faster and smaller than going
+    through the PLT, and data references can be similarly PC-relative, saving a
+    GOT entry and fetch from there.  Unfortunately the normal linker behaviour
+    doesn't allow us to do this.
+
+    By default an R_386_PC32 PC-relative reference, either for a call or for
+    data, is left in libgmp.so by the linker so that it can be resolved at
+    runtime to a location in the application or another shared library.  This
+    means a text segment relocation which we don't want.
+
+  -Bsymbolic
+
+    Under the "-Bsymbolic" option, the linker resolves references to symbols
+    within libgmp.so.  This gives us the desired effect for R_386_PC32,
+    ie. it's resolved at link time.  It also resolves R_386_PLT32 calls
+    directly to their target without creating a PLT entry (though if this is
+    done to normal compiler-generated code it still leaves a setup of %ebx
+    to _GLOBAL_OFFSET_TABLE_ which may then be unnecessary).
+
+    Unfortunately -Bsymbolic does bad things to global variables defined in
+    a shared library but accessed by non-PIC code from the mainline (or a
+    static library).
+
+    The problem is that the mainline needs a fixed data address to avoid
+    text segment relocations, so space is allocated in its data segment and
+    the value from the variable is copied from the shared library's data
+    segment when the library is loaded.  Under -Bsymbolic, however,
+    references in the shared library are then resolved still to the shared
+    library data area.  Not surprisingly it bombs badly to have mainline
+    code and library code accessing different locations for what should be
+    one variable.
+
+    Note that this -Bsymbolic effect for the shared library is not just for
+    R_386_PC32 offsets which might have been cooked up in assembler, but is
+    done also for the contents of GOT entries.  -Bsymbolic simply applies a
+    general rule that symbols are resolved first from the local module.
+
+  Visibility Attributes
+
+    GCC __attribute__ ((visibility ("protected"))), which is available in
+    recent versions, eg. 3.3, is probably what we'd like to use.  It makes
+    gcc generate plain PC-relative calls to indicated functions, and directs
+    the linker to resolve references to the given function within the link
+    module.
+
+    Unfortunately, as of debian binutils 2.13.90.0.16 at least, the
+    resulting libgmp.so comes out with text segment relocations, references
+    are not resolved at link time.  If the gcc description is to be believed
+    this is this not how it should work.  If a symbol cannot be overridden
+    by another module then surely references within that module can be
+    resolved immediately (ie. at link time).
+
+  Present
+
+    In any case, all this means that we have no optimizations we can
+    usefully make to function or variable usages, neither for assembler nor
+    C code.  Perhaps in the future the visibility attribute will work as
+    we'd like.
+
+
+
+
+GLOBAL OFFSET TABLE
+
+The magic _GLOBAL_OFFSET_TABLE_ used by code establishing the address of the
+GOT sometimes requires an extra underscore prefix.  SVR4 systems and NetBSD
+don't need a prefix, OpenBSD does need one.  Note that NetBSD and OpenBSD
+are both a.out underscore systems, so the prefix for _GLOBAL_OFFSET_TABLE_
+is not simply the same as the prefix for ordinary globals.
+
+In any case in the asm code we write _GLOBAL_OFFSET_TABLE_ and let a macro
+in x86-defs.m4 add an extra underscore if required (according to a configure
+test).
+
+Old gas 1.92.3 which comes with FreeBSD 2.2.8 gets a segmentation fault when
+asked to assemble the following,
+
+        L1:
+            addl  $_GLOBAL_OFFSET_TABLE_+[.-L1], %ebx
+
+It seems that using the label in the same instruction it refers to is the
+problem, since a nop in between works.  But the simplest workaround is to
+follow gcc and omit the +[.-L1] since it does nothing,
+
+            addl  $_GLOBAL_OFFSET_TABLE_, %ebx
+
+Current gas 2.10 generates incorrect object code when %eax is used in such a
+construction (with or without +[.-L1]),
+
+            addl  $_GLOBAL_OFFSET_TABLE_, %eax
+
+The R_386_GOTPC gets a displacement of 2 rather than the 1 appropriate for
+the 1 byte opcode of "addl $n,%eax".  The best workaround is just to use any
+other register, since then it's a two byte opcode+mod/rm.  GCC for example
+always uses %ebx (which is needed for calls through the PLT).
+
+A similar problem occurs in an leal (again with or without a +[.-L1]),
+
+            leal  _GLOBAL_OFFSET_TABLE_(%edi), %ebx
+
+This time the R_386_GOTPC gets a displacement of 0 rather than the 2
+appropriate for the opcode and mod/rm, making this form unusable.
+
+
+
+
+SIMPLE LOOPS
+
+The overheads in setting up for an unrolled loop can mean that at small
+sizes a simple loop is faster.  Making small sizes go fast is important,
+even if it adds a cycle or two to bigger sizes.  To this end various
+routines choose between a simple loop and an unrolled loop according to
+operand size.  The path to the simple loop, or to special case code for
+small sizes, is always as fast as possible.
+
+Adding a simple loop requires a conditional jump to choose between the
+simple and unrolled code.  The size of a branch misprediction penalty
+affects whether a simple loop is worthwhile.
+
+The convention is for an m4 definition UNROLL_THRESHOLD to set the crossover
+point, with sizes < UNROLL_THRESHOLD using the simple loop, sizes >=
+UNROLL_THRESHOLD using the unrolled loop.  If position independent code adds
+a couple of cycles to an unrolled loop setup, the threshold will vary with
+PIC or non-PIC.  Something like the following is typical.
+
+	deflit(UNROLL_THRESHOLD, ifdef(`PIC',10,8))
+
+There's no automated way to determine the threshold.  Setting it to a small
+value and then to a big value makes it possible to measure the simple and
+unrolled loops each over a range of sizes, from which the crossover point
+can be determined.  Alternately, just adjust the threshold up or down until
+there's no more speedups.
+
+
+
+UNROLLED LOOP CODING
+
+The x86 addressing modes allow a byte displacement of -128 to +127, making
+it possible to access 256 bytes, which is 64 limbs, without adjusting
+pointer registers within the loop.  Dword sized displacements can be used
+too, but they increase code size, and unrolling to 64 ought to be enough.
+
+When unrolling to the full 64 limbs/loop, the limb at the top of the loop
+will have a displacement of -128, so pointers have to have a corresponding
++128 added before entering the loop.  When unrolling to 32 limbs/loop
+displacements 0 to 127 can be used with 0 at the top of the loop and no
+adjustment needed to the pointers.
+
+Where 64 limbs/loop is supported, the +128 adjustment is done only when 64
+limbs/loop is selected.  Usually the gain in speed using 64 instead of 32 or
+16 is small, so support for 64 limbs/loop is generally only for comparison.
+
+
+
+COMPUTED JUMPS
+
+When working from least significant limb to most significant limb (most
+routines) the computed jump and pointer calculations in preparation for an
+unrolled loop are as follows.
+
+	S = operand size in limbs
+	N = number of limbs per loop (UNROLL_COUNT)
+	L = log2 of unrolling (UNROLL_LOG2)
+	M = mask for unrolling (UNROLL_MASK)
+	C = code bytes per limb in the loop
+	B = bytes per limb (4 for x86)
+
+	computed jump            (-S & M) * C + entrypoint
+	subtract from pointers   (-S & M) * B
+	initial loop counter     (S-1) >> L
+	displacements            0 to B*(N-1)
+
+The loop counter is decremented at the end of each loop, and the looping
+stops when the decrement takes the counter to -1.  The displacements are for
+the addressing accessing each limb, eg. a load with "movl disp(%ebx), %eax".
+
+Usually the multiply by "C" can be handled without an imul, using instead an
+leal, or a shift and subtract.
+
+When working from most significant to least significant limb (eg. mpn_lshift
+and mpn_copyd), the calculations change as follows.
+
+	add to pointers          (-S & M) * B
+	displacements            0 to -B*(N-1)
+
+
+
+OLD GAS 1.92.3
+
+This version comes with FreeBSD 2.2.8 and has a couple of gremlins that
+affect GMP code.
+
+Firstly, an expression involving two forward references to labels comes out
+as zero.  For example,
+
+		addl	$bar-foo, %eax
+	foo:
+		nop
+	bar:
+
+This should lead to "addl $1, %eax", but it comes out as "addl $0, %eax".
+When only one forward reference is involved, it works correctly, as for
+example,
+
+	foo:
+		addl	$bar-foo, %eax
+		nop
+	bar:
+
+Secondly, an expression involving two labels can't be used as the
+displacement for an leal.  For example,
+
+	foo:
+		nop
+	bar:
+		leal	bar-foo(%eax,%ebx,8), %ecx
+
+A slightly cryptic error is given, "Unimplemented segment type 0 in
+parse_operand".  When only one label is used it's ok, and the label can be a
+forward reference too, as for example,
+
+		leal	foo(%eax,%ebx,8), %ecx
+		nop
+	foo:
+
+These problems only affect PIC computed jump calculations.  The workarounds
+are just to do an leal without a displacement and then an addl, and to make
+sure the code is placed so that there's at most one forward reference in the
+addl.
+
+
+
+REFERENCES
+
+"Intel Architecture Software Developer's Manual", volumes 1, 2a, 2b, 3a, 3b,
+2006, order numbers 253665 through 253669.  Available on-line,
+
+	ftp://download.intel.com/design/Pentium4/manuals/25366518.pdf
+	ftp://download.intel.com/design/Pentium4/manuals/25366618.pdf
+	ftp://download.intel.com/design/Pentium4/manuals/25366718.pdf
+	ftp://download.intel.com/design/Pentium4/manuals/25366818.pdf
+	ftp://download.intel.com/design/Pentium4/manuals/25366918.pdf
+
+
+"System V Application Binary Interface", Unix System Laboratories Inc, 1992,
+published by Prentice Hall, ISBN 0-13-880410-9.  And the "Intel386 Processor
+Supplement", AT&T, 1991, ISBN 0-13-877689-X.  These have details of calling
+conventions and ELF shared library PIC coding.  Versions of both available
+on-line,
+
+	http://www.sco.com/developer/devspecs
+
+"Intel386 Family Binary Compatibility Specification 2", Intel Corporation,
+published by McGraw-Hill, 1991, ISBN 0-07-031219-2.  (Same as the above 386
+ABI supplement.)
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

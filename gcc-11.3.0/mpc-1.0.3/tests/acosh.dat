@@ -1,0 +1,121 @@
+# Data file for mpc_acosh.
+#
+# Copyright (C) 2009 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+#
+# The line format respects the parameter order in function prototype as
+# follow:
+#
+# INEX_RE  INEX_IM  PREC_ROP_RE  ROP_RE  PREC_ROP_IM  ROP_IM  PREC_OP_RE  OP_RE  PREC_OP_IM  OP_IM  RND_RE  RND_IM
+#
+# where op = op_re + i * op_im, rop = rop_re + i * rop_im,
+# rop_re is ROP_RE rounded to nearest to the precision of PREC_ROP_RE
+# rop_im is ROP_IM rounded to nearest to the precision of PREC_ROP_IM
+# op_re is OP_RE rounded to nearest to the precision of PREC_OP_RE
+# op_im is OP_IM rounded to nearest to the precision of PREC_OP_IM
+# ROP_RE is checked against Re(acos op) rounded to the precision PREC_ROP_RE
+#   in the direction RND_RE
+# ROP_IM is checked against Im(acos op) rounded to the precision PREC_ROP_IM
+#   in the direction RND_IM
+# INEX_RE is the ternary value for the real part with the following notation:
+# "?" ternary value not checked
+# "+" if ROP_RE is greater than the exact mathematical result
+# "0" if ROP_RE is exactly the mathematical result
+# "-" if ROP_RE is less than the exact mathematical result
+# (m.m. INEX_IM)
+# rounding modes notation:
+# "N" is rounding to nearest
+# "Z" is rounding towards zero
+# "U" is rounding towards plus infinity
+# "D" is rounding towards minus infinity
+# Use prefixes "0b" for values in base two, "0x" for values in base sixteen,
+#   no prefix for value in base ten.
+# In all bases, "nan" is NaN, "inf" is infinity;
+# The sign of the result is checked with "+inf", "-inf", "-0", or "+0".
+
+# special values (following ISO C99 standard)
+0 + 53 +inf  53 -0x12D97C7F3321D2p-51    53 -inf 53 -inf N N
+0 + 53 +inf  53 -0x1921FB54442D18p-51    53 -inf 53   -1 N N
+0 + 53 +inf  53 -0x1921FB54442D18p-51    53 -inf 53   -0 N N
+0 - 53 +inf  53  0x1921FB54442D18p-51    53 -inf 53   +0 N N
+0 - 53 +inf  53  0x1921FB54442D18p-51    53 -inf 53   +1 N N
+0 - 53 +inf  53  0x12D97C7F3321D2p-51    53 -inf 53 +inf N N
+0 0 53 +inf  53                   nan    53 -inf 53  nan N N
+0 + 53 +inf  53 -0x1921FB54442D18p-52    53   -6 53 -inf N N
+0 - 53 +inf  53  0x1921FB54442D18p-52    53   -6 53 +inf N N
+0 0 53  nan  53                   nan    53   -6 53  nan N N
+0 + 53 +inf  53 -0x1921FB54442D18p-52    53 -0.5 53 -inf N N
+0 - 53 +inf  53  0x1921FB54442D18p-52    53 -0.5 53 +inf N N
+0 0 53  nan  53                   nan    53 -0.5 53  nan N N
+0 + 53 +inf  53 -0x1921FB54442D18p-52    53   -0 53 -inf N N
+0 + 53   +0  53 -0x1921FB54442D18p-52    53   -0 53   -0 N N
+0 - 53   +0  53  0x1921FB54442D18p-52    53   -0 53   +0 N N
+0 - 53 +inf  53  0x1921FB54442D18p-52    53   -0 53 +inf N N
+0 0 53  nan  53                   nan    53   -0 53  nan N N
+0 + 53 +inf  53 -0x1921FB54442D18p-52    53   +0 53 -inf N N
+0 + 53   +0  53 -0x1921FB54442D18p-52    53   +0 53   -0 N N
+0 - 53   +0  53  0x1921FB54442D18p-52    53   +0 53   +0 N N
+0 - 53 +inf  53  0x1921FB54442D18p-52    53   +0 53 +inf N N
+0 0 53  nan  53                   nan    53   +0 53  nan N N
+0 + 53 +inf  53 -0x1921FB54442D18p-52    53   +6 53 -inf N N
+0 - 53 +inf  53  0x1921FB54442D18p-52    53   +6 53 +inf N N
+0 0 53  nan  53                   nan    53   +6 53  nan N N
+0 + 53 +inf  53 -0x1921FB54442D18p-53    53 +inf 53 -inf N N
+0 0 53 +inf  53                    -0    53 +inf 53   -1 N N
+0 0 53 +inf  53                    -0    53 +inf 53   -0 N N
+0 0 53 +inf  53                    +0    53 +inf 53   +0 N N
+0 0 53 +inf  53                    +0    53 +inf 53   +1 N N
+0 - 53 +inf  53  0x1921FB54442D18p-53    53 +inf 53 +inf N N
+0 0 53 +inf  53                   nan    53 +inf 53  nan N N
+0 0 53 +inf  53                   nan    53  nan 53 -inf N N
+0 0 53  nan  53                   nan    53  nan 53   -1 N N
+0 0 53  nan  53                   nan    53  nan 53   -0 N N
+0 0 53  nan  53                   nan    53  nan 53   +0 N N
+0 0 53  nan  53                   nan    53  nan 53   +1 N N
+0 0 53 +inf  53                   nan    53  nan 53 +inf N N
+0 0 53  nan  53                   nan    53  nan 53  nan N N
+
+# pure real argument
++ + 53  0x1C34366179D427p-51 53 -0x1921FB54442D18p-51    53  -17 53   -0 N N
++ - 53  0x1C34366179D427p-51 53  0x1921FB54442D18p-51    53  -17 53   +0 N N
+0 + 53                    +0 53 -0x1921FB54442D18p-51    53   -1 53   -0 N N
+0 - 53                    +0 53  0x1921FB54442D18p-51    53   -1 53   +0 N N
+0 - 53                    +0 53 -0x10C152382D7366p-51    53 -0.5 53   -0 N N
+0 + 53                    +0 53  0x10C152382D7366p-51    53 -0.5 53   +0 N N
+0 - 53                    +0 53 -0x10C152382D7366p-52    53 +0.5 53   -0 N N
+0 + 53                    +0 53  0x10C152382D7366p-52    53 +0.5 53   +0 N N
+0 0 53                    +0 53                    -0    53   +1 53   -0 N N
+0 0 53                    +0 53                    +0    53   +1 53   +0 N N
++ 0 53  0x1C34366179D427p-51 53                    -0    53  +17 53   -0 N N
++ 0 53  0x1C34366179D427p-51 53                    +0    53  +17 53   +0 N N
+
+# pure imaginary argument
+- + 53  0x1C37C174A83DEDp-51 53 -0x1921FB54442D18p-52    53   -0 53  -17 N N
+- + 53  0x1C37C174A83DEDp-51 53 -0x1921FB54442D18p-52    53   +0 53  -17 N N
++ + 53  0x1C34366179D427p-53 53 -0x1921FB54442D18p-52    53   -0 53   -1 N N
++ + 53  0x1C34366179D427p-53 53 -0x1921FB54442D18p-52    53   +0 53   -1 N N
++ + 53  0x1ECC2CAEC5160Ap-54 53 -0x1921FB54442D18p-52    53   -0 53 -0.5 N N
++ + 53  0x1ECC2CAEC5160Ap-54 53 -0x1921FB54442D18p-52    53   +0 53 -0.5 N N
++ - 53  0x1ECC2CAEC5160Ap-54 53  0x1921FB54442D18p-52    53   -0 53 +0.5 N N
++ - 53  0x1ECC2CAEC5160Ap-54 53  0x1921FB54442D18p-52    53   +0 53 +0.5 N N
++ - 53  0x1C34366179D427p-53 53  0x1921FB54442D18p-52    53   -0 53   +1 N N
++ - 53  0x1C34366179D427p-53 53  0x1921FB54442D18p-52    53   +0 53   +1 N N
+- - 53  0x1C37C174A83DEDp-51 53  0x1921FB54442D18p-52    53   -0 53  +17 N N
+- - 53  0x1C37C174A83DEDp-51 53  0x1921FB54442D18p-52    53   +0 53  +17 N N
+
+# IEEE-754 double precision
++ + 53 0x1D6D2CFA9F3F11p-52 53 0x74C141310E695p-53 53 0x3243F6A8885A3p-48 53 0x162E42FEFA39EFp-53 N N

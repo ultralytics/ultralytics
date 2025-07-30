@@ -1,0 +1,956 @@
+Copyright 1996, 1999-2015 Free Software Foundation, Inc.
+
+Verbatim copying and distribution of this entire article is permitted in any
+medium, provided this notice is preserved.
+
+
+Changes between GMP version 6.0.* and 6.1.0
+
+  BUGS FIXED
+  * The public function mpn_com is now correctly declared in gmp.h.
+
+  * Healed possible failures of mpn_sec_sqr for non-cryptographic sizes for
+    some obsolete CPUs.
+
+  * The option --disable-assembly now disables all inlined asm.
+
+  * Fixed bug affecting mini-gmp's bitwise functions mpz_setbit, mpz_clrbit,
+    and mpz_combit.
+
+  * Various problems related to precision for mpf have been fixed.
+
+  * Fixed ABI incompatible stack alignment in calls from assembly code.
+
+  * Fixed PIC bug in popcount affecting Intel processors using the 32-bit ABI.
+
+  SPEEDUPS
+  * Speedup for Intel Broadwell and Skylake though assembly code making use of
+    new ADX instructions.
+
+  * Square root is now faster when the remainder is not needed. Also the speed
+    to compute the k-th root improved, for small sizes.
+
+  * Improved arm64 support.
+
+  FEATURES
+  * New C++ functions gcd and lcm for mpz_class.
+
+  * New public mpn functions mpn_divexact_1, mpn_zero_p, and mpn_cnd_swap.
+
+  * New public mpq_cmp_z function, to efficiently compare rationals with
+    integers.
+
+  * Support for Darwin in all x86 code, thereby enabling fat builds on Darwin.
+
+  * Support for more 32-bit arm processors.
+
+  * Support for compilation with clang/llvm on more platforms.  Caution: GMP
+    triggers mis-compilation bugs in clang for many platforms, such as arm, x86
+    (32-bit and 64-bit), powerpc, mips.
+
+  * Support for AVX-less modern x86 CPUs. (Such support might be missing either
+    because the CPU vendor chose to disable AVX, or because the running kernel
+    lacks AVX context switch support.)
+
+  * Stack usage trimmed; we believe 512 KiB is now sufficient for any GMP
+    call, irrespective of operand size.
+
+  * Support for NetBSD under Xen; we switch off AVX unconditionally under
+    NetBSD since a bug in NetBSD makes AVX fail under Xen.
+
+  MISC
+  * We now use manufacturers' code names for x86 CPUs, e.g., "haswell" instead
+    of names derived from the commercial brands.
+
+  * Small improvements and better coverage for the test suite.
+
+  * The various FreeBSD problems listed for 6.0.0 affect this release too.
+
+  * Tuned values for FFT multiplications are provided for larger number on
+    many platforms.
+
+Changes between GMP version 5.1.* and 6.0.0
+
+  BUGS FIXED
+  * The function mpz_invert now considers any number invertible in Z/1Z.
+
+  * The mpn multiply code now handles operands of more than 2^31 limbs
+    correctly.  (Note however that the mpz code is limited to 2^32 bits on
+    32-bit hosts and 2^37 bits on 64-bit hosts.)
+
+  * Contains all fixes from release 5.1.3.
+
+  SPEEDUPS
+  * Plain division of large operands is faster and more monotonous in operand
+    size.
+
+  * Major speedup for ARM, in particular ARM Cortex-A15, thanks to improved
+    assembly.
+
+  * Major speedup for SPARC T4/T5 and speedup also for T3, thanks to a lot of
+    new assembly.
+
+  * Speedup for Intel Sandy Bridge, Ivy Bridge, Haswell, thanks to rewritten
+    and vastly expanded assembly support.  Speedup also for the older Core 2
+    and Nehalem.
+
+  * Faster mixed arithmetic between mpq_class and double.
+
+  * With g++, optimise more operations when one argument is a simple constant.
+
+  FEATURES
+  * Support for new Intel and AMD CPUs.
+
+  * Support for ARM64 alias Aarch64 alias ARMv8.
+
+  * New public functions mpn_sec_mul and mpn_sec_sqr, implementing side-channel
+    silent multiplication and squaring.
+
+  * New public functions mpn_sec_div_qr and mpn_sec_div_r, implementing
+    side-channel silent division.
+
+  * New public functions mpn_cnd_add_n and mpn_cnd_sub_n.  Side-channel silent
+    conditional addition and subtraction.
+
+  * New public function mpn_sec_powm, implementing side-channel silent modexp.
+
+  * New public function mpn_sec_invert, implementing side-channel silent
+    modular inversion.
+
+  * Better support for applications which use the mpz_t type, but nevertheless
+    need to call some of the lower-level mpn functions.  See the documentation
+    for mpz_limbs_read and related functions.
+
+  MISC
+  * This release will not work on NetBSD 5.x, FreeBSD 7.x, 8.x or 9 series
+    before 9.3.  The reason is that the m4 command is not correctly
+    implemented.  (Workaround: Use an older GMP release, or install GNU m4 from
+    /usr/ports and tell GMP to use it.)
+
+  * This release will not build properly on FreeBSD/amd64 before version 10
+    using the 32-bit ABI (once a working m4 is installed).  The reason is
+    broken limits.h.  (Workaround: Use an older GMP release if using the 32-bit
+    ABI on these FreeBSD releases is important.)
+
+  * This release will not work reliably on FreeBSD 10.0 for i386 or amd64 using
+    the 32-bit ABI.  The reason is bugs in the compiler 'clang'.  Depending on
+    CPU-dependent compiler flags, GMP may or may not be miscompiled in a
+    particular build.  (Workaround: Compiling gcc from /usr/ports should work,
+    except that gcc circularly depends on GMP; we have not been able to test
+    that workaround due to FreeBSD 10.0 bugs affecting its ability to run under
+    KVM and Xen.)
+
+  * This release will not compile on FreeBSD before version 10 for i386,
+    targeting any modern AMD processor.  The reason is bugs in the old gcc
+    bundled with FreeBSD.  (Workaround: install a less obsolete gcc from
+    /usr/ports and tell GMP to use it, or override the -march=amdfam10
+    GMP configure command line argument.)
+
+
+Changes between GMP version 5.1.2 and 5.1.3
+
+  BUGS FIXED
+  * The internal functions mpn_sbpi1_div_qr_sec mpn_sbpi1_div_r_sec could
+    compute garbage with a low probability.  They are now rewritten, and the
+    test code has been improved.
+
+  * A bug in the ia64 implementation of mpn_divrem_2, clobbering some
+    callee-save registers, has been fixed. This is an internal
+    function, with the bug manifesting itself as miscomputation in,
+    e.g., mpn_sqrtrem.
+
+  * The documentation now correctly says 'const' for input arguments.
+
+  SPEEDUPS
+  * None.
+
+  FEATURES
+  * None.
+
+  MISC
+  * None.
+
+
+Changes between GMP version 5.1.1 and 5.1.2
+
+  BUGS FIXED
+  * A bug in mpz_powm_ui triggered by base arguments of at least 15000 decimal
+    digits or mod arguments of at least 7500 decimal digits has been fixed.
+
+  * An AMD Bulldozer specific bug affecting the 64-bit Windows ABI has been
+    fixed.  This bug was in a key function (mpn_mul_1) and made both Bulldozer
+    specific builds and fat builds run on Bulldozer completely non-functional.
+
+  SPEEDUPS
+  * None.
+
+  FEATURES
+  * None.
+
+  MISC
+  * Fixes and generalisations to the test suite.
+
+  * Minor portability enhancements.
+
+
+Changes between GMP version 5.1.0 and 5.1.1
+
+  BUGS FIXED
+  * On Windows 64-bit, an error causing link errors about
+    __gmp_binvert_limb_table has been fixed.
+
+  * Aarch64 alias ARM64 support now works.
+
+  * A possible buffer overrun in mpz_ior has been fixed.
+
+  * A rare sign flip in mpz_remove has been fixed.
+
+  * A bug causing problems with mpf numbers with absolute value >= 2^31 has
+    been fixed.
+
+  * Several bugs in mini-gmp have been fixed.
+
+  * A bug caused by automake, related to the 'distcheck' target, has been fixed
+    by upgrading the automake used for GMP release engineering.
+
+  SPEEDUPS
+  * None.
+
+  FEATURES
+  * Preliminary support for the x32 ABI under x86-64.
+
+  MISC
+  * The mini-gmp testsuite now tests the entire set of functions.
+
+  * Various improvements of the GMP testsuite.
+
+
+Changes between GMP version 5.0.* and 5.1.0
+
+  BUGS FIXED
+  * When reading a C++ number (like mpz_class) in an istream reaches the end
+    of the stream, the eofbit is now set.
+
+  * The result sign of mpz_rootrem's remainder is now always correct.
+
+  * The mpz_remove function now handles negative divisors.
+
+  * Contains all fixes from release 5.0.5.
+
+  SPEEDUPS
+  * The n-factorial and n-over-k functions have been reimplemented for great
+    speedups for small and large operands.
+
+  * New subquadratic algorithm for the Kronecker/Jacobi/Legendre symbol.
+
+  * Major speedup for ARM, in particular ARM Cortex-A9 and A15, thanks to broad
+    assembly support.
+
+  * Significant speedup for POWER6 and POWER7 thanks to improved assembly.
+
+  * The performance under M$ Windows' 64-bit ABI has been greatly improved
+    thanks to complete assembly support.
+
+  * Minor speed improvements of many functions and for many platforms.
+
+  FEATURES
+  * Many new CPUs recognised.
+
+  * New functions for multi-factorials, and primorial: mpz_2fac_ui,
+    mpz_mfac_uiui and mpz_primorial_ui.
+
+  * The mpz_powm_sec function now uses side-channel silent division for
+    converting into Montgomery residues.
+
+  * The fat binary mechanism is now more robust in its CPU recognition.
+
+  MISC
+  * Inclusion of assembly code is now controlled by the configure options
+    --enable-assembly and --disable-assembly.  The "none" CPU target is gone.
+
+  * In C++, the conversions mpq_class->mpz_class, mpf_class->mpz_class and
+    mpf_class->mpq_class are now explicit.
+
+  * Includes "mini-gmp", a small, portable, but less efficient, implementation
+    of a subset of GMP's mpn and mpz interfaces. Used in GMP bootstrap, but it
+    can also be bundled with applications as a fallback when the real GMP
+    library is unavailable.
+
+  * The ABIs under AIX are no longer called aix32 and aix64, but mode64 and 32.
+    This is more consistent with other powerpc systems.
+
+  * The coverage of the testsuite has been improved, using the lcov tool.  See
+    also https://gmplib.org/devel/lcov/.
+
+  * It is now possible to compile GMP using a C++ compiler.
+
+  * K&R C compilers are no longer supported.
+
+  * The BSD MP compatibility functions have been removed.
+
+
+Changes between GMP version 5.0.4 and 5.0.5
+
+  BUGS FIXED
+  * A bug causing AMD 11h processors to be treated like AMD 10h has been fixed.
+    The 11h processors do not correctly handle all 10h (aka K10) instructions,
+    and GMP's use of these instructions results in major miscomputations (not
+    as one would have hoped CPU traps of some 'illegal instruction' sort).
+
+  * A bug affecting recent Intel Sandy Bridge CPUs resulting in configuration
+    failures has been fixed.
+
+  SPEEDUPS
+  * None.
+
+  FEATURES
+  * A couple of tests added to the self-check suite.
+
+  MISC
+  * None.
+
+
+Changes between GMP version 5.0.3 and 5.0.4
+
+  BUGS FIXED
+  * Thresholds in mpn_powm_sec for both fat and non-fat builds are now used
+    safely, plugging a one-word buffer overrun introduced in the 5.0.3 release
+    (for non-fat) and a multi-word buffer overrun that existed since 5.0 (for
+    fat).  (We have not been able to provoke malign stack smashing in any of
+    the ~100 configurations explored by the GMP nightly builds, but the bug
+    should be assumed to be exploitable.)
+
+  * Two bugs in multiplication code causing incorrect computation with
+    extremely low probability have been fixed.
+
+  * A bug in the test suite causing buffer overruns during "make check",
+    sometimes leading to subsequent malloc crashes, has been fixed.
+
+  * Two bugs in the gcd code have been fixed.  They could lead to incorrect
+    results, but for uniformly distributed random operands, the likelihood for
+    that is infinitesimally small.  (There was also a third bug, but that was
+    an incorrect ASSERT, which furthermore was not enabled by default.)
+
+  * A bug affecting 32-bit PowerPC division has been fixed.  The bug caused
+    miscomputation for certain divisors in the range 2^32 ... 2^64-1 (about 1
+    in 2^30 of these).
+
+  SPEEDUPS
+  * None, except indirectly through recognition of new CPUs, and through better
+    tuning parameters.
+
+  FEATURES
+  * Some more tests added to the self-check suite.
+
+  * The AMD "Bulldozer" CPU is now recognised.
+
+  MISC
+  * None.
+
+
+Changes between GMP version 5.0.2 and 5.0.3
+
+  BUGS FIXED
+  * A few minor bugs related to portability fixed.
+
+  * A slight timing leak of the powm_sec functions have been sealed.  (This
+    leak could possibly be used to extract the most significant few bits of the
+    exponent.  "Few" here means at most 10.)
+
+  * The mpz_nextprime function now runs a safer number of pseudo-random prime
+    tests.
+
+  * A bug in division code possibly causing incorrect computation was fixed.
+
+  SPEEDUPS
+  * None, except indirectly through recognition of new CPUs, and through better
+    tuning parameters.
+
+  FEATURES
+  * New CPUs recognised.
+
+  * IBM S/390 are now supported in both 31/32-bit and 64-bit mode.  (We have
+    not been able to fully test this on any multilib machine, since IBM expired
+    our guest account a few days before our release.)
+
+  MISC
+  * None.
+
+
+Changes between GMP version 5.0.1 and 5.0.2
+
+  BUGS FIXED
+  * Many minor bugs related to portability fixed.
+
+  * The support for HPPA 2.0N now works, after an assembly bug fix.
+
+  * A test case type error has been fixed.  The symptom of this bug was
+    spurious 'make check' failures.
+
+  SPEEDUPS
+  * None, except indirectly through recognition of new CPUs.
+
+  FEATURES
+  * Fat builds are now supported for 64-bit x86 processors also under Darwin.
+
+  MISC
+  * None.
+
+
+Changes between GMP version 5.0.0 and 5.0.1
+
+  BUGS FIXED
+  * Fat builds fixed.
+
+  * Fixed crash for huge multiplies when old FFT_TABLE2 type of parameter
+    selection tables' sentinel was smaller than multiplied operands.
+
+  * The solib numbers now reflect the removal of the documented but preliminary
+    mpn_bdivmod function; we correctly flag incompatibility with GMP 4.3.  GMP
+    5.0.0 has this wrong, and should perhaps be uninstalled to avoid confusion.
+
+  SPEEDUPS
+  * Multiplication of large numbers has indirectly been sped up through better
+    FFT tuning and processor recognition.  Since many operations depend on
+    multiplication, there will be a general speedup.
+
+  FEATURES
+  * More Core i3, i5 an Core i7 processor models are recognised.
+
+  * Fixes and workarounds for Mac OS quirks should make this GMP version build
+    using many of the different versions of "Xcode".
+
+  MISC
+  * The amount of scratch memory needed for multiplication of huge numbers has
+    been reduced substantially (but is still larger than in GMP 4.3.)
+
+  * Likewise, the amount of scratch memory needed for division of large numbers
+    has been reduced substantially.
+
+  * The FFT tuning code of tune/tuneup.c has been completely rewritten, and
+    new, large FFT parameter selection tables are provided for many machines.
+
+  * Upgraded to the latest autoconf, automake, libtool.
+
+
+Changes between GMP version 4.3.X and 5.0.0
+
+  BUGS FIXED
+  * None (contains the same fixes as release 4.3.2).
+
+  SPEEDUPS
+  * Multiplication has been overhauled:
+    (1) Multiplication of larger same size operands has been improved with
+        the addition of two new Toom functions and a new internal function
+        mpn_mulmod_bnm1 (computing U * V mod (B^n-1), B being the word base.
+        This latter function is used for the largest products, waiting for a
+        better Schoenhage-Strassen U * V mod (B^n+1) implementation.
+    (2) Likewise for squaring.
+    (3) Multiplication of different size operands has been improved with the
+        addition of many new Toom function, and by selecting underlying
+        functions better from the main multiply functions.
+
+  * Division and mod have been overhauled:
+    (1) Plain "schoolbook" division is reimplemented using faster quotient
+        approximation.
+    (2) Division Q = N/D, R = N mod D where both the quotient and remainder
+        are needed now runs in time O(M(log(N))).  This is an improvement of
+        a factor log(log(N))
+    (3) Division where just the quotient is needed is now O(M(log(Q))) on
+        average.
+    (4) Modulo operations using Montgomery REDC form now take time O(M(n)).
+    (5) Exact division Q = N/D by means of mpz_divexact has been improved
+        for all sizes, and now runs in time O(M(log(N))).
+
+  * The function mpz_powm is now faster for all sizes.  Its complexity has
+    gone from O(M(n)log(n)m) to O(M(n)m) where n is the size of the modulo
+    argument and m is the size of the exponent.  It is also radically
+    faster for even modulus, since it now partially factors such modulus
+    and performs two smaller modexp operations, then uses CRT.
+
+  * The internal support for multiplication yielding just the lower n limbs
+    has been improved by using Mulders' algorithm.
+
+  * Computation of inverses, both plain 1/N and 1/N mod B^n have been
+    improved by using well-tuned Newton iterations, and wrap-around
+    multiplication using mpn_mulmod_bnm1.
+
+  * A new algorithm makes mpz_perfect_power_p asymptotically faster.
+
+  * The function mpz_remove uses a much faster algorithm, is better tuned,
+    and also benefits from the division improvements.
+
+  * Intel Atom and VIA Nano specific optimisations.
+
+  * Plus hundreds of smaller improvements and tweaks!
+
+  FEATURES
+  * New mpz function: mpz_powm_sec for side-channel quiet modexp
+    computations.
+
+  * New mpn functions: mpn_sqr, mpn_and_n, mpn_ior_n, mpn_xor_n, mpn_nand_n,
+    mpn_nior_n, mpn_xnor_n, mpn_andn_n, mpn_iorn_n, mpn_com, mpn_neg,
+    mpn_copyi, mpn_copyd, mpn_zero.
+
+  * The function mpn_tdiv_qr now allows certain argument overlap.
+
+  * Support for fat binaries for 64-bit x86 processors has been added.
+
+  * A new type, mp_bitcnt_t for bignum bit counts, has been introduced.
+
+  * Support for Windows64 through mingw64 has been added.
+
+  * The cofactors of mpz_gcdext and mpn_gcdext are now more strictly
+    normalised, returning to how GMP 4.2 worked.  (Note that also release
+    4.3.2 has this change.)
+
+  MISC
+  * The mpn_mul function should no longer be used for squaring,
+    instead use the new mpn_sqr.
+
+  * The algorithm selection has been improved, the number of thresholds have
+    more than doubled, and the tuning and use of existing thresholds have
+    been improved.
+
+  * The tune/speed program can measure many of new functions.
+
+  * The mpn_bdivmod function has been removed.  We do not consider this an
+    incompatible change, since the function was marked as preliminary.
+
+  * The testsuite has been enhanced in various ways.
+
+
+Changes between GMP version 4.3.1 and 4.3.2
+
+  Bugs:
+  * Fixed bug in mpf_eq.
+  * Fixed overflow issues in mpz_set_str, mpz_inp_str, mpf_set_str, and
+    mpf_get_str.
+  * Avoid unbounded stack allocation for unbalanced multiplication.
+  * Fixed bug in FFT multiplication.
+
+  Speedups:
+  * None, except that proper processor recognition helps affected processors.
+
+  Features:
+  * Recognise more "Core 2" processor variants.
+  * The cofactors of mpz_gcdext and mpn_gcdext are now more strictly
+    normalised, returning to how GMP 4.2 worked.
+
+
+Changes between GMP version 4.3.0 and 4.3.1
+
+  Bugs:
+  * Fixed bug in mpn_gcdext, affecting also mpz_gcdext and mpz_invert.
+    The bug could cause a cofactor to have a leading zero limb, which
+    could lead to crashes or miscomputation later on.
+  * Fixed some minor documentation issues.
+
+  Speedups:
+  * None.
+
+  Features:
+  * Workarounds for various issues with Mac OS X's build tools.
+  * Recognise more IBM "POWER" processor variants.
+
+
+Changes between GMP version 4.2.X and 4.3.0
+
+  Bugs:
+  * Fixed bug in mpz_perfect_power_p with recognition of negative perfect
+    powers that can be written both as an even and odd power.
+  * We might accidentally have added bugs since there is a large amount of
+    new code in this release.
+
+  Speedups:
+  * Vastly improved assembly code for x86-64 processors from AMD and Intel.
+  * Major improvements also for many other processor families, such as
+    Alpha, PowerPC, and Itanium.
+  * New sub-quadratic mpn_gcd and mpn_gcdext, as well as improved basecase
+    gcd code.
+  * The multiply FFT code has been slightly improved.
+  * Balanced multiplication now uses 4-way Toom in addition to schoolbook,
+    Karatsuba, 3-way Toom, and FFT.
+  * Unbalanced multiplication has been vastly improved.
+  * Improved schoolbook division by means of faster quotient approximation.
+  * Several new algorithms for division and mod by single limbs, giving
+    many-fold speedups.
+  * Improved nth root computations.
+  * The mpz_nextprime function uses sieving and is much faster.
+  * Countless minor tweaks.
+
+  Features:
+  * Updated support for fat binaries for x86_32 include current processors
+  * Lots of new mpn internal interfaces.  Some of them will become public
+    in a future GMP release.
+  * Support for the 32-bit ABI under x86-apple-darwin.
+  * x86 CPU recognition code should now default better for future
+    processors.
+  * The experimental nails feature does not work in this release, but
+    it might be re-enabled in the future.
+
+  Misc:
+  * The gmp_version variable now always contains three parts.  For this
+    release, it is "4.3.0".
+
+
+Changes between GMP version 4.2.3 and 4.2.4
+
+  Bugs:
+  * Fix bug with parsing exponent '+' sign in mpf.
+  * Fix an allocation bug in mpf_set_str, also affecting mpf_init_set_str, and
+    mpf_inp_str.
+
+  Speedups:
+  * None, except that proper processor recognition helps affected processors.
+
+  Features:
+  * Recognize new AMD processors.
+
+
+Changes between GMP version 4.2.2 and 4.2.3
+
+  Bugs:
+  * Fix x86 CPU recognition code to properly identify recent AMD and Intel
+    64-bit processors.
+  * The >> operator of the C++ wrapper gmpxx.h now does floor rounding, not
+    truncation.
+  * Inline semantics now follow the C99 standard, and works with recent GCC
+    releases.
+  * C++ bitwise logical operations work for more types.
+  * For C++, gmp.h now includes cstdio, improving compiler compatibility.
+  * Bases > 36 now work properly in mpf_set_str.
+
+  Speedups:
+  * None, except that proper processor recognition helps affected processors.
+
+  Features:
+  * The allocation functions now detect overflow of the mpz_t type.  This means
+    that overflow will now cause an abort, except when the allocation
+    computation itself overflows.  (Such overflow can probably only happen in
+    powering functions; we will detect powering overflow in the future.)
+
+
+Changes between GMP version 4.2.1 and 4.2.2
+
+  * License is now LGPL version 3.
+
+  Bugs:
+  * Shared library numbers corrected for libcxx.
+  * Fixed serious bug in gmpxx.h where a=a+b*c would generate garbage.
+    Note that this only affects C++ programs.
+  * Fix crash in mpz_set_d for arguments with large negative exponent.
+  * Fix 32-bit ABI bug with Itanium assembly for popcount and hamdist.
+  * Fix assembly syntax problem for powerpc-ibm-aix with AIX native assembler.
+  * Fix problems with x86 --enable-fat, where the compiler where told to
+    generate code for the build machine, not plain i386 code as it should.
+  * Improved recognition of powerpc systems wrt Altivec/VMX capability.
+  * Misc minor fixes, mainly workarounds for compiler/assembler bugs.
+
+  Speedups:
+  * "Core 2" and Pentium 4 processors, running in 64-bit mode will get a
+     slight boost as they are now specifically recognized.
+
+  Features:
+  * New support for x86_64-solaris
+  * New, rudimentary support for x86-apple-darwin and x86_64-apple-darwin.
+    (Please see https://gmplib.org/macos.html for more information.)
+
+
+Changes between GMP version 4.2 and 4.2.1
+
+  Bugs:
+  * Shared library numbers corrected.
+  * Broken support for 32-bit AIX fixed.
+  * Misc minor fixes.
+
+  Speedups:
+  * Exact division (mpz_divexact) now falls back to plain division for large
+    operands.
+
+  Features:
+  * Support for some new systems.
+
+
+Changes between GMP version 4.1.4 and 4.2
+
+  Bugs:
+  * Minor bug fixes and code generalizations.
+  * Expanded and improved test suite.
+
+  Speedups:
+  * Many minor optimizations, too many to mention here.
+  * Division now always subquadratic.
+  * Computation of n-factorial much faster.
+  * Added basic x86-64 assembly code.
+  * Floating-point output is now subquadratic for all bases.
+  * FFT multiply code now about 25% faster.
+  * Toom3 multiply code faster.
+
+  Features:
+  * Much improved configure.
+  * Workarounds for many more compiler bugs.
+  * Temporary allocations are now made on the stack only if small.
+  * New systems supported: HPPA-2.0 gcc, IA-64 HP-UX, PowerPC-64 Darwin,
+    Sparc64 GNU/Linux.
+  * New i386 fat binaries, selecting optimised code at runtime (--enable-fat).
+  * New build option: --enable-profiling=instrument.
+  * New memory function: mp_get_memory_functions.
+  * New Mersenne Twister random numbers: gmp_randinit_mt, also now used for
+    gmp_randinit_default.
+  * New random functions: gmp_randinit_set, gmp_urandomb_ui, gmp_urandomm_ui.
+  * New integer functions: mpz_combit, mpz_rootrem.
+  * gmp_printf etc new type "M" for mp_limb_t.
+  * gmp_scanf and friends now accept C99 hex floats.
+  * Numeric input and output can now be in bases up to 62.
+  * Comparisons mpz_cmp_d, mpz_cmpabs_d, mpf_cmp_d recognise infinities.
+  * Conversions mpz_get_d, mpq_get_d, mpf_get_d truncate towards zero,
+    previously their behaviour was unspecified.
+  * Fixes for overflow issues with operands >= 2^31 bits.
+
+  Caveats:
+  * mpfr is gone, and will from now on be released only separately.  Please see
+    www.mpfr.org.
+
+
+Changes between GMP version 4.1.3 and 4.1.4
+
+* Bug fix to FFT multiplication code (crash for huge operands).
+* Bug fix to mpf_sub (miscomputation).
+* Support for powerpc64-gnu-linux.
+* Better support for AMD64 in 32-bit mode.
+* Upwardly binary compatible with 4.1.3, 4.1.2, 4.1.1, 4.1, 4.0.1, 4.0,
+  and 3.x versions.
+
+
+Changes between GMP version 4.1.2 and 4.1.3
+
+* Bug fix for FFT multiplication code (miscomputation).
+* Bug fix to K6 assembly code for gcd.
+* Bug fix to IA-64 assembly code for population count.
+* Portability improvements, most notably functional AMD64 support.
+* mpz_export allows NULL for countp parameter.
+* Many minor bug fixes.
+* mpz_export allows NULL for countp parameter.
+* Upwardly binary compatible with 4.1.2, 4.1.1, 4.1, 4.0.1, 4.0, and 3.x
+  versions.
+
+
+Changes between GMP version 4.1.1 and 4.1.2
+
+* Bug fixes.
+
+
+Changes between GMP version 4.1 and 4.1.1
+
+* Bug fixes.
+* New systems supported: NetBSD and OpenBSD sparc64.
+
+
+Changes between GMP version 4.0.1 and 4.1
+
+* Bug fixes.
+* Speed improvements.
+* Upwardly binary compatible with 4.0, 4.0.1, and 3.x versions.
+* Asymptotically fast conversion to/from strings (mpz, mpq, mpn levels), but
+  also major speed improvements for tiny operands.
+* mpn_get_str parameter restrictions relaxed.
+* Major speed improvements for HPPA 2.0 systems.
+* Major speed improvements for UltraSPARC systems.
+* Major speed improvements for IA-64 systems (but still sub-optimal code).
+* Extended test suite.
+* mpfr is back, with many bug fixes and portability improvements.
+* New function: mpz_ui_sub.
+* New functions: mpz_export, mpz_import.
+* Optimization for nth root functions (mpz_root, mpz_perfect_power_p).
+* Optimization for extended gcd (mpz_gcdext, mpz_invert, mpn_gcdext).
+* Generalized low-level number format, reserving a `nails' part of each
+  limb.  (Please note that this is really experimental; some functions
+  are likely to compute garbage when nails are enabled.)
+* Nails-enabled Alpha 21264 assembly code, allowing up to 75% better
+  performance.  (Use --enable-nails=4 to enable it.)
+
+
+Changes between GMP version 4.0 and 4.0.1
+
+* Bug fixes.
+
+
+Changes between GMP version 3.1.1 and 4.0
+
+* Bug fixes.
+* Speed improvements.
+* Upwardly binary compatible with 3.x versions.
+* New CPU support: IA-64, Pentium 4.
+* Improved CPU support: 21264, Cray vector systems.
+* Support for all MIPS ABIs: o32, n32, 64.
+* New systems supported: Darwin, SCO, Windows DLLs.
+* New divide-and-conquer square root algorithm.
+* New algorithms chapter in the manual.
+* New malloc reentrant temporary memory method.
+* New C++ class interface by Gerardo Ballabio (beta).
+* Revamped configure, featuring ABI selection.
+* Speed improvements for mpz_powm and mpz_powm_ui (mainly affecting small
+  operands).
+* mpz_perfect_power_p now properly recognizes 0, 1, and negative perfect
+  powers.
+* mpz_hamdist now supports negative operands.
+* mpz_jacobi now accepts non-positive denominators.
+* mpz_powm now supports negative exponents.
+* mpn_mul_1 operand overlap requirements relaxed.
+* Float input and output uses locale specific decimal point where available.
+* New gmp_printf, gmp_scanf and related functions.
+* New division functions: mpz_cdiv_q_2exp, mpz_cdiv_r_2exp, mpz_divexact_ui.
+* New divisibility tests: mpz_divisible_p, mpz_divisible_ui_p,
+  mpz_divisible_2exp_p, mpz_congruent_p, mpz_congruent_ui_p,
+  mpz_congruent_2exp_p.
+* New Fibonacci function: mpz_fib2_ui.
+* New Lucas number functions: mpz_lucnum_ui, mpz_lucnum2_ui.
+* Other new integer functions: mpz_cmp_d, mpz_cmpabs_d, mpz_get_d_2exp,
+  mpz_init2, mpz_kronecker, mpz_lcm_ui, mpz_realloc2.
+* New rational I/O: mpq_get_str, mpq_inp_str, mpq_out_str, mpq_set_str.
+* Other new rational functions: mpq_abs, mpq_cmp_si, mpq_div_2exp,
+  mpq_mul_2exp, mpq_set_f.
+* New float tests: mpf_integer_p, mpf_fits_sint_p, mpf_fits_slong_p,
+  mpf_fits_sshort_p, mpf_fits_uint_p, mpf_fits_ulong_p, mpf_fits_ushort_p.
+* Other new float functions: mpf_cmp_d, mpf_get_default_prec, mpf_get_si,
+  mpf_get_ui, mpf_get_d_2exp.
+* New random functions: gmp_randinit_default, gmp_randinit_lc_2exp_size.
+* New demo expression string parser (see demos/expr).
+* New preliminary perl interface (see demos/perl).
+* Tuned algorithm thresholds for many more CPUs.
+
+
+Changes between GMP version 3.1 and 3.1.1
+
+* Bug fixes for division (rare), mpf_get_str, FFT, and miscellaneous minor
+  things.
+
+
+Changes between GMP version 3.0 and 3.1
+
+* Bug fixes.
+* Improved `make check' running more tests.
+* Tuned algorithm cutoff points for many machines.  This will improve speed for
+  a lot of operations, in some cases by a large amount.
+* Major speed improvements: Alpha 21264.
+* Some speed improvements: Cray vector computers, AMD K6 and Athlon, Intel P5
+  and Pentium Pro/II/III.
+* The mpf_get_prec function now works as it did in GMP 2.
+* New utilities for auto-tuning and speed measuring.
+* Multiplication now optionally uses FFT for very large operands.  (To enable
+  it, pass --enable-fft to configure.)
+* Support for new systems: Solaris running on x86, FreeBSD 5, HP-UX 11, Cray
+  vector computers, Rhapsody, Nextstep/Openstep, MacOS.
+* Support for shared libraries on 32-bit HPPA.
+* New integer functions: mpz_mul_si, mpz_odd_p, mpz_even_p.
+* New Kronecker symbol functions: mpz_kronecker_si, mpz_kronecker_ui,
+  mpz_si_kronecker, mpz_ui_kronecker.
+* New rational functions: mpq_out_str, mpq_swap.
+* New float functions: mpf_swap.
+* New mpn functions: mpn_divexact_by3c, mpn_tdiv_qr.
+* New EXPERIMENTAL function layer for accurate floating-point arithmetic, mpfr.
+  To try it, pass --enable-mpfr to configure.  See the mpfr subdirectory for
+  more information; it is not documented in the main GMP manual.
+
+
+Changes between GMP version 3.0 and 3.0.1
+
+* Memory leaks in gmp_randinit and mpz_probab_prime_p fixed.
+* Documentation for gmp_randinit fixed.  Misc documentation errors fixed.
+
+
+Changes between GMP version 2.0 and 3.0
+
+* Source level compatibility with past releases (except mpn_gcd).
+* Bug fixes.
+* Much improved speed thanks to both host independent and host dependent
+  optimizations.
+* Switch to autoconf/automake/libtool.
+* Support for building libgmp as a shared library.
+* Multiplication and squaring using 3-way Toom-Cook.
+* Division using the Burnikel-Ziegler method.
+* New functions computing binomial coefficients: mpz_bin_ui, mpz_bin_uiui.
+* New function computing Fibonacci numbers: mpz_fib_ui.
+* New random number generators: mpf_urandomb, mpz_rrandomb, mpz_urandomb,
+  mpz_urandomm, gmp_randclear, gmp_randinit, gmp_randinit_lc_2exp,
+  gmp_randseed, gmp_randseed_ui.
+* New function for quickly extracting limbs: mpz_getlimbn.
+* New functions performing integer size tests: mpz_fits_sint_p,
+  mpz_fits_slong_p, mpz_fits_sshort_p, mpz_fits_uint_p, mpz_fits_ulong_p,
+  mpz_fits_ushort_p.
+* New mpf functions: mpf_ceil, mpf_floor, mpf_pow_ui, mpf_trunc.
+* New mpq function: mpq_set_d.
+* New mpz functions: mpz_addmul_ui, mpz_cmpabs, mpz_cmpabs_ui, mpz_lcm,
+  mpz_nextprime, mpz_perfect_power_p, mpz_remove, mpz_root, mpz_swap,
+  mpz_tdiv_ui, mpz_tstbit, mpz_xor.
+* New mpn function: mpn_divexact_by3.
+* New CPU support: DEC Alpha 21264, AMD K6 and Athlon, HPPA 2.0 and 64,
+  Intel Pentium Pro and Pentium-II/III, Sparc 64, PowerPC 64.
+* Almost 10 times faster mpz_invert and mpn_gcdext.
+* The interface of mpn_gcd has changed.
+* Better support for MIPS R4x000 and R5000 under Irix 6.
+* Improved support for SPARCv8 and SPARCv9 processors.
+
+
+Changes between GMP version 2.0 and 2.0.2
+
+* Many bug fixes.
+
+
+Changes between GMP version 1.3.2 and 2.0
+
+* Division routines in the mpz class have changed.  There are three classes of
+  functions, that rounds the quotient to -infinity, 0, and +infinity,
+  respectively.  The first class of functions have names that begin with
+  mpz_fdiv (f is short for floor), the second class' names begin with mpz_tdiv
+  (t is short for trunc), and the third class' names begin with mpz_cdiv (c is
+  short for ceil).
+
+  The old division routines beginning with mpz_m are similar to the new
+  mpz_fdiv, with the exception that some of the new functions return useful
+  values.
+
+  The old function names can still be used.  All the old functions names will
+  now do floor division, not trunc division as some of them used to.  This was
+  changed to make the functions more compatible with common mathematical
+  practice.
+
+  The mpz_mod and mpz_mod_ui functions now compute the mathematical mod
+  function.  I.e., the sign of the 2nd argument is ignored.
+
+* The mpq assignment functions do not canonicalize their results.  A new
+  function, mpq_canonicalize must be called by the user if the result is not
+  known to be canonical.
+* The mpn functions are now documented.  These functions are intended for
+  very time critical applications, or applications that need full control over
+  memory allocation.  Note that the mpn interface is irregular and hard to
+  use.
+* New functions for arbitrary precision floating point arithmetic.  Names
+  begin with `mpf_'.  Associated type mpf_t.
+* New and improved mpz functions, including much faster GCD, fast exact
+  division (mpz_divexact), bit scan (mpz_scan0 and mpz_scan1), and number
+  theoretical functions like Jacobi (mpz_jacobi) and multiplicative inverse
+  (mpz_invert).
+* New variable types (mpz_t and mpq_t) are available that makes syntax of
+  mpz and mpq calls nicer (no need for & before variables).  The MP_INT and
+  MP_RAT types are still available for compatibility.
+* Uses GNU configure.  This makes it possible to choose target architecture
+  and CPU variant, and to compile into a separate object directory.
+* Carefully optimized assembly for important inner loops.  Support for DEC
+  Alpha, Amd 29000, HPPA 1.0 and 1.1, Intel Pentium and generic x86, Intel
+  i960, Motorola MC68000, MC68020, MC88100, and MC88110, Motorola/IBM
+  PowerPC, National NS32000, IBM POWER, MIPS R3000, R4000, SPARCv7,
+  SuperSPARC, generic SPARCv8, and DEC VAX.  Some support also for ARM,
+  Clipper, IBM ROMP (RT), and Pyramid AP/XP.
+* Faster.  Thanks to the assembler code, new algorithms, and general tuning.
+  In particular, the speed on machines without GCC is improved.
+* Support for machines without alloca.
+* Now under the LGPL.
+
+INCOMPATIBILITIES BETWEEN GMP 1 AND GMP 2
+
+* mpq assignment functions do not canonicalize their results.
+* mpz division functions round differently.
+* mpz mod functions now really compute mod.
+* mpz_powm and mpz_powm_ui now really use mod for reduction.

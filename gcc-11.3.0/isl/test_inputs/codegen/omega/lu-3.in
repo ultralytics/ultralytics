@@ -1,0 +1,3 @@
+[n] -> { s1[k, i, j] -> [t1, t2, j, k, i] : exists (e0 = [(-1 + t1)/64], e1 = [(t2)/64]: 64e0 = -1 + t1 and 64e1 = t2 and t1 >= -63 + k and t1 <= k and t2 >= -63 + i and t2 <= i and i >= 1 + k and j >= 1 + k and k >= 1 and i <= n and j <= n); s0[k, i] -> [t1, t2, k, k, i] : exists (e0 = [(-1 + t1)/64], e1 = [(t2)/64]: 64e0 = -1 + t1 and 64e1 = t2 and t1 >= -63 + k and t1 <= k and t2 >= -63 + i and t2 <= i and k >= 1 and i >= 1 + k and i <= n) }
+{  :  }
+[n] -> { [t1, t2, i2, i3, i4] -> separate[o0] : o0 >= 2; [t1, t2, i2, i3, i4] -> atomic[o0] : o0 <= 1 }

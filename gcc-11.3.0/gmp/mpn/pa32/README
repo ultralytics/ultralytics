@@ -1,0 +1,162 @@
+Copyright 1996, 1999, 2001, 2002, 2004 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+
+This directory contains mpn functions for various HP PA-RISC chips.  Code
+that runs faster on the PA7100 and later implementations, is in the pa7100
+directory.
+
+RELEVANT OPTIMIZATION ISSUES
+
+  Load and Store timing
+
+On the PA7000 no memory instructions can issue the two cycles after a store.
+For the PA7100, this is reduced to one cycle.
+
+The PA7100 has a lookup-free cache, so it helps to schedule loads and the
+dependent instruction really far from each other.
+
+STATUS
+
+1. mpn_mul_1 could be improved to 6.5 cycles/limb on the PA7100, using the
+   instructions below (but some sw pipelining is needed to avoid the
+   xmpyu-fstds delay):
+
+	fldds	s1_ptr
+
+	xmpyu
+	fstds	N(%r30)
+	xmpyu
+	fstds	N(%r30)
+
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+
+	addc
+	stws	res_ptr
+	addc
+	stws	res_ptr
+
+	addib	Loop
+
+2. mpn_addmul_1 could be improved from the current 10 to 7.5 cycles/limb
+   (asymptotically) on the PA7100, using the instructions below.  With proper
+   sw pipelining and the unrolling level below, the speed becomes 8
+   cycles/limb.
+
+	fldds	s1_ptr
+	fldds	s1_ptr
+
+	xmpyu
+	fstds	N(%r30)
+	xmpyu
+	fstds	N(%r30)
+	xmpyu
+	fstds	N(%r30)
+	xmpyu
+	fstds	N(%r30)
+
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	ldws	N(%r30)
+	addc
+	addc
+	addc
+	addc
+	addc	%r0,%r0,cy-limb
+
+	ldws	res_ptr
+	ldws	res_ptr
+	ldws	res_ptr
+	ldws	res_ptr
+	add
+	stws	res_ptr
+	addc
+	stws	res_ptr
+	addc
+	stws	res_ptr
+	addc
+	stws	res_ptr
+
+	addib
+
+3. For the PA8000 we have to stick to using 32-bit limbs before compiler
+   support emerges.  But we want to use 64-bit operations whenever possible,
+   in particular for loads and stores.  It is possible to handle mpn_add_n
+   efficiently by rotating (when s1/s2 are aligned), masking+bit field
+   inserting when (they are not).  The speed should double compared to the
+   code used today.
+
+
+
+
+LABEL SYNTAX
+
+The HP-UX assembler takes labels starting in column 0 with no colon,
+
+	L$loop  ldws,mb -4(0,%r25),%r22
+
+Gas on hppa GNU/Linux however requires a colon,
+
+	L$loop: ldws,mb -4(0,%r25),%r22
+
+This is covered by using LDEF() from asm-defs.m4.  An alternative would be
+to use ".label" which is accepted by both,
+
+		.label  L$loop
+		ldws,mb -4(0,%r25),%r22
+
+but that's not as nice to look at, not if you're used to assembler code
+having labels in column 0.
+
+
+
+
+REFERENCES
+
+Hewlett Packard, "HP Assembler Reference Manual", 9th edition, June 1998,
+part number 92432-90012.
+
+
+
+----------------
+Local variables:
+mode: text
+fill-column: 76
+End:

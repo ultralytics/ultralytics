@@ -1,0 +1,1 @@
+[P, Q] -> { [n, m] -> n : n >= 1 and m >= n and m <= P and m <= Q }

@@ -1,0 +1,5 @@
+# Check that the different disjuncts in the unroll option
+# are handled separately.
+{ A[i] -> [i] : 0 <= i < 100000 }
+{ : }
+{ [i] -> unroll[0] : i < 4 or i > 99996 }

@@ -1,0 +1,166 @@
+Copyright 1999-2001, 2003-2005 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+                    POWERPC-64 MPN SUBROUTINES
+
+
+This directory contains mpn functions for 64-bit PowerPC chips.
+
+
+CODE ORGANIZATION
+
+	mpn/powerpc64          mode-neutral code
+	mpn/powerpc64/mode32   code for mode32
+	mpn/powerpc64/mode64   code for mode64
+
+
+The mode32 and mode64 sub-directories contain code which is for use in the
+respective chip mode, 32 or 64.  The top-level directory is code that's
+unaffected by the mode.
+
+The "adde" instruction is the main difference between mode32 and mode64.  It
+operates on either on a 32-bit or 64-bit quantity according to the chip mode.
+Other instructions have an operand size in their opcode and hence don't vary.
+
+
+
+POWER3/PPC630 pipeline information:
+
+Decoding is 4-way + branch and issue is 8-way with some out-of-order
+capability.
+
+Functional units:
+LS1  - ld/st unit 1
+LS2  - ld/st unit 2
+FXU1 - integer unit 1, handles any simple integer instruction
+FXU2 - integer unit 2, handles any simple integer instruction
+FXU3 - integer unit 3, handles integer multiply and divide
+FPU1 - floating-point unit 1
+FPU2 - floating-point unit 2
+
+Memory:		  Any two memory operations can issue, but memory subsystem
+		  can sustain just one store per cycle.  No need for data
+		  prefetch; the hardware has very sophisticated prefetch logic.
+Simple integer:	  2 operations (such as add, rl*)
+Integer multiply: 1 operation every 9th cycle worst case; exact timing depends
+		  on 2nd operand's most significant bit position (10 bits per
+		  cycle).  Multiply unit is not pipelined, only one multiply
+		  operation in progress is allowed.
+Integer divide:	  ?
+Floating-point:	  Any plain 2 arithmetic instructions (such as fmul, fadd, and
+		  fmadd), latency 4 cycles.
+Floating-point divide:
+		  ?
+Floating-point square root:
+		  ?
+
+POWER3/PPC630 best possible times for the main loops:
+shift:	      1.5 cycles limited by integer unit contention.
+	      With 63 special loops, one for each shift count, we could
+	      reduce the needed integer instructions to 2, which would
+	      reduce the best possible time to 1 cycle.
+add/sub:      1.5 cycles, limited by ld/st unit contention.
+mul:	      18 cycles (average) unless floating-point operations are used,
+	      but that would only help for multiplies of perhaps 10 and more
+	      limbs.
+addmul/submul:Same situation as for mul.
+
+
+POWER4/PPC970 and POWER5 pipeline information:
+
+This is a very odd pipeline, it is basically a VLIW masquerading as a plain
+architecture.  Its issue rules are not made public, and since it is so weird,
+it is very hard to figure out any useful information from experimentation.
+An example:
+
+  A well-aligned loop with nop's take 3, 4, 6, 7, ... cycles.
+    3 cycles for  0,  1,  2,  3,  4,  5,  6,  7 nop's
+    4 cycles for  8,  9, 10, 11, 12, 13, 14, 15 nop's
+    6 cycles for 16, 17, 18, 19, 20, 21, 22, 23 nop's
+    7 cycles for 24, 25, 26, 27 nop's
+    8 cycles for 28, 29, 30, 31 nop's
+    ... continues regularly
+
+
+Functional units:
+LS1  - ld/st unit 1
+LS2  - ld/st unit 2
+FXU1 - integer unit 1, handles any integer instruction
+FXU2 - integer unit 2, handles any integer instruction
+FPU1 - floating-point unit 1
+FPU2 - floating-point unit 2
+
+While this is one integer unit less than POWER3/PPC630, the remaining units
+are more powerful; here they handle multiply and divide.
+
+Memory:		  2 ld/st.  Stores go to the L2 cache, which can sustain just
+		  one store per cycle.
+		  L1 load latency: to gregs 3-4 cycles, to fregs 5-6 cycles.
+		  Operations that modify the address register might be split
+		  to use also an integer issue slot.
+Simple integer:	  2 operations every cycle, latency 2.
+Integer multiply: 2 operations every 6th cycle, latency 7 cycles.
+Integer divide:	  ?
+Floating-point:	  Any plain 2 arithmetic instructions (such as fmul, fadd, and
+		  fmadd), latency 6 cycles.
+Floating-point divide:
+		  ?
+Floating-point square root:
+		  ?
+
+
+IDEAS
+
+*mul_1: Handling one limb using mulld/mulhdu and two limbs using floating-
+point operations should give performance of about 20 cycles for 3 limbs, or 7
+cycles/limb.
+
+We should probably split the single-limb operand in 32-bit chunks, and the
+multi-limb operand in 16-bit chunks, allowing us to accumulate well in fp
+registers.
+
+Problem is to get 32-bit or 16-bit words to the fp registers.  Only 64-bit fp
+memops copies bits without fiddling with them.  We might therefore need to
+load to integer registers with zero extension, store as 64 bits into temp
+space, and then load to fp regs.  Alternatively, load directly to fp space
+and add well-chosen constants to get cancellation.  (Other part after given by
+subsequent subtraction.)
+
+Possible code mix for load-via-intregs variant:
+
+lwz,std,lfd
+fmadd,fmadd,fmul,fmul
+fctidz,stfd,ld,fctidz,stfd,ld
+add,adde
+lwz,std,lfd
+fmadd,fmadd,fmul,fmul
+fctidz,stfd,ld,fctidz,stfd,ld
+add,adde
+srd,sld,add,adde,add,adde

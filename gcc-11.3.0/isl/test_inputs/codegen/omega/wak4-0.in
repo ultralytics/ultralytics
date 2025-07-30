@@ -1,0 +1,3 @@
+[a1, a2, a3, a4, a5, b1, b2, b3, b4, b5] -> { s0[i] -> [i, 0] : i >= a1 and i >= a2 and i >= a3 and i >= a4 and i >= a5 and i <= b1 and i <= b2 and i <= b3 and i <= b4 and i <= b5; s1[i] -> [i, 1] : i >= a1 and i >= a2 and i >= a3 and i >= a4 and i >= a5 and i <= b1 and i <= b2 and i <= b3 and i <= b4 and i <= b5 }
+{  :  }
+[a1, a2, a3, a4, a5, b1, b2, b3, b4, b5] -> { [i0, i1] -> separate[o0] : o0 >= 1; [i0, i1] -> atomic[o0] : o0 <= 0 }

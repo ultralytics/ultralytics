@@ -1,0 +1,10 @@
+# Check that isl is not confused by the combination of separation classes
+# and unroll.
+{ S_0[t, i] -> [o0, 1, o9, t] : 4o0 >= -3 + t and 4o0 <= t and i >= 60 and i <= 65 and 6o9 >= 5 + t - 4o0 and 6o9 <= 10 + t - 4o0 and 4o0 <= -62 + t + i and 4o0 >= 59 + t - i and o0 >= 0 and o0 <= 127 and t <= 511 and t >= 0 and 4o0 >= -66 + t + i and 4o0 <= 63 + t - i;
+S_0[t, i] -> [o0, 0, o9, t] : 4o0 >= -1 + t and 4o0 <= 2 + t and i >= 57 and i <= 62 and 6o9 >= 7 + t - 4o0 and 6o9 <= 12 + t - 4o0 and t >= 0 and t <= 511 and 4o0 <= -57 + t + i and 4o0 >= 58 + t - i and o0 >= 0 and o0 <= 128 and 4o0 >= -61 + t + i and 4o0 <= 62 + t - i }
+{ : }
+{ [i0, i1, i2, t] -> unroll[1];
+[i0, 1, i2, t] -> separation_class[[1] -> [0]]
+	: 0 <= i0 <= 127;
+[i0, 0, i2, t] -> separation_class[[1] -> [0]]
+	: 1 <= i0 <= 127}

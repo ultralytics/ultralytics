@@ -1,0 +1,2 @@
+This directory contains Neon code which runs and is efficient on all
+ARM CPUs which support Neon.

@@ -1,0 +1,1 @@
+[N] -> { [i0, i1, i2] -> (i0^3 * i1^2 + N * i1 * i2) : i0 >= 0 and i0 <= N and i1 >= 0 and i1 <= N and i2 >= 0 and i2 <= N }

@@ -1,0 +1,9 @@
+# the affine hull of {[a,b] : a=b && 1 <= a <= 163} ...
+3 4
+0 1 -1 0
+1 1  0 -1
+1 -1 0 163
+
+# ... is {[a,b] : a=b} (and not {[In_1,In_2]}, as Omega 1.2 claims)
+1 4
+0 1 -1 0

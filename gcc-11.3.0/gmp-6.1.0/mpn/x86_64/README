@@ -1,0 +1,74 @@
+Copyright 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+			AMD64 MPN SUBROUTINES
+
+
+This directory contains mpn functions for AMD64 chips.  It is also useful
+for 64-bit Pentiums, and "Core 2".
+
+
+		     RELEVANT OPTIMIZATION ISSUES
+
+The Opteron and Athlon64 can sustain up to 3 instructions per cycle, but in
+practice that is only possible for integer instructions.  But almost any
+three integer instructions can issue simultaneously, including any 3 ALU
+operations, including shifts.  Up to two memory operations can issue each
+cycle.
+
+Scheduling typically requires that load-use instructions are split into
+separate load and use instructions.  That requires more decode resources,
+and it is rarely a win.  Opteron/Athlon64 have deep out-of-order core.
+
+
+Optimizing for 64-bit Pentium4 is probably a waste of time, as the most
+critical instructions are very poorly implemented here.  Perhaps we could
+save a cycle or two, but the most common loops now run at between 10 and 22
+cycles, so a saved cycle isn't too exciting.
+
+
+The new spin of the venerable P6 core, the "Core 2" is much better than the
+Pentium4 for the GMP loops.  Its integer pipeline is somewhat similar to to
+the Opteron/Athlon64 pipeline, except that the GMP favourites ADC/SBB and
+MUL are slower.  Furthermore, an INC/DEC followed by ADC/SBB incur a
+pipeline stall of around 10 cycles.  The default mpn_add_n and mpn_sub_n
+code suffers badly from the stall.  The code in the core2 subdirectory uses
+the almost forgotten instruction JRCXZ for loop control, and updates the
+induction variable using LEA.
+
+
+
+REFERENCES
+
+"System V Application Binary Interface AMD64 Architecture Processor
+Supplement", draft version 0.99, December 2007.
+http://www.x86-64.org/documentation/abi.pdf

@@ -1,0 +1,121 @@
+Copyright 2000-2002 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+
+The code in this directory works for Cray vector systems such as C90,
+J90, T90 (both the CFP variant and the IEEE variant) and SV1.  (For
+the T3E and T3D systems, see the `alpha' subdirectory at the same
+level as the directory containing this file.)
+
+The cfp subdirectory is for systems utilizing the traditional Cray
+floating-point format, and the ieee subdirectory is for the newer
+systems that use the IEEE floating-point format.
+
+There are several issues that reduces speed on Cray systems.  For
+systems with cfp floating point, the main obstacle is the forming of
+128-bit products.  For IEEE systems, adding, and in particular
+computing carry is the main issue.  There are no vectorizing
+unsigned-less-than instructions, and the sequence that implement that
+operation is very long.
+
+Shifting is the only operation that is simple to make fast.  All Cray
+systems have a bitblt instructions (Vi Vj,Vj<Ak and Vi Vj,Vj>Ak) that
+should be really useful.
+
+For best speed for cfp systems, we need a mul_basecase, since that
+reduces the need for carry propagation to a minimum.  Depending on the
+size (vn) of the smaller of the two operands (V), we should split U and V
+in different chunk sizes:
+
+U split in 2 32-bit parts
+V split according to the table:
+parts			4	5	6	7	8
+bits/part		16	13	11	10	8
+max allowed vn		1	8	32	64	256
+number of multiplies	8	10	12	14	16
+peak cycles/limb	4	5	6	7	8
+
+U split in 3 22-bit parts
+V split according to the table:
+parts			3	4	5
+bits/part		22	16	13
+max allowed vn		16	1024	8192
+number of multiplies	9	12	15
+peak cycles/limb	4.5	6	7.5
+
+U split in 4 16-bit parts
+V split according to the table:
+parts			4
+bits/part		16
+max allowed vn		65536
+number of multiplies	16
+peak cycles/limb	8
+
+(A T90 CPU can accumulate two products per cycle.)
+
+IDEA:
+* Rewrite mpn_add_n:
+    short cy[n + 1];
+    #pragma _CRI ivdep
+      for (i = 0; i < n; i++)
+	{ s = up[i] + vp[i];
+	  rp[i] = s;
+	  cy[i + 1] = s < up[i]; }
+      more_carries = 0;
+    #pragma _CRI ivdep
+      for (i = 1; i < n; i++)
+	{ s = rp[i] + cy[i];
+	  rp[i] = s;
+	  more_carries += s < cy[i]; }
+      cys = 0;
+      if (more_carries)
+	{
+	  cys = rp[1] < cy[1];
+	  for (i = 2; i < n; i++)
+	    { rp[i] += cys;
+	      cys = rp[i] < cys; }
+	}
+      return cys + cy[n];
+
+* Write mpn_add3_n for adding three operands.  First add operands 1
+  and 2, and generate cy[].  Then add operand 3 to the partial result,
+  and accumulate carry into cy[].  Finally propagate carry just like
+  in the new mpn_add_n.
+
+IDEA:
+
+Store fewer bits, perhaps 62, per limb.  That brings mpn_add_n time
+down to 2.5 cycles/limb and mpn_addmul_1 times to 4 cycles/limb.  By
+storing even fewer bits per limb, perhaps 56, it would be possible to
+write a mul_mul_basecase that would run at effectively 1 cycle/limb.
+(Use VM here to better handle the romb-shaped multiply area, perhaps
+rounding operand sizes up to the next power of 2.)

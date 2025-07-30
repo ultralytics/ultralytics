@@ -1,0 +1,133 @@
+# Data test file for mpc_cosh.
+#
+# Copyright (C) 2008, 2010 INRIA
+#
+# This file is part of GNU MPC.
+#
+# GNU MPC is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the
+# Free Software Foundation; either version 3 of the License, or (at your
+#o ption) any later version.
+#
+# GNU MPC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+# more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/ .
+
+# See file sin.dat for the format description.
+
+# Special values, following ISO C99 standard, Annex G,
+# more precisely Section G.6.2.4 "The ccosh functions".
+
+# Rule [conj]: cosh(conj(z)) = conj(cosh(z))
+# Rule [even]: cosh(-z)      = cosh(z)
+
+# cosh(+0 + i*0) = 1 + i*0
+0 0 2 1 2 +0   2 +0 2 +0 N N
+# [conj]: cosh(+0 - i*0) = 1 - i*0
+0 0 2 1 2 -0   2 +0 2 -0 N N
+# [even]: cosh(-0 - i*0) = 1 + i*0
+0 0 2 1 2 +0   2 -0 2 -0 N N
+# [even+conj]: cosh(-0 + i*0) = 1 - i*0
+0 0 2 1 2 -0   2 -0 2 +0 N N
+
+# cosh(+0 + i*inf) = nan + i*0 (C99 says that the sign of the imaginary part
+# is left unspecified)
+0 0 2 nan 2 0   2 +0 2 +inf N N
+# [conj]: cosh(+0 - i*inf) = nan - i*0
+0 0 2 nan 2 0   2 +0 2 -inf N N
+# [even]: cosh(-0 - i*inf) = nan + i*0
+0 0 2 nan 2 0   2 -0 2 -inf N N
+# [even+conj]: cosh(-0 + i*inf) = nan - i*0
+0 0 2 nan 2 0   2 -0 2 +inf N N
+
+# cosh(+0 +i*nan) = nan + i*0 (C99 says that the sign of the imaginary part
+# is left unspecified)
+0 0 2 nan 2 0   2 +0 2 nan N N
+# [even]: cosh(-0 + i*nan) = nan + i*0
+0 0 2 nan 2 0   2 -0 2 nan N N
+
+# cosh(x + i*inf) = nan + i*nan for finite nonzero x
+0 0 2 nan 2 nan   2  1 2 inf N N
+0 0 2 nan 2 nan   2 -1 2 inf N N
+# [conj]: cosh(x - i*inf) = nan + i*nan
+0 0 2 nan 2 nan   2  1 2 -inf N N
+0 0 2 nan 2 nan   2 -1 2 -inf N N
+# [even] and [even+conj] are already considered for x=-1 < 0
+
+# cosh(x + i*nan) = nan + i*nan for finite nonzero x
+0 0 2 nan 2 nan   2  1 2 nan N N
+0 0 2 nan 2 nan   2 -1 2 nan N N
+# [conj] makes no sense since nan has no sign
+# [even] is already considered for x=-1 < 0
+
+# cosh(+inf + i*0) = +inf + i*0
+0 0 2 +inf 2 +0   2 +inf 2 +0   N N
+# [conj]: cosh(+inf - i*0) = +inf - i*0
+0 0 2 +inf 2 -0   2 +inf 2 -0   N N
+# [even]: cosh(-inf - i*0) = +inf + i*0
+0 0 2 +inf 2 +0   2 -inf 2 -0   N N
+# [even+conj]: cosh(-inf + i*0) = +inf - i*0
+0 0 2 +inf 2 -0   2 -inf 2 +0   N N
+
+# cosh(+inf + i*y) = +inf * (cos(y) + i*sin(y)) for finite non-zero y
+0 0 2 +inf 2 +inf   2 +inf 2 1    N N
+0 0 2 -inf 2 +inf   2 +inf 2 2    N N
+0 0 2 -inf 2 -inf   2 +inf 2 4    N N
+0 0 2 +inf 2 -inf   2 +inf 2 1024 N N
+# [conj]
+0 0 2 +inf 2 -inf   2 +inf 2 -1    N N
+0 0 2 -inf 2 -inf   2 +inf 2 -2    N N
+0 0 2 -inf 2 +inf   2 +inf 2 -4    N N
+0 0 2 +inf 2 +inf   2 +inf 2 -1024 N N
+# [even]
+0 0 2 +inf 2 +inf   2 -inf 2 -1    N N
+0 0 2 -inf 2 +inf   2 -inf 2 -2    N N
+0 0 2 -inf 2 -inf   2 -inf 2 -4    N N
+0 0 2 +inf 2 -inf   2 -inf 2 -1024 N N
+# [even+conj]
+0 0 2 +inf 2 -inf   2 -inf 2 1    N N
+0 0 2 -inf 2 -inf   2 -inf 2 2    N N
+0 0 2 -inf 2 +inf   2 -inf 2 4    N N
+0 0 2 +inf 2 +inf   2 -inf 2 1024 N N
+
+# cosh(+inf + i*inf) = +inf + i*nan (C99 leaves unspecified the sign of the
+# real part)
+0 0 2 inf 2 nan   2 +inf 2 +inf   N N
+# [conj]: cosh(+inf - i*inf) = +inf + i*nan
+0 0 2 inf 2 nan   2 +inf 2 -inf   N N
+# [even]: cosh(-inf - i*inf) = +inf + i*nan
+0 0 2 inf 2 nan   2 -inf 2 -inf   N N
+# [even+conj]: cosh(-inf + i*inf) = +inf + i*nan
+0 0 2 inf 2 nan   2 -inf 2 +inf   N N
+
+# cosh(+inf + i*nan) = +inf + i*nan
+0 0 2 +inf 2 nan   2 +inf 2 nan   N N
+# [conj] makes no sense since NaN has no sign
+# [even]: cosh(-inf + i*nan) = +inf + i*nan
+0 0 2 +inf 2 nan   2 -inf 2 nan   N N
+
+# cosh(nan + i*0) = nan - i*0 (C99 leaves unspecified the sign of the
+# imaginary part)
+0 0 2 nan 2 0   2 nan 2 +0   N N
+# [conj]: cosh(nan - i*0) = nan + i*0
+0 0 2 nan 2 0   2 nan 2 -0   N N
+
+# cosh(nan + i*y) = nan + i*nan for all nonzero y (including +/-inf)
+0 0 2 nan 2 nan   2 nan 2  1   N N
+0 0 2 nan 2 nan   2 nan 2 -1   N N
+0 0 2 nan 2 nan   2 nan 2 +inf   N N
+0 0 2 nan 2 nan   2 nan 2 -inf   N N
+
+# cosh(nan + i*nan) = nan + i*nan
+0 0 2 nan 2 nan   2 nan 2 nan   N N
+
++ + 53 0x10000000000001p-53 53 0x10000000000001p-52   53 0x1DA2E1BD2C9EBCp-53 53 0x138AADEA15829Fp-52 N N
+
+
+# huge values
++ - 53 +inf 53 -inf 53 0x4580CBF242683p-3 53 -0x1B3E8A3660D279p-3 N N
+- - 53 -inf 53 -inf 53 -0x1B3E8A3660D279p-3 53 0x4580CBF242683p-3 N N

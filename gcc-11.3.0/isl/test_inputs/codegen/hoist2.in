@@ -1,0 +1,5 @@
+# Check that the constraints hoisted from the inner loop
+# do not end up involving the inner loop iterator.
+[t1, b] -> { A[i1, i2] -> [i1, 8 - 64b + i2] : exists (e0, e1 = [(-8 + t1 - i2)/64]: 64e1 = -8 + t1 - i2 and i2 >= 1 and i2 <= 127 and 2e0 >= -3 + i1 and 2e0 >= -1 - i1 and 2e0 <= 8 - i1 and 2e0 <= 6 + i1 and 2e0 >= -65 - 64b + i2 and 2e0 >= -1 + 64b - i2 and e0 <= 1 and e0 >= 0 and 2e0 <= 62 + 64b - i2 and b <= 1 and b >= 0 and i1 >= 1 and i1 <= 2046 and t1 >= 5 and t1 <= 8) }
+[t1, b] -> { : b >= 0 and b <= 1 and t1 >= 5 and t1 <= 8 }
+[t1] -> { [i0, i1, i5, a] -> atomic[x]}

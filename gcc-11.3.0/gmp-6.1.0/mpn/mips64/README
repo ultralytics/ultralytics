@@ -1,0 +1,60 @@
+Copyright 1996 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+
+This directory contains mpn functions optimized for MIPS3.  Example of
+processors that implement MIPS3 are R4000, R4400, R4600, R4700, and R8000.
+
+RELEVANT OPTIMIZATION ISSUES
+
+1. On the R4000 and R4400, branches, both the plain and the "likely" ones,
+   take 3 cycles to execute.  (The fastest possible loop will take 4 cycles,
+   because of the delay insn.)
+
+   On the R4600, branches takes a single cycle
+
+   On the R8000, branches often take no noticeable cycles, as they are
+   executed in a separate function unit..
+
+2. The R4000 and R4400 have a load latency of 4 cycles.
+
+3. On the R4000 and R4400, multiplies take a data-dependent number of
+   cycles, contrary to the SGI documentation.  There seem to be 3 or 4
+   possible latencies.
+
+4. The R1x000 processors can issue one floating-point operation, two integer
+   operations, and one memory operation per cycle.  The FPU has very short
+   latencies, while the integer multiply unit is non-pipelined.  We should
+   therefore write fp based mpn_Xmul_1.
+
+STATUS
+
+Good...

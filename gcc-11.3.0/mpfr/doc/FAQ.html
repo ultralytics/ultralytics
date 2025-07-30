@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<!--
+Copyright 2000-2017 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
+
+This file is part of the GNU MPFR Library.
+
+The GNU MPFR Library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 3 of the License, or (at your
+option) any later version.
+
+The GNU MPFR Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the GNU MPFR Library; see the file COPYING.LESSER.  If not, see
+http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
+51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Frequently Asked Questions about GNU MPFR</title>
+<style type="text/css">/*<![CDATA[*/
+/* Global stylesheet for visual media */
+
+html, body
+{
+  background: white;
+  color: black;
+}
+
+div.logo { float: right }
+div.logo img { border: 0 }
+
+div.footer img { border: 0 }
+
+dt
+{
+  margin-top: 2ex;
+  margin-bottom: 1ex;
+  font-weight: bolder;
+}
+
+/* For testing: dd { background: #ddddff } */
+
+table { margin: 0.5ex auto }
+
+li { margin-top: 0.5ex; margin-bottom: 0.5ex }
+
+dd + dd
+{
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0.5ex;
+  padding-bottom: 0;
+}
+
+li > p, dd > p
+{
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0.5ex;
+  padding-bottom: 0.5ex;
+}
+
+.block-code code, code.block-code,
+.block-code samp, samp.block-code
+{
+  display: block;
+  padding: 0.5ex 0;
+  margin-left: 2em;
+}
+
+.nowrap { white-space: nowrap }
+
+/*
+dl.faq { counter-reset: faq }
+
+dl.faq dt:before
+{
+  counter-increment: faq;
+  content: counter(faq) ". ";
+}
+*/
+
+dl.faq dt { background: #dddddd }
+
+dl.faq dd
+{
+  border-left: 4px solid;
+  border-color: transparent;
+  margin-left: 0em;
+  padding-left: 1.5em;
+}
+
+dl.faq dt:target + dd
+{
+  border-left-color: #aaaaaa;
+}
+
+var.env { font-style: normal }
+/*]]>*/</style>
+</head>
+
+<body>
+
+<h1>Frequently Asked Questions about <cite><acronym>GNU</acronym> <acronym>MPFR</acronym></cite></h1>
+
+<p><strong>Important notice: Problems with a particular version of
+<cite><acronym>MPFR</acronym></cite> are discussed in the corresponding
+bugs page.</strong></p>
+
+<p>The latest version of this <acronym>FAQ</acronym> is available at
+<a href="http://www.mpfr.org/faq.html">http://www.mpfr.org/faq.html</a>.
+Please look at this version if possible.</p>
+
+<ol>
+<li><a href="#mpfr_vs_mpf">What are the differences between
+<cite><acronym>MPF</acronym></cite> from <cite><acronym>GMP</acronym></cite>
+and <cite><acronym>MPFR</acronym></cite>?</a></li>
+<li><a href="#mpf2mpfr">How to convert my program written using
+<cite><acronym>MPF</acronym></cite> to
+<cite><acronym>MPFR</acronym></cite>?</a></li>
+<li><a href="#no_libgmp">At configure time, I get the error: <q>libgmp not found or uses a different ABI.</q></a></li>
+<li><a href="#undef_ref1">I get undefined reference to <code>__gmp_get_memory_functions</code>.</a></li>
+<li><a href="#undef_ref2">When I link my program with
+<cite><acronym>MPFR</acronym></cite>, I get undefined reference
+to <code>__gmpXXXX</code>.</a></li>
+<li><a href="#crash_high_prec">My program crashes with high precisions.</a></li>
+<li><a href="#accuracy">Though I have increased the precision, the results
+are not more accurate.</a></li>
+<li><a href="#detect_mpfr">How can I detect <cite><acronym>MPFR</acronym></cite>
+installation using <cite>autoconf</cite> or <cite>pkg-config</cite>?</a></li>
+<li><a href="#cite">How to cite <cite><acronym>MPFR</acronym></cite> in a
+scientific publication?</a></li>
+<li><a href="#fpic">When I build <cite><acronym>MPFR</acronym></cite>, I get
+an error asking me to recompile with <samp>-fPIC</samp>.</a></li>
+</ol>
+
+<dl class="faq">
+
+<dt id="mpfr_vs_mpf">1. What are the differences between
+<cite><acronym>MPF</acronym></cite> from <cite><acronym>GMP</acronym></cite>
+and <cite><acronym>MPFR</acronym></cite>?</dt>
+
+<dd><p>The main differences are:</p>
+<ul>
+<li><p>The precision of a <cite><acronym>MPFR</acronym></cite> variable
+is the <em>exact</em> number of bits used for its mantissa, whereas in
+<cite><acronym>MPF</acronym></cite>, the precision requested by the user
+is a minimum value (<cite><acronym>MPF</acronym></cite> generally uses a
+higher precision). With the additional difference below, this implies that
+the <cite><acronym>MPFR</acronym></cite> results do not depend on the
+number of bits (16, 32, 64 or more) of the underlying architecture.</p></li>
+<li><p>As a consequence, <cite><acronym>MPFR</acronym></cite> uses a
+base-2 exponent, whereas in <cite><acronym>MPF</acronym></cite>, this
+is a base-2<sup>32</sup> or base-2<sup>64</sup> exponent, depending on
+the limb size. For this reason (and other internal ones), the maximum
+exponent range in <cite><acronym>MPFR</acronym></cite> is different
+(and smaller, if the exponent is represented by the same type as in
+<cite><acronym>MPF</acronym></cite>).</p></li>
+<li><p><cite><acronym>MPFR</acronym></cite> provides an additional rounding
+mode argument to its functions; furthermore, it is guaranteed that the
+result of any operation is the nearest possible floating-point value from
+the exact result (considering the input variables as exact values), taking
+into account the precision of the destination variable and the rounding
+mode. <cite><acronym>MPFR</acronym></cite> also says whether the rounded
+result is above or below the exact result.</p></li>
+<li><p><cite><acronym>MPFR</acronym></cite> supports much more functions
+(in particular transcendental functions such as exponentials, logarithms,
+trigonometric functions and so on) and special values: signed zeros,
+infinities, not-a-number (NaN).</p></li>
+</ul></dd>
+
+<dt id="mpf2mpfr">2. How to convert my program written using
+<cite><acronym>MPF</acronym></cite> to
+<cite><acronym>MPFR</acronym></cite>?</dt>
+
+<dd><p>You need to add <q><code>r</code></q> to the function names, and to
+specify the rounding mode (<code>MPFR_RNDN</code> for rounding to nearest,
+<code>MPFR_RNDZ</code> for rounding toward zero, <code>MPFR_RNDU</code>
+for rounding toward plus infinity, <code>MPFR_RNDD</code> for rounding
+toward minus infinity). You can also define macros as follows:
+<code class="block-code">#define mpf_add(a, b, c) mpfr_add(a, b, c, MPFR_RNDN)</code></p>
+<p>The header file <samp>mpf2mpfr.h</samp> from the
+<cite><acronym>MPFR</acronym></cite> distribution automatically
+redefines all <cite><acronym>MPF</acronym></cite> functions in this
+way, using the default <cite><acronym>MPFR</acronym></cite> rounding
+mode. Thus you simply need to add the following line in all your files
+using <cite><acronym>MPF</acronym></cite> functions:
+<code class="block-code">#include &lt;mpf2mpfr.h&gt;</code>
+just after the <samp>gmp.h</samp> and <samp>mpfr.h</samp>
+header files. If the program uses <cite><acronym>MPF</acronym></cite>
+internals (such as direct access to <code>__mpf_struct</code> members),
+additional changes will be needed.</p></dd>
+
+<dt id="no_libgmp">3. At configure time, I get the error: <q>libgmp not found or uses a different ABI.</q></dt>
+
+<dd><p>This test (<samp>checking for __gmpz_init in -lgmp</samp>) comes
+after the <samp>gmp.h</samp> detection. The failure occurs either because
+the <cite><acronym>GMP</acronym></cite> library could not be found
+(as it is not in the provided library search paths) or because the
+<cite><acronym>GMP</acronym></cite> library that was found does not have
+the expected <acronym title="Application Binary Interface">ABI</acronym>
+(<abbr>e.g.</abbr> 32-bit <abbr>vs</abbr> 64-bit). The former problem can be
+due to the fact that a static build of <cite><acronym>MPFR</acronym></cite>
+was requested while only a shared <cite><acronym>GMP</acronym></cite> library
+is installed (or the opposite, but another error can also show up in this
+case, see the <a href="#fpic">question about <samp>-fPIC</samp></a>). The
+latter problem can have several causes:</p>
+<ul>
+<li>A wrong libgmp library has been picked up. This can occur if you have
+several <cite><acronym>GMP</acronym></cite> versions installed on the
+machine and something is wrong with the provided library search paths.</li>
+<li>Wrong compiler options (<samp>CFLAGS</samp>) were given. In general, the
+presence or absence of the <samp>-m64</samp> compiler option must match the
+library <acronym title="Application Binary Interface">ABI</acronym>.</li>
+<li>A wrong <samp>gmp.h</samp> file has been picked up (if you have several
+<cite><acronym>GMP</acronym></cite> versions installed). Indeed, by default,
+<cite><acronym>MPFR</acronym></cite> gets the compiler options from the
+<samp>gmp.h</samp> file (with <cite><acronym>GMP</acronym></cite> 4.2.3
+or later); this is needed because <cite><acronym>GMP</acronym></cite> does
+not necessarily use the default <acronym>ABI</acronym>. The consequence is
+that if the <samp>gmp.h</samp> file is associated with a library using a
+different <acronym>ABI</acronym>, the <acronym>ABI</acronym>-related options
+will be incorrect. Hence the failure.</li>
+</ul>
+<p>Note: The <samp>config.log</samp> output gives more information
+than the error message. In particular, see the output of the test:
+<samp>checking for CC and CFLAGS in gmp.h</samp>; it should give you
+the default compiler options (from <samp>gmp.h</samp>).</p>
+
+<p>See also the answer to the <a href="#undef_ref1">next question</a>.</p></dd>
+
+<dt id="undef_ref1">4. I get undefined reference to <code>__gmp_get_memory_functions</code>.</dt>
+
+<dd><p>Note: this was mainly a problem when upgrading from
+<cite><acronym>GMP</acronym></cite> 4.1.4 to a later version,
+but information given below may still be useful in other cases,
+when several <cite><acronym>GMP</acronym></cite> libraries are
+installed on the same machine.</p>
+
+<p>If you get such an error, in particular when running
+<samp>make check</samp>, then this probably means that you are using
+the header file from <cite><acronym>GMP</acronym></cite> 4.2.x but the
+<cite><acronym>GMP</acronym></cite> 4.1.4 library. This can happen if
+several <cite><acronym>GMP</acronym></cite> versions are installed on
+your machine (<abbr>e.g.</abbr>, one provided by the system in
+<samp>/usr/{include,lib}</samp> and a new one installed by the owner or
+administrator of the machine in <samp>/usr/local/{include,lib}</samp>)
+and your include and library search paths are inconsistent. On various
+<acronym>GNU</acronym>/Linux machines, this is unfortunately the case
+by default (<samp>/usr/local/include</samp> is in the default include
+search path, but <samp>/usr/local/lib</samp> is <em>not</em> in the
+default library search path). Typical errors are:
+<samp class="block-code">undefined reference to `__gmp_get_memory_functions'</samp>
+in <samp>make check</samp>. The best solution is to add
+<samp>/usr/local/include</samp> to your <var class="env">C_INCLUDE_PATH</var>
+environment variable and to add <samp>/usr/local/lib</samp> to your
+<var class="env">LIBRARY_PATH</var> and <var class="env">LD_LIBRARY_PATH</var>
+environment variables (and/or <var class="env">LD_RUN_PATH</var>).
+Alternatively, you can use <samp>--with-gmp*</samp> configure options,
+<abbr>e.g.</abbr> <samp>--with-gmp=/usr/local</samp>, but <strong>this is
+not guaranteed to work</strong> (in particular with <samp>gcc</samp> and
+system directories such as <samp>/usr</samp> or <samp>/usr/local</samp>),
+and other software that uses <cite><acronym>GMP</acronym></cite> and/or
+<cite><acronym>MPFR</acronym></cite> will need correct paths too;
+environment variables allow you to set them in a global way.</p>
+<p>Other information can be given in the <samp>INSTALL</samp> file and
+<samp>ld</samp> manual. Please look at them for more details. See also
+the <a href="#undef_ref2">next question</a>.</p></dd>
+
+<dt id="undef_ref2">5. When I link my program with
+<cite><acronym>MPFR</acronym></cite>, I get undefined reference
+to <code>__gmpXXXX</code>.</dt>
+
+<dd><p>Link your program with <cite><acronym>GMP</acronym></cite>. Assuming
+that your program is <samp>foo.c</samp>, you should link it using:
+<samp class="block-code">cc link.c -lmpfr -lgmp</samp>
+<cite><acronym>MPFR</acronym></cite> library reference (<samp>-lmpfr</samp>)
+should be before <cite><acronym>GMP</acronym></cite>'s one
+(<samp>-lgmp</samp>). Another solution is, with <acronym>GNU</acronym>
+<samp>ld</samp>, to give all the libraries inside a group:
+<samp class="block-code">gcc link.c -Wl,--start-group libgmp.a libmpfr.a -Wl,--end-group</samp>
+See <samp>INSTALL</samp> file and <samp>ld</samp> manual for more
+details.</p>
+<p>If you used correct link options, but still get an error, this may mean
+that your include and library search paths are inconsistent. Please see the
+<a href="#undef_ref1">previous question</a>.</p></dd>
+
+<dt id="crash_high_prec">6. My program crashes with high precisions.</dt>
+
+<dd><p>Your stack size limit may be too small; indeed, by default,
+<cite><acronym>GMP</acronym></cite> 4.1.4 and below allocates all
+temporary results on the stack, and in very high precisions, this
+limit may be reached. You can solve this problem in different ways:</p>
+<ul>
+<li><p>You can upgrade to <cite><acronym>GMP</acronym></cite> 4.2 (or above),
+which now makes temporary allocations on the stack only when they are
+small.</p></li>
+<li><p>You can increase the stack size limit with the <samp>limit</samp>,
+<samp>unlimit</samp> or <samp>ulimit</samp> command, depending on your
+shell. This may fail on some systems, where the maximum stack size cannot
+be increased above some value.</p></li>
+<li><p>You can rebuild both <cite><acronym>GMP</acronym></cite> and
+<cite><acronym>MPFR</acronym></cite> to use another allocation method.</p></li>
+</ul></dd>
+
+<dt id="accuracy">7. Though I have increased the precision, the results
+are not more accurate.</dt>
+
+<dd><p>The reason may be the use of C floating-point numbers. If you want
+to store a floating-point constant to a <code>mpfr_t</code>, you should use
+<code>mpfr_set_str</code> (or one of the <cite><acronym>MPFR</acronym></cite>
+constant functions, such as <code>mpfr_const_pi</code> for &#960;) instead
+of <code>mpfr_set_d</code> or <code>mpfr_set_ld</code>. Otherwise the
+floating-point constant will be first converted into a reduced-precision
+(<abbr>e.g.</abbr>, 53-bit) binary number before
+<cite><acronym>MPFR</acronym></cite> can work with it. This is the case
+in particular for most exact decimal numbers, such as 0.17, which are
+not exactly representable in binary.</p>
+<p>Also remember that <cite><acronym>MPFR</acronym></cite> does not track
+the accuracy of the results: copying a value <var>x</var> to <var>y</var>
+with <code>mpfr_set (y, x, MPFR_RNDN)</code> where the variable <var>y</var>
+is more precise than the variable <var>x</var> will not make it more
+accurate; the (binary) value will remain unchanged.</p></dd>
+
+<dt id="detect_mpfr">8. How can I detect <cite><acronym>MPFR</acronym></cite>
+installation using <cite>autoconf</cite> or <cite>pkg-config</cite>?</dt>
+
+<dd><p>The <cite><acronym>MPFR</acronym></cite> team does not currently
+recommend any <cite>autoconf</cite> code, but a section will later
+be added to the <cite><acronym>MPFR</acronym></cite> manual. The
+<cite><acronym>MPFR</acronym></cite> team does not wish to support
+<cite>pkg-config</cite> yet.</p></dd>
+
+<dt id="cite">9. How to cite <cite><acronym>MPFR</acronym></cite> in a
+scientific publication?</dt>
+
+<dd><p>To properly cite <cite><acronym>MPFR</acronym></cite> in a scientific
+publication, please cite the
+<a href="http://doi.acm.org/10.1145/1236463.1236468"><acronym title="Association for Computing Machinery">ACM</acronym>
+<acronym title="Transactions on Mathematical Software">TOMS</acronym>
+paper</a>
+(<a href="http://toms.acm.org/cgi/TOMSbibget.cgi?Fousse:2007:MMP">BibTeX</a>)
+and/or the library web page
+<a href="http://www.mpfr.org/">http://www.mpfr.org</a>. If your publication
+is related to a particular release of <cite><acronym>MPFR</acronym></cite>,
+for example if you report timings, please also indicate the release number
+for future reference.</p></dd>
+
+<dt id="fpic">10. When I build <cite><acronym>MPFR</acronym></cite>, I get
+an error asking me to recompile with <samp>-fPIC</samp>.</dt>
+
+<dd><p>A typical error looks like:</p>
+<p><tt>/usr/bin/ld: <em>/path/to/</em>libgmp.a(realloc.o): relocation
+R_X86_64_32 against `.rodata.str1.1' can not be used when making a
+shared object; recompile with -fPIC<br />
+<em>/path/to/</em>libgmp.a: could not read symbols: Bad value<br />
+collect2: ld returned 1 exit status</tt></p>
+<p>The probable reason is that you tried to build
+<cite><acronym>MPFR</acronym></cite> with the shared library enabled (this
+is the default), while only a static <cite><acronym>GMP</acronym></cite>
+library could be found. To solve this problem, either rebuild and reinstall
+<cite><acronym>GMP</acronym></cite> without the <samp>--disable-shared</samp>
+configure option, or configure <cite><acronym>MPFR</acronym></cite> with
+<samp>--disable-shared</samp>. If you did this and still get the above
+error, the cause may be conflicting <cite><acronym>GMP</acronym></cite>
+versions installed on your system; please check that your search path
+settings are correct.</p>
+<p>Additional note about the last sentence: Under <acronym>GNU</acronym>/Linux
+(for instance), the linker takes the first library found in the library search
+path, whether it is dynamic or static. The default behavior under darwin is
+different, but <cite><acronym>MPFR</acronym></cite> will change it.</p></dd>
+<!-- Reference concerning darwin: see MPFR_LD_SEARCH_PATHS_FIRST
+     in MPFR's configure.{ac,in} and acinclude.m4 -->
+
+</dl>
+
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+Copyright 1999, 2001, 2002, 2004 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+
+
+This directory contains mpn functions for 64-bit PA-RISC 2.0.
+
+PIPELINE SUMMARY
+
+The PA8x00 processors have an orthogonal 4-way out-of-order pipeline.  Each
+cycle two ALU operations and two MEM operations can issue, but just one of the
+MEM operations may be a store.  The two ALU operations can be almost any
+combination of non-memory operations.  Unlike every other processor, integer
+and fp operations are completely equal here; they both count as just ALU
+operations.
+
+Unfortunately, some operations cause hickups in the pipeline.  Combining
+carry-consuming operations like ADD,DC with operations that does not set carry
+like ADD,L cause long delays.  Skip operations also seem to cause hickups.  If
+several ADD,DC are issued consecutively, or if plain carry-generating ADD feed
+ADD,DC, stalling does not occur.  We can effectively issue two ADD,DC
+operations/cycle.
+
+Latency scheduling is not as important as making sure to have a mix of ALU and
+MEM operations, but for full pipeline utilization, it is still a good idea to
+do some amount of latency scheduling.
+
+Like for all other processors, RAW memory scheduling is critically important.
+Since integer multiplication takes place in the floating-point unit, the GMP
+code needs to handle this problem frequently.
+
+STATUS
+
+* mpn_lshift and mpn_rshift run at 1.5 cycles/limb on PA8000 and at 1.0
+  cycles/limb on PA8500.  With latency scheduling, the numbers could
+  probably be improved to 1.0 cycles/limb for all PA8x00 chips.
+
+* mpn_add_n and mpn_sub_n run at 2.0 cycles/limb on PA8000 and at about
+  1.6875 cycles/limb on PA8500.  With latency scheduling, this could
+  probably be improved to get close to 1.5 cycles/limb.  A problem is the
+  stalling of carry-inputting instructions after instructions that do not
+  write to carry.
+
+* mpn_mul_1, mpn_addmul_1, and mpn_submul_1 run at between 5.625 and 6.375
+  on PA8500 and later, and about a cycle/limb slower on older chips.  The
+  code uses ADD,DC for adjacent limbs, and relies heavily on reordering.
+
+
+REFERENCES
+
+Hewlett Packard, "64-Bit Runtime Architecture for PA-RISC 2.0", version 3.3,
+October 1997.

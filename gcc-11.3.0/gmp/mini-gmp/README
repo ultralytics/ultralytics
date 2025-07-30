@@ -1,0 +1,77 @@
+Copyright 2011-2013 Free Software Foundation, Inc.
+
+This file is part of the GNU MP Library.
+
+The GNU MP Library is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+  * the GNU Lesser General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+or
+
+  * the GNU General Public License as published by the Free Software
+    Foundation; either version 2 of the License, or (at your option) any
+    later version.
+
+or both in parallel, as here.
+
+The GNU MP Library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received copies of the GNU General Public License and the
+GNU Lesser General Public License along with the GNU MP Library.  If not,
+see https://www.gnu.org/licenses/.
+
+
+This is "mini-gmp", a small implementation of a subset of GMP's mpn
+and mpz interfaces.
+
+It is intended for applications which need arithmetic on numbers
+larger than a machine word, but which don't need to handle very large
+numbers very efficiently. Those applications can include a copy of
+mini-gmp to get a GMP-compatible interface with small footprint. One
+can also arrange for optional linking with the real GMP library, using
+mini-gmp as a fallback when for some reason GMP is not available, or
+not desired as a dependency.
+
+The supported GMP subset is declared in mini-gmp.h. The implemented
+functions are fully compatible with the corresponding GMP functions,
+as specified in the GMP manual, with a few exceptions:
+
+  mpz_set_str, mpz_init_set_str, mpz_get_str, mpz_out_str and
+  mpz_sizeinbase support only |base| <= 36;
+  mpz_export and mpz_import support only NAILS = 0.
+
+  The REALLOC_FUNC and FREE_FUNC registered with
+  mp_set_memory_functions does not get the correct size of the
+  allocated block in the corresponding argument. mini-gmp always
+  passes zero for these rarely used arguments.
+
+The implementation is a single file, mini-gmp.c.
+
+The performance target for mini-gmp is to be at most 10 times slower
+than the real GMP library, for numbers of size up to a few hundred
+bits. No asymptotically fast algorithms are included in mini-gmp, so
+it will be many orders of magnitude slower than GMP for very large
+numbers.
+
+You should never "install" mini-gmp. Applications can either just
+#include mini-gmp.c (but then, beware that it defines several macros
+and functions outside of the advertised interface). Or compile
+mini-gmp.c as a separate compilation unit, and use the declarations in
+mini-gmp.h.
+
+The tests subdirectory contains a testsuite. To use it, you need GMP
+and GNU make. Just run make check in the tests directory. If the
+hard-coded compiler settings are not right, you have to either edit the
+Makefile or pass overriding values on the make command line (e.g.,
+make CC=cc check). Testing is not (yet) as thorough as for the real
+GMP.
+
+The current version was put together by Niels Möller
+<nisse@lysator.liu.se>, with a fair amount of copy-and-paste from the
+GMP sources.

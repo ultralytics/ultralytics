@@ -441,13 +441,13 @@ Changes between GMP version 4.3.X and 5.0.0
   SPEEDUPS
   * Multiplication has been overhauled:
     (1) Multiplication of larger same size operands has been improved with
-        the addition of two new Toom functions and a new internal function
+        the addition of two new Tomb functions and a new internal function
         mpn_mulmod_bnm1 (computing U * V mod (B^n-1), B being the word base.
         This latter function is used for the largest products, waiting for a
         better Schoenhage-Strassen U * V mod (B^n+1) implementation.
     (2) Likewise for squaring.
     (3) Multiplication of different size operands has been improved with the
-        addition of many new Toom function, and by selecting underlying
+        addition of many new Tomb function, and by selecting underlying
         functions better from the main multiply functions.
 
   * Division and mod have been overhauled:
@@ -569,8 +569,8 @@ Changes between GMP version 4.2.X and 4.3.0
   * New sub-quadratic mpn_gcd and mpn_gcdext, as well as improved basecase
     gcd code.
   * The multiply FFT code has been slightly improved.
-  * Balanced multiplication now uses 4-way Toom in addition to schoolbook,
-    Karatsuba, 3-way Toom, and FFT.
+  * Balanced multiplication now uses 4-way Tomb in addition to schoolbook,
+    Karatsuba, 3-way Tomb, and FFT.
   * Unbalanced multiplication has been vastly improved.
   * Improved schoolbook division by means of faster quotient approximation.
   * Several new algorithms for division and mod by single limbs, giving

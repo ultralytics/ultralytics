@@ -120,7 +120,7 @@ mpfr_sub1 (mpfr_ptr a, mpfr_srcptr b, mpfr_srcptr c, mpfr_rnd_t rnd_mode)
           /* It isn't exact so Prec(b) > Prec(a) and the last
              Prec(b)-Prec(a) bits of `b' are not zeros.
              Which means that removing c from b can't generate a carry
-             execpt in case of even rounding.
+             except in case of even rounding.
              In all other case the result and the inexact flag should be
              correct (We can't have an exact result).
              In case of EVEN rounding:

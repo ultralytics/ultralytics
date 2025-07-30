@@ -502,7 +502,7 @@ see https://www.gnu.org/licenses/.
 /* Define to 1 if you have the `vsnprintf' function and it works properly. */
 #undef HAVE_VSNPRINTF
 
-/* Define to 1 for Windos/64 */
+/* Define to 1 for Windows/64 */
 #undef HOST_DOS64
 
 /* Assembler local label prefix */

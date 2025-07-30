@@ -31,7 +31,7 @@ ISL_DECLARE_LIST(schedule_tree)
  * reaching domain element.  It does not involve any domain constraints.
  *
  * The "extension" field is valid when the is isl_schedule_node_extension
- * maps outer schedule dimenions (the flat product of the outer band nodes)
+ * maps outer schedule dimensions (the flat product of the outer band nodes)
  * to additional iteration domains.
  *
  * The "filter" field is valid when type is isl_schedule_node_filter

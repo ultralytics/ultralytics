@@ -37,7 +37,7 @@ see https://www.gnu.org/licenses/.  */
 
 /* References:
 
-   Schnelle Multiplikation grosser Zahlen, by Arnold Schoenhage and Volker
+   Schnelle Multiplication grosser Zahlen, by Arnold Schoenhage and Volker
    Strassen, Computing 7, p. 281-292, 1971.
 
    Asymptotically fast algorithms for the numerical multiplication and division

@@ -28,7 +28,7 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
    with 0 < z <= log(2) to the precision of s rounded in the direction
    rnd_mode.
    Return the maximum index of the truncature which is useful
-   for determinating the relative error.
+   for determining the relative error.
 */
 static int
 li2_series (mpfr_t sum, mpfr_srcptr z, mpfr_rnd_t rnd_mode)
@@ -41,7 +41,7 @@ li2_series (mpfr_t sum, mpfr_srcptr z, mpfr_rnd_t rnd_mode)
   MPFR_ZIV_DECL (loop);
 
   /* The series converges for |z| < 2 pi, but in mpfr_li2 the argument is
-     reduced so that 0 < z <= log(2). Here is additionnal check that z is
+     reduced so that 0 < z <= log(2). Here is additional check that z is
      (nearly) correct */
   MPFR_ASSERTD (MPFR_IS_STRICTPOS (z));
   MPFR_ASSERTD (mpfr_cmp_d (z, 0.6953125) <= 0);

@@ -36,7 +36,7 @@ C	     cycles/limb
 C AMD K8,K9
 C AMD K10
 C AMD bull	4.36		average, quite fluctuating
-C AMD pile	4.38		slighty fluctuating
+C AMD pile	4.38		slightly fluctuating
 C AMD steam
 C AMD bobcat
 C AMD jaguar

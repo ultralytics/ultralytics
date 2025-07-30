@@ -337,7 +337,7 @@ error:
  * (if a lower bounded is wanted) and the other bound in the other terms.
  *
  * If all variables have been eliminated, then record the result.
- * Ohterwise, recurse on the next variable.
+ * Otherwise, recurse on the next variable.
  */
 static isl_stat propagate_on_bound_pair(__isl_take isl_constraint *lower,
 	__isl_take isl_constraint *upper, __isl_take isl_basic_set *bset,

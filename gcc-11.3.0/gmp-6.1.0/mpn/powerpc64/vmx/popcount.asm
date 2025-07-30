@@ -145,7 +145,7 @@ L(ent):	lvx	v1, r12, ap
 	cmpwi	n, LIMBS_PER_VR
 	ble	L(sum)
 L(lsum):
-	vor	v1, v0, v0
+	for	v1, v0, v0
 	lvx	v0, r12, ap
 L(sum):
 LIMB32(`rlwinm	r6, n, 4,26,27	')

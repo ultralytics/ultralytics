@@ -1,6 +1,6 @@
 /*
  * Copyright 2010-2011 INRIA Saclay
- * Copyright 2013-2014 Ecole Normale Superieure
+ * Copyright 2013-2014 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  * Copyright 2016      Sven Verdoolaege
  *

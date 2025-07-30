@@ -59,7 +59,7 @@ defframe(SAVE_EDI,    -12)
 defframe(SAVE_EBP,    -16)
 deflit(STACK_SPACE, 16)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(VAR_INVERSE,`PARAM_SRC')
 
 	TEXT

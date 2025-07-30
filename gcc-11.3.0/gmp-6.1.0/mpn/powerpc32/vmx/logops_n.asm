@@ -81,12 +81,12 @@ ifdef(`OPERATION_nand_n',
 ifdef(`OPERATION_ior_n',
 `	define(`func',	`mpn_ior_n')
 	define(`logopS',`or	$1,$2,$3')
-	define(`logop',	`vor	$1,$2,$3')')
+	define(`logop',	`for	$1,$2,$3')')
 ifdef(`OPERATION_iorn_n',
 `	define(`func',	`mpn_iorn_n')
 	define(`logopS',`orc	$1,$2,$3')
 	define(`vnegb',	`vnor	$1,$2,$2')
-	define(`logop',	`vor	$1,$2,$3')')
+	define(`logop',	`for	$1,$2,$3')')
 ifdef(`OPERATION_nior_n',
 `	define(`func',	`mpn_nior_n')
 	define(`logopS',`nor	$1,$2,$3')

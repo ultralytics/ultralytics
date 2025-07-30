@@ -39,7 +39,7 @@ see https://www.gnu.org/licenses/.  */
 #define MUL_BASECASE_MAX_UN 500
 #endif
 
-/* Areas where the different toom algorithms can be called (extracted
+/* Areas where the different tomb algorithms can be called (extracted
    from the t-toom*.c files, and ignoring small constant offsets):
 
    1/6  1/5 1/4 4/13 1/3 3/8 2/5 5/11 1/2 3/5 2/3 3/4 4/5   1 vn/un
@@ -273,7 +273,7 @@ mpn_mul (mp_ptr prodp,
     {
       /* Handle the largest operands that are not in the FFT range.  The 2nd
 	 condition makes very unbalanced operands avoid the FFT code (except
-	 perhaps as coefficient products of the Toom code.  */
+	 perhaps as coefficient products of the Tomb code.  */
 
       if (BELOW_THRESHOLD (vn, MUL_TOOM44_THRESHOLD) || !TOOM44_OK (un, vn))
 	{

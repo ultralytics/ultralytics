@@ -66,7 +66,7 @@ special (void)
   mpz_set_str (mpq_denref (q), "5721", 10);
   mpfr_set_str_binary (x, "11111111101001011011100101100011011110010011100010000100001E-44");
   mpfr_add_q (y, x, q, MPFR_RNDN);
-  CHECK_FOR ("cancelation in add_q", mpfr_cmp_ui_2exp (y, 256783, -64) == 0);
+  CHECK_FOR ("cancellation in add_q", mpfr_cmp_ui_2exp (y, 256783, -64) == 0);
 
   mpfr_set_prec (x, 19);
   mpfr_set_str_binary (x, "0.1011110101110011100E0");
@@ -76,7 +76,7 @@ special (void)
   mpfr_add_q (y, x, q, MPFR_RNDD);
   mpfr_set_prec (x, 29);
   mpfr_set_str_binary (x, "11111111101001110011010001001E-14");
-  CHECK_FOR ("cancelation in add_q", mpfr_cmp (x,y) == 0);
+  CHECK_FOR ("cancellation in add_q", mpfr_cmp (x,y) == 0);
 
   /* Inf */
   mpfr_set_inf (x, 1);

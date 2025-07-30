@@ -393,7 +393,7 @@ static struct isl_basic_set *wrap_constraints(struct isl_set *set)
  *			x_2 >= a x_1
  *
  * with this second constraint defining the new facet.
- * The constant a is obtained by settting x_1 in the cone of the
+ * The constant a is obtained by setting x_1 in the cone of the
  * convex hull to 1 and minimizing x_2.
  * Now, each element in the cone of the convex hull is the sum
  * of elements in the cones of the basic sets.
@@ -1093,7 +1093,7 @@ error:
 	return NULL;
 }
 
-/* Given two polyhedra with as constraints h_{ij} x >= 0 in homegeneous space,
+/* Given two polyhedra with as constraints h_{ij} x >= 0 in homogeneous space,
  * set up an LP for solving
  *
  *	\sum_j \alpha_{1j} h_{1j} = \sum_j \alpha_{2j} h_{2j}
@@ -1281,7 +1281,7 @@ error:
  * dimension is zero.  That is, if the inner product of the rays
  * with the homogeneous direction is zero.
  * The cones in the homogeneous space can also be considered to
- * correspond to other pairs of polyhedra by chosing a different
+ * correspond to other pairs of polyhedra by choosing a different
  * homogeneous direction.  To ensure that both of these polyhedra
  * are bounded, we need to make sure that all rays of the cones
  * correspond to vertices and not to rays.

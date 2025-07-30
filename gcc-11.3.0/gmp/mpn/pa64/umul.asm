@@ -92,7 +92,7 @@ ifdef(`HAVE_ABI_2_0w',
 `	copy		p1,%r28			C return val in %r28
 ',`	extrd,u		p1,31,32,%r28		C return val in %r28,%r29
 ')
-	bve		(%r2)
+	be		(%r2)
 	ldo		-128(%r30),%r30
 EPILOGUE(mpn_umul_ppmm_r)
 

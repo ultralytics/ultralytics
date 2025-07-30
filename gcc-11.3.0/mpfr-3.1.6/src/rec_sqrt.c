@@ -424,7 +424,7 @@ mpfr_mpn_rec_sqrt (mpfr_limb_ptr x, mpfr_prec_t p,
         }
 
       /* cy can be 1 when A=1, i.e., {a, n} = B^n. In that case we should
-         have X = B^n, and setting X to 1-2^{-p} satisties the error bound
+         have X = B^n, and setting X to 1-2^{-p} satisfies the error bound
          of 1 ulp. */
       if (MPFR_UNLIKELY(cy != 0))
         {

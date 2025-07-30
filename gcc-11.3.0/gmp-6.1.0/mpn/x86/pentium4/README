@@ -75,7 +75,7 @@ NOTES
 
 The Pentium-4 pipeline "Netburst", provides for quite a number of surprises.
 Many traditional x86 instructions run very slowly, requiring use of
-alterative instructions for acceptable performance.
+alternative instructions for acceptable performance.
 
 adcl and sbbl are quite slow at 8 cycles for reg->reg.  paddq of 32-bits
 within a 64-bit mmx register seems better, though the combination

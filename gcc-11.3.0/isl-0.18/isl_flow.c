@@ -3,7 +3,7 @@
  * Copyright 2008-2009 Katholieke Universiteit Leuven
  * Copyright 2010      INRIA Saclay
  * Copyright 2012      Universiteit Leiden
- * Copyright 2014      Ecole Normale Superieure
+ * Copyright 2014      Ecole Normal Superieure
  *
  * Use of this software is governed by the MIT license
  *
@@ -13,7 +13,7 @@
  * B-3001 Leuven, Belgium
  * and INRIA Saclay - Ile-de-France, Parc Club Orsay Universite,
  * ZAC des vignes, 4 rue Jacques Monod, 91893 Orsay, France 
- * and Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  */
 
 #include <isl/set.h>
@@ -433,7 +433,7 @@ error:
 }
 
 /* Iterate over all sources and for each resulting flow dependence
- * that is not empty, call the user specfied function.
+ * that is not empty, call the user specified function.
  * The second argument in this function call identifies the source,
  * while the third argument correspond to the final argument of
  * the isl_flow_foreach call.
@@ -2548,7 +2548,7 @@ error:
  * domain elements of access->sink.
  *
  * We check whether the schedule is available as a schedule tree
- * or a schedule map and call the correpsonding function to perform
+ * or a schedule map and call the corresponding function to perform
  * the analysis.
  */
 __isl_give isl_union_flow *isl_union_access_info_compute_flow(

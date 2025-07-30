@@ -1,11 +1,11 @@
 /*
- * Copyright 2012      Ecole Normale Superieure
+ * Copyright 2012      Ecole Normal Superieure
  * Copyright 2015-2016 Sven Verdoolaege
  *
  * Use of this software is governed by the MIT license
  *
  * Written by Sven Verdoolaege,
- * Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  */
 
 #include <string.h>

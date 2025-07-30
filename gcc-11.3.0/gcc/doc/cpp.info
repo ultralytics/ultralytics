@@ -515,7 +515,7 @@ reject source code containing "other" tokens.  In ASCII, the only
 "other" characters are '@', '$', '`', and control characters other than
 NUL (all bits zero).  (Note that '$' is normally considered a letter.)
 All bytes with the high bit set (numeric range 0x7F-0xFF) that were not
-succesfully interpreted as part of an extended character in the input
+successfully interpreted as part of an extended character in the input
 encoding are also "other" in the present implementation.
 
    NUL is a special case because of the high probability that its
@@ -853,7 +853,7 @@ Objective-C, but is considered a deprecated extension in C and C++.
 
    '#import' is not a well designed feature.  It requires the users of a
 header file to know that it should only be included once.  It is much
-better for the header file's implementor to write the file so that users
+better for the header file's implementer to write the file so that users
 don't need to know this.  Using a wrapper '#ifndef' accomplishes this
 goal.
 

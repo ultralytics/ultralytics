@@ -813,7 +813,7 @@ data_check (mpc_function function, const char *file_name)
                   op2[0] = z2[0];
                   expected[0]= z1[0];
                   got[0] = z4[0];
-                  printf ("%s(op) failed (line %lu/symetric test)\n"
+                  printf ("%s(op) failed (line %lu/symmetric test)\n"
                           "with rounding mode %s\n",
                           function.name, test_line_number, rnd_mode[rnd]);
                   if (!MPC_INEX_CMP (inex_re, inex_im, inex))
@@ -876,7 +876,7 @@ data_check (mpc_function function, const char *file_name)
 		  op3[0] = z4[0];
                   expected[0]= z1[0];
                   got[0] = z5[0];
-                  printf ("%s(op) failed (line %lu/symetric test)\n"
+                  printf ("%s(op) failed (line %lu/symmetric test)\n"
                           "with rounding mode %s\n",
                           function.name, test_line_number, rnd_mode[rnd]);
                   if (!MPC_INEX_CMP (inex_re, inex_im, inex))

@@ -935,7 +935,7 @@ option.
           current multilib framework, using the combined
           'aprofile,rmprofile' multilibs selects in some cases a less
           optimal multilib than when using the multilib profile for the
-          architecture targetted.  The special value 'default' is also
+          architecture targeted.  The special value 'default' is also
           accepted and is equivalent to omitting the option, i.e., only
           the default run-time library will be enabled.
 
@@ -1039,18 +1039,18 @@ option.
      string, ABI, reuse rule with architecture string and reuse rule
      with sub-extension.
 
-     Example 1: Add multi-lib suppport for rv32i with ilp32.
+     Example 1: Add multi-lib support for rv32i with ilp32.
           rv32i-ilp32--
 
-     Example 2: Add multi-lib suppport for rv32i with ilp32 and
+     Example 2: Add multi-lib support for rv32i with ilp32 and
      rv32imafd with ilp32.
           rv32i-ilp32--;rv32imafd-ilp32--
 
-     Example 3: Add multi-lib suppport for rv32i with ilp32; rv32im with
+     Example 3: Add multi-lib support for rv32i with ilp32; rv32im with
      ilp32 and rv32ic with ilp32 will reuse this multi-lib set.
           rv32i-ilp32-rv32im-c
 
-     Example 4: Add multi-lib suppport for rv64ima with lp64; rv64imaf
+     Example 4: Add multi-lib support for rv64ima with lp64; rv64imaf
      with lp64, rv64imac with lp64 and rv64imafc with lp64 will reuse
      this multi-lib set.
           rv64ima-lp64--f,c,fc
@@ -1060,11 +1060,11 @@ option.
      config options, VAL is a comma separated list of possible code
      model, currently we support medlow and medany.
 
-     Example 5: Add multi-lib suppport for rv64ima with lp64; rv64ima
+     Example 5: Add multi-lib support for rv64ima with lp64; rv64ima
      with lp64 and medlow code model
           rv64ima-lp64--;--cmodel=medlow
 
-     Example 6: Add multi-lib suppport for rv64ima with lp64; rv64ima
+     Example 6: Add multi-lib support for rv64ima with lp64; rv64ima
      with lp64 and medlow code model; rv64ima with lp64 and medany code
      model
           rv64ima-lp64--;--cmodel=medlow,medany
@@ -1184,7 +1184,7 @@ option.
 
 '--with-fpmath=ISA'
      This options sets '-mfpmath=sse' by default and specifies the
-     default ISA for floating-point arithmetics.  You can select either
+     default ISA for floating-point arithmetic.  You can select either
      'sse' which enables '-msse2' or 'avx' which enables '-mavx' by
      default.  This option is only supported on i386 and x86-64 targets.
 
@@ -1301,7 +1301,7 @@ option.
 
 '--enable-__cxa_atexit'
      Define if you want to use __cxa_atexit, rather than atexit, to
-     register C++ destructors for local statics and global objects.
+     register C++ destructors for local statistics and global objects.
      This is essential for fully standards-compliant handling of
      destructors, but requires __cxa_atexit in libc.  This option is
      currently only available on systems with GNU libc.  When enabled,
@@ -1899,7 +1899,7 @@ option.
 '--enable-gnu-unique-object'
 '--disable-gnu-unique-object'
      Tells GCC to use the gnu_unique_object relocation for C++ template
-     static data members and inline function local statics.  Enabled by
+     static data members and inline function local statistics.  Enabled by
      default for a toolchain with an assembler that accepts it and GLIBC
      2.11 or above, otherwise disabled.
 
@@ -1986,8 +1986,8 @@ option.
 '--with-hsa-runtime-include=PATHNAME'
 '--with-hsa-runtime-lib=PATHNAME'
 
-     If you configure GCC with offloading which uses an HSA run-time
-     such as AMDGCN but do not have the HSA run-time library installed
+     If you configure GCC with offloading which uses an HAS run-time
+     such as AMDGCN but do not have the HAS run-time library installed
      in a standard location then you can explicitly specify the
      directory where they are installed.  The
      '--with-hsa-runtime=HSAINSTALLDIR' option is a shorthand for
@@ -3052,7 +3052,7 @@ and copy 'bin/llvm-mc' to 'amdgcn-amdhsa/bin/as', 'bin/lld' to
 
    Use Newlib (2019-01-16, or newer).
 
-   To run the binaries, install the HSA Runtime from the ROCm Platform,
+   To run the binaries, install the HAS Runtime from the ROCm Platform,
 and use 'libexec/gcc/amdhsa-amdhsa/VERSION/gcn-run' to launch them on
 the GPU.
 
@@ -3336,7 +3336,7 @@ patch for your system.
 
    The patches are necessary for the support of weak symbols on the
 32-bit port, and for the running of initializers and finalizers.  Weak
-symbols are implemented using SOM secondary definition symbols.  Prior
+symbols are implemented using SOME secondary definition symbols.  Prior
 to HP-UX 11, there are bugs in the linker support for secondary symbols.
 The patches correct a problem of linker core dumps creating shared
 libraries containing secondary symbols, as well as various other linking
@@ -3662,7 +3662,7 @@ mips-*-*
 ========
 
 If on a MIPS system you get an error message saying "does not have gp
-sections for all it's [sic] sectons [sic]", don't worry about it.  This
+sections for all it's [sic] sections [sic]", don't worry about it.  This
 happens whenever you use GAS with the MIPS linker, but there is not
 really anything wrong, and it is okay to use the output file.  You can
 stop such warnings by installing the GNU linker.
@@ -3937,7 +3937,7 @@ caveats:
      GCC, you need to configure with
      '--with-gmp-include=/usr/include/gmp'.
 
-   * The version of the MPFR libary included in Solaris 11.3 is too old;
+   * The version of the MPFR library included in Solaris 11.3 is too old;
      you need to provide a more recent one.
 
 sparc*-*-*

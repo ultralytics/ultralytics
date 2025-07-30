@@ -1,6 +1,6 @@
 /*
  * Copyright 2008-2009 Katholieke Universiteit Leuven
- * Copyright 2012-2013 Ecole Normale Superieure
+ * Copyright 2012-2013 Ecole Normal Superieure
  * Copyright 2014-2015 INRIA Rocquencourt
  * Copyright 2016      Sven Verdoolaege
  *
@@ -8,7 +8,7 @@
  *
  * Written by Sven Verdoolaege, K.U.Leuven, Departement
  * Computerwetenschappen, Celestijnenlaan 200A, B-3001 Leuven, Belgium
- * and Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  */
@@ -4019,7 +4019,7 @@ static int is_zero_or_one(isl_int v)
  * of this second div b and such that in any constraint that contains
  * a (except for the given lower and upper bound), also contains b
  * with a coefficient that is m times that of b.
- * That is, all constraints (execpt for the lower and upper bound)
+ * That is, all constraints (except for the lower and upper bound)
  * are of the form
  *
  *	e + f (a + m b) >= 0

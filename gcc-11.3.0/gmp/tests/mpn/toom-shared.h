@@ -1,4 +1,4 @@
-/* Test for various Toom functions.
+/* Test for various Tomb functions.
 
 Copyright 2009 Free Software Foundation, Inc.
 

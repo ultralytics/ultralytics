@@ -106,14 +106,14 @@ mp_result mp_rat_init_copy(mp_rat r, mp_rat old)
   return res;
 }
 
-mp_result mp_rat_set_value(mp_rat r, mp_small numer, mp_small denom)
+mp_result mp_rat_set_value(mp_rat r, mp_small number, mp_small denom)
 {
   mp_result res;
 
   if (denom == 0)
     return MP_UNDEF;
 
-  if ((res = mp_int_set_value(MP_NUMER_P(r), numer)) != MP_OK)
+  if ((res = mp_int_set_value(MP_NUMER_P(r), number)) != MP_OK)
     return res;
   if ((res = mp_int_set_value(MP_DENOM_P(r), denom)) != MP_OK)
     return res;
@@ -121,14 +121,14 @@ mp_result mp_rat_set_value(mp_rat r, mp_small numer, mp_small denom)
   return s_rat_reduce(r);
 }
 
-mp_result mp_rat_set_uvalue(mp_rat r, mp_usmall numer, mp_usmall denom)
+mp_result mp_rat_set_uvalue(mp_rat r, mp_usmall number, mp_usmall denom)
 {
   mp_result res;
 
   if (denom == 0)
     return MP_UNDEF;
 
-  if ((res = mp_int_set_uvalue(MP_NUMER_P(r), numer)) != MP_OK)
+  if ((res = mp_int_set_uvalue(MP_NUMER_P(r), number)) != MP_OK)
     return res;
   if ((res = mp_int_set_uvalue(MP_DENOM_P(r), denom)) != MP_OK)
     return res;

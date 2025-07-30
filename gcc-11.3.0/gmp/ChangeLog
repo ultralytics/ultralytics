@@ -519,7 +519,7 @@
 2015-04-13  Torbjörn Granlund  <torbjorng@google.com>
 
 	* longlong.h (arm): Rewrite.  Support thumb2; use gcc builtins for
-	count_leading_zeros, use accurate code selection critera.
+	count_leading_zeros, use accurate code selection criteria.
 
 2015-04-13  Marc Glisse  <marc.glisse@inria.fr>
 
@@ -911,7 +911,7 @@
 
 2014-06-08 Marco Bodrato <bodrato@mail.dm.unipi.it>
 
-	* mpn/generic/mul.c: Tighter allocation in Toom{2,3}X branches.
+	* mpn/generic/mul.c: Tighter allocation in Tomb{2,3}X branches.
 
 2014-06-06  Torbjörn Granlund  <tege@gmplib.org>
 
@@ -4754,7 +4754,7 @@
 
 2012-02-20 Marco Bodrato <bodrato@mail.dm.unipi.it>
 
-	* mpn/generic/toom_interpolate_8pts.c: Compute carry iif non-trivial.
+	* mpn/generic/toom_interpolate_8pts.c: Compute carry if non-trivial.
 
 	* mpz/gcdext.c: Adapt to relaxed mpn_gcdext's input requirements.
 
@@ -4850,7 +4850,7 @@
 2012-02-11 Marco Bodrato <bodrato@mail.dm.unipi.it>
 
 	* doc/gmp.texi (Factorial): Shortly describe current algorithm.
-	(Multiplication Algorithms): Add Toom[68]'n'half, (too) shortly.
+	(Multiplication Algorithms): Add Tomb[68]'n'half, (too) shortly.
 	* gmp-impl.h (ASSERT_ALWAYS): Consider failures UNLIKELY.
 
 2012-02-10  Niels Möller  <nisse@lysator.liu.se>
@@ -4954,7 +4954,7 @@
 
 2012-02-01  Niels Möller  <nisse@lysator.liu.se>
 
-	* mpn/generic/mul.c: Added diagram on where toom functions can be
+	* mpn/generic/mul.c: Added diagram on where tomb functions can be
 	called.
 
 2012-02-01  Marc Glisse  <marc.glisse@inria.fr>
@@ -8611,7 +8611,7 @@
 	Do not assume native mpn_modexact_1_odd is faster than mpn_mod_1.
 	(tuned_speed_mpn_mod_1): Remove variable.
 	(tune_mod_1): Fix thinkos.  Suppress printing of "always" etc.
-	(all): Measure for divrem_1, mod_1, divexact_1, etc first, since Toom
+	(all): Measure for divrem_1, mod_1, divexact_1, etc first, since Tomb
 	depends on some of them.
 
 	* mpn/generic/toom22_mul.c (TOOM22_MUL_REC): New name for
@@ -8634,7 +8634,7 @@
 
 2009-12-26  Marco Bodrato <bodrato@mail.dm.unipi.it>
 
-	* tune/Makefile.am (TUNE_MPN_SRCS_BASIC): Add new toom files (spotted by Torbjorn).
+	* tune/Makefile.am (TUNE_MPN_SRCS_BASIC): Add new tomb files (spotted by Torbjorn).
 
 	* gmp-impl.h (mpn_toom6_sqr_itch): Rename to mpn_toom6_mul_n_itch and redefine.
 	(mpn_toom8_sqr_itch): Rename to mpn_toom8_mul_n_itch and redefine.
@@ -8842,7 +8842,7 @@
 	* mpn/generic/toom6h_mul.c: Use shared toom_eval_pm2rexp.
 
 	* mpn/generic/toom_couple_handling.c: New file, helper function
-	for high degree Toom.
+	for high degree Tomb.
 	* gmp-impl.h: Provide corresponding declaration.
 	* configure.in (gmp_mpn_functions): List toom_couple_handling.
 	* mpn/generic/toom6h_mul.c: Use shared toom_couple_handling.
@@ -9114,7 +9114,7 @@
 2009-12-13  Niels Möller  <nisse@lysator.liu.se>
 
 	* tests/mpn/toom-shared.h (main): Use refmpn_mul_basecase to check
-	results (slow!). Iteration counts of all toom tests reduced
+	results (slow!). Iteration counts of all tomb tests reduced
 	considerably.
 
 2009-12-13  Marco Bodrato <bodrato@mail.dm.unipi.it>
@@ -9780,7 +9780,7 @@
 
 2009-10-31  Torbjorn Granlund  <tege@gmplib.org>
 
-	* gmp-impl.h (toom itch functions): Simplify, make some into macros.
+	* gmp-impl.h (tomb itch functions): Simplify, make some into macros.
 	(MPN_KARA_MUL_N_TSIZE, MPN_KARA_SQR_N_TSIZE): Remove.
 	* mpn/generic/mul_n.c (mpn_toom3_mul_n, mpn_toom3_sqr_n): Remove.
 	* mpn/generic/mul_n.c (mpn_sqr_n): Move from here...
@@ -9971,7 +9971,7 @@
 
 	* tests/mpn/toom-shared.h (main): Reorganized input generation.
 	Users are now supposed to define macros MAX_AN, MIN_BN and MAX_BN.
-	Updated existing toom test programs.
+	Updated existing tomb test programs.
 
 2009-10-22  Torbjorn Granlund  <tege@gmplib.org>
 
@@ -10010,7 +10010,7 @@
 
 	* tests/mpn/Makefile.am (check_PROGRAMS): Added t-toom22.
 	* tests/mpn/t-toom22.c: New test file.
-	* tests/mpn/toom-shared.h: New file. Test framework for Toom
+	* tests/mpn/toom-shared.h: New file. Test framework for Tomb
 	functions.
 
 2009-10-14  Niels Möller  <nisse@lysator.liu.se>
@@ -10057,7 +10057,7 @@
 
 2009-09-24  Torbjorn Granlund  <tege@gmplib.org>
 
-	* mpn/generic/toom33_mul.c: Use new toom functions for all recursive
+	* mpn/generic/toom33_mul.c: Use new tomb functions for all recursive
 	products.
 	* mpn/generic/toom3_sqr.c: Likewise.
 	* mpn/generic/toom44_mul.c: Likewise.
@@ -10249,7 +10249,7 @@
 
 	* longlong.h (arm count_leading_zeros): Define for armv5.
 
-	* gmp-impl.h: Move down toom itch functions to after we've #defined
+	* gmp-impl.h: Move down tomb itch functions to after we've #defined
 	all THRESHOLDs.
 
 	* dumbmp.c (isprime): Replace with slightly less inefficient code.
@@ -10374,7 +10374,7 @@
 	* configure.in (gmp_mpn_functions): Add toom43_mul, toom52_mul, and
 	toom_interpolate_6pts, but also some previously forgotten functions.
 	* mpn/Makefile.am (nodist_EXTRA_libmpn_la_SOURCES): Likewise.
-	* gmp-impl.h: Declare new functions. Sort toom function declarations.
+	* gmp-impl.h: Declare new functions. Sort tomb function declarations.
 
 	* gmp-impl.h: Rename  toom4_* flags enum to toom7_*.  Relevant C files
 	updated.
@@ -10735,9 +10735,9 @@
 	(Radix to Binary): Add warning that text is outdated,
 	(Contributors): Fix typos.
 
-	* mpn/generic/toom*.c: Use coherent MAYBE_ macros for trimming
+	* mpn/generic/tomb*.c: Use coherent MAYBE_ macros for trimming
 	unreachable recursive functions.
-	* gmp-impl.h: Update toom itch functions.
+	* gmp-impl.h: Update tomb itch functions.
 
 	* mpn/x86_64/sqr_basecase.asm: Slightly increase stack allocation, to
 	placate tuneup.
@@ -10778,7 +10778,7 @@
 	* tune/Makefile.am (TUNE_MPN_SRCS_BASIC): Add toom44_mul.c and
 	toom4_sqr.c.
 
-	* configure.in (gmp_mpn_functions): Toom function updates.
+	* configure.in (gmp_mpn_functions): Tomb function updates.
 
 	* Rename mpn/mul_toomMN.c to mpn/toomMN_mul.c.  Function names changed
 	accordingly.
@@ -10797,7 +10797,7 @@
 	instead of malloc.
 	(mpn_sqr_n): Analogous changes.
 
-	* mpn/generic/mul.c: Update unbalanced toom code to pass scratch space.
+	* mpn/generic/mul.c: Update unbalanced tomb code to pass scratch space.
 
 2008-12-21  Torbjorn Granlund  <tege@gmplib.org>
 
@@ -11909,7 +11909,7 @@
 	(mpz_eval_expr): Execute TIMING.
 	(fns): Add TIMING entry.
 
-	* gmp-impl.h: Add decls and THRESHOLDs for new toom multiplication
+	* gmp-impl.h: Add decls and THRESHOLDs for new tomb multiplication
 	functions and division functions.
 
 2007-09-10  Torbjorn Granlund  <tege@swox.com>
@@ -12026,7 +12026,7 @@
 
 2007-02-24  Torbjorn Granlund  <tege@swox.com>
 
-	* doc/gmp.texi (Toom 3-Way Multiplication): Fix typo.
+	* doc/gmp.texi (Tomb 3-Way Multiplication): Fix typo.
 	(mpz_scan0, mpz_scan1): Fix typos.
 	(Float Internals): Rewrite paragraph about struct types.
 
@@ -13367,7 +13367,7 @@
 
 	* tests/mpz/t-mul.c (main): Check environment for GMP_CHECK_FFT, run
 	extra FFT tests if set.
-	(ref_mpn_mul): Use library code for kara and toom, but skewded so that
+	(ref_mpn_mul): Use library code for kara and tomb, but skewded so that
 	we never use the same algorithm that we're testing.
 	(mul_kara): Delete.
 	(debug_mp): Print just one line of large numbers.
@@ -13547,7 +13547,7 @@
 	* demos/expr/exprza.c, demos/expr/exprqa.c: Use wrappers for mpX_init,
 	to make parameters match.
 
-	* demos/expr/run-expr.c: Don't use getopt, to avoid needing configury
+	* demos/expr/run-expr.c: Don't use getopt, to avoid needing configurable
 	for optarg declaration.  Remove TRY macro, rename foo and bar to var_a
 	and var_b, for clarity.
 	* demos/expr/expr-impl.h: Don't use expr-config.h.
@@ -13736,7 +13736,7 @@
 
 	* mpn/m68k/README: Update _SHORT_LIMB -> __GMP_SHORT_LIMB.
 
-	* configure.in (--enable-mpbsd): Typo Berkley -> Berkeley in help msg.
+	* configure.in (--enable-mpbsd): Typo Berkeley -> Berkeley in help msg.
 
 2004-04-12  Kevin Ryde  <kevin@swox.se>
 
@@ -14151,7 +14151,7 @@
 
 	* tests/mpz/t-gcd.c: Decrease # of tests run.
 
-	* mpn/*/gmp-mparam.h: Add HGCD values, update TOOM values.
+	* mpn/*/gmp-mparam.h: Add HGCD values, update TOMB values.
 
 2004-02-01  Torbjorn Granlund  <tege@swox.com>
 
@@ -14174,10 +14174,10 @@
 
 2004-01-25  Torbjorn Granlund  <tege@swox.com>
 
-	* tune/tuneup.c (all): Reenable calls of tune_gcd_schoenhage and
+	* tune/tuneup.c (all): Re-enable calls of tune_gcd_schoenhage and
 	tune_hgcd.
 
-	* mpn/generic/gcd.c: Reenable Schoenhage code.
+	* mpn/generic/gcd.c: Re-enable Schoenhage code.
 
 	With Niels Möller:
 	* mpn/generic/hgcd.c: Add const and inline to several functions.
@@ -14327,7 +14327,7 @@
 
 	* tests/mpn/t-hgcd.c (hgcd_values): One more test value.
 
-	* tests/mpn/t-hgcd.c (hgcd_values): Added values that trigged the
+	* tests/mpn/t-hgcd.c (hgcd_values): Added values that triggered the
 	hgcd_jebelean bug.
 
 	* mpn/generic/hgcd.c (hgcd_jebelean): Fixed off by one error.
@@ -14654,7 +14654,7 @@
 	stack. Also check that r[i] >= r[i+1].
 	(mpn_hgcd2_lehmer_step) [nails]: Handle nails.
 	(mpn_hgcd_lehmer): When we temporarily have r3 > r2, avoid
-	trigging that assert in __gmpn_hgcd_sanity.
+	triggering that assert in __gmpn_hgcd_sanity.
 	(mpn_hgcd): Likewise.
 
 	* mpn/generic/hgcd2.c (div2) [nails]: Alternative nail-aware
@@ -15028,7 +15028,7 @@
 	* doc/gmp.texi (Assigning Integers): Remove notes on possible change
 	to disallow whitespace, this would be an incompatible change and
 	really can't be made.
-	(Toom 3-Way Multiplication): Updates for Paul's new code.
+	(Tomb 3-Way Multiplication): Updates for Paul's new code.
 
 	* mpn/generic/mul_n.c (toom3_interpolate, mpn_toom3_mul_n): Put
 	if/else braces around whole of #if code, for readability.
@@ -18676,7 +18676,7 @@
 	* configure.in, acinclude.m4 (GMP_PROG_CC_FOR_BUILD,
 	GMP_PROG_CPP_FOR_BUILD, GMP_PROG_EXEEXT_FOR_BUILD,
 	GMP_C_FOR_BUILD_ANSI, GMP_CHECK_LIBM_FOR_BUILD): New macros.
-	(GMP_PROG_HOST_CC): Remove, superceded by GMP_PROG_CC_FOR_BUILD.
+	(GMP_PROG_HOST_CC): Remove, superseded by GMP_PROG_CC_FOR_BUILD.
 	* Makefile.am: Run gen-bases to create mp_bases.h and mpn/mp_bases.c.
 	* gmp-impl.h: Use mp_bases.h.
 	* mpn/mp_bases.c: Remove file.
@@ -25450,7 +25450,7 @@
 
 	* mpn/alpha/cntlz.asm: Rewrite.
 
-	* mp_clz_tab.c (__clz_tab): Half table size to 128 entires.
+	* mp_clz_tab.c (__clz_tab): Half table size to 128 entries.
 	* longlong.h (count_leading_zeros): Demand just 128 entries from
 	__clz_tab.
 
@@ -28260,7 +28260,7 @@
 
 	* mpn/alpha/unicos.m4: New file.
 	* configure.in (alpha*-cray-unicos*): [This part of the change
-	commited 2000-03-13 by linus]
+	committed 2000-03-13 by linus]
 	* mpn/alpha/default.m4: New file.
 	* configure.in (alpha*-*-*): Use it.
 
@@ -29640,7 +29640,7 @@
 
 	* configure.in (hppa2.0*-*-*): Force use of GCC.
 
-	* extract-dbl.c: Handle IEEE denormalized numbrs.  Clean up.
+	* extract-dbl.c: Handle IEEE denormalized numbers.  Clean up.
 
 1998-12-02  Torbjorn Granlund  <tege@matematik.su.se>
 
@@ -33709,7 +33709,7 @@ Sat Jun 22 13:54:01 1991  Torbjorn Granlund  (tege@zevs.sics.se)
 	* mpz_gcdext.c: New file.
 
 	* mpn_mul: Handle carry and unexpected operand sizes in last
-	  additions/subtractions.  (Bug trigged when v1_size == 1.)
+	  additions/subtractions.  (Bug triggered when v1_size == 1.)
 
 	* mp*_alloc*: Rename functions to mp*_init* (files to mp*_iset*.c).
 	* mpq_*: Call mpz_init*.
@@ -33914,7 +33914,7 @@ Fri Mar 15 00:26:29 1991  Torbjorn Granlund  (tege@musta.nada.kth.se)
 	* mult.c, mdiv.c: Update header comments.
 
 	* mpq_add.c, mpq_sub.c, mpq_div.c, mpq_new.c, mpq_new_ui.c,
-	  mpq_free.c: New files for rational arithmetics.
+	  mpq_free.c: New files for rational arithmetic.
 
 	* mpn_lshift.c: Avoid writing the most significant word if it is 0.
 
@@ -33937,7 +33937,7 @@ Thu Mar 14 18:45:28 1991  Torbjorn Granlund  (tege@musta.nada.kth.se)
 
 	* mpq_mul.c: New file for rational multiplication.
 
-	* gmp.h: Add definitions for rational arithmetics.
+	* gmp.h: Add definitions for rational arithmetic.
 
 	* mpn_div: Kludge the case where the high numerator digit > the
 	  high denominator digit.  (This code is going to be optimized later.)

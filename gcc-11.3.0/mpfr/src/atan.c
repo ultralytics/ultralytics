@@ -195,7 +195,7 @@ mpfr_atan (mpfr_ptr atan, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
   mpfr_exp_t exptol;
   mpfr_prec_t prec, realprec, est_lost, lost;
   unsigned long twopoweri, log2p, red;
-  int comparaison, inexact;
+  int comparison, inexact;
   int i, n0, oldn0;
   MPFR_GROUP_DECL (group);
   MPFR_SAVE_EXPO_DECL (expo);
@@ -250,8 +250,8 @@ mpfr_atan (mpfr_ptr atan, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
   MPFR_SAVE_EXPO_MARK (expo);
 
   /* Other simple case arctan(-+1)=-+pi/4 */
-  comparaison = mpfr_cmp_ui (xp, 1);
-  if (MPFR_UNLIKELY (comparaison == 0))
+  comparison = mpfr_cmp_ui (xp, 1);
+  if (MPFR_UNLIKELY (comparison == 0))
     {
       int neg = MPFR_IS_NEG (x);
       inexact = mpfr_const_pi (atan, MPFR_IS_POS (x) ? rnd_mode
@@ -321,7 +321,7 @@ mpfr_atan (mpfr_ptr atan, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
          MPFR_SAVE_EXPO_MARK, but let's check that for maintainability. */
       MPFR_ASSERTD (__gmpfr_emax <= 1 - __gmpfr_emin);
 
-      if (comparaison > 0) /* use atan(xp) = Pi/2 - atan(1/xp) */
+      if (comparison > 0) /* use atan(xp) = Pi/2 - atan(1/xp) */
         mpfr_ui_div (sk, 1, xp, MPFR_RNDN);
       else
         mpfr_set (sk, xp, MPFR_RNDN);
@@ -338,7 +338,7 @@ mpfr_atan (mpfr_ptr atan, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
           mpfr_add_ui (tmp, tmp, 1, MPFR_RNDN);
           mpfr_sqrt (tmp, tmp, MPFR_RNDN);
           mpfr_sub_ui (tmp, tmp, 1, MPFR_RNDN);
-          if (red == 0 && comparaison > 0)
+          if (red == 0 && comparison > 0)
             /* use xp = 1/sk */
             mpfr_mul (sk, tmp, xp, MPFR_RNDN);
           else
@@ -408,7 +408,7 @@ mpfr_atan (mpfr_ptr atan, mpfr_srcptr x, mpfr_rnd_t rnd_mode)
       /* argument reduction */
       mpfr_mul_2exp (arctgt, arctgt, red, MPFR_RNDN);
 
-      if (comparaison > 0)
+      if (comparison > 0)
         { /* atan(x) = Pi/2-atan(1/x) for x > 0 */
           mpfr_const_pi (tmp, MPFR_RNDN);
           mpfr_div_2ui (tmp, tmp, 1, MPFR_RNDN);

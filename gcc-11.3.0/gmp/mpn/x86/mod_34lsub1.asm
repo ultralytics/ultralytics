@@ -45,7 +45,7 @@ C
 defframe(PARAM_SIZE, 8)
 defframe(PARAM_SRC,  4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EBX, `PARAM_SRC')
 
 	TEXT

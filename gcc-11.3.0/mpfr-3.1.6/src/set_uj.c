@@ -57,7 +57,7 @@ mpfr_set_uj_2exp (mpfr_t x, uintmax_t j, intmax_t e, mpfr_rnd_t rnd)
 
   MPFR_ASSERTN (sizeof(uintmax_t) % sizeof(mp_limb_t) == 0);
 
-  /* Create an auxillary var */
+  /* Create an auxiliary var */
   MPFR_TMP_INIT1 (yp, y, uintmax_bit_size);
   k = numberof (yp);
   if (k == 1)

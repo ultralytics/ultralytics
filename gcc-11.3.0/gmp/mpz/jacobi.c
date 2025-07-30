@@ -60,7 +60,7 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
 {
   mp_srcptr  asrcp, bsrcp;
   mp_size_t  asize, bsize;
-  mp_limb_t  alow, blow;
+  mp_limb_t  allow, blow;
   mp_ptr     ap, bp;
   unsigned   btwos;
   int        result_bit1;
@@ -69,7 +69,7 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
 
   asize = SIZ(a);
   asrcp = PTR(a);
-  alow = asrcp[0];
+  allow = asrcp[0];
 
   bsize = SIZ(b);
   bsrcp = PTR(b);
@@ -82,13 +82,13 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
 
   if (bsize == 0)
     /* (a/0) = [ a = 1 or a = -1 ] */
-    return JACOBI_LS0 (alow, asize);
+    return JACOBI_LS0 (allow, asize);
 
   if (asize == 0)
     /* (0/b) = [ b = 1 or b = - 1 ] */
     return JACOBI_0LS (blow, bsize);
 
-  if ( (((alow | blow) & 1) == 0))
+  if ( (((allow | blow) & 1) == 0))
     /* Common factor of 2 ==> (a/b) = 0 */
     return 0;
 
@@ -101,7 +101,7 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
   else
     result_bit1 = 0;
 
-  JACOBI_STRIP_LOW_ZEROS (result_bit1, alow, bsrcp, bsize, blow);
+  JACOBI_STRIP_LOW_ZEROS (result_bit1, allow, bsrcp, bsize, blow);
 
   count_trailing_zeros (btwos, blow);
   blow >>= btwos;
@@ -121,7 +121,7 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
       asize = -asize;
     }
 
-  JACOBI_STRIP_LOW_ZEROS (result_bit1, blow, asrcp, asize, alow);
+  JACOBI_STRIP_LOW_ZEROS (result_bit1, blow, asrcp, asize, allow);
 
   /* Ensure asize >= bsize. Take advantage of the generalized
      reciprocity law (a/b*2^n) = (b*2^n / a) * RECIP(a,b) */
@@ -129,14 +129,14 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
   if (asize < bsize)
     {
       MPN_SRCPTR_SWAP (asrcp, asize, bsrcp, bsize);
-      MP_LIMB_T_SWAP (alow, blow);
+      MP_LIMB_T_SWAP (allow, blow);
 
-      /* NOTE: The value of alow (old blow) is a bit subtle. For this code
-	 path, we get alow as the low, always odd, limb of shifted A. Which is
+      /* NOTE: The value of allow (old blow) is a bit subtle. For this code
+	 path, we get allow as the low, always odd, limb of shifted A. Which is
 	 what we need for the reciprocity update below.
 
-	 However, all other uses of alow assumes that it is *not*
-	 shifted. Luckily, alow matters only when either
+	 However, all other uses of allow assumes that it is *not*
+	 shifted. Luckily, allow matters only when either
 
 	 + btwos > 0, in which case A is always odd
 
@@ -154,20 +154,20 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
 	    bsize = 1;
 	}
 
-      result_bit1 ^= JACOBI_RECIP_UU_BIT1 (alow, blow);
+      result_bit1 ^= JACOBI_RECIP_UU_BIT1 (allow, blow);
     }
 
   if (bsize == 1)
     {
-      result_bit1 ^= JACOBI_TWOS_U_BIT1(btwos, alow);
+      result_bit1 ^= JACOBI_TWOS_U_BIT1(btwos, allow);
 
       if (blow == 1)
 	return JACOBI_BIT1_TO_PN (result_bit1);
 
       if (asize > 1)
-	JACOBI_MOD_OR_MODEXACT_1_ODD (result_bit1, alow, asrcp, asize, blow);
+	JACOBI_MOD_OR_MODEXACT_1_ODD (result_bit1, allow, asrcp, asize, blow);
 
-      return mpn_jacobi_base (alow, blow, result_bit1);
+      return mpn_jacobi_base (allow, blow, result_bit1);
     }
 
   /* Allocation strategy: For A, we allocate a working copy only for A % B, but
@@ -184,7 +184,7 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
 
   /* In the case of even B, we conceptually shift out the powers of two first,
      and then divide A mod B. Hence, when taking those powers of two into
-     account, we must use alow *before* the division. Doing the actual division
+     account, we must use allow *before* the division. Doing the actual division
      first is ok, because the point is to remove multiples of B from A, and
      multiples of 2^k B are good enough. */
   if (asize > bsize)
@@ -194,7 +194,7 @@ mpz_jacobi (mpz_srcptr a, mpz_srcptr b)
 
   if (btwos > 0)
     {
-      result_bit1 ^= JACOBI_TWOS_U_BIT1(btwos, alow);
+      result_bit1 ^= JACOBI_TWOS_U_BIT1(btwos, allow);
 
       ASSERT_NOCARRY (mpn_rshift (bp, bsrcp, bsize, btwos));
       bsize -= (ap[bsize-1] | bp[bsize-1]) == 0;

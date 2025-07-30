@@ -1875,7 +1875,7 @@ case $host in
 	  *-*-mingw* | *-*-cygwin)
 	    limb_64=longlong
 	    CALLING_CONVENTIONS_OBJS_64=""
-	    AC_DEFINE(HOST_DOS64,1,[Define to 1 for Windos/64])
+	    AC_DEFINE(HOST_DOS64,1,[Define to 1 for Windows/64])
 	    GMP_NONSTD_ABI_64=DOS64
 	    ;;
 	esac

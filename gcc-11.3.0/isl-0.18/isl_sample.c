@@ -992,7 +992,7 @@ static void vec_sum_of_neg(struct isl_vec *v, isl_int *s)
  * entries in the last elements of "a U".
  *
  * Since we are not interested in the first entries of any of the "a U",
- * we first drop the columns of U that correpond to bounded directions.
+ * we first drop the columns of U that correspond to bounded directions.
  */
 static int tab_shift_cone(struct isl_tab *tab,
 	struct isl_tab *tab_cone, struct isl_mat *U)

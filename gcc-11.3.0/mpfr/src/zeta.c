@@ -256,7 +256,7 @@ mpfr_zeta_pos (mpfr_t z, mpfr_srcptr s, mpfr_rnd_t rnd_mode)
 
           /* Computation of the coefficients c_k */
           mpfr_zeta_c (p, tc1);
-          /* Computation of the 3 parts of the fonction Zeta. */
+          /* Computation of the 3 parts of the function Zeta. */
           mpfr_zeta_part_a (z_pre, s, n);
           mpfr_zeta_part_b (b, s, n, p, tc1);
           /* s1 = s-1 is already computed above */

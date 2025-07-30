@@ -111,7 +111,7 @@ defframe(PARAM_SRC,    12)
 defframe(PARAM_XSIZE,  8)
 defframe(PARAM_DST,    4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_ESI,`PARAM_SIZE')
 define(SAVE_EBP,`PARAM_SRC')
 define(SAVE_EDI,`PARAM_DIVISOR')

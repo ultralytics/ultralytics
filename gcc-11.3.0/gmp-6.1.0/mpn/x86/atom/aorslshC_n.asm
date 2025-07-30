@@ -76,7 +76,7 @@ defframe(GPARAM_CORB,	20)
 defframe(GPARAM_SIZE,	16)
 defframe(GPARAM_SRC2,	12)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EBP,`PARAM_SIZE')
 define(SAVE_EBX,`PARAM_SRC')
 define(SAVE_UP,`PARAM_DST')

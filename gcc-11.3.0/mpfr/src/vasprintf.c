@@ -590,7 +590,7 @@ buffer_pad (struct string_buffer *b, const char c, const size_t n)
 
 /* Form a string by concatenating the first LEN characters of STR to TZ
    zero(s), insert into one character C each 3 characters starting from end
-   to begining and concatenate the result to the buffer B. */
+   to beginning and concatenate the result to the buffer B. */
 static void
 buffer_sandwich (struct string_buffer *b, char *str, size_t len,
                  const size_t tz, const char c)
@@ -1447,7 +1447,7 @@ regular_fg (struct number_parts *np, mpfr_srcptr p,
    partition_number initializes the given structure np, so all previous
    information in that variable is lost.
    return the total number of characters to be written.
-   return -1 if an error occured, in that case np's fields are in an undefined
+   return -1 if an error occurred, in that case np's fields are in an undefined
    state but all string buffers have been freed. */
 static int
 partition_number (struct number_parts *np, mpfr_srcptr p,
@@ -1761,7 +1761,7 @@ sprnt_fp (struct string_buffer *buf, mpfr_srcptr p,
   if (np.exp_ptr)
     buffer_cat (buf, np.exp_ptr, np.exp_size);
 
-  /* left justication padding with right spaces */
+  /* left justification padding with right spaces */
   if (np.pad_type == RIGHT && np.pad_size != 0)
     buffer_pad (buf, ' ', np.pad_size);
 
@@ -1775,7 +1775,7 @@ mpfr_vasprintf (char **ptr, const char *fmt, va_list ap)
   struct string_buffer buf;
   size_t nbchar;
 
-  /* informations on the conversion specification filled by the parser */
+  /* information on the conversion specification filled by the parser */
   struct printf_spec spec;
   /* flag raised when previous part of fmt need to be processed by
      gmp_vsnprintf */

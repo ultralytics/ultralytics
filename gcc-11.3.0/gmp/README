@@ -63,7 +63,7 @@ There are four classes of functions in GNU MP.
     `mpz_t'.
 
  2. Rational arithmetic functions (mpq).  For now, just a small set of
-    functions necessary for basic rational arithmetics.  The associated type
+    functions necessary for basic rational arithmetic.  The associated type
     is `mpq_t'.
 
  3. Floating-point arithmetic functions (mpf).  If the C type `double'

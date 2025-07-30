@@ -237,7 +237,7 @@ mpc_tan (mpc_ptr rop, mpc_srcptr op, mpc_rnd_t rnd)
       inex = mpc_div (x, x, y, MPC_RNDZZ);
       /* OP is no pure real nor pure imaginary, so in theory the real and
          imaginary parts of its tangent cannot be null. However due to
-         rouding errors this might happen. Consider for example
+         rounding errors this might happen. Consider for example
          tan(1+14*I) = 1.26e-10 + 1.00*I. For small precision sin(op) and
          cos(op) differ only by a factor I, thus after mpc_div x = I and
          its real part is zero. */

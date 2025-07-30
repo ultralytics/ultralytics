@@ -56,7 +56,7 @@ defframe(PARAM_DIVISOR,12)
 defframe(PARAM_SIZE,   8)
 defframe(PARAM_SRC,    4)
 
-dnl  re-using parameter space
+dnl  reusing parameter space
 define(VAR_INVERSE,`PARAM_SIZE')
 
 	TEXT

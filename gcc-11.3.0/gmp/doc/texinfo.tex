@@ -1053,7 +1053,7 @@ where each line of input produces a line of output.}
    %
    % If texinfo.cnf is present on the system, read it.
    % Useful for site-wide @afourpaper, etc.
-   \openin 1 texinfo.cnf
+   \opening 1 texinfo.cnf
    \ifeof 1 \else \input texinfo.cnf \fi
    \closein 1
    %
@@ -1193,12 +1193,12 @@ output) for that.)}
     % bitmap.
     \let\pdfimgext=\empty
     \begingroup
-      \openin 1 #1.pdf \ifeof 1
-        \openin 1 #1.PDF \ifeof 1
-          \openin 1 #1.png \ifeof 1
-            \openin 1 #1.jpg \ifeof 1
-              \openin 1 #1.jpeg \ifeof 1
-                \openin 1 #1.JPG \ifeof 1
+      \opening 1 #1.pdf \ifeof 1
+        \opening 1 #1.PDF \ifeof 1
+          \opening 1 #1.png \ifeof 1
+            \opening 1 #1.jpg \ifeof 1
+              \opening 1 #1.jpeg \ifeof 1
+                \opening 1 #1.JPG \ifeof 1
                   \errhelp = \nopdfimagehelp
                   \errmessage{Could not find image file #1 for pdf}%
                 \else \gdef\pdfimgext{JPG}%
@@ -2873,7 +2873,7 @@ end
 % example, @inlineraw{html, foo{bar} gets a parse error instead of being
 % ignored.  But this isn't important because if people want a literal
 % *right* brace they would have to use a command anyway, so they may as
-% well use a command to get a left brace too.  We could re-use the
+% well use a command to get a left brace too.  We could reuse the
 % delimiter character idea from \verb, but it seems like overkill.
 % 
 \long\def\inlineraw{\tex \doinlineraw}
@@ -4898,7 +4898,7 @@ end
   % as its first line, TeX doesn't complain about mismatched braces
   % (because it thinks @} is a control sequence).
   \catcode`\@ = 11
-  \openin 1 \jobname.#1s
+  \opening 1 \jobname.#1s
   \ifeof 1
     % \enddoublecolumns gets confused if there is no text in the index,
     % and it loses the chapter title and the aux file entries for the
@@ -4907,7 +4907,7 @@ end
     \putwordIndexNonexistent
   \else
     %
-    % If the index file exists but is empty, then \openin leaves \ifeof
+    % If the index file exists but is empty, then \opening leaves \ifeof
     % false.  We have to make TeX try to read something from the file, so
     % it can discover if there is anything in it.
     \read 1 to \temp
@@ -6060,7 +6060,7 @@ end
 %
 \def\contents{%
   \startcontents{\putwordTOC}%
-    \openin 1 \tocreadfilename\space
+    \opening 1 \tocreadfilename\space
     \ifeof 1 \else
       \readtocfile
     \fi
@@ -6099,7 +6099,7 @@ end
     \let\numsubsubsecentry = \numsecentry
     \let\appsubsubsecentry = \numsecentry
     \let\unnsubsubsecentry = \numsecentry
-    \openin 1 \tocreadfilename\space
+    \opening 1 \tocreadfilename\space
     \ifeof 1 \else
       \readtocfile
     \fi
@@ -8167,7 +8167,7 @@ end
 % Read the last existing aux file, if any.  No error if none exists.
 %
 \def\tryauxfile{%
-  \openin 1 \jobname.aux
+  \opening 1 \jobname.aux
   \ifeof 1 \else
     \readdatafile{aux}%
     \global\havexrefstrue
@@ -8413,7 +8413,7 @@ end
 % Check for and read epsf.tex up front.  If we read it only at @image
 % time, we might be inside a group, and then its definitions would get
 % undone and the next image would fail.
-\openin 1 = epsf.tex
+\opening 1 = epsf.tex
 \ifeof 1 \else
   % Do not bother showing banner with epsf.tex v2.7k (available in
   % doc/epsf.tex and on ctan).
@@ -8773,7 +8773,7 @@ end
   \let_=\normalunderscore  % normal _ character for filenames
   \tex % read txi-??.tex file in plain TeX.
     % Read the file by the name they passed if it exists.
-    \openin 1 txi-#1.tex
+    \opening 1 txi-#1.tex
     \ifeof 1
       \documentlanguagetrywithoutunderscore{#1_\finish}%
     \else
@@ -8788,7 +8788,7 @@ end
 % try txi-de.tex.
 %
 \gdef\documentlanguagetrywithoutunderscore#1_#2\finish{%
-  \openin 1 txi-#1.tex
+  \opening 1 txi-#1.tex
   \ifeof 1
     \errhelp = \nolanghelp
     \errmessage{Cannot read language file txi-#1.tex}%

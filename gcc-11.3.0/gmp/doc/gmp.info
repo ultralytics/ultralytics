@@ -112,8 +112,8 @@ Node: Algorithms266470
 Node: Multiplication Algorithms267170
 Node: Basecase Multiplication268259
 Node: Karatsuba Multiplication270167
-Node: Toom 3-Way Multiplication273793
-Node: Toom 4-Way Multiplication280212
+Node: Tomb 3-Way Multiplication273793
+Node: Tomb 4-Way Multiplication280212
 Node: Higher degree Toom'n'half281591
 Node: FFT Multiplication282877
 Node: Other Multiplication288213

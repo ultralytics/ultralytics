@@ -3410,7 +3410,7 @@ __GMP_DECLSPEC extern const unsigned char  binvert_limb_table[128];
     mp_limb_t  __tmp2 = __bswapl_src << 24;		/* high byte */	\
     __asm__ ("rlwimi %0, %2, 24, 16, 23"		/* 2nd low */	\
 	 : "=r" (__tmp1) : "0" (__tmp1), "r" (__bswapl_src));		\
-    __asm__ ("rlwimi %0, %2,  8,  8, 15"		/* 3nd high */	\
+    __asm__ ("rlwimi %0, %2,  8,  8, 15"		/* 3rd high */	\
 	 : "=r" (__tmp2) : "0" (__tmp2), "r" (__bswapl_src));		\
     (dst) = __tmp1 | __tmp2;				/* whole */	\
   } while (0)
@@ -3941,8 +3941,8 @@ __GMP_DECLSPEC void __gmp_invalid_operation (void) ATTRIBUTE_NORETURN;
 
 /* (a/0), with a given by low and size;
    is 1 if a=+/-1, 0 otherwise */
-#define JACOBI_LS0(alow,asize) \
-  (((asize) == 1 || (asize) == -1) && (alow) == 1)
+#define JACOBI_LS0(allow,asize) \
+  (((asize) == 1 || (asize) == -1) && (allow) == 1)
 
 /* (a/0), with a an mpz_t;
    fetch of low limb always valid, even if size is zero */

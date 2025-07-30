@@ -231,7 +231,7 @@ mpn_rootrem_internal (mp_ptr rootp, mp_ptr remp, mp_srcptr up, mp_size_t un,
     {
       rootp[0] = 1;
       if (remp == NULL)
-	un -= (*up == CNST_LIMB (1)); /* Non-zero iif {up,un} > 1 */
+	un -= (*up == CNST_LIMB (1)); /* Non-zero if {up,un} > 1 */
       else
 	{
 	  mpn_sub_1 (remp, up, un, CNST_LIMB (1));

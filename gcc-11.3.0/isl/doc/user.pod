@@ -4148,7 +4148,7 @@ return true if the objects are not the same.
 		__isl_keep isl_union_pw_qpolynomial_fold *upwf1,
 		__isl_keep isl_union_pw_qpolynomial_fold *upwf2);
 
-=item * Disjointness
+=item * Disjointedness
 
 	#include <isl/set.h>
 	isl_bool isl_basic_set_is_disjoint(

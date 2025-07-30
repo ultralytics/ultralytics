@@ -36,7 +36,7 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 #include "mpfr-impl.h"
 
 /* I would really like to use "mpfr_srcptr const []" but the norm is buggy:
-   it doesn't automaticaly cast a "mpfr_ptr []" to "mpfr_srcptr const []"
+   it doesn't automatically cast a "mpfr_ptr []" to "mpfr_srcptr const []"
    if necessary. So the choice are:
      mpfr_s **                : ok
      mpfr_s *const*           : ok

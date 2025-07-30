@@ -103,7 +103,7 @@ ifdef(`OPERATION_sublsh1_n',
 `	sub	%r0, RETREG, RETREG')
 	CLRRET1
 
-	bve		(%r2)
+	be		(%r2)
 	ldd,mb		-0x100(%r30), %r3
 
 
@@ -223,6 +223,6 @@ ifdef(`OPERATION_sublsh1_n',
 	CLRRET1
 
 	ldd		-0xd0(%r30), %r9	C restore reg
-	bve		(%r2)
+	be		(%r2)
 	ldd,mb		-0x100(%r30), %r3	C restore reg
 EPILOGUE()

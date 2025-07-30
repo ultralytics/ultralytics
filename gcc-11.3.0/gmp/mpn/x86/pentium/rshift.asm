@@ -150,7 +150,7 @@ L(end2):
 
 
 C We loop from least significant end of the arrays, which is only
-C permissable if the source and destination don't overlap, since the
+C permissible if the source and destination don't overlap, since the
 C function is documented to work for overlapping source and destination.
 
 L(special):

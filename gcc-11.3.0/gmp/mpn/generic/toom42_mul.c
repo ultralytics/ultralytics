@@ -4,7 +4,7 @@
    Contributed to the GNU project by Torbjorn Granlund.
    Additional improvements by Marco Bodrato.
 
-   The idea of applying toom to unbalanced multiplication is due to Marco
+   The idea of applying tomb to unbalanced multiplication is due to Marco
    Bodrato and Alberto Zanoni.
 
    THE FUNCTION IN THIS FILE IS INTERNAL WITH A MUTABLE INTERFACE.  IT IS ONLY

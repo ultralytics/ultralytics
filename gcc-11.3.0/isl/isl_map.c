@@ -1,7 +1,7 @@
 /*
  * Copyright 2008-2009 Katholieke Universiteit Leuven
  * Copyright 2010      INRIA Saclay
- * Copyright 2012-2014 Ecole Normale Superieure
+ * Copyright 2012-2014 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  * Copyright 2016      INRIA Paris
  * Copyright 2016      Sven Verdoolaege
@@ -12,7 +12,7 @@
  * Computerwetenschappen, Celestijnenlaan 200A, B-3001 Leuven, Belgium
  * and INRIA Saclay - Ile-de-France, Parc Club Orsay Universite,
  * ZAC des vignes, 4 rue Jacques Monod, 91893 Orsay, France 
- * and Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  * and Centre de Recherche Inria de Paris, 2 rue Simone Iff - Voie DQ12,
@@ -3597,7 +3597,7 @@ static __isl_give isl_basic_map *move_last(__isl_take isl_basic_map *bmap,
 /* Insert "n" rows in the divs of "bmap".
  *
  * The number of columns is not changed, which means that the last
- * dimensions of "bmap" are being reintepreted as the new divs.
+ * dimensions of "bmap" are being reinterpreted as the new divs.
  * The space of "bmap" is not adjusted, however, which means
  * that "bmap" is left in an inconsistent state.  Removing "n" dimensions
  * from the space of "bmap" is the responsibility of the caller.
@@ -6792,7 +6792,7 @@ static struct isl_set *parameter_compute_divs(struct isl_basic_set *bset)
 /* Insert the divs from "ls" before those of "bmap".
  *
  * The number of columns is not changed, which means that the last
- * dimensions of "bmap" are being reintepreted as the divs from "ls".
+ * dimensions of "bmap" are being reinterpreted as the divs from "ls".
  * The caller is responsible for removing the same number of dimensions
  * from the space of "bmap".
  */

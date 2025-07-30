@@ -36,7 +36,7 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 /* prec requested by the user.                                             */
 /* This is performed by drawing a 2D graphic with color indicating which   */
 /* method is the best.                                                     */
-/* For building this graphic, the following structur is used (see the core */
+/* For building this graphic, the following structure is used (see the core */
 /* of generate_2D_sample for an explanation of each field.                 */
 struct speed_params2D
 {

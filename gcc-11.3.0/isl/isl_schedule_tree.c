@@ -1,12 +1,12 @@
 /*
- * Copyright 2013-2014 Ecole Normale Superieure
+ * Copyright 2013-2014 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  * Copyright 2016      INRIA Paris
  *
  * Use of this software is governed by the MIT license
  *
  * Written by Sven Verdoolaege,
- * Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  * and Centre de Recherche Inria de Paris, 2 rue Simone Iff - Voie DQ12,

@@ -54,7 +54,7 @@ defframe(PARAM_YP,   12)
 defframe(PARAM_XP,   8)
 defframe(PARAM_WP,   4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EBX,`PARAM_XP')
 define(SAVE_ESI,`PARAM_YP')
 

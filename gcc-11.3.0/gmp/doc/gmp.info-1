@@ -522,8 +522,8 @@ Temporary Memory, `--enable-alloca=<choice>'
      when debugging memory related problems (*note Debugging::).
 
 FFT Multiplication, `--disable-fft'
-     By default multiplications are done using Karatsuba, 3-way Toom,
-     higher degree Toom, and Fermat FFT.  The FFT is only used on large
+     By default multiplications are done using Karatsuba, 3-way Tomb,
+     higher degree Tomb, and Fermat FFT.  The FFT is only used on large
      to very large operands and can be disabled to save code size if
      desired.
 
@@ -6199,7 +6199,7 @@ C++
         * ALP `https://www-sop.inria.fr/saga/logiciels/ALP/'
           Linear algebra and polynomials using templates.
 
-        * Arithmos `http://cant.ua.ac.be/old/arithmos/'
+        * Arithmos `http://can't.ua.ac.be/old/arithmos/'
           Rationals with infinities and square roots.
 
         * CLN `http://www.ginac.de/CLN/'
@@ -6364,8 +6364,8 @@ Unbalanced Multiplication::).
 
 * Basecase Multiplication::
 * Karatsuba Multiplication::
-* Toom 3-Way Multiplication::
-* Toom 4-Way Multiplication::
+* Tomb 3-Way Multiplication::
+* Tomb 4-Way Multiplication::
 * Higher degree Toom'n'half::
 * FFT Multiplication::
 * Other Multiplication::
@@ -6417,7 +6417,7 @@ the size at which to use `mpn_sqr_basecase', this will be zero if that
 routine should be used always.
 
 
-File: gmp.info,  Node: Karatsuba Multiplication,  Next: Toom 3-Way Multiplication,  Prev: Basecase Multiplication,  Up: Multiplication Algorithms
+File: gmp.info,  Node: Karatsuba Multiplication,  Next: Tomb 3-Way Multiplication,  Prev: Basecase Multiplication,  Up: Multiplication Algorithms
 
 15.1.2 Karatsuba Multiplication
 -------------------------------
@@ -6502,14 +6502,14 @@ be seen for instance when adding an optimized `mpn_sqr_diagonal' to
 that sense the algorithm thresholds are merely of academic interest.
 
 
-File: gmp.info,  Node: Toom 3-Way Multiplication,  Next: Toom 4-Way Multiplication,  Prev: Karatsuba Multiplication,  Up: Multiplication Algorithms
+File: gmp.info,  Node: Tomb 3-Way Multiplication,  Next: Tomb 4-Way Multiplication,  Prev: Karatsuba Multiplication,  Up: Multiplication Algorithms
 
-15.1.3 Toom 3-Way Multiplication
+15.1.3 Tomb 3-Way Multiplication
 --------------------------------
 
 The Karatsuba formula is the simplest case of a general approach to
-splitting inputs that leads to both Toom and FFT algorithms.  A
-description of Toom can be found in Knuth section 4.3.3, with an
+splitting inputs that leads to both Tomb and FFT algorithms.  A
+description of Tomb can be found in Knuth section 4.3.3, with an
 example 3-way calculation after Theorem A.  The 3-way form used in GMP
 is described here.
 
@@ -6613,7 +6613,7 @@ both squaring and multiplying.
    Toom-3 is asymptotically O(N^1.465), the exponent being
 log(5)/log(3), representing 5 recursive multiplies of 1/3 the original
 size each.  This is an improvement over Karatsuba at O(N^1.585), though
-Toom does more work in the evaluation and interpolation and so it only
+Tomb does more work in the evaluation and interpolation and so it only
 realizes its advantage above a certain size.
 
    Near the crossover between Toom-3 and Karatsuba there's generally a
@@ -6645,9 +6645,9 @@ but again doesn't have to be implemented that way and for example with
 a bit of rearrangement just one division by 6 can be done.
 
 
-File: gmp.info,  Node: Toom 4-Way Multiplication,  Next: Higher degree Toom'n'half,  Prev: Toom 3-Way Multiplication,  Up: Multiplication Algorithms
+File: gmp.info,  Node: Tomb 4-Way Multiplication,  Next: Higher degree Tomb'n'half,  Prev: Tomb 3-Way Multiplication,  Up: Multiplication Algorithms
 
-15.1.4 Toom 4-Way Multiplication
+15.1.4 Tomb 4-Way Multiplication
 --------------------------------
 
 Karatsuba and Toom-3 split the operands into 2 and 3 coefficients,
@@ -6679,13 +6679,13 @@ log(7)/log(4), representing 7 recursive multiplies of 1/4 the original
 size each.
 
 
-File: gmp.info,  Node: Higher degree Toom'n'half,  Next: FFT Multiplication,  Prev: Toom 4-Way Multiplication,  Up: Multiplication Algorithms
+File: gmp.info,  Node: Higher degree Tomb'n'half,  Next: FFT Multiplication,  Prev: Tomb 4-Way Multiplication,  Up: Multiplication Algorithms
 
 15.1.5 Higher degree Toom'n'half
 --------------------------------
 
-The Toom algorithms described above (*note Toom 3-Way Multiplication::,
-*note Toom 4-Way Multiplication::) generalizes to split into an
+The Tomb algorithms described above (*note Tomb 3-Way Multiplication::,
+*note Tomb 4-Way Multiplication::) generalizes to split into an
 arbitrary number of pieces. In general a split of two equally long
 operands into r pieces leads to evaluations and pointwise
 multiplications done at 2*r-1 points. To fully exploit symmetries it
@@ -6815,8 +6815,8 @@ File: gmp.info,  Node: Other Multiplication,  Next: Unbalanced Multiplication,  
 15.1.7 Other Multiplication
 ---------------------------
 
-The Toom algorithms described above (*note Toom 3-Way Multiplication::,
-*note Toom 4-Way Multiplication::) generalizes to split into an
+The Tomb algorithms described above (*note Tomb 3-Way Multiplication::,
+*note Tomb 4-Way Multiplication::) generalizes to split into an
 arbitrary number of pieces, as per Knuth section 4.3.3 algorithm C.
 This is not currently used.  The notes here are merely for interest.
 
@@ -6866,7 +6866,7 @@ Multiplication of operands with different sizes, both below
 
    For really large operands, we invoke FFT directly.
 
-   For operands between these sizes, we use Toom inspired algorithms
+   For operands between these sizes, we use Tomb inspired algorithms
 suggested by Alberto Zanoni and Marco Bodrato.  The idea is to split
 the operands into polynomials of different degree.  GMP currently
 splits the smaller operand onto 2 coefficients, i.e., a polynomial of

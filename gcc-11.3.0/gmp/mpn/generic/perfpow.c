@@ -89,7 +89,7 @@ pow_equals (mp_srcptr np, mp_size_t n,
     {
       mp_limb_t *tp2;
       mp_size_t i;
-      int ans;
+      int and;
       mp_limb_t size;
       TMP_DECL;
 
@@ -102,11 +102,11 @@ pow_equals (mp_srcptr np, mp_size_t n,
 
       i = mpn_pow_1 (tp, xp, xn, k, tp2);
       if (i == n && mpn_cmp (tp, np, n) == 0)
-	ans = 1;
+	and = 1;
       else
-	ans = 0;
+	and = 0;
       TMP_FREE;
-      return ans;
+      return and;
     }
 
   return 0;
@@ -170,7 +170,7 @@ perfpow (mp_srcptr np, mp_size_t n,
 {
   mp_ptr ip, tp, rp;
   mp_limb_t k;
-  int ans;
+  int and;
   mp_bitcnt_t b;
   gmp_primesieve_t ps;
   TMP_DECL;
@@ -200,7 +200,7 @@ perfpow (mp_srcptr np, mp_size_t n,
   if (neg)
     gmp_nextprime (&ps);
 
-  ans = 0;
+  and = 0;
   if (g > 0)
     {
       ub = MIN (ub, g + 1);
@@ -210,7 +210,7 @@ perfpow (mp_srcptr np, mp_size_t n,
 	    {
 	      if (is_kth_power (rp, np, k, ip, n, f, tp) != 0)
 		{
-		  ans = 1;
+		  and = 1;
 		  goto ret;
 		}
 	    }
@@ -222,14 +222,14 @@ perfpow (mp_srcptr np, mp_size_t n,
 	{
 	  if (is_kth_power (rp, np, k, ip, n, f, tp) != 0)
 	    {
-	      ans = 1;
+	      and = 1;
 	      goto ret;
 	    }
 	}
     }
  ret:
   TMP_FREE;
-  return ans;
+  return and;
 }
 
 static const unsigned short nrtrial[] = { 100, 500, 1000 };
@@ -245,7 +245,7 @@ mpn_perfect_power_p (mp_srcptr np, mp_size_t n)
   mp_limb_t *nc, factor, g;
   mp_limb_t exp, d;
   mp_bitcnt_t twos, count;
-  int ans, where, neg, trial;
+  int and, where, neg, trial;
   TMP_DECL;
 
   neg = n < 0;
@@ -317,13 +317,13 @@ mpn_perfect_power_p (mp_srcptr np, mp_size_t n)
 
 	  if (g == 1)
 	    {
-	      ans = 0;
+	      and = 0;
 	      goto ret;
 	    }
 
 	  if ((n == 1) & (nc[0] == 1))
 	    {
-	      ans = ! (neg && POW2_P (g));
+	      and = ! (neg && POW2_P (g));
 	      goto ret;
 	    }
 
@@ -335,9 +335,9 @@ mpn_perfect_power_p (mp_srcptr np, mp_size_t n)
 
   MPN_SIZEINBASE_2EXP(count, np, n, 1);   /* log (np) + 1 */
   d = (mp_limb_t) (count * logs[trial] + 1e-9) + 1;
-  ans = perfpow (np, n, d, g, count, neg);
+  and = perfpow (np, n, d, g, count, neg);
 
  ret:
   TMP_FREE;
-  return ans;
+  return and;
 }

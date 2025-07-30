@@ -846,7 +846,7 @@ static int update_todo(struct isl_facet_todo *first, struct isl_tab *tab)
 	return 0;
 }
 
-/* Compute the chamber decomposition of the parametric polytope respresented
+/* Compute the chamber decomposition of the parametric polytope represented
  * by "bset" given the parametric vertices and their activity domains.
  *
  * We are only interested in full-dimensional chambers.

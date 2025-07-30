@@ -42,7 +42,7 @@ __gmpfr_extract_double (mpfr_limb_ptr rp, double d)
      1. Should handle Inf and NaN in IEEE specific code.
      2. Handle Inf and NaN also in default code, to avoid hangs.
      3. Generalize to handle all GMP_NUMB_BITS.
-     4. This lits is incomplete and misspelled.
+     4. This list is incomplete and misspelled.
    */
 
   MPFR_ASSERTD(!DOUBLE_ISNAN(d));

@@ -1,7 +1,7 @@
 /*
  * Copyright 2008-2009 Katholieke Universiteit Leuven
  * Copyright 2010      INRIA Saclay
- * Copyright 2012-2013 Ecole Normale Superieure
+ * Copyright 2012-2013 Ecole Normal Superieure
  *
  * Use of this software is governed by the MIT license
  *
@@ -9,7 +9,7 @@
  * Computerwetenschappen, Celestijnenlaan 200A, B-3001 Leuven, Belgium
  * and INRIA Saclay - Ile-de-France, Parc Club Orsay Universite,
  * ZAC des vignes, 4 rue Jacques Monod, 91893 Orsay, France 
- * and Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  */
 
 #include <ctype.h>
@@ -3085,7 +3085,7 @@ __isl_give isl_pw_qpolynomial *isl_pw_qpolynomial_read_from_file(isl_ctx *ctx,
 	return pwqp;
 }
 
-/* Is the next token an identifer not in "v"?
+/* Is the next token an identifier not in "v"?
  */
 static int next_is_fresh_ident(__isl_keep isl_stream *s, struct vars *v)
 {
@@ -3719,7 +3719,7 @@ static __isl_give isl_union_pw_aff *read_union_pw_aff_with_dom(
 
 /* Read an isl_union_pw_aff from "s".
  *
- * First check if there are any paramters, then read in the opening brace
+ * First check if there are any parameters, then read in the opening brace
  * and use read_union_pw_aff_with_dom to read in the body of
  * the isl_union_pw_aff.  Finally, read the closing brace.
  */

@@ -821,7 +821,7 @@ mpfr_strtofr (mpfr_t x, const char *string, char **end, int base,
   /* For base <= 36, parsing is case-insensitive. */
   MPFR_ASSERTN (base == 0 || (base >= 2 && base <= 62));
 
-  /* If an error occured, it must return 0 */
+  /* If an error occurred, it must return 0 */
   MPFR_SET_ZERO (x);
   MPFR_SET_POS (x);
 

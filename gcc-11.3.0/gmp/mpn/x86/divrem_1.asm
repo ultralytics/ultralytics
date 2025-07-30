@@ -76,7 +76,7 @@ C would be a mere 2.2% saving, so it's hardly worth bothering about.
 C
 C A mul-by-inverse might be a possibility for P5, as done in
 C mpn/x86/pentium/mod_1.asm.  The number of auxiliary instructions required
-C is a hinderance, but there could be a 10-15% speedup available.
+C is a hindrance, but there could be a 10-15% speedup available.
 C
 C
 C Notes for K6:

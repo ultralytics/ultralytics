@@ -47,7 +47,7 @@ FUNCTION (mpf_srcptr f) __GMP_NOTHROW
     return 1;  /* -1 < f < 1 truncates to zero, so fits */
 
   fn = SIZ(f);
-  if (fn < 0) /* zero catched by exp == 0 */
+  if (fn < 0) /* zero caught by exp == 0 */
     return 0; /* negatives don't fit */
 
   fp = PTR(f);

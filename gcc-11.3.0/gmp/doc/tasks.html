@@ -321,7 +321,7 @@ either already been taken care of, or have become irrelevant.
      presumably be safe no matter how it pads.
 <li> ARM V5: <code>count_leading_zeros</code> can use the <code>clz</code>
      instruction.  For GCC 3.4 and up, do this via <code>__builtin_clzl</code>
-     since then gcc knows it's "predicable".
+     since then gcc knows it's "predictable".
 <li> Itanium: GCC 3.4 introduces <code>__builtin_popcount</code> which can be
      used instead of an <code>asm</code> block.  The builtin should give gcc
      more opportunities for scheduling, bundling and predication.
@@ -514,7 +514,7 @@ either already been taken care of, or have become irrelevant.
      little-endian and big-endian machines.  A format which MPFR can use too
      would be good.
 <li> <code>mpn_and_n</code> ... <code>mpn_copyd</code>: Perhaps make the mpn
-     logops and copys available in gmp.h, either as library functions or
+     logops and copies available in gmp.h, either as library functions or
      inlines, with the availability of library functions instantiated in the
      generated gmp.h at build time.
 <li> <code>mpz_set_str</code> etc variants taking string lengths rather than

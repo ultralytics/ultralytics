@@ -1,6 +1,6 @@
 /*
  * Copyright 2010      INRIA Saclay
- * Copyright 2013      Ecole Normale Superieure
+ * Copyright 2013      Ecole Normal Superieure
  * Copyright 2015      INRIA Paris-Rocquencourt
  *
  * Use of this software is governed by the MIT license
@@ -8,7 +8,7 @@
  * Written by Sven Verdoolaege, INRIA Saclay - Ile-de-France,
  * Parc Club Orsay Universite, ZAC des vignes, 4 rue Jacques Monod,
  * 91893 Orsay, France
- * and Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  * and INRIA Paris-Rocquencourt, Domaine de Voluceau, Rocquenqourt, B.P. 105,
  * 78153 Le Chesnay Cedex France
  */

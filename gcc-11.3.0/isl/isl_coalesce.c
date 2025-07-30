@@ -1,7 +1,7 @@
 /*
  * Copyright 2008-2009 Katholieke Universiteit Leuven
  * Copyright 2010      INRIA Saclay
- * Copyright 2012-2013 Ecole Normale Superieure
+ * Copyright 2012-2013 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  * Copyright 2016      INRIA Paris
  *
@@ -11,7 +11,7 @@
  * Computerwetenschappen, Celestijnenlaan 200A, B-3001 Leuven, Belgium
  * and INRIA Saclay - Ile-de-France, Parc Club Orsay Universite,
  * ZAC des vignes, 4 rue Jacques Monod, 91893 Orsay, France 
- * and Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  * and Centre de Recherche Inria de Paris, 2 rue Simone Iff - Voie DQ12,
@@ -696,7 +696,7 @@ static enum isl_change is_adj_ineq_extension(int i, int j,
  *       \    ||  /		 \       /
  *        \___||_/		  \_____/
  *
- * The test for a single pair of adjancent inequalities is important
+ * The test for a single pair of adjacent inequalities is important
  * for avoiding the combination of two basic maps like the following
  *
  *       /|

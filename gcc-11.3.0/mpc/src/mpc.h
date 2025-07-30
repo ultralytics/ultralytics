@@ -63,7 +63,7 @@ along with this program. If not, see http://www.gnu.org/licenses/ .
 #define MPC_INEX_IM(inex) MPC_INEX_NEG((inex) >> 2)
 
 /* For functions computing two results, the return value is
-   inexact1+16*inexact2, which is 0 iif both results are exact. */
+   inexact1+16*inexact2, which is 0 if both results are exact. */
 #define MPC_INEX12(inex1, inex2) (inex1 | (inex2 << 4))
 #define MPC_INEX1(inex) (inex & 15)
 #define MPC_INEX2(inex) (inex >> 4)

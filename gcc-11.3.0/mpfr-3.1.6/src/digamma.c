@@ -92,7 +92,7 @@ mpfr_digamma_approx (mpfr_ptr s, mpfr_srcptr x)
           f = (1 + f) / 2;
           expu ++;
         }
-      e += f; /* total rouding error coming from 'u' term */
+      e += f; /* total rounding error coming from 'u' term */
     }
 
   n0 = ++n;

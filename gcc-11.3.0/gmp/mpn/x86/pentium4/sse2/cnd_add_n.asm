@@ -45,7 +45,7 @@ defframe(PARAM_SRC1, 12)
 defframe(PARAM_DST,  8)
 defframe(PARAM_CND,  4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EBX,`PARAM_SRC1')
 
 define(`cnd', `%mm3')

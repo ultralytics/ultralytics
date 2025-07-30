@@ -36,7 +36,7 @@ extern "C" {
  * the structures when the reference count drops to zero.
  *
  * Functions that return an isa structure will in general _destroy_
- * all argument isa structures (the obvious execption begin the _copy
+ * all argument isa structures (the obvious exception begin the _copy
  * functions).  A pointer passed to such a function may therefore
  * never be used after the function call.  If you want to keep a
  * reference to the old structure(s), use the appropriate _copy function.

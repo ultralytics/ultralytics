@@ -71,7 +71,7 @@ and can halve once more the number of crossproducts needed in a 2NxN
 division.
 
    A special case exact division by 3 exists in `mpn_divexact_by3',
-supporting Toom-3 multiplication and `mpq' canonicalizations.  It forms
+supporting Toom-3 multiplication and `mpq' canonicalization.  It forms
 quotient digits with a multiply by the modular inverse of 3 (which is
 `0xAA..AAB') and uses two comparisons to determine a borrow for the next
 limb.  The multiplications don't need to be on the dependent chain, as
@@ -764,7 +764,7 @@ with an example,
 and no recursion, and compute the product, with no special care for
 repeated chunks.
 
-   When n is larger, computation pass trough prime sieving. An helper
+   When n is larger, computation pass through prime sieving. An helper
 function is used, as suggested by Peter Luschny:
 
                                  n
@@ -1822,7 +1822,7 @@ and in the `mpz' design revisions for version 2.
 
    Robert Harley of Inria, France and David Seal of ARM, England,
 suggested clever improvements for population count.  Robert also wrote
-highly optimized Karatsuba and 3-way Toom multiplication functions for
+highly optimized Karatsuba and 3-way Tomb multiplication functions for
 GMP 3, and contributed the ARM assembly code.
 
    Torsten Ekedahl of the Mathematical department of Stockholm
@@ -1856,17 +1856,17 @@ number improvements.
    Niels Mo"ller wrote the sub-quadratic GCD, extended GCD and jacobi
 code, the quadratic Hensel division code, and (with Torbjo"rn) the new
 divide and conquer division code for GMP 4.3.  Niels also helped
-implement the new Toom multiply code for GMP 4.3 and implemented helper
-functions to simplify Toom evaluations for GMP 5.0.  He wrote the
+implement the new Tomb multiply code for GMP 4.3 and implemented helper
+functions to simplify Tomb evaluations for GMP 5.0.  He wrote the
 original version of mpn_mulmod_bnm1, and he is the main author of the
 mini-gmp package used for gmp bootstrapping.
 
    Alberto Zanoni and Marco Bodrato suggested the unbalanced multiply
 strategy, and found the optimal strategies for evaluation and
-interpolation in Toom multiplication.
+interpolation in Tomb multiplication.
 
-   Marco Bodrato helped implement the new Toom multiply code for GMP
-4.3 and implemented most of the new Toom multiply and squaring code for
+   Marco Bodrato helped implement the new Tomb multiply code for GMP
+4.3 and implemented most of the new Tomb multiply and squaring code for
 5.0.  He is the main author of the current mpn_mulmod_bnm1,
 mpn_mullo_n, and mpn_sqrlo.  Marco also wrote the functions mpn_invert
 and mpn_invertappr, and improved the speed of integer root extraction.
@@ -1874,7 +1874,7 @@ He is the author of the current combinatorial functions: binomial,
 factorial, multifactorial, primorial.
 
    David Harvey suggested the internal function `mpn_bdiv_dbm1',
-implementing division relevant to Toom multiplication.  He also worked
+implementing division relevant to Tomb multiplication.  He also worked
 on fast assembly sequences, in particular on a fast AMD64
 `mpn_mul_basecase'. He wrote the internal middle product functions
 `mpn_mulmid_basecase', `mpn_toom42_mulmid', `mpn_mulmid_n' and related
@@ -2024,7 +2024,7 @@ B.2 Papers
      Division", in Mathematics of Computation, volume 44, number 170,
      April 1985.
 
-   * Arnold Scho"nhage and Volker Strassen, "Schnelle Multiplikation
+   * Arnold Scho"nhage and Volker Strassen, "Schnelle Multiplication
      grosser Zahlen", Computing 7, 1971, pp. 281-292.
 
    * Kenneth Weber, "The accelerated integer GCD algorithm", ACM
@@ -3152,13 +3152,13 @@ Concept Index
 * Texinfo:                               Build Options.       (line 339)
 * Text input/output:                     Efficiency.          (line 153)
 * Thread safety:                         Reentrancy.          (line   6)
-* Toom multiplication <1>:               Higher degree Toom'n'half.
+* Tomb multiplication <1>:               Higher degree Tomb'n'half.
                                                               (line   6)
-* Toom multiplication <2>:               Other Multiplication.
+* Tomb multiplication <2>:               Other Multiplication.
                                                               (line   6)
-* Toom multiplication <3>:               Toom 4-Way Multiplication.
+* Tomb multiplication <3>:               Tomb 4-Way Multiplication.
                                                               (line   6)
-* Toom multiplication:                   Toom 3-Way Multiplication.
+* Tomb multiplication:                   Tomb 3-Way Multiplication.
                                                               (line   6)
 * Types:                                 Nomenclature and Types.
                                                               (line   6)

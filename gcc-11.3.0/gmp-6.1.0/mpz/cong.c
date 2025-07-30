@@ -64,7 +64,7 @@ mpz_congruent_p (mpz_srcptr a, mpz_srcptr c, mpz_srcptr d)
   mp_size_t  asize, csize, dsize, sign;
   mp_srcptr  ap, cp, dp;
   mp_ptr     xp;
-  mp_limb_t  alow, clow, dlow, dmask, r;
+  mp_limb_t  allow, clow, dlow, dmask, r;
   int        result;
   TMP_DECL;
 
@@ -91,14 +91,14 @@ mpz_congruent_p (mpz_srcptr a, mpz_srcptr c, mpz_srcptr d)
   csize = ABS(csize);
   cp = PTR(c);
 
-  alow = ap[0];
+  allow = ap[0];
   clow = cp[0];
   dlow = dp[0];
 
   /* Check a==c mod low zero bits of dlow.  This might catch a few cases of
      a!=c quickly, and it helps the csize==1 special cases below.  */
   dmask = LOW_ZEROS_MASK (dlow) & GMP_NUMB_MASK;
-  alow = (sign >= 0 ? alow : -alow);
+  allow = (sign >= 0 ? allow : -allow);
   if (((alow-clow) & dmask) != 0)
     return 0;
 
@@ -135,7 +135,7 @@ mpz_congruent_p (mpz_srcptr a, mpz_srcptr c, mpz_srcptr d)
 
       /* dlow==0 is avoided since we don't want to bother handling extra low
 	 zero bits if dsecond is even (would involve borrow if a,c differ in
-	 sign and alow,clow!=0).  */
+	 sign and allow,clow!=0).  */
       if (dsize == 2 && dlow != 0)
 	{
 	  mp_limb_t  dsecond = dp[1];

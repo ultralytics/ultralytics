@@ -137,7 +137,7 @@ L(mid):	ADDSUBC	r8, r4, r6
 	ADDSUBC	r9, r5, r7
 	sub	n, n, #2
 	tst	n, n
-	bmi	L(dne)
+	bmi	L(done)
 	ldrd	r4, r5, [up, #24]
 	ldrd	r6, r7, [vp, #24]
 	strd	r8, r9, [rp, #24]
@@ -155,7 +155,7 @@ L(end):	strd	r8, r9, [rp, #8]
 L(wd1):	RETVAL
 	pop	{ r4-r9 }
 	bx	r14
-L(dne):	strd	r8, r9, [rp, #24]
+L(done):	strd	r8, r9, [rp, #24]
 	RETVAL2
 	pop	{ r4-r9 }
 	bx	r14

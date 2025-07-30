@@ -95,7 +95,7 @@ C -----------------------------------------------------------------------------
 L(two_by_something):
 deflit(`FRAME',0)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EBX, `PARAM_XSIZE')
 define(SAVE_ESI, `PARAM_YSIZE')
 
@@ -153,7 +153,7 @@ L(two_by_two):
 	C edi
 	C ebp
 
-dnl  more parameter space re-use
+dnl  more parameter space reuse
 define(SAVE_EDI, `PARAM_WP')
 
 	mull	%ecx		C xp[0] * yp[0]

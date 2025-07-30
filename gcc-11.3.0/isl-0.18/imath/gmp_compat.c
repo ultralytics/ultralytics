@@ -1,6 +1,6 @@
 /*
   Name:     gmp_compat.c
-  Purpose:  Provide GMP compatiable routines for imath library
+  Purpose:  Provide GMP compatible routines for imath library
   Author:   David Peixotto
 
   Copyright (c) 2012 Qualcomm Innovation Center, Inc. All rights reserved.
@@ -534,24 +534,24 @@ void GMPZAPI(mul_2exp)(mp_int rop, mp_int op1, unsigned long op2) {
 
     The imath library only supports truncate as a rounding mode. We need to
     implement the other rounding modes in terms of truncating division. We first
-    perform the division in trucate mode and then adjust q accordingly. Once we
+    perform the division in truncate mode and then adjust q accordingly. Once we
     know q, we can easily compute the correct r according the the formula above
     by computing:
 
       r = N - q * D
 
-    The main task is to compute q. We can compute the correct q from a trucated
+    The main task is to compute q. We can compute the correct q from a truncated
     version as follows.
 
     For ceiling rounding mode, if q is less than 0 then the truncated rounding
     mode is the same as the ceiling rounding mode.  If q is greater than zero
     then we need to round q up by one because the truncated version was rounded
     down to zero. If q equals zero then check to see if the result of the
-    divison is positive. A positive result needs to increment q to one.
+    division is positive. A positive result needs to increment q to one.
 
-    For floor rounding mode, if q is greater than 0 then the trucated rounding
+    For floor rounding mode, if q is greater than 0 then the truncated rounding
     mode is the same as the floor rounding mode. If q is less than zero then we
-    need to round q down by one because the trucated mode rounded q up by one
+    need to round q down by one because the truncated mode rounded q up by one
     twords zero. If q is zero then we need to check to see if the result of the
     division is negative. A negative result needs to decrement q to negative
     one.

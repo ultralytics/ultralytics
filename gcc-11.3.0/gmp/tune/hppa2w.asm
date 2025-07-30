@@ -39,6 +39,6 @@ PROLOGUE(speed_cyclecounter)
 	mfctl	%cr16,%r28
 	stw	%r28,0(0,%r26)		; low word
 	extrd,u	%r28,31,32,%r28
-	bve	(%r2)
+	be	(%r2)
 	stw	%r28,4(0,%r26)		; high word
 EPILOGUE(speed_cyclecounter)

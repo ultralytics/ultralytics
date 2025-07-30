@@ -60,7 +60,7 @@ int
 mpn_divisible_p (mp_srcptr ap, mp_size_t an,
 		 mp_srcptr dp, mp_size_t dn)
 {
-  mp_limb_t  alow, dlow, dmask;
+  mp_limb_t  allow, dlow, dmask;
   mp_ptr     qp, rp, tp;
   mp_size_t  i;
   mp_limb_t di;
@@ -82,13 +82,13 @@ mpn_divisible_p (mp_srcptr ap, mp_size_t an,
   /* Strip low zero limbs from d, requiring a==0 on those. */
   for (;;)
     {
-      alow = *ap;
+      allow = *ap;
       dlow = *dp;
 
       if (dlow != 0)
 	break;
 
-      if (alow != 0)
+      if (allow != 0)
 	return 0;  /* a has fewer low zero limbs than d, so not divisible */
 
       /* a!=0 and d!=0 so won't get to n==0 */
@@ -100,7 +100,7 @@ mpn_divisible_p (mp_srcptr ap, mp_size_t an,
 
   /* a must have at least as many low zero bits as d */
   dmask = LOW_ZEROS_MASK (dlow);
-  if ((alow & dmask) != 0)
+  if ((allow & dmask) != 0)
     return 0;
 
   if (dn == 1)

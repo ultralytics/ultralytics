@@ -63,7 +63,7 @@ defframe(PARAM_DBLD,	12)
 defframe(PARAM_SRC,	 8)
 defframe(PARAM_DST,	 4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(VAR_COUNT,`PARAM_SIZE')
 define(SAVE_EBP,`PARAM_DBLD')
 define(SAVE_VP,`PARAM_SRC')

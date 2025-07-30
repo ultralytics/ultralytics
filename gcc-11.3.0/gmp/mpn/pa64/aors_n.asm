@@ -122,7 +122,7 @@ LDEF(1)	ldd		56(up), %r21
 ifdef(`OPERATION_sub_n',`
 	subi		1, %r29, %r29
 ')
-	bve		(%r2)
+	be		(%r2)
 ifdef(`HAVE_ABI_2_0w',
 `	copy		%r29, %r28
 ',`	ldi		0, %r28

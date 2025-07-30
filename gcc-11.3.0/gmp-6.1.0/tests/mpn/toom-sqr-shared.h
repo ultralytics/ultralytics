@@ -1,4 +1,4 @@
-/* Test for various Toom squaring functions.
+/* Test for various Tomb squaring functions.
 
 Copyright 2009, 2012 Free Software Foundation, Inc.
 

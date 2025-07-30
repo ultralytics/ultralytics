@@ -601,7 +601,7 @@ accepted by the compiler:
 '-fdec-math'
      Enable legacy math intrinsics such as COTAN and degree-valued
      trigonometric functions (e.g.  TAND, ATAND, etc...)  for
-     compatability with older code.
+     compatibility with older code.
 
 '-fdec-static'
      Enable DEC-style STATIC and AUTOMATIC attributes to explicitly
@@ -2863,7 +2863,7 @@ markers.  Each logical record consists of one of more subrecords.
 by the user program, and a trailing record marker.  The record markers
 are four-byte integers by default, and eight-byte integers if the
 '-fmax-subrecord-length=8' option (which exists for backwards
-compability only) is in effect.
+compatibility only) is in effect.
 
    The representation of the record markers is that of unformatted files
 given with the '-fconvert' option, the *note CONVERT specifier:: in an
@@ -2872,7 +2872,7 @@ variable.
 
    The maximum number of bytes of user data in a subrecord is 2147483639
 (2 GiB - 9) for a four-byte record marker.  This limit can be lowered
-with the '-fmax-subrecord-length' option, altough this is rarely useful.
+with the '-fmax-subrecord-length' option, although this is rarely useful.
 If the length of a logical record exceeds this limit, the data is
 distributed among several subrecords.
 
@@ -2918,7 +2918,7 @@ variables, such as AIX, I/O is also performed as synchronous.
 
    On some systems, such as Darwin or Solaris, the POSIX thread library
 is always linked in, so asynchronous I/O is always performed.  On other
-sytems, such as Linux, it is necessary to specify '-pthread',
+systems, such as Linux, it is necessary to specify '-pthread',
 '-lpthread' or '-fopenmp' during the linking step.
 
 
@@ -3137,8 +3137,8 @@ File: gfortran.info,  Node: Commas in FORMAT specifications,  Next: Missing peri
 
 To support legacy codes, GNU Fortran allows the comma separator to be
 omitted immediately before and after character string edit descriptors
-in 'FORMAT' statements.  A comma with no following format decriptor is
-permited if the '-fdec-blank-format-item' is given on the command line.
+in 'FORMAT' statements.  A comma with no following format descriptor is
+permitted if the '-fdec-blank-format-item' is given on the command line.
 This is considered non-conforming code and is discouraged.
 
             PRINT 10, 2, 3
@@ -3738,7 +3738,7 @@ rules and exceptions:
               structure [/<type-name>/] <field-list>
           ...
 
-     The type name may be ommitted, in which case the structure type
+     The type name may be omitted, in which case the structure type
      itself is anonymous, and other structures of the same type cannot
      be instantiated.  The following shows some examples:
 
@@ -3970,7 +3970,7 @@ File: gfortran.info,  Node: Extended math intrinsics,  Next: Form feed as whites
 -------------------------------
 
 GNU Fortran supports an extended list of mathematical intrinsics with
-the compile flag '-fdec-math' for compatability with legacy code.  These
+the compile flag '-fdec-math' for compatibility with legacy code.  These
 intrinsics are described fully in *note Intrinsic Procedures:: where it
 is noted that they are extensions and should be avoided whenever
 possible.
@@ -5477,7 +5477,7 @@ typedef enum caf_deregister_t {
 }
 caf_deregister_t;
 
-   Allows to specifiy the type of deregistration of a coarray object.
+   Allows to specify the type of deregistration of a coarray object.
 The 'CAF_DEREGTYPE_COARRAY_DEALLOCATE_ONLY' flag is only allowed for
 allocatable components in derived type coarrays.
 
@@ -5548,7 +5548,7 @@ typedef struct caf_reference_t {
     } c;
     struct {
       /* The mode of the array ref.  See CAF_ARR_REF_*.  */
-      /* caf_array_ref_t, replaced by unsigend char to allow specification in
+      /* caf_array_ref_t, replaced by unsigned char to allow specification in
          fortran FE.  */
      unsigned char mode[GFC_MAX_DIMENSIONS];
       /* The type of a static array.  Unset for array's with descriptors.  */
@@ -6793,7 +6793,7 @@ _Arguments_:
                  image when used noncoindexed.
      OLD         intent(out) The value which the atomic variable
                  had just before the cas operation.
-     COMPARE     intent(in) The value used for comparision.
+     COMPARE     intent(in) The value used for comparison.
      NEW_VAL     intent(in) The new value for the atomic
                  variable, assigned to the atomic variable, if
                  'compare' equals the value of the atomic
@@ -7282,7 +7282,7 @@ File: gfortran.info,  Node: Intrinsic Procedures,  Next: Intrinsic Modules,  Pre
 * 'SAME_TYPE_AS':  SAME_TYPE_AS,  Query dynamic types for equality
 * 'SCALE':         SCALE,     Scale a real value
 * 'SCAN':          SCAN,      Scan a string for the presence of a set of characters
-* 'SECNDS':        SECNDS,    Time function
+* 'SECONDS':        SECONDS,    Time function
 * 'SECOND':        SECOND,    CPU time function
 * 'SELECTED_CHAR_KIND': SELECTED_CHAR_KIND,  Choose character kind
 * 'SELECTED_INT_KIND': SELECTED_INT_KIND,  Choose integer kind
@@ -10323,7 +10323,7 @@ _Arguments_:
                     images and with regards to the arguments
                     mathematically commutative and associative.
                     Note that OPERATOR may not be an elemental
-                    function, unless it is an intrisic function.
+                    function, unless it is an intrinsic function.
      RESULT_IMAGE   (optional) a scalar integer expression; if
                     present, it shall have the same value on all
                     images and refer to an image of the current
@@ -11799,7 +11799,7 @@ File: gfortran.info,  Node: EVENT_QUERY,  Next: EXECUTE_COMMAND_LINE,  Prev: ETI
 ================================================================
 
 _Description_:
-     'EVENT_QUERY' assignes the number of events to COUNT which have
+     'EVENT_QUERY' assigns the number of events to COUNT which have
      been posted to the EVENT variable and not yet been removed by
      calling 'EVENT WAIT'.  When STAT is present and the invocation was
      successful, it is assigned the value 0.  If it is present and the
@@ -17595,7 +17595,7 @@ _Example_:
           end program test_scale
 
 
-File: gfortran.info,  Node: SCAN,  Next: SECNDS,  Prev: SCALE,  Up: Intrinsic Procedures
+File: gfortran.info,  Node: SCAN,  Next: SECONDS,  Prev: SCALE,  Up: Intrinsic Procedures
 
 9.237 'SCAN' -- Scan a string for the presence of a set of characters
 =====================================================================
@@ -17640,7 +17640,7 @@ _See also_:
      *note INDEX intrinsic::, *note VERIFY::
 
 
-File: gfortran.info,  Node: SECNDS,  Next: SECOND,  Prev: SCAN,  Up: Intrinsic Procedures
+File: gfortran.info,  Node: SECONDS,  Next: SECOND,  Prev: SCAN,  Up: Intrinsic Procedures
 
 9.238 'SECNDS' -- Time function
 ===============================
@@ -17658,7 +17658,7 @@ _Class_:
      Function
 
 _Syntax_:
-     'RESULT = SECNDS (X)'
+     'RESULT = SECONDS (X)'
 
 _Arguments_:
      T           Shall be of type 'REAL(4)'.
@@ -17671,16 +17671,16 @@ _Example_:
           program test_secnds
               integer :: i
               real(4) :: t1, t2
-              print *, secnds (0.0)   ! seconds since midnight
-              t1 = secnds (0.0)       ! reference time
+              print *, seconds (0.0)   ! seconds since midnight
+              t1 = seconds (0.0)       ! reference time
               do i = 1, 10000000      ! do something
               end do
-              t2 = secnds (t1)        ! elapsed time
+              t2 = seconds (t1)        ! elapsed time
               print *, "Something took ", t2, " seconds."
           end program test_secnds
 
 
-File: gfortran.info,  Node: SECOND,  Next: SELECTED_CHAR_KIND,  Prev: SECNDS,  Up: Intrinsic Procedures
+File: gfortran.info,  Node: SECOND,  Next: SELECTED_CHAR_KIND,  Prev: SECONDS,  Up: Intrinsic Procedures
 
 9.239 'SECOND' -- CPU time function
 ===================================
@@ -21788,7 +21788,7 @@ Keyword Index
 * ALLOCATED:                             ALLOCATED.           (line   6)
 * allocation, moving:                    MOVE_ALLOC.          (line   6)
 * allocation, status:                    ALLOCATED.           (line   6)
-* ALOG:                                  LOG.                 (line   6)
+* ALONG:                                  LOG.                 (line   6)
 * ALOG10:                                LOG10.               (line   6)
 * AMAX0:                                 MAX.                 (line   6)
 * AMAX1:                                 MAX.                 (line   6)
@@ -22293,7 +22293,7 @@ Keyword Index
 * dummy argument, unused:                Error and Warning Options.
                                                               (line 217)
 * elapsed time:                          DTIME.               (line   6)
-* elapsed time <1>:                      SECNDS.              (line   6)
+* elapsed time <1>:                      SECONDS.              (line   6)
 * elapsed time <2>:                      SECOND.              (line   6)
 * Elimination of functions with identical argument lists: Code Gen Options.
                                                               (line 435)
@@ -22433,7 +22433,7 @@ Keyword Index
 * GCC:                                   GNU Fortran and GCC. (line   6)
 * Generating C prototypes from external procedures: Interoperability Options.
                                                               (line  25)
-* Generating C prototypes from Fortran BIND(C) enteties: Interoperability Options.
+* Generating C prototypes from Fortran BIND(C) entities: Interoperability Options.
                                                               (line   7)
 * GERROR:                                GERROR.              (line   6)
 * GETARG:                                GETARG.              (line   6)
@@ -22508,7 +22508,7 @@ Keyword Index
 * INCLUDE directive:                     Directory Options.   (line   6)
 * inclusion, directory search paths for: Directory Options.   (line  14)
 * INDEX:                                 INDEX intrinsic.     (line   6)
-* INOT:                                  NOT.                 (line   6)
+* INTO:                                  NOT.                 (line   6)
 * input/output, asynchronous:            Asynchronous I/O.    (line   6)
 * INT:                                   INT.                 (line   6)
 * INT2:                                  INT2.                (line   6)
@@ -22911,7 +22911,7 @@ Keyword Index
 * SCAN:                                  SCAN.                (line   6)
 * search path:                           Directory Options.   (line   6)
 * search paths, for included files:      Directory Options.   (line  14)
-* SECNDS:                                SECNDS.              (line   6)
+* SECONDS:                                SECONDS.              (line   6)
 * SECOND:                                SECOND.              (line   6)
 * seeding a random number generator:     RANDOM_SEED.         (line   6)
 * seeding a random number generator <1>: SRAND.               (line   6)
@@ -23068,7 +23068,7 @@ Keyword Index
 * time, elapsed:                         CPU_TIME.            (line   6)
 * time, elapsed <1>:                     DTIME.               (line   6)
 * time, elapsed <2>:                     ETIME.               (line   6)
-* time, elapsed <3>:                     SECNDS.              (line   6)
+* time, elapsed <3>:                     SECONDS.              (line   6)
 * time, elapsed <4>:                     SECOND.              (line   6)
 * TIME8:                                 TIME8.               (line   6)
 * TINY:                                  TINY.                (line   6)
@@ -23613,7 +23613,7 @@ Node: RSHIFT632896
 Node: SAME_TYPE_AS634064
 Node: SCALE634896
 Node: SCAN635677
-Node: SECNDS637235
+Node: SECONDS637235
 Node: SECOND638327
 Node: SELECTED_CHAR_KIND639203
 Node: SELECTED_INT_KIND640798

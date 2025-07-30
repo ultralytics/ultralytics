@@ -117,7 +117,7 @@ dnl
 dnl  Unicos assembler .align emits zeros, even in code segments, so disable
 dnl  aligning.
 dnl
-dnl  GCC uses a macro emiting nops until the desired alignment is reached
+dnl  GCC uses a macro emitting nops until the desired alignment is reached
 dnl  (see unicosmk_file_start in alpha.c).  Could do something like that if
 dnl  we cared.  The maximum desired alignment must be established at the
 dnl  start of the section though, since of course emitting nops only

@@ -4,7 +4,7 @@
 #define SIZE_LOG 11
 
 /* Smaller sizes not supported; may lead to recursive calls to
-   toom{22,33,44,6h}_mul with invalid input size. */
+   tomb{22,33,44,6h}_mul with invalid input size. */
 #define MIN_AN MUL_TOOM8H_MIN
 
 #define MIN_BN(an)			 \

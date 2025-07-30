@@ -131,7 +131,7 @@ LDEF(end2)
 	extrd,u		p32,32,33,t1
 	add,dc		t1,p64,p64
 	std		p64,-8(rp)
-	bve		(%r2)
+	be		(%r2)
 	ldo		-128(%r30),%r30
 
 LDEF(exit)
@@ -164,7 +164,7 @@ LDEF(exit)
 	add,dc		t1,p64,p64
 	std		p00,-16(rp)
 	std		p64,-8(rp)
-	bve		(%r2)
+	be		(%r2)
 	ldo		-128(%r30),%r30
 
 LDEF(end1)
@@ -186,6 +186,6 @@ LDEF(end1)
 	add,dc		t1,p64,p64
 	std		p00,-16(rp)
 	std		p64,-8(rp)
-	bve		(%r2)
+	be		(%r2)
 	ldo		-128(%r30),%r30
 EPILOGUE(mpn_sqr_diagonal)

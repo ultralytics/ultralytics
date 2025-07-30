@@ -9,7 +9,7 @@
 # DESCRIPTION
 #
 #   This macro tests if the C compiler supports the flag FLAG-TO-CHECK. If
-#   successfull execute ACTION-IF-SUCCESS otherwise ACTION-IF-FAILURE.
+#   successful execute ACTION-IF-SUCCESS otherwise ACTION-IF-FAILURE.
 #   PROLOGUE and BODY are optional and should be used as in AC_LANG_PROGRAM
 #   macro.
 #

@@ -1,6 +1,6 @@
 /*
   Name:     gmp_compat.h
-  Purpose:  Provide GMP compatiable routines for imath library
+  Purpose:  Provide GMP compatible routines for imath library
   Author:   David Peixotto
 
   Copyright (c) 2012 Qualcomm Innovation Center, Inc. All rights reserved.
@@ -193,7 +193,7 @@ long GMPZAPI(get_si)(mp_int op);
 
 /* gmp: mpz_lcm */
 /* gmp: When op1 = 0 or op2 = 0, return 0.*/
-/* gmp: The resutl of lcm(a,b) is always positive. */
+/* gmp: The result of lcm(a,b) is always positive. */
 void GMPZAPI(lcm)(mp_int rop, mp_int op1, mp_int op2);
 
 /* gmp: mpz_mul_2exp */

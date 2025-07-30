@@ -3093,7 +3093,7 @@ same context.
 
 In this second use case (see below), a function in the OpenACC library
 is called prior to any of the functions in the CUBLAS library.  More
-specificially, the function 'acc_set_device_num()'.
+specifically, the function 'acc_set_device_num()'.
 
    In the use case presented here, the function 'acc_set_device_num()'
 is used to both initialize the OpenACC library and allocate the hardware

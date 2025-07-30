@@ -161,9 +161,9 @@ struct {
   { mpz_sqrt,   "mpz_sqrt",   1 },
 };
 
-#define FAIL(class,indx,op1,op2,op3)					\
+#define FAIL(class,index,op1,op2,op3)					\
   do {									\
-    dump (class[indx].fname, op1, op2, op3);				\
+    dump (class[index].fname, op1, op2, op3);				\
     exit (1);								\
   } while (0)
 

@@ -9743,7 +9743,7 @@ r7525 | demengeo | 2011-03-04 17:57:53 +0000 (Fri, 04 Mar 2011) | 1 line
 Changed paths:
    M /trunk/tests/trint.c
 
-Previous extented coverage test in trint.c now self generate tests in and compare values
+Previous extended coverage test in trint.c now self generate tests in and compare values
 ------------------------------------------------------------------------
 r7524 | demengeo | 2011-03-04 14:14:13 +0000 (Fri, 04 Mar 2011) | 1 line
 Changed paths:
@@ -19056,7 +19056,7 @@ r6348 | thevenyp | 2009-07-30 16:22:55 +0000 (Thu, 30 Jul 2009) | 2 lines
 Changed paths:
    M /trunk/tests/Makefile.am
 
-tests/Makefile.am: Strech check_PROGRAMS list to ease insertion of new tests.
+tests/Makefile.am: Stretch check_PROGRAMS list to ease insertion of new tests.
 
 ------------------------------------------------------------------------
 r6347 | thevenyp | 2009-07-30 16:03:04 +0000 (Thu, 30 Jul 2009) | 2 lines
@@ -20513,7 +20513,7 @@ r6104 | lfousse | 2009-03-15 20:44:23 +0000 (Sun, 15 Mar 2009) | 2 lines
 Changed paths:
    M /trunk/mpfr.h
 
-Add protoype for mpfr_min_prec in mpfr.h.
+Add prototype for mpfr_min_prec in mpfr.h.
 
 ------------------------------------------------------------------------
 r6103 | lfousse | 2009-03-15 20:34:33 +0000 (Sun, 15 Mar 2009) | 2 lines
@@ -25003,7 +25003,7 @@ Further code clean-up (and consistency) based on icc warnings:
   * Avoid hiding variable declarations.
   * Use #ifdef BOOL_MACRO instead of #if BOOL_MACRO.
   * In MPFR_RNDRAW_GEN macro definition, variables declared locally now
-    start with an underscore to avoid possible conflits with parameters
+    start with an underscore to avoid possible conflicts with parameters
     (and modified macro calls that use these variables).
 ------------------------------------------------------------------------
 r5491 | vlefevre | 2008-08-07 17:13:16 +0000 (Thu, 07 Aug 2008) | 1 line
@@ -28074,7 +28074,7 @@ Changed paths:
    M /trunk/tests/tprintf.c
    M /trunk/vasprintf.c
 
-exponent continuity with one hexadecimal digit ouput
+exponent continuity with one hexadecimal digit output
 
 ------------------------------------------------------------------------
 r5104 | thevenyp | 2007-12-17 14:41:58 +0000 (Mon, 17 Dec 2007) | 2 lines
@@ -39564,7 +39564,7 @@ Changed paths:
    M /trunk/extract.c
    M /trunk/strtofr.c
 
-Fix warnings due to comparaison between signed and unsigned.
+Fix warnings due to comparison between signed and unsigned.
 Reinclude string.h for strtofr.
 
 ------------------------------------------------------------------------
@@ -39802,7 +39802,7 @@ Changed paths:
    M /trunk/COPYING
    M /trunk/COPYING.LIB
 
-Forget thoses two. Update from FSF site.
+Forget those two. Update from FSF site.
 
 ------------------------------------------------------------------------
 r3607 | pelissip | 2005-06-02 16:16:17 +0000 (Thu, 02 Jun 2005) | 2 lines
@@ -40528,7 +40528,7 @@ r3561 | pelissip | 2005-05-17 08:52:13 +0000 (Tue, 17 May 2005) | 5 lines
 Changed paths:
    M /trunk/cos.c
 
-Reformating code.
+Reformatting code.
 Fix potential (?) overflow for very large precision.
 Various tiny optimizations
 Improve the initial estimation of the needed precision.
@@ -40978,7 +40978,7 @@ r3504 | pelissip | 2005-05-01 09:21:43 +0000 (Sun, 01 May 2005) | 2 lines
 Changed paths:
    M /trunk/tests/reuse.c
 
-Add new funcions in reuse test.
+Add new functions in reuse test.
 
 ------------------------------------------------------------------------
 r3503 | zimmerma | 2005-04-30 11:03:47 +0000 (Sat, 30 Apr 2005) | 2 lines
@@ -41422,7 +41422,7 @@ r3436 | pelissip | 2005-04-07 13:35:38 +0000 (Thu, 07 Apr 2005) | 2 lines
 Changed paths:
    M /trunk/tests/terf.c
 
-Reenable tests.
+Re-enable tests.
 
 ------------------------------------------------------------------------
 r3435 | pelissip | 2005-04-07 11:58:52 +0000 (Thu, 07 Apr 2005) | 2 lines
@@ -41670,7 +41670,7 @@ r3405 | pelissip | 2005-03-24 10:47:41 +0000 (Thu, 24 Mar 2005) | 3 lines
 Changed paths:
    M /trunk/mul.c
 
-Fix wrong extimated precision.
+Fix wrong estimated precision.
 It is log2(n+2) ulps so that log2(log2(n+2)) bits!
 
 ------------------------------------------------------------------------
@@ -42250,7 +42250,7 @@ r3332 | pelissip | 2005-02-16 16:04:54 +0000 (Wed, 16 Feb 2005) | 2 lines
 Changed paths:
    M /trunk/tests/tpow.c
 
-Reenable underflow tests.
+Re-enable underflow tests.
 
 ------------------------------------------------------------------------
 r3331 | pelissip | 2005-02-16 15:58:48 +0000 (Wed, 16 Feb 2005) | 2 lines
@@ -42366,7 +42366,7 @@ Changed paths:
    M /trunk/tanh.c
    M /trunk/zeta.c
 
-Log input and ouput of functions.
+Log input and output of functions.
 
 ------------------------------------------------------------------------
 r3314 | pelissip | 2005-02-15 10:06:39 +0000 (Tue, 15 Feb 2005) | 2 lines
@@ -42636,7 +42636,7 @@ Update GMP detection to be much more libtool compatible.
 As a consequence some tests using AC_RUN_IFELSE may fail due to ugly things
 like LD_LIBRARY_PATH no set or wrong selection of libgmp.
 So they just produce a warning, not a fatal error.
-TODO: Check if we can avoid thoses problems...
+TODO: Check if we can avoid those problems...
 
 ------------------------------------------------------------------------
 r3283 | pelissip | 2005-02-08 15:49:12 +0000 (Tue, 08 Feb 2005) | 3 lines
@@ -43845,7 +43845,7 @@ r3141 | pelissip | 2004-12-15 14:22:50 +0000 (Wed, 15 Dec 2004) | 2 lines
 Changed paths:
    M /trunk/mpfr.h
 
-Remove thread attribut until I found a good way to use it.
+Remove thread attribute until I found a good way to use it.
 
 ------------------------------------------------------------------------
 r3140 | pelissip | 2004-12-15 10:49:11 +0000 (Wed, 15 Dec 2004) | 2 lines
@@ -43874,7 +43874,7 @@ r3137 | pelissip | 2004-12-15 09:04:07 +0000 (Wed, 15 Dec 2004) | 2 lines
 Changed paths:
    M /trunk/configure.in
 
-New way of detecting GMP libraray, which should be more portable.
+New way of detecting GMP library, which should be more portable.
 
 ------------------------------------------------------------------------
 r3136 | pelissip | 2004-12-14 12:30:30 +0000 (Tue, 14 Dec 2004) | 2 lines
@@ -43994,7 +43994,7 @@ r3123 | pelissip | 2004-12-09 14:31:23 +0000 (Thu, 09 Dec 2004) | 2 lines
 Changed paths:
    M /trunk/mpfr.h
 
-Add support for new attribut sentinel in incoming GCC 4.0
+Add support for new attribute sentinel in incoming GCC 4.0
 
 ------------------------------------------------------------------------
 r3122 | pelissip | 2004-12-09 13:23:25 +0000 (Thu, 09 Dec 2004) | 2 lines
@@ -44015,7 +44015,7 @@ Changed paths:
 
 Optimize mpfr_set4.
 Inline rounding in mpfr_set4 and mpfr_cache
-mpfr_set4 dosn't return MPFR_EVEN_INEX (It was undocumented before).
+mpfr_set4 doesn't return MPFR_EVEN_INEX (It was undocumented before).
 Fix problems with tests (Avoid mixing MPFR_EVEN_INEX and 1).
 Add MPFR_RNDRAW_EVEN for rounding with MPFR_EVEN_INEX inexact support
 
@@ -44924,7 +44924,7 @@ Changed paths:
    M /trunk/mpfr.texi
 
 Update documentation and NEWS to reflect new functions
-and functionnality.
+and functionality.
 
 ------------------------------------------------------------------------
 r3008 | pelissip | 2004-09-29 12:28:17 +0000 (Wed, 29 Sep 2004) | 2 lines
@@ -45016,7 +45016,7 @@ r3000 | pelissip | 2004-09-28 07:53:46 +0000 (Tue, 28 Sep 2004) | 4 lines
 Changed paths:
    M /trunk/div.c
 
-Replace variable 'near' to 'the_real_near' since MSVC incorreclty
+Replace variable 'near' to 'the_real_near' since MSVC incorrectly
 recognize "far" and "near" as obsolete keywords (100% incorrect, and
 clearly MSVC fault but it doesn't cost many things to change the name).
 
@@ -45336,7 +45336,7 @@ Changed paths:
    M /trunk/tests/tget_z.c
 
 Rename mpz_set_fr to mpfr_get_z.
-Provide a conditionnal macro for mpz_set_fr.
+Provide a conditional macro for mpz_set_fr.
 
 ------------------------------------------------------------------------
 r2959 | pelissip | 2004-08-31 09:20:41 +0000 (Tue, 31 Aug 2004) | 2 lines
@@ -48020,7 +48020,7 @@ r2634 | pelissip | 2004-01-19 16:05:24 +0000 (Mon, 19 Jan 2004) | 2 lines
 Changed paths:
    M /trunk/sub1sp.c
 
-Reenable the cmp between inexact flags.
+Re-enable the cmp between inexact flags.
 
 ------------------------------------------------------------------------
 r2633 | pelissip | 2004-01-19 16:03:30 +0000 (Mon, 19 Jan 2004) | 4 lines
@@ -48218,7 +48218,7 @@ r2616 | pelissip | 2004-01-09 08:58:24 +0000 (Fri, 09 Jan 2004) | 3 lines
 Changed paths:
    M /trunk/isinteger.c
 
-+ Simplify the signular code.
++ Simplify the singular code.
 + Fix potential type errors. (Used mpfr_prec_t instead of mpfr_uexp_t).
 
 ------------------------------------------------------------------------
@@ -48331,7 +48331,7 @@ Changed paths:
 
 Fix bug of sub1sp.c on sparck.
 Add new tests for sub1sp.
-Reenable sub1sp for mpfr_add / mpfr_sub.
+Re-enable sub1sp for mpfr_add / mpfr_sub.
 
 ------------------------------------------------------------------------
 r2601 | pelissip | 2004-01-07 14:04:30 +0000 (Wed, 07 Jan 2004) | 2 lines
@@ -48693,7 +48693,7 @@ Changed paths:
    M /trunk/tests/tsub1sp.c
 
 + Add a new test in case of underflow.
-+ Fix bug in case of underflow for sub1 / sub1sp (mpfr_powerof2 could be called with inalid numbers).
++ Fix bug in case of underflow for sub1 / sub1sp (mpfr_powerof2 could be called with invalid numbers).
 
 ------------------------------------------------------------------------
 r2570 | pelissip | 2003-12-09 14:58:26 +0000 (Tue, 09 Dec 2003) | 3 lines
@@ -48739,7 +48739,7 @@ Changed paths:
 
 + Add function mpfr_print_mantissa_binary, for debugging reason.
 + Rename MPFR_ALLOC_SIZE in MPFR_MALLOC_SIZE.
-+ Add conditionnal -DSMALL directive in mpfr-impl.h.
++ Add conditional -DSMALL directive in mpfr-impl.h.
 + Add new function: sub1sp.
    Subtraction in case of all the ops have the same prec.
 + Add its test (tsub1sp).
@@ -48794,7 +48794,7 @@ Changed paths:
    M /trunk/mpfr-impl.h
    M /trunk/sub1.c
 
-Optmize a few add1.c/sub1.c by using MPFR_LIKELY / MPFR_UNLIKELY.
+Optimize a few add1.c/sub1.c by using MPFR_LIKELY / MPFR_UNLIKELY.
 
 ------------------------------------------------------------------------
 r2563 | pelissip | 2003-11-21 16:26:19 +0000 (Fri, 21 Nov 2003) | 2 lines
@@ -48819,7 +48819,7 @@ Changed paths:
    M /trunk/sub1.c
    M /trunk/zeta.c
 
-Remove some warnings and potential errors (Comparaison between signed and unsigned).
+Remove some warnings and potential errors (Comparison between signed and unsigned).
 
 ------------------------------------------------------------------------
 r2562 | pelissip | 2003-11-21 15:27:35 +0000 (Fri, 21 Nov 2003) | 4 lines
@@ -56166,7 +56166,7 @@ Changed paths:
    M /trunk/tests/tui_div.c
    M /trunk/tests/tui_sub.c
 
-- use mpfr_test_init to initialize harware floats
+- use mpfr_test_init to initialize hardware floats
 - use #ifdef HAVE_INFS when using DBL_NAN, ...
 - fixed some problems with wrongly converted f-p values (esp. under IRIX)
 
@@ -56729,7 +56729,7 @@ r1723 | daney | 2002-03-11 12:38:44 +0000 (Mon, 11 Mar 2002) | 2 lines
 Changed paths:
    A /trunk/cbrt.c
 
-add cbrt in fonctionnality
+add cbrt in functionality
 
 ------------------------------------------------------------------------
 r1722 | vlefevre | 2002-03-11 10:53:10 +0000 (Mon, 11 Mar 2002) | 2 lines
@@ -57251,7 +57251,7 @@ r1684 | daney | 2002-02-06 15:34:46 +0000 (Wed, 06 Feb 2002) | 2 lines
 Changed paths:
    M /trunk/acosh.c
 
-chnage the return values
+change the return values
 
 ------------------------------------------------------------------------
 r1683 | daney | 2002-02-06 15:34:15 +0000 (Wed, 06 Feb 2002) | 2 lines
@@ -57505,7 +57505,7 @@ r1656 | daney | 2002-01-18 09:51:03 +0000 (Fri, 18 Jan 2002) | 2 lines
 Changed paths:
    M /trunk/fma.c
 
-Change indendation + replace "" -> <> in header
+Change indentation + replace "" -> <> in header
 
 ------------------------------------------------------------------------
 r1655 | vlefevre | 2002-01-17 21:45:41 +0000 (Thu, 17 Jan 2002) | 2 lines
@@ -58445,7 +58445,7 @@ r1555 | daney | 2001-11-16 14:04:13 +0000 (Fri, 16 Nov 2001) | 2 lines
 Changed paths:
    M /trunk/sinh.c
 
-remve math.h
+remove math.h
 
 ------------------------------------------------------------------------
 r1554 | zimmerma | 2001-11-16 14:04:06 +0000 (Fri, 16 Nov 2001) | 2 lines
@@ -58489,7 +58489,7 @@ r1549 | hanrot | 2001-11-16 13:23:43 +0000 (Fri, 16 Nov 2001) | 2 lines
 Changed paths:
    M /trunk/div.c
 
-if () remplace par if ( ==0) ou if ( != 0)
+if () replace par if ( ==0) ou if ( != 0)
 
 ------------------------------------------------------------------------
 r1548 | zimmerma | 2001-11-16 13:22:13 +0000 (Fri, 16 Nov 2001) | 2 lines
@@ -59690,7 +59690,7 @@ r1432 | daney | 2001-10-26 15:29:28 +0000 (Fri, 26 Oct 2001) | 2 lines
 Changed paths:
    M /trunk/fma.c
 
-mixed version beetwen DD and Pau => (gestion des flag inexacte dirige)
+mixed version between DD and Pau => (gestion des flag inexacte dirige)
 
 ------------------------------------------------------------------------
 r1431 | daney | 2001-10-26 15:28:31 +0000 (Fri, 26 Oct 2001) | 2 lines
@@ -61144,7 +61144,7 @@ r1235 | zimmerma | 2001-10-12 12:18:10 +0000 (Fri, 12 Oct 2001) | 2 lines
 Changed paths:
    M /trunk/set_d.c
 
-implemeted inexact flag in mpfr_set_d
+implemented inexact flag in mpfr_set_d
 
 ------------------------------------------------------------------------
 r1234 | zimmerma | 2001-10-12 12:17:24 +0000 (Fri, 12 Oct 2001) | 2 lines
@@ -62313,7 +62313,7 @@ r1083 | daney | 2001-05-10 09:19:25 +0000 (Thu, 10 May 2001) | 2 lines
 Changed paths:
    M /trunk/mpfr.texi
 
-correction du bug donne par vincent + ajout des aides des fonctions hyperbolic
+correction du bug donne par vincent + ajout des aides des functions hyperbolic
 
 ------------------------------------------------------------------------
 r1082 | daney | 2001-05-09 15:26:28 +0000 (Wed, 09 May 2001) | 2 lines
@@ -68553,7 +68553,7 @@ r321 | hanrot | 1999-07-06 12:40:17 +0000 (Tue, 06 Jul 1999) | 2 lines
 Changed paths:
    M /trunk/sqrt3.c
 
-The word added when the exponent is odd was sometimes unitialized.
+The word added when the exponent is odd was sometimes uninitialized.
 
 ------------------------------------------------------------------------
 r320 | hanrot | 1999-07-06 09:39:42 +0000 (Tue, 06 Jul 1999) | 2 lines
@@ -70311,7 +70311,7 @@ Changed paths:
    M /trunk/add.c
    M /trunk/mul.c
 
-Gere differemment les problemes d'egalite entre destinations et arguments.
+Gere differemment les problems d'egalite entre destinations et arguments.
 
 ------------------------------------------------------------------------
 r79 | hanrot | 1999-06-16 11:42:18 +0000 (Wed, 16 Jun 1999) | 2 lines
@@ -70583,7 +70583,7 @@ r44 | hanrot | 1999-06-15 09:26:56 +0000 (Tue, 15 Jun 1999) | 2 lines
 Changed paths:
    M /trunk/Configure
 
-Ajout de random.o dans les objets.
+Ajout de random.o dans les objects.
 
 ------------------------------------------------------------------------
 r43 | hanrot | 1999-06-15 09:26:26 +0000 (Tue, 15 Jun 1999) | 3 lines

@@ -83,7 +83,7 @@ ifdef(`HAVE_ABI_2_0n',
 `	copy		%r28,%r29
 	extrd,u		%r28,31,32,%r28
 ')
-	bve		(%r2)
+	be		(%r2)
 	std		n1,0(remptr)	C store remainder
 
 LDEF(large_divisor)
@@ -120,6 +120,6 @@ ifdef(`HAVE_ABI_2_0n',
 `	copy		%r28,%r29
 	extrd,u		%r28,31,32,%r28
 ')
-	bve		(%r2)
+	be		(%r2)
 	std		n1,0(remptr)	C store remainder
 EPILOGUE(mpn_udiv_qrnnd_r)

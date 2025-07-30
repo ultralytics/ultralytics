@@ -8775,7 +8775,7 @@ message types listed after '-fopt-info' does not matter.
  Here the two output file names 'vec.miss' and 'loop.opt' are in
 conflict since only one output file is allowed.  In this case, only the
 first option takes effect and the subsequent options are ignored.  Thus
-only the 'vec.miss' is produced which containts dumps from the
+only the 'vec.miss' is produced which contains dumps from the
 vectorizer about missed opportunities.
 
 
@@ -8858,7 +8858,7 @@ must be a nonnegative integer.  An indeterminate value of 0 should
 usually represent the minimum possible runtime value, with C0 specifying
 the value in that case.
 
- For example, when targetting the Arm SVE ISA, the single indeterminate
+ For example, when targeting the Arm SVE ISA, the single indeterminate
 represents the number of 128-bit blocks in a vector _beyond the minimum
 length of 128 bits_.  Thus the number of 64-bit doublewords in a vector
 is 2 + 2 * X1.  If an aggregate has a single SVE vector and 16
@@ -9608,7 +9608,7 @@ whether such a conversion would succeed.
 'wi::shwi (VALUE, PRECISION)'
      Return a 'poly_int' with the same value as VALUE, but with the
      coefficients converted from 'HOST_WIDE_INT' to 'wide_int'.
-     PRECISION specifies the precision of the 'wide_int' cofficients; if
+     PRECISION specifies the precision of the 'wide_int' coefficients; if
      this is wider than a 'HOST_WIDE_INT', the coefficients of VALUE
      will be sign-extended to fit.
 
@@ -9743,7 +9743,7 @@ needs to be given once.  For example:
  Target-specific code in 'config/CPU' only needs to handle non-constant
 'poly_int's if 'NUM_POLY_INT_COEFFS' is greater than one.  For other
 targets, 'poly_int' degenerates to a compile-time constant and is often
-interchangable with a normal scalar integer.  There are two main
+interchangeable with a normal scalar integer.  There are two main
 exceptions:
 
    * Sometimes an explicit cast to an integer type might be needed, such
@@ -15432,7 +15432,7 @@ representing variables.  Any node for which 'SSA_VAR_P' returns nonzero
 is considered when scanning statement operands.  However, not all
 'SSA_VAR_P' variables are processed in the same way.  For the purposes
 of optimization, we need to distinguish between references to local
-scalar variables and references to globals, statics, structures, arrays,
+scalar variables and references to globals, statistics, structures, arrays,
 aliased variables, etc.  The reason is simple, the compiler can gather
 complete data flow information for a local scalar.  On the other hand, a
 global variable may be modified by a function call, it may not be
@@ -19826,7 +19826,7 @@ passes will then want to do:
  However, this is purely a matter of taste, and the examples in the rest
 of this section do not require it.
 
- The RTL SSA represention is an optional on-the-side feature that
+ The RTL SSA representation is an optional on-the-side feature that
 applies on top of the normal RTL instructions.  It is currently local to
 individual RTL passes and is not maintained across passes.
 
@@ -19907,7 +19907,7 @@ There is a one-to-one mapping between these 'rtl_ssa:bb_info' structures
 and the underlying CFG 'basic_block' structures (*note Basic Blocks::).
 
  If a CFG basic block BB contains an RTL instruction INSN, the RTL SSA
-represenation of BB also contains an RTL SSA representation of INSN(1).
+representation of BB also contains an RTL SSA representation of INSN(1).
 Within RTL SSA, these instructions are referred to as "real"
 instructions.  These real instructions fall into two groups: debug
 instructions and nondebug instructions.  Only nondebug instructions
@@ -20918,7 +20918,7 @@ speed.  In such cases it is useful to know information about how often
 some given block will be executed.  That is the purpose for maintaining
 profile within the flow graph.  GCC can handle profile information
 obtained through "profile feedback", but it can also estimate branch
-probabilities based on statics and heuristics.
+probabilities based on statistics and heuristics.
 
  The feedback based profile is produced by compiling the program with
 instrumentation, executing it on a train run and reading the numbers of
@@ -21779,7 +21779,7 @@ comment, unless the semicolon is inside a quoted string.
 * Dependent Patterns::  Having one pattern may make you need another.
 * Jump Patterns::       Special considerations for patterns for jump insns.
 * Looping Patterns::    How to define patterns for special looping insns.
-* Insn Canonicalizations::Canonicalization of Instructions
+* Insn Canonicalization::Canonicalization of Instructions
 * Expander Definitions::Generating a sequence of several RTL insns
                         for a standard operation.
 * Insn Splitting::      Splitting Instructions into Multiple Instructions.
@@ -21852,7 +21852,7 @@ template or C code to generate the assembler output.
  A 'define_insn' is an RTL expression containing four or five operands:
 
   1. An optional name N.  When a name is present, the compiler
-     automically generates a C++ function 'gen_N' that takes the
+     automatically generates a C++ function 'gen_N' that takes the
      operands of the instruction as arguments and returns the
      instruction's rtx pattern.  The compiler also assigns the
      instruction a unique code 'CODE_FOR_N', with all such codes
@@ -23414,7 +23414,7 @@ _ARC --'config/arc/constraints.md'_
 
      'Cal'
           constant for arithmetic/logical operations.  This might be any
-          constant that can be put into a long immediate by the assmbler
+          constant that can be put into a long immediate by the assembler
           or linker without involving a PIC relocation.
 
      'K'
@@ -25788,9 +25788,9 @@ for size uses alternatives that are not preferred for size, and
 similarly for speed.
 
  Although 'define_insn's can in principle specify the 'enabled'
-attribute directly, it is often clearer to have subsiduary attributes
+attribute directly, it is often clearer to have subsidiary attributes
 for each architectural feature of interest.  The 'define_insn's can then
-use these subsiduary attributes to say which alternatives require which
+use these subsidiary attributes to say which alternatives require which
 features.  The example below does this for 'cpu_facility'.
 
  E.g.  the following two patterns could easily be merged using the
@@ -28527,7 +28527,7 @@ pattern to accomplish a certain task.
      initialize all of the optabs at once with 'init_sync_libfuncs'.
      For the purposes of C++11 'std::atomic::is_lock_free', it is
      assumed that these library calls do _not_ use any kind of
-     interruptable locking.
+     interruptible locking.
 
 'sync_addMODE', 'sync_subMODE'
 'sync_iorMODE', 'sync_andMODE'
@@ -28674,7 +28674,7 @@ pattern to accomplish a certain task.
      to be used.
 
      If this pattern is not present, the built-in function
-     '__atomic_exchange' will attempt to preform the operation with a
+     '__atomic_exchange' will attempt to perform the operation with a
      compare and swap loop.
 
 'atomic_addMODE', 'atomic_subMODE'
@@ -28952,7 +28952,7 @@ and only one set of conditional branch instructions as in the PowerPC.
    (1) 'note' insns can separate them, though.
 
 
-File: gccint.info,  Node: Looping Patterns,  Next: Insn Canonicalizations,  Prev: Jump Patterns,  Up: Machine Desc
+File: gccint.info,  Node: Looping Patterns,  Next: Insn Canonicalization,  Prev: Jump Patterns,  Up: Machine Desc
 
 17.13 Defining Looping Instruction Patterns
 ===========================================
@@ -29073,7 +29073,7 @@ since the machine instruction to be used only exists for 'HImode'.
 Otherwise, the compiler will fail during loop optimization.
 
 
-File: gccint.info,  Node: Insn Canonicalizations,  Next: Expander Definitions,  Prev: Looping Patterns,  Up: Machine Desc
+File: gccint.info,  Node: Insn Canonicalization,  Next: Expander Definitions,  Prev: Looping Patterns,  Up: Machine Desc
 
 17.14 Canonicalization of Instructions
 ======================================
@@ -29085,7 +29085,7 @@ instructions.  In such cases, the compiler attempts to convert these
 multiple RTL expressions into a single canonical form to reduce the
 number of insn patterns required.
 
- In addition to algebraic simplifications, following canonicalizations
+ In addition to algebraic simplifications, following canonicalization
 are performed:
 
    * For commutative and comparison operators, a constant is always made
@@ -29195,7 +29195,7 @@ are performed:
 'commutative_operand_precedence' in 'gcc/rtlanal.c'.
 
 
-File: gccint.info,  Node: Expander Definitions,  Next: Insn Splitting,  Prev: Insn Canonicalizations,  Up: Machine Desc
+File: gccint.info,  Node: Expander Definitions,  Next: Insn Splitting,  Prev: Insn Canonicalization,  Up: Machine Desc
 
 17.15 Defining RTL Sequences for Code Generation
 ================================================
@@ -30648,7 +30648,7 @@ than a single instruction as in '"mvcle\t%0,%1,0\;jo\t.-4"'.
 instruction string is generated via C code.
 
  An existing 'mnemonic' attribute set in an insn definition will not be
-overriden by the md file parser.  That way it is possible to manually
+overridden by the md file parser.  That way it is possible to manually
 set the instruction mnemonics for the cases where the md file parser
 fails to determine it automatically.
 
@@ -32776,7 +32776,7 @@ File: gccint.info,  Node: Per-Function Data,  Next: Storage Layout,  Prev: Run-t
 
 If the target needs to store information on a per-function basis, GCC
 provides a macro and a couple of variables to allow this.  Note, just
-using statics to store the information is a bad idea, since GCC supports
+using statistics to store the information is a bad idea, since GCC supports
 nested functions, so you can be halfway through encoding one function
 when another one comes along.
 
@@ -32937,7 +32937,7 @@ expressions that refer to static variables, such as the 'target_flags'.
      applied.  TYPE is either 'EXCESS_PRECISION_TYPE_IMPLICIT',
      'EXCESS_PRECISION_TYPE_FAST', or 'EXCESS_PRECISION_TYPE_STANDARD'.
      For 'EXCESS_PRECISION_TYPE_IMPLICIT', the target should return
-     which precision and range operations will be implictly evaluated in
+     which precision and range operations will be implicitly evaluated in
      regardless of the excess precision explicitly added.  For
      'EXCESS_PRECISION_TYPE_STANDARD' and 'EXCESS_PRECISION_TYPE_FAST',
      the target should return the explicit excess precision that should
@@ -33516,7 +33516,7 @@ languages, rather than to fundamental aspects of storage layout.
 
  -- Macro: LIBGCC2_GNU_PREFIX
      This macro corresponds to the 'TARGET_LIBFUNC_GNU_PREFIX' target
-     hook and should be defined if that hook is overriden to be true.
+     hook and should be defined if that hook is overridden to be true.
      It causes function names in libgcc to be changed to use a '__gnu_'
      prefix for their name rather than the default '__'.  A port which
      uses this macro should also arrange to use 't-gnu-prefix' in the
@@ -34527,7 +34527,7 @@ return.
      intermediate register to the destination.  An intermediate register
      always has the same mode as source and destination.  Since it holds
      the actual value being copied, reload might apply optimizations to
-     re-use an intermediate register and eliding the copy from the
+     reuse an intermediate register and eliding the copy from the
      source when it can determine that the intermediate register still
      holds the required value.
 
@@ -36230,7 +36230,7 @@ the stack.
      the '__builtin_' prefix in addition to the normal built-in function
      with the '__builtin_' prefix.  The default is to only enable
      built-in functions without the '__builtin_' prefix for the GNU C
-     langauge.  In strict ANSI/ISO mode, the built-in function without
+     language.  In strict ANSI/ISO mode, the built-in function without
      the '__builtin_' prefix is not enabled.  The argument 'FUNC' is the
      'enum built_in_function' id of the function to be enabled.
 
@@ -38097,7 +38097,7 @@ do not affect it.  The latter category includes most RISC machines.
  The implicit clobbering poses a strong restriction on the placement of
 the definition and use of the condition code.  In the past the
 definition and use were always adjacent.  However, recent changes to
-support trapping arithmatic may result in the definition and user being
+support trapping arithmetic may result in the definition and user being
 in different blocks.  Thus, there may be a 'NOTE_INSN_BASIC_BLOCK'
 between them.  Additionally, the definition may be the source of
 exception handling edges.
@@ -41226,7 +41226,7 @@ region.
      labels and generate code to register the frames.
 
      This might be necessary, for instance, if the system linker will
-     not place the eh_frames in-between the sentinals from 'crtstuff.c',
+     not place the eh_frames in-between the sentinels from 'crtstuff.c',
      or if the system linker does garbage collection and sections cannot
      be marked as not to be collected.
 
@@ -43337,7 +43337,7 @@ Here are several miscellaneous parameters.
      branch, it may have to move IV value from hardware count register
      to general purpose register while doloop IV candidate is used for
      address IV uses.  It probably takes expensive penalty.  This hook
-     allows target owners to define the cost for this escpecially for
+     allows target owners to define the cost for this especially for
      address IV uses.  The default value is zero.
 
  -- Target Hook: bool TARGET_CAN_USE_DOLOOP_P (const widest_int
@@ -43476,11 +43476,11 @@ Here are several miscellaneous parameters.
  -- Target Hook: rtx TARGET_GEN_CCMP_FIRST (rtx_insn **PREP_SEQ,
           rtx_insn **GEN_SEQ, int CODE, tree OP0, tree OP1)
      This function prepares to emit a comparison insn for the first
-     compare in a sequence of conditional comparisions.  It returns an
+     compare in a sequence of conditional comparisons.  It returns an
      appropriate comparison with 'CC' for passing to 'gen_ccmp_next' or
      'cbranch_optab'.  The insns to prepare the compare are saved in
      PREP_SEQ and the compare insns are saved in GEN_SEQ.  They will be
-     emitted when all the compares in the conditional comparision are
+     emitted when all the compares in the conditional comparison are
      generated without error.  CODE is the 'rtx_code' of the compare for
      OP0 and OP1.
 
@@ -43492,7 +43492,7 @@ Here are several miscellaneous parameters.
      comparison with 'CC' for passing to 'gen_ccmp_next' or
      'cbranch_optab'.  The insns to prepare the compare are saved in
      PREP_SEQ and the compare insns are saved in GEN_SEQ.  They will be
-     emitted when all the compares in the conditional comparision are
+     emitted when all the compares in the conditional comparison are
      generated without error.  The PREV expression is the result of a
      prior call to 'gen_ccmp_first' or 'gen_ccmp_next'.  It may return
      'NULL' if the combination of PREV and this comparison is not
@@ -43800,7 +43800,7 @@ Here are several miscellaneous parameters.
      current compilation for the second case.
 
      For targets that have no processors that can execute instructions
-     speculatively an alternative implemenation of this hook is
+     speculatively an alternative implementation of this hook is
      available: simply redefine this hook to
      'speculation_safe_value_not_needed' along with your other target
      hooks.
@@ -44631,7 +44631,7 @@ helpful when you have a complicated expression.
 'for_user'
 
      Use this to mark types that need to be marked by user gc routines,
-     but are not refered to in a template argument.  So if you have some
+     but are not referred to in a template argument.  So if you have some
      user gc type T1 and a non user gc type T2 you can give T2 the
      for_user option so that the marking functions for T1 can call non
      mangled functions to mark T2.
@@ -44685,7 +44685,7 @@ helpful when you have a complicated expression.
      'deletable', when applied to a global variable, indicates that when
      garbage collection runs, there's no need to mark anything pointed
      to by this variable, it can just be set to 'NULL' instead.  This is
-     used to keep a list of free structures around for re-use.
+     used to keep a list of free structures around for reuse.
 
 'maybe_undef'
 
@@ -46206,7 +46206,7 @@ File: gccint.info,  Node: GIMPLE API,  Next: The Language,  Up: Match and Simpli
  -- GIMPLE function: tree gimple_simplify (enum built_in_function, tree,
           tree, tree, tree, gimple_seq *, tree (*)(tree))
      The main GIMPLE API entry to the expression simplifications
-     mimicing that of the GENERIC fold_{unary,binary,ternary} functions.
+     mimicking that of the GENERIC fold_{unary,binary,ternary} functions.
 
  thus providing n-ary overloads for operation or function.  The
 additional arguments are a gimple_seq where built statements are
@@ -46219,7 +46219,7 @@ hook:
 
  -- bool: fold_stmt (gimple_stmt_iterator *, tree (*)(tree));
 
- Ontop of these a 'fold_buildN'-like API for GIMPLE is introduced:
+ On top of these a 'fold_buildN'-like API for GIMPLE is introduced:
 
  -- GIMPLE function: tree gimple_build (gimple_seq *, location_t, enum
           tree_code, tree, tree, tree (*valueize) (tree) = NULL);
@@ -46271,7 +46271,7 @@ function code names in all-caps, like 'BUILT_IN_SQRT'.
 
  '@n' denotes a so-called capture.  It captures the operand and lets you
 refer to it in other places of the match-and-simplify.  In the above
-example it is refered to in the replacement expression.  Captures are
+example it is referred to in the replacement expression.  Captures are
 '@' followed by a number or an identifier.
 
      (simplify
@@ -46296,7 +46296,7 @@ you cannot generate expressions in C code).
  Here '@0' captures the first operand of the trunc_mod expression which
 is also predicated with 'integer_zerop'.  Expression operands may be
 either expressions, predicates or captures.  Captures can be
-unconstrained or capture expresions or predicates.
+unconstrained or capture expressions or predicates.
 
  This example introduces an optional operand of simplify, the
 if-expression.  This condition is evaluated after the expression matched
@@ -46388,7 +46388,7 @@ and 'GENERIC' and using preprocessor directives.
        (bit_and @1 @0))
 
  Here we introduce flags on match expressions.  The flag used above,
-'c', denotes that the expression should be also matched commutated.
+'c', denotes that the expression should be also matched commuted.
 Thus the above match expression is really the following four match
 expressions:
 
@@ -46397,7 +46397,7 @@ expressions:
        (bit_and integral_op_p@0 (bit_ior @1 (bit_not @0)))
        (bit_and (bit_ior @1 (bit_not @0)) integral_op_p@0)
 
- Usual canonicalizations you know from GENERIC expressions are applied
+ Usual canonicalization you know from GENERIC expressions are applied
 before matching, so for example constant operands always come second in
 commutative expressions.
 
@@ -46451,9 +46451,9 @@ plus'; 'minus, plus, minus'.
 
  So this example iterates over 'plus', 'minus', 'mult' and 'trunc_div'.
 
- Using operator lists can also remove the need to explicitely write a
+ Using operator lists can also remove the need to explicitly write a
 'for'.  All operator list uses that appear in a 'simplify' or 'match'
-pattern in operator positions will implicitely be added to a new 'for'.
+pattern in operator positions will implicitly be added to a new 'for'.
 For example
 
      (define_operator_list SQRT BUILT_IN_SQRTF BUILT_IN_SQRT BUILT_IN_SQRTL)
@@ -46489,7 +46489,7 @@ a generated expression with the ':type' syntax where 'type' needs to be
 an identifier that refers to the desired type.  Usually the types of the
 generated result expressions are determined from the context, but
 sometimes like in the above case it is required that you specify them
-explicitely.
+explicitly.
 
  Another modifier for generated expressions is '!' which tells the
 machinery to only consider the simplification in case the marked
@@ -46523,7 +46523,7 @@ access to two additional conditional converts as in '(eq (convert1? @1)
 predicates you declare yourself with 'match'.
 
  Predicates available from the GCC middle-end need to be made available
-explicitely via 'define_predicates':
+explicitly via 'define_predicates':
 
      (define_predicates
       integer_onep integer_zerop integer_all_onesp)
@@ -46713,7 +46713,7 @@ exponential growth of the exploded graph like this:
  To prevent this, we follow various approaches:
 
   a. state pruning: which tries to discard state that won't be relevant
-     later on withing the function.  This can be disabled via
+     later on within the function.  This can be disabled via
      '-fno-analyzer-state-purge'.
 
   b. state merging.  We can try to find the commonality between two
@@ -49023,7 +49023,7 @@ alphabetical order.
      disbursement, configuration architecture, libio maintenance, and
      early math work.
 
-   * Franc,ois Dumont for his work on libstdc++-v3, especially
+   * Franc,is Dumont for his work on libstdc++-v3, especially
      maintaining and improving 'debug-mode' and associative and
      unordered containers.
 
@@ -49149,7 +49149,7 @@ alphabetical order.
    * Katherine Holcomb for work on GNU Fortran.
 
    * Manfred Hollstein for his ongoing work to keep the m88k alive, lots
-     of testing and bug fixing, particularly of GCC configury code.
+     of testing and bug fixing, particularly of GCC configurable code.
 
    * Steve Holmgren for MachTen patches.
 
@@ -49277,7 +49277,7 @@ alphabetical order.
      maintaining the S+core port.
 
    * Martin Liska for his work on identical code folding, the
-     sanitizers, HSA, general bug fixing and for running automated
+     sanitizers, HAS, general bug fixing and for running automated
      regression testing of GCC and reporting numerous bugs.
 
    * Weiwen Liu for testing and various bug fixes.
@@ -49473,7 +49473,7 @@ alphabetical order.
      hacking and developing and maintaining the Epiphany port.
 
    * Loren J. Rittle for improvements to libstdc++-v3 including the
-     FreeBSD port, threading fixes, thread-related configury changes,
+     FreeBSD port, threading fixes, thread-related configurable changes,
      critical threading documentation, and solutions to really tricky
      I/O problems, as well as keeping GCC properly working on FreeBSD
      and continuous testing.
@@ -49614,7 +49614,7 @@ alphabetical order.
    * Shigeya Suzuki for this fixes for the bsdi platforms.
 
    * Ian Lance Taylor for the Go frontend, the initial mips16 and mips64
-     support, general configury hacking, fixincludes, etc.
+     support, general configurable hacking, fixincludes, etc.
 
    * Holger Teutsch provided the support for the Clipper CPU.
 
@@ -49757,7 +49757,7 @@ the Ada front end of GCC:
 
    * Robert Duff
 
-   * Ed Falis
+   * Ed Fails
 
    * Ramon Fernandez
 
@@ -53558,7 +53558,7 @@ Concept Index
 * anchored addresses:                    Anchored Addresses. (line    6)
 * and:                                   Arithmetic.         (line  158)
 * and and attributes:                    Expressions.        (line   50)
-* and, canonicalization of:              Insn Canonicalizations.
+* and, canonicalization of:              Insn Canonicalization.
                                                              (line   67)
 * andM3 instruction pattern:             Standard Names.     (line  466)
 * ANNOTATE_EXPR:                         Unary and Binary Expressions.
@@ -53863,7 +53863,7 @@ Concept Index
 * call_value instruction pattern:        Standard Names.     (line 1932)
 * call_value_pop instruction pattern:    Standard Names.     (line 1940)
 * canadian:                              Configure Terms.    (line    6)
-* canonicalization of instructions:      Insn Canonicalizations.
+* canonicalization of instructions:      Insn Canonicalization.
                                                              (line    6)
 * canonicalize_funcptr_for_compare instruction pattern: Standard Names.
                                                              (line 2091)
@@ -53972,7 +53972,7 @@ Concept Index
 * commit_edge_insertions:                Maintaining the CFG.
                                                              (line  104)
 * compare:                               Arithmetic.         (line   46)
-* compare, canonicalization of:          Insn Canonicalizations.
+* compare, canonicalization of:          Insn Canonicalization.
                                                              (line   36)
 * COMPARE_MAX_PIECES:                    Costs.              (line  220)
 * comparison_operator:                   Machine-Independent Predicates.
@@ -54182,7 +54182,7 @@ Concept Index
 * DBX_USE_BINCL:                         DBX Options.        (line  112)
 * DCmode:                                Machine Modes.      (line  199)
 * DDmode:                                Machine Modes.      (line   93)
-* De Morgan's law:                       Insn Canonicalizations.
+* De Morgan's law:                       Insn Canonicalization.
                                                              (line   67)
 * dead_or_set_p:                         define_peephole.    (line   65)
 * DEBUGGER_ARG_OFFSET:                   All Debuggers.      (line   35)
@@ -55341,7 +55341,7 @@ Concept Index
 * insn and /u:                           Flags.              (line   28)
 * insn and /v:                           Flags.              (line   33)
 * insn attributes:                       Insn Attributes.    (line    6)
-* insn canonicalization:                 Insn Canonicalizations.
+* insn canonicalization:                 Insn Canonicalization.
                                                              (line    6)
 * insn includes:                         Including Patterns. (line    6)
 * insn lengths, computing:               Insn Lengths.       (line    6)
@@ -55411,7 +55411,7 @@ Concept Index
 * in_struct, in subreg:                  Flags.              (line  201)
 * ior:                                   Arithmetic.         (line  163)
 * ior and attributes:                    Expressions.        (line   50)
-* ior, canonicalization of:              Insn Canonicalizations.
+* ior, canonicalization of:              Insn Canonicalization.
                                                              (line   67)
 * iorM3 instruction pattern:             Standard Names.     (line  466)
 * IPA passes:                            IPA passes.         (line    6)
@@ -55692,7 +55692,7 @@ Concept Index
 * minM3 instruction pattern:             Standard Names.     (line  527)
 * minus:                                 Arithmetic.         (line   38)
 * minus and attributes:                  Expressions.        (line   83)
-* minus, canonicalization of:            Insn Canonicalizations.
+* minus, canonicalization of:            Insn Canonicalization.
                                                              (line   27)
 * MINUS_EXPR:                            Unary and Binary Expressions.
                                                              (line    6)
@@ -55746,9 +55746,9 @@ Concept Index
 * mulsidi3 instruction pattern:          Standard Names.     (line  779)
 * mult:                                  Arithmetic.         (line   93)
 * mult and attributes:                   Expressions.        (line   83)
-* mult, canonicalization of:             Insn Canonicalizations.
+* mult, canonicalization of:             Insn Canonicalization.
                                                              (line   27)
-* mult, canonicalization of <1>:         Insn Canonicalizations.
+* mult, canonicalization of <1>:         Insn Canonicalization.
                                                              (line  107)
 * MULTIARCH_DIRNAME:                     Target Fragment.    (line  173)
 * MULTILIB_DEFAULTS:                     Driver.             (line  256)
@@ -55785,7 +55785,7 @@ Concept Index
 * nearbyintM2 instruction pattern:       Standard Names.     (line 1144)
 * neg:                                   Arithmetic.         (line   82)
 * neg and attributes:                    Expressions.        (line   83)
-* neg, canonicalization of:              Insn Canonicalizations.
+* neg, canonicalization of:              Insn Canonicalization.
                                                              (line   27)
 * NEGATE_EXPR:                           Unary and Binary Expressions.
                                                              (line    6)
@@ -55825,7 +55825,7 @@ Concept Index
 * not:                                   Arithmetic.         (line  154)
 * not and attributes:                    Expressions.        (line   50)
 * not equal:                             Comparisons.        (line   56)
-* not, canonicalization of:              Insn Canonicalizations.
+* not, canonicalization of:              Insn Canonicalization.
                                                              (line   27)
 * note:                                  Insns.              (line  183)
 * note and /i:                           Flags.              (line   48)
@@ -56005,7 +56005,7 @@ Concept Index
 * Plugins:                               Plugins.            (line    6)
 * plus:                                  Arithmetic.         (line   14)
 * plus and attributes:                   Expressions.        (line   83)
-* plus, canonicalization of:             Insn Canonicalizations.
+* plus, canonicalization of:             Insn Canonicalization.
                                                              (line   27)
 * PLUS_EXPR:                             Unary and Binary Expressions.
                                                              (line    6)
@@ -56478,7 +56478,7 @@ Concept Index
 * significandM2 instruction pattern:     Standard Names.     (line 1085)
 * sign_extend:                           Conversions.        (line   23)
 * sign_extract:                          Bit-Fields.         (line    8)
-* sign_extract, canonicalization of:     Insn Canonicalizations.
+* sign_extract, canonicalization of:     Insn Canonicalization.
                                                              (line  103)
 * SIG_ATOMIC_TYPE:                       Type Layout.        (line  208)
 * SImode:                                Machine Modes.      (line   37)
@@ -57847,7 +57847,7 @@ Concept Index
 * xm-MACHINE.h:                          Filesystem.         (line    6)
 * xm-MACHINE.h <1>:                      Host Misc.          (line    6)
 * xor:                                   Arithmetic.         (line  168)
-* xor, canonicalization of:              Insn Canonicalizations.
+* xor, canonicalization of:              Insn Canonicalization.
                                                              (line   94)
 * xorM3 instruction pattern:             Standard Names.     (line  466)
 * xorsignM3 instruction pattern:         Standard Names.     (line 1187)
@@ -57859,7 +57859,7 @@ Concept Index
 * zero_extend:                           Conversions.        (line   28)
 * zero_extendMN2 instruction pattern:    Standard Names.     (line 1655)
 * zero_extract:                          Bit-Fields.         (line   30)
-* zero_extract, canonicalization of:     Insn Canonicalizations.
+* zero_extract, canonicalization of:     Insn Canonicalization.
                                                              (line  103)
 
 
@@ -58160,7 +58160,7 @@ Node: Dependent Patterns1201955
 Node: Jump Patterns1203575
 Ref: Jump Patterns-Footnote-11205720
 Node: Looping Patterns1205768
-Node: Insn Canonicalizations1211407
+Node: Insn Canonicalization1211407
 Node: Expander Definitions1216614
 Node: Insn Splitting1224828
 Node: Including Patterns1239858

@@ -4843,7 +4843,7 @@ struct isl_to_poly_data {
 	isl_qpolynomial *qp;
 };
 
-/* Appoximate data->qp by a polynomial on the orthant identified by "signs".
+/* Approximate data->qp by a polynomial on the orthant identified by "signs".
  * We first make all integer divisions positive and then split the
  * quasipolynomials into terms with sign data->sign (the direction
  * of the requested approximation) and terms with the opposite sign.

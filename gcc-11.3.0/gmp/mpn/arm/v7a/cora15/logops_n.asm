@@ -219,7 +219,7 @@ L(mid):	LOGOP(	r8, r4, r6)
 	LOGOP(	r9, r5, r7)
 	sub	n, n, #2
 	tst	n, n
-	bmi	L(dne)
+	bmi	L(done)
 	ldrd	r4, r5, [up, #24]
 	ldrd	r6, r7, [vp, #24]
 	POSTOP(	r8)
@@ -244,7 +244,7 @@ L(end):	POSTOP(	r8)
 L(wd1):	pop	{ r4-r9 }
 	bx	r14
 ifelse(UNROLL,4x2,`
-L(dne):	POSTOP(	r8)
+L(done):	POSTOP(	r8)
 	POSTOP(	r9)
 	strd	r8, r9, [rp, #24]
 	pop	{ r4-r9 }

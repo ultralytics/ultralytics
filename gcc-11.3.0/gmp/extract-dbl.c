@@ -59,7 +59,7 @@ __gmp_extract_double (mp_ptr rp, double d)
      1. Should handle Inf and NaN in IEEE specific code.
      2. Handle Inf and NaN also in default code, to avoid hangs.
      3. Generalize to handle all GMP_LIMB_BITS >= 32.
-     4. This lits is incomplete and misspelled.
+     4. This list is incomplete and misspelled.
    */
 
   ASSERT (d >= 0.0);

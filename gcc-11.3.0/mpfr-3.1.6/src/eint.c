@@ -273,7 +273,7 @@ mpfr_eint (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
   mpfr_set_prec (tmp, prec);
   mpfr_set_prec (ump, prec);
 
-  MPFR_ZIV_INIT (loop, prec);            /* Initialize the ZivLoop controler */
+  MPFR_ZIV_INIT (loop, prec);            /* Initialize the ZivLoop controller */
   for (;;)                               /* Infinite loop */
     {
       /* We need that the smallest value of k!/x^k is smaller than 2^(-p).

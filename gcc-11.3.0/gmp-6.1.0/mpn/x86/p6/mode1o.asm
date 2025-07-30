@@ -47,7 +47,7 @@ defframe(PARAM_DIVISOR,12)
 defframe(PARAM_SIZE,   8)
 defframe(PARAM_SRC,    4)
 
-dnl  Not enough room under modexact_1 to make these re-use the parameter
+dnl  Not enough room under modexact_1 to make these reuse the parameter
 dnl  space, unfortunately.
 defframe(SAVE_EBX,     -4)
 defframe(SAVE_ESI,     -8)

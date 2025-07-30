@@ -224,7 +224,7 @@ L(mul1):
 
 	negl	%ecx
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(VAR_OUTER,`PARAM_DST')
 
 L(outer):

@@ -1,4 +1,4 @@
-/*  mpfr_ui_pow_ui -- compute the power beetween two machine integer
+/*  mpfr_ui_pow_ui -- compute the power between two machine integer
 
 Copyright 1999-2017 Free Software Foundation, Inc.
 Contributed by the AriC and Caramba projects, INRIA.

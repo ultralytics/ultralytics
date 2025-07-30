@@ -1,12 +1,12 @@
 /*
- * Copyright 2013-2014 Ecole Normale Superieure
+ * Copyright 2013-2014 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  * Copyright 2016      Sven Verdoolaege
  *
  * Use of this software is governed by the MIT license
  *
  * Written by Sven Verdoolaege,
- * Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  */
@@ -636,7 +636,7 @@ static int collect_filter_prefix(__isl_keep isl_schedule_tree_list *list,
 }
 
 /* Return the concatenation of the partial schedules of all outer band
- * nodes of "node" interesected with all outer filters
+ * nodes of "node" intersected with all outer filters
  * as an isl_multi_union_pw_aff.
  * None of the ancestors of "node" may be an extension node, unless
  * there is also a filter ancestor that filters out all the extended
@@ -683,7 +683,7 @@ isl_schedule_node_get_prefix_schedule_multi_union_pw_aff(
 }
 
 /* Return the concatenation of the partial schedules of all outer band
- * nodes of "node" interesected with all outer filters
+ * nodes of "node" intersected with all outer filters
  * as an isl_union_pw_multi_aff.
  * None of the ancestors of "node" may be an extension node, unless
  * there is also a filter ancestor that filters out all the extended
@@ -744,7 +744,7 @@ isl_schedule_node_get_prefix_schedule_union_pw_multi_aff(
 }
 
 /* Return the concatenation of the partial schedules of all outer band
- * nodes of "node" interesected with all outer filters
+ * nodes of "node" intersected with all outer filters
  * as an isl_union_map.
  */
 __isl_give isl_union_map *isl_schedule_node_get_prefix_schedule_union_map(
@@ -2685,7 +2685,7 @@ __isl_give isl_schedule_node *isl_schedule_node_delete(
  * of the resulting expansion.
  * "group_universe" is the universe of "group".
  *
- * "sched" is the schedule for the group elements, in pratice
+ * "sched" is the schedule for the group elements, in practice
  * an identity mapping on "group_universe".
  * "dim" is the dimension of "sched".
  */
@@ -2906,7 +2906,7 @@ static __isl_give isl_schedule_tree *group_domain(
  * We first double-check that D_2 is a subset of D_1.
  * Then we remove D_2 from the range of G_1 -> D_1 and add the mapping
  * G_1 -> D_1 . D_2 -> G_2.
- * Simmilarly, we restrict the domain of the contraction to the universe
+ * Similarly, we restrict the domain of the contraction to the universe
  * of the range of the updated expansion and add G_2 -> D_2 . D_1 -> G_1,
  * attempting to remove the domain constraints of this additional part.
  */

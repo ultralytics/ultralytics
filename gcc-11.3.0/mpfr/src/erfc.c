@@ -229,7 +229,7 @@ mpfr_erfc (mpfr_ptr y, mpfr_srcptr x, mpfr_rnd_t rnd)
 
   mpfr_init2 (tmp, prec);
 
-  MPFR_ZIV_INIT (loop, prec);            /* Initialize the ZivLoop controler */
+  MPFR_ZIV_INIT (loop, prec);            /* Initialize the ZivLoop controller */
   for (;;)                               /* Infinite loop */
     {
       /* use asymptotic formula only whenever x^2 >= p*log(2),

@@ -353,7 +353,7 @@ typedef __mpq_struct *mpq_ptr;
 
 /* PORTME: What other compilers have a useful "extern inline"?  "static
    inline" would be an acceptable substitute if the compiler (or linker)
-   discards unused statics.  */
+   discards unused statistics.  */
 
  /* gcc has __inline__ in all modes, including strict ansi.  Give a prototype
     for an inline too, so as to correctly specify "dllimport" on windows, in

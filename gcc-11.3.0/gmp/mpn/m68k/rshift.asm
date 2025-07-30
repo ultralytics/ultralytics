@@ -130,7 +130,7 @@ C Restore used registers from stack frame.
 	moveml	M(sp,+), d2-d6/a2
 	rts
 
-C We loop from most significant end of the arrays, which is only permissable
+C We loop from most significant end of the arrays, which is only permissible
 C if the source and destination don't overlap, since the function is
 C documented to work for overlapping source and destination.
 

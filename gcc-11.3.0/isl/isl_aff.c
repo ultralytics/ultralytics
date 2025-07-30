@@ -1,7 +1,7 @@
 /*
  * Copyright 2011      INRIA Saclay
  * Copyright 2011      Sven Verdoolaege
- * Copyright 2012-2014 Ecole Normale Superieure
+ * Copyright 2012-2014 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  *
  * Use of this software is governed by the MIT license
@@ -9,7 +9,7 @@
  * Written by Sven Verdoolaege, INRIA Saclay - Ile-de-France,
  * Parc Club Orsay Universite, ZAC des vignes, 4 rue Jacques Monod,
  * 91893 Orsay, France
- * and Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  */
@@ -401,7 +401,7 @@ __isl_give isl_aff *isl_aff_reset_space_and_domain(__isl_take isl_aff *aff,
 }
 
 /* Reorder the coefficients of the affine expression based
- * on the given reodering.
+ * on the given reordering.
  * The reordering r is assumed to have been extended with the local
  * variables.
  */
@@ -4880,7 +4880,7 @@ static __isl_give isl_multi_aff *range_map(__isl_take isl_aff *aff, int d,
  *
  * and define (1) on top of the corresponding space, resulting in "aff".
  * We use this to create an isl_multi_aff that maps the output position "d"
- * from "a" to "x", leaving all other (intput and output) dimensions unchanged.
+ * from "a" to "x", leaving all other (input and output) dimensions unchanged.
  * We plug this into the wrapped map, unwrap the result and compute the
  * corresponding isl_pw_multi_aff.
  * The result is an expression

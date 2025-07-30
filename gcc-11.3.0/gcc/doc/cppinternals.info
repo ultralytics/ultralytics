@@ -595,10 +595,10 @@ have been lexed, it instead makes a copy of the token and adds the flag
    For efficiency and to simplify memory management by avoiding having
 to remember to free these tokens, they are allocated as temporary tokens
 from the lexer's current token run (*note Lexing a line::) using the
-function '_cpp_temp_token'.  The tokens are then re-used once the
+function '_cpp_temp_token'.  The tokens are then reused once the
 current line of tokens has been read in.
 
-   This might sound unsafe.  However, tokens runs are not re-used at the
+   This might sound unsafe.  However, tokens runs are not reused at the
 end of a line if it happens to be in the middle of a macro argument
 list, and cpplib only wants to back-up more than one lexer token in
 situations where no macro expansion is involved, so the optimization is
@@ -981,7 +981,7 @@ directory.
 immediately tell whether it can skip the header file because of the
 multiple include optimization, whether the file didn't exist or couldn't
 be opened for some reason, or whether the header was flagged not to be
-re-used, as it is with the obsolete '#import' directive.
+reused, as it is with the obsolete '#import' directive.
 
    For the benefit of MS-DOS filesystems with an 8.3 filename
 limitation, CPP offers the ability to treat various include file names

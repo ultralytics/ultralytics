@@ -100,17 +100,17 @@ get_prec_max (mpfr_t *tab, unsigned long n, mpfr_prec_t f)
 
 
 static void
-algo_exact (mpfr_t somme, mpfr_t *tab, unsigned long n, mpfr_prec_t f)
+algo_exact (mpfr_t some, mpfr_t *tab, unsigned long n, mpfr_prec_t f)
 {
   unsigned long i;
   mpfr_prec_t prec_max;
 
   prec_max = get_prec_max(tab, n, f);
-  mpfr_set_prec (somme, prec_max);
-  mpfr_set_ui (somme, 0, MPFR_RNDN);
+  mpfr_set_prec (some, prec_max);
+  mpfr_set_ui (some, 0, MPFR_RNDN);
   for (i = 0; i < n; i++)
     {
-      if (mpfr_add(somme, somme, tab[i], MPFR_RNDN))
+      if (mpfr_add(some, some, tab[i], MPFR_RNDN))
         {
           printf ("FIXME: algo_exact is buggy.\n");
           exit (1);

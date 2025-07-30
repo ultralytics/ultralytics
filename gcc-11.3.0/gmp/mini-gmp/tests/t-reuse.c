@@ -130,10 +130,10 @@ const char *ds_func_names[] =
 };
 
 
-#define FAIL(class,indx,op1,op2,op3) \
+#define FAIL(class,index,op1,op2,op3) \
   do {									\
-  class##_funcs[indx] = 0;						\
-  dump3 (class##_func_names[indx], op1, op2, op3);			\
+  class##_funcs[index] = 0;						\
+  dump3 (class##_func_names[index], op1, op2, op3);			\
   failures++;								\
   } while (0)
 #define FAIL2(fname,op1,op2,op3) \

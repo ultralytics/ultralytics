@@ -1,4 +1,4 @@
-/* mpc_fr_sub -- Substract a complex number from a floating-point number.
+/* mpc_fr_sub -- Subtract a complex number from a floating-point number.
 
 Copyright (C) 2008, 2009, 2011, 2012 INRIA
 

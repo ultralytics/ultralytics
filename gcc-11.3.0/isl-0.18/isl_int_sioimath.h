@@ -30,12 +30,12 @@
 
 /* The type to represent integers optimized for small values. It is either a
  * pointer to an mp_int ( = mpz_t*; big representation) or an int32_t (small
- * represenation) with a discriminator at the least significant bit. In big
+ * representation) with a discriminator at the least significant bit. In big
  * representation it will be always zero because of heap alignment. It is set
  * to 1 for small representation and use the 32 most significant bits for the
  * int32_t.
  *
- * Structure on 64 bit machines, with 8-byte aligment (3 bits):
+ * Structure on 64 bit machines, with 8-byte alignment (3 bits):
  *
  * Big representation:
  * MSB                                                          LSB
@@ -66,7 +66,7 @@
  * - long can represent any int32_t
  * - mp_small is signed long
  * - mp_usmall is unsigned long
- * - adresses returned by malloc are aligned to 2-byte boundaries (leastmost
+ * - addresses returned by malloc are aligned to 2-byte boundaries (leastmost
  *   bit is zero)
  */
 #if UINT64_MAX > UINTPTR_MAX

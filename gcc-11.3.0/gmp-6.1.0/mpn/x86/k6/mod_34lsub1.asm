@@ -57,7 +57,7 @@ C cycles instead of 7 too.
 defframe(PARAM_SIZE, 8)
 defframe(PARAM_SRC,  4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EBX, `PARAM_SIZE')
 define(SAVE_ESI, `PARAM_SRC')
 

@@ -573,7 +573,7 @@ tune_simple_func_in_some_direction (long int *threshold1,
                                     double (*func) (struct speed_params *),
                                     mpfr_prec_t pstart,
                                     int dirx, int dirp,
-                                    mpfr_t xres, mpfr_prec_t *pres)
+                                    mpfr_t xres, mpfr_prec_t *press)
 {
   double measure[THRESHOLD_FINAL_WINDOW+1];
   double d;
@@ -602,8 +602,8 @@ tune_simple_func_in_some_direction (long int *threshold1,
       if (verbose)
         printf ("Oops: even for %lu, algo 2 seems to be faster!\n",
                 (unsigned long) pmin);
-      *pres = MPFR_PREC_MIN;
-      mpfr_mul_ui (xres, ratio, (unsigned int)*pres, MPFR_RNDN);
+      *press = MPFR_PREC_MIN;
+      mpfr_mul_ui (xres, ratio, (unsigned int)*press, MPFR_RNDN);
       mpfr_clear (ratio); mpfr_clear (x); mpfr_clear (xmin); mpfr_clear (xmax);
       return;
     }
@@ -652,10 +652,10 @@ tune_simple_func_in_some_direction (long int *threshold1,
       mpfr_mul_ui (x, ratio, (unsigned int)p, MPFR_RNDN);
       for (i = numpos = numneg = 0 ; i < THRESHOLD_WINDOW + 1 ; i++)
         {
-          *pres = p+(i-THRESHOLD_WINDOW/2)*pstep;
-          mpfr_mul_ui (xres, ratio, (unsigned int)*pres, MPFR_RNDN);
+          *press = p+(i-THRESHOLD_WINDOW/2)*pstep;
+          mpfr_mul_ui (xres, ratio, (unsigned int)*press, MPFR_RNDN);
           measure[i] = domeasure2 (threshold1, threshold2, threshold3,
-                                   func, *pres, xres);
+                                   func, *press, xres);
           if (measure[i] > 0)
             numpos ++;
           else if (measure[i] < 0)
@@ -676,10 +676,10 @@ tune_simple_func_in_some_direction (long int *threshold1,
         /* numpos == numneg ... */
         if (++ try > 2)
           {
-            *pres = p;
-            mpfr_mul_ui (xres, ratio, (unsigned int)*pres, MPFR_RNDN);
+            *press = p;
+            mpfr_mul_ui (xres, ratio, (unsigned int)*press, MPFR_RNDN);
             if (verbose)
-              printf ("Quick find: %lu\n", *pres);
+              printf ("Quick find: %lu\n", *press);
             mpfr_clear (ratio);
             mpfr_clear (x); mpfr_clear (xmin); mpfr_clear (xmax);
             return ;
@@ -691,16 +691,16 @@ tune_simple_func_in_some_direction (long int *threshold1,
     printf ("Finalizing in [%lu, %lu]... ", pmin, pmax);
   for (i = 0 ; i < THRESHOLD_FINAL_WINDOW+1 ; i++)
     {
-      *pres = pmin+i;
-      mpfr_mul_ui (xres, ratio, (unsigned int)*pres, MPFR_RNDN);
+      *press = pmin+i;
+      mpfr_mul_ui (xres, ratio, (unsigned int)*press, MPFR_RNDN);
       measure[i] = domeasure2 (threshold1, threshold2, threshold3,
-                               func, *pres, xres);
+                               func, *press, xres);
     }
   i = analyze_data (measure, THRESHOLD_FINAL_WINDOW+1);
-  *pres = pmin + i;
-  mpfr_mul_ui (xres, ratio, (unsigned int)*pres, MPFR_RNDN);
+  *press = pmin + i;
+  mpfr_mul_ui (xres, ratio, (unsigned int)*press, MPFR_RNDN);
   if (verbose)
-    printf ("%lu\n", *pres);
+    printf ("%lu\n", *press);
   mpfr_clear (ratio); mpfr_clear (x); mpfr_clear (xmin); mpfr_clear (xmax);
   return;
 }

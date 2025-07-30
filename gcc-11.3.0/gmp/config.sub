@@ -45,7 +45,7 @@
 # will recognise.  For example "athlon-pc-freebsd3.5" is validated using
 # "i386-pc-freebsd3.5".
 #
-# Any canonicalizations made by configfsf.sub are preserved.  For example
+# Any canonicalization made by configfsf.sub are preserved.  For example
 # given "athlon-linux", configfsf.sub is called with "i386-linux" and will
 # give back "i386-pc-linux-gnu".  "athlon" is then reinstated, so we print
 # "athlon-pc-linux-gnu".

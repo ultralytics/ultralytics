@@ -556,7 +556,7 @@ primesieve_size (mp_limb_t n) { return n_to_bit(n) / GMP_LIMB_BITS + 1; }
     }							\
   } while (0)
 
-/* Returns an approximation of the sqare root of x.  *
+/* Returns an approximation of the square root of x.  *
  * It gives: x <= limb_apprsqrt (x) ^ 2 < x * 9/4    */
 static mp_limb_t
 limb_apprsqrt (mp_limb_t x)

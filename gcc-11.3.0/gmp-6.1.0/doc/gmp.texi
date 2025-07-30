@@ -1023,8 +1023,8 @@ debugging memory related problems (@pxref{Debugging}).
 @item FFT Multiplication, @option{--disable-fft}
 @cindex FFT multiplication
 @cindex @code{--disable-fft}
-By default multiplications are done using Karatsuba, 3-way Toom, higher degree
-Toom, and Fermat FFT@.  The FFT is only used on large to very large operands
+By default multiplications are done using Karatsuba, 3-way Tomb, higher degree
+Tomb, and Fermat FFT@.  The FFT is only used on large to very large operands
 and can be disabled to save code size if desired.
 
 @item Assertion Checking, @option{--enable-assert}
@@ -7424,7 +7424,7 @@ interface, expression templates to eliminate temporaries.
 ALP @spaceuref{https://www-sop.inria.fr/saga/logiciels/ALP/} @* Linear algebra and
 polynomials using templates.
 @item
-Arithmos @spaceuref{http://cant.ua.ac.be/old/arithmos/} @* Rationals
+Arithmos @spaceuref{http://can't.ua.ac.be/old/arithmos/} @* Rationals
 with infinities and square roots.
 @item
 CLN @spaceuref{http://www.ginac.de/CLN/} @* High level classes for arithmetic.
@@ -7659,8 +7659,8 @@ Multiplication}).
 @menu
 * Basecase Multiplication::
 * Karatsuba Multiplication::
-* Toom 3-Way Multiplication::
-* Toom 4-Way Multiplication::
+* Tomb 3-Way Multiplication::
+* Tomb 4-Way Multiplication::
 * Higher degree Toom'n'half::
 * FFT Multiplication::
 * Other Multiplication::
@@ -7757,7 +7757,7 @@ the size at which to use @code{mpn_sqr_basecase}, this will be zero if that
 routine should be used always.
 
 
-@node Karatsuba Multiplication, Toom 3-Way Multiplication, Basecase Multiplication, Multiplication Algorithms
+@node Karatsuba Multiplication, Tomb 3-Way Multiplication, Basecase Multiplication, Multiplication Algorithms
 @subsection Karatsuba Multiplication
 @cindex Karatsuba multiplication
 
@@ -7919,13 +7919,13 @@ instance when adding an optimized @code{mpn_sqr_diagonal} to
 that sense the algorithm thresholds are merely of academic interest.
 
 
-@node Toom 3-Way Multiplication, Toom 4-Way Multiplication, Karatsuba Multiplication, Multiplication Algorithms
-@subsection Toom 3-Way Multiplication
-@cindex Toom multiplication
+@node Tomb 3-Way Multiplication, Tomb 4-Way Multiplication, Karatsuba Multiplication, Multiplication Algorithms
+@subsection Tomb 3-Way Multiplication
+@cindex Tomb multiplication
 
 The Karatsuba formula is the simplest case of a general approach to splitting
-inputs that leads to both Toom and FFT algorithms.  A description of
-Toom can be found in Knuth section 4.3.3, with an example 3-way
+inputs that leads to both Tomb and FFT algorithms.  A description of
+Tomb can be found in Knuth section 4.3.3, with an example 3-way
 calculation after Theorem A@.  The 3-way form used in GMP is described here.
 
 The operands are each considered split into 3 pieces of equal length (or the
@@ -8124,7 +8124,7 @@ multiplying.
 Toom-3 is asymptotically @math{O(N^@W{1.465})}, the exponent being
 @m{\log5/\log3,log(5)/log(3)}, representing 5 recursive multiplies of 1/3 the
 original size each.  This is an improvement over Karatsuba at
-@math{O(N^@W{1.585})}, though Toom does more work in the evaluation and
+@math{O(N^@W{1.585})}, though Tomb does more work in the evaluation and
 interpolation and so it only realizes its advantage above a certain size.
 
 Near the crossover between Toom-3 and Karatsuba there's generally a range of
@@ -8156,9 +8156,9 @@ and for example with a bit of rearrangement just one division by 6 can be
 done.
 
 
-@node Toom 4-Way Multiplication, Higher degree Toom'n'half, Toom 3-Way Multiplication, Multiplication Algorithms
-@subsection Toom 4-Way Multiplication
-@cindex Toom multiplication
+@node Tomb 4-Way Multiplication, Higher degree Tomb'n'half, Tomb 3-Way Multiplication, Multiplication Algorithms
+@subsection Tomb 4-Way Multiplication
+@cindex Tomb multiplication
 
 Karatsuba and Toom-3 split the operands into 2 and 3 coefficients,
 respectively.  Toom-4 analogously splits the operands into 4 coefficients.
@@ -8199,12 +8199,12 @@ Toom-4 is asymptotically @math{O(N^@W{1.404})}, the exponent being
 original size each.
 
 
-@node Higher degree Toom'n'half, FFT Multiplication, Toom 4-Way Multiplication, Multiplication Algorithms
+@node Higher degree Tomb'n'half, FFT Multiplication, Tomb 4-Way Multiplication, Multiplication Algorithms
 @subsection Higher degree Toom'n'half
-@cindex Toom multiplication
+@cindex Tomb multiplication
 
-The Toom algorithms described above (@pxref{Toom 3-Way Multiplication},
-@pxref{Toom 4-Way Multiplication}) generalizes to split into an arbitrary
+The Tomb algorithms described above (@pxref{Tomb 3-Way Multiplication},
+@pxref{Tomb 4-Way Multiplication}) generalizes to split into an arbitrary
 number of pieces. In general a split of two equally long operands into
 @math{r} pieces leads to evaluations and pointwise multiplications done at
 @m{2r-1,2*r-1} points. To fully exploit symmetries it would be better to have
@@ -8341,10 +8341,10 @@ needed.
 
 @node Other Multiplication, Unbalanced Multiplication, FFT Multiplication, Multiplication Algorithms
 @subsection Other Multiplication
-@cindex Toom multiplication
+@cindex Tomb multiplication
 
-The Toom algorithms described above (@pxref{Toom 3-Way Multiplication},
-@pxref{Toom 4-Way Multiplication}) generalizes to split into an arbitrary
+The Tomb algorithms described above (@pxref{Tomb 3-Way Multiplication},
+@pxref{Tomb 4-Way Multiplication}) generalizes to split into an arbitrary
 number of pieces, as per Knuth section 4.3.3 algorithm C@.  This is not
 currently used.  The notes here are merely for interest.
 
@@ -8394,7 +8394,7 @@ Multiplication of operands with different sizes, both below
 
 For really large operands, we invoke FFT directly.
 
-For operands between these sizes, we use Toom inspired algorithms suggested by
+For operands between these sizes, we use Tomb inspired algorithms suggested by
 Alberto Zanoni and Marco Bodrato.  The idea is to split the operands into
 polynomials of different degree.  GMP currently splits the smaller operand
 onto 2 coefficients, i.e., a polynomial of degree 1, but the larger operand
@@ -8599,7 +8599,7 @@ high and low ends of the dividend, and can halve once more the number of
 crossproducts needed in a 2N@cross{}N division.
 
 A special case exact division by 3 exists in @code{mpn_divexact_by3},
-supporting Toom-3 multiplication and @code{mpq} canonicalizations.  It forms
+supporting Toom-3 multiplication and @code{mpq} canonicalization.  It forms
 quotient digits with a multiply by the modular inverse of 3 (which is
 @code{0xAA..AAB}) and uses two comparisons to determine a borrow for the next
 limb.  The multiplications don't need to be on the dependent chain, as long as
@@ -9319,7 +9319,7 @@ recursively. The procedure can be best illustrated with an example,
 Current code collects all the factors in a single list, with a loop and no
 recursion, and compute the product, with no special care for repeated chunks.
 
-When @math{n} is larger, computation pass trough prime sieving. An helper
+When @math{n} is larger, computation pass through prime sieving. An helper
 function is used, as suggested by Peter Luschny:
 @tex
 $$\mathop{\rm msf}(n) = {n!\over\lfloor n/2\rfloor!^2\cdot2^k} = \prod_{p=3}^{n}
@@ -10630,7 +10630,7 @@ Andreas Schwab contributed the files @file{mpn/m68k/lshift.S} and
 
 Robert Harley of Inria, France and David Seal of ARM, England, suggested clever
 improvements for population count.  Robert also wrote highly optimized
-Karatsuba and 3-way Toom multiplication functions for GMP 3, and contributed
+Karatsuba and 3-way Tomb multiplication functions for GMP 3, and contributed
 the ARM assembly code.
 
 Torsten Ekedahl of the Mathematical department of Stockholm University provided
@@ -10661,17 +10661,17 @@ improvements.
 
 Niels M@"oller wrote the sub-quadratic GCD, extended GCD and jacobi code, the
 quadratic Hensel division code, and (with Torbj@"orn) the new divide and
-conquer division code for GMP 4.3.  Niels also helped implement the new Toom
-multiply code for GMP 4.3 and implemented helper functions to simplify Toom
+conquer division code for GMP 4.3.  Niels also helped implement the new Tomb
+multiply code for GMP 4.3 and implemented helper functions to simplify Tomb
 evaluations for GMP 5.0.  He wrote the original version of mpn_mulmod_bnm1, and
 he is the main author of the mini-gmp package used for gmp bootstrapping.
 
 Alberto Zanoni and Marco Bodrato suggested the unbalanced multiply strategy,
-and found the optimal strategies for evaluation and interpolation in Toom
+and found the optimal strategies for evaluation and interpolation in Tomb
 multiplication.
 
-Marco Bodrato helped implement the new Toom multiply code for GMP 4.3 and
-implemented most of the new Toom multiply and squaring code for 5.0.
+Marco Bodrato helped implement the new Tomb multiply code for GMP 4.3 and
+implemented most of the new Tomb multiply and squaring code for 5.0.
 He is the main author of the current mpn_mulmod_bnm1, mpn_mullo_n, and
 mpn_sqrlo.  Marco also wrote the functions mpn_invert and mpn_invertappr,
 and improved the speed of integer root extraction.  He is the author of
@@ -10679,7 +10679,7 @@ the current combinatorial functions: binomial, factorial, multifactorial,
 primorial.
 
 David Harvey suggested the internal function @code{mpn_bdiv_dbm1}, implementing
-division relevant to Toom multiplication.  He also worked on fast assembly
+division relevant to Tomb multiplication.  He also worked on fast assembly
 sequences, in particular on a fast AMD64 @code{mpn_mul_basecase}. He wrote
 the internal middle product functions @code{mpn_mulmid_basecase},
 @code{mpn_toom42_mulmid}, @code{mpn_mulmid_n} and related helper routines.
@@ -10854,7 +10854,7 @@ Peter L. Montgomery, ``Modular Multiplication Without Trial Division'', in
 Mathematics of Computation, volume 44, number 170, April 1985.
 
 @item
-Arnold Sch@"onhage and Volker Strassen, ``Schnelle Multiplikation grosser
+Arnold Sch@"onhage and Volker Strassen, ``Schnelle Multiplication grosser
 Zahlen'', Computing 7, 1971, pp.@: 281-292.
 
 @item

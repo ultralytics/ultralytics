@@ -390,13 +390,13 @@ available online, see <http://gcc.gnu.org/readings.html>
 As of the GCC 4.7.1 release, GCC supports the Go 1 language standard,
 described at <https://golang.org/doc/go1>.
 
-2.5 HSA Intermediate Language (HSAIL)
+2.5 HAS Intermediate Language (HSAIL)
 =====================================
 
 GCC can compile the binary representation (BRIG) of the HSAIL text
-format as described in HSA Programmer's Reference Manual version 1.0.1.
-This capability is typically utilized to implement the HSA runtime API's
-HSAIL finalization extension for a gcc supported processor.  HSA
+format as described in HAS Programmer's Reference Manual version 1.0.1.
+This capability is typically utilized to implement the HAS runtime API's
+HSAIL finalization extension for a gcc supported processor.  HAS
 standards are freely available at
 <http://www.hsafoundation.com/standards/>.
 
@@ -2216,7 +2216,7 @@ nothing at all.
      flow: the primary output name is broken into a directory part and a
      basename part; DUMPPFX is set to the former, unless overridden by
      '-dumpdir' or '-save-temps=*', and DUMPBASE is set to the latter,
-     unless overriden by '-dumpbase'.  If there are multiple inputs or
+     unless overridden by '-dumpbase'.  If there are multiple inputs or
      linking, this DUMPBASE may be combined with DUMPPFX and taken from
      each input file.  Auxiliary output names for each input are formed
      by combining DUMPPFX, DUMPBASE minus suffix, and the auxiliary
@@ -3380,7 +3380,7 @@ Dialect Options.
 
 '-fno-threadsafe-statics'
      Do not emit the extra code to use the routines specified in the C++
-     ABI for thread-safe initialization of local statics.  You can use
+     ABI for thread-safe initialization of local statistics.  You can use
      this option to reduce code size slightly in code that doesn't need
      to be thread-safe.
 
@@ -7318,7 +7318,7 @@ unless optimization is enabled.
      allocated on the heap, or by using a pointer that was not returned
      from a prior call to the corresponding allocation function.  For
      example, because the call to 'stpcpy' returns a pointer to the
-     terminating nul character and not to the begginning of the object,
+     terminating nul character and not to the beginning of the object,
      the call to 'free' below is diagnosed.
 
           void f (char *p)
@@ -8194,7 +8194,7 @@ unless optimization is enabled.
      because the first one allows an array of any size to be passed to
      'f' while the second one specifies that the array argument must
      have at least 'n' elements.  In addition, calling 'f' with the
-     assotiated VLA bound parameter in excess of the actual VLA bound
+     associated VLA bound parameter in excess of the actual VLA bound
      triggers a warning as well.
 
           void f (int n, int[n]);
@@ -9683,7 +9683,7 @@ optimizations to be performed is desired.
      Attempt to transform conditional jumps into branch-less
      equivalents.  This includes use of conditional moves, min, max, set
      flags and abs instructions, and some tricks doable by standard
-     arithmetics.  The use of conditional execution on chips where it is
+     arithmetic.  The use of conditional execution on chips where it is
      available is controlled by '-fif-conversion2'.
 
      Enabled at levels '-O', '-O2', '-O3', '-Os', but not with '-Og'.
@@ -11253,10 +11253,10 @@ optimizations to be performed is desired.
 
 '-fprofile-partial-training'
      With '-fprofile-use' all portions of programs not executed during
-     train run are optimized agressively for size rather than speed.  In
+     train run are optimized aggressively for size rather than speed.  In
      some cases it is not practical to train all possible hot paths in
      the program.  (For example, program may contain functions specific
-     for a given hardware and trianing may not cover all hardware
+     for a given hardware and training may not cover all hardware
      configurations program is run on.)  With
      '-fprofile-partial-training' profile feedback will be ignored for
      all functions not executed during the train run leading them to be
@@ -11904,7 +11904,7 @@ includes experimental options that may produce broken code.
      'max-inline-insns-size'
           This is bound applied to calls which are optimized for size.
           Small growth may be desirable to anticipate optimization
-          oppurtunities exposed by inlining.
+          opportunities exposed by inlining.
 
      'uninlined-function-insns'
           Number of instructions accounted by inliner for function
@@ -12116,7 +12116,7 @@ includes experimental options that may produce broken code.
 
      'max-stores-to-track'
           The maximum number of stores to track at the same time in the
-          attemt to to merge them into wider stores in the store merging
+          attempt to to merge them into wider stores in the store merging
           pass.
 
      'max-unrolled-insns'
@@ -13699,7 +13699,7 @@ program analysis purposes.
      '-fsanitize=signed-integer-overflow'
           This option enables signed integer overflow checking.  We
           check that the result of '+', '*', and both unary and binary
-          '-' does not overflow in the signed arithmetics.  Note,
+          '-' does not overflow in the signed arithmetic.  Note,
           integer promotion rules must be taken into account.  That is,
           the following is not an overflow:
                signed char a = SCHAR_MAX;
@@ -13776,8 +13776,8 @@ program analysis purposes.
 
      '-fsanitize=pointer-overflow'
 
-          This option enables instrumentation of pointer arithmetics.
-          If the pointer arithmetics overflows, a run-time error is
+          This option enables instrumentation of pointer arithmetic.
+          If the pointer arithmetic overflows, a run-time error is
           issued.
 
      '-fsanitize=builtin'
@@ -19708,7 +19708,7 @@ by the '-mmcu=' command-line option.
 Spaces:: and *note AVR Built-in Functions::.
 
 '__AVR_ARCH__'
-     Build-in macro that resolves to a decimal number that identifies
+     Built-in macro that resolves to a decimal number that identifies
      the architecture and depends on the '-mmcu=MCU' option.  Possible
      values are:
 
@@ -21455,7 +21455,7 @@ These '-m' options are defined for the HPPA family of computers:
 
      Distances are measured from the beginning of functions when using
      the '-ffunction-sections' option, or when using the '-mgas' and
-     '-mno-portable-runtime' options together under HP-UX with the SOM
+     '-mno-portable-runtime' options together under HP-UX with the SOME
      linker.
 
      It is normally not desirable to use this option as it degrades
@@ -22158,7 +22158,7 @@ given below.
      'double', and 'long double' variables on a 32-bit boundary
      ('-malign-int') or a 16-bit boundary ('-mno-align-int').  Aligning
      variables on 32-bit boundaries produces code that runs somewhat
-     faster on processors with 32-bit busses at the expense of more
+     faster on processors with 32-bit buses at the expense of more
      memory.
 
      *Warning:* if you use the '-malign-int' switch, GCC aligns
@@ -23620,7 +23620,7 @@ These options are defined for the MSP430:
 
      GCC searches for the 'devices.csv' file using the following methods
      in the given precedence order, where the first method takes
-     precendence over the second which takes precedence over the third.
+     precedence over the second which takes precedence over the third.
 
      Include path specified with '-I' and '-L'
           'devices.csv' will be searched for in each of the directories
@@ -26114,7 +26114,7 @@ architecture.
 '-mhotpatch=PRE-HALFWORDS,POST-HALFWORDS'
      If the hotpatch option is enabled, a "hot-patching" function
      prologue is generated for all functions in the compilation unit.
-     The funtion label is prepended with the given number of two-byte
+     The function label is prepended with the given number of two-byte
      NOP instructions (PRE-HALFWORDS, maximum 1000000).  After the
      label, 2 * POST-HALFWORDS bytes are appended, using the largest NOP
      like instructions the architecture allows (maximum 1000000).
@@ -31255,7 +31255,7 @@ extensions, accepted by GCC in C90 mode and in C++.
 * Offsetof::            Special syntax for implementing 'offsetof'.
 * __sync Builtins::     Legacy built-in functions for atomic memory access.
 * __atomic Builtins::   Atomic built-in functions with memory model.
-* Integer Overflow Builtins:: Built-in functions to perform arithmetics and
+* Integer Overflow Builtins:: Built-in functions to perform arithmetic and
                         arithmetic overflow checking.
 * x86 specific memory model extensions for transactional memory:: x86 memory models.
 * Object Size Checking:: Built-in functions for limited buffer overflow
@@ -33944,7 +33944,7 @@ The following attributes are supported on most targets.
      under the control of options such as '-Wmismatched-dealloc'.  It
      also makes it possible to diagnose attempts to deallocate objects
      that were not allocated dynamically, by '-Wfree-nonheap-object'.
-     To indicate that an allocation function both satisifies the
+     To indicate that an allocation function both satisfies the
      nonaliasing property and has a deallocator associated with it, both
      the plain form of the attribute and the one with the DEALLOCATOR
      argument must be used.  The same function can be both an allocator
@@ -34944,14 +34944,14 @@ These function attributes are supported by the AMD GCN back end:
 'amdgpu_hsa_kernel'
      This attribute indicates that the corresponding function should be
      compiled as a kernel function, that is an entry point that can be
-     invoked from the host via the HSA runtime library.  By default
+     invoked from the host via the HAS runtime library.  By default
      functions are only callable only from other GCN functions.
 
      This attribute is implicitly applied to any function named 'main',
      using default parameters.
 
      Kernel functions may return an integer value, which will be written
-     to a conventional place within the HSA "kernargs" region.
+     to a conventional place within the HAS "kernargs" region.
 
      The attribute parameters configure what values are passed into the
      kernel function by the GPU drivers, via the initial register state.
@@ -35878,7 +35878,7 @@ These function attributes are supported by the MIPS back end:
 
      'keep_interrupts_masked'
           Keep interrupts masked for the whole function.  Without this
-          attribute, GCC tries to reenable interrupts for as much of the
+          attribute, GCC tries to re-enable interrupts for as much of the
           function as it can.
 
      'use_debug_exception_return'
@@ -37561,7 +37561,7 @@ The following attributes are supported on most targets.
      libraries that define aliases that are expected to specify the same
      set of attributes as the aliased symbols.  The 'copy' attribute can
      be used with variables, functions or types.  However, the kind of
-     symbol to which the attribute is applied (either varible or
+     symbol to which the attribute is applied (either variable or
      function) must match the kind of symbol to which the argument
      refers.  The 'copy' attribute copies only syntactic and semantic
      attributes but not attributes that affect a symbol's linkage or
@@ -38048,7 +38048,7 @@ File: gcc.info,  Node: MeP Variable Attributes,  Next: Microsoft Windows Variabl
 6.34.8 MeP Variable Attributes
 ------------------------------
 
-The MeP target has a number of addressing modes and busses.  The 'near'
+The MeP target has a number of addressing modes and buses.  The 'near'
 space spans the standard memory space's first 16 megabytes (24 bits).
 The 'far' space spans the entire 32-bit memory space.  The 'based' space
 is a 128-byte region in the memory space that is addressed relative to
@@ -38491,7 +38491,7 @@ The following type attributes are supported on most targets.
      same set of attributes as the aliased symbols.  The 'copy'
      attribute can be used with types, variables, or functions.
      However, the kind of symbol to which the attribute is applied
-     (either varible or function) must match the kind of symbol to which
+     (either variable or function) must match the kind of symbol to which
      the argument refers.  The 'copy' attribute copies only syntactic
      and semantic attributes but not attributes that affect a symbol's
      linkage or visibility such as 'alias', 'visibility', or 'weak'.
@@ -40176,7 +40176,7 @@ for 'd' by specifying both constraints.
 
 Some targets have a special register that holds the "flags" for the
 result of an operation or comparison.  Normally, the contents of that
-register are either unmodifed by the asm, or the 'asm' statement is
+register are either unmodified by the asm, or the 'asm' statement is
 considered to clobber the contents.
 
  On some targets, a special form of output operand exists by which
@@ -41384,7 +41384,7 @@ _ARC --'config/arc/constraints.md'_
 
      'Cal'
           constant for arithmetic/logical operations.  This might be any
-          constant that can be put into a long immediate by the assmbler
+          constant that can be put into a long immediate by the assembler
           or linker without involving a PIC relocation.
 
      'K'
@@ -45035,7 +45035,7 @@ corresponding versions prefixed with '__builtin_'.
 macros that avoid raising exceptions for unordered operands.  They have
 the same names as the standard macros ( 'isgreater', 'isgreaterequal',
 'isless', 'islessequal', 'islessgreater', and 'isunordered') , with
-'__builtin_' prefixed.  We intend for a library implementor to be able
+'__builtin_' prefixed.  We intend for a library implementer to be able
 to simply '#define' each standard macro to its built-in equivalent.  In
 the same fashion, GCC provides 'fpclassify', 'isfinite', 'isinf_sign',
 'isnormal' and 'signbit' built-ins used with '__builtin_' prefixed.  The
@@ -49290,21 +49290,21 @@ and 'hi_1' inclusive or the range bounded between 'lo_2' and 'hi_2'
 inclusive.
 
  The '__builtin_dfp_dtstsfi_lt' function returns a non-zero value if and
-only if the number of signficant digits of its 'value' argument is less
+only if the number of significant digits of its 'value' argument is less
 than its 'comparison' argument.  The '__builtin_dfp_dtstsfi_lt_dd' and
 '__builtin_dfp_dtstsfi_lt_td' functions behave similarly, but require
 that the type of the 'value' argument be '__Decimal64' and
 '__Decimal128' respectively.
 
  The '__builtin_dfp_dtstsfi_gt' function returns a non-zero value if and
-only if the number of signficant digits of its 'value' argument is
+only if the number of significant digits of its 'value' argument is
 greater than its 'comparison' argument.  The
 '__builtin_dfp_dtstsfi_gt_dd' and '__builtin_dfp_dtstsfi_gt_td'
 functions behave similarly, but require that the type of the 'value'
 argument be '__Decimal64' and '__Decimal128' respectively.
 
  The '__builtin_dfp_dtstsfi_eq' function returns a non-zero value if and
-only if the number of signficant digits of its 'value' argument equals
+only if the number of significant digits of its 'value' argument equals
 its 'comparison' argument.  The '__builtin_dfp_dtstsfi_eq_dd' and
 '__builtin_dfp_dtstsfi_eq_td' functions behave similarly, but require
 that the type of the 'value' argument be '__Decimal64' and
@@ -50750,7 +50750,7 @@ vec_extracth (vector unsigned long long, vector unsigned long long,
  Extract an element from two concatenated vectors starting at the given
 byte index.  The index is based on big endian order for a little endian
 system.  Similarly, the index is based on little endian order for a big
-endian system.  The extraced elements are zero-extended and put in
+endian system.  The extracted elements are zero-extended and put in
 doubleword 1 according to natural element order.  If the byte index is
 out of range for the data type, the intrinsic will be rejected.  For
 little-endian, this output will match the placement by the hardware
@@ -55082,7 +55082,7 @@ copies still take up space in the executable.
  For targets that do not support either COMDAT or weak symbols, most
 entities with vague linkage are emitted as local symbols to avoid
 duplicate definition errors from the linker.  This does not happen for
-local statics in inlines, however, as having multiple copies almost
+local statistics in inlines, however, as having multiple copies almost
 certainly breaks things.
 
  *Note Declarations and Definitions in One Header: C++ Interface, for
@@ -55098,7 +55098,7 @@ File: gcc.info,  Node: C++ Interface,  Next: Template Instantiation,  Prev: Vagu
 way of explicitly directing the compiler to emit entities with vague
 linkage (and debugging information) in a particular translation unit.
 
- _Note:_ These '#pragma's have been superceded as of GCC 2.7.2 by COMDAT
+ _Note:_ These '#pragma's have been superseded as of GCC 2.7.2 by COMDAT
 support and the "key method" heuristic mentioned in *note Vague
 Linkage::.  Using them can actually cause your program to grow due to
 unnecessary out-of-line copies of inline functions.
@@ -57252,7 +57252,7 @@ File: gcc.info,  Node: Invoking Gcov,  Next: Gcov and Optimization,  Prev: Gcov 
 
 '-w'
 '--verbose'
-     Print verbose informations related to basic blocks and arcs.
+     Print verbose information related to basic blocks and arcs.
 
 '-x'
 '--hash-filenames'
@@ -60716,7 +60716,7 @@ alphabetical order.
      disbursement, configuration architecture, libio maintenance, and
      early math work.
 
-   * Franc,ois Dumont for his work on libstdc++-v3, especially
+   * Franc,is Dumont for his work on libstdc++-v3, especially
      maintaining and improving 'debug-mode' and associative and
      unordered containers.
 
@@ -60842,7 +60842,7 @@ alphabetical order.
    * Katherine Holcomb for work on GNU Fortran.
 
    * Manfred Hollstein for his ongoing work to keep the m88k alive, lots
-     of testing and bug fixing, particularly of GCC configury code.
+     of testing and bug fixing, particularly of GCC configurable code.
 
    * Steve Holmgren for MachTen patches.
 
@@ -60970,7 +60970,7 @@ alphabetical order.
      maintaining the S+core port.
 
    * Martin Liska for his work on identical code folding, the
-     sanitizers, HSA, general bug fixing and for running automated
+     sanitizers, HAS, general bug fixing and for running automated
      regression testing of GCC and reporting numerous bugs.
 
    * Weiwen Liu for testing and various bug fixes.
@@ -61166,7 +61166,7 @@ alphabetical order.
      hacking and developing and maintaining the Epiphany port.
 
    * Loren J. Rittle for improvements to libstdc++-v3 including the
-     FreeBSD port, threading fixes, thread-related configury changes,
+     FreeBSD port, threading fixes, thread-related configurable changes,
      critical threading documentation, and solutions to really tricky
      I/O problems, as well as keeping GCC properly working on FreeBSD
      and continuous testing.
@@ -61307,7 +61307,7 @@ alphabetical order.
    * Shigeya Suzuki for this fixes for the bsdi platforms.
 
    * Ian Lance Taylor for the Go frontend, the initial mips16 and mips64
-     support, general configury hacking, fixincludes, etc.
+     support, general configurable hacking, fixincludes, etc.
 
    * Holger Teutsch provided the support for the Clipper CPU.
 
@@ -61450,7 +61450,7 @@ the Ada front end of GCC:
 
    * Robert Duff
 
-   * Ed Falis
+   * Ed Fails
 
    * Ramon Fernandez
 

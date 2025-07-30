@@ -106,7 +106,7 @@ LDEF(1)	ldd		-72(up), %r21
 LDEF(end)
 	shrpd		%r21, %r0, %sar, %r21
 	std		%r21, -8(rp)
-	bve		(%r2)
+	be		(%r2)
 ifdef(`HAVE_ABI_2_0w',
 `	copy		%r29,%r28
 ',`	extrd,u		%r29, 31, 32, %r28

@@ -1,12 +1,12 @@
 /*
  * Copyright 2008-2009 Katholieke Universiteit Leuven
- * Copyright 2013      Ecole Normale Superieure
+ * Copyright 2013      Ecole Normal Superieure
  *
  * Use of this software is governed by the MIT license
  *
  * Written by Sven Verdoolaege, K.U.Leuven, Departement
  * Computerwetenschappen, Celestijnenlaan 200A, B-3001 Leuven, Belgium
- * and Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  */
 
 #include <isl_ctx_private.h>

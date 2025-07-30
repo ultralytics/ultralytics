@@ -591,7 +591,7 @@ mp_result mp_int_add(mp_int a, mp_int b, mp_int c)
   else {
     /* Different signs -- subtract magnitudes, preserve sign of greater */
     mp_int  x, y;
-    int     cmp = s_ucmp(a, b); /* magnitude comparision, sign ignored */
+    int     cmp = s_ucmp(a, b); /* magnitude comparison, sign ignored */
 
     /* Set x to max(a, b), y to min(a, b) to simplify later code.
        A special case yields zero for equal magnitudes.
@@ -3042,13 +3042,13 @@ STATIC mp_result s_udiv_knuth(mp_int u, mp_int v) {
     /* D4,D5,D6: Multiply qhat * v and test for a correct value of q
 
        We proceed a bit different than the way described by Knuth. This way is
-       simpler but less efficent. Instead of doing the multiply and subtract
+       simpler but less efficient. Instead of doing the multiply and subtract
        then checking for underflow, we first do the multiply of qhat * v and
        see if it is larger than the current remainder r. If it is larger, we
        decrease qhat by one and try again. We may need to decrease qhat one
        more time before we get a value that is smaller than r.
 
-       This way is less efficent than Knuth becuase we do more multiplies, but
+       This way is less efficient than Knuth because we do more multiplies, but
        we do not need to worry about underflow this way.  */
     /* t = qhat * v */
     s_dbmul(MP_DIGITS(v), (mp_digit) qhat, t.digits, n+1); t.used = n + 1;

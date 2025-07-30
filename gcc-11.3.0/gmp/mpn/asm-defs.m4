@@ -204,7 +204,7 @@ dnl  out some closing parentheses and kill it with "m4: arg stack overflow".
 define(m4_dollarhash_works_test,``$#'')
 ifelse(m4_dollarhash_works_test(x),1,,
 `errprint(
-`This m4 doesnt support $# and cant be used for GMP asm processing.
+`This m4 doesnt support $# and can't be used for GMP asm processing.
 If this is on SunOS, ./configure should choose /usr/5bin/m4 if you have that
 or can get it, otherwise install GNU m4.  Dont forget to configure with
 M4=/wherever/m4 if you install in a directory not in $PATH.
@@ -537,7 +537,7 @@ m4_assert_numargs(1)
 define(define_not_for_expansion,
 m4_assert_numargs(1)
 `ifelse(defn(`$1'),,,
-`m4_error(``$1' has a non-empty value, maybe it shouldnt be munged with m4_not_for_expansion()
+`m4_error(``$1' has a non-empty value, maybe it shouldn't be munged with m4_not_for_expansion()
 ')')dnl
 define(`$1',`m4_not_for_expansion_internal(`$1')')')
 

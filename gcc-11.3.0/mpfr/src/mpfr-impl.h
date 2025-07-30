@@ -676,7 +676,7 @@ __MPFR_DECLSPEC long double __gmpfr_longdouble_volatile _MPFR_PROTO ((long doubl
 # endif
 #endif
 
-/* Some special case for IEEE_EXT Litle Endian */
+/* Some special case for IEEE_EXT Little Endian */
 #if HAVE_LDOUBLE_IEEE_EXT_LITTLE
 
 typedef union {

@@ -126,7 +126,7 @@ main (void)
   l = mpf_get_si (x);
   u = mpf_get_ui (x);
   s = mpf_get_str (NULL, &exp, 10, 10, x);
-  /* MPF doen't have mpf_free_str */
+  /* MPF doesn't have mpf_free_str */
   mpfr_free_str (s);
 
   /* Use d, l and u to avoid a warning with -Wunused-but-set-variable

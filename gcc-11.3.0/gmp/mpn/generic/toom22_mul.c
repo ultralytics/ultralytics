@@ -204,7 +204,7 @@ mpn_toom22_mul (mp_ptr pp,
 
   MPN_INCR_U (pp + 2 * n, s + t, cy2);
   if (LIKELY (cy <= 2))
-    /* if s+t==n, cy is zero, but we should not acces pp[3*n] at all. */
+    /* if s+t==n, cy is zero, but we should not access pp[3*n] at all. */
     MPN_INCR_U (pp + 3 * n, s + t - n, cy);
   else
     MPN_DECR_U (pp + 3 * n, s + t - n, 1);

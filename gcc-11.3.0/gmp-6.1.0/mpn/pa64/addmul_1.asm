@@ -688,6 +688,6 @@ ifdef(`HAVE_ABI_2_0w',
 ')
 	ldd		-0xf0(%r30), %r5
 	ldd		-0xf8(%r30), %r4
-	bve		(%r2)
+	be		(%r2)
 	ldd,mb		-0x100(%r30), %r3
 EPILOGUE(mpn_addmul_1)

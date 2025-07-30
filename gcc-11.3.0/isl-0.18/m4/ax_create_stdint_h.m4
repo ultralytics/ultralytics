@@ -12,9 +12,9 @@
 #   existence of an include file <stdint.h> that defines a set of typedefs,
 #   especially uint8_t,int32_t,uintptr_t. Many older installations will not
 #   provide this file, but some will have the very same definitions in
-#   <inttypes.h>. In other enviroments we can use the inet-types in
+#   <inttypes.h>. In other environments we can use the inet-types in
 #   <sys/types.h> which would define the typedefs int8_t and u_int8_t
-#   respectivly.
+#   respectively.
 #
 #   This macros will create a local "_stdint.h" or the headerfile given as
 #   an argument. In many cases that file will just "#include <stdint.h>" or
@@ -39,7 +39,7 @@
 #
 #   Remember, if the system already had a valid <stdint.h>, the generated
 #   file will include it directly. No need for fuzzy HAVE_STDINT_H things...
-#   (oops, GCC 4.2.x has deliberatly disabled its stdint.h for non-c99
+#   (oops, GCC 4.2.x has deliberately disabled its stdint.h for non-c99
 #   compilation and the c99-mode is not the default. Therefore this macro
 #   will not use the compiler's stdint.h - please complain to the GCC
 #   developers).

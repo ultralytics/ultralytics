@@ -366,7 +366,7 @@ the first or the second computed value, respectively.
 ==================================
 
 Some complex functions have branch cuts, across which the function is
-discontinous.  In GNU MPC, the branch cuts chosen are the same as those
+discontinuous.  In GNU MPC, the branch cuts chosen are the same as those
 specified for the corresponding functions in the ISO C99 standard.
 
    Likewise, when evaluated at a point whose real or imaginary part is

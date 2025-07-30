@@ -1198,7 +1198,7 @@ error:
 /* For each pair of lower and upper bounds on the variable "pos"
  * of type "type", call "fn" with these lower and upper bounds and the
  * set of constraints on the remaining variables where these bounds
- * are active, i.e., (stricly) larger/smaller than the other lower/upper bounds.
+ * are active, i.e., (strictly) larger/smaller than the other lower/upper bounds.
  *
  * If the designated variable is equal to an affine combination of the
  * other variables then fn is called with both lower and upper

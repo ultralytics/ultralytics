@@ -1,6 +1,6 @@
 /*
  * Copyright 2011      INRIA Saclay
- * Copyright 2012-2014 Ecole Normale Superieure
+ * Copyright 2012-2014 Ecole Normal Superieure
  * Copyright 2015-2016 Sven Verdoolaege
  * Copyright 2016      INRIA Paris
  *
@@ -9,7 +9,7 @@
  * Written by Sven Verdoolaege, INRIA Saclay - Ile-de-France,
  * Parc Club Orsay Universite, ZAC des vignes, 4 rue Jacques Monod,
  * 91893 Orsay, France
- * and Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  * and Centre de Recherche Inria de Paris, 2 rue Simone Iff - Voie DQ12,
  * CS 42112, 75589 Paris Cedex 12, France
  */
@@ -308,7 +308,7 @@ static int is_conditional_validity(struct isl_sched_edge *edge)
  * n_edge is the number of edges
  * edge is the list of edges
  * max_edge contains the maximal number of edges of each type;
- *	in particular, it contains the number of edges in the inital graph.
+ *	in particular, it contains the number of edges in the initial graph.
  * edge_table contains pointers into the edge array, hashed on the source
  *	and sink spaces; there is one such table for each type;
  *	a given edge may be referenced from more than one table

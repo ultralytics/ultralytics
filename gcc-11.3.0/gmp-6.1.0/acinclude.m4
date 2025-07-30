@@ -2197,7 +2197,7 @@ dnl
 dnl  The default is "L" if the tests fail for any reason.  There's a good
 dnl  chance this will be adequate, since on most systems labels are local
 dnl  anyway unless given a ".globl", and an "L" will avoid clashes with
-dnl  other identifers.
+dnl  other identifiers.
 dnl
 dnl  For gas, ".L" is normally purely local to the assembler, it doesn't get
 dnl  put into the object file at all.  This style is preferred, to keep the

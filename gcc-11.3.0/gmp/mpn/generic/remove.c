@@ -46,7 +46,7 @@ see https://www.gnu.org/licenses/.  */
 
 
 /* Input: U = {up,un}, V = {vp,vn} must be odd, cap
-   Ouput  W = {wp,*wn} allocation need is exactly *wn
+   Output  W = {wp,*wn} allocation need is exactly *wn
 
    Set W = U / V^k, where k is the largest integer <= cap such that the
    division yields an integer.

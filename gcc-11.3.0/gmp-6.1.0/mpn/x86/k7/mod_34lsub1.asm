@@ -46,7 +46,7 @@ C first 16 bytes for the BTB entry or something.
 defframe(PARAM_SIZE, 8)
 defframe(PARAM_SRC,  4)
 
-dnl  re-use parameter space
+dnl  reuse parameter space
 define(SAVE_EDI, `PARAM_SIZE')
 
 	TEXT

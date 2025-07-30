@@ -33,7 +33,7 @@ http://www.gnu.org/licenses/ or write to the Free Software Foundation, Inc.,
 # define MPFR_DEFAULT_RND mpfr_get_default_rounding_mode ()
 #endif
 
-/* mpf_init initalizes at 0 */
+/* mpf_init initializes at 0 */
 #undef mpf_init
 #define mpf_init(x) mpfr_init_set_ui ((x), 0, MPFR_DEFAULT_RND)
 #undef mpf_init2

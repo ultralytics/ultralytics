@@ -156,7 +156,7 @@ L(mid):	mvn	r8, r4
 	mvn	r9, r5
 	sub	n, n, #2
 	tst	n, n
-	bmi	L(dne)
+	bmi	L(done)
 	ldrd	r4, r5, [up, #24]
 	strd	r8, r9, [rp, #24]
 	mvn	r8, r4
@@ -173,7 +173,7 @@ L(end):	strd	r8, r9, [rp, #8]
 L(wd1):	pop	{ r4-r5,r8-r9 }
 	bx	r14
 ifelse(UNROLL,4x2,`
-L(dne):	strd	r8, r9, [rp, #24]
+L(done):	strd	r8, r9, [rp, #24]
 	pop	{ r4-r5,r8-r9 }
 	bx	r14
 ')

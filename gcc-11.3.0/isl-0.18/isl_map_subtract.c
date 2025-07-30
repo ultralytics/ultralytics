@@ -277,7 +277,7 @@ struct isl_diff_collector {
  * The difference is computed by a backtracking algorithm.
  * Each level corresponds to a basic map in "map".
  * When a node in entered for the first time, we check
- * if the corresonding basic map intersects the current piece
+ * if the corresponding basic map intersects the current piece
  * of "bmap".  If not, we move to the next level.
  * Otherwise, we split the current piece into as many
  * pieces as there are non-redundant constraints of the current

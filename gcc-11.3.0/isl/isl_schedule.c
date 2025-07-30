@@ -1,6 +1,6 @@
 /*
  * Copyright 2011      INRIA Saclay
- * Copyright 2012-2014 Ecole Normale Superieure
+ * Copyright 2012-2014 Ecole Normal Superieure
  * Copyright 2016      Sven Verdoolaege
  *
  * Use of this software is governed by the MIT license
@@ -8,7 +8,7 @@
  * Written by Sven Verdoolaege, INRIA Saclay - Ile-de-France,
  * Parc Club Orsay Universite, ZAC des vignes, 4 rue Jacques Monod,
  * 91893 Orsay, France
- * and Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
+ * and Ecole Normal Superieure, 45 rue d'Ulm, 75230 Paris, France
  */
 
 #include <isl/ctx.h>

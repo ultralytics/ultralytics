@@ -1,11 +1,11 @@
 /*
- * Copyright 2012-2014 Ecole Normale Superieure
+ * Copyright 2012-2014 Ecole Normal Superieure
  * Copyright 2014      INRIA Rocquencourt
  *
  * Use of this software is governed by the MIT license
  *
  * Written by Sven Verdoolaege,
- * Ecole Normale Superieure, 45 rue d’Ulm, 75230 Paris, France
+ * Ecole Normal Superieure, 45 rue d’Ulm, 75230 Paris, France
  * and Inria Paris - Rocquencourt, Domaine de Voluceau - Rocquencourt,
  * B.P. 105 - 78153 Le Chesnay, France
  */
@@ -652,7 +652,7 @@ static __isl_give isl_pw_aff_list *upper_bounds(
  * If the list contains exactly one element, then the returned isl_ast_expr
  * simply computes that affine expression.
  * If the list contains more than one element, then we sort it
- * using a fairly abitrary but hopefully reasonably stable order.
+ * using a fairly arbitrary but hopefully reasonably stable order.
  */
 static __isl_give isl_ast_expr *reduce_list(enum isl_ast_op_type type,
 	__isl_keep isl_pw_aff_list *list, __isl_keep isl_ast_build *build)
@@ -1243,7 +1243,7 @@ static isl_stat count_constraints(__isl_take isl_constraint *c, void *user)
 /* Update "graft" based on "bounds" and "domain" for the generic,
  * non-degenerate, case.
  *
- * "list" respresent the list of bounds that need to be encoded by
+ * "list" represent the list of bounds that need to be encoded by
  * the for loop.  Only the constraints that involve the iterator
  * are relevant here.  The other constraints are taken care of by
  * the caller and are included in the generated constraints of "build".
@@ -1290,7 +1290,7 @@ static __isl_give isl_ast_graft *refine_generic_split(
 /* Update "graft" based on "bounds" and "domain" for the generic,
  * non-degenerate, case.
  *
- * "bounds" respresent the bounds that need to be encoded by
+ * "bounds" represent the bounds that need to be encoded by
  * the for loop (or a guard around the for loop).
  * "domain" is the subset of "bounds" for which some code is executed.
  * "build" is the build in which graft->node was created.
@@ -1657,7 +1657,7 @@ static isl_stat map_check_scaled(__isl_take isl_map *map, void *user)
  *
  * but this may result in i' taking on larger values than the original i,
  * due to the shift by "f".
- * By constrast, the scaling in (1) can only reduce the (absolute) value "i".
+ * By contrast, the scaling in (1) can only reduce the (absolute) value "i".
  */
 static __isl_give isl_ast_graft *create_node(__isl_take isl_union_map *executed,
 	__isl_take isl_basic_set *bounds, __isl_take isl_set *domain,
@@ -2283,7 +2283,7 @@ static __isl_give isl_set *separate_schedule_domains(
  *
  * "build" is the build in which the unrolling will be performed
  * "domain" is the original set for which to find a lower bound
- * "depth" is the dimension for which to find a lower boudn
+ * "depth" is the dimension for which to find a lower bound
  * "expansion" is the expansion that needs to be applied to "domain"
  * in the unrolling that will be performed
  *
@@ -2319,7 +2319,7 @@ static __isl_give isl_constraint *at_offset(int depth, __isl_keep isl_aff *aff,
 	return isl_equality_from_aff(aff);
 }
 
-/* Update *user to the number of integer divsions in the first element
+/* Update *user to the number of integer divisions in the first element
  * of "ma", if it is larger than the current value.
  */
 static isl_stat update_n_div(__isl_take isl_set *set,
@@ -2922,7 +2922,7 @@ static int compute_separate_domain(struct isl_codegen_domains *domains,
  * This possibly larger domain is removed from class_domain by
  * compute_atomic_domain.  It is computed first so that the extended domain
  * would not overlap with any domains computed before.
- * Similary, the unrolled domains may have some constraints removed and
+ * Similarly, the unrolled domains may have some constraints removed and
  * may therefore also be larger than specified by the user.
  *
  * If anything is left after handling separate, unroll and atomic,
@@ -3034,12 +3034,12 @@ static void compute_domains_init_options(isl_set *option[4],
  *
  * There are three kinds of domains that we need to keep track of.
  * - the "schedule domain" is the domain of "executed"
- * - the "class domain" is the domain corresponding to the currrent
+ * - the "class domain" is the domain corresponding to the current
  *	separation class
  * - the "option domain" is the domain corresponding to one of the options
  *	atomic, unroll or separate
  *
- * We first consider the individial values of the separation classes
+ * We first consider the individual values of the separation classes
  * and split up the domain for each of them separately.
  * Finally, we consider the remainder.  If no separation classes were
  * specified, then we call compute_partial_domains with the universe
@@ -3944,7 +3944,7 @@ static __isl_give isl_union_map *contruct_shifted_executed(
  * Based on this information, we construct a new inverse schedule in
  * contruct_shifted_executed that exposes the stride.
  * Since this involves the introduction of a new schedule dimension,
- * the build needs to be changed accodingly.
+ * the build needs to be changed accordingly.
  * After computing the AST, the newly introduced dimension needs
  * to be removed again from the list of grafts.  We do this by plugging
  * in a mapping that represents the new schedule domain in terms of the
@@ -5171,7 +5171,7 @@ static __isl_give isl_ast_graft_list *hoist_out_of_context(
  * to the domain elements executed by those iterations.
  *
  * The context node may introduce additional parameters as well as
- * constraints on the outer schedule dimenions or original parameters.
+ * constraints on the outer schedule dimensions or original parameters.
  *
  * We add the extra parameters to a new build and the context
  * constraints to both the build and (as a single disjunct)

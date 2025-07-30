@@ -12,9 +12,9 @@ import os
 import subprocess
 import time
 import warnings
-from functools import partial
 from copy import copy, deepcopy
 from datetime import datetime, timedelta
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -60,15 +60,13 @@ from ultralytics.utils.torch_utils import (
 
 
 def replace_c2f_with_c2f_prunable(module):
-    """
-    Recursively replace C2f modules with C2fPrunable modules and transfer weights.
-    """
+    """Recursively replace C2f modules with C2fPrunable modules and transfer weights."""
     for name, child_module in module.named_children():
         if isinstance(child_module, C2f):
             # Infer shortcut for the first bottleneck in C2f
             c1 = child_module.m[0].cv1.conv.in_channels
             c2 = child_module.m[0].cv2.conv.out_channels
-            shortcut = c1 == c2 and hasattr(child_module.m[0], 'add') and child_module.m[0].add
+            shortcut = c1 == c2 and hasattr(child_module.m[0], "add") and child_module.m[0].add
 
             # Create a new C2fPrunable module
             c2f_prunable = C2fPrunable(
@@ -77,7 +75,7 @@ def replace_c2f_with_c2f_prunable(module):
                 n=len(child_module.m),
                 shortcut=shortcut,
                 g=child_module.m[0].cv2.conv.groups,
-                e=child_module.c / child_module.cv2.conv.out_channels
+                e=child_module.c / child_module.cv2.conv.out_channels,
             )
 
             c2f_prunable.cv2 = child_module.cv2
@@ -88,25 +86,25 @@ def replace_c2f_with_c2f_prunable(module):
             state_dict_prunable = c2f_prunable.state_dict()
 
             # Transfer cv1 weights and batchnorm parameters
-            old_weight = state_dict['cv1.conv.weight']
+            old_weight = state_dict["cv1.conv.weight"]
             half_channels = old_weight.shape[0] // 2
-            state_dict_prunable['cv1_a.conv.weight'] = old_weight[:half_channels]
-            state_dict_prunable['cv1_b.conv.weight'] = old_weight[half_channels:]
+            state_dict_prunable["cv1_a.conv.weight"] = old_weight[:half_channels]
+            state_dict_prunable["cv1_b.conv.weight"] = old_weight[half_channels:]
 
-            for bn_key in ['weight', 'bias', 'running_mean', 'running_var']:
-                old_bn = state_dict[f'cv1.bn.{bn_key}']
-                state_dict_prunable[f'cv1_a.bn.{bn_key}'] = old_bn[:half_channels]
-                state_dict_prunable[f'cv1_b.bn.{bn_key}'] = old_bn[half_channels:]
+            for bn_key in ["weight", "bias", "running_mean", "running_var"]:
+                old_bn = state_dict[f"cv1.bn.{bn_key}"]
+                state_dict_prunable[f"cv1_a.bn.{bn_key}"] = old_bn[:half_channels]
+                state_dict_prunable[f"cv1_b.bn.{bn_key}"] = old_bn[half_channels:]
 
             # Transfer remaining weights and buffers
             for key in state_dict:
-                if not key.startswith('cv1.'):
+                if not key.startswith("cv1."):
                     state_dict_prunable[key] = state_dict[key]
 
             # Transfer non-method attributes
             for attr_name in dir(child_module):
                 attr_value = getattr(child_module, attr_name)
-                if not callable(attr_value) and '_' not in attr_name:
+                if not callable(attr_value) and "_" not in attr_name:
                     setattr(c2f_prunable, attr_name, attr_value)
 
             # Load the state dict into the new module
@@ -363,7 +361,9 @@ class BaseTrainer:
             base_macs, base_nparams = tp.utils.count_ops_and_params(self.model, dummy_input)
             self.pruner.step()
             pruned_macs, pruned_nparams = tp.utils.count_ops_and_params(self.model, dummy_input)
-            LOGGER.info(f"MACs: {base_macs/1e9} G -> {pruned_macs/1e9} G, #Params: {base_nparams/1e6} M -> {pruned_nparams/1e6} M")
+            LOGGER.info(
+                f"MACs: {base_macs / 1e9} G -> {pruned_macs / 1e9} G, #Params: {base_nparams / 1e6} M -> {pruned_nparams / 1e6} M"
+            )
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
@@ -494,7 +494,7 @@ class BaseTrainer:
                 self.train_loader.reset()
 
             if self.prune and self.prune_sparse:
-                self.pruner.update_regularizer() # Init every epoch
+                self.pruner.update_regularizer()  # Init every epoch
 
             if RANK in {-1, 0}:
                 LOGGER.info(self.progress_string())
@@ -568,7 +568,7 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_end")
 
             if self.prune and isinstance(self.pruner, tp.pruner.GrowingRegPruner):
-                self.pruner.update_reg() # increase the strength of regularization
+                self.pruner.update_reg()  # increase the strength of regularization
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")

@@ -99,11 +99,11 @@ model = YOLO("yolo11n.pt")
 # 在 COCO128 数据集上剪枝后训练模型 10 个周期
 train_results = model.train(
     data="coco128.yaml",  # 数据集配置文件路径
-    prune=True, # 是否启用剪枝
-    prune_type="l2", # 剪枝类型，例如 L2 范数
-    prune_method="GroupNorm", # 剪枝方法，例如 GroupNorm
-    prune_global=True, # 是否启用全局剪枝
-    prune_sparse=True, # 是否启用稀疏剪枝
+    prune=True,  # 是否启用剪枝
+    prune_type="l2",  # 剪枝类型，例如 L2 范数
+    prune_method="GroupNorm",  # 剪枝方法，例如 GroupNorm
+    prune_global=True,  # 是否启用全局剪枝
+    prune_sparse=True,  # 是否启用稀疏剪枝
     epochs=10,  # 训练周期数
     imgsz=640,  # 训练图像尺寸
     device="cpu",  # 运行设备（例如 'cpu', 0, [0,1,2,3]）

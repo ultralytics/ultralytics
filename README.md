@@ -101,11 +101,11 @@ model = YOLO("yolo11n.pt")
 # For detailed prune parameter information, refer to ultralytics/cfg/default.yaml
 train_results = model.train(
     data="coco128.yaml",  # Path to dataset configuration file
-    prune=True, # Enable pruning
-    prune_type="l2", # Pruning type, e.g., L2 norm
-    prune_method="GroupNorm", # Pruning method, e.g., GroupNorm
-    prune_global=True, # Enable global pruning
-    prune_sparse=True, # Enable sparse pruning
+    prune=True,  # Enable pruning
+    prune_type="l2",  # Pruning type, e.g., L2 norm
+    prune_method="GroupNorm",  # Pruning method, e.g., GroupNorm
+    prune_global=True,  # Enable global pruning
+    prune_sparse=True,  # Enable sparse pruning
     epochs=10,  # Number of training epochs
     imgsz=640,  # Image size for training
     device="cpu",  # Device to run on (e.g., 'cpu', 0, [0,1,2,3])

@@ -79,6 +79,10 @@ You can use Ultralytics YOLO directly from the Command Line Interface (CLI) with
 ```bash
 # Predict using a pretrained YOLO model (e.g., YOLO11n) on an image
 yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+
+# Train a YOLO model for object detection on the COCO128 dataset with pruning enabled
+# For detailed prune parameter information, refer to ultralytics/cfg/default.yaml
+yolo detect train data=coco128.yaml model=yolo11n.pt cfg=default.yaml prune=True
 ```
 
 The `yolo` command supports various tasks and modes, accepting additional arguments like `imgsz=640`. Explore the YOLO [CLI Docs](https://docs.ultralytics.com/usage/cli/) for more examples.
@@ -93,10 +97,16 @@ from ultralytics import YOLO
 # Load a pretrained YOLO11n model
 model = YOLO("yolo11n.pt")
 
-# Train the model on the COCO8 dataset for 100 epochs
+# Train the model for 10 epochs on the COCO128 dataset with pruning enabled
+# For detailed prune parameter information, refer to ultralytics/cfg/default.yaml
 train_results = model.train(
-    data="coco8.yaml",  # Path to dataset configuration file
-    epochs=100,  # Number of training epochs
+    data="coco128.yaml",  # Path to dataset configuration file
+    prune=True, # Enable pruning
+    prune_type="l2", # Pruning type, e.g., L2 norm
+    prune_method="GroupNorm", # Pruning method, e.g., GroupNorm
+    prune_global=True, # Enable global pruning
+    prune_sparse=True, # Enable sparse pruning
+    epochs=10,  # Number of training epochs
     imgsz=640,  # Image size for training
     device="cpu",  # Device to run on (e.g., 'cpu', 0, [0,1,2,3])
 )

@@ -12,18 +12,21 @@ import os
 import subprocess
 import time
 import warnings
+from functools import partial
 from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 import torch
+import torch_pruning as tp
 from torch import distributed as dist
 from torch import nn, optim
 
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.nn.modules import Attention, C2f, C2fPrunable, Detect
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
@@ -54,6 +57,66 @@ from ultralytics.utils.torch_utils import (
     torch_distributed_zero_first,
     unset_deterministic,
 )
+
+
+def replace_c2f_with_c2f_prunable(module):
+    """
+    Recursively replace C2f modules with C2fPrunable modules and transfer weights.
+    """
+    for name, child_module in module.named_children():
+        if isinstance(child_module, C2f):
+            # Infer shortcut for the first bottleneck in C2f
+            c1 = child_module.m[0].cv1.conv.in_channels
+            c2 = child_module.m[0].cv2.conv.out_channels
+            shortcut = c1 == c2 and hasattr(child_module.m[0], 'add') and child_module.m[0].add
+
+            # Create a new C2fPrunable module
+            c2f_prunable = C2fPrunable(
+                child_module.cv1.conv.in_channels,
+                child_module.cv2.conv.out_channels,
+                n=len(child_module.m),
+                shortcut=shortcut,
+                g=child_module.m[0].cv2.conv.groups,
+                e=child_module.c / child_module.cv2.conv.out_channels
+            )
+
+            c2f_prunable.cv2 = child_module.cv2
+            c2f_prunable.m = child_module.m
+
+            # Transfer weights and attributes
+            state_dict = child_module.state_dict()
+            state_dict_prunable = c2f_prunable.state_dict()
+
+            # Transfer cv1 weights and batchnorm parameters
+            old_weight = state_dict['cv1.conv.weight']
+            half_channels = old_weight.shape[0] // 2
+            state_dict_prunable['cv1_a.conv.weight'] = old_weight[:half_channels]
+            state_dict_prunable['cv1_b.conv.weight'] = old_weight[half_channels:]
+
+            for bn_key in ['weight', 'bias', 'running_mean', 'running_var']:
+                old_bn = state_dict[f'cv1.bn.{bn_key}']
+                state_dict_prunable[f'cv1_a.bn.{bn_key}'] = old_bn[:half_channels]
+                state_dict_prunable[f'cv1_b.bn.{bn_key}'] = old_bn[half_channels:]
+
+            # Transfer remaining weights and buffers
+            for key in state_dict:
+                if not key.startswith('cv1.'):
+                    state_dict_prunable[key] = state_dict[key]
+
+            # Transfer non-method attributes
+            for attr_name in dir(child_module):
+                attr_value = getattr(child_module, attr_name)
+                if not callable(attr_value) and '_' not in attr_name:
+                    setattr(c2f_prunable, attr_name, attr_value)
+
+            # Load the state dict into the new module
+            c2f_prunable.load_state_dict(state_dict_prunable)
+
+            # Replace the original C2f module with the new C2fPrunable module
+            setattr(module, name, c2f_prunable)
+        else:
+            # Recursively process child modules
+            replace_c2f_with_c2f_prunable(child_module)
 
 
 class BaseTrainer:
@@ -175,6 +238,44 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             callbacks.add_integration_callbacks(self)
 
+        # Prune
+        IMPORTANCE_TYPE = {
+            "l1": lambda: tp.importance.GroupMagnitudeImportance(p=1),
+            "l2": lambda: tp.importance.GroupMagnitudeImportance(p=2),
+            "slim": tp.importance.BNScaleImportance,
+            # "taylor": tp.importance.GroupTaylorImportance, # Taylor importance is not working, because must use loss.backward() before pruner.step(), refer to https://github.com/VainF/Torch-Pruning/issues/217#issuecomment-1636758781
+            # "hessian": tp.importance.GroupHessianImportance, # Hessian importance is not working, there is no change before and after calling pruner.step().
+        }
+        PRUNER_METHOD = {
+            "BNScale": tp.pruner.BNScalePruner,
+            "GroupNorm": tp.pruner.GroupNormPruner,
+            "GrowingReg": tp.pruner.GrowingRegPruner,
+        }
+        self.pruner = None
+        self.prune = self.args.prune
+        self.prune_sparse = self.args.prune_sparse
+        # Check if the prune type is supported
+        if self.args.prune_type not in IMPORTANCE_TYPE:
+            raise ValueError(
+                f"Unsupported prune type: {self.args.prune_type}. Supported types: {', '.join(IMPORTANCE_TYPE.keys())}. "
+                f"Please check your configuration file or overrides."
+            )
+        # Check if the prune method is supported
+        if self.args.prune_method not in PRUNER_METHOD:
+            raise ValueError(
+                f"Unsupported prune method: {self.args.prune_method}. Supported methods: {', '.join(PRUNER_METHOD.keys())}. "
+                f"Please check your configuration file or overrides."
+            )
+        # Initialize the pruner
+        self.pruner_entry = partial(
+            PRUNER_METHOD[self.args.prune_method],
+            importance=IMPORTANCE_TYPE[self.args.prune_type](),
+            pruning_ratio=self.args.prune_ratio,
+            global_pruning=self.args.prune_global,
+            isomorphic=self.args.prune_global,  # same as global pruning
+            iterative_steps=1,  # Fixed iterative steps for simplicity
+        )
+
     def add_callback(self, event: str, callback):
         """Append the given callback to the event's callback list."""
         self.callbacks[event].append(callback)
@@ -252,6 +353,17 @@ class BaseTrainer:
         # Model
         self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
+        if self.prune:
+            imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+            dummy_input = torch.zeros(1, self.model.yaml.get("channels", 3), *imgsz)
+            replace_c2f_with_c2f_prunable(self.model)
+            if self.pruner is None:
+                ignored_layers = [m for m in self.model.modules() if isinstance(m, (Detect, Attention))]
+                self.pruner = self.pruner_entry(self.model, dummy_input, ignored_layers=ignored_layers)
+            base_macs, base_nparams = tp.utils.count_ops_and_params(self.model, dummy_input)
+            self.pruner.step()
+            pruned_macs, pruned_nparams = tp.utils.count_ops_and_params(self.model, dummy_input)
+            LOGGER.info(f"MACs: {base_macs/1e9} G -> {pruned_macs/1e9} G, #Params: {base_nparams/1e6} M -> {pruned_nparams/1e6} M")
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
@@ -381,6 +493,9 @@ class BaseTrainer:
                 self._close_dataloader_mosaic()
                 self.train_loader.reset()
 
+            if self.prune and self.prune_sparse:
+                self.pruner.update_regularizer() # Init every epoch
+
             if RANK in {-1, 0}:
                 LOGGER.info(self.progress_string())
                 pbar = TQDM(enumerate(self.train_loader), total=nb)
@@ -413,6 +528,10 @@ class BaseTrainer:
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
+
+                # After loss.backward(), Before optimizer.step()
+                if self.prune and (self.prune_sparse or isinstance(self.pruner, tp.pruner.GrowingRegPruner)):
+                    self.pruner.regularize(self.model)
 
                 # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
@@ -447,6 +566,9 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
+
+            if self.prune and isinstance(self.pruner, tp.pruner.GrowingRegPruner):
+                self.pruner.update_reg() # increase the strength of regularization
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")

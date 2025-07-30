@@ -557,6 +557,45 @@ def merge_equals_args(args: List[str]) -> List[str]:
     return new_args
 
 
+
+
+
+
+def handle_yolo_dataset_validation(args: List[str]) -> None:
+    """
+    Handle YOLO datasets validation command-line interface (CLI) commands.
+
+    This function processes YOLO datasets validation CLI commands such as check and repair. It should be called before model training to ensure the dataset is valid.
+    Args:
+        args (List[str]): A list of command line arguments for YOLO datasets validation.
+    Examples:
+        >>> $ yolo debug dataset
+        >>> $ yolo repair dataset
+      
+    Notes:
+        - If no arguments are provided, the function will display information about the available commands.
+        - The 'datacheck' command will validate the dataset and print any issues found.
+        - The 'datarepair' command will attempt to fix issues in the dataset.
+   
+         
+    """
+    from ultralytics.utils.dataset_validation import DatasetValidation
+
+    if len(args) < 2 or not args[1]:
+        print("❌ Podaj ścieżkę do pliku lub katalogu datasetu, np. 'yolo check path/to/dataset'.")
+        return
+
+    dataset_validation = DatasetValidation(args[1])
+    if args[0] == "datacheck":
+        dataset_validation.validate()
+       
+        print("✅Check dataset completed.")
+    elif args[0] == "datarepair":
+        print("🔧 Naprawianie datasetu...")
+    else:
+        print("❌ Nieznana komenda. Użyj 'check'")
+
+
 def handle_yolo_hub(args: List[str]) -> None:
     """
     Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
@@ -853,7 +892,7 @@ def entrypoint(debug: str = "") -> None:
 
     special = {
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
-        "checks": checks.collect_system_info,
+        # "checks": checks.collect_system_info,
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
         "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
@@ -862,6 +901,8 @@ def entrypoint(debug: str = "") -> None:
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "datacheck": lambda: handle_yolo_dataset_validation(args),
+        "datarepair": lambda: handle_yolo_dataset_validation(args),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

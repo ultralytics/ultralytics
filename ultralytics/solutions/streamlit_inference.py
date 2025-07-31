@@ -164,9 +164,11 @@ class Inference:
             available_models.insert(0, self.model_path)
         selected_model = self.st.sidebar.selectbox("Model", available_models)
 
-        with (self.st.spinner("Model is downloading...")):
-            if selected_model.endswith(
-                    (".pt", ".onnx", ".torchscript", ".mlpackage")) or "openvino_model" in selected_model:
+        with self.st.spinner("Model is downloading..."):
+            if (
+                selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage"))
+                or "openvino_model" in selected_model
+            ):
                 model_path = selected_model
             else:
                 model_path = f"{selected_model.lower()}.pt"  # Default to .pt if no extension provided

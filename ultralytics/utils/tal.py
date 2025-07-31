@@ -448,10 +448,10 @@ class TaskAlignedAssigner(nn.Module):
             #             self.zero_assigned += 1
 
         if self.topk2 != self.topk:
-            # align_metric = align_metric * mask_pos  # update overlaps
-            # max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
-            overlaps = overlaps * mask_pos  # update overlaps
-            max_overlaps_idx = torch.topk(overlaps, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
+            align_metric = align_metric * mask_pos  # update overlaps
+            max_overlaps_idx = torch.topk(align_metric, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
+            # overlaps = overlaps * mask_pos  # update overlaps
+            # max_overlaps_idx = torch.topk(overlaps, self.topk2, dim=-1, largest=True).indices  # (b, n_max_boxes)
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             # WARNING: directly use topk_idx might assign empty labels

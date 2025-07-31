@@ -314,8 +314,12 @@ class BYTETracker:
         inds_second = inds_low & inds_high
         results_second = results[inds_second]
         results = results[remain_inds]
+        feats_keep = feats_second = img
+        if feats is not None and len(feats):
+            feats_keep = feats[remain_inds]
+            feats_second = feats[inds_second]
 
-        detections = self.init_track(results, img if feats is None else feats)
+        detections = self.init_track(results, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks = []  # type: List[STrack]
@@ -352,7 +356,7 @@ class BYTETracker:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
-        detections_second = self.init_track(results_second, img if feats is None else feats)
+        detections_second = self.init_track(results_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
@@ -418,7 +422,7 @@ class BYTETracker:
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         return (
-            [STrack(xyxy, s, c) for (xyxy, s, c) in zip(bboxes, results.conf, results.cls)] if len(bboxes) else []
+            [STrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)] if len(bboxes) else []
         )  # detections
 
     def get_dists(self, tracks: List[STrack], detections: List[STrack]) -> np.ndarray:

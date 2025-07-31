@@ -120,6 +120,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets._GITHUB_TOKEN }}
 
+      - name: Login to NVIDIA NGC
+        uses: docker/login-action@v3
+        with:
+          registry: nvcr.io
+          username: $oauthtoken
+          password: ${{ secrets.NVIDIA_NGC_API_KEY }}
+
       - name: Retrieve Ultralytics version
         id: get_version
         run: |

@@ -171,7 +171,7 @@ class Inference:
             ):
                 model_path = selected_model
             else:
-                model_path = f"{selected_model.lower()}.pt"  # Default to .pt if no extension provided
+                model_path = f"{selected_model.lower()}.pt"  # Default to .pt if no model provided during function call.
             self.model = YOLO(model_path)  # Load the YOLO model
             class_names = list(self.model.names.values())  # Convert dictionary to list of class names
         self.st.success("Model loaded successfully!")

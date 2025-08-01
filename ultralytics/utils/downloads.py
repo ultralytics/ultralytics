@@ -343,7 +343,7 @@ def safe_download(
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                     assert r == 0, f"Curl return value {r}"
                 else:  # urllib download
-                    # torch.hub.download_url_to_file(url, f, progress=progress)
+                    # torch.hub.download_url_to_file(url, f, progress=progress)  # do not use as progress tqdm differs
                     with request.urlopen(url) as response, TQDM(
                         total=int(response.getheader("Content-Length", 0)),
                         desc=desc,

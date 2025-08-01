@@ -335,7 +335,6 @@ def safe_download(
             "https://ultralytics.com/assets/",  # assets alias
         )
         desc = f"Downloading {uri} to '{f}'"
-        LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)
         curl_installed = shutil.which("curl")
@@ -346,22 +345,19 @@ def safe_download(
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                     assert r == 0, f"Curl return value {r}"
                 else:  # urllib download
-                    method = "torch"
-                    if method == "torch":
-                        torch.hub.download_url_to_file(url, f, progress=progress)
-                    else:
-                        with request.urlopen(url) as response, TQDM(
-                            total=int(response.getheader("Content-Length", 0)),
-                            desc=desc,
-                            disable=not progress,
-                            unit="B",
-                            unit_scale=True,
-                            unit_divisor=1024,
-                        ) as pbar:
-                            with open(f, "wb") as f_opened:
-                                for data in response:
-                                    f_opened.write(data)
-                                    pbar.update(len(data))
+                    # torch.hub.download_url_to_file(url, f, progress=progress)
+                    with request.urlopen(url) as response, TQDM(
+                        total=int(response.getheader("Content-Length", 0)),
+                        desc=desc,
+                        disable=not progress,
+                        unit="B",
+                        unit_scale=True,
+                        unit_divisor=1024,
+                    ) as pbar:
+                        with open(f, "wb") as f_opened:
+                            for data in response:
+                                f_opened.write(data)
+                                pbar.update(len(data))
 
                 if f.exists():
                     if f.stat().st_size > min_bytes:

@@ -9,8 +9,6 @@ from pathlib import Path
 from typing import List, Tuple
 from urllib import parse, request
 
-import torch
-
 from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets

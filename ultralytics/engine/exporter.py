@@ -1014,7 +1014,6 @@ class Exporter:
             enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
             output_signaturedefs=True,  # fix error with Attention block group convolution
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},  # fix error with group convolution
-            optimization_for_gpu_delegate=True,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
@@ -1169,7 +1168,9 @@ class Exporter:
         )
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
-        check_requirements(("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0"))
+        check_requirements(
+            ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
+        )
         check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
 

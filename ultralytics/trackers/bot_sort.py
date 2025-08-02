@@ -53,13 +53,13 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(
-        self, tlwh: np.ndarray, score: float, cls: int, feat: Optional[np.ndarray] = None, feat_history: int = 50
+        self, xywh: np.ndarray, score: float, cls: int, feat: Optional[np.ndarray] = None, feat_history: int = 50
     ):
         """
         Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
         Args:
-            tlwh (np.ndarray): Bounding box coordinates in tlwh format (top left x, top left y, width, height).
+            xywh (np.ndarray): Bounding box coordinates in xywh format (center x, center y, width, height).
             score (float): Confidence score of the detection.
             cls (int): Class ID of the detected object.
             feat (np.ndarray, optional): Feature vector associated with the detection.
@@ -67,13 +67,13 @@ class BOTrack(STrack):
 
         Examples:
             Initialize a BOTrack object with bounding box, score, class ID, and feature vector
-            >>> tlwh = np.array([100, 50, 80, 120])
+            >>> xywh = np.array([100, 150, 60, 50])
             >>> score = 0.9
             >>> cls = 1
             >>> feat = np.random.rand(128)
-            >>> bo_track = BOTrack(tlwh, score, cls, feat)
+            >>> bo_track = BOTrack(xywh, score, cls, feat)
         """
-        super().__init__(tlwh, score, cls)
+        super().__init__(xywh, score, cls)
 
         self.smooth_feat = None
         self.curr_feat = None
@@ -218,9 +218,9 @@ class BOTSORT(BYTETracker):
             return []
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder(img, dets)
-            return [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
+            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
         else:
-            return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections
+            return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(dets, scores, cls)]  # detections
 
     def get_dists(self, tracks: List[BOTrack], detections: List[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""

@@ -11,6 +11,8 @@ SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]
 TMP = (ROOT / "../tests/tmp").resolve()  # temp directory for test files
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
+XPU_IS_AVAILABLE = checks.xpu_device_available()
+XPU_DEVICE_COUNT = checks.xpu_device_count()
 TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
 MODELS = frozenset(list(TASK2MODEL.values()) + ["yolo11n-grayscale.pt"])
 
@@ -22,4 +24,6 @@ __all__ = (
     "TMP",
     "CUDA_IS_AVAILABLE",
     "CUDA_DEVICE_COUNT",
+    "XPU_IS_AVAILABLE",
+    "XPU_DEVICE_COUNT"
 )

@@ -36,6 +36,7 @@ from ultralytics.utils.patches import torch_load
 TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_13 = check_version(torch.__version__, "1.13.0")
 TORCH_2_0 = check_version(torch.__version__, "2.0.0")
+TORCH_2_3 = check_version(torch.__version__, "2.3.0")
 TORCH_2_4 = check_version(torch.__version__, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
@@ -89,7 +90,8 @@ def autocast(enabled: bool, device: str = "cuda"):
         (torch.amp.autocast): The appropriate autocast context manager.
 
     Notes:
-        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
+        - For PyTorch versions 2.4 and newer, it uses `torch.autocast`.
+        - For PyTorch versions 1.13-2.3, it uses `torch.amp.autocast`.
         - For older versions, it uses `torch.cuda.autocast`.
 
     Examples:
@@ -97,7 +99,9 @@ def autocast(enabled: bool, device: str = "cuda"):
         ...     # Your mixed precision operations here
         ...     pass
     """
-    if TORCH_1_13:
+    if TORCH_2_4:
+        return torch.autocast(device, enabled=enabled)
+    elif TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
@@ -122,10 +126,20 @@ def get_cpu_info():
 
 
 @functools.lru_cache
-def get_gpu_info(index):
-    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    properties = torch.cuda.get_device_properties(index)
-    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+def get_gpu_info(devices, index):
+    """Return a string with system GPU(s) information, i.e. 'Tesla T4, 15102MiB'."""
+    properties = []
+    if "cuda" in devices:
+        properties.append(torch.cuda.get_device_properties(index))
+    if "xpu" in devices:
+        properties.append(torch.xpu.get_device_properties(index))
+    result = ' '.join(
+        [
+        f"{prop.name}, {prop.total_memory / (1 << 20):.0f}MiB\n"
+        for prop in properties
+        ]
+    )
+    return result
 
 
 def select_device(device="", batch=0, newline=False, verbose=True):
@@ -182,7 +196,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
+    xpu = device in {"xpu", "xpu:0"}  # Intel dGPU
+    if any([cpu, mps, xpu]):
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         if device == "cuda":
@@ -209,7 +224,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 f"{install}"
             )
 
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
+    if not all([cpu, mps, xpu]) and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         n = len(devices)  # device count
         if n > 1:  # multi-GPU
@@ -231,6 +246,8 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
         arg = "mps"
+    elif xpu:
+        arg = "xpu:0"
     else:  # revert to CPU
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
@@ -614,6 +631,8 @@ def init_seeds(seed=0, deterministic=False):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    torch.xpu.manual_seed(seed)
+    torch.xpu.manual_seed_all(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
     # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287

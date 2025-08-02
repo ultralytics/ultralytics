@@ -118,12 +118,13 @@ class RegionCounter(BaseSolution):
             x1, y1, x2, y2 = map(int, region["polygon"].bounds)
             pts = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
             annotator.draw_region(pts, region["region_color"], self.line_width * 2)
-            annotator.text_label(
+            annotator.adaptive_label(
                 [x1, y1, x2, y2],
                 label=str(region["counts"]),
                 color=region["region_color"],
                 txt_color=region["text_color"],
                 margin=self.line_width * 4,
+                shape="rect",
             )
             region["counts"] = 0  # Reset for next frame
         plot_im = annotator.result()

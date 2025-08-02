@@ -178,7 +178,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     pass
         """
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)
 

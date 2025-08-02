@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import torch
@@ -186,45 +187,28 @@ class RTDETRValidator(DetectionValidator):
 
         return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
-    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
         """
-        Prepare a batch for validation by applying necessary transformations.
+        Serialize YOLO predictions to COCO json format.
 
         Args:
-            si (int): Batch index.
-            batch (Dict[str, Any]): Batch data containing images and annotations.
-
-        Returns:
-            (Dict[str, Any]): Prepared batch with transformed annotations containing cls, bboxes,
-                ori_shape, imgsz, and ratio_pad.
+            predn (Dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
+                with bounding box coordinates, confidence scores, and class predictions.
+            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        idx = batch["batch_idx"] == si
-        cls = batch["cls"][idx].squeeze(-1)
-        bbox = batch["bboxes"][idx]
-        ori_shape = batch["ori_shape"][si]
-        imgsz = batch["img"].shape[2:]
-        ratio_pad = batch["ratio_pad"][si]
-        if len(cls):
-            bbox = ops.xywh2xyxy(bbox)  # target boxes
-            bbox[..., [0, 2]] *= ori_shape[1]  # native-space pred
-            bbox[..., [1, 3]] *= ori_shape[0]  # native-space pred
-        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
-
-    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Prepare predictions by scaling bounding boxes to original image dimensions.
-
-        Args:
-            pred (Dict[str, torch.Tensor]): Raw predictions containing 'cls', 'bboxes', and 'conf'.
-            pbatch (Dict[str, torch.Tensor]): Prepared batch information containing 'ori_shape' and other metadata.
-
-        Returns:
-            (Dict[str, torch.Tensor]): Predictions scaled to original image dimensions.
-        """
-        cls = pred["cls"]
-        if self.args.single_cls:
-            cls *= 0
-        bboxes = pred["bboxes"].clone()
-        bboxes[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        bboxes[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
+        stem = Path(pbatch["im_file"]).stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        box = predn["bboxes"].clone()
+        box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
+        box[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
+        box = ops.xyxy2xywh(box)  # xywh
+        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+        for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
+            self.jdict.append(
+                {
+                    "image_id": image_id,
+                    "category_id": self.class_map[int(c)],
+                    "bbox": [round(x, 3) for x in b],
+                    "score": round(s, 5),
+                }
+            )

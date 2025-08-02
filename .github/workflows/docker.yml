@@ -120,6 +120,13 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets._GITHUB_TOKEN }}
 
+      - name: Login to NVIDIA NGC
+        uses: docker/login-action@v3
+        with:
+          registry: nvcr.io
+          username: $oauthtoken
+          password: ${{ secrets.NVIDIA_NGC_API_KEY }}
+
       - name: Retrieve Ultralytics version
         id: get_version
         run: |
@@ -254,7 +261,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

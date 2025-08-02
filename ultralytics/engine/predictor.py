@@ -394,7 +394,6 @@ class BasePredictor:
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.half,
-            batch=self.args.batch,
             fuse=True,
             verbose=verbose,
         )

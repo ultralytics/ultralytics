@@ -761,6 +761,12 @@ class Model(torch.nn.Module):
                 optimizer (str): Optimizer to use for training.
                 lr0 (float): Initial learning rate.
                 patience (int): Epochs to wait for no observable improvement for early stopping of training.
+                prune (bool): Whether to prune the model during training.
+                prune_type (str): Type of prune importance (e.g., 'l1', 'l2', 'slim').
+                prune_method (str): Method to use for pruning (e.g., 'BNScale', 'GroupNorm', 'GrowingReg').
+                prune_ratio (float): Ratio of parameters to prune.
+                prune_global (bool): Whether to apply pruning globally or per layer.
+                prune_sparse (bool): Whether to apply sparse training during pruning.
 
         Returns:
             (Dict | None): Training metrics if available and training is successful; otherwise, None.

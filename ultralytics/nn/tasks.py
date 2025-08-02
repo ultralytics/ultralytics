@@ -61,6 +61,7 @@ from ultralytics.nn.modules import (
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
+    RTDETRDecoderV2,
     SCDown,
     Segment,
     TorchVision,
@@ -778,6 +779,10 @@ class RTDETRDetectionModel(DetectionModel):
         }
 
         preds = self.predict(img, batch=targets) if preds is None else preds
+        if self.training:
+            preds, encoder_feats = preds
+        else:
+            encoder_feats = None  # Set to None during validation
         dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
         if dn_meta is None:
             dn_bboxes, dn_scores = None, None
@@ -789,7 +794,12 @@ class RTDETRDetectionModel(DetectionModel):
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
         loss = self.criterion(
-            (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
+            (dec_bboxes, dec_scores),
+            targets,
+            dn_bboxes=dn_bboxes,
+            dn_scores=dn_scores,
+            dn_meta=dn_meta,
+            encoder_feats=encoder_feats,
         )
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor(
@@ -829,6 +839,13 @@ class RTDETRDetectionModel(DetectionModel):
                     return torch.unbind(torch.cat(embeddings, 1), dim=0)
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
+
+        # Extract encoder features for RT-DETR v2 auxiliary loss
+        if self.training:
+            # x = (dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta)
+            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = x
+            encoder_feats = (enc_scores, enc_bboxes)  # (class_outputs, bbox_outputs)
+            return x, encoder_feats
         return x
 
 
@@ -1587,6 +1604,8 @@ def parse_model(d, ch, verbose=True):
     """
     import ast
 
+    from ultralytics.nn import modules
+
     # Args
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
@@ -1671,7 +1690,7 @@ def parse_model(d, ch, verbose=True):
             if "nn." in m
             else getattr(__import__("torchvision").ops, m[16:])
             if "torchvision.ops." in m
-            else globals()[m]
+            else getattr(modules, m)
         )  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
@@ -1722,8 +1741,49 @@ def parse_model(d, ch, verbose=True):
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
                 m.legacy = legacy
-        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
-            args.insert(1, [ch[x] for x in f])
+        elif m is RTDETRDecoder:  # special case
+            args.append([ch[x] for x in f])
+            m_ = m(*args)
+        elif m is RTDETRDecoderV2:  # special case for RTDETRDecoderV2
+            ch_in = tuple(ch[x] for x in f)
+            kwargs = {
+                "nc": nc,
+                "ch": ch_in,
+                "hd": args[0],
+                "nq": args[1],
+                "ndp": args[2],
+                "nh": args[3],
+                "ndl": args[4],
+                "d_ffn": args[5],
+                "dropout": args[6],
+                "act": args[7],
+                "eval_idx": args[8],
+                "nd": args[9],
+                "label_noise_ratio": args[10],
+                "box_noise_scale": args[11],
+                "learnt_init_query": args[12],
+                "query_select_method": args[13] if len(args) > 13 else "default",
+                "cross_attn_method": args[14] if len(args) > 14 else "default",
+            }
+            m_ = m(**kwargs)
+            t = str(m)[8:-2].replace("__main__.", "")  # module type
+            m_.np = sum(x.numel() for x in m_.parameters())  # number params
+            m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
+            if verbose:
+                # Truncate kwargs to show only first 5 values as list
+                kwargs_values = list(kwargs.values())
+                if len(kwargs_values) > 5:
+                    kwargs_str = str(kwargs_values[:5] + ["..."])
+                else:
+                    kwargs_str = str(kwargs_values)
+                LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{kwargs_str:<30}")  # print
+            save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+            layers.append(m_)
+            if i == 0:
+                ch = []
+            c2 = kwargs["hd"]
+            ch.append(c2)
+            continue
         elif m is CBLinear:
             c2 = args[0]
             c1 = ch[f]
@@ -1742,7 +1802,9 @@ def parse_model(d, ch, verbose=True):
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
         if verbose:
-            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
+            # Truncate args to show only first 5 parameters
+            args_str = str(args[:5] + ["..."] if len(args) > 5 else args)
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args_str:<30}")  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
         layers.append(m_)
         if i == 0:

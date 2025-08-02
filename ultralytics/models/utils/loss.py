@@ -402,8 +402,21 @@ class RTDETRDetectionLoss(DETRLoss):
     Real-Time DeepTracker (RT-DETR) Detection Loss class that extends the DETRLoss.
 
     This class computes the detection loss for the RT-DETR model, which includes the standard detection loss as well as
-    an additional denoising training loss when provided with denoising metadata.
+    an additional denoising training loss when provided with denoising metadata and encoder auxiliary loss for v2.
     """
+
+    def __init__(self, nc: int = 80, use_vfl: bool = True, enc_loss_coef: float = 0.1, **kwargs: Any):
+        """
+        Initialize RTDETRDetectionLoss.
+
+        Args:
+            nc (int): Number of classes.
+            use_vfl (bool): Whether to use VariFocal loss.
+            enc_loss_coef (float): Weight coefficient for encoder auxiliary loss.
+            **kwargs (Any): Additional arguments for parent class.
+        """
+        super().__init__(nc=nc, use_vfl=use_vfl, **kwargs)
+        self.enc_loss_coef = enc_loss_coef
 
     def forward(
         self,
@@ -412,6 +425,7 @@ class RTDETRDetectionLoss(DETRLoss):
         dn_bboxes: Optional[torch.Tensor] = None,
         dn_scores: Optional[torch.Tensor] = None,
         dn_meta: Optional[Dict[str, Any]] = None,
+        encoder_feats: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Forward pass to compute detection loss with optional denoising loss.
@@ -422,12 +436,21 @@ class RTDETRDetectionLoss(DETRLoss):
             dn_bboxes (torch.Tensor, optional): Denoising bounding boxes.
             dn_scores (torch.Tensor, optional): Denoising scores.
             dn_meta (Dict[str, Any], optional): Metadata for denoising.
+            encoder_feats (Tuple[torch.Tensor, torch.Tensor], optional): Encoder features for auxiliary loss.
 
         Returns:
             (Dict[str, torch.Tensor]): Dictionary containing total loss and denoising loss if applicable.
         """
         pred_bboxes, pred_scores = preds
         total_loss = super().forward(pred_bboxes, pred_scores, batch)
+
+        # In case of encoder auxiliary losses. For rtdetr v2
+        if encoder_feats is not None:
+            enc_outputs_class, enc_outputs_coord_unact = encoder_feats
+            enc_loss = self._compute_encoder_aux_loss(enc_outputs_class, enc_outputs_coord_unact, batch)
+            # Apply loss coefficient for encoder auxiliary loss
+            enc_loss_weighted = {f"{k}_enc": v * self.enc_loss_coef for k, v in enc_loss.items()}
+            total_loss.update(enc_loss_weighted)
 
         # Check for denoising metadata to compute denoising training loss
         if dn_meta is not None:
@@ -474,3 +497,32 @@ class RTDETRDetectionLoss(DETRLoss):
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.long), torch.zeros([0], dtype=torch.long)))
         return dn_match_indices
+
+    def _compute_encoder_aux_loss(self, enc_outputs_class, enc_outputs_coord_unact, batch):
+        """
+        Compute encoder auxiliary loss for RT-DETR v2.
+
+        Args:
+            enc_outputs_class (torch.Tensor): Encoder classification outputs.
+            enc_outputs_coord_unact (torch.Tensor): Encoder coordinate outputs (unactivated).
+            batch (dict): Batch data containing ground truth information.
+
+        Returns:
+            (dict): Dictionary containing encoder auxiliary losses.
+        """
+        # Check if class-agnostic (single class output)
+        class_agnostic = enc_outputs_class.shape[-1] == 1
+
+        if class_agnostic:
+            # For class-agnostic classification, all labels are 0
+            # The matcher will be based on GIoU loss, as the class is always matched
+            batch_enc = batch.copy()
+            batch_enc["cls"] = torch.zeros_like(batch["cls"])
+        else:
+            batch_enc = batch
+
+        # Compute encoder auxiliary loss using parent DETRLoss.forward method
+        # DETRLoss.forward expects (pred_bboxes, pred_scores, batch, postfix, **kwargs)
+        enc_loss = super().forward(enc_outputs_coord_unact.unsqueeze(0), enc_outputs_class.unsqueeze(0), batch_enc)
+
+        return enc_loss

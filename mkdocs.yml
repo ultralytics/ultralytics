@@ -483,6 +483,7 @@ nav:
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - Gradio: integrations/gradio.md
       - Roboflow: integrations/roboflow.md
+      - Microsoft Florence-2: integrations/microsoft-florence-2.md
   - HUB:
       - hub/index.md
       - Web:

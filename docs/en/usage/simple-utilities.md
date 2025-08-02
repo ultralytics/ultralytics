@@ -461,7 +461,6 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
                 obb,
                 label,
                 color=colors(c_idx, True),
-                rotated=True,
             )
 
         image_with_obb = ann.result()

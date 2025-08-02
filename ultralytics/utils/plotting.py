@@ -810,9 +810,9 @@ def plot_images(
 
             # Plot masks
             if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                if idx.shape[0] == masks.shape[0]:  # overlap_mask=False
                     image_masks = masks[idx]
-                else:  # overlap_masks=True
+                else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
                     index = np.arange(nl).reshape((nl, 1, 1)) + 1

@@ -54,11 +54,13 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    Permute,
     Pose,
     RepC3,
     RepConv,
     RepNCSPELAN4,
     RepVGGDW,
+    Reshape,
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
@@ -1734,6 +1736,9 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+        elif m in frozenset({Permute, Reshape}):
+            c1 = ch[f]
+            c2 = c1
         else:
             c2 = ch[f]
 

@@ -907,8 +907,9 @@ class Model(torch.nn.Module):
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
         if not self.predictor:  # export formats will not have predictor defined until predict() is called
-            self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
-            self.predictor.setup_model(model=self.model, verbose=False)
+            predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+            predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
+            return predictor.model.names
         return self.predictor.model.names
 
     @property

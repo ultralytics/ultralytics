@@ -233,7 +233,7 @@ def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
-    Path(file).unlink()  # cleanup
+    shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
 @pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")

@@ -221,6 +221,22 @@ def test_export_ncnn():
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "task, half, batch",
+    [  # generate all combinations except for exclusion cases
+        (task, half, batch)
+        for task, half, batch in product(TASKS, [True, False], [1])
+    ],
+)
+def test_export_ncnn_matrix(task, half, batch):
+    """Test YOLO export to NCNN format considering various export configurations."""
+    file = YOLO(TASK2MODEL[task]).export(
+        format="ncnn", imgsz=32, half=half, batch=batch
+    )
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
 
 @pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
 @pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")

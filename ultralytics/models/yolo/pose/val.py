@@ -167,33 +167,8 @@ class PoseValidator(DetectionValidator):
         kpts = kpts.clone()
         kpts[..., 0] *= w
         kpts[..., 1] *= h
-        kpts = ops.scale_coords(pbatch["imgsz"], kpts, pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
         pbatch["keypoints"] = kpts
         return pbatch
-
-    def _prepare_pred(self, pred: Dict[str, Any], pbatch: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Prepare and scale keypoints in predictions for pose processing.
-
-        This method extends the parent class's _prepare_pred method to handle keypoint scaling. It first calls
-        the parent method to get the basic prediction boxes, then extracts and scales the keypoint coordinates
-        to match the original image dimensions.
-
-        Args:
-            pred (Dict[str, torch.Tensor]): Post-processed predictions from the model.
-            pbatch (Dict[str, Any]): Processed batch dictionary containing image information including:
-                - imgsz: Image size used for inference
-                - ori_shape: Original image shape
-                - ratio_pad: Ratio and padding information for coordinate scaling
-
-        Returns:
-            (Dict[str, Any]): Processed prediction dictionary with keypoints scaled to original image dimensions.
-        """
-        predn = super()._prepare_pred(pred, pbatch)
-        predn["keypoints"] = ops.scale_coords(
-            pbatch["imgsz"], pred.get("keypoints").clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
-        )
-        return predn
 
     def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
         """
@@ -249,7 +224,7 @@ class PoseValidator(DetectionValidator):
             keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: str) -> None:
+    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
         """
         Convert YOLO predictions to COCO JSON format.
 
@@ -259,32 +234,22 @@ class PoseValidator(DetectionValidator):
         Args:
             predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls',
                 and 'keypoints' tensors.
-            filename (str): Path to the image file for which predictions are being processed.
+            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Notes:
             The method extracts the image ID from the filename stem (either as an integer if numeric, or as a string),
             converts bounding boxes from xyxy to xywh format, and adjusts coordinates from center to top-left corner
             before saving to the JSON dictionary.
         """
-        stem = Path(filename).stem
-        image_id = int(stem) if stem.isnumeric() else stem
-        box = ops.xyxy2xywh(predn["bboxes"])  # xywh
-        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-        for b, s, c, k in zip(
-            box.tolist(),
-            predn["conf"].tolist(),
-            predn["cls"].tolist(),
-            predn["keypoints"].flatten(1, 2).tolist(),
-        ):
-            self.jdict.append(
-                {
-                    "image_id": image_id,
-                    "category_id": self.class_map[int(c)],
-                    "bbox": [round(x, 3) for x in b],
-                    "keypoints": k,
-                    "score": round(s, 5),
-                }
-            )
+        super().pred_to_json(predn, pbatch)
+        kpts = ops.scale_coords(
+            pbatch["imgsz"],
+            predn["keypoints"].clone(),
+            pbatch["ori_shape"],
+            ratio_pad=pbatch["ratio_pad"],
+        )
+        for i, k in enumerate(kpts.flatten(1, 2).tolist()):
+            self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""

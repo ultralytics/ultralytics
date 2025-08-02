@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import glob
 import math
 import os
 import time
@@ -362,9 +361,9 @@ class LoadImagesAndVideos:
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if "*" in a:
-                files.extend(sorted(glob.glob(a, recursive=True)))  # glob
+                files.extend(sorted(Path(a).rglob("*")))  # rglob, pathlib
             elif os.path.isdir(a):
-                files.extend(sorted(glob.glob(os.path.join(a, "*.*"))))  # dir
+                files.extend(sorted(Path(a).rglob("*.*")))  # dir, pathlib
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
             elif parent and (parent / p).is_file():
@@ -374,7 +373,8 @@ class LoadImagesAndVideos:
 
         # Define files as images or videos
         images, videos = [], []
-        for f in files:
+        for f in files:  # pathlib
+            f = str(Path(f).absolute())
             suffix = f.rpartition(".")[-1].lower()  # Get file extension without the dot and lowercase
             if suffix in IMG_FORMATS:
                 images.append(f)

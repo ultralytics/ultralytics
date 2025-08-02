@@ -319,8 +319,10 @@ class BaseModel(torch.nn.Module):
             c1, c2, h, w = state_dict[first_conv].shape
             cc1, cc2, ch, cw = csd[first_conv].shape
             if ch == h and cw == w:
+                csd[first_conv][:, torch.arange(c2) % cc2]
                 c1, c2 = min(c1, cc1), min(c2, cc2)
                 state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
+
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")

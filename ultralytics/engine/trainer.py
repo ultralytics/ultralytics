@@ -190,18 +190,20 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, str) and len(self.args.device) \
-                and self.device.type in {"cuda"}:  # i.e. device='0' or device='0,1,2,3'
+        if (
+            isinstance(self.args.device, str) and len(self.args.device) and self.device.type in {"cuda"}
+        ):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
-        elif isinstance(self.args.device, (tuple, list)) \
-                and self.device.type in {"cuda"}:  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+        elif isinstance(self.args.device, (tuple, list)) and self.device.type in {
+            "cuda"
+        }:  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
         elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
             world_size = 0
         elif self.device.type in {"cuda", "xpu"}:  # i.e. device='cuda' or 'xpu'
             world_size = 1
         else:  # i.e. device=None or device=''
-            world_size = 0 # default to device 0
+            world_size = 0  # default to device 0
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
@@ -290,11 +292,10 @@ class BaseTrainer:
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 \
-                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if self.device.type == "xpu":
-            self.scaler = (torch.GradScaler(self.device, enabled=self.amp))
+            self.scaler = torch.GradScaler(self.device, enabled=self.amp)
         if world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
@@ -527,7 +528,7 @@ class BaseTrainer:
         elif self.device.type == "xpu":
             memory = torch.xpu.memory_reserved()
             if fraction:
-                total = torch.xpu.get_device_properties(self.device).total_memory    
+                total = torch.xpu.get_device_properties(self.device).total_memory
         elif self.device.type == "cuda":
             memory = torch.cuda.memory_reserved()
             if fraction:

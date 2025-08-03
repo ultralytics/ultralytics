@@ -133,12 +133,7 @@ def get_gpu_info(devices, index):
         properties.append(torch.cuda.get_device_properties(index))
     if "xpu" in devices:
         properties.append(torch.xpu.get_device_properties(index))
-    result = ' '.join(
-        [
-        f"{prop.name}, {prop.total_memory / (1 << 20):.0f}MiB\n"
-        for prop in properties
-        ]
-    )
+    result = " ".join([f"{prop.name}, {prop.total_memory / (1 << 20):.0f}MiB\n" for prop in properties])
     return result
 
 

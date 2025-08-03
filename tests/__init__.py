@@ -25,5 +25,5 @@ __all__ = (
     "CUDA_IS_AVAILABLE",
     "CUDA_DEVICE_COUNT",
     "XPU_IS_AVAILABLE",
-    "XPU_DEVICE_COUNT"
+    "XPU_DEVICE_COUNT",
 )

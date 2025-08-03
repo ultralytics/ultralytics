@@ -46,8 +46,8 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     is_github_action_running,
-    url2file,
     torch_utils,
+    url2file,
 )
 
 
@@ -703,7 +703,7 @@ def collect_system_info():
         "CUDA GPU count": torch.cuda.device_count() if cuda else None,
         "XPU GPU count": torch.xpu.device_count() if torch_utils.TORCH_2_3 and xpu else None,
         "CUDA": torch.version.cuda if cuda else None,
-        "XPU": torch.version.xpu if torch_utils.TORCH_2_3 and xpu else None
+        "XPU": torch.version.xpu if torch_utils.TORCH_2_3 and xpu else None,
     }
     LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
 
@@ -766,9 +766,7 @@ def check_amp(model):
                 x = torch.randn(1).to(device)
                 _ = x.double().pow(2)  # Test if fp64 operations are supported
         except RuntimeError as e:
-            LOGGER.warning(
-                f"{prefix}checks failed ❌. AMP training on {device.type} not supported: {str(e)}"
-            )
+            LOGGER.warning(f"{prefix}checks failed ❌. AMP training on {device.type} not supported: {str(e)}")
             return False
     else:
         # GPUs that have issues with AMP
@@ -937,12 +935,11 @@ def is_intel():
     except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         return False
 
+
 def xpu_device_count() -> int:
     try:
         # Run the nvidia-smi command and capture its output
-        output = subprocess.check_output(
-            ["xpu-smi", "discovery", "-j"], encoding="utf-8"
-        )
+        output = subprocess.check_output(["xpu-smi", "discovery", "-j"], encoding="utf-8")
         # Take the first line and strip any leading/trailing white space
         json_output = json.loads(output.strip())
         unique_local_ids = {entry["device_id"] for entry in json_output["device_list"]}
@@ -951,8 +948,10 @@ def xpu_device_count() -> int:
         # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
         return 0
 
+
 def xpu_device_available() -> bool:
     return xpu_device_count() > 0
+
 
 def is_sudo_available() -> bool:
     """

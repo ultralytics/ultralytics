@@ -937,19 +937,31 @@ def is_intel():
 
 
 def xpu_device_count() -> int:
+    """
+    Get the number of INTEL GPUs available in the environment.
+
+    Returns:
+        (int): The number of INTEL GPUs available.
+    """
     try:
-        # Run the nvidia-smi command and capture its output
+        # Run the xpu-smi command and capture its output
         output = subprocess.check_output(["xpu-smi", "discovery", "-j"], encoding="utf-8")
         # Take the first line and strip any leading/trailing white space
         json_output = json.loads(output.strip())
         unique_local_ids = {entry["device_id"] for entry in json_output["device_list"]}
         return int(len(unique_local_ids))
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
-        # If the command fails, nvidia-smi is not found, or output is not an integer, assume no GPUs are available
+        # If the command fails, xpu-smi is not found, or output is not an integer, assume no GPUs are available
         return 0
 
 
 def xpu_device_available() -> bool:
+    """
+    Check if XPU is available in the environment.
+
+    Returns:
+        (bool): True if one or more INTEL GPUs are available, False otherwise.
+    """
     return xpu_device_count() > 0
 
 

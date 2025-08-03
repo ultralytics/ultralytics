@@ -15,20 +15,21 @@ if TORCH_2_3 and XPU_IS_AVAILABLE:
 
 @pytest.mark.skipif(DEVICE == -1, reason="No XPU devices available")
 def test_checks():
+    """Test validate XPU settings against torch XPU functions."""
     assert torch.xpu.is_available() == XPU_IS_AVAILABLE
     assert torch.xpu.device_count() == XPU_DEVICE_COUNT
 
 
 @pytest.mark.skipif(DEVICE == -1, reason="No XPU devices available")
 def test_train():
-    """Test model training on a minimal dataset using available CUDA devices."""
+    """Test model training on a minimal dataset using available XPU devices."""
     _ = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=f"xpu:{DEVICE}")  # requires imgsz>=64
 
 
 @pytest.mark.slow
 @pytest.mark.skipif(DEVICE == -1, reason="No XPU devices available")
 def test_predict_multiple_devices_xpu():
-    """Validate model prediction consistency across CPU and CUDA devices."""
+    """Validate model prediction consistency across CPU and XPU devices."""
     model = YOLO("yolo11n.pt")
 
     # Test CPU
@@ -37,7 +38,7 @@ def test_predict_multiple_devices_xpu():
     _ = model(SOURCE)
     assert str(model.device) == "cpu"
 
-    # Test CUDA
+    # Test XPU
     xpu_device = f"xpu:{DEVICE}"
     model = model.to(xpu_device)
     assert str(model.device) == xpu_device
@@ -50,7 +51,7 @@ def test_predict_multiple_devices_xpu():
     _ = model(SOURCE)
     assert str(model.device) == "cpu"
 
-    # Test CUDA again
+    # Test XPU again
     model = model.to(xpu_device)
     assert str(model.device) == xpu_device
     _ = model(SOURCE)

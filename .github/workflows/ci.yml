@@ -345,7 +345,7 @@ jobs:
 
   Conda:
     # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
-    timeout-minutes: 30
+    timeout-minutes: 120
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -362,11 +362,9 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
-      # - name: Cleanup disk space
-      #  uses: ultralytics/actions/cleanup-disk@main
-      - name: Install Linux packages
-        # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libopengl0
+      #- name: Install Linux packages
+      #  # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
+      #  run: sudo apt-get update && sudo apt-get install -y libegl1 libopengl0
       - name: Install Ultralytics package from conda-forge
         run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages

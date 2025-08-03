@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Continuous Integration (CI) GitHub Actions tests
+# Ultralytics YOLO Continuous Integration (CI) GitHub Actions tests
 
 name: Ultralytics CI
 
@@ -382,7 +382,7 @@ jobs:
           yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
           yolo solutions
       - name: Test Python
-        # Note this step must use the updated default bash environment, not a python environment
+        # Note this step must use the updated default bash environment, not a Python environment
         run: |
           python -c "
           from ultralytics import YOLO
@@ -406,11 +406,11 @@ jobs:
         run: pytest ultralytics/tests/test_exports.py -v -s
       - name: test_integrations.py
         run: pytest ultralytics/tests/test_integrations.py -v -s
-      # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
-      # - name: test_python.py
-      #  run: pytest ultralytics/tests/test_python.py -v -s
       - name: test_solutions.py
         run: pytest ultralytics/tests/test_solutions.py -v -s
+      # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
+      - name: test_python.py
+        run: pytest ultralytics/tests/test_python.py -vv -s
 
   Summary:
     runs-on: ubuntu-latest

@@ -356,6 +356,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
+      - uses: astral-sh/setup-uv@v6
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
@@ -368,7 +369,7 @@ jobs:
       - name: Install Ultralytics package from conda-forge
         run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
-        run: pip install pytest
+        run: uv pip install pytest
       - name: Check environment
         run: conda list
       - name: Test CLI

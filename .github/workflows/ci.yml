@@ -359,26 +359,20 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
-          mamba-version: "*"
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
       - name: Cleanup disk space
         uses: ultralytics/actions/cleanup-disk@main
       - name: Install Linux packages
-        run: |
-          # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
-          sudo apt-get update
-          sudo apt-get install -y libegl1 libopengl0
+        # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libopengl0
       - name: Install Ultralytics package from conda-forge
-        run: |
-          conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
-        run: |
-          pip install pytest
+        run: pip install pytest
       - name: Check environment
-        run: |
-          conda list
+        run: conda list
       - name: Test CLI
         run: |
           yolo predict model=yolo11n.pt imgsz=320

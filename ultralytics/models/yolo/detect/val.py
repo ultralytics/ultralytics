@@ -322,6 +322,11 @@ class DetectionValidator(BaseValidator):
         false_negative = np.setdiff1d(list(range(labels.shape[0])), labels_matches)
         false_positive = np.setdiff1d(list(range(detections.shape[0])), pred_matches)
 
+        img = batch["img"][si].cpu().float().numpy()
+        img *= 255
+        img= img.transpose(1, 2, 0)
+        img = np.ascontiguousarray(img)
+
         if false_negative.shape[0] > 0:
             # plot false negative images
             # In false negative part, show all correct detections, then append the false negative box from label
@@ -349,7 +354,7 @@ class DetectionValidator(BaseValidator):
             detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
 
             combined_img = self._generate_combined_img(
-                detection_boxes, detection_color_list, label_boxes, label_color_list, file_name
+                detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
             )
 
             cv2.imwrite(str(self.save_dir / "visualizations" / "false_negative" / os.path.split(file_name)[1]),
@@ -374,21 +379,21 @@ class DetectionValidator(BaseValidator):
             file_name = batch["im_file"][si]
 
             combined_img = self._generate_combined_img(
-                detection_boxes, detection_color_list, label_boxes, label_color_list, file_name
+                detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
             )
 
             cv2.imwrite(str(self.save_dir / "visualizations" / "false_positive" / os.path.split(file_name)[1]),
                         combined_img)
 
-    def _generate_combined_img(self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name):
+    def _generate_combined_img(self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img):
         label_plot_args = dict(line_width=1, boxes=True, color_list=label_color_list)
         detection_plot_args = dict(line_width=1, boxes=True, color_list=detection_color_list)
         # Prepare label image
-        label_result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=label_boxes)
+        label_result = Results(orig_img=img, path=file_name, names=self.names, boxes=label_boxes)
         label_plotted_img = label_result.plot(**label_plot_args)
         # Prepare detection image
         detection_result = Results(
-            orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=detection_boxes
+            orig_img=img, path=file_name, names=self.names, boxes=detection_boxes
         )
         detection_plotted_img = detection_result.plot(**detection_plot_args)
 

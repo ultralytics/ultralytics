@@ -3,7 +3,7 @@
 import io
 import os
 from typing import Any, List
-
+import json
 import cv2
 import torch
 
@@ -71,6 +71,7 @@ class Inference:
         self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
+        self.show_json = False
         self.vid_file_name = None  # Video file name or webcam index
         self.selected_ind: List[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
@@ -119,10 +120,14 @@ class Inference:
         )  # Slider for confidence
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
+        # checkbox for showing the json
+        self.show_json = self.st.sidebar.checkbox("Show JSON Output", value=False)
+
         if self.source != "image":  # Only create columns for video/webcam
-            col1, col2 = self.st.columns(2)  # Create two columns for displaying frames
+            col1, col2, col3 = self.st.columns(3)  # Create two columns for displaying frames
             self.org_frame = col1.empty()  # Container for original frame
             self.ann_frame = col2.empty()  # Container for annotated frame
+            self.predictions_list = col3.empty()  # Container for predictions list
 
     def source_upload(self) -> None:
         """Handle video file uploads through the Streamlit interface."""
@@ -190,6 +195,37 @@ class Inference:
                 annotated_image = results[0].plot()
                 with col2:
                     self.st.image(annotated_image, channels="BGR", caption="Predicted Image")
+                if self.show_json:
+                    with self.st.expander("Predictions", expanded=True):
+                        outputs = []
+                        # Access the results
+                        for result in results: # Iterate over the results list directly for classification
+
+                            # for classification task
+                            if result.probs:
+                                top_class_id = result.probs.top1
+                                top_conf = float(result.probs.data[top_class_id].item())
+                                class_names = result.names[top_class_id]
+                                outputs.append({
+                                    "predicted_class_id":top_class_id,
+                                    "confidence":top_conf,
+                                    "class_name":class_names
+                                })
+                                
+                            # for obb task
+                            if result.obb:
+                                cls = result.names[result.obb.cls.numpy().tolist()[0]]
+                                xywhr = result.obb.xywhr[0].numpy().tolist()
+                                outputs.append({"class":cls, "xywhr":xywhr})
+
+                            # for the reset of the tasks
+                            if result.boxes:
+                                for r in result:
+                                    xywh = r.boxes.xyxy[0].numpy().tolist()  # top-left-x, top-left-y, bottom-right-x, bottom-right-y
+                                    name = r.names[r.boxes.cls.item()]  # classes
+                                    confs = float(r.boxes.conf)  # confidence score of each box
+                                    outputs.append({"xywh": xywh, "conf": confs, "name": name})
+                        self.st.json(json.dumps(outputs)) 
                 try:  # Clean up temporary file
                     os.unlink(img_path)
                 except FileNotFoundError:
@@ -234,13 +270,13 @@ class Inference:
 
                 annotated_frame = results[0].plot()  # Add annotations on frame
 
+
                 if stop_button:
                     cap.release()  # Release the capture
                     self.st.stop()  # Stop streamlit app
 
                 self.org_frame.image(frame, channels="BGR", caption="Original Frame")  # Display original frame
                 self.ann_frame.image(annotated_frame, channels="BGR", caption="Predicted Frame")  # Display processed
-
             cap.release()  # Release the capture
         cv2.destroyAllWindows()  # Destroy all OpenCV windows
 

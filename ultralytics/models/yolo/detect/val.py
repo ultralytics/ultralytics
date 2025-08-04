@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+import shutil
 
 import cv2
 import numpy as np
@@ -203,9 +204,9 @@ class DetectionValidator(BaseValidator):
             # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
-                self.output_bad_cases(predn, labelsn, batch, si, conf=self.args.conf)
                 if self.args.visualize:
-                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    # self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    self.output_bad_cases(predn, labelsn, batch, si, conf=self.args.conf)
 
             if no_pred:
                 continue
@@ -276,6 +277,9 @@ class DetectionValidator(BaseValidator):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
+        (self.save_dir / "visualizations"/ "false_negative").mkdir(parents=True, exist_ok=True)
+        (self.save_dir / "visualizations" / "false_positive").mkdir(parents=True, exist_ok=True)
+
         conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         no_pred = len(detections["cls"]) == 0
@@ -348,7 +352,8 @@ class DetectionValidator(BaseValidator):
                 detection_boxes, detection_color_list, label_boxes, label_color_list, file_name
             )
 
-            cv2.imwrite(str(self.save_dir / "false_negative_underkill" / os.path.split(file_name)[1]), combined_img)
+            cv2.imwrite(str(self.save_dir / "visualizations" / "false_negative" / os.path.split(file_name)[1]),
+                        combined_img)
 
         if false_positive.shape[0] > 0:
             # plot false positive images
@@ -372,7 +377,8 @@ class DetectionValidator(BaseValidator):
                 detection_boxes, detection_color_list, label_boxes, label_color_list, file_name
             )
 
-            cv2.imwrite(str(self.save_dir / "false_positive_overkill" / os.path.split(file_name)[1]), combined_img)
+            cv2.imwrite(str(self.save_dir / "visualizations" / "false_positive" / os.path.split(file_name)[1]),
+                        combined_img)
 
     def _generate_combined_img(self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name):
         label_plot_args = dict(line_width=1, boxes=True, color_list=label_color_list)
@@ -394,7 +400,7 @@ class DetectionValidator(BaseValidator):
         )
 
         label_plotted_img = cv2.putText(
-            label_plotted_img, "True", (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA
+            label_plotted_img, "Ground Truth", (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA
         )
         detection_plotted_img = cv2.putText(
             detection_plotted_img, "Predicted", (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA

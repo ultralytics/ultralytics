@@ -1,6 +1,5 @@
 """GStreamer YOLO Simple Overlay -- Real-time vehicle detection with hardware acceleration."""
 
-# Standard library imports
 import argparse
 import os
 import queue
@@ -8,23 +7,17 @@ import threading
 import time
 import urllib.request
 
-# GStreamer imports (must be after gi.require_version)
 import gi
-
-# Third-party imports
-import numpy as np
-
-from ultralytics import YOLO
-
 gi.require_version("Gst", "1.0")
-# GUI imports
+from gi.repository import GLib, Gst
+
+import numpy as np
 import tkinter as tk
 from tkinter import messagebox, ttk
-
-# Computer vision imports
 import cv2
-from gi.repository import GLib, Gst
 from PIL import Image, ImageTk
+
+from ultralytics import YOLO
 
 # ----------------------------
 #   COLOR MAPPINGS

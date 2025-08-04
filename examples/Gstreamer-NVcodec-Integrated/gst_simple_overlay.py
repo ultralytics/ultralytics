@@ -8,13 +8,14 @@ import time
 import urllib.request
 
 import gi
-gi.require_version("Gst", "1.0")
-from gi.repository import GLib, Gst
 
-import numpy as np
+gi.require_version("Gst", "1.0")
 import tkinter as tk
 from tkinter import messagebox, ttk
+
 import cv2
+import numpy as np
+from gi.repository import GLib, Gst
 from PIL import Image, ImageTk
 
 from ultralytics import YOLO

@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
+import json
 import os
 from typing import Any, List
-import json
+
 import cv2
 import torch
 
@@ -199,33 +200,36 @@ class Inference:
                     with self.st.expander("Predictions", expanded=True):
                         outputs = []
                         # Access the results
-                        for result in results: # Iterate over the results list directly for classification
-
+                        for result in results:  # Iterate over the results list directly for classification
                             # for classification task
                             if result.probs:
                                 top_class_id = result.probs.top1
                                 top_conf = float(result.probs.data[top_class_id].item())
                                 class_names = result.names[top_class_id]
-                                outputs.append({
-                                    "predicted_class_id":top_class_id,
-                                    "confidence":top_conf,
-                                    "class_name":class_names
-                                })
-                                
+                                outputs.append(
+                                    {
+                                        "predicted_class_id": top_class_id,
+                                        "confidence": top_conf,
+                                        "class_name": class_names,
+                                    }
+                                )
+
                             # for obb task
                             if result.obb:
                                 cls = result.names[result.obb.cls.numpy().tolist()[0]]
                                 xywhr = result.obb.xywhr[0].numpy().tolist()
-                                outputs.append({"class":cls, "xywhr":xywhr})
+                                outputs.append({"class": cls, "xywhr": xywhr})
 
                             # for the reset of the tasks
                             if result.boxes:
                                 for r in result:
-                                    xywh = r.boxes.xyxy[0].numpy().tolist()  # top-left-x, top-left-y, bottom-right-x, bottom-right-y
+                                    xywh = (
+                                        r.boxes.xyxy[0].numpy().tolist()
+                                    )  # top-left-x, top-left-y, bottom-right-x, bottom-right-y
                                     name = r.names[r.boxes.cls.item()]  # classes
                                     confs = float(r.boxes.conf)  # confidence score of each box
                                     outputs.append({"xywh": xywh, "conf": confs, "name": name})
-                        self.st.json(json.dumps(outputs)) 
+                        self.st.json(json.dumps(outputs))
                 try:  # Clean up temporary file
                     os.unlink(img_path)
                 except FileNotFoundError:
@@ -269,7 +273,6 @@ class Inference:
                     results = self.model(frame, conf=self.conf, iou=self.iou, classes=self.selected_ind)
 
                 annotated_frame = results[0].plot()  # Add annotations on frame
-
 
                 if stop_button:
                     cap.release()  # Release the capture

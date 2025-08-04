@@ -5,13 +5,13 @@ import os
 import queue
 import threading
 import time
+import tkinter as tk
 import urllib.request
+from tkinter import messagebox, ttk
 
+import cv2
 import gi
 import numpy as np
-import tkinter as tk
-from tkinter import messagebox, ttk
-import cv2
 from PIL import Image, ImageTk
 
 from ultralytics import YOLO

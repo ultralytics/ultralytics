@@ -1,4 +1,4 @@
-"""GStreamer YOLO Simple Overlay - Real-time vehicle detection with hardware acceleration."""
+"""GStreamer YOLO Simple Overlay -- Real-time vehicle detection with hardware acceleration."""
 
 # Standard library imports
 import argparse
@@ -465,9 +465,9 @@ class SimpleDroneAnalysisGUI:
 #   MAIN
 # ----------------------------
 if __name__ == "__main__":
-    p = argparse.ArgumentParser(description="Simple Drone Detection with GStreamer Overlay & Tkinter GUI")
+    p = argparse.ArgumentParser(description="Simple Drone Detection with GStreamer Overlay & Tkinter GUI ")
     p.add_argument("video", help="Video file or RTSP URL")
-    p.add_argument("--model", default="yolo11m.pt", help="YOLO11m PyTorch weights file")
+    p.add_argument("--model", default="yolo11m.pt", help="YOLO11m PyTorch weights file ")
     p.add_argument("--engine", default="yolo11m.engine", help="YOLO11m TensorRT engine file")
     p.add_argument(
         "--model-url",

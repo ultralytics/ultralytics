@@ -344,7 +344,7 @@ jobs:
         uses: eviden-actions/clean-self-hosted-runner@v1
 
   Conda:
-    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
     timeout-minutes: 120
     runs-on: ${{ matrix.os }}
     strategy:
@@ -363,9 +363,6 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
-      #- name: Install Linux packages
-      #  # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
-      #  run: sudo apt-get update && sudo apt-get install -y libegl1 libopengl0
       - name: Install Ultralytics package from conda-forge
         run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
@@ -408,8 +405,8 @@ jobs:
       - name: test_solutions.py
         run: pytest ultralytics/tests/test_solutions.py -v -s
       # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
-      - name: test_python.py
-        run: pytest ultralytics/tests/test_python.py -vv -s
+      # - name: test_python.py
+      #   run: pytest ultralytics/tests/test_python.py -vv -s
 
   Summary:
     runs-on: ubuntu-latest

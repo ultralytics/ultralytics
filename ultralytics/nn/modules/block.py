@@ -1649,6 +1649,9 @@ class C2PSA(nn.Module):
         self.m = nn.Sequential(
             *(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, area=area) for _ in range(n))
         )
+        # self.m = nn.Sequential(
+        #     *(PSABlock(self.c * 2, attn_ratio=0.5, num_heads=max(self.c * 2 // 64, 1), attn=attn, area=area) for _ in range(n))
+        # )
 
     def forward(self, x):
         """
@@ -1660,6 +1663,7 @@ class C2PSA(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after processing.
         """
+        # return self.cv2(self.m(self.cv1(x)))
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = self.m(b)
         return self.cv2(torch.cat((a, b), 1))

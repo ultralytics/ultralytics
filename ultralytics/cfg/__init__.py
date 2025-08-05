@@ -583,13 +583,16 @@ def handle_yolo_dataset_validation(args: List[str]) -> None:
     if len(args) < 2 or not args[1]:
         LOGGER.error("❌ Push path to your dataset np. 'yolo check path/to/dataset'.")
         return
+    
     is_fix = False
+    
+    #search for --fix flag
     if len(args) > 2:
         for arg in args[2:]:
             if arg in ['--fix']:
                 is_fix = True
                 break
-                
+    # Init dataset validation
     dataset_validation = DatasetValidation(args[1], is_fix)
     if args[0] == "datacheck":
         dataset_validation.validate()

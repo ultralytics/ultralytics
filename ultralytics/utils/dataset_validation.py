@@ -79,7 +79,7 @@ class DatasetValidation():
                 image_full_path = os.path.join(self.yaml_summary[yaml_summary], image_file)
                 verify_labels_structure.append(
                 verify_image_label((image_full_path, label_full_path, '', False, 
-                              self.yaml_summary['nc'], 0, 2, False))
+                    self.yaml_summary['nc'], 0, 2, False))
                 )
            
 
@@ -105,11 +105,12 @@ class DatasetValidation():
             
             self.yaml_summary = structure_validation
 
-          
+           #get sub directories paths
             labels_path = os.path.join(self.dataset, "labels")
             train_labels = os.path.join(labels_path, "train")
             val_labels = os.path.join(labels_path, "val")
 
+            #check matching count of images and labels in train and val directories
             isTrainImagesMatchingWithLabels = self.check_matching_files_count(self.yaml_summary['train'], train_labels) 
             isValImagesMatchingWithLabels = self.check_matching_files_count(self.yaml_summary['val'], val_labels) 
                     
@@ -117,7 +118,7 @@ class DatasetValidation():
                
                 verify_labels_structure = []
 
-                #verifying labels with images
+                #init veryfing image label
                 self.verify_labels(train_labels, verify_labels_structure)
                 self.verify_labels(val_labels, verify_labels_structure, 'val')
              

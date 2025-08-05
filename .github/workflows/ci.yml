@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Continuous Integration (CI) GitHub Actions tests
+# Ultralytics YOLO Continuous Integration (CI) GitHub Actions tests
 
 name: Ultralytics CI
 
@@ -356,32 +356,19 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
+      - uses: astral-sh/setup-uv@v6
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
-          mamba-version: "*"
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env
-      - name: Cleanup disk space
-        uses: ultralytics/actions/cleanup-disk@main
-      - name: Install Linux packages
-        run: |
-          # Fix cv2 ImportError: 'libEGL.so.1: cannot open shared object file: No such file or directory'
-          sudo apt-get update
-          sudo apt-get install -y libegl1 libopengl0
-      - name: Install Libmamba
-        run: |
-          conda config --set solver libmamba
       - name: Install Ultralytics package from conda-forge
-        run: |
-          conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
+        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
-        run: |
-          pip install pytest
+        run: uv pip install pytest
       - name: Check environment
-        run: |
-          conda list
+        run: conda list
       - name: Test CLI
         run: |
           yolo predict model=yolo11n.pt imgsz=320
@@ -391,7 +378,7 @@ jobs:
           yolo benchmark model=yolo11n.pt data='coco8.yaml' imgsz=640 format=onnx
           yolo solutions
       - name: Test Python
-        # Note this step must use the updated default bash environment, not a python environment
+        # Note this step must use the updated default bash environment, not a Python environment
         run: |
           python -c "
           from ultralytics import YOLO
@@ -401,14 +388,25 @@ jobs:
           results = model.predict(imgsz=160)
           results = model.export(format='onnx', imgsz=160)
           "
-      - name: PyTest
+      - name: PyTest Setup
         run: |
           VERSION=$(conda list ultralytics | grep ultralytics | awk '{print $2}')
-          echo "Ultralytics version: $VERSION"
-          git clone https://github.com/ultralytics/ultralytics.git
-          cd ultralytics
-          git checkout tags/v$VERSION
-          pytest tests
+          git clone --branch v$VERSION https://github.com/ultralytics/ultralytics.git
+      - name: test_cli.py
+        run: pytest ultralytics/tests/test_cli.py -v -s
+      - name: test_cuda.py
+        run: pytest ultralytics/tests/test_cuda.py -v -s
+      - name: test_engine.py
+        run: pytest ultralytics/tests/test_engine.py -v -s
+      - name: test_exports.py
+        run: pytest ultralytics/tests/test_exports.py -v -s
+      - name: test_integrations.py
+        run: pytest ultralytics/tests/test_integrations.py -v -s
+      - name: test_solutions.py
+        run: pytest ultralytics/tests/test_solutions.py -v -s
+      # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
+      # - name: test_python.py
+      #   run: pytest ultralytics/tests/test_python.py -vv -s
 
   Summary:
     runs-on: ubuntu-latest

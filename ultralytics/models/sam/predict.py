@@ -13,7 +13,9 @@ import cv2
 
 from datetime import datetime
 from collections import OrderedDict
+from datetime import datetime
 
+import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -961,6 +963,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
             labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
             masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
+
         Returns:
             pred_masks (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
             pred_scores (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.

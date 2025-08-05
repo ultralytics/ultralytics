@@ -1751,12 +1751,14 @@ def parse_model(d, ch, verbose=True):
     return torch.nn.Sequential(*layers), sorted(save)
 
 
-def yaml_model_load(path):
+def yaml_model_load(path, scale=None):
     """
     Load a YOLOv8 model from a YAML file.
 
     Args:
         path (str | Path): Path to the YAML file.
+        scale (str, optional): Override model scale when loading from a .yaml config. 
+                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
     Returns:
         (dict): Model dictionary.
@@ -1770,7 +1772,15 @@ def yaml_model_load(path):
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path)
+    if scale: # Handle scale validation
+        valid_scales = d.get("variants") or d.get("scales")  # could be under either key
+        if isinstance(valid_scales, dict):
+            if scale not in valid_scales:
+                raise ValueError(f"Invalid scale '{scale}' for model YAML '{path.name}'. "
+                                 f"Available scales: {list(valid_scales.keys())}")
+        # else: no scale variants defined → skip validation, allow fallback
+
+    d["scale"] = scale or guess_model_scale(path) # Use scale if set, else guess
     d["yaml_file"] = str(path)
     return d
 

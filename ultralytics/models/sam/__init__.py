@@ -2,7 +2,7 @@
 
 from .model import SAM
 from .predict import Predictor, SAM2Predictor, SAM2VideoPredictor
-from .di_predict import SAM2DynamicInteractivePredictor
+from .predict import SAM2DynamicInteractivePredictor
 
 __all__ = (
     "SAM",

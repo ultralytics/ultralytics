@@ -303,10 +303,6 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
-        # Add index
-        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
-
         remain_inds = scores >= self.args.track_high_thresh
         inds_low = scores > self.args.track_low_thresh
         inds_high = scores < self.args.track_high_thresh

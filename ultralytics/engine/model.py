@@ -82,6 +82,7 @@ class Model(torch.nn.Module):
         model: Union[str, Path, "Model"] = "yolo11n.pt",
         task: str = None,
         verbose: bool = False,
+        scale: Optional[str] = None,
     ) -> None:
         """
         Initialize a new instance of the YOLO model class.
@@ -97,6 +98,8 @@ class Model(torch.nn.Module):
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
+            scale (str, optional): Override model scale when loading from a .yaml config. 
+                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Raises:
             FileNotFoundError: If the specified model file does not exist or is inaccessible.
@@ -107,6 +110,7 @@ class Model(torch.nn.Module):
             >>> model = Model("yolo11n.pt")
             >>> model = Model("path/to/model.yaml", task="detect")
             >>> model = Model("hub_model", verbose=True)
+            >>> model = Model("yolo11.yaml",scale='l')
         """
         if isinstance(model, Model):
             self.__dict__ = model.__dict__  # accepts an already initialized Model
@@ -146,7 +150,7 @@ class Model(torch.nn.Module):
         # Load or create new YOLO model
         __import__("os").environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # to avoid deterministic warnings
         if str(model).endswith((".yaml", ".yml")):
-            self._new(model, task=task, verbose=verbose)
+            self._new(model, task=task, verbose=verbose, scale=scale)
         else:
             self._load(model, task=task)
 
@@ -233,7 +237,7 @@ class Model(torch.nn.Module):
 
         return model.startswith(f"{HUB_WEB_ROOT}/models/")
 
-    def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
+    def _new(self, cfg: str, task=None, model=None, verbose=False, scale=None) -> None:
         """
         Initialize a new model and infer the task type from model definitions.
 
@@ -255,7 +259,7 @@ class Model(torch.nn.Module):
             >>> model = Model()
             >>> model._new("yolo11n.yaml", task="detect", verbose=True)
         """
-        cfg_dict = yaml_model_load(cfg)
+        cfg_dict = yaml_model_load(cfg, scale=scale)
         self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
         self.model = (model or self._smart_load("model"))(cfg_dict, verbose=verbose and RANK == -1)  # build model

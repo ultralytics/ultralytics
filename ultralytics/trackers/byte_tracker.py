@@ -331,9 +331,7 @@ class BYTETracker:
         if hasattr(self, "gmc") and img is not None:
             # use try-except here to bypass errors from gmc module
             try:
-                # TODO: fix this, this seems to need xyxy format
-                dets = results.xywhr if hasattr(results, "xywhr") else results.xywh
-                warp = self.gmc.apply(img, dets)
+                warp = self.gmc.apply(img, results.xyxy)
             except Exception:
                 warp = np.eye(2, 3)
             STrack.multi_gmc(strack_pool, warp)

@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, ChannelAttention, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -1083,7 +1083,7 @@ class C3f(nn.Module):
 class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, act=True, g=1, shortcut=True):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, act=True, g=1, shortcut=True, chattn=False):
         """
         Initialize C3k2 module.
 
@@ -1101,6 +1101,12 @@ class C3k2(C2f):
             C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
         )
         self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
+        self.chattn = ChannelAttention(c1) if chattn else None
+
+    def forward(self, x):
+        if self.chattn is not None:
+            x = self.chattn(x)
+        return super().forward(x)
 
 
 class C3k(C3):

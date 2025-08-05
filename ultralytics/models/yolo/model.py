@@ -69,6 +69,18 @@ class YOLO(Model):
             >>> model = YOLO("yolo11.yaml", scale="s")  # Build a YOLOv11s model from a config with 's' variant
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
+
+        # Decide if scale is user-overridable or not
+        if path.suffix in {".yaml", ".yml"}:
+            self._scale = scale  # User-specified or passed to builder
+        elif path.suffix == ".pt":
+            if scale:
+                from ultralytics.utils import LOGGER
+                LOGGER.warning(f"Ignoring user-specified scale='{scale}' for pretrained .pt file '{path.name}' — scale is inferred from filename.")
+            self._scale = None  # Will be inferred internally
+        else:
+            self._scale = scale  # For safety fallback
+
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)

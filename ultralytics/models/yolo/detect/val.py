@@ -205,7 +205,7 @@ class DetectionValidator(BaseValidator):
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.args.conf)
                 if self.args.visualize:
-                    # self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
+                    self.confusion_matrix.plot_matches(batch["img"][si], pbatch["im_file"], self.save_dir)
                     self.output_bad_cases(predn, labelsn, batch, si, conf=self.args.conf)
 
             if no_pred:
@@ -322,10 +322,12 @@ class DetectionValidator(BaseValidator):
         false_negative = np.setdiff1d(list(range(labels.shape[0])), labels_matches)
         false_positive = np.setdiff1d(list(range(detections.shape[0])), pred_matches)
 
+        # Convert image data to CV2
         img = batch["img"][si].cpu().float().numpy()
         img *= 255
         img= img.transpose(1, 2, 0)
         img = np.ascontiguousarray(img)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         if false_negative.shape[0] > 0:
             # plot false negative images

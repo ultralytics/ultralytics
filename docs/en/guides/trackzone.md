@@ -6,7 +6,7 @@ keywords: TrackZone, object tracking, YOLO11, Ultralytics, real-time object dete
 
 # TrackZone using Ultralytics YOLO11
 
-<a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-track-the-objects-in-zone-using-ultralytics-yolo.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open TrackZone In Colab"></a>
 
 ## What is TrackZone?
 

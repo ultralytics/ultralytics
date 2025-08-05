@@ -74,6 +74,9 @@ def test_yaml_with_invalid_scale_and_no_variants():
 
 
 def test_yaml_with_valid_variants_allows_valid_scales():
+    """
+    Test that a YAML file defining model variants accepts valid scale overrides.
+    """
     yaml_path = "ultralytics/cfg/models/v8/yolov8.yaml"
     content = YAML.load(yaml_path)
     content["variants"] = {

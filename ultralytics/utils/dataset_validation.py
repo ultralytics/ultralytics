@@ -1,6 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.data.utils import verify_image_label, check_det_dataset
+from ultralytics.utils import (
+    LOGGER,  
+)
 from typing import  Optional, Callable
 import glob
 import os
@@ -27,7 +30,7 @@ class DatasetValidation():
 
 
     """
-    def __init__(self, dataset):
+    def __init__(self, dataset, is_fix):
         """
         Initialize DatasetValidation with given configuration and options.
 
@@ -44,6 +47,7 @@ class DatasetValidation():
         self.yaml_summary = {}
         self.errors = []
         self.invalid_labels = []
+        self.is_fix = is_fix
         
         
     
@@ -62,6 +66,21 @@ class DatasetValidation():
             self.errors.append(f"Number of images and labels do not match: {len(os.listdir(images))} images, {len(os.listdir(labels))} labels")
             return False
         return True
+    
+
+    def verify_labels(self,labels, verify_labels_structure, yaml_summary='train'):
+
+        for image_file in os.listdir(self.yaml_summary[yaml_summary]):
+            image_name = os.path.splitext(image_file)[0]  
+            label_file = image_name + '.txt'  
+    
+            label_full_path = os.path.join(labels, label_file)
+            if os.path.exists(label_full_path):
+                image_full_path = os.path.join(self.yaml_summary[yaml_summary], image_file)
+                verify_labels_structure.append(
+                verify_image_label((image_full_path, label_full_path, '', False, 
+                              self.yaml_summary['nc'], 0, 2, False))
+                )
            
 
     def validate(self) -> None:
@@ -98,19 +117,17 @@ class DatasetValidation():
                
                 verify_labels_structure = []
 
-                for image_file in os.listdir(self.yaml_summary['train']):
-                    for label_file in os.listdir(train_labels):
-                        image_full_path = os.path.join(self.yaml_summary['train'], image_file)
-                        label_full_path = os.path.join(train_labels, label_file)
-                        verify_labels_structure.append(verify_image_label((image_full_path, label_full_path, '', False, self.yaml_summary['nc'], 0, 2, False)))
-                
+                #verifying labels with images
+                self.verify_labels(train_labels, verify_labels_structure)
+                self.verify_labels(val_labels, verify_labels_structure, 'val')
+             
                 for el in verify_labels_structure: 
                     if isinstance(el, list):
                         invalid_label = el[9:]
                         self.invalid_labels.append(invalid_label)
           
    
-            if len(self.errors) > 0:
+            if len(self.errors) > 0 and self.is_fix:
                 autoFix = AutoFix(self.dataset, self.yaml)
                 for error in self.errors:
                     autoFix.fix(error)
@@ -120,16 +137,17 @@ class DatasetValidation():
 
         except PermissionError as e:
             self.errors.append(f"Permission denied: {e}")
-            print(self.errors)
+            LOGGER.error(self.errors)
             return
         except Exception as e:
            
             self.errors.append(f"Dataset check failed: {e}")
             table = Table(self.yaml_summary, self.errors, self.invalid_labels, self.dataset, self.yaml)
             table.draw_summary_table()
-            autoFix = AutoFix(self.dataset, self.yaml)
-            for error in self.errors:
-                autoFix.fix(error)
+            if self.is_fix:
+                autoFix = AutoFix(self.dataset, self.yaml)
+                for error in self.errors:
+                    autoFix.fix(error)
             return
 
 class AutoFix():
@@ -186,7 +204,7 @@ class AutoFix():
                 self.yaml_data = yaml.safe_load(file)
             return True
         except Exception as e:
-            print(f"Error in loading YAML: {e}")
+            LOGGER.error(f"Error in loading YAML: {e}")
             return False
         
     def save_yaml(self, yaml_data=None) -> bool:
@@ -207,7 +225,7 @@ class AutoFix():
                 yaml.safe_dump(yaml_data, file, default_flow_style=False, allow_unicode=True)
             return True
         except Exception as e:
-            print(f"Error in YAML saveing process: {e}")
+            LOGGER.error(f"Error in YAML saveing process: {e}")
             return False
     
     def fix_missing_yaml(self) -> None:
@@ -260,8 +278,10 @@ class AutoFix():
         Args:
             error (str): error message.
         """
+        LOGGER.info("Fixing...")
         fix_function = self.detect_error(error)
-        fix_function() if fix_function else print(f"⚠️ No fix available for error: {error}")
+        fix_function() if fix_function else LOGGER.info(f"⚠️ No fix available for error: {error}")
+        LOGGER.info("✅ Fixing process completed.")
 
 class Table():
     """
@@ -325,14 +345,14 @@ class Table():
     
         separator = "+" + "+".join(["-" * w for w in col_widths]) + "+"
         
-        print(separator)
+        LOGGER.info(separator)
        
         # headers
         header_row = "|"
         for i, header in enumerate(headers):
             
             header_row += f" {str(header):<{col_widths[i]-1}}|"
-        print(header_row)
+        LOGGER.info(header_row)
         print(separator)
         
         # data rows
@@ -344,9 +364,9 @@ class Table():
                     if len(cell_str) > col_widths[i] - 2:
                         cell_str = cell_str[:col_widths[i]-5] + "..."
                     data_row += f" {cell_str:<{col_widths[i]-1}}|"
-            print(data_row)
+            LOGGER.info(data_row)
         
-        print(separator)
+        LOGGER.info(separator)
     
     def create_clickable_link(self, url, text=None) -> str:
         """
@@ -390,14 +410,14 @@ class Table():
         Drawing finall summary table with presented data.
         """
        
-        print("\n" + "="*80)
-        print("                     DATASET VALIDATION REPORT")
-        print("="*80)
+        LOGGER.info("\n" + "="*80)
+        LOGGER.info("                     DATASET VALIDATION REPORT")
+        LOGGER.info("="*80)
         
         
         if self.yaml_summary:
-            print("\n📊 YAML SUMMARY:")
-            print("-"*50)
+            LOGGER.info("\n📊 YAML SUMMARY:")
+            LOGGER.info("-"*50)
             
             yaml_data = []
             for key, value in self.yaml_summary.items():
@@ -421,8 +441,8 @@ class Table():
             self.draw_table(["Parameter", "Value"], yaml_data)
         
         # add errors and invalid Labels
-        print("\n⚠️  VALIDATION ERRORS:")
-        print("-"*50)
+        LOGGER.info("\n⚠️  VALIDATION ERRORS:")
+        LOGGER.info("-"*50)
         
         if not self.errors and not self.invalid_labels:
             success_data = [["✅ Status", "No issues found - Dataset is valid!"]]
@@ -456,9 +476,9 @@ class Table():
             if error_data:
                 self.draw_table(["Type", "Description"], error_data)
         
-        print("\n📈 VALIDATION STATISTICS:")
-        print("-"*40)
-        print(f"YAML: {self.yaml}")
+        LOGGER.info("\n📈 VALIDATION STATISTICS:")
+        LOGGER.info("-"*40)
+        LOGGER.info(f"YAML: {self.yaml}")
         stats_data = [
             ["Total Errors", len(self.errors)],
             ["Invalid Labels", len(self.invalid_labels)],
@@ -468,5 +488,5 @@ class Table():
         
         self.draw_table(["Metric", "Value"], stats_data)
         
-        print("\n" + "="*80)
+        LOGGER.info("\n" + "="*80)
          

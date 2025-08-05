@@ -569,31 +569,34 @@ def handle_yolo_dataset_validation(args: List[str]) -> None:
     Args:
         args (List[str]): A list of command line arguments for YOLO datasets validation.
     Examples:
-        >>> $ yolo debug dataset
-        >>> $ yolo repair dataset
+        >>> $ yolo datacheck <path_to_dataset>
+        >>> $ yolo datacheck <path_to_dataset> --fix
       
     Notes:
         - If no arguments are provided, the function will display information about the available commands.
         - The 'datacheck' command will validate the dataset and print any issues found.
-        - The 'datarepair' command will attempt to fix issues in the dataset.
    
          
     """
     from ultralytics.utils.dataset_validation import DatasetValidation
 
     if len(args) < 2 or not args[1]:
-        print("❌ Podaj ścieżkę do pliku lub katalogu datasetu, np. 'yolo check path/to/dataset'.")
+        LOGGER.error("❌ Push path to your dataset np. 'yolo check path/to/dataset'.")
         return
-
-    dataset_validation = DatasetValidation(args[1])
+    is_fix = False
+    if len(args) > 2:
+        for arg in args[2:]:
+            if arg in ['--fix']:
+                is_fix = True
+                break
+                
+    dataset_validation = DatasetValidation(args[1], is_fix)
     if args[0] == "datacheck":
         dataset_validation.validate()
        
-        print("✅Check dataset completed.")
-    elif args[0] == "datarepair":
-        print("🔧 Naprawianie datasetu...")
+        LOGGER.info("✅ Check dataset completed.")
     else:
-        print("❌ Nieznana komenda. Użyj 'check'")
+        LOGGER.error("❌ Unkown command")
 
 
 def handle_yolo_hub(args: List[str]) -> None:
@@ -902,7 +905,6 @@ def entrypoint(debug: str = "") -> None:
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
         "datacheck": lambda: handle_yolo_dataset_validation(args),
-        "datarepair": lambda: handle_yolo_dataset_validation(args),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

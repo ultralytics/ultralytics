@@ -402,11 +402,6 @@ class AutoBackend(nn.Module):
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
 
-            # patch
-            input_bindings = [v for k, v in bindings.items() if k not in output_names]
-            self.batch_size = input_bindings[0].shape[0] if input_bindings else 1
-            LOGGER.info(f"[TensorRT] Inferred batch size: {self.batch_size}")
-
         # CoreML
         elif coreml:
             LOGGER.info(f"Loading {w} for CoreML inference...")

@@ -699,7 +699,7 @@ def collect_system_info():
         "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
         "CPU": get_cpu_info(),
         "CPU count": os.cpu_count(),
-        "GPU(s)": get_gpu_info(devices=[], index=0) if cuda else None,
+        "GPU(s)": get_gpu_info(devices=devices, index=0) if cuda else None,
         "CUDA GPU count": torch.cuda.device_count() if cuda else None,
         "XPU GPU count": torch.xpu.device_count() if torch_utils.TORCH_2_3 and xpu else None,
         "CUDA": torch.version.cuda if cuda else None,

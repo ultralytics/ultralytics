@@ -25,6 +25,7 @@ def check_train_batch_size(
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
+        device_type (str): Device type to passthrough autocast function.
         imgsz (int, optional): Image size used for training.
         amp (bool, optional): Use automatic mixed precision if True.
         batch (int | float, optional): Fraction of GPU memory to use. If -1, use default.

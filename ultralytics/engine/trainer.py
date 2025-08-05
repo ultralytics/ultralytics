@@ -298,8 +298,15 @@ class BaseTrainer:
                 if TORCH_2_4
                 else torch.cuda.amp.GradScaler(enabled=self.amp)
             )
-        else:
+        elif self.device.type == "xpu":
             self.scaler = torch.amp.GradScaler(self.device, enabled=self.amp)
+        else:
+            # Handle CPU, MPS and other devices
+            if TORCH_2_4:
+                self.scaler = torch.amp.GradScaler(device="cpu", enabled=self.amp)
+            else:
+                self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
+
         if world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 

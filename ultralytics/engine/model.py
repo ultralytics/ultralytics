@@ -254,10 +254,13 @@ class Model(torch.nn.Module):
         Raises:
             ValueError: If the configuration file is invalid or the task cannot be inferred.
             ImportError: If the required dependencies for the specified task are not installed.
+            scale (str, optional): Override model scale when loading from a .yaml config. 
+                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Examples:
             >>> model = Model()
             >>> model._new("yolo11n.yaml", task="detect", verbose=True)
+            >>> model._new("yolo11.yaml", task="detect", verbose=True, scale = 'n')
         """
         cfg_dict = yaml_model_load(cfg, scale=scale)
         self.cfg = cfg

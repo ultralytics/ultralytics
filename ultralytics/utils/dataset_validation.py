@@ -97,7 +97,7 @@ class DatasetValidation:
                 self.yaml = yamls[0]
 
             structure_validation = check_det_dataset(self.yaml)
-            if type(structure_validation) is not dict:
+            if not isinstance(structure_validation, dict):
                 self.errors.append(structure_validation)
 
             self.yaml_summary = structure_validation

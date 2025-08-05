@@ -99,7 +99,6 @@ def autocast(enabled: bool, device: str = None):
         ...     # Your mixed precision operations here
         ...     pass
     """
-
     if TORCH_2_4:
         return torch.autocast(device, enabled=enabled)
     elif TORCH_1_13:

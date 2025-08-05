@@ -36,10 +36,12 @@ class VarifocalLoss(nn.Module):
         self.gamma = gamma
         self.alpha = alpha
 
-    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor, device_type: str
+    ) -> torch.Tensor:
         """Compute varifocal loss between predictions and ground truth."""
         weight = self.alpha * pred_score.sigmoid().pow(self.gamma) * (1 - label) + gt_score * label
-        with autocast(enabled=False):
+        with autocast(enabled=False, device=device_type):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
                 .mean(1)

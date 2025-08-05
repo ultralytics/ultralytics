@@ -291,11 +291,15 @@ class BaseTrainer:
         if RANK > -1 and world_size > 1:  # DDP
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
-        if self.device.type == "xpu":
-            self.scaler = torch.GradScaler(self.device, enabled=self.amp)
+
+        if self.device.type == "cuda":
+            self.scaler = (
+                torch.amp.GradScaler("cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
+        else:
+            self.scaler = torch.amp.GradScaler(self.device, enabled=self.amp)
         if world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
@@ -512,6 +516,7 @@ class BaseTrainer:
         """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
             model=self.model,
+            device_type=self.device.type,
             imgsz=self.args.imgsz,
             amp=self.amp,
             batch=self.batch_size,

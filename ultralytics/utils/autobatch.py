@@ -14,6 +14,7 @@ from ultralytics.utils.torch_utils import autocast, profile_ops
 
 def check_train_batch_size(
     model: torch.nn.Module,
+    device_type: str,
     imgsz: int = 640,
     amp: bool = True,
     batch: Union[int, float] = -1,
@@ -36,7 +37,7 @@ def check_train_batch_size(
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
-    with autocast(enabled=amp):
+    with autocast(enabled=amp, device=device_type):
         return autobatch(
             deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6, max_num_obj=max_num_obj
         )
@@ -50,12 +51,12 @@ def autobatch(
     max_num_obj: int = 1,
 ) -> int:
     """
-    Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
+    Automatically estimate the best YOLO batch size to use a fraction of the available CUDA/XPU memory.
 
     Args:
         model (torch.nn.Module): YOLO model to compute batch size for.
         imgsz (int, optional): The image size used as input for the YOLO model.
-        fraction (float, optional): The fraction of available CUDA memory to use.
+        fraction (float, optional): The fraction of available CUDA/XPU memory to use.
         batch_size (int, optional): The default batch size to use if an error is detected.
         max_num_obj (int, optional): The maximum number of objects from dataset.
 
@@ -64,22 +65,31 @@ def autobatch(
     """
     # Check device
     prefix = colorstr("AutoBatch: ")
-    LOGGER.info(f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% CUDA memory utilization.")
     device = next(model.parameters()).device  # get model device
+    LOGGER.info(
+        f"{prefix}Computing optimal batch size for imgsz={imgsz} at {fraction * 100}% {device.type} memory utilization."
+    )
     if device.type in {"cpu", "mps"}:
-        LOGGER.warning(f"{prefix}intended for CUDA devices, using default batch-size {batch_size}")
+        LOGGER.warning(f"{prefix}intended for CUDA/XPU devices, using default batch-size {batch_size}")
         return batch_size
     if torch.backends.cudnn.benchmark:
         LOGGER.warning(f"{prefix}Requires torch.backends.cudnn.benchmark=False, using default batch-size {batch_size}")
         return batch_size
 
-    # Inspect CUDA memory
+    # Inspect CUDA/XPU memory
     gb = 1 << 30  # bytes to GiB (1024 ** 3)
-    d = f"CUDA:{os.getenv('CUDA_VISIBLE_DEVICES', '0').strip()[0]}"  # 'CUDA:0'
-    properties = torch.cuda.get_device_properties(device)  # device properties
-    t = properties.total_memory / gb  # GiB total
-    r = torch.cuda.memory_reserved(device) / gb  # GiB reserved
-    a = torch.cuda.memory_allocated(device) / gb  # GiB allocated
+    if device.type in {"cuda", "cuda:0"}:
+        d = f"CUDA:{os.getenv('CUDA_VISIBLE_DEVICES', '0').strip()[0]}"  # 'CUDA:0'
+        properties = torch.cuda.get_device_properties(device)  # device properties
+        t = properties.total_memory / gb  # GiB total
+        r = torch.cuda.memory_reserved(device=device) / gb  # GiB reserved
+        a = torch.cuda.memory_allocated(device) / gb  # GiB allocated
+    elif device.type in {"xpu", "xpu:0"}:
+        d = "xpu:0"
+        properties = torch.xpu.get_device_properties(device)
+        t = properties.total_memory / gb  # GiB total
+        r = torch.xpu.memory_reserved(device) / gb  # GiB reserved
+        a = torch.xpu.memory_allocated(device) / gb  # GiB allocated
     f = t - (r + a)  # GiB free
     LOGGER.info(f"{prefix}{d} ({properties.name}) {t:.2f}G total, {r:.2f}G reserved, {a:.2f}G allocated, {f:.2f}G free")
 
@@ -116,4 +126,7 @@ def autobatch(
         LOGGER.warning(f"{prefix}error detected: {e},  using default batch-size {batch_size}.")
         return batch_size
     finally:
-        torch.cuda.empty_cache()
+        if device.type in {"cuda", "cuda:0"}:
+            torch.cuda.empty_cache()
+        elif device.type in {"xpu", "xpu:0"}:
+            torch.xpu.empty_cache()

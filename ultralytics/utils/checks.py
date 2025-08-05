@@ -787,7 +787,7 @@ def check_amp(model):
         batch = [im] * 8
         imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
         a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        with autocast(enabled=True):
+        with autocast(enabled=True, device=str(device)):
             b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance

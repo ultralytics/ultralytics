@@ -26,6 +26,14 @@ def test_train():
     _ = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=f"xpu:{DEVICE}")  # requires imgsz>=64
 
 
+@pytest.mark.skipif(DEVICE == -1, reason="No XPU devices available")
+def test_autobatch():
+    """Check optimal batch size for YOLO model training using autobatch utility."""
+    from ultralytics.utils.autobatch import check_train_batch_size
+
+    check_train_batch_size(model=YOLO(MODEL).model.to(f"xpu:{DEVICE}"), device_type="xpu", imgsz=128, amp=True)
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(DEVICE == -1, reason="No XPU devices available")
 def test_predict_multiple_devices_xpu():

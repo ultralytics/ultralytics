@@ -683,9 +683,9 @@ def collect_system_info():
     if torch_utils.TORCH_2_3:
         xpu = torch.xpu.is_available()
         if xpu:
-            devices = devices + ("xpu")
+            devices = devices + ("xpu",)
     if cuda:
-        devices = devices + ("cuda")
+        devices = devices + ("cuda",)
     check_yolo()
     total, used, free = shutil.disk_usage("/")
 

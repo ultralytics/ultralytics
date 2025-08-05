@@ -126,7 +126,7 @@ def get_cpu_info():
 
 
 @functools.lru_cache
-def get_gpu_info(devices, index):
+def get_gpu_info(devices: tuple, index):
     """Return a string with system GPU(s) information, i.e. 'Tesla T4, 15102MiB'."""
     properties = []
     if "cuda" in devices:
@@ -235,7 +235,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                 )
         space = " " * (len(s) + 1)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(['cuda'], i)})\n"  # bytes to MB
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(('cuda',), i)})\n"  # bytes to MB
         arg = "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available

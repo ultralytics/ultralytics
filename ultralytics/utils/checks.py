@@ -678,14 +678,14 @@ def collect_system_info():
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     gib = 1 << 30  # bytes per GiB
-    devices = []
+    devices = tuple()
     cuda = torch.cuda.is_available()
     if torch_utils.TORCH_2_3:
         xpu = torch.xpu.is_available()
         if xpu:
-            devices.append("xpu")
+            devices = devices + ("xpu")
     if cuda:
-        devices.append("cuda")
+        devices = devices + ("cuda")
     check_yolo()
     total, used, free = shutil.disk_usage("/")
 

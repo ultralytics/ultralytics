@@ -117,8 +117,8 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPETrainer as Trainer  # noqa
 
-        model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")  # make sure .pt is of same scale ss YAML
-
+        # create detection model from yaml then load segmentation weights
+        model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")
         # rest of the code is same as the instance segmentation fine-tuning example above
         ```
 
@@ -178,8 +178,8 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPETrainer as Trainer  # noqa
 
-        model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")  # make sure .pt is of same scale as YAML
-
+        # create detection model from yaml then load segmentation weights
+        model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")
         # rest of the code is same as the instance segmentation fine-tuning example above
         ```
 

@@ -250,7 +250,7 @@ class Model(torch.nn.Module):
             model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of
                 creating a new one.
             verbose (bool): If True, displays model information during loading.
-            scale (str, optional): Override model scale when loading from a .yaml config. 
+            scale (str, optional): Override model scale when loading from a .yaml config.
                 Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Raises:

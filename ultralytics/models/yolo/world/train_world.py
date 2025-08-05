@@ -1,9 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from pathlib import Path
+
 from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
-from ultralytics.utils import DEFAULT_CFG, LOGGER
+from ultralytics.utils import DATASETS_DIR, DEFAULT_CFG, LOGGER
 from ultralytics.utils.torch_utils import de_parallel
 
 
@@ -35,12 +37,12 @@ class WorldTrainerFromScratch(WorldTrainer):
         ...         yolo_data=["Objects365.yaml"],
         ...         grounding_data=[
         ...             dict(
-        ...                 img_path="../datasets/flickr30k/images",
-        ...                 json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+        ...                 img_path="flickr30k/images",
+        ...                 json_file="flickr30k/final_flickr_separateGT_train.json",
         ...             ),
         ...             dict(
-        ...                 img_path="../datasets/GQA/images",
-        ...                 json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+        ...                 img_path="GQA/images",
+        ...                 json_file="GQA/final_mixed_train_no_coco.json",
         ...             ),
         ...         ],
         ...     ),
@@ -70,8 +72,8 @@ class WorldTrainerFromScratch(WorldTrainer):
             ...         yolo_data=["Objects365.yaml"],
             ...         grounding_data=[
             ...             dict(
-            ...                 img_path="../datasets/flickr30k/images",
-            ...                 json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+            ...                 img_path="flickr30k/images",
+            ...                 json_file="flickr30k/final_flickr_separateGT_train.json",
             ...             ),
             ...         ],
             ...     ),
@@ -105,7 +107,15 @@ class WorldTrainerFromScratch(WorldTrainer):
         datasets = [
             build_yolo_dataset(self.args, im_path, batch, self.training_data[im_path], stride=gs, multi_modal=True)
             if isinstance(im_path, str)
-            else build_grounding(self.args, im_path["img_path"], im_path["json_file"], batch, stride=gs)
+            else build_grounding(
+                # assign `nc` from validation set to max number of text samples for training consistency
+                self.args,
+                im_path["img_path"],
+                im_path["json_file"],
+                batch,
+                stride=gs,
+                max_samples=self.data["nc"],
+            )
             for im_path in img_path
         ]
         self.set_text_embeddings(datasets, batch)  # cache text embeddings to accelerate training
@@ -136,7 +146,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             if d.get("minival") is None:  # for lvis dataset
                 continue
             d["minival"] = str(d["path"] / d["minival"])
-        for s in ["train", "val"]:
+        for s in {"train", "val"}:
             final_data[s] = [d["train" if s == "train" else val_split] for d in data[s]]
             # save grounding data if there's one
             grounding_data = data_yaml[s].get("grounding_data")
@@ -145,8 +155,14 @@ class WorldTrainerFromScratch(WorldTrainer):
             grounding_data = grounding_data if isinstance(grounding_data, list) else [grounding_data]
             for g in grounding_data:
                 assert isinstance(g, dict), f"Grounding data should be provided in dict format, but got {type(g)}"
+                for k in {"img_path", "json_file"}:
+                    path = Path(g[k])
+                    if not path.exists() and not path.is_absolute():
+                        g[k] = str((DATASETS_DIR / g[k]).resolve())  # path relative to DATASETS_DIR
             final_data[s] += grounding_data
-        data["val"] = data["val"][0]  # assign the first val dataset as currently only one validation set is supported
+        # assign the first val dataset as currently only one validation set is supported
+        data["val"] = data["val"][0]
+        final_data["val"] = final_data["val"][0]
         # NOTE: to make training work properly, set `nc` and `names`
         final_data["nc"] = data["val"]["nc"]
         final_data["names"] = data["val"]["names"]

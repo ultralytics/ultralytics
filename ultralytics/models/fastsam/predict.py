@@ -54,7 +54,7 @@ class FastSAMPredictor(SegmentationPredictor):
         Args:
             preds (List[torch.Tensor]): Raw predictions from the model.
             img (torch.Tensor): Input image tensor that was fed to the model.
-            orig_imgs (List[numpy.ndarray]): Original images before preprocessing.
+            orig_imgs (List[np.ndarray]): Original images before preprocessing.
 
         Returns:
             (List[Results]): Processed results with prompts applied.

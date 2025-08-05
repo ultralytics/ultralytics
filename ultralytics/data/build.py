@@ -3,13 +3,14 @@
 import os
 import random
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Dict, Iterator
 
 import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
+from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
@@ -111,7 +112,16 @@ def seed_worker(worker_id: int):  # noqa
     random.seed(worker_seed)
 
 
-def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, stride=32, multi_modal=False):
+def build_yolo_dataset(
+    cfg: IterableSimpleNamespace,
+    img_path: str,
+    batch: int,
+    data: Dict[str, Any],
+    mode: str = "train",
+    rect: bool = False,
+    stride: int = 32,
+    multi_modal: bool = False,
+):
     """Build and return a YOLO dataset based on configuration parameters."""
     dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
@@ -133,11 +143,21 @@ def build_yolo_dataset(cfg, img_path, batch, data, mode="train", rect=False, str
     )
 
 
-def build_grounding(cfg, img_path, json_file, batch, mode="train", rect=False, stride=32):
+def build_grounding(
+    cfg: IterableSimpleNamespace,
+    img_path: str,
+    json_file: str,
+    batch: int,
+    mode: str = "train",
+    rect: bool = False,
+    stride: int = 32,
+    max_samples: int = 80,
+):
     """Build and return a GroundingDataset based on configuration parameters."""
     return GroundingDataset(
         img_path=img_path,
         json_file=json_file,
+        max_samples=max_samples,
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation

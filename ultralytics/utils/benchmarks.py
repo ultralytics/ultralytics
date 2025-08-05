@@ -520,12 +520,12 @@ class ProfileModels:
         Apply iterative sigma clipping to data to remove outliers.
 
         Args:
-            data (numpy.ndarray): Input data array.
+            data (np.ndarray): Input data array.
             sigma (float): Number of standard deviations to use for clipping.
             max_iters (int): Maximum number of iterations for the clipping process.
 
         Returns:
-            (numpy.ndarray): Clipped data array with outliers removed.
+            (np.ndarray): Clipped data array with outliers removed.
         """
         data = np.array(data)
         for _ in range(max_iters):

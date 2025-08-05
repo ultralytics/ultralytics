@@ -896,6 +896,27 @@ def is_rockchip():
         return False
 
 
+def is_intel():
+    """
+    Check if the system has Intel hardware (CPU or GPU).
+
+    Returns:
+        (bool): True if Intel hardware is detected, False otherwise.
+    """
+    from ultralytics.utils.torch_utils import get_cpu_info
+
+    # Check CPU
+    if "intel" in get_cpu_info().lower():
+        return True
+
+    # Check GPU via xpu-smi
+    try:
+        result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
+        return "intel" in result.stdout.lower()
+    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+        return False
+
+
 def is_sudo_available() -> bool:
     """
     Check if the sudo command is available in the environment.

@@ -411,7 +411,7 @@ class RoPEAttention(Attention):
 
     Attributes:
         compute_cis (Callable): Function to compute axial complex numbers for rotary encoding.
-        freqs_cis (Tensor): Precomputed frequency tensor for rotary encoding.
+        freqs_cis (torch.Tensor): Precomputed frequency tensor for rotary encoding.
         rope_k_repeat (bool): Flag to repeat query RoPE to match key length for cross-attention to memories.
 
     Methods:
@@ -443,7 +443,7 @@ class RoPEAttention(Attention):
         self.freqs_cis = freqs_cis
         self.rope_k_repeat = rope_k_repeat  # repeat q rope to match k length, needed for cross-attention to memories
 
-    def forward(self, q: Tensor, k: Tensor, v: Tensor, num_k_exclude_rope: int = 0) -> Tensor:
+    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, num_k_exclude_rope: int = 0) -> torch.Tensor:
         """Apply rotary position encoding and compute attention between query, key, and value tensors."""
         q = self.q_proj(q)
         k = self.k_proj(k)
@@ -744,7 +744,7 @@ class PositionEmbeddingSine(nn.Module):
 
         self.cache = {}
 
-    def _encode_xy(self, x: Tensor, y: Tensor) -> Tuple[Tensor, Tensor]:
+    def _encode_xy(self, x: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Encode 2D positions using sine/cosine functions for transformer positional embeddings."""
         assert len(x) == len(y) and x.ndim == y.ndim == 1
         x_embed = x * self.scale
@@ -760,7 +760,7 @@ class PositionEmbeddingSine(nn.Module):
         return pos_x, pos_y
 
     @torch.no_grad()
-    def encode_boxes(self, x: Tensor, y: Tensor, w: Tensor, h: Tensor) -> Tensor:
+    def encode_boxes(self, x: torch.Tensor, y: torch.Tensor, w: torch.Tensor, h: torch.Tensor) -> torch.Tensor:
         """Encode box coordinates and dimensions into positional embeddings for detection."""
         pos_x, pos_y = self._encode_xy(x, y)
         return torch.cat((pos_y, pos_x, h[:, None], w[:, None]), dim=1)
@@ -768,7 +768,7 @@ class PositionEmbeddingSine(nn.Module):
     encode = encode_boxes  # Backwards compatibility
 
     @torch.no_grad()
-    def encode_points(self, x: Tensor, y: Tensor, labels: Tensor) -> Tensor:
+    def encode_points(self, x: torch.Tensor, y: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         """Encode 2D points with sinusoidal embeddings and append labels."""
         (bx, nx), (by, ny), (bl, nl) = x.shape, y.shape, labels.shape
         assert bx == by and nx == ny and bx == bl and nx == nl

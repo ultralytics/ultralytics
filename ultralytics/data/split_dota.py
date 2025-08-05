@@ -295,7 +295,7 @@ def split_trainval(
     for r in rates:
         crop_sizes.append(int(crop_size / r))
         gaps.append(int(gap / r))
-    for split in ["train", "val"]:
+    for split in {"train", "val"}:
         split_images_and_labels(data_root, save_dir, split, crop_sizes, gaps)
 
 

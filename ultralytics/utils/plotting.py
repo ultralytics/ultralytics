@@ -610,8 +610,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     ax[3].hist2d(x["width"], x["height"], bins=50, cmap=subplot_3_4_color)
     ax[3].set_xlabel("width")
     ax[3].set_ylabel("height")
-    for a in [0, 1, 2, 3]:
-        for s in ["top", "right", "left", "bottom"]:
+    for a in {0, 1, 2, 3}:
+        for s in {"top", "right", "left", "bottom"}:
             ax[a].spines[s].set_visible(False)
 
     fname = save_dir / "labels.jpg"
@@ -810,9 +810,9 @@ def plot_images(
 
             # Plot masks
             if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                if idx.shape[0] == masks.shape[0]:  # overlap_mask=False
                     image_masks = masks[idx]
-                else:  # overlap_masks=True
+                else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
                     index = np.arange(nl).reshape((nl, 1, 1)) + 1

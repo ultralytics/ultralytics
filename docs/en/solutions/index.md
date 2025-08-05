@@ -66,22 +66,20 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
-| Method                             | Return Type | Description                                                            |
-| ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
-| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.          |
-| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                         |
-| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                |
-| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.           |
-| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                 |
-| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                 |
-| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.        |
-| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line. |
-| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
-| `seg_bbox()`                       | `None`      | Draws contours for segmented objects and optionally labels them.       |
-| `sweep_annotator()`                | `None`      | Visualizes a vertical sweep line and optional label.                   |
-| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
-| `circle_label()`                   | `None`      | Draws a circular label in the place of a bounding box.                 |
-| `text_label()`                     | `None`      | Draws a rectangular label in the place of a bounding box.              |
+| Method                             | Return Type | Description                                                                      |
+| ---------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.                    |
+| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                                   |
+| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                          |
+| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.                     |
+| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                           |
+| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                           |
+| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.                  |
+| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line.           |
+| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                               |
+| `sweep_annotator()`                | `None`      | Visualize a vertical sweep line and optional label.                              |
+| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.                      |
+| `adaptive_label()`                 | `None`      | Draw a circular or rectangle background shape label in center of a bounding box. |
 
 ### Working with SolutionResults
 
@@ -117,7 +115,7 @@ Except [`Similarity Search`](../guides/similarity-search.md), each Solution call
 
 | Attribute            | Type               | Description                                                                                                   |
 | -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `plot_im`            | `numpy.ndarray`    | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
+| `plot_im`            | `np.ndarray`       | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
 | `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
 | `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |
 | `classwise_count`    | `Dict[str, int]`   | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |

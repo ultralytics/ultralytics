@@ -135,4 +135,4 @@ def autosplit(
 
 
 if __name__ == "__main__":
-    split_classify_dataset("../datasets/caltech101")
+    split_classify_dataset("caltech101")

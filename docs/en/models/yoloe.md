@@ -251,6 +251,15 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         results[0].show()
         ```
 
+        Using `refer_image` also sets the classes permanently, so you can run predictions without having to supply the same visual prompts again, and export the model while retaining the ability to still detect the same classes after export:
+        ```python
+        # After making prediction with `refer_image`, you can run predictions without passing visual_prompts again and still get the same classes back
+        results = model("ultralytics/assets/bus.jpg")
+
+        # Or export it to a different format while retaining the classes
+        model.export(format="onnx")
+        ```
+
         You can also pass multiple target images to run prediction on:
 
         ```python
@@ -412,12 +421,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -448,12 +457,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -469,12 +477,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -532,12 +540,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -550,12 +557,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),

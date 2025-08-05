@@ -493,7 +493,7 @@ class Results(SimpleClass, DataExportMixin):
         filename: Optional[str] = None,
         color_mode: str = "class",
         txt_color: Tuple[int, int, int] = (255, 255, 255),
-            color_list=None,
+        color_list=None,
     ) -> np.ndarray:
         """
         Plot detection results on an input RGB image.

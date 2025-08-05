@@ -2,7 +2,6 @@
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-import shutil
 
 import cv2
 import numpy as np
@@ -277,16 +276,18 @@ class DetectionValidator(BaseValidator):
             conf (float, optional): Confidence threshold for detections.
             iou_thres (float, optional): IoU threshold for matching detections to ground truth.
         """
-        (self.save_dir / "visualizations"/ "false_negative").mkdir(parents=True, exist_ok=True)
+        (self.save_dir / "visualizations" / "false_negative").mkdir(parents=True, exist_ok=True)
         (self.save_dir / "visualizations" / "false_positive").mkdir(parents=True, exist_ok=True)
 
         conf = 0.25 if conf in {None, 0.001} else conf  # apply 0.25 if default val conf is passed
-        gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
+        _gt_cls, _gt_bboxes = batch["cls"], batch["bboxes"]
         no_pred = len(detections["cls"]) == 0
         if no_pred:
             detections = torch.empty((0, 6), device=self.device)  # Output all labels
         else:
-            detections = torch.cat([detections['bboxes'], detections['conf'].reshape(-1, 1), detections['cls'].reshape(-1, 1)], 1)
+            detections = torch.cat(
+                [detections["bboxes"], detections["conf"].reshape(-1, 1), detections["cls"].reshape(-1, 1)], 1
+            )
 
         detections = detections[detections[:, 4] > conf]
         # gt_classes = labels[:, 0].int()
@@ -325,7 +326,7 @@ class DetectionValidator(BaseValidator):
         # Convert image data to CV2
         img = batch["img"][si].cpu().float().numpy()
         img *= 255
-        img= img.transpose(1, 2, 0)
+        img = img.transpose(1, 2, 0)
         img = np.ascontiguousarray(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -359,8 +360,9 @@ class DetectionValidator(BaseValidator):
                 detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
             )
 
-            cv2.imwrite(str(self.save_dir / "visualizations" / "false_negative" / os.path.split(file_name)[1]),
-                        combined_img)
+            cv2.imwrite(
+                str(self.save_dir / "visualizations" / "false_negative" / os.path.split(file_name)[1]), combined_img
+            )
 
         if false_positive.shape[0] > 0:
             # plot false positive images
@@ -384,19 +386,20 @@ class DetectionValidator(BaseValidator):
                 detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
             )
 
-            cv2.imwrite(str(self.save_dir / "visualizations" / "false_positive" / os.path.split(file_name)[1]),
-                        combined_img)
+            cv2.imwrite(
+                str(self.save_dir / "visualizations" / "false_positive" / os.path.split(file_name)[1]), combined_img
+            )
 
-    def _generate_combined_img(self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img):
+    def _generate_combined_img(
+        self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name, img
+    ):
         label_plot_args = dict(line_width=1, boxes=True, color_list=label_color_list)
         detection_plot_args = dict(line_width=1, boxes=True, color_list=detection_color_list)
         # Prepare label image
         label_result = Results(orig_img=img, path=file_name, names=self.names, boxes=label_boxes)
         label_plotted_img = label_result.plot(**label_plot_args)
         # Prepare detection image
-        detection_result = Results(
-            orig_img=img, path=file_name, names=self.names, boxes=detection_boxes
-        )
+        detection_result = Results(orig_img=img, path=file_name, names=self.names, boxes=detection_boxes)
         detection_plotted_img = detection_result.plot(**detection_plot_args)
 
         label_plotted_img = cv2.copyMakeBorder(

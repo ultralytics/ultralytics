@@ -47,7 +47,13 @@ class YOLO(Model):
         >>> model = YOLO("yolo11n.yaml")
     """
 
-    def __init__(self, model: Union[str, Path] = "yolo11n.pt", task: Optional[str] = None, verbose: bool = False, scale: Optional[str] = None):
+    def __init__(
+        self,
+        model: Union[str, Path] = "yolo11n.pt",
+        task: Optional[str] = None,
+        verbose: bool = False,
+        scale: Optional[str] = None,
+    ):
         """
         Initialize a YOLO model.
 
@@ -59,7 +65,7 @@ class YOLO(Model):
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
-            scale (str, optional): Override model scale when loading from a .yaml config. 
+            scale (str, optional): Override model scale when loading from a .yaml config.
                 Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Examples:
@@ -76,7 +82,10 @@ class YOLO(Model):
         elif path.suffix == ".pt":
             if scale:
                 from ultralytics.utils import LOGGER
-                LOGGER.warning(f"Ignoring user-specified scale='{scale}' for pretrained .pt file '{path.name}' — scale is inferred from filename.")
+
+                LOGGER.warning(
+                    f"Ignoring user-specified scale='{scale}' for pretrained .pt file '{path.name}' — scale is inferred from filename."
+                )
             self._scale = None  # Will be inferred internally
         else:
             self._scale = scale  # For safety fallback

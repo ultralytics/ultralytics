@@ -2,7 +2,7 @@
 
 import inspect
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import torch
@@ -98,7 +98,7 @@ class Model(torch.nn.Module):
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
-            scale (str, optional): Override model scale when loading from a .yaml config. 
+            scale (str, optional): Override model scale when loading from a .yaml config.
                 Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Raises:
@@ -110,7 +110,7 @@ class Model(torch.nn.Module):
             >>> model = Model("yolo11n.pt")
             >>> model = Model("path/to/model.yaml", task="detect")
             >>> model = Model("hub_model", verbose=True)
-            >>> model = Model("yolo11.yaml",scale='l')
+            >>> model = Model("yolo11.yaml", scale="l")
         """
         if isinstance(model, Model):
             self.__dict__ = model.__dict__  # accepts an already initialized Model
@@ -254,13 +254,13 @@ class Model(torch.nn.Module):
         Raises:
             ValueError: If the configuration file is invalid or the task cannot be inferred.
             ImportError: If the required dependencies for the specified task are not installed.
-            scale (str, optional): Override model scale when loading from a .yaml config. 
+            scale (str, optional): Override model scale when loading from a .yaml config.
                 Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Examples:
             >>> model = Model()
             >>> model._new("yolo11n.yaml", task="detect", verbose=True)
-            >>> model._new("yolo11.yaml", task="detect", verbose=True, scale = 'n')
+            >>> model._new("yolo11.yaml", task="detect", verbose=True, scale="n")
         """
         cfg_dict = yaml_model_load(cfg, scale=scale)
         self.cfg = cfg

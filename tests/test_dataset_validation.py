@@ -1,5 +1,6 @@
 from unittest.mock import patch
-from ultralytics.utils.dataset_validation import DatasetValidation, AutoFix, Table
+
+from ultralytics.utils.dataset_validation import AutoFix, DatasetValidation, Table
 
 # ---------- check_matching_files_count ----------
 

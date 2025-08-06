@@ -595,7 +595,7 @@ def handle_yolo_dataset_validation(args: List[str]) -> None:
 
         LOGGER.info("✅ Check dataset completed.")
     else:
-        LOGGER.info("❌ Unkown command")
+        LOGGER.info("❌ Unknown command")
 
 
 def handle_yolo_hub(args: List[str]) -> None:

@@ -172,7 +172,6 @@ class AutoFix:
         Args:
             dataset (str): path to user dataset.
             yaml_path (str): path to user yaml file.
-    
         """
         self.dataset = os.path.abspath(dataset)
         self.yaml_path = yaml_path

@@ -1,5 +1,6 @@
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from ultralytics.utils.dataset_validation import AutoFix, DatasetValidation, Table
 
 # ---------- Tests for error cases ----------

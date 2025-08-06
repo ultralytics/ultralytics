@@ -292,7 +292,6 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
 
 For more information on Ultralytics solutions, visit the [Solutions](../solutions/index.md) page.
 
-
 ## Dataset Validation Commands
 
 Ultralytics provides functionality to check user dataset before start training, get finally pre-flight raport about data and issues. Also if user agree, small issues can be solve by automatic fix function.
@@ -303,9 +302,8 @@ Ultralytics provides functionality to check user dataset before start training, 
 
         ```bash
         yolo datacheck <path_to_dataset> --fix # automatic fix potential issues
-        yolo datacheck <path_to_dataset> 
+        yolo datacheck <path_to_dataset>
         ```
-
 
 <!-- For more information on Ultralytics solutions, visit the [Solutions](../solutions/index.md) page. -->
 

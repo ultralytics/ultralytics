@@ -50,14 +50,12 @@ def test_export(model: str) -> None:
 
 @pytest.mark.parametrize("is_fix", [True, False])
 def test_datacheck(is_fix: bool) -> None:
-    """
-    Test dataset validation.
-    """
-    #check if with --fix flag
+    """Test dataset validation."""
+    # check if with --fix flag
     fix = "--fix" if is_fix else ""
-    dataset_path = '<path_to_your_dataset>'
+    dataset_path = "<path_to_your_dataset>"
     run(f"yolo datacheck {dataset_path} {fix}")
- 
+
 
 def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""

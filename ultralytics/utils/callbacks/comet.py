@@ -31,6 +31,7 @@ try:
     POSE_METRICS_PLOT_PREFIX = "Box", "Pose"
     DETECTION_METRICS_PLOT_PREFIX = ["Box"]
     RESULTS_TABLE_NAME = "results.csv"
+    ARGS_YAML_NAME = "args.yaml"
 
     _comet_image_prediction_count = 0
 
@@ -363,7 +364,7 @@ def _log_images(experiment, image_paths, curr_step: Optional[int], annotations=N
     such as bounding boxes or segmentation masks.
 
     Args:
-        experiment (comet_ml.Experiment): The Comet ML experiment to log images to.
+        experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
         image_paths (List[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
         annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each
@@ -489,8 +490,6 @@ def _log_plots(experiment, trainer) -> None:
         _log_images(experiment, label_plot_filenames, None)
 
 
-
-
 def _log_model(experiment, trainer) -> None:
     """Log the best-trained model to Comet.ml."""
     model_name = _get_comet_model_name()
@@ -501,6 +500,11 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
     """Log samples of image batches for train, validation, and test."""
     _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
+
+
+def _log_asset(experiment, asset_path: str) -> None:
+    """Log an asset to Comet"""
+    experiment.log_asset(asset_path)
 
 
 def _log_table(experiment, table_path: str) -> None:
@@ -593,6 +597,11 @@ def on_train_end(trainer) -> None:
     table_path = trainer.save_dir / RESULTS_TABLE_NAME
     if table_path.exists():
         _log_table(experiment, table_path)
+
+    # log arguments YAML
+    args_path = trainer.save_dir / ARGS_YAML_NAME
+    if args_path.exists():
+        _log_asset(experiment, args_path)
 
     experiment.end()
 

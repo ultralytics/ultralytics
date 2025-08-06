@@ -557,49 +557,45 @@ def merge_equals_args(args: List[str]) -> List[str]:
     return new_args
 
 
-
-
-
-
 def handle_yolo_dataset_validation(args: List[str]) -> None:
     """
     Handle YOLO datasets validation command-line interface (CLI) commands.
 
     This function processes YOLO datasets validation CLI commands such as check and repair. It should be called before model training to ensure the dataset is valid.
+
     Args:
         args (List[str]): A list of command line arguments for YOLO datasets validation.
+
     Examples:
         >>> $ yolo datacheck <path_to_dataset>
         >>> $ yolo datacheck <path_to_dataset> --fix
-      
+
     Notes:
         - If no arguments are provided, the function will display information about the available commands.
         - The 'datacheck' command will validate the dataset and print any issues found.
-   
-         
     """
     from ultralytics.utils.dataset_validation import DatasetValidation
 
     if len(args) < 2 or not args[1]:
         LOGGER.error("❌ Push path to your dataset np. 'yolo check path/to/dataset'.")
         return
-    
+
     is_fix = False
-    
-    #search for --fix flag
+
+    # search for --fix flag
     if len(args) > 2:
         for arg in args[2:]:
-            if arg in ['--fix']:
+            if arg in ["--fix"]:
                 is_fix = True
                 break
     # Init dataset validation
     dataset_validation = DatasetValidation(args[1], is_fix)
     if args[0] == "datacheck":
         dataset_validation.validate()
-       
+
         LOGGER.info("✅ Check dataset completed.")
     else:
-        LOGGER.error("❌ Unkown command")
+        LOGGER.error("❌ Unknown command")
 
 
 def handle_yolo_hub(args: List[str]) -> None:

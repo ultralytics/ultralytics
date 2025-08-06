@@ -1,14 +1,16 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.data.utils import verify_image_label, check_det_dataset
-from ultralytics.utils import (
-    LOGGER,
-)
-from typing import Optional, Callable
 import glob
 import os
 import re
+from typing import Callable, Optional
+
 import yaml
+
+from ultralytics.data.utils import check_det_dataset, verify_image_label
+from ultralytics.utils import (
+    LOGGER,
+)
 
 
 class DatasetValidation:
@@ -27,8 +29,6 @@ class DatasetValidation:
     Methods:
         check_matching_files_count: Check matching count of image and label files.
         validate: Basic process of validation.
-
-
     """
 
     def __init__(self, dataset, is_fix):
@@ -41,7 +41,6 @@ class DatasetValidation:
             yaml_summary (object): object with info about yaml file.
             errors (List): list with all noticed errors.
             invalid_labels (List): list with all noticed invalid labels.
-
         """
         self.dataset = os.path.abspath(dataset)
         self.yaml = None
@@ -83,11 +82,7 @@ class DatasetValidation:
                 )
 
     def validate(self) -> None:
-        """
-        Basic process of validation.
-
-        """
-
+        """Basic process of validation."""
         try:
             if os.path.isdir(self.dataset):
                 yamls = glob.glob(os.path.join(self.dataset, "*.yaml"))  # search for any yaml file
@@ -159,11 +154,9 @@ class AutoFix:
         load_yaml: Try to load yaml file.
         save_yaml: Save changes in YAML file.
         fix_missing_yaml: Build basic architecture of YAML file.
-        fix_nc_names_mismatch: Changeing nc value to names length.
+        fix_nc_names_mismatch: Changing nc value to names length.
         detect_error: Detect error and fetching correct fix function.
         fix: Initing function to find correct fix function and start process of repairing.
-
-
     """
 
     def __init__(self, dataset, yaml_path):
@@ -174,7 +167,6 @@ class AutoFix:
             dataset (str): path to user dataset.
             yaml_path (str): path to user yaml file.
             error_patterns(Dict[str, Callable[[], Any]]): error patterns with assigned fix functions.
-
         """
         self.dataset = os.path.abspath(dataset)
         self.yaml_path = yaml_path
@@ -189,13 +181,13 @@ class AutoFix:
         Try to load yaml file.
 
         Returns:
-            (bool): True if successfull loading yaml file.
+            (bool): True if successful loading yaml file.
         """
         if not self.yaml_path or not os.path.exists(self.yaml_path):
             return False
 
         try:
-            with open(self.yaml_path, "r", encoding="utf-8") as file:
+            with open(self.yaml_path, encoding="utf-8") as file:
                 self.yaml_data = yaml.safe_load(file)
             return True
         except Exception as e:
@@ -208,9 +200,9 @@ class AutoFix:
 
         Args:
             yaml_data: updated or new data.
-        Returns:
-            (bool): True if successfull saving yaml file.
 
+        Returns:
+            (bool): True if successful saving yaml file.
         """
         if not self.yaml_path or not yaml_data:
             return False
@@ -220,13 +212,11 @@ class AutoFix:
                 yaml.safe_dump(yaml_data, file, default_flow_style=False, allow_unicode=True)
             return True
         except Exception as e:
-            LOGGER.error(f"Error in YAML saveing process: {e}")
+            LOGGER.error(f"Error in YAML saving process: {e}")
             return False
 
     def fix_missing_yaml(self) -> None:
-        """
-        Build basic architecture of YAML file.
-        """
+        """Build basic architecture of YAML file."""
         self.yaml_path = os.path.join(self.dataset, "dataset.yaml")
 
         yaml_data = {
@@ -239,9 +229,7 @@ class AutoFix:
         self.save_yaml(yaml_data)
 
     def fix_nc_names_mismatch(self) -> None:
-        """
-        Changeing nc value to names length.
-        """
+        """Changing nc value to names length."""
         if not self.load_yaml():
             return
 
@@ -258,7 +246,6 @@ class AutoFix:
 
         Returns:
             Optional[Callable[[], None]]: if fix_function found.
-
         """
         for pattern, fix_function in self.error_patterns.items():
             if re.search(pattern, error_message, re.IGNORECASE):
@@ -295,12 +282,12 @@ class Table:
         create_clickable_link: Create clickable link to path where software noticed bug.
         formatting_message: Prepare correct formatting for message.
         draw_summary_table: Drawing finall summary table with presented data.
-
     """
 
     def __init__(self, yaml_summary, errors, invalid_labels, dataset, yaml):
         """
         Initialize Table with given configuration and options.
+
         Args:
             yaml_summary (object): summary from yaml validation function.
             errors (List): list of found errors.
@@ -322,7 +309,6 @@ class Table:
             headers (List): headers of table UI.
             data (List): data to provide into table UI.
         """
-
         if not data:
             return
 
@@ -379,9 +365,9 @@ class Table:
 
         Args:
             content (str): content to transform into finall message.
+
         Returns:
             (str): formatted message.
-
         """
         path_pattern = r"([C-Z]:[\\\/][^':\"]*)"  # path pattern
         match = re.search(path_pattern, content)  # search for path in content
@@ -398,10 +384,7 @@ class Table:
         return content
 
     def draw_summary_table(self) -> None:
-        """
-        Drawing finall summary table with presented data.
-        """
-
+        """Drawing finall summary table with presented data."""
         LOGGER.info("\n" + "=" * 80)
         LOGGER.info("                     DATASET VALIDATION REPORT")
         LOGGER.info("=" * 80)

@@ -898,7 +898,7 @@ def entrypoint(debug: str = "") -> None:
 
     special = {
         "help": lambda: LOGGER.info(CLI_HELP_MSG),
-        # "checks": checks.collect_system_info,
+        "checks": checks.collect_system_info,
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
         "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),

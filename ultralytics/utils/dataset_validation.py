@@ -38,10 +38,6 @@ class DatasetValidation:
 
         Args:
             dataset (str): path to the dataset.
-            yaml (str): path to the yaml file.
-            yaml_summary (object): object with info about yaml file.
-            errors (List): list with all noticed errors.
-            invalid_labels (List): list with all noticed invalid labels.
             is_fix (bool): True if user wants to automatic fix detected bugs.
         """
         self.dataset = os.path.abspath(dataset)
@@ -176,7 +172,7 @@ class AutoFix:
         Args:
             dataset (str): path to user dataset.
             yaml_path (str): path to user yaml file.
-            error_patterns(Dict[str, Callable[[], Any]]): error patterns with assigned fix functions.
+    
         """
         self.dataset = os.path.abspath(dataset)
         self.yaml_path = yaml_path
@@ -209,7 +205,7 @@ class AutoFix:
         Save changes in YAML file.
 
         Args:
-            yaml_data: updated or new data.
+            yaml_data (Dict): updated or new data.
 
         Returns:
             (bool): True if successful saving yaml file.

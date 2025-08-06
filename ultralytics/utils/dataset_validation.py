@@ -25,6 +25,7 @@ class DatasetValidation:
         yaml_summary (object): object with info about yaml file.
         errors (List): list with all noticed errors.
         invalid_labels (List): list with all noticed invalid labels.
+        is_fix (bool): True if user wants to automatic fix detected bugs.
 
     Methods:
         check_matching_files_count: Check matching count of image and label files.
@@ -41,6 +42,7 @@ class DatasetValidation:
             yaml_summary (object): object with info about yaml file.
             errors (List): list with all noticed errors.
             invalid_labels (List): list with all noticed invalid labels.
+            is_fix (bool): True if user wants to automatic fix detected bugs.
         """
         self.dataset = os.path.abspath(dataset)
         self.yaml = None
@@ -68,6 +70,14 @@ class DatasetValidation:
         return True
 
     def verify_labels(self, labels, verify_labels_structure, yaml_summary="train"):
+        """
+        Verify labels with images.
+
+        Args:
+            labels (List): list with labels.
+            verify_labels_structure (List): list to push verify labels.
+            yaml_summary (str): subfolder to verify data.
+        """
         for image_file in os.listdir(self.yaml_summary[yaml_summary]):
             image_name = os.path.splitext(image_file)[0]
             label_file = image_name + ".txt"

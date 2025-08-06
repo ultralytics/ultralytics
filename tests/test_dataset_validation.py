@@ -6,6 +6,7 @@ from ultralytics.utils.dataset_validation import AutoFix, DatasetValidation, Tab
 
 
 def test_check_matching_files_count_match(tmp_path):
+    """Test that check_matching_files_count returns True when the number of image and label files match."""
     images = tmp_path / "images"
     labels = tmp_path / "labels"
     images.mkdir()
@@ -21,6 +22,7 @@ def test_check_matching_files_count_match(tmp_path):
 
 
 def test_check_matching_files_count_mismatch(tmp_path):
+    """Test that check_matching_files_count returns False and logs an error when image and label files mismatch."""
     images = tmp_path / "images"
     labels = tmp_path / "labels"
     images.mkdir()
@@ -40,6 +42,7 @@ def test_check_matching_files_count_mismatch(tmp_path):
 @patch("ultralytics.utils.dataset_validation.verify_image_label")
 @patch("ultralytics.utils.dataset_validation.Table.draw_summary_table")
 def test_validation_success(mock_draw, mock_verify, mock_check, tmp_path):
+    """Test that DatasetValidation.validate() completes successfully when dataset structure is correct."""
     dataset_dir = tmp_path
     yaml_file = dataset_dir / "dataset.yaml"
     yaml_file.write_text("nc: 1\nnames: {0: 'car'}")
@@ -74,6 +77,7 @@ def test_validation_success(mock_draw, mock_verify, mock_check, tmp_path):
 
 
 def test_autofix_fix_missing_yaml(tmp_path):
+    """Test that AutoFix correctly creates a default dataset.yaml when missing."""
     af = AutoFix(str(tmp_path), yaml_path=None)
     af.fix_missing_yaml()
 
@@ -85,6 +89,7 @@ def test_autofix_fix_missing_yaml(tmp_path):
 
 
 def test_autofix_fix_nc_names_mismatch(tmp_path):
+    """Test that AutoFix updates the 'nc' value when it does not match the number of names."""
     yaml_path = tmp_path / "dataset.yaml"
     yaml_path.write_text("nc: 2\nnames: {0: 'cat', 1: 'dog', 2: 'car'}")
 
@@ -96,6 +101,7 @@ def test_autofix_fix_nc_names_mismatch(tmp_path):
 
 
 def test_autofix_detect_error():
+    """Test that AutoFix.detect_error returns correct fix method based on error string."""
     af = AutoFix("/some/path", "/some/path/dataset.yaml")
 
     f1 = af.detect_error("No YAML file found in the dataset directory.")
@@ -113,6 +119,7 @@ def test_autofix_detect_error():
 
 @patch("ultralytics.utils.dataset_validation.LOGGER")
 def test_table_draw_summary_table_minimal(mock_logger):
+    """Test that Table.draw_summary_table logs a minimal validation summary when there are no errors."""
     table = Table(
         yaml_summary={"nc": 1, "names": {0: "car"}},
         errors=[],

@@ -581,7 +581,7 @@ def handle_yolo_dataset_validation(args: List[str]) -> None:
     from ultralytics.utils.dataset_validation import DatasetValidation
 
     if len(args) < 2 or not args[1]:
-        LOGGER.error("❌ Push path to your dataset np. 'yolo check path/to/dataset'.")
+        LOGGER.info("❌ Push path to your dataset np. 'yolo check path/to/dataset'.")
         return
     
     is_fix = False
@@ -599,7 +599,7 @@ def handle_yolo_dataset_validation(args: List[str]) -> None:
        
         LOGGER.info("✅ Check dataset completed.")
     else:
-        LOGGER.error("❌ Unkown command")
+        LOGGER.info("❌ Unkown command")
 
 
 def handle_yolo_hub(args: List[str]) -> None:

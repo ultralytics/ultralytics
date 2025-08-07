@@ -2062,7 +2062,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if masks is not None:
             masks = self.mask_preprocess(masks)
 
-
         if update_memory:
             assert bboxes is not None or masks is not None, (
                 "bboxes or masks must be provided when update_memory is True"

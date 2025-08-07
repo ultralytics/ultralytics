@@ -43,12 +43,7 @@ class Detect(nn.Module):
         self.stride = torch.zeros(self.nl)  # strides computed during build
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
-            nn.Sequential(
-                Conv(x, c2, 3, act=act),
-                Conv(c2, c2, 3, act=act),
-                Conv(c2, c2, 3, act=act),
-                nn.Conv2d(c2, 4 * self.reg_max, 1),
-            )
+            nn.Sequential(Conv(x, c2, 3, act=act), Conv(c2, c2, 3, act=act), nn.Conv2d(c2, 4 * self.reg_max, 1))
             for x in ch
         )
         self.cv3 = (

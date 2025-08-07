@@ -50,6 +50,7 @@ class RTDETRDataset(YOLODataset):
             **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
         """
         super().__init__(*args, data=data, **kwargs)
+        self.strong_aug_disabled = False
 
     def load_image(self, i, rect_mode=False):
         """
@@ -100,6 +101,45 @@ class RTDETRDataset(YOLODataset):
             )
         )
         return transforms
+
+    def disable_strong_aug(self):
+        """
+        Disable strong augmentation transforms for RT-DETR v2 dynamic training strategy.
+
+        This method removes strong augmentations like mosaic, mixup, and strong photometric distortions while keeping
+        mild augmentations like random flip. This follows the RT-DETR v2 training strategy of using strong augmentations
+        in early training and mild augmentations in late training.
+        """
+        if self.augment and not self.strong_aug_disabled:
+            # Define strong augmentations to remove (keep basic ones like RandomFlip)
+            strong_aug_names = {
+                "Mosaic",
+                "MixUp",
+                "CutMix",
+                "RandomPerspective",
+                "RandomHSV",
+                "RandomPhotometricDistort",
+                "RandomErasing",  # NOTE: RandomAffine is kept for RandomFlip
+            }
+
+            # Filter out strong augmentations
+            new_transforms = []
+            for transform in self.transforms.transforms:
+                transform_name = type(transform).__name__
+                if transform_name not in strong_aug_names:
+                    new_transforms.append(transform)
+
+            # Update transforms
+            self.transforms.transforms = new_transforms
+            self.strong_aug_disabled = True
+
+            # Also disable mosaic/mixup at dataset level
+            if hasattr(self, "mosaic"):
+                self.mosaic = 0.0
+            if hasattr(self, "mixup"):
+                self.mixup = 0.0
+            if hasattr(self, "cutmix"):
+                self.cutmix = 0.0
 
 
 class RTDETRValidator(DetectionValidator):

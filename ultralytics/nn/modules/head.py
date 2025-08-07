@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
+from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
@@ -18,7 +19,31 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
+__all__ = (
+    "Detect",
+    "Segment",
+    "Pose",
+    "Classify",
+    "OBB",
+    "RTDETRDecoder",
+    "RTDETRDecoderV2",
+    "v10Detect",
+    "YOLOEDetect",
+    "YOLOESegment",
+)
+
+
+def _parse_activation(act):
+    """Parse activation function from string or return as-is if already a module."""
+    if isinstance(act, str):
+        # Use a mapping for safe parsing
+        activation_map = {
+            "nn.ReLU()": nn.ReLU(),
+            "nn.GELU()": nn.GELU(),
+            "nn.SiLU()": nn.SiLU(),
+        }
+        return activation_map.get(act, nn.ReLU())  # Default to ReLU if not found
+    return act
 
 
 class Detect(nn.Module):
@@ -933,6 +958,9 @@ class RTDETRDecoder(nn.Module):
             learnt_init_query (bool): Whether to learn initial query embeddings.
         """
         super().__init__()
+        # Parse activation function if it's a string
+        act = _parse_activation(act)
+
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)  # num level
@@ -1118,7 +1146,6 @@ class RTDETRDecoder(nn.Module):
 
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
-        # Query selection
         # (bs, num_queries)
         topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         # (bs, num_queries)
@@ -1170,6 +1197,256 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
+
+
+class RTDETRDecoderV2(RTDETRDecoder):
+    """Real-Time Deformable Transformer Decoder (RT-DETRv2) module for object detection."""
+
+    def __init__(
+        self,
+        nc: int = 80,
+        ch: Tuple = (512, 1024, 2048),
+        hd: int = 256,  # hidden dim
+        nq: int = 300,  # num queries
+        ndp: Union[int, List[int]] = 4,  # num decoder points
+        nh: int = 8,  # num head
+        ndl: int = 6,  # num decoder layers
+        d_ffn: int = 1024,  # dim of feedforward
+        dropout: float = 0.0,
+        act: nn.Module = nn.ReLU(),
+        eval_idx: int = -1,
+        # Training args
+        nd: int = 100,  # num denoising
+        label_noise_ratio: float = 0.5,
+        box_noise_scale: float = 1.0,
+        learnt_init_query: bool = False,
+        query_select_method: str = "default",
+        cross_attn_method: str = "default",
+        v2_compatible: bool = True,  # Enable v1/v2 compatibility
+    ):
+        """
+        Initialize the RTDETRDecoder module with the given parameters.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Channels in the backbone feature maps.
+            hd (int): Dimension of hidden layers.
+            nq (int): Number of query points.
+            ndp (int or list): Number of decoder points.
+            nh (int): Number of heads in multi-head attention.
+            ndl (int): Number of decoder layers.
+            d_ffn (int): Dimension of the feed-forward networks.
+            dropout (float): Dropout rate.
+            act (nn.Module): Activation function.
+            eval_idx (int): Evaluation index.
+            nd (int): Number of denoising.
+            label_noise_ratio (float): Label noise ratio.
+            box_noise_scale (float): Box noise scale.
+            learnt_init_query (bool): Whether to learn initial query embeddings.
+            query_select_method (str): Method for selecting queries ('default' or 'agnostic').
+            cross_attn_method (str): Method for cross-attention ('default' or 'discrete').
+            v2_compatible (bool): Enable v1/v2 compatibility mode.
+        """
+        # Parse activation function if it's a string
+        act = _parse_activation(act)
+
+        # v1/v2 compatibility handling
+        self.v2_compatible = v2_compatible
+        if isinstance(ndp, int):
+            # v1 mode: use same sampling points for all layers
+            self.ndp = [ndp] * ndl
+            self.is_v1_mode = True
+            LOGGER.info(f"RT-DETR: Initializing RTDETRDecoderV2 in v1 compatibility mode (ndp={ndp})")
+        else:
+            # v2 mode: use independent sampling points per layer
+            self.ndp = ndp if isinstance(ndp, list) else [ndp] * ndl
+            self.is_v1_mode = False
+            LOGGER.info(f"RT-DETR: Initializing RTDETRDecoderV2 in v2 mode (ndp={ndp})")
+
+        super().__init__(
+            nc,
+            ch,
+            hd,
+            nq,
+            ndp if self.is_v1_mode else ndp[0],  # Pass first value to parent for v1 compatibility
+            nh,
+            ndl,
+            d_ffn,
+            dropout,
+            act,
+            eval_idx,
+            nd,
+            label_noise_ratio,
+            box_noise_scale,
+            learnt_init_query,
+        )
+        self.query_select_method = query_select_method
+        self.cross_attn_method = cross_attn_method
+
+        if query_select_method == "agnostic":
+            # Override the parent class enc_score_head for agnostic query selection
+            self.enc_score_head = nn.Linear(hd, nc)
+
+        # Transformer module - use appropriate ndp for decoder layer
+        # For MSDeformAttn, we need sampling points per feature level, not per decoder layer
+        if self.is_v1_mode:
+            # v1 mode: use single integer (same as parent class)
+            decoder_layer = DeformableTransformerDecoderLayer(
+                hd, nh, d_ffn, dropout, act, self.nl, ndp, cross_attn_method=cross_attn_method
+            )
+        else:
+            # v2 mode: use first n_levels values from self.ndp as feature level sampling points
+            feature_level_ndp = self.ndp[: self.nl] if len(self.ndp) >= self.nl else self.ndp[0]
+            decoder_layer = DeformableTransformerDecoderLayer(
+                hd, nh, d_ffn, dropout, act, self.nl, feature_level_ndp, cross_attn_method=cross_attn_method
+            )
+        self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
+
+        self._reset_parameters()
+
+    def _load_from_state_dict(
+        self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+    ):
+        """
+        Custom state dict loading with v1/v2 compatibility.
+
+        Automatically detects weight version and converts if necessary.
+        """
+        if self.v2_compatible:
+            # Detect weight version
+            version = self._detect_weight_version(state_dict, prefix)
+
+            if version == "v1" and not self.is_v1_mode:
+                # Convert v1 weights to v2 format
+                LOGGER.info("RT-DETR: Converting v1 weights to v2 format for RTDETRDecoderV2")
+                state_dict = self._convert_v1_to_v2_weights(state_dict, prefix)
+            elif version == "v2" and self.is_v1_mode:
+                # Convert v2 weights to v1 format
+                LOGGER.info("RT-DETR: Converting v2 weights to v1 format for RTDETRDecoderV2")
+                state_dict = self._convert_v2_to_v1_weights(state_dict, prefix)
+            elif version == "v1" and self.is_v1_mode:
+                LOGGER.info("RT-DETR: Loading v1 weights in v1 compatibility mode")
+            elif version == "v2" and not self.is_v1_mode:
+                LOGGER.info("RT-DETR: Loading v2 weights in v2 mode")
+            elif version == "unknown":
+                LOGGER.warning("RT-DETR: Could not detect weight version, loading as-is.")
+
+        super()._load_from_state_dict(
+            state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs
+        )
+
+    def _detect_weight_version(self, state_dict, prefix):
+        """Detect RT-DETR weight version by examining sampling_offsets dimensions."""
+        # Check decoder layer sampling_offsets to determine version
+        for name, param in state_dict.items():
+            if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
+                # v1: sampling_offsets has shape [..., 64] (8 * 4 * 2)
+                # v2: sampling_offsets has shape [..., 192] (8 * 12 * 2)
+                if param.shape[-1] == 64:
+                    return "v1"
+                elif param.shape[-1] == 192:
+                    return "v2"
+        return "unknown"
+
+    def _convert_v1_to_v2_weights(self, state_dict, prefix):
+        """
+        Convert RT-DETR v1 weights to v2 format.
+
+        Expands sampling offsets from 4 points to 12 points per layer.
+        """
+        new_state_dict = {}
+
+        for name, param in state_dict.items():
+            if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
+                # v1: [..., 64] -> v2: [..., 192]
+                # Reshape to [batch, queries, heads, 4, 2]
+                original_shape = param.shape
+                reshaped = param.view(*original_shape[:-1], 8, 4, 2)
+
+                # Expand to 12 sampling points by repeating the 4 points
+                expanded = reshaped.repeat(*([1] * (len(original_shape) - 1)), 1, 3, 1)
+
+                # Reshape back to original format
+                new_param = expanded.reshape(*original_shape[:-1], 192)
+                new_state_dict[name] = new_param
+            else:
+                new_state_dict[name] = param
+
+        return new_state_dict
+
+    def _convert_v2_to_v1_weights(self, state_dict, prefix):
+        """
+        Convert RT-DETR v2 weights to v1 format.
+
+        Reduces sampling offsets from 12 points to 4 points per layer.
+        """
+        new_state_dict = {}
+
+        for name, param in state_dict.items():
+            if name.startswith(prefix + "decoder.layers.") and "sampling_offsets" in name:
+                # v2: [..., 192] -> v1: [..., 64]
+                # Reshape to [batch, queries, heads, 12, 2]
+                original_shape = param.shape
+                reshaped = param.view(*original_shape[:-1], 8, 12, 2)
+
+                # Take first 4 sampling points
+                reduced = reshaped[..., :4, :]
+
+                # Reshape back to v1 format
+                new_param = reduced.reshape(*original_shape[:-1], 64)
+                new_state_dict[name] = new_param
+            else:
+                new_state_dict[name] = param
+
+        return new_state_dict
+
+    def _get_decoder_input(
+        self,
+        feats: torch.Tensor,
+        shapes: List[List[int]],
+        dn_embed: Optional[torch.Tensor] = None,
+        dn_bbox: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Generate and prepare the input required for the decoder from the provided features and shapes."""
+        bs = feats.shape[0]
+        # Prepare input for decoder
+        anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
+
+        enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
+
+        # Query selection
+        if self.query_select_method == "agnostic":
+            # For agnostic selection, take max across all classes
+            topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        else:
+            # (bs, num_queries)
+            topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        # (bs, num_queries)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+
+        # (bs, num_queries, 256)
+        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        # (bs, num_queries, 4)
+        top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
+
+        # Dynamic anchors + static content
+        refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
+
+        enc_bboxes = refer_bbox.sigmoid()
+        if dn_bbox is not None:
+            refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+
+        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        if self.training:
+            refer_bbox = refer_bbox.detach()
+            if not self.learnt_init_query:
+                embeddings = embeddings.detach()
+        if dn_embed is not None:
+            embeddings = torch.cat([dn_embed, embeddings], 1)
+
+        return embeddings, refer_bbox, enc_bboxes, enc_scores
 
 
 class v10Detect(Detect):

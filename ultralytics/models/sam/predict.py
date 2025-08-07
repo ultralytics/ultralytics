@@ -8,12 +8,9 @@ using SAM. It forms an integral part of the Ultralytics framework and is designe
 segmentation tasks.
 """
 
-from typing import Dict, List, Tuple, Union, Optional, Any
-import cv2 
-
-from datetime import datetime
 from collections import OrderedDict
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -21,6 +18,7 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torch.nn.init import trunc_normal_
+
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
@@ -1625,17 +1623,15 @@ class SAM2VideoPredictor(SAM2Predictor):
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)
 
 
-
-
-
-
-class ImageState(object):
-
+class ImageState:
     """
-    ImageState is a class that encapsulates the state of an image during the inference process, which includes the image data, its dimensions, and various features extracted from it.
-    It is designed to handle the image preprocessing, feature extraction, and storage of various outputs related to the image, such as backbone features, positional encodings, and mask features.
+    ImageState is a class that encapsulates the state of an image during the inference process, which includes the image
+    data, its dimensions, and various features extracted from it. It is designed to handle the image preprocessing,
+    feature extraction, and storage of various outputs related to the image, such as backbone features, positional
+    encodings, and mask features.
 
     It also manages the prompts (points, boxes, and masks) that are used for segmentation tasks, allowing for the initialization and updating of these prompts as needed.
+
     Attributes:
         image_data (torch.Tensor): The preprocessed image tensor ready for model input.
         img_w (int): The width of the original image.
@@ -1654,12 +1650,13 @@ class ImageState(object):
         mask_inputs (dict): A dictionary mapping object indices to their mask inputs.
         current_out (dict): A dictionary mapping object indices to their current outputs.
         prev_out (dict): A dictionary mapping object indices to their previous outputs.
+
     Methods:
         init_consolidated_out: Initializes the consolidated output for the image state, preparing it for segmentation tasks.
         perpare_data: Prepares the image data by resizing and normalizing it, returning the processed tensor and its dimensions.
         set_prompt: Sets the prompt data (points, box, mask) for the image state.
         _prepare_backbone_features: Prepares and flattens visual features for processing by the model.
-        get_im_features: Extracts and processes image features using the model's image encoder for 
+        get_im_features: Extracts and processes image features using the model's image encoder for
 
     Examples:
         >>> imgState = ImageState(image=img, img_name=img_name,
@@ -1667,26 +1664,26 @@ class ImageState(object):
                               device=self.device,
                               max_obj_num=self._max_obj_num
                               )
-
     """
 
     def __init__(
-        self, 
-        image: Union[torch.Tensor, np.ndarray, Image.Image], 
-        image_size: int, 
+        self,
+        image: Union[torch.Tensor, np.ndarray, Image.Image],
+        image_size: int,
         device: torch.device,
-        max_obj_num: int, 
-        img_name: Optional[str] = None
+        max_obj_num: int,
+        img_name: Optional[str] = None,
     ) -> None:
         """
-        Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of objects.
+        Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of
+        objects.
+
         Args:
             image (torch.Tensor | np.ndarray | PIL.Image): The input image to be processed.
             image_size (int): The target size to which the image will be preprocessed.
             device (torch.device): The device on which the image data will be stored (e.g., CPU or GPU).
             max_obj_num (int): The maximum number of objects that can be tracked in the image.
             img_name (str, optional): The name of the image. If not provided, a unique name will be generated based on the current date and time.
-
         """
         self.device = device
         self.image_data, self.img_w, self.img_h = self.perpare_data(image, image_size=image_size)
@@ -1694,13 +1691,11 @@ class ImageState(object):
             self.img_name = img_name
         else:
             # use date and timestamp (ms) to generate a unique image name
-            date_time= datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            self.img_name=f"image_{date_time}"
-
-
+            date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            self.img_name = f"image_{date_time}"
 
         # self.cached_features=None
-        self.backbone_fpn = None  # 
+        self.backbone_fpn = None  #
         self.vision_pos_enc = None
 
         self.high_res_features = None
@@ -1716,16 +1711,17 @@ class ImageState(object):
         self.mask_inputs = {i: None for i in range(self._max_obj_num)}
         self.current_out = {i: None for i in range(self._max_obj_num)}
         self.prev_out = {i: None for i in range(self._max_obj_num)}
-        self.no_obj_score=-1024.0  #
-
+        self.no_obj_score = -1024.0  #
 
     def init_consolidated_out(self, hidden_dim: int) -> Dict[str, torch.Tensor]:
         """
-        Initialize the consolidated output for the image state.
-        This method prepares a dictionary that will hold the consolidated outputs for the image state, including mask features, positional encodings, predicted masks, object pointers, and object score logits.
-        
+        Initialize the consolidated output for the image state. This method prepares a dictionary that will hold the
+        consolidated outputs for the image state, including mask features, positional encodings, predicted masks, object
+        pointers, and object score logits.
+
         Args:
-            hidden_dim (int): The hidden dimension size for object pointers.        
+            hidden_dim (int): The hidden dimension size for object pointers.
+
         Returns:
             consolidated_out (dict): A dictionary containing the initialized consolidated outputs.
         """
@@ -1734,7 +1730,7 @@ class ImageState(object):
             "maskmem_features": None,
             "maskmem_pos_enc": None,
             consolidated_mask_key: torch.full(
-                size=(self._max_obj_num, 1, self.img_h // 4, self.img_w // 4), 
+                size=(self._max_obj_num, 1, self.img_h // 4, self.img_w // 4),
                 fill_value=self.no_obj_score,
                 dtype=torch.float32,
                 device=self.device,
@@ -1749,7 +1745,7 @@ class ImageState(object):
                 size=(self._max_obj_num, 1),
                 # default to 10.0 for object_score_logits, i.e. assuming the object is
                 # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
-                fill_value= -32 ,#10.0,
+                fill_value=-32,  # 10.0,
                 dtype=torch.float32,
                 device=self.device,
             ),
@@ -1764,21 +1760,25 @@ class ImageState(object):
         img_std: Tuple[float, float, float] = (0.229, 0.224, 0.225),
     ) -> Tuple[torch.Tensor, int, int]:
         """
-        Prepare the image data for processing by resizing and normalizing it. if the input is a tensor, it will be returned directly with its width and height. If the input is a numpy array or PIL image, it will be resized to the specified image size, normalized using the provided mean and standard deviation, and converted to a torch tensor.
+        Prepare the image data for processing by resizing and normalizing it. if the input is a tensor, it will be
+        returned directly with its width and height. If the input is a numpy array or PIL image, it will be resized to
+        the specified image size, normalized using the provided mean and standard deviation, and converted to a torch
+        tensor.
+
         Args:
             img (torch.Tensor | np.ndarray | PIL.Image): The input image to be processed.
             image_size (int): The target size to which the image will be resized.
             img_mean (tuple): The mean values for normalization.
-            img_std (tuple): The standard deviation values for normalization.       
+            img_std (tuple): The standard deviation values for normalization.
+
         Returns:
             img (torch.Tensor): The processed image tensor ready for model input.
             width (int): The width of the original image.
             height (int): The height of the original image.
         """
-
         if isinstance(img, torch.Tensor):
             height, width = img.shape[-2:]
-            img=img.view(-1, height,width)
+            img = img.view(-1, height, width)
             return img, width, height
         elif isinstance(img, np.ndarray):
             img_np = img
@@ -1791,9 +1791,7 @@ class ImageState(object):
             img /= img_std.to(self.device)
             return img, width, height
         elif isinstance(img, Image.Image):
-            img_np = (
-                    np.array(img.convert("RGB").resize((image_size, image_size))) / 255.0
-            )
+            img_np = np.array(img.convert("RGB").resize((image_size, image_size))) / 255.0
             width, height = img.size
             img = torch.from_numpy(img_np).permute(2, 0, 1).float()
 
@@ -1803,14 +1801,10 @@ class ImageState(object):
             img /= img_std.to(self.device)
             return img, width, height
 
+    def _prepare_backbone_features(self, backbone_out: Dict[str, List[torch.Tensor]], num_feature_levels: int):
+        """
+        Prepare and flatten visual features.
 
-
-
-
-    def _prepare_backbone_features(
-        self, backbone_out: Dict[str, List[torch.Tensor]],
-        num_feature_levels: int):
-        """Prepare and flatten visual features. 
         Resulting features will be stored in the image state, including:
             - backbone_fpn: list of backbone features from the image encoder.
             - vision_pos_enc: list of positional encodings from the image encoder.
@@ -1818,25 +1812,20 @@ class ImageState(object):
             - vision_feats: list of flattened visual features for transformer input.
             - vision_pos_embeds: list of flattened positional embeddings for transformer input.
             - feat_sizes: list of tuples representing the sizes of the features.
-        
-        Args: 
+
+        Args:
             backbone_out (dict): A dictionary containing backbone features with keys "backbone_fpn" and "vision_pos_enc" that output from the image encoder.
             num_feature_levels (int): Number of feature levels to be used from the backbone.
-            
-
         """
         self.backbone_fpn = backbone_out["backbone_fpn"]
         self.vision_pos_enc = backbone_out["vision_pos_enc"]
-
 
         expanded_backbone_out = {
             "backbone_fpn": self.backbone_fpn.copy(),
             "vision_pos_enc": self.vision_pos_enc.copy(),
         }
         for i, feat in enumerate(expanded_backbone_out["backbone_fpn"]):
-            expanded_backbone_out["backbone_fpn"][i] = feat.expand(
-                self._max_obj_num, -1, -1, -1
-            )
+            expanded_backbone_out["backbone_fpn"][i] = feat.expand(self._max_obj_num, -1, -1, -1)
         for i, pos in enumerate(expanded_backbone_out["vision_pos_enc"]):
             pos = pos.expand(self._max_obj_num, -1, -1, -1)
             expanded_backbone_out["vision_pos_enc"][i] = pos
@@ -1868,38 +1857,37 @@ class ImageState(object):
         self.feat_sizes = feat_sizes
 
 
-
-
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
-
     """
-    SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a sequence of images. 
+    SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
+    sequence of images.
+
     Attributes:
         memory_bank: OrderedDict: Stores the states of each image with prompts.
         obj_idx_set (set): A set to keep track of the object indices that have been added.
         obj_id_to_idx (OrderedDict): Maps object IDs to their corresponding indices.
         obj_idx_to_id (OrderedDict): Maps object indices to their corresponding IDs.
-    Methods:  
+
+    Methods:
         __init__(cfg, overrides=None, max_obj_num=9, _callbacks=None): Initializes the predictor with the given configuration and overrides.
         get_model(): Retrieves and configures the model with binarization enabled.
         inference(img, image_name=None, bboxes=None, obj_ids=None, update_memory=False, *args, **kwargs): Performs inference on a single image with optional bounding boxes and object IDs.
-        postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.  d
+        postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.  d.
 
     Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
-            >>> predictor(source=support_img1, bboxes=bboxes1,obj_ids=labels1,update_memory=True)
-            >>> results1= predictor(source=query_img1)
-            >>> predictor(source=support_img2, bboxes=bboxes2,obj_ids=labels2,update_memory=True)
-            >>> results2= predictor(source=query_img2)
-
+            >>> predictor(source=support_img1, bboxes=bboxes1, obj_ids=labels1, update_memory=True)
+            >>> results1 = predictor(source=query_img1)
+            >>> predictor(source=support_img2, bboxes=bboxes2, obj_ids=labels2, update_memory=True)
+            >>> results2 = predictor(source=query_img2)
     """
 
     def __init__(
         self, 
         cfg: Any = DEFAULT_CFG, 
         overrides: Optional[Dict[str, Any]] = None,
-        max_obj_num: int = 3, 
-        _callbacks: Optional[Dict[str, Any]] = None
+        max_obj_num: int = 3,
+        _callbacks: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Initialize the predictor with configuration and optional overrides.
@@ -1911,20 +1899,19 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             cfg (Dict[str, Any]): Configuration dictionary containing default settings.
             overrides (Dict[str, Any] | None): Dictionary of values to override default configuration.
             _callbacks (Dict[str, Any] | None): Dictionary of callback functions to customize behavior.
-            max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size for the model. 
+            max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size for the model.
 
         Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
             >>> predictor_example_with_imgsz = SAM2DynamicInteractivePredictor(overrides={"imgsz": 640})
-            >>> predictor_example_with_callback = SAM2DynamicInteractivePredictor(_callbacks={"on_predict_start": custom_callback})
+            >>> predictor_example_with_callback = SAM2DynamicInteractivePredictor(
+            ...     _callbacks={"on_predict_start": custom_callback}
+            ... )
         """
         super().__init__(cfg, overrides, _callbacks)
 
-
-
         self.done_warmup = True
-        self.device= torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.use_high_res_features_in_sam = True
         self.num_feature_levels = 3
@@ -1936,64 +1923,62 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # Initialize the memory bank to store image states
         self.memory_bank = OrderedDict()
 
-
         # Initialize the object index set and mappings
-        self.obj_idx_set=set()
+        self.obj_idx_set = set()
         if not hasattr(self, "obj_id_to_idx"):
             self.obj_id_to_idx = OrderedDict()
         if not hasattr(self, "obj_idx_to_id"):
             self.obj_idx_to_id = OrderedDict()
-        self._max_obj_num = max_obj_num  
+        self._max_obj_num = max_obj_num
         for i in range(self._max_obj_num):
             self.obj_id_to_idx[i + 1] = i
             self.obj_idx_to_id[i] = i + 1
-
 
     def get_model(self) -> torch.nn.Module:
         """
         Retrieve and configure the model with binarization enabled.
 
         Returns:
-            model (torch.nn.Module): The configured SAM2 model with binarization enabled. 
+            model (torch.nn.Module): The configured SAM2 model with binarization enabled.
+
         Note:
             This method overrides the base class implementation to set the binarize flag to True.
         """
         model = super().get_model()
         model.set_binarize(True)
 
-
         # Initialize the no-object embedding for spatial features
         self.no_obj_embed_spatial = torch.nn.Parameter(torch.zeros(1, 64))
         trunc_normal_(self.no_obj_embed_spatial, std=0.02)
-        self.no_obj_embed_spatial=self.no_obj_embed_spatial.to(self.device, non_blocking=True)
-
+        self.no_obj_embed_spatial = self.no_obj_embed_spatial.to(self.device, non_blocking=True)
 
         return model
-        
+
     @property
     def image_size(self) -> int:
         """
         Returns the input  size of the model.
-        
+
         Returns:
             image_size (int): The image size of the model input size
         """
         return self.model.image_size
-    
 
     def bbox_preprocess(self, bboxes: List[List[float]]) -> torch.Tensor:
         """
-        preprocess the bboxes to fit the letterbox resize of the image, the left corner is aligned.
+        Preprocess the bboxes to fit the letterbox resize of the image, the left corner is aligned.
+
         Args:
             bboxes (List[List[float]]): List of bounding boxes to be preprocessed.
+
         Returns:
             (torch.Tensor): Preprocessed bounding boxes.
         """
         bboxes = torch.tensor(bboxes, dtype=torch.float32)  # Ensure float32 dtype
         src_shape = self.batch[1][0].shape[:2]
         dst_shape = [self.image_size, self.image_size]
-        r= min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
-        bboxes *=r
+        r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
+        bboxes *= r
         return bboxes.to(self.device, non_blocking=True)
 
     def mask_preprocess(self, masks: List[Union[torch.Tensor, np.ndarray]]) -> torch.Tensor:
@@ -2038,18 +2023,18 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def inference(
         self,
-        img: Union[torch.Tensor, np.ndarray], 
-        image_name: Optional[str] = None, 
+        img: Union[torch.Tensor, np.ndarray],
+        image_name: Optional[str] = None,
         bboxes: Optional[List[List[float]]] = None,
         masks: Optional[Union[torch.Tensor, np.ndarray]] = None,
         obj_ids: Optional[List[int]] = None,
-        update_memory: bool = False, 
-        *args: Any, 
-        **kwargs: Any
+        update_memory: bool = False,
+        *args: Any,
+        **kwargs: Any,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Perform inference on a single image with optional bounding boxes and object IDs.
-        It has two modes: one is to run inference on a single image without updating the memory, 
+        It has two modes: one is to run inference on a single image without updating the memory,
         and the other is to update the memory with the provided bounding boxes and object IDs.
         When update_memory is True, it will update the memory with the provided bboxes and obj_ids.
         When update_memory is False, it will only run inference on the provided image without updating the memory.
@@ -2070,9 +2055,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.model is None:
             self.setup_model(model=None)
 
-
         imgState = self.createState(img, image_name)
-
 
         # apply letterbox resize to the bboxes
         if bboxes is not None:
@@ -2094,53 +2077,47 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id))
             self.update_memory(imgState)
 
- 
-        current_out = self.track_step(
-            imgState=imgState,
-            obj_idx=None)
+        current_out = self.track_step(imgState=imgState, obj_idx=None)
         pred_masks_gpu = current_out["pred_masks"]
 
         _, res_masks = self._get_orig_image_res_output(pred_masks_gpu)
 
         # filter the masks and logits based on the object indices
-        obj_idx_set= self.obj_idx_set
+        obj_idx_set = self.obj_idx_set
         if len(obj_idx_set) == 0:
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
-        
+
         res_masks = res_masks.to(self.device, non_blocking=True)
         res_masks = res_masks[torch.tensor(list(obj_idx_set), device=self.device)]
-        object_score_logits= current_out["object_score_logits"].to(self.device, non_blocking=True)
+        object_score_logits = current_out["object_score_logits"].to(self.device, non_blocking=True)
 
         object_score_logits = object_score_logits[torch.tensor(list(obj_idx_set), device=self.device)]
-         # the orginal score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range
-        object_score_logits=object_score_logits/32
-
+        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range
+        object_score_logits = object_score_logits / 32
 
         #  we use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
-        object_score_logits =torch.relu(object_score_logits)
-        res_masks= res_masks.squeeze()
-        if len(res_masks.shape)==2: 
-            res_masks=res_masks.unsqueeze(0)
-        if len(object_score_logits.shape)>1: 
-            object_score_logits=object_score_logits.squeeze(1)
-        return  res_masks, object_score_logits
-        
+        object_score_logits = torch.relu(object_score_logits)
+        res_masks = res_masks.squeeze()
+        if len(res_masks.shape) == 2:
+            res_masks = res_masks.unsqueeze(0)
+        if len(object_score_logits.shape) > 1:
+            object_score_logits = object_score_logits.squeeze(1)
+        return res_masks, object_score_logits
+
     def postprocess(
-        self, 
-        preds: Tuple[torch.Tensor, ...], 
-        img: torch.Tensor, 
-        orig_imgs: List[np.ndarray]
+        self, preds: Tuple[torch.Tensor, ...], img: torch.Tensor, orig_imgs: List[np.ndarray]
     ) -> List[Results]:
         """
-        Post-process the predictions to apply non-overlapping constraints if required.
-        This method extends the post-processing functionality by applying non-overlapping constraints
-        to the predicted masks if the `non_overlap_masks` flag is set to True. This ensures that
-        the masks do not overlap, which can be useful for certain applications.
+        Post-process the predictions to apply non-overlapping constraints if required. This method extends the post-
+        processing functionality by applying non-overlapping constraints to the predicted masks if the
+        `non_overlap_masks` flag is set to True. This ensures that the masks do not overlap, which can be useful for
+        certain applications.
 
         Args:
             preds (tuple): The predictions from the model.
             img (torch.Tensor): The processed image tensor.
             orig_imgs (List[np.ndarray]): The original images before processing.
+
         Returns:
             results (list): The post-processed predictions.
 
@@ -2162,8 +2139,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             else:
                 masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
                 masks = masks > self.model.mask_threshold  # to bool
-       
-                masks[pred_scores <=self.args.conf]=False
+
+                masks[pred_scores <= self.args.conf] = False
 
                 if pred_bboxes is not None:
                     pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
@@ -2172,11 +2149,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
-                filtered_index= (pred_scores>self.args.conf).cpu().numpy().tolist()
-                result=Results(orig_img, path=img_path, 
-                               names=names,
-                                 masks=masks[filtered_index],
-                                   boxes=pred_bboxes[filtered_index])
+                filtered_index = (pred_scores > self.args.conf).cpu().numpy().tolist()
+                result = Results(
+                    orig_img, path=img_path, names=names, masks=masks[filtered_index], boxes=pred_bboxes[filtered_index]
+                )
 
             results.append(result)
         # Reset segment-all mode.
@@ -2188,36 +2164,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     continue
                 result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
         return results
-    
-
-
-
-
-
-    def forward_image(self, imgState: ImageState) -> None:
-        """
-        Forward the image through the model to extract features and cache them in the ImageState.
-        Args:
-            imgState (ImageState): The ImageState object containing the image data and other attributes.
-        """
-        img_batch = imgState.image_data.cuda().float().unsqueeze(0)
-
-
-        backbone_out = self.model.image_encoder(img_batch)
-
-        if self.use_high_res_features_in_sam:  # ?
-            # precompute projected level 0 and level 1 features in SAM decoder
-            # to avoid running it again on every SAM click
-            backbone_out["backbone_fpn"][0] = self.model.sam_mask_decoder.conv_s0(
-                backbone_out["backbone_fpn"][0]
-            )
-            backbone_out["backbone_fpn"][1] = self.model.sam_mask_decoder.conv_s1(
-                backbone_out["backbone_fpn"][1]
-            )
-        imgState._prepare_backbone_features(backbone_out,self.num_feature_levels)
-
-
-
 
     @smart_inference_mode()
     def createState(self, img: Union[torch.Tensor, np.ndarray], img_name: Optional[str] = None) -> ImageState:
@@ -2227,17 +2173,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Args:
             img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
             img_name (str | None): Optional name for the image, used for identification.
-            
+
         Returns:
             imgState (ImageState): The created ImageState object.
         """
-        imgState = ImageState(image=img, img_name=img_name,
-                              image_size=self.image_size,
-                              device=self.device,
-                              max_obj_num=self._max_obj_num
-                              )
-        
-        self.forward_image(imgState)
+        imgState = ImageState(
+            image=img, img_name=img_name, image_size=self.image_size, device=self.device, max_obj_num=self._max_obj_num
+        )
+        img_batch = imgState.image_data.cuda().float().unsqueeze(0)
+        backbone_out = self.model.forward_image(img_batch)
+        imgState._prepare_backbone_features(backbone_out, self.num_feature_levels)
 
         return imgState
 
@@ -2259,20 +2204,19 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
     ) -> None:
         """
-        Add new bboxes to a specific frame for a given object ID.
-        This method updates the imgState with new prompts (points or masks) for a specified
-        object and updates the internal state accordingly. 
+        Add new bboxes to a specific frame for a given object ID. This method updates the imgState with new prompts
+        (points or masks) for a specified object and updates the internal state accordingly.
+
         Args:
-            imgState (ImageState): the imgState to be updated. 
+            imgState (ImageState): the imgState to be updated.
             obj_id (int): The ID of the object to which the prompts are associated.
             points (torch.Tensor | None): The coordinates of the points of interest.
             labels (torch.Tensor | None): The labels corresponding to the points.
-            bbox (torch.Tensor | list | None): The bounding box coordinates for the object.    
+            bbox (torch.Tensor | list | None): The bounding box coordinates for the object.
             normalize_coords (bool): Whether to normalize the coordinates of the points based on the image size.
-        
-        Raises:
-            AssertionError: If bbox is not provided. 
 
+        Raises:
+            AssertionError: If bbox is not provided.
         """
         obj_idx = self._obj_id_to_idx(obj_id)
         self.obj_idx_set.add(obj_idx)
@@ -2310,7 +2254,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         points = points * self.image_size
         points = points.to(self.device)
         labels = labels.to(self.device)
-        clear_old_points=False
+        clear_old_points = False
         if clear_old_points and obj_idx in imgState.point_inputs.keys():
             imgState.point_inputs[obj_idx] = None
 
@@ -2347,14 +2291,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def update_memory(self, imgState: ImageState) -> None:
         """
-        append the imgState to the memory_bank and update the memory for the model.
+        Append the imgState to the memory_bank and update the memory for the model.
+
         Args:
             imgState (ImageState): The ImageState object containing the image data and prompts.
         """
         consolidated_out = imgState.init_consolidated_out(self.model.hidden_dim)
         for obj_idx in range(imgState._max_obj_num):
-
-            if obj_idx not in  self.obj_idx_set:
+            if obj_idx not in self.obj_idx_set:
                 continue
             prev_out = imgState.prev_out.get(obj_idx)
             prev_sam_mask_logits = None
@@ -2366,28 +2310,25 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             current_out = self.track_step(
                 imgState=imgState,
                 obj_idx=obj_idx,
-  
             )
 
             imgState.current_out[obj_idx] = current_out
-
 
             out = imgState.current_out[obj_idx]
             if out is None:
                 pass
             else:
                 obj_mask = out["pred_masks"]
-                assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], f"Expected mask shape {consolidated_out['pred_masks'].shape[-2:]} but got {obj_mask.shape[-2:]} for object {obj_idx}."
-                consolidated_out["pred_masks"][obj_idx: obj_idx + 1] = obj_mask
-                consolidated_out["obj_ptr"][obj_idx: obj_idx + 1] = out["obj_ptr"]
+                assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], (
+                    f"Expected mask shape {consolidated_out['pred_masks'].shape[-2:]} but got {obj_mask.shape[-2:]} for object {obj_idx}."
+                )
+                consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = obj_mask
+                consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
 
                 if "object_score_logits" in out.keys():
-                    consolidated_out["object_score_logits"][obj_idx: obj_idx + 1] = out[
-                        "object_score_logits"
-                    ]
+                    consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
                 else:
-                    print("warining, KeyError: 'object_score_logits'  ")
-
+                    print("warning, KeyError: 'object_score_logits'  ")
 
         device = self.device
         high_res_masks = torch.nn.functional.interpolate(
@@ -2411,15 +2352,18 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         imgState.consolidated_out = consolidated_out
         self.memory_bank[imgState.img_name] = imgState
 
-
-
     def _prepare_memory_conditioned_features(self, imgState: ImageState, obj_idx: Optional[int]) -> torch.Tensor:
         """
-        Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features for all objects in the image. If there is no memory, it will directly add a no-memory embedding to the current vision features. If there is memory, it will use the memory features from previous frames to condition the current vision features using a transformer attention mechanism. 
+        Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
+        prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features for all
+        objects in the image. If there is no memory, it will directly add a no-memory embedding to the current vision
+        features. If there is memory, it will use the memory features from previous frames to condition the current
+        vision features using a transformer attention mechanism.
 
         Args:
             imgState (ImageState): The current image state containing vision features and positional encodings.
             obj_idx (int | None): The index of the object for which to prepare the features.
+
         Returns:
             pix_feat_with_mem (torch.Tensor): The memory-conditioned pixel features.
         """
@@ -2427,11 +2371,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         feat_sizes = imgState.feat_sizes
         if len(self.memory_bank) == 0 or isinstance(obj_idx, int):
             # # for initial conditioning frames with, encode them without using any previous memory
-            directly_add_no_mem_embed=True
+            directly_add_no_mem_embed = True
             if directly_add_no_mem_embed:
                 # directly add no-mem embedding (instead of using the transformer encoder)
                 pix_feat_with_mem = current_vision_feats[-1] + self.model.no_mem_embed
-                C =self.model.memory_attention.d_model
+                C = self.model.memory_attention.d_model
                 B = imgState._max_obj_num
                 # B=1
                 feat_sizes = imgState.feat_sizes
@@ -2452,28 +2396,30 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 num_obj_ptr_tokens=0,  # num_obj_ptr_tokens
             )
             # reshape the output (HW)BC => BCHW
-            C =self.model.memory_attention.d_model
+            C = self.model.memory_attention.d_model
             B = imgState._max_obj_num
             feat_sizes = imgState.feat_sizes
             H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
             pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
             return pix_feat_with_mem
+
     def selected_memory_bank(self) -> OrderedDict:
         """
-        Get the list of states that have valid memory features, based on the assumption that all states in `self.memory_bank` are valid.
-        
+        Get the list of states that have valid memory features, based on the assumption that all states in
+        `self.memory_bank` are valid.
+
         Returns:
             (OrderedDict): The memory bank containing valid states.
         """
-        return self.memory_bank  # keep all states 
+        return self.memory_bank  # keep all states
 
     def get_maskmem_enc(self, valued_memory_bank: OrderedDict) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
         """
-
         Get the memory and positional encoding from the memory, which is used to condition the current image features.
+
         Args:
             valued_memory_bank (OrderedDict): A dictionary containing the states of each image with valid memory features.
-            
+
         Returns:
             memory(torch.Tensor): The concatenated memory features from the valid states.
             memory_pos_embed(torch.Tensor): The concatenated positional embeddings corresponding to the memory features.
@@ -2485,9 +2431,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))
             maskmem_enc = state.consolidated_out["maskmem_pos_enc"][-1].cuda()
             maskmem_enc = maskmem_enc.flatten(2).permute(2, 0, 1)
-            maskmem_enc = (
-                    maskmem_enc + self.model.maskmem_tpos_enc[self.model.num_maskmem - t_pos - 1]
-            )
+            maskmem_enc = maskmem_enc + self.model.maskmem_tpos_enc[self.model.num_maskmem - t_pos - 1]
             to_cat_memory_pos_embed.append(maskmem_enc)
 
         memory = torch.cat(to_cat_memory, dim=0)
@@ -2495,11 +2439,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         return memory, memory_pos_embed
 
     def _obj_id_to_idx(self, obj_id: int) -> Optional[int]:
-        """Map client-side object id to model-side object index.
-        
+        """
+        Map client-side object id to model-side object index.
+
         Args:
             obj_id (int): The client-side object ID.
-            
+
         Returns:
             obj_idx(int): The model-side object index, or None if not found.
         """
@@ -2507,12 +2452,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         return obj_idx
 
     def track_step(
-            self,
-            imgState: ImageState,
-            obj_idx: Optional[int],
+        self,
+        imgState: ImageState,
+        obj_idx: Optional[int],
     ) -> Dict[str, Any]:
         """
-        Trakking step for the current image state, which involves processing the image features and running the SAM heads to predict masks. If obj_idx is provided, it processes the features for a specific prompted object in the image. If obj_idx is None, it processes the features for all objects in the image.
+        Trakking step for the current image state, which involves processing the image features and running the SAM
+        heads to predict masks. If obj_idx is provided, it processes the features for a specific prompted object in the
+        image. If obj_idx is None, it processes the features for all objects in the image.
 
         Args:
             imgState (ImageState): The current image state containing the image data and prompts.
@@ -2532,18 +2479,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         high_res_features = imgState.high_res_features
         feat_sizes = imgState.feat_sizes
 
-
         current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
 
         if mask_inputs is not None and self.use_mask_input_as_output_without_sam:
-
             # When use_mask_input_as_output_without_sam=True, we directly output the mask input
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
             pix_feat = current_vision_feats[-1].permute(1, 2, 0)
-            pix_feat = pix_feat.view(-1,self.model.memory_attention.d_model, *feat_sizes[-1])
-            sam_outputs = self._use_mask_as_output(
-                pix_feat, high_res_features, mask_inputs
-                )
+            pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *feat_sizes[-1])
+            sam_outputs = self._use_mask_as_output(pix_feat, high_res_features, mask_inputs)
         else:
             # fused the visual feature with previous memory features in the memory bank
             imgState.pix_feat_with_mem = self._prepare_memory_conditioned_features(imgState, obj_idx)
@@ -2572,20 +2515,17 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         current_out["obj_ptr"] = obj_ptr
         current_out["object_score_logits"] = object_score_logits
 
-
         return current_out
-    
-
 
     def _forward_sam_heads(
-            self,
-            backbone_features: torch.Tensor,
-            obj_idx: Optional[int],
-            point_inputs: Optional[Dict[str, torch.Tensor]] = None,
-            mask_inputs: Optional[torch.Tensor] = None,
-            high_res_features: Optional[List[torch.Tensor]] = None,
-            multimask_output: bool = False,
-            **kwargs: Any
+        self,
+        backbone_features: torch.Tensor,
+        obj_idx: Optional[int],
+        point_inputs: Optional[Dict[str, torch.Tensor]] = None,
+        mask_inputs: Optional[torch.Tensor] = None,
+        high_res_features: Optional[List[torch.Tensor]] = None,
+        multimask_output: bool = False,
+        **kwargs: Any,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Forward SAM prompt encoders and mask heads.
@@ -2606,6 +2546,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             multimask_output (bool): If True, output 3 candidate masks and their 3
                 corresponding IoU estimates. If False, output only 1 mask and its corresponding IoU estimate.
             **kwargs (Any): Additional keyword arguments.
+
         Returns:
             low_res_multimasks (torch.Tensor): SAM output mask logits with shape [B, M, H*4, W*4].
             high_res_multimasks (torch.Tensor): Upsampled mask logits with shape [B, M, H*16, W*16].
@@ -2675,7 +2616,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             high_res_features=[feat[:B] for feat in high_res_features],
         )
 
-
         if self.model.pred_obj_scores:
             is_obj_appearing = object_score_logits > 0
 
@@ -2734,14 +2674,15 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             object_score_logits,
         )
 
-
     def _get_orig_image_res_output(self, any_res_masks: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Resize the object scores to the original image resolution (res_masks)
-        and apply non-overlapping constraints for final output.
+        Resize the object scores to the original image resolution (res_masks) and apply non-overlapping constraints for
+        final output.
+
         Args:
             any_res_masks (torch.Tensor): The masks to be resized, shape [B, C, H, W], where C is the number of masks,
                                           H and W are the height and width of the masks.
+
         Returns:
             any_res_masks (torch.Tensor): The original resolution masks, shape [B, C, H, W].
             image_res_masks (torch.Tensor): The resized masks to the image resolution, shape [B, C, image_H, image_W].
@@ -2763,30 +2704,30 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             image_res_masks = self.model._apply_non_overlapping_constraints(image_res_masks)
         return any_res_masks, image_res_masks
 
-   
-
     def _encode_new_memory(
-            self,
-            current_vision_feats: List[torch.Tensor],
-            feat_sizes: List[Tuple[int, int]],
-            pred_masks_high_res: torch.Tensor,
-            object_score_logits: torch.Tensor,
-            is_mask_from_pts: bool,
+        self,
+        current_vision_feats: List[torch.Tensor],
+        feat_sizes: List[Tuple[int, int]],
+        pred_masks_high_res: torch.Tensor,
+        object_score_logits: torch.Tensor,
+        is_mask_from_pts: bool,
     ) -> Tuple[torch.Tensor, List[torch.Tensor]]:
-        """Encode the current image and its prediction into a memory feature.
+        """
+        Encode the current image and its prediction into a memory feature.
+
         Args:
             current_vision_feats (List[torch.Tensor]): List of vision features from the image encoder.
             feat_sizes (List[Tuple[int, int]]): List of feature sizes corresponding to the vision features.
             pred_masks_high_res (torch.Tensor): The predicted masks at high resolution, shape [B, 1, H, W].
             object_score_logits (torch.Tensor): The object score logits for the current frame.
             is_mask_from_pts (bool): Whether the mask is derived from points.
+
         Returns:
             maskmem_features (torch.Tensor): The encoded memory features, shape [B, C, H, W].
             maskmem_pos_enc (List[torch.Tensor]): The positional encodings for the memory features.
-            
         """
         B = current_vision_feats[-1].size(1)  # batch size on this frame
-        C =self.model.memory_attention.d_model
+        C = self.model.memory_attention.d_model
         H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
         # top-level feature, (HW)BC => BCHW
         pix_feat = current_vision_feats[-1].permute(1, 2, 0).view(B, C, H, W)
@@ -2794,9 +2735,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             # optionally, apply non-overlapping constraints to the masks (it's applied
             # in the batch dimension and should only be used during eval, where all
             # the objects come from the same video under batch size 1).
-            pred_masks_high_res = self._apply_non_overlapping_constraints(
-                pred_masks_high_res
-            )
+            pred_masks_high_res = self._apply_non_overlapping_constraints(pred_masks_high_res)
         # scale the raw mask logits with a temperature before applying sigmoid
         binarize = self.model.binarize_mask_from_pts_for_mem_enc and is_mask_from_pts
         if binarize and not self.model.training:
@@ -2810,7 +2749,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.model.sigmoid_bias_for_mem_enc != 0.0:
             mask_for_mem = mask_for_mem + self.model.sigmoid_bias_for_mem_enc
         maskmem_out = self.model.memory_encoder(
-            pix_feat, mask_for_mem, skip_mask_sigmoid=True  # sigmoid already applied
+            pix_feat,
+            mask_for_mem,
+            skip_mask_sigmoid=True,  # sigmoid already applied
         )
         maskmem_features = maskmem_out["vision_features"]
         maskmem_pos_enc = maskmem_out["vision_pos_enc"]
@@ -2818,7 +2759,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # add a no-object embedding to the spatial memory to indicate that the frame
         # is predicted to be occluded (i.e. no object is appearing in the frame)
         if self.no_obj_embed_spatial is not None:
-            no_obj_embed_spatial_expanded =  self.no_obj_embed_spatial[..., None, None].expand(*maskmem_features.shape)
+            no_obj_embed_spatial_expanded = self.no_obj_embed_spatial[..., None, None].expand(*maskmem_features.shape)
             is_obj_appearing = (object_score_logits > 0).float()
             maskmem_features += (1 - is_obj_appearing[..., None, None]) * no_obj_embed_spatial_expanded
 

@@ -1594,7 +1594,7 @@ class PSABlock(nn.Module):
         """
         super().__init__()
 
-        assert attn in {"default", "sim", "area"}
+        assert attn in {"default", "sim", "area", "ds"}
         if attn == "default":
             self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
         elif attn == "sim":

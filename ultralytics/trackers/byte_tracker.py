@@ -319,8 +319,12 @@ class BYTETracker:
         scores_second = scores[inds_second]
         cls_keep = cls[remain_inds]
         cls_second = cls[inds_second]
+        feats_keep = feats_second = img
+        if feats is not None and len(feats):
+            feats_keep = feats[remain_inds]
+            feats_second = feats[inds_second]
 
-        detections = self.init_track(dets, scores_keep, cls_keep, img if feats is None else feats)
+        detections = self.init_track(dets, scores_keep, cls_keep, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks = []  # type: List[STrack]
@@ -355,7 +359,7 @@ class BYTETracker:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
-        detections_second = self.init_track(dets_second, scores_second, cls_second, img if feats is None else feats)
+        detections_second = self.init_track(dets_second, scores_second, cls_second, feats_second)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         # TODO
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
@@ -420,7 +424,7 @@ class BYTETracker:
         self, dets: np.ndarray, scores: np.ndarray, cls: np.ndarray, img: Optional[np.ndarray] = None
     ) -> List[STrack]:
         """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
-        return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
+        return [STrack(xywh, s, c) for (xywh, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
     def get_dists(self, tracks: List[STrack], detections: List[STrack]) -> np.ndarray:
         """Calculate the distance between tracks and detections using IoU and optionally fuse scores."""

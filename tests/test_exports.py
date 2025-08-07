@@ -71,7 +71,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         # See https://github.com/ultralytics/ultralytics/actions/runs/8957949304/job/24601616830?pr=10423
         file = Path(file)
         file = file.rename(file.with_stem(f"{file.stem}-{uuid.uuid4()}"))
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, batch=batch)  # exported model inference
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
@@ -220,6 +220,20 @@ def test_export_ncnn():
     """Test YOLO export to NCNN format."""
     file = YOLO(MODEL).export(format="ncnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "task, half, batch",
+    [  # generate all combinations except for exclusion cases
+        (task, half, batch) for task, half, batch in product(TASKS, [True, False], [1])
+    ],
+)
+def test_export_ncnn_matrix(task, half, batch):
+    """Test YOLO export to NCNN format considering various export configurations."""
+    file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
 @pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")

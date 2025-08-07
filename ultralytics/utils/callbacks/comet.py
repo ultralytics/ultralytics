@@ -502,7 +502,7 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
 
 
-def _log_asset(experiment, asset_path: Path) -> None:
+def _log_asset(experiment, asset_path) -> None:
     """
     Logs a specific asset file to the given experiment.
 
@@ -516,7 +516,7 @@ def _log_asset(experiment, asset_path: Path) -> None:
     experiment.log_asset(asset_path)
 
 
-def _log_table(experiment, table_path: Path) -> None:
+def _log_table(experiment, table_path) -> None:
     """
     Logs a table to the provided experiment.
 

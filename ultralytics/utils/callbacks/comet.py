@@ -502,14 +502,32 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
 
 
-def _log_asset(experiment, asset_path: str) -> None:
-    """Log an asset to Comet"""
+def _log_asset(experiment, asset_path: Path) -> None:
+    """
+    Logs a specific asset file to the given experiment.
+
+    This function facilitates logging an asset, such as a file, to the provided
+    experiment. It enables integration with experiment tracking platforms.
+
+    Args:
+        experiment (comet_ml.CometExperiment): The experiment instance to which the asset will be logged.
+        asset_path (Path): The file path of the asset to log.
+    """
     experiment.log_asset(asset_path)
 
 
-def _log_table(experiment, table_path: str) -> None:
-    """Log table to Comet"""
-    experiment.log_table(table_path)
+def _log_table(experiment, table_path: Path) -> None:
+    """
+    Logs a table to the provided experiment.
+
+    This function is used to log a table file to the given experiment. The table
+    is identified by its file path.
+
+    Args:
+        experiment (comet_ml.CometExperiment): The experiment object where the table file will be logged.
+        table_path (Path): The file path of the table to be logged.
+    """
+    experiment.log_table(str(table_path))
 
 
 def on_pretrain_routine_start(trainer) -> None:

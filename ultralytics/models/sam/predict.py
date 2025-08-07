@@ -1883,8 +1883,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     """
 
     def __init__(
-        self, 
-        cfg: Any = DEFAULT_CFG, 
+        self,
+        cfg: Any = DEFAULT_CFG,
         overrides: Optional[Dict[str, Any]] = None,
         max_obj_num: int = 3,
         _callbacks: Optional[Dict[str, Any]] = None,
@@ -1984,12 +1984,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     def mask_preprocess(self, masks: List[Union[torch.Tensor, np.ndarray]]) -> torch.Tensor:
         """
         Preprocess the masks to fit the letterbox resize of the image.
+
         Args:
             masks (torch.Tensor | np.ndarray): The input masks to be preprocessed.
+
         Returns:
             (torch.Tensor): Preprocessed masks.
         """
-
 
         def mask_letterbox(image, new_shape=(self.image_size, self.image_size)):
             # Resize and pad image while meeting stride-multiple constraints
@@ -2011,14 +2012,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             left, bottom = dw, dh
             image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)  # add border
             return image
-   
-
 
         masks = [mask_letterbox(image=x).squeeze() for x in masks]
         masks = torch.tensor(masks, dtype=torch.float32).unsqueeze(0)
         return masks.to(self.device, non_blocking=True)
-
-
 
     @smart_inference_mode()
     def inference(
@@ -2067,7 +2064,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
 
         if update_memory:
-            assert bboxes is not None or masks is not None, "bboxes or masks must be provided when update_memory is True"
+            assert bboxes is not None or masks is not None, (
+                "bboxes or masks must be provided when update_memory is True"
+            )
             assert obj_ids is not None, "obj_ids must be provided when update_memory is True"
             if bboxes is not None:
                 assert len(bboxes) == len(obj_ids), "bboxes and obj_ids must have the same length"
@@ -2187,22 +2186,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         return imgState
 
-
-
-
-
-
     @smart_inference_mode()
     def add_new_prompt(
-            self,
-            imgState: ImageState,
-            obj_id: int,
-            points: Optional[torch.Tensor] = None,
-            labels: Optional[torch.Tensor] = None,
-            mask: Optional[torch.Tensor] = None,
-            bbox: Optional[Union[torch.Tensor, List[float]]] = None,
-            normalize_coords: bool = True,
-
+        self,
+        imgState: ImageState,
+        obj_id: int,
+        points: Optional[torch.Tensor] = None,
+        labels: Optional[torch.Tensor] = None,
+        mask: Optional[torch.Tensor] = None,
+        bbox: Optional[Union[torch.Tensor, List[float]]] = None,
+        normalize_coords: bool = True,
     ) -> None:
         """
         Add new bboxes to a specific frame for a given object ID. This method updates the imgState with new prompts
@@ -2223,11 +2216,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx = self._obj_id_to_idx(obj_id)
         self.obj_idx_set.add(obj_idx)
 
-
-        # assert   bbox or poings  mask is not None, "Either bbox or points or mask is required"
+        # assert   bbox or points  mask is not None, "Either bbox or points or mask is required"
         # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
         assert bbox is not None or points is not None or mask is not None, "Either bbox, points or mask is required"
-
 
         if points is None:
             points = torch.zeros(0, 2, dtype=torch.float32)
@@ -2260,25 +2251,25 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if clear_old_points and obj_idx in imgState.point_inputs.keys():
             imgState.point_inputs[obj_idx] = None
 
-
         imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
 
         if mask is not None:
-            assert mask.dim() == 3  
+            assert mask.dim() == 3
             mask = mask[None]  # add batch and channel dimension
             mask = mask.float().to(imgState.device)
             imgState.mask_inputs[obj_idx] = mask
 
+    def concat_points(self, old_point_inputs, new_points, new_labels):
+        """
+        Add new points and labels to previous point inputs (add at the end).
 
-    def concat_points(self,old_point_inputs, new_points, new_labels):
-        """Add new points and labels to previous point inputs (add at the end).
         Args:
             old_point_inputs (dict | None): Previous point inputs, can be None.
             new_points (torch.Tensor): New points to be added, shape (B, N, 2).
             new_labels (torch.Tensor): Labels corresponding to the new points, shape (B, N).
+
         Returns:
             (Dict): A dictionary containing the concatenated point coordinates and labels.
-
         """
         if old_point_inputs is None:
             points, labels = new_points, new_labels
@@ -2287,8 +2278,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels = torch.cat([old_point_inputs["point_labels"], new_labels], dim=1)
 
         return {"point_coords": points, "point_labels": labels}
-
-
 
     @smart_inference_mode()
     def update_memory(self, imgState: ImageState) -> None:
@@ -2579,8 +2568,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if mask_inputs is not None:
             # If mask_inputs is provided, downsize it into low-res mask input if needed
             # and feed it as a dense mask prompt into the SAM mask encoder
-            
-            assert len(mask_inputs.shape) == 4 and mask_inputs.shape[:2] == (B, 1),f"mask_inputs shape: {mask_inputs.shape}, expected (B, 1, H, W)"
+
+            assert len(mask_inputs.shape) == 4 and mask_inputs.shape[:2] == (B, 1), (
+                f"mask_inputs shape: {mask_inputs.shape}, expected (B, 1, H, W)"
+            )
             if mask_inputs.shape[-2:] != self.model.sam_prompt_encoder.mask_input_size:
                 sam_mask_prompt = F.interpolate(
                     mask_inputs.float(),
@@ -2769,8 +2760,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
     def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
         """
-        Directly turn binary `mask_inputs` into a output mask logits without using SAM.
-        (same input and output shapes as in _forward_sam_heads above).
+        Directly turn binary `mask_inputs` into a output mask logits without using SAM. (same input and output shapes as
+        in _forward_sam_heads above).
+
         Args:
             backbone_features (torch.Tensor): Image features of [B, C, H, W] shape.
             high_res_features (List[torch.Tensor]): Either None or a list of length 2 containing
@@ -2778,6 +2770,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 which will be used as high-resolution feature maps for SAM decoder.
             mask_inputs (torch.Tensor): A mask of [B, 1, H*16, W*16] shape, float or bool, with the
                 same spatial size as the image.
+
         Returns:
             low_res_masks (torch.Tensor): Best low-resolution mask with shape [B, 1, H*4, W*4].
             high_res_masks (torch.Tensor): Best high-resolution mask with shape [B, 1, H*16, W*16].
@@ -2800,13 +2793,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         )
         # a dummy IoU prediction of all 1's under mask input
         ious = mask_inputs.new_ones(mask_inputs.size(0), 1).float()
-        use_obj_ptrs_in_encoder=self.model.use_obj_ptrs_in_encoder
-        use_obj_ptrs_in_encoder=False
+        use_obj_ptrs_in_encoder = self.model.use_obj_ptrs_in_encoder
+        use_obj_ptrs_in_encoder = False
         if not use_obj_ptrs_in_encoder:
             # all zeros as a dummy object pointer (of shape [B, C])
-            obj_ptr = torch.zeros(
-                mask_inputs.size(0), self.model.hidden_dim, device=mask_inputs.device
-            )
+            obj_ptr = torch.zeros(mask_inputs.size(0), self.model.hidden_dim, device=mask_inputs.device)
         else:
             # produce an object pointer using the SAM decoder from the mask input
             _, _, _, _, _, obj_ptr, _ = self._forward_sam_heads(

@@ -1582,7 +1582,7 @@ class PSABlock(nn.Module):
         >>> output_tensor = psablock(input_tensor)
     """
 
-    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True, attn="default", area=1) -> None:
+    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True, attn="default", area=1, downsample=1) -> None:
         """
         Initialize the PSABlock.
 
@@ -1599,6 +1599,8 @@ class PSABlock(nn.Module):
             self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
         elif attn == "sim":
             self.attn = SimAttention(c, num_heads=num_heads)
+        elif attn == "ds":
+            self.attn = DSAttention(c, attn_ratio=attn_ratio, num_heads=num_heads, downsample_ratio=downsample)
         else:
             self.attn = AreaAttention(c, num_heads=num_heads, attn_ratio=attn_ratio, area=area)
         self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
@@ -1705,7 +1707,7 @@ class C2PSA(nn.Module):
         >>> output_tensor = c2psa(input_tensor)
     """
 
-    def __init__(self, c1, c2, n=1, e=0.5, act=True, attn="default", area=1):
+    def __init__(self, c1, c2, n=1, e=0.5, act=True, attn="default", area=1, downsample=1):
         """
         Initialize C2PSA module.
 
@@ -1722,7 +1724,12 @@ class C2PSA(nn.Module):
         self.cv2 = Conv(2 * self.c, c1, 1, act=act)
 
         self.m = nn.Sequential(
-            *(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, area=area) for _ in range(n))
+            *(
+                PSABlock(
+                    self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, area=area, downsample=downsample
+                )
+                for _ in range(n)
+            )
         )
         # self.m = nn.Sequential(
         #     *(PSABlock(self.c * 2, attn_ratio=0.5, num_heads=max(self.c * 2 // 64, 1), attn=attn, area=area) for _ in range(n))

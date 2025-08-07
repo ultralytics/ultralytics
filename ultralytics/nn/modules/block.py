@@ -1341,6 +1341,74 @@ class Attention(nn.Module):
         return x
 
 
+class DSAttention(nn.Module):
+    """
+    Attention module that performs self-attention on the input tensor.
+
+    Args:
+        dim (int): The input tensor dimension.
+        num_heads (int): The number of attention heads.
+        attn_ratio (float): The ratio of the attention key dimension to the head dimension.
+
+    Attributes:
+        num_heads (int): The number of attention heads.
+        head_dim (int): The dimension of each attention head.
+        key_dim (int): The dimension of the attention key.
+        scale (float): The scaling factor for the attention scores.
+        qkv (Conv): Convolutional layer for computing the query, key, and value.
+        proj (Conv): Convolutional layer for projecting the attended values.
+        pe (Conv): Convolutional layer for positional encoding.
+    """
+
+    def __init__(self, dim, num_heads=8, attn_ratio=0.5, downsample_ratio=2):
+        """
+        Initialize multi-head attention module.
+
+        Args:
+            dim (int): Input dimension.
+            num_heads (int): Number of attention heads.
+            attn_ratio (float): Attention ratio for key dimension.
+        """
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = dim // num_heads
+        self.key_dim = int(self.head_dim * attn_ratio)
+        self.scale = self.key_dim**-0.5
+        nh_kd = self.key_dim * num_heads
+        self.q = Conv(dim, nh_kd, 1, act=False)
+        self.k = Conv(dim, nh_kd, 1, act=False)
+        self.v = Conv(dim, dim, 1, act=False)
+        self.proj = Conv(dim, dim, 1, act=False)
+        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
+        self.downsample = nn.MaxPool2d(kernel_size=downsample_ratio, stride=downsample_ratio)
+        self.downsample_ratio = downsample_ratio
+
+    def forward(self, x):
+        """
+        Forward pass of the Attention module.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            (torch.Tensor): The output tensor after self-attention.
+        """
+        B, C, H, W = x.shape
+        N = H * W
+        N_q = int(H / self.downsample_ratio * W / self.downsample_ratio)
+        x_q = self.downsample(x)
+        q = self.q(x_q).view(B, self.num_heads, self.key_dim, N_q)
+        k = self.k(x_q).view(B, self.num_heads, self.key_dim, N_q)
+        v = self.v(x).view(B, self.num_heads, self.head_dim, N)
+
+        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = attn.softmax(dim=-1)
+        v = v.reshape(B, self.num_heads, self.head_dim * int(N / N_q), N_q)
+        x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+        x = self.proj(x)
+        return x
+
+
 class SimAttention(nn.Module):
     """
     Simplified Attention Module from MobileViTv2.

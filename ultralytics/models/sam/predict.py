@@ -2117,24 +2117,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
         return results
 
-    def forward_image(self, imgState: ImageState) -> None:
-        """
-        Forward the image through the model to extract features and cache them in the ImageState.
-
-        Args:
-            imgState (ImageState): The ImageState object containing the image data and other attributes.
-        """
-        img_batch = imgState.image_data.cuda().float().unsqueeze(0)
-
-        backbone_out = self.model.image_encoder(img_batch)
-
-        if self.use_high_res_features_in_sam:  # ?
-            # precompute projected level 0 and level 1 features in SAM decoder
-            # to avoid running it again on every SAM click
-            backbone_out["backbone_fpn"][0] = self.model.sam_mask_decoder.conv_s0(backbone_out["backbone_fpn"][0])
-            backbone_out["backbone_fpn"][1] = self.model.sam_mask_decoder.conv_s1(backbone_out["backbone_fpn"][1])
-        imgState._prepare_backbone_features(backbone_out, self.num_feature_levels)
-
     @smart_inference_mode()
     def createState(self, img: Union[torch.Tensor, np.ndarray], img_name: Optional[str] = None) -> ImageState:
         """
@@ -2150,8 +2132,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         imgState = ImageState(
             image=img, img_name=img_name, image_size=self.image_size, device=self.device, max_obj_num=self._max_obj_num
         )
-
-        self.forward_image(imgState)
+        img_batch = imgState.image_data.cuda().float().unsqueeze(0)
+        backbone_out = self.model.forward_image(img_batch)
+        imgState._prepare_backbone_features(backbone_out, self.num_feature_levels)
 
         return imgState
 

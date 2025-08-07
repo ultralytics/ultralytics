@@ -413,11 +413,11 @@ class BYTETracker:
 
     def init_track(self, results, img: Optional[np.ndarray] = None) -> List[STrack]:
         """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
+        if len(results) == 0:
+            return []
         bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
-        return (
-            [STrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)] if len(bboxes) else []
-        )  # detections
+        return [STrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: List[STrack], detections: List[STrack]) -> np.ndarray:
         """Calculate the distance between tracks and detections using IoU and optionally fuse scores."""

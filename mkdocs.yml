@@ -458,6 +458,7 @@ nav:
       - IBM Watsonx: integrations/ibm-watsonx.md
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
+      - LightlyTrain: integrations/lightlytrain.md
       - MLflow: integrations/mlflow.md
       - Paperspace Gradient: integrations/paperspace.md
       - Ray Tune: integrations/ray-tune.md

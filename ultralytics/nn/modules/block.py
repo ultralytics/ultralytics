@@ -251,7 +251,7 @@ class SimSPPF(nn.Module):
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
         y.append(self.ca(y[0]) * self.m(y[0]))
-        return self.cv2(torch.cat(y, 1))
+        return self.cv2(torch.cat(y, 1)) + x
 
 
 class C1(nn.Module):

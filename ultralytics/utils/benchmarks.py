@@ -92,6 +92,7 @@ def benchmark(
 
     pl.Config.set_tbl_cols(10)
     pl.Config.set_tbl_width_chars(120)
+    pl.Config.set_tbl_hide_dataframe_shape(True)
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)

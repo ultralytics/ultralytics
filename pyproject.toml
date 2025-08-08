@@ -92,15 +92,36 @@ dev = [
     "mkdocs-macros-plugin>=1.0.5", # duplicating content (i.e. export tables) in multiple places
     "click==8.2.1", # fix MkDocs use_directory_urls bug in 8.2.2 https://github.com/ultralytics/ultralytics/issues/21568
 ]
-export = [
+export-onnx = [
     "onnx>=1.12.0,<1.18.0", # ONNX export
-    "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
-    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+]
+export-openvino = [
     "openvino>=2024.0.0",  # OpenVINO export
+]
+
+export-tensorflow = [# tensorflow export on Windows and darwin is pretty broken, only use this on linux
+    "ultralytics[export-onnx]", # onnx is used as intermediary step before converting to tf
     "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "tf_keras",  # required by 'onnx2tf' package
+    "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
+    "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
+    "ai-edge-litert>=1.2.0; python_version >='3.9' and platform_system != 'Windows'",  # required by 'onnx2tf' package, only available for python >= 3.9
+    "onnx2tf>=1.26.3; python_version >='3.10'", # below 3.10 onnx2tf may not be resolvable on windows,
+    # it will try to resolve this on runtime
+    "onnxslim>=0.1.53",
+    "onnxruntime", # in case a gpu is available the gpu version will be installed at runtime
+    "protobuf>=5",
+]
+
+export-coreml = [
+    "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
+    "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+]
+export = [
+    "ultralytics[export-onnx,export-openvino,export-tensorflow,export-coreml]",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

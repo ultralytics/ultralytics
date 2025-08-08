@@ -48,9 +48,10 @@ div.highlight {
 
 /* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://github.com/ultralytics/docs/releases/download/0/announcement_bar_yolo11.avif);
+  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6895c3942e4cf6aab3572420_yv25-banner.avif);
   background-size: cover;
-  background-position: center;
+  background-position: 62%;
+  background-repeat: no-repeat;
 }
 .md-banner__inner {
   margin-top: 0 !important;
@@ -67,23 +68,30 @@ div.highlight {
   flex-direction: column;
 }
 .banner-wrapper {
-  padding: 16px;
+  padding: 40px 16px;
 }
 .banner-wrapper > .banner-content-wrapper {
   gap: 4px;
 }
 .banner-wrapper > .banner-content-wrapper > p {
   margin: 0;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
+  color: #fff;
+}
+.banner-wrapper > .banner-content-wrapper > img {
+  height: 40px;
 }
 @media screen and (min-width: 768px) {
+  .md-banner {
+    background-position: center;
+  }
   .banner-wrapper,
   .banner-wrapper > .banner-content-wrapper {
     flex-direction: row;
   }
   .banner-wrapper {
-    padding: 12px;
+    padding: 14px 16px;
   }
   .banner-wrapper > .banner-content-wrapper {
     gap: 16px;

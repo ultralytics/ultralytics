@@ -1132,17 +1132,19 @@ class C3k2(C2f):
         )
         self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
         self.chattn = ChannelAttention(c1) if chattn else None
-        self.add = c1 == c2
+        # self.add = c1 == c2
 
     def forward(self, x):
         if self.chattn is not None:
             x = self.chattn(x)
-        return x + super().forward(x) if self.add else super().forward(x)
+        return super().forward(x)
+        # return x + super().forward(x) if self.add else super().forward(x)
 
     def forward_split(self, x):
         if self.chattn is not None:
             x = self.chattn(x)
-        return x + super().forward_split(x) if self.add else super().forward_split(x)
+        return super().forward(x)
+        # return x + super().forward_split(x) if self.add else super().forward_split(x)
 
 
 class C3k(C3):

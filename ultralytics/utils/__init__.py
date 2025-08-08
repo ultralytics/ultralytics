@@ -166,9 +166,9 @@ class DataExportMixin:
         Returns:
             (DataFrame): DataFrame containing the summary data.
         """
-        import pandas as pd  # scope for faster 'import ultralytics'
+        import polars as pl  # scope for faster 'import ultralytics'
 
-        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+        return pl.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def to_csv(self, normalize=False, decimals=5):
         """

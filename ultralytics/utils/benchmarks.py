@@ -207,7 +207,7 @@ def benchmark(
     if verbose and isinstance(verbose, float):
         metrics = df[key].to_numpy()  # values to compare to floor
         floor = verbose  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if x is not None), f"Benchmark failure: metric(s) < floor {floor}"
+        assert all(x > floor for x in metrics if not np.isnan(x)), f"Benchmark failure: metric(s) < floor {floor}"
 
     return df
 

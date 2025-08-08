@@ -50,7 +50,7 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
-    "SimSPPF"
+    "SimSPPF",
 )
 
 
@@ -1137,6 +1137,11 @@ class C3k2(C2f):
         if self.chattn is not None:
             x = self.chattn(x)
         return super().forward(x)
+
+    def forward_split(self, x):
+        if self.chattn is not None:
+            x = self.chattn(x)
+        return super().forward_split(x)
 
 
 class C3k(C3):

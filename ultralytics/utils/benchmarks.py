@@ -77,7 +77,7 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
+        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric,
             and inference time.
 
     Examples:

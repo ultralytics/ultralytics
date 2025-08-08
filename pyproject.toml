@@ -74,6 +74,7 @@ dependencies = [
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
     "pandas>=1.1.4",
+    "polars",  # potential future replacement for pandas
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 

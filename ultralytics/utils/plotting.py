@@ -878,7 +878,7 @@ def plot_results(
         >>> plot_results("path/to/results.csv", segment=True)
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas as pd
+    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
@@ -899,11 +899,11 @@ def plot_results(
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
     for f in files:
         try:
-            data = pd.read_csv(f)
+            data = pl.read_csv(f)
             s = [x.strip() for x in data.columns]
-            x = data.values[:, 0]
+            x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(index):
-                y = data.values[:, j].astype("float")
+                y = data.select(data.columns[j]).to_numpy().flatten().astype("float")
                 # y[y == 0] = np.nan  # don't show zero values
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
@@ -965,7 +965,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
         >>> plot_tune_results("path/to/tune_results.csv")
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas as pd
+    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -976,10 +976,10 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
 
     # Scatter plots for each hyperparameter
     csv_file = Path(csv_file)
-    data = pd.read_csv(csv_file)
+    data = pl.read_csv(csv_file)
     num_metrics_columns = 1
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
-    x = data.values
+    x = data.to_numpy()
     fitness = x[:, 0]  # fitness
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot

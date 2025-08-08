@@ -571,7 +571,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot (Callable, optional): Function to call after plot is saved.
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas
+    import polars
     from matplotlib.colors import LinearSegmentedColormap
 
     # Filter matplotlib>=3.7.2 warning
@@ -582,12 +582,12 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
+    x = polars.DataFrame(boxes, schema=["x", "y", "width", "height"])
 
     try:  # Seaborn correlogram
         import seaborn
 
-        seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+        seaborn.pairplot(x.to_pandas(), corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
         plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
         plt.close()
     except ImportError:

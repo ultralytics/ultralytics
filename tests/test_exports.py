@@ -214,6 +214,21 @@ def test_export_mnn():
     file = YOLO(MODEL).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "task, int8, half, batch",
+    [  # generate all combinations except for exclusion cases
+        (task, int8, half, batch)
+        for task, int8, half, batch in product(TASKS, [True, False], [True, False], [1])
+        if not (int8 and half)
+    ],
+)
+def test_export_mnn_matrix(task, int8, half, batch):
+    """Test YOLO export to MNN format considering various export configurations."""
+    file = YOLO(TASK2MODEL[task]).export(format="mnn", imgsz=32, int8=int8, half=half, batch=batch)
+    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    Path(file).unlink()  # cleanup
+
 
 @pytest.mark.slow
 def test_export_ncnn():

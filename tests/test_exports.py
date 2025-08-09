@@ -214,6 +214,7 @@ def test_export_mnn():
     file = YOLO(MODEL).export(format="mnn", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, int8, half, batch",

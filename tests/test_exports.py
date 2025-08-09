@@ -149,13 +149,17 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(TASKS, [False], [True, False], [True, False], [1], [True, False])
+        for task, dynamic, int8, half, batch, nms in product(
+            TASKS, [False], [True, False], [True, False], [1], [True, False]
+        )
         if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO export to TFLite format considering various export configurations."""
-    file = YOLO(TASK2MODEL[task]).export(format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms)
+    file = YOLO(TASK2MODEL[task]).export(
+        format="tflite", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
+    )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
 

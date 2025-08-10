@@ -115,7 +115,7 @@ def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms"]],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
         [
             "OpenVINO",
@@ -416,6 +416,8 @@ class Exporter:
                 m.format = self.args.format
                 m.max_det = self.args.max_det
                 m.xyxy = self.args.nms and not coreml
+                if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
+                    m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split

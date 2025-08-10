@@ -408,6 +408,18 @@ jobs:
       # - name: test_python.py
       #   run: pytest ultralytics/tests/test_python.py -vv -s
 
+  # simulate a failed job        
+  FailTest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    if: github.run_attempt == 1
+    steps:
+      - name: Simulate a failing step
+        run: |
+          echo "This job fails intentionally on the first attempt"
+          exit 1
+
   Summary:
     runs-on: ubuntu-latest
     needs: [HUB, Benchmarks, Tests, GPU, RaspberryPi, NVIDIA_Jetson, Conda]

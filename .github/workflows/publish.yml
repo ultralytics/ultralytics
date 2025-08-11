@@ -127,7 +127,7 @@ jobs:
         run: |
           PR_JSON=$(gh pr list --search "${GITHUB_SHA}" --state merged --json number,title --jq '.[0]')
           PR_NUMBER=$(echo "${PR_JSON}" | jq -r '.number')
-          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title')
+          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title' | sed 's/"/\\"/g')
           echo "PR_NUMBER=${PR_NUMBER}" >> "${GITHUB_ENV}"
           echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
       - name: Notify Success

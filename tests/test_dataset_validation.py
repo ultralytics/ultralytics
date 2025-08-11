@@ -1,4 +1,5 @@
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
+
 from ultralytics.utils.dataset_validation import AutoFix, DatasetValidation, Table
 
 # ---------- Tests for missing YAML loading coverage ----------
@@ -193,7 +194,6 @@ def test_table_create_clickable_link():
     )
 
     result = table.create_clickable_link("file://test/path", "📁 See File")
-    expected = "file://test/path"  # Simplified since actual implementation may vary
 
     # The method should return some form of clickable link representation
     assert "file://test/path" in result
@@ -204,7 +204,7 @@ def test_table_create_clickable_link():
 
 def test_table_content_regex_processing():
     """Test Table content processing with regex patterns."""
-    table = Table(
+    Table(
         yaml_summary={},
         errors=[],
         invalid_labels=[],
@@ -219,7 +219,7 @@ def test_table_content_regex_processing():
     import re
 
     path_pattern = r"([C-Z]:[\\\/][\w\-\s\\\/\.]+\.[a-zA-Z]{2,4})"
-    match = re.search(path_pattern, test_content)
+    re.search(path_pattern, test_content)
 
     # Should find file paths in content for making clickable links
     # This tests the underlying logic even if the exact implementation differs
@@ -290,7 +290,6 @@ def test_validate_dataset_not_directory():
 @patch("ultralytics.utils.dataset_validation.verify_image_label")
 def test_verify_labels_with_multiple_files(mock_verify, mock_exists, mock_listdir):
     """Test verify_labels with multiple label files."""
-
     mock_listdir.return_value = ["image1.jpg", "image2.png", "image3.jpg"]
 
     mock_exists.return_value = True

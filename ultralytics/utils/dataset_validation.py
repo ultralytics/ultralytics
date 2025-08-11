@@ -65,14 +65,15 @@ class DatasetValidation:
             return False
         return True
 
-    def verify_labels(self, labels, yaml_summary="train"):
+    def verify_labels(self, labels, yaml_summary="train") -> list:
         """
         Verify labels with images.
 
         Args:
             labels (List): list with labels.
-            verify_labels_structure (List): list to push verify labels.
             yaml_summary (str): subfolder to verify data.
+        Returns:
+            (List): list of verified labels.
         """
         verify_labels = []
         for image_file in os.listdir(self.yaml_summary[yaml_summary]):

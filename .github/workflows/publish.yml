@@ -104,11 +104,14 @@ jobs:
         with:
           python-version: "3.x"
       - uses: astral-sh/setup-uv@v6
-      - run: uv pip install --system --no-cache .
+      - run: uv sync
+        env:
+          UV_PROJECT_ENVIRONMENT: sbom-env
       - uses: anchore/sbom-action@v0
         with:
           format: spdx-json
           output-file: sbom.spdx.json
+          path: sbom-env
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

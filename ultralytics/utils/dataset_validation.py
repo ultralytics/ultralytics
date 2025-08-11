@@ -65,7 +65,7 @@ class DatasetValidation:
             return False
         return True
 
-    def verify_labels(self, labels, verify_labels_structure, yaml_summary="train"):
+    def verify_labels(self, labels, yaml_summary="train"):
         """
         Verify labels with images.
 
@@ -74,6 +74,7 @@ class DatasetValidation:
             verify_labels_structure (List): list to push verify labels.
             yaml_summary (str): subfolder to verify data.
         """
+        verify_labels = []
         for image_file in os.listdir(self.yaml_summary[yaml_summary]):
             image_name = os.path.splitext(image_file)[0]
             label_file = image_name + ".txt"
@@ -81,11 +82,14 @@ class DatasetValidation:
             label_full_path = os.path.join(labels, label_file)
             if os.path.exists(label_full_path):
                 image_full_path = os.path.join(self.yaml_summary[yaml_summary], image_file)
-                verify_labels_structure.append(
+
+                verify_labels.append(
                     verify_image_label(
                         (image_full_path, label_full_path, "", False, self.yaml_summary["nc"], 0, 2, False)
                     )
                 )
+
+        return verify_labels
 
     def validate(self) -> None:
         """Basic process of validation."""
@@ -116,8 +120,8 @@ class DatasetValidation:
                 verify_labels_structure = []
 
                 # init veryfing image label
-                self.verify_labels(train_labels, verify_labels_structure)
-                self.verify_labels(val_labels, verify_labels_structure, "val")
+                verify_labels_structure.extend(self.verify_labels(train_labels))
+                verify_labels_structure.extend(self.verify_labels(val_labels, "val"))
 
                 for el in verify_labels_structure:
                     if isinstance(el, list):
@@ -231,6 +235,7 @@ class AutoFix:
             "nc": 0,
             "names": {},
         }  # yaml structure
+        self.yaml_data = yaml_data
         self.save_yaml(yaml_data)
 
     def fix_nc_names_mismatch(self) -> None:

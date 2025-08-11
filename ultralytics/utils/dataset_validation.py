@@ -72,6 +72,7 @@ class DatasetValidation:
         Args:
             labels (List): list with labels.
             yaml_summary (str): subfolder to verify data.
+
         Returns:
             (List): list of verified labels.
         """

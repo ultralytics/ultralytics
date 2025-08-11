@@ -76,6 +76,22 @@ jobs:
           path: dist/
       - run: uv cache prune --ci
 
+  publish:
+    needs: [check, build]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    environment: # for GitHub Deployments tab
+      name: Release - PyPI
+      url: https://pypi.org/p/ultralytics
+    permissions:
+      id-token: write # for PyPI trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
   sbom:
     needs: [check, build, publish]
     if: needs.check.outputs.increment == 'True'
@@ -96,22 +112,6 @@ jobs:
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish:
-    needs: [check, build]
-    if: needs.check.outputs.increment == 'True'
-    runs-on: ubuntu-latest
-    environment: # for GitHub Deployments tab
-      name: Release - PyPI
-      url: https://pypi.org/p/ultralytics
-    permissions:
-      id-token: write # for PyPI trusted publishing
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
 
   notify:
     needs: [check, publish]

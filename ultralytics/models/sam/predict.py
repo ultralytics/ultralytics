@@ -2281,8 +2281,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             imgState (ImageState): the imgState to be updated.
             obj_id (int): The ID of the object to which the prompts are associated.
             points (torch.Tensor | None): The coordinates of the points of interest.
-            labels (torch.Tensor | None): The labels corresponding to the points. where 1 means
-            positive clicks, 0 means negative clicks.
+            labels (torch.Tensor | None): The labels corresponding to the points. where 1 means positive clicks, 0 means negative clicks.
             mask (torch.Tensor | None): The mask input for the object.
             bbox (torch.Tensor | list | None): The bounding box coordinates for the object.
             normalize_coords (bool): Whether to normalize the coordinates of the points based on the image size.

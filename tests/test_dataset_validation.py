@@ -1,3 +1,4 @@
+import os
 from unittest.mock import mock_open, patch
 
 from ultralytics.utils.dataset_validation import AutoFix, DatasetValidation, Table
@@ -46,16 +47,16 @@ def test_autofix_save_yaml_success():
 # ---------- Tests for missing YAML structure building coverage ----------
 
 
-@patch("ultralytics.utils.dataset_validation.os.path.join")
 @patch("ultralytics.utils.dataset_validation.os.path.exists")
-def test_autofix_fix_missing_yaml_structure(mock_exists, mock_join):
+def test_autofix_fix_missing_yaml_structure(mock_exists):
     """Test AutoFix.fix_missing_yaml_structure method."""
-    # Mock path operations
-    mock_join.side_effect = lambda *args: "/".join(args)
+
+    real_join = os.path.join
+
     mock_exists.side_effect = lambda path: path in [
-        "/some/path/images/train",
-        "/some/path/images/val",
-        "/some/path/images/test",
+        real_join("/some/path", "images", "train"),
+        real_join("/some/path", "images", "val"),
+        real_join("/some/path", "images", "test"),
     ]
 
     af = AutoFix("/some/path", "/some/file.yaml")
@@ -65,13 +66,17 @@ def test_autofix_fix_missing_yaml_structure(mock_exists, mock_join):
         af.fix_missing_yaml()
 
     expected_structure = {
-        "train": "C:\\some\\path/images/train",
-        "val": "C:\\some\\path/images/val",
-        "test": "C:\\some\\path/images/test",
+        "train": real_join("/some/path", "images", "train"),
+        "val": real_join("/some/path", "images", "val"),
+        "test": real_join("/some/path", "images", "test"),
         "nc": 0,
         "names": {},
     }
-    assert af.yaml_data == expected_structure
+
+    def normalize_paths(d):
+        return {k: os.path.normcase(os.path.abspath(v)) if isinstance(v, str) else v for k, v in d.items()}
+
+    assert normalize_paths(af.yaml_data) == normalize_paths(expected_structure)
 
 
 # ---------- Tests for nc/names mismatch fixing ----------

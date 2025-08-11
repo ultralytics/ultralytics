@@ -92,9 +92,8 @@ jobs:
       - uses: anchore/sbom-action@v0
         with:
           format: spdx-json
-          output-file: ultralytics-sbom.spdx.json
-      - run: |
-          gh release upload ${{ needs.check.outputs.current_tag }} ultralytics-sbom.spdx.json || gh release create ${{ needs.check.outputs.current_tag }} --generate-notes && gh release upload ${{ needs.check.outputs.current_tag }} ultralytics-sbom.spdx.json
+          output-file: sbom.spdx.json
+      - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

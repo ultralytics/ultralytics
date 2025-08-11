@@ -77,44 +77,26 @@ jobs:
       - run: uv cache prune --ci
 
   sbom:
-      needs: [check, build]
-      if: needs.check.outputs.increment == 'True'
-      runs-on: ubuntu-latest
-      permissions:
-        contents: write
-      steps:
-        - uses: actions/download-artifact@v4
-          with:
-            name: dist
-            path: dist/
-        - uses: actions/setup-python@v5
-          with:
-            python-version: "3.x"
-        - name: Create runtime venv and install wheel
-          run: |
-            python -m venv .venv
-            . .venv/bin/activate
-            python -m pip install --upgrade pip
-            python -m pip install --no-cache-dir dist/ultralytics-*.whl
-            python - <<'PY'
-            import sys,site,os,json,hashlib
-            sp = site.getsitepackages()[0]
-            print(sp)
-            with open('WHEEL_SHA256.txt','w') as f:
-                import glob
-                p = sorted(glob.glob('dist/ultralytics-*.whl'))[-1]
-                f.write(hashlib.sha256(open(p,'rb').read()).hexdigest())
-            PY
-        - name: Generate SPDX SBOM (runtime deps)
-          run: |
-            SP=$(python -c "import site; print(site.getsitepackages()[0])")
-            docker run --rm -v "$SP:$SP:ro" anchore/syft:latest dir:$SP -o spdx-json=sbom-python.spdx.json
-        - name: Attach SBOM to GitHub Release
-          env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            CURRENT_TAG: ${{ needs.check.outputs.current_tag }}
-          run: |
-            gh release upload "$CURRENT_TAG" sbom-python.spdx.json WHEEL_SHA256.txt --clobber
+    needs: [check, build, publish]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v6
+      - run: uv pip install --system --no-cache .
+      - uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: ultralytics-sbom.spdx.json
+      - run: |
+          gh release upload ${{ needs.check.outputs.current_tag }} ultralytics-sbom.spdx.json || gh release create ${{ needs.check.outputs.current_tag }} --generate-notes && gh release upload ${{ needs.check.outputs.current_tag }} ultralytics-sbom.spdx.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     needs: [check, build]

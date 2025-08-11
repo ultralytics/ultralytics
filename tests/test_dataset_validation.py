@@ -50,7 +50,6 @@ def test_autofix_save_yaml_success():
 @patch("ultralytics.utils.dataset_validation.os.path.exists")
 def test_autofix_fix_missing_yaml_structure(mock_exists):
     """Test AutoFix.fix_missing_yaml_structure method."""
-
     real_join = os.path.join
 
     mock_exists.side_effect = lambda path: path in [

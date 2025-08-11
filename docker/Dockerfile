@@ -7,7 +7,7 @@
 FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
 
 # Set environment variables
-# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
 # Suppress TensorFlow cuDNN, cuBLAS, and cuFFT Registration Warnings
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

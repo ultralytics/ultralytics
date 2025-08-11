@@ -324,7 +324,6 @@ class YOLOE(Model):
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
-        assert not self.is_fused(), "Model was fused during inference. set_classes() can no longer be used."
         self.model.set_classes(classes, embeddings)
         # Verify no background class is present
         assert " " not in classes

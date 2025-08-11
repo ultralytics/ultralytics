@@ -2112,7 +2112,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             )
 
             assert obj_ids is not None, "obj_ids must be provided when update_memory is True"
-            
+
             # Validate input consistency
             prompt_count = 0
             if bboxes is not None:
@@ -2122,16 +2122,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     # Initialize points and labels for this bbox
                     points_ = None
                     labels_ = None
-                    
+
                     if points is not None:
-                        indices = [indx for indx, label in enumerate(labels) if label in [0, obj_id]]
+                        indices = [index for index, label in enumerate(labels) if label in [0, obj_id]]
                         points_ = points[indices]
                         labels_ = labels[indices]
-                        labels_ = torch.where(labels_ > 0, 
-                                              torch.tensor(1, dtype=torch.int32), 
-                                              torch.tensor(0, dtype=torch.int32))
-
-
+                        labels_ = torch.where(
+                            labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
+                        )
 
                     self.add_new_prompt(imgState, bbox=box, obj_id=int(obj_id), labels=labels_, points=points_)
 
@@ -2144,13 +2142,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     labels_ = None
 
                     if points is not None:
-                        indices = [indx for indx, label in enumerate(labels) if label in [0, obj_id]]
+                        indices = [index for index, label in enumerate(labels) if label in [0, obj_id]]
                         points_ = points[indices]
                         labels_ = labels[indices]
-                        labels_ = torch.where(labels_ > 0, 
-                                              torch.tensor(1, dtype=torch.int32), 
-                                              torch.tensor(0, dtype=torch.int32))
-                    
+                        labels_ = torch.where(
+                            labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
+                        )
 
                     self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=labels_, points=points_)
 
@@ -2597,7 +2594,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 keep_sparse_dense_embeddings=False,
             )
 
-
             (
                 _,
                 _,
@@ -2886,7 +2882,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         high_res_masks = mask_inputs_float * out_scale + out_bias
 
         # check the mask_inputs shape
-        assert mask_inputs.shape[-1] ==self.image_size and mask_inputs.shape[-2] == self.image_size, (
+        assert mask_inputs.shape[-1] == self.image_size and mask_inputs.shape[-2] == self.image_size, (
             f"mask_inputs shape: {mask_inputs.shape}, expected ({self.image_size}, {self.image_size})"
         )
 
@@ -2902,8 +2898,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # a dummy IoU prediction of all 1's under mask input
         ious = mask_inputs.new_ones(mask_inputs.size(0), 1).float()
 
-
-
         # In this method, we are treating mask_input as output, e.g. using it directly to create spatial mem;
         # Below, we follow the same design axiom to use mask_input to decide if obj appears or not instead of relying
         # on the object_scores from the SAM decoder.
@@ -2912,11 +2906,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         lambda_is_obj_appearing = is_obj_appearing.float()
         object_score_logits = out_scale * lambda_is_obj_appearing + out_bias
 
-
-
         # a dumy ojb_ptr ,  all zeros as a dummy object pointer (of shape [B, C])
         obj_ptr = torch.zeros(mask_inputs.size(0), self.model.hidden_dim, device=mask_inputs.device)
-  
+
         # Only relevant if pred_obj_scores=True and use_obj_ptrs_in_encoder=True;
         # Whether to have a fixed no obj pointer when there is no object present
         # or to use it as an additive embedding with obj_ptr produced by decoder

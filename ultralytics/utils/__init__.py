@@ -140,7 +140,7 @@ class DataExportMixin:
     Methods:
         to_df: Convert summary to a Pandas DataFrame.
         to_csv: Export results as a CSV string.
-        to_xml: Export results as an XML string (requires `lxml`).
+        to_xml: Export results as an XML string.
         to_html: Export results as an HTML table.
         to_json: Export results as a JSON string.
         tojson: Deprecated alias for `to_json()`.
@@ -157,7 +157,7 @@ class DataExportMixin:
 
     def to_df(self, normalize=False, decimals=5):
         """
-        Create a pandas DataFrame from the prediction results summary or validation metrics.
+        Create a polars DataFrame from the prediction results summary or validation metrics.
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
@@ -172,7 +172,7 @@ class DataExportMixin:
 
     def to_csv(self, normalize=False, decimals=5):
         """
-        Export results to CSV string format.
+        Export results or metrics to CSV string format.
 
         Args:
            normalize (bool, optional): Normalize numeric values.
@@ -181,7 +181,24 @@ class DataExportMixin:
         Returns:
            (str): CSV content as string.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).write_csv()
+
+        import polars as pl
+
+        df = self.to_df(normalize=normalize, decimals=decimals)
+
+        try:
+            return df.write_csv()
+        except Exception:
+            # Minimal string conversion for any remaining complex types
+            def _to_str_simple(v):
+                if v is None:
+                    return ""
+                if isinstance(v, (dict, list, tuple, set)):
+                    return repr(v)
+                return str(v)
+
+            df_str = df.select([pl.col(c).map_elements(_to_str_simple, return_dtype=pl.String).alias(c) for c in df.columns])
+            return df_str.write_csv()
 
     def to_xml(self, normalize=False, decimals=5):
         """
@@ -194,11 +211,33 @@ class DataExportMixin:
         Returns:
             (str): XML string.
 
-        Notes:
-            Requires `lxml` package to be installed.
         """
+        
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.is_empty else df.to_xml(parser="etree")
+        if df.is_empty():
+            return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>'
+        
+        def _to_xml_str_simple(v):
+            """Convert basic types to XML-safe string."""
+            if v is None:
+                return ""
+            if isinstance(v, (dict, list, tuple, set)):
+                return str(v).replace("'", "&apos;").replace('"', "&quot;")
+            if isinstance(v, str):
+                return v.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("'", "&apos;").replace('"', "&quot;")
+            return str(v)
+
+        xml_lines = ['<?xml version="1.0" encoding="utf-8"?>', '<root>']
+        
+        for row_dict in df.iter_rows(named=True):
+            xml_lines.append('  <row>')
+            for col_name, value in row_dict.items():
+                xml_value = _to_xml_str_simple(value)
+                xml_lines.append(f'    <{col_name}>{xml_value}</{col_name}>')
+            xml_lines.append('  </row>')
+        
+        xml_lines.append('</root>')
+        return '\n'.join(xml_lines)
 
     def to_html(self, normalize=False, decimals=5, index=False):
         """
@@ -212,8 +251,45 @@ class DataExportMixin:
         Returns:
             (str): HTML representation of the results.
         """
+        
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return "<table></table>" if df.is_empty else df.to_html(index=index)
+        if df.is_empty():
+            return "<table></table>"
+        
+        def _to_html_str_simple(v):
+            """Convert basic types to HTML-safe string."""
+            if v is None:
+                return ""
+            if isinstance(v, (dict, list, tuple, set)):
+                return str(v).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            if isinstance(v, str):
+                return v.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            return str(v)
+
+        html_lines = ['<table border="1" class="dataframe">']
+        
+        html_lines.append('  <thead>')
+        html_lines.append('    <tr style="text-align: right;">')
+        if index:
+            html_lines.append('      <th></th>')
+        for col in df.columns:
+            html_lines.append(f'      <th>{col}</th>')
+        html_lines.append('    </tr>')
+        html_lines.append('  </thead>')
+        
+        html_lines.append('  <tbody>')
+        for i, row_dict in enumerate(df.iter_rows(named=True)):
+            html_lines.append('    <tr>')
+            if index:
+                html_lines.append(f'      <th>{i}</th>')
+            for _, value in row_dict.items():
+                html_value = _to_html_str_simple(value)
+                html_lines.append(f'      <td>{html_value}</td>')
+            html_lines.append('    </tr>')
+        html_lines.append('  </tbody>')
+        html_lines.append('</table>')
+        
+        return '\n'.join(html_lines)
 
     def tojson(self, normalize=False, decimals=5):
         """Deprecated version of to_json()."""
@@ -231,53 +307,41 @@ class DataExportMixin:
         Returns:
             (str): JSON-formatted string of the results.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).write_json()
+        
+        return self.to_df(normalize=normalize, decimals=decimals).write_json()    
 
-    def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
+    def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="sqlite:///results.db", if_table_exists="replace", engine="adbc"):
         """
-        Save results to an SQLite database.
+        Export results to an SQLite database.
 
         Args:
             normalize (bool, optional): Normalize numeric values.
             decimals (int, optional): Decimal precision.
-            table_name (str, optional): Name of the SQL table.
-            db_path (str, optional): SQLite database file path.
+            table_name (str, optional): Name of the table to store data.
+            db_path (str, optional): Path to the database file. (PostgreSQL, SQLite, etc.)
+            if_table_exists (str, optional): Action to take if the table already exists.
+                Options are 'fail', 'replace', or 'append'.
+                - 'fail': Raise an error if the table exists.
+                - 'replace': Drop the table if it exists and create a new one.
+                - 'append': Append data to the existing table without dropping it.
+            engine (str, optional): Database engine to use.
+                Options are "sqlalchemy" and "adbc".
+
+
+        Notes: 
+            For engine="sqlalchemy": requires sqlalchemy, pandas, and pyarrow packages.
+            For engine="adbc": requires adbc_driver_manager and pyarrow packages.
+        
+
         """
-        df = self.to_df(normalize, decimals)
-        if df.is_empty or len(df.columns) == 0:  # Exit if df is None or has no columns (i.e., no schema)
-            return
-
-        import sqlite3
-
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        # Dynamically create table schema based on summary to support prediction and validation results export
-        columns = []
-        for col in df.columns:
-            sample_val = df[col].drop_nans()[0] if not df[col].drop_nans().is_empty else ""
-            if isinstance(sample_val, dict):
-                col_type = "TEXT"
-            elif isinstance(sample_val, (float, int)):
-                col_type = "REAL"
-            else:
-                col_type = "TEXT"
-            columns.append(f'"{col}" {col_type}')  # Quote column names to handle special characters like hyphens
-
-        # Create table (Drop table from db if it's already exist)
-        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
-        cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
-
-        for _, row in df.iter_rows():
-            values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
-            column_names = ", ".join(f'"{col}"' for col in df.columns)
-            placeholders = ", ".join("?" for _ in df.columns)
-            cursor.execute(f'INSERT INTO "{table_name}" ({column_names}) VALUES ({placeholders})', values)
-
-        conn.commit()
-        conn.close()
-        LOGGER.info(f"Results saved to SQL table '{table_name}' in '{db_path}'.")
-
+        
+        return self.to_df(normalize=normalize, decimals=decimals).write_database(
+            table_name=table_name,
+            connection=db_path,
+            engine=engine,
+            if_table_exists=if_table_exists
+        )
+        
 
 class SimpleClass:
     """

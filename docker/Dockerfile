@@ -28,8 +28,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg libsm6 && \
-    # Security updates: https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
-    apt upgrade --no-install-recommends -y openssl tar && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Create working directory

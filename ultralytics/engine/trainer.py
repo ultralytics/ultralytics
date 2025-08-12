@@ -272,7 +272,7 @@ class BaseTrainer:
         else:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
-        self.scheduler2 = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
+        self.scheduler2 = optim.lr_scheduler.LambdaLR(self.optimizer2, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
         """Initialize and set the DistributedDataParallel parameters for training."""

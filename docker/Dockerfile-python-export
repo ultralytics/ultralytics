@@ -9,7 +9,8 @@ FROM ultralytics/ultralytics:latest-python
 # Install export-specific system packages
 # gnupg required for Edge TPU install
 # Java runtime environment (default-jre-headless) required for Sony IMX export
-RUN apt-get install -y --no-install-recommends gnupg default-jre-headless && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gnupg default-jre-headless && \
     rm -rf /var/lib/apt/lists/*
 
 # Install export dependencies and run exports to AutoInstall packages

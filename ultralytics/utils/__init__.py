@@ -181,7 +181,7 @@ class DataExportMixin:
         Returns:
            (str): CSV content as string.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
+        return self.to_df(normalize=normalize, decimals=decimals).write_csv()
 
     def to_xml(self, normalize=False, decimals=5):
         """
@@ -198,7 +198,7 @@ class DataExportMixin:
             Requires `lxml` package to be installed.
         """
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(parser="etree")
+        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.is_empty else df.to_xml(parser="etree")
 
     def to_html(self, normalize=False, decimals=5, index=False):
         """
@@ -213,7 +213,7 @@ class DataExportMixin:
             (str): HTML representation of the results.
         """
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return "<table></table>" if df.empty else df.to_html(index=index)
+        return "<table></table>" if df.is_empty else df.to_html(index=index)
 
     def tojson(self, normalize=False, decimals=5):
         """Deprecated version of to_json()."""
@@ -231,7 +231,7 @@ class DataExportMixin:
         Returns:
             (str): JSON-formatted string of the results.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
+        return self.to_df(normalize=normalize, decimals=decimals).write_json()
 
     def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
         """
@@ -244,7 +244,7 @@ class DataExportMixin:
             db_path (str, optional): SQLite database file path.
         """
         df = self.to_df(normalize, decimals)
-        if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
+        if df.is_empty or len(df.columns) == 0:  # Exit if df is None or has no columns (i.e., no schema)
             return
 
         import sqlite3
@@ -255,7 +255,7 @@ class DataExportMixin:
         # Dynamically create table schema based on summary to support prediction and validation results export
         columns = []
         for col in df.columns:
-            sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else ""
+            sample_val = df[col].drop_nans()[0] if not df[col].drop_nans().is_empty else ""
             if isinstance(sample_val, dict):
                 col_type = "TEXT"
             elif isinstance(sample_val, (float, int)):
@@ -268,7 +268,7 @@ class DataExportMixin:
         cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
         cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
 
-        for _, row in df.iterrows():
+        for _, row in df.iter_rows():
             values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
             column_names = ", ".join(f'"{col}"' for col in df.columns)
             placeholders = ", ".join("?" for _ in df.columns)

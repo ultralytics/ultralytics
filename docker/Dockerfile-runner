@@ -6,12 +6,8 @@
 # Start FROM Ultralytics GPU image
 FROM ultralytics/ultralytics:latest
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_BREAK_SYSTEM_PACKAGES=1 \
-    RUNNER_ALLOW_RUNASROOT=1 \
+# Set additional environment variables for runner
+ENV RUNNER_ALLOW_RUNASROOT=1 \
     DEBIAN_FRONTEND=noninteractive
 
 # Set the working directory

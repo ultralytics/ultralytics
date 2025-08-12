@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Builds GitHub actions CI runner image for deployment to DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference tests
+# Image is CUDA-optimized for YOLO single/multi-GPU training and inference tests
 
 # Start FROM Ultralytics GPU image
 FROM ultralytics/ultralytics:latest

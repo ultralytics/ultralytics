@@ -21,7 +21,7 @@ on:
         default: true
       Dockerfile-python:
         type: boolean
-        description: Dockerfile-python (+ jupyter, cpu)
+        description: Dockerfile-python (+ jupyter, cpu, python-export)
         default: true
       Dockerfile-arm64:
         type: boolean
@@ -50,7 +50,7 @@ on:
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
-    name: Push Docker Images
+    name: Build
     strategy:
       fail-fast: false
       max-parallel: 10
@@ -66,7 +66,7 @@ jobs:
             tags: "latest-python"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: "Dockerfile-jupyter,Dockerfile-cpu"
+            derivatives: "Dockerfile-jupyter,Dockerfile-cpu,Dockerfile-python-export"
           # Standalone base images
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
@@ -210,15 +210,15 @@ jobs:
 
       - name: Check Environment
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
+        run: docker run ultralytics/ultralytics:${{ matrix.tags == 'latest-python' && 'latest-python-export' || matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ matrix.tags == 'latest-python' && 'latest-python-export' || matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
+        run: docker run ultralytics/ultralytics:${{ matrix.tags == 'latest-python' && 'latest-python-export' || matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
 
       - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')

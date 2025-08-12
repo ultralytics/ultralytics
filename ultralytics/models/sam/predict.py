@@ -2067,10 +2067,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
 
 
-    @smart_inference_mode
-    def _prepare_prompts(dst_shape, bboxes=None, points=None, labels=None, masks=None):
-
-
     @smart_inference_mode()
     def inference(
         self,

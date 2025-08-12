@@ -1981,7 +1981,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
 
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_prompts(
+        self,
+        dst_shape: Tuple[int, int],
+        bboxes: Optional[Union[np.ndarray, List]] = None,
+        points: Optional[Union[np.ndarray, List]] = None,
+        labels: Optional[Union[np.ndarray, List]] = None,
+        masks: Optional[Union[List, np.ndarray]] = None,
+    ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
         """
         Prepare and transform the input prompts for processing based on the destination shape.
 

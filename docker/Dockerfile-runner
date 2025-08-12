@@ -17,15 +17,14 @@ ENV PYTHONUNBUFFERED=1 \
 # Set the working directory
 WORKDIR /actions-runner
 
-# Download and unpack the latest runner from https://github.com/actions/runner
+# Download and unpack the latest runner from https://github.com/actions/runner and install dependencies
 RUN FILENAME=actions-runner-linux-x64-2.323.0.tar.gz && \
     curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.323.0/$FILENAME && \
     tar xzf $FILENAME && \
-    rm $FILENAME
-
-# Install runner dependencies
-RUN uv pip install --system pytest-cov
-RUN ./bin/installdependencies.sh && \
+    rm $FILENAME && \
+    # Install runner dependencies
+    uv pip install --system pytest-cov && \
+    ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev
 
 # Inline ENTRYPOINT command to configure and start runner with default TOKEN and NAME

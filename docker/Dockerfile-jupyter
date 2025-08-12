@@ -7,13 +7,10 @@
 FROM ultralytics/ultralytics:latest-python
 
 # Install JupyterLab for interactive development
-RUN uv pip install --system jupyterlab
-
-# Create persistent data directory structure
-RUN mkdir /data
-
-# Configure YOLO directories
-RUN mkdir /data/{datasets,weights,runs} && \
+RUN uv pip install --system jupyterlab && \
+    # Create persistent data directory structure
+    mkdir -p /data/{datasets,weights,runs} && \
+    # Configure YOLO directories
     yolo settings datasets_dir="/data/datasets" weights_dir="/data/weights" runs_dir="/data/runs"
 
 # Start JupyterLab with tutorial notebook

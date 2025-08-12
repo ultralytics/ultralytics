@@ -17,11 +17,11 @@ on:
     inputs:
       Dockerfile:
         type: boolean
-        description: Dockerfile
+        description: Dockerfile (+ runner)
         default: true
-      Dockerfile-cpu:
+      Dockerfile-python:
         type: boolean
-        description: Dockerfile-cpu
+        description: Dockerfile-python (+ jupyter, cpu)
         default: true
       Dockerfile-arm64:
         type: boolean
@@ -39,21 +39,9 @@ on:
         type: boolean
         description: Dockerfile-jetson-jetpack4
         default: true
-      Dockerfile-python:
-        type: boolean
-        description: Dockerfile-python
-        default: true
       Dockerfile-conda:
         type: boolean
         description: Dockerfile-conda
-        default: true
-      Dockerfile-runner:
-        type: boolean
-        description: Dockerfile-runner
-        default: true
-      Dockerfile-jupyter:
-        type: boolean
-        description: Dockerfile-jupyter
         default: true
       push:
         type: boolean

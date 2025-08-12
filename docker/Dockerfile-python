@@ -20,7 +20,8 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # Install linux packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev && \
+    python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Create working directory
@@ -36,7 +37,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 RUN pip install uv && \
     uv pip install --system -e . --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match && \
     # Remove extra build files
-    rm -rf tmp
+    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

@@ -366,10 +366,12 @@ class C3(nn.Module):
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
+        self.add = shortcut and c1 == c2
 
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 3 convolutions."""
-        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+        y = self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+        return x + y if self.add else y
 
 
 class C3x(C3):

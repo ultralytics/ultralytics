@@ -181,7 +181,6 @@ class DataExportMixin:
         Returns:
            (str): CSV content as string.
         """
-
         import polars as pl
 
         df = self.to_df(normalize=normalize, decimals=decimals)
@@ -212,7 +211,6 @@ class DataExportMixin:
             (str): XML string.
 
         """
-        
         df = self.to_df(normalize=normalize, decimals=decimals)
         if df.is_empty():
             return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>'
@@ -251,7 +249,6 @@ class DataExportMixin:
         Returns:
             (str): HTML representation of the results.
         """
-        
         df = self.to_df(normalize=normalize, decimals=decimals)
         if df.is_empty():
             return "<table></table>"
@@ -307,7 +304,6 @@ class DataExportMixin:
         Returns:
             (str): JSON-formatted string of the results.
         """
-        
         return self.to_df(normalize=normalize, decimals=decimals).write_json()    
 
     def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="sqlite:///results.db", if_table_exists="replace", engine="adbc"):
@@ -328,13 +324,12 @@ class DataExportMixin:
                 Options are "sqlalchemy" and "adbc".
 
 
-        Notes: 
+        Notes:
             For engine="sqlalchemy": requires sqlalchemy, pandas, and pyarrow packages.
             For engine="adbc": requires adbc_driver_manager and pyarrow packages.
         
 
         """
-        
         return self.to_df(normalize=normalize, decimals=decimals).write_database(
             table_name=table_name,
             connection=db_path,

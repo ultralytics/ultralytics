@@ -73,38 +73,38 @@ jobs:
             tags: "latest"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: ["Dockerfile-runner"]
+            derivatives: "Dockerfile-runner"
           - dockerfile: "Dockerfile-python"
             tags: "latest-python"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: ["Dockerfile-jupyter"]
+            derivatives: "Dockerfile-jupyter"
           # Standalone base images
           - dockerfile: "Dockerfile-cpu"
             tags: "latest-cpu"
             platforms: "linux/amd64"
             runs_on: "ubuntu-latest"
-            derivatives: []
+            derivatives: ""
           - dockerfile: "Dockerfile-arm64"
             tags: "latest-arm64"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
-            derivatives: []
+            derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack6"
             tags: "latest-jetson-jetpack6"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
-            derivatives: []
+            derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack5"
             tags: "latest-jetson-jetpack5"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
-            derivatives: []
+            derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
-            derivatives: []
+            derivatives: ""
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
@@ -194,7 +194,7 @@ jobs:
               .
 
       - name: Build Derivative Images
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.derivatives != null
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.derivatives != ''
         uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 120
@@ -202,9 +202,10 @@ jobs:
           retries: 2
           run: |
             # Build each derivative image using local base image
-            derivatives='${{ toJson(matrix.derivatives) }}'
-            echo "$derivatives" | jq -r '.[]' | while read derivative; do
-              if [[ -n "$derivative" ]]; then
+            derivatives='${{ matrix.derivatives }}'
+            if [[ -n "$derivatives" ]]; then
+              IFS=',' read -ra derivative_array <<< "$derivatives"
+              for derivative in "${derivative_array[@]}"; do
                 # Determine derivative tags
                 derivative_tag=$(echo "$derivative" | sed 's/Dockerfile-/latest-/')
                 derivative_version_tag=$(echo "$derivative_tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
@@ -221,8 +222,8 @@ jobs:
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_tag" \
                   -t "ghcr.io/ultralytics/ultralytics:$derivative_version_tag" \
                   .
-              fi
-            done
+              done
+            fi
 
       - name: Check Environment
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
@@ -248,14 +249,13 @@ jobs:
             images_to_push=("${{ matrix.tags }}")
             
             # Add derivative images to array
-            derivatives='${{ toJson(matrix.derivatives) }}'
-            if [[ "$derivatives" != "null" && "$derivatives" != "[]" ]]; then
-              while IFS= read -r derivative; do
-                if [[ -n "$derivative" ]]; then
-                  derivative_tag=$(echo "$derivative" | sed 's/Dockerfile-/latest-/')
-                  images_to_push+=("$derivative_tag")
-                fi
-              done < <(echo "$derivatives" | jq -r '.[]')
+            derivatives='${{ matrix.derivatives }}'
+            if [[ -n "$derivatives" ]]; then
+              IFS=',' read -ra derivative_array <<< "$derivatives"
+              for derivative in "${derivative_array[@]}"; do
+                derivative_tag=$(echo "$derivative" | sed 's/Dockerfile-/latest-/')
+                images_to_push+=("$derivative_tag")
+              done
             fi
             
             # Push all images (base + derivatives)

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Builds ultralytics/ultralytics:jetson-jetpack4 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Supports JetPack4.x for YOLO11 on Jetson Nano, TX2, Xavier NX, AGX Xavier
+# Builds ultralytics/ultralytics:latest-jetson-jetpack4 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Supports JetPack4.x for YOLO on Jetson Nano, TX2, Xavier NX, AGX Xavier
 
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-cuda
 FROM nvcr.io/nvidia/l4t-cuda:10.2.460-runtime

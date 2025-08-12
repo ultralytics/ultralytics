@@ -1872,9 +1872,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         __init__(cfg, overrides=None, max_obj_num=3, _callbacks=None): Initializes the predictor with the given configuration and overrides.
         get_model(): Retrieves and configures the model with binarization enabled.
         image_size: Property that returns the input size of the model.
-        bbox_preprocess(bboxes): Preprocess bounding boxes to fit the letterbox resize of the image.
-        mask_preprocess(masks): Preprocess masks to fit the letterbox resize of the image.
-        points_preprocess(points): Preprocess points to fit the letterbox resize of the image, with left corner aligned.
+        mask_letterbox(mask, new_shape, center=False, interpolation=cv2.INTER_NEAREST): Resize and pad masks to fit the letterbox resize of the image.
+        _prepare_prompts(dst_shape, bboxes=None, points=None, labels=None, masks=None): Prepare and transform the input prompts for processing.
         inference(img, image_name=None, bboxes=None, masks=None, points=None, labels=None, obj_ids=None, update_memory=False): Performs inference on a single image with optional prompts and object IDs.
         postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.
         createState(img, img_name=None): Create a new ImageState object for the given image.
@@ -1981,75 +1980,96 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         return self.model.image_size
 
-    def bbox_preprocess(self, bboxes: List[List[float]]) -> torch.Tensor:
+
+
+    def mask_letterbox(self, mask, new_shape, center=False, interpolation=cv2.INTER_NEAREST):
         """
-        Preprocess the bboxes to fit the letterbox resize of the image, the left corner is aligned.
+        Resize and pad masks to fit the letterbox resize of the image.
+
+        For SAM2DynamicInteractivePredictor, the masks have the same size as the image, so we need to resize and pad
+        the masks to fit the letterbox resize of the image while maintaining aspect ratio.
 
         Args:
-            bboxes (List[List[float]]): List of bounding boxes to be preprocessed.
+            mask (np.ndarray): The input mask image to be resized and padded.
+            new_shape (int | tuple): The target shape (height, width) for the mask. If int, treated as square shape.
+            center (bool): If True, center the placed image. If False, place image in top-left corner. Default is False.
+            interpolation (int): Interpolation method for resizing the image. For masks we use cv2.INTER_NEAREST 
+                to ensure pixel values remain integers. Default is cv2.INTER_NEAREST.
 
         Returns:
-            (torch.Tensor): Preprocessed bounding boxes.
+            mask (np.ndarray): The resized and padded mask with the target shape.
         """
-        bboxes = torch.tensor(bboxes, dtype=torch.float32)  # Ensure float32 dtype
-        src_shape = self.batch[1][0].shape[:2]
-        dst_shape = [self.image_size, self.image_size]
-        r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
-        bboxes *= r
-        return bboxes.to(self.device, non_blocking=True)
+        
+        # Resize and pad image while meeting stride-multiple constraints
+        shape = mask.shape[:2]
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
+        # Scale ratio (new / old)
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+        # Compute padding
+        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
 
-    def mask_preprocess(self, masks: List[Union[torch.Tensor, np.ndarray]]) -> torch.Tensor:
-        """
-        Preprocess the masks to fit the letterbox resize of the image.
+        if shape[::-1] != new_unpad:
+            mask = cv2.resize(mask, new_unpad, interpolation=interpolation)
 
-        Args:
-            masks (torch.Tensor | np.ndarray): The input masks to be preprocessed.
-
-        Returns:
-            (torch.Tensor): Preprocessed masks.
-        """
-
-        def mask_letterbox(image, new_shape=(self.image_size, self.image_size)):
-            # Resize and pad image while meeting stride-multiple constraints
-            shape = image.shape[:2]
-            if isinstance(new_shape, int):
-                new_shape = (new_shape, new_shape)
-            # Scale ratio (new / old)
-            r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
-            # if not center:
-            #     # only scale down, do not scale up (for better test mAP)
-            #     r = min(r, 1.0)
-            # Compute padding
-            new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
-            dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
-
-            if shape[::-1] != new_unpad:
-                image = cv2.resize(image, new_unpad, interpolation=cv2.INTER_NEAREST)
+        if center:
+            # if center, add padding to the top and left side
+            top, right = dh // 2, dw // 2
+            left, bottom = dh - top, dw - right
+        else:
             top, right = 0, 0
             left, bottom = dw, dh
-            image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)  # add border
-            return image
+        mask = cv2.copyMakeBorder(mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)  # add border
+        return mask
+    
 
-        masks = [mask_letterbox(image=x).squeeze() for x in masks]
-        masks = torch.tensor(masks, dtype=torch.float32).unsqueeze(0)
-        return masks.to(self.device, non_blocking=True)
 
-    def points_preprocess(self, points: List[List[float]]) -> torch.Tensor:
+    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
         """
-        Preprocess the points to fit the letterbox resize of the image, the left corner is aligned.
+        Prepare and transform the input prompts for processing based on the destination shape.
+
+        This method transforms various types of prompts (bounding boxes, points, labels, and masks) from the original
+        image coordinates to the model's expected input format and size, applying letterbox preprocessing to masks.
 
         Args:
-            points (List[List[float]]): List of points to be preprocessed, each point is [x, y].
+            dst_shape (tuple): The target shape (height, width) for the prompts.
+            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
+            masks (List | np.ndarray | None): Masks for the objects, where each mask is a 2D array and has the shape with the src image size.
 
         Returns:
-            (torch.Tensor): Preprocessed points.
+            bboxes (torch.Tensor | None): Transformed bounding boxes in the target coordinate system.
+            points (torch.Tensor | None): Transformed points in the target coordinate system.
+            labels (torch.Tensor | None): Transformed labels corresponding to the points.
+            masks (torch.Tensor | None): Transformed masks resized to the target shape.
         """
-        points = torch.tensor(points, dtype=torch.float32)  # Ensure float32 dtype
         src_shape = self.batch[1][0].shape[:2]
         dst_shape = [self.image_size, self.image_size]
-        r = min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
-        points *= r
-        return points.to(self.device, non_blocking=True)
+
+        # if labels is not None:
+        #     labels=np.array(labels, dtype=np.int32) 
+        #     if len(labels.shape) == 1:
+        #         labels = labels[None]  # add the batch dimension if labels is 1D
+                
+        bboxes, points, labels, _ = Predictor._prepare_prompts(self,dst_shape, bboxes, points, labels, None)
+        # (N, 1, 2) -> (N,2), (N,1 ) --> (N)
+        if points is not None:
+            points, labels= points.squeeze(1),labels.squeeze(1)
+        # apply letterbox preprocessing to masks
+        if masks is not None and len(masks) > 0:
+            masks = [self.mask_letterbox(mask=x,dst_shape=dst_shape).squeeze() for x in masks]
+            masks = torch.tensor(masks, dtype=torch.float32).unsqueeze(0)
+
+        return  bboxes, points, labels, masks
+
+
+
+
+    @smart_inference_mode
+    def _prepare_prompts(dst_shape, bboxes=None, points=None, labels=None, masks=None):
+
 
     @smart_inference_mode()
     def inference(
@@ -2093,18 +2113,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         imgState = self.createState(img, image_name)
 
-        # apply letterbox resize to the bboxes
-        if bboxes is not None:
-            bboxes = self.bbox_preprocess(bboxes)
-        # if masks is not None, convert it to tensor and move it to the device
-        if masks is not None:
-            masks = self.mask_preprocess(masks)
-        # if points is not None, apply letterbox resize to the points
-        if points is not None:
-            points = self.points_preprocess(points)
-        # if labels is not None, convert it to tensor and move it to the device
-        if labels is not None:
-            labels = torch.tensor(labels, dtype=torch.int32).to(self.device, non_blocking=True)
+        bboxes, points,  labels, masks = self._prepare_prompts(dst_shape=(self.image_size, self.image_size),
+            points=points,
+            bboxes=bboxes,
+            labels=labels,
+            masks=masks
+        )
 
         if update_memory:
             assert bboxes is not None or masks is not None or points is not None, (
@@ -2124,9 +2138,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     labels_ = None
 
                     if points is not None:
-                        indices = [index for index, label in enumerate(labels) if label in [0, obj_id]]
+                        # select points and labels corresponding to the current object id, and negative points ( label= 0)
+                        label_mask = (labels == 0) | (labels == obj_id)          
+                        indices = torch.where(label_mask)[0].tolist()                  
                         points_ = points[indices]
                         labels_ = labels[indices]
+                        # convert labels to binary labels, 1 for foreground, 0 for background
                         labels_ = torch.where(
                             labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
                         )
@@ -2142,10 +2159,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     labels_ = None
 
                     if points is not None:
-                        indices = [index for index, label in enumerate(labels) if label in [0, obj_id]]
+
+                        # select points and labels corresponding to the current object id, and negative points ( label= 0)
+                        label_mask = (labels == 0) | (labels == obj_id)          
+                        indices = torch.where(label_mask)[0].tolist()                  
                         points_ = points[indices]
                         labels_ = labels[indices]
-                        labels_ = torch.where(
+                        # convert labels to binary labels, 1 for foreground, 0 for background
+                        labels_ =  torch.where(
                             labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
                         )
 
@@ -2274,20 +2295,23 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         normalize_coords: bool = True,
     ) -> None:
         """
-        Add new bboxes to a specific frame for a given object ID. This method updates the imgState with new prompts
-        (points or masks) for a specified object and updates the internal state accordingly.
+        Add new prompts to a specific frame for a given object ID.
+
+        This method updates the imgState with new prompts (points, bounding boxes, or masks) for a specified object
+        and updates the internal state accordingly. It supports multiple types of prompts and can handle coordinate
+        normalization and prompt combination.
 
         Args:
-            imgState (ImageState): the imgState to be updated.
+            imgState (ImageState): The imgState to be updated.
             obj_id (int): The ID of the object to which the prompts are associated.
-            points (torch.Tensor | None): The coordinates of the points of interest.
-            labels (torch.Tensor | None): The labels corresponding to the points. where 1 means positive clicks, 0 means negative clicks.
-            mask (torch.Tensor | None): The mask input for the object.
-            bbox (torch.Tensor | list | None): The bounding box coordinates for the object.
-            normalize_coords (bool): Whether to normalize the coordinates of the points based on the image size.
+            points (torch.Tensor | None): The coordinates of the points of interest with shape (N, 2).
+            labels (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
+            mask (torch.Tensor | None): The mask input for the object with shape (H, W).
+            bbox (torch.Tensor | List[float] | None): The bounding box coordinates for the object in XYXY format.
+            normalize_coords (bool): Whether to normalize the coordinates of the points based on the image size. Default is True.
 
         Raises:
-            AssertionError: If bbox is not provided.
+            AssertionError: If none of bbox, points, or mask is provided.
         """
         obj_idx = self._obj_id_to_idx(obj_id)
         self.obj_idx_set.add(obj_idx)
@@ -2331,6 +2355,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             box_coords = bbox.reshape(1, 2, 2)
             box_labels = torch.tensor([2, 3], dtype=torch.int32, device=labels.device)
             box_labels = box_labels.reshape(1, 2)
+            print(box_coords.shape, points.shape, box_labels.shape, labels.shape)
             points = torch.cat([box_coords, points], dim=1)
             labels = torch.cat([box_labels, labels], dim=1)
         if normalize_coords:
@@ -2542,16 +2567,20 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx: Optional[int],
     ) -> Dict[str, Any]:
         """
-        Trakking step for the current image state, which involves processing the image features and running the SAM
-        heads to predict masks. If obj_idx is provided, it processes the features for a specific prompted object in the
-        image. If obj_idx is None, it processes the features for all objects in the image.
+        Tracking step for the current image state to predict masks.
+
+        This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it 
+        processes the features for a specific prompted object in the image. If obj_idx is None, it processes the 
+        features for all objects in the image. The method supports both mask-based output without SAM and full 
+        SAM processing with memory-conditioned features.
 
         Args:
             imgState (ImageState): The current image state containing the image data and prompts.
             obj_idx (int | None): The index of the object for which to predict masks. If None, it processes all objects.
 
         Returns:
-            current_out(Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
+            current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
+                Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
         if obj_idx is not None:
             point_inputs = imgState.point_inputs[obj_idx]
@@ -2861,18 +2890,21 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
     def _use_mask_as_output(self, mask_inputs):
         """
-        Directly turn binary `mask_inputs` into a output mask logits without using SAM. (same input and output shapes as
-        in _forward_sam_heads above).
+        Directly turn binary mask_inputs into output mask logits without using SAM.
+
+        This method bypasses the SAM prompt encoder and mask decoder, treating the input masks as ground truth
+        and converting them directly to output format. It maintains the same input and output shapes as
+        _forward_sam_heads for consistency.
 
         Args:
             mask_inputs (torch.Tensor): A mask of [B, 1, image_size, image_size] shape, float or bool, with the
                 same spatial size as the image.
 
         Returns:
-            ious (torch.Tensor): Estimated IoU of each output mask with shape [B, 1].
-            low_res_masks (torch.Tensor): Best low-resolution mask with shape [B, 1, H*4, W*4].
-            high_res_masks (torch.Tensor): Best high-resolution mask with shape [B, 1, H*16, W*16].
-            obj_ptr (torch.Tensor): Object pointer vector with shape [B, C].
+            ious (torch.Tensor): Estimated IoU of each output mask with shape [B, 1]. Always returns 1.0 for mask inputs.
+            low_res_masks (torch.Tensor): Low-resolution mask with shape [B, 1, H*4, W*4].
+            high_res_masks (torch.Tensor): High-resolution mask with shape [B, 1, H*16, W*16].
+            obj_ptr (torch.Tensor): Object pointer vector with shape [B, C]. Returns zero tensor for mask inputs.
             object_score_logits (torch.Tensor): Object score logits with shape [B, 1].
         """
         # Use -10/+10 as logits for neg/pos pixels (very close to 0/1 in prob after sigmoid).

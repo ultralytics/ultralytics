@@ -1638,6 +1638,7 @@ class LetterBox:
             center (bool): If True, center the placed image. If False, place image in top-left corner.
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
             padding_value (int): Value for padding the image. Default is 114.
+            interpolation (int): Interpolation method for resizing. Default is cv2.INTER_LINEAR.
 
         Attributes:
             new_shape (Tuple[int, int]): Target size for the resized image.
@@ -1646,6 +1647,7 @@ class LetterBox:
             scaleup (bool): Flag for allowing upscaling.
             stride (int): Stride value for ensuring image size is divisible by stride.
             padding_value (int): Value used for padding the image.
+            interpolation (int): Interpolation method used for resizing.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, stride=32)

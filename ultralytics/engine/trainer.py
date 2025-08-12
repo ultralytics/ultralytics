@@ -889,8 +889,8 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                # if int(module_name.split(".")[1]) < 23 and param.ndim >= 2:
-                if param.ndim >= 2:
+                if int(module_name.split(".")[1]) < 23 and param.ndim >= 2:
+                # if param.ndim >= 2:
                     g[3].append(param)
                 elif "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
@@ -915,7 +915,7 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        optimizer_muon = Muon(g[3], lr=lr * 0.1, weight_decay=decay, momentum=momentum)
+        optimizer_muon = Muon(g[3], lr=lr, weight_decay=decay, momentum=momentum)
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)

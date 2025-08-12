@@ -1993,7 +1993,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             mask (np.ndarray): The input mask image to be resized and padded.
             new_shape (int | tuple): The target shape (height, width) for the mask. If int, treated as square shape.
             center (bool): If True, center the placed image. If False, place image in top-left corner. Default is False.
-            interpolation (int): Interpolation method for resizing the image. For masks we use cv2.INTER_NEAREST 
+            interpolation (int): Interpolation method for resizing the image. For masks we use cv2.INTER_NEAREST
                 to ensure pixel values remain integers. Default is cv2.INTER_NEAREST.
 
         Returns:
@@ -2569,9 +2569,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         Tracking step for the current image state to predict masks.
 
-        This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it 
-        processes the features for a specific prompted object in the image. If obj_idx is None, it processes the 
-        features for all objects in the image. The method supports both mask-based output without SAM and full 
+        This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it
+        processes the features for a specific prompted object in the image. If obj_idx is None, it processes the
+        features for all objects in the image. The method supports both mask-based output without SAM and full
         SAM processing with memory-conditioned features.
 
         Args:

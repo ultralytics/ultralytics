@@ -65,7 +65,7 @@ jobs:
     name: Push Docker Images
     strategy:
       fail-fast: false
-      max-parallel: 8
+      max-parallel: 10
       matrix:
         include:
           # Base images with their derivatives

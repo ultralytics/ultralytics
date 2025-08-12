@@ -227,20 +227,16 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
 ## Dynamic Interactive Segment and Track
-
-SAM2DynamicInteractivePredictor is an advanced extension of SAM2 that enables dynamic interaction with mulitple rames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across video sequences.
+SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training. 
 
 ### Key Features
-
-Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three significant enhancements:
-
+It offers three significant enhancements:
 1. **Dynamic Interactive**: Add new prompts for merging/untracked new instances in following frames anytime during video processing
 2. **Continual Learning**: Add new prompts for existing instances to improve the model performance over time
-3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
+3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) 
 
 
 ### Core Capabilities
-
 - **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
 - **Multi-Object Tracking**: Supports tracking multiple objects simultaneously with individual object IDs
 - **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts
@@ -263,8 +259,8 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
 
         # Load first frame with initial prompts
         image1 = "path/to/frame1.jpg"
-        results1 = predictor.inference(
-            img=image1,
+        results1 = predictor(
+            source=image1,
             image_name="frame1", # option 
             bboxes=[[100, 100, 200, 200], [300, 150, 400, 250]],  # Two bounding boxes
             obj_ids=[1, 2],  # Object IDs
@@ -273,8 +269,8 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
 
         # Process subsequent frames without prompts (tracking mode)
         image2 = "path/to/frame2.jpg"
-        results2 = predictor.inference(
-            img=image2,
+        results2 = predictor(
+            source=image2,
             image_name="frame2",  # option 
         )
         ```
@@ -293,26 +289,26 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides,max_obj_num=10)
 
         # Initialize with first objects
-        predictor.inference(
-            img="frame1.jpg",
+        predictor(
+            source="frame1.jpg",
             bboxes=[[100, 100, 200, 200]],
             obj_ids=[1],
             update_memory=True
         )
 
         # Track existing objects in frame 2
-        results2 = predictor.inference(img="frame2.jpg", update_memory=False)
+        results2 = predictor(source="frame2.jpg", update_memory=False)
 
         # Add new object that appeared in frame 3
-        results3 = predictor.inference(
-            img="frame3.jpg",
+        results3 = predictor(
+            source="frame3.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
             obj_ids=[2],  # New object ID
             update_memory=True  # Add to memory
         )
 
         # Continue tracking all objects
-        results4 = predictor.inference(img="frame4.jpg", update_memory=False)
+        results4 = predictor(source="frame4.jpg", update_memory=False)
         ```
 
 
@@ -328,8 +324,8 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
         overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt",save=False)
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides,max_obj_num=10)
         # Initial object setup
-        predictor.inference(
-            img="frame1.jpg",
+        predictor(
+            source="frame1.jpg",
             bboxes=[[100, 100, 200, 200]],
             obj_ids=[1],
             update_memory=True
@@ -337,15 +333,15 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
 
         # Process several frames
         for i in range(2, 10):
-            results = predictor.inference(
-                img=f"frame{i}.jpg",
+            results = predictor(
+                source=f"frame{i}.jpg",
                 update_memory=False
             )
 
         # Add refinement prompts for better tracking
         # This helps when object appearance changes significantly
-        predictor.inference(
-            img="frame10.jpg",
+        predictor(
+            source="frame10.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
             obj_ids=[1],  # Same object ID
@@ -353,7 +349,7 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
         )
 
         # Continue tracking with improved model
-        results11 = predictor.inference(img="frame11.jpg", update_memory=False)
+        results11 = predictor(source="frame11.jpg", update_memory=False)
         ```
 
 #### Parameters

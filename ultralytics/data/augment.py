@@ -1621,6 +1621,7 @@ class LetterBox:
         scaleup: bool = True,
         center: bool = True,
         stride: int = 32,
+        padding_value: int = 114,
     ):
         """
         Initialize LetterBox object for resizing and padding images.
@@ -1635,6 +1636,7 @@ class LetterBox:
             scaleup (bool): If True, allow scaling up. If False, only scale down.
             center (bool): If True, center the placed image. If False, place image in top-left corner.
             stride (int): Stride of the model (e.g., 32 for YOLOv5).
+            padding_value (int): Value for padding the image. Default is 114.
 
         Attributes:
             new_shape (Tuple[int, int]): Target size for the resized image.
@@ -1642,6 +1644,7 @@ class LetterBox:
             scale_fill (bool): Flag for stretching image without padding.
             scaleup (bool): Flag for allowing upscaling.
             stride (int): Stride value for ensuring image size is divisible by stride.
+            padding_value (int): Value used for padding the image.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640), auto=False, scale_fill=False, scaleup=True, stride=32)
@@ -1653,6 +1656,7 @@ class LetterBox:
         self.scaleup = scaleup
         self.stride = stride
         self.center = center  # Put the image in the middle or top-left
+        self.padding_value = padding_value
 
     def __call__(self, labels: Dict[str, Any] = None, image: np.ndarray = None) -> Union[Dict[str, Any], np.ndarray]:
         """
@@ -1713,9 +1717,11 @@ class LetterBox:
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
         h, w, c = img.shape
         if c == 3:
-            img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+            img = cv2.copyMakeBorder(
+                img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(self.padding_value,) * 3
+            )
         else:  # multispectral
-            pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=114, dtype=img.dtype)
+            pad_img = np.full((h + top + bottom, w + left + right, c), fill_value=self.padding_value, dtype=img.dtype)
             pad_img[top : top + h, left : left + w] = img
             img = pad_img
 

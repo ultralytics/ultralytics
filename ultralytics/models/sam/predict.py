@@ -2521,9 +2521,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         Tracking step for the current image state to predict masks.
 
-        This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it 
-        processes the features for a specific prompted object in the image. If obj_idx is None, it processes the 
-        features for all objects in the image. The method supports both mask-based output without SAM and full 
+        This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it
+        processes the features for a specific prompted object in the image. If obj_idx is None, it processes the
+        features for all objects in the image. The method supports both mask-based output without SAM and full
         SAM processing with memory-conditioned features.
 
         Args:

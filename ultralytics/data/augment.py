@@ -1622,6 +1622,7 @@ class LetterBox:
         center: bool = True,
         stride: int = 32,
         padding_value: int = 114,
+        interpolation: int = cv2.INTER_LINEAR,
     ):
         """
         Initialize LetterBox object for resizing and padding images.
@@ -1657,6 +1658,7 @@ class LetterBox:
         self.stride = stride
         self.center = center  # Put the image in the middle or top-left
         self.padding_value = padding_value
+        self.interpolation = interpolation
 
     def __call__(self, labels: Dict[str, Any] = None, image: np.ndarray = None) -> Union[Dict[str, Any], np.ndarray]:
         """
@@ -1709,7 +1711,7 @@ class LetterBox:
             dh /= 2
 
         if shape[::-1] != new_unpad:  # resize
-            img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
+            img = cv2.resize(img, new_unpad, interpolation=self.interpolation)
             if img.ndim == 2:
                 img = img[..., None]
 

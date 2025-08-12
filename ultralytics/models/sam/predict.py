@@ -1872,7 +1872,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         __init__(cfg, overrides=None, max_obj_num=3, _callbacks=None): Initializes the predictor with the given configuration and overrides.
         get_model(): Retrieves and configures the model with binarization enabled.
         image_size: Property that returns the input size of the model.
-        mask_letterbox(mask, new_shape, center=False, interpolation=cv2.INTER_NEAREST): Resize and pad masks to fit the letterbox resize of the image.
         _prepare_prompts(dst_shape, bboxes=None, points=None, labels=None, masks=None): Prepare and transform the input prompts for processing.
         inference(img, image_name=None, bboxes=None, masks=None, points=None, labels=None, obj_ids=None, update_memory=False): Performs inference on a single image with optional prompts and object IDs.
         postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.
@@ -1982,49 +1981,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
 
 
-    def mask_letterbox(self, mask, new_shape, center=False, interpolation=cv2.INTER_NEAREST):
-        """
-        Resize and pad masks to fit the letterbox resize of the image.
-
-        For SAM2DynamicInteractivePredictor, the masks have the same size as the image, so we need to resize and pad
-        the masks to fit the letterbox resize of the image while maintaining aspect ratio.
-
-        Args:
-            mask (np.ndarray): The input mask image to be resized and padded.
-            new_shape (int | tuple): The target shape (height, width) for the mask. If int, treated as square shape.
-            center (bool): If True, center the placed image. If False, place image in top-left corner. Default is False.
-            interpolation (int): Interpolation method for resizing the image. For masks we use cv2.INTER_NEAREST 
-                to ensure pixel values remain integers. Default is cv2.INTER_NEAREST.
-
-        Returns:
-            mask (np.ndarray): The resized and padded mask with the target shape.
-        """
-        
-        # Resize and pad image while meeting stride-multiple constraints
-        shape = mask.shape[:2]
-        if isinstance(new_shape, int):
-            new_shape = (new_shape, new_shape)
-        # Scale ratio (new / old)
-        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
-        # Compute padding
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
-        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
-
-        if shape[::-1] != new_unpad:
-            mask = cv2.resize(mask, new_unpad, interpolation=interpolation)
-
-        if center:
-            # if center, add padding to the top and left side
-            top, right = dh // 2, dw // 2
-            left, bottom = dh - top, dw - right
-        else:
-            top, right = 0, 0
-            left, bottom = dw, dh
-        mask = cv2.copyMakeBorder(mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)  # add border
-        return mask
-    
-
-
     def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepare and transform the input prompts for processing based on the destination shape.
@@ -2058,13 +2014,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if points is not None:
             points, labels= points.squeeze(1),labels.squeeze(1)
         # apply letterbox preprocessing to masks
+
+        letterbox = LetterBox(dst_shape, auto=False, center=False,padding_value=0, interpolation=cv2.INTER_NEAREST)
         if masks is not None and len(masks) > 0:
-            masks = [self.mask_letterbox(mask=x,dst_shape=dst_shape).squeeze() for x in masks]
+            masks = [letterbox(mask=x).squeeze() for x in masks]
             masks = torch.tensor(masks, dtype=torch.float32).unsqueeze(0)
 
         return  bboxes, points, labels, masks
-
-
 
 
     @smart_inference_mode()

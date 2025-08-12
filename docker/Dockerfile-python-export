@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Builds ultralytics/ultralytics:latest-python-export image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Full-featured image with export capabilities for ultralytics:latest-jetson model conversion
+# Full-featured image with export capabilities for YOLO model conversion
 
 # Build from lightweight Ultralytics Python image
 FROM ultralytics/ultralytics:latest-python

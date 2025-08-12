@@ -2008,27 +2008,26 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (torch.Tensor | None): Transformed labels corresponding to the points.
             masks (torch.Tensor | None): Transformed masks resized to the target shape.
         """
-        src_shape = self.batch[1][0].shape[:2]
+        self.batch[1][0].shape[:2]
         dst_shape = [self.image_size, self.image_size]
 
         # if labels is not None:
-        #     labels=np.array(labels, dtype=np.int32) 
+        #     labels=np.array(labels, dtype=np.int32)
         #     if len(labels.shape) == 1:
         #         labels = labels[None]  # add the batch dimension if labels is 1D
-                
-        bboxes, points, labels, _ = Predictor._prepare_prompts(self,dst_shape, bboxes, points, labels, None)
+
+        bboxes, points, labels, _ = Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, None)
         # (N, 1, 2) -> (N,2), (N,1 ) --> (N)
         if points is not None:
-            points, labels= points.squeeze(1),labels.squeeze(1)
+            points, labels = points.squeeze(1), labels.squeeze(1)
         # apply letterbox preprocessing to masks
 
-        letterbox = LetterBox(dst_shape, auto=False, center=False,padding_value=0, interpolation=cv2.INTER_NEAREST)
+        letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
         if masks is not None and len(masks) > 0:
             masks = [letterbox(mask=x).squeeze() for x in masks]
             masks = torch.tensor(masks, dtype=torch.float32).unsqueeze(0)
 
-        return  bboxes, points, labels, masks
-
+        return bboxes, points, labels, masks
 
     @smart_inference_mode()
     def inference(
@@ -2072,11 +2071,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         imgState = self.createState(img, image_name)
 
-        bboxes, points,  labels, masks = self._prepare_prompts(dst_shape=(self.image_size, self.image_size),
-            points=points,
-            bboxes=bboxes,
-            labels=labels,
-            masks=masks
+        bboxes, points, labels, masks = self._prepare_prompts(
+            dst_shape=(self.image_size, self.image_size), points=points, bboxes=bboxes, labels=labels, masks=masks
         )
 
         if update_memory:
@@ -2098,8 +2094,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
                     if points is not None:
                         # select points and labels corresponding to the current object id, and negative points ( label= 0)
-                        label_mask = (labels == 0) | (labels == obj_id)          
-                        indices = torch.where(label_mask)[0].tolist()                  
+                        label_mask = (labels == 0) | (labels == obj_id)
+                        indices = torch.where(label_mask)[0].tolist()
                         points_ = points[indices]
                         labels_ = labels[indices]
                         # convert labels to binary labels, 1 for foreground, 0 for background
@@ -2118,14 +2114,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     labels_ = None
 
                     if points is not None:
-
                         # select points and labels corresponding to the current object id, and negative points ( label= 0)
-                        label_mask = (labels == 0) | (labels == obj_id)          
-                        indices = torch.where(label_mask)[0].tolist()                  
+                        label_mask = (labels == 0) | (labels == obj_id)
+                        indices = torch.where(label_mask)[0].tolist()
                         points_ = points[indices]
                         labels_ = labels[indices]
                         # convert labels to binary labels, 1 for foreground, 0 for background
-                        labels_ =  torch.where(
+                        labels_ = torch.where(
                             labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
                         )
 

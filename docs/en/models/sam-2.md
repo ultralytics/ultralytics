@@ -238,7 +238,6 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
 2. **Continual Learning**: Add new prompts for existing instances to improve the model performance over time
 3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
 
-
 ### Core Capabilities
 
 - **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
@@ -246,7 +245,6 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
 - **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts
 - **Real-Time Updates**: Allows adding new prompts during inference without reprocessing previous frames
 - **Independent Image Processing**: Process standalone images with shared memory context for cross-image object consistency
-
 
 !!! example "Basic Usage"
 
@@ -258,24 +256,24 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
         from ultralytics.models.sam import SAM2DynamicInteractivePredictor
 
         # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt",save=False)
-        predictor = SAM2DynamicInteractivePredictor(overrides=overrides,max_obj_num=3)
+        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=3)
 
         # Load first frame with initial prompts
         image1 = "path/to/frame1.jpg"
         results1 = predictor.inference(
             img=image1,
-            image_name="frame1", # option 
+            image_name="frame1",  # option
             bboxes=[[100, 100, 200, 200], [300, 150, 400, 250]],  # Two bounding boxes
             obj_ids=[1, 2],  # Object IDs
-            update_memory=True  # Update memory with these objects
+            update_memory=True,  # Update memory with these objects
         )
 
         # Process subsequent frames without prompts (tracking mode)
         image2 = "path/to/frame2.jpg"
         results2 = predictor.inference(
             img=image2,
-            image_name="frame2",  # option 
+            image_name="frame2",  # option
         )
         ```
 
@@ -289,16 +287,11 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
         from ultralytics.models.sam import SAM2DynamicInteractivePredictor
 
         # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt",save=False)
-        predictor = SAM2DynamicInteractivePredictor(overrides=overrides,max_obj_num=10)
+        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Initialize with first objects
-        predictor.inference(
-            img="frame1.jpg",
-            bboxes=[[100, 100, 200, 200]],
-            obj_ids=[1],
-            update_memory=True
-        )
+        predictor.inference(img="frame1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
 
         # Track existing objects in frame 2
         results2 = predictor.inference(img="frame2.jpg", update_memory=False)
@@ -308,13 +301,12 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
             img="frame3.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
             obj_ids=[2],  # New object ID
-            update_memory=True  # Add to memory
+            update_memory=True,  # Add to memory
         )
 
         # Continue tracking all objects
         results4 = predictor.inference(img="frame4.jpg", update_memory=False)
         ```
-
 
 !!! example "Continual Learning"
 
@@ -324,23 +316,16 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
 
         ```python
         from ultralytics.models.sam import SAM2DynamicInteractivePredictor
+
         # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt",save=False)
-        predictor = SAM2DynamicInteractivePredictor(overrides=overrides,max_obj_num=10)
+        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
         # Initial object setup
-        predictor.inference(
-            img="frame1.jpg",
-            bboxes=[[100, 100, 200, 200]],
-            obj_ids=[1],
-            update_memory=True
-        )
+        predictor.inference(img="frame1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
 
         # Process several frames
         for i in range(2, 10):
-            results = predictor.inference(
-                img=f"frame{i}.jpg",
-                update_memory=False
-            )
+            results = predictor.inference(img=f"frame{i}.jpg", update_memory=False)
 
         # Add refinement prompts for better tracking
         # This helps when object appearance changes significantly
@@ -349,7 +334,7 @@ Compared to the original SAM2, SAM2DynamicInteractivePredictor offers three sign
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
             obj_ids=[1],  # Same object ID
-            update_memory=True  # Update memory with new information
+            update_memory=True,  # Update memory with new information
         )
 
         # Continue tracking with improved model
@@ -375,8 +360,6 @@ SAM2DynamicInteractivePredictor is ideal for:
 - **Image collection analysis** where objects need to be tracked across different scenes
 - **Cross-domain segmentation** leveraging memory from diverse image contexts
 - **Semi-automatic annotation** for efficient dataset creation with minimal manual intervention
-
-
 
 ## SAM 2 Comparison vs YOLO
 

@@ -50,7 +50,7 @@ on:
 jobs:
   docker:
     if: github.repository == 'ultralytics/ultralytics'
-    name: Build Images
+    name: Build
     strategy:
       fail-fast: false
       max-parallel: 10

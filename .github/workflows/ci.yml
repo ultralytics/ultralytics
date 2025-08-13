@@ -224,7 +224,7 @@ jobs:
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Install requirements
-        run: uv pip install --system --break-system-packages -e . pytest-cov
+        run: sudo env "PATH=$PATH" uv pip install --system --break-system-packages -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks

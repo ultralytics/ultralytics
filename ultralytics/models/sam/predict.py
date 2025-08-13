@@ -2020,7 +2020,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             points, labels = points.squeeze(1), labels.squeeze(1)
         # apply letterbox preprocessing to masks
 
-
         letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
         if masks is not None and len(masks) > 0:
             masks = [letterbox(image=x).squeeze() for x in masks]
@@ -2330,7 +2329,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         if mask is not None:
             assert mask.dim() == 2
-            mask = mask.unsqueeze(0).unsqueeze(0) # add batch and channel dimension
+            mask = mask.unsqueeze(0).unsqueeze(0)  # add batch and channel dimension
             mask = mask.float().to(imgState.device)
             imgState.mask_inputs[obj_idx] = mask
 

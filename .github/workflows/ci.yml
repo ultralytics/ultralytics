@@ -221,11 +221,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # - uses: astral-sh/setup-uv@v6
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Install requirements
-        # shell: bash # for Windows compatibility
-        run: | 
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv pip install --system --break-system-packages -e . pytest-cov
+        run: uv pip install --system --break-system-packages -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks

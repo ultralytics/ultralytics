@@ -223,7 +223,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
-        run: pip install uv --break-system-packages && sudo uv pip install --system --break-system-packages -e . pytest-cov
+        run: uv pip install --system --break-system-packages -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks

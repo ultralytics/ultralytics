@@ -8,6 +8,8 @@ keywords: queue management, YOLO11, Ultralytics, reduce wait times, efficiency, 
 
 ## What is Queue Management?
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-monitor-objects-in-queue-using-queue-management-solution.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Queue Management In Colab"></a>
+
 Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics/) involves organizing and controlling lines of people or vehicles to reduce wait times and enhance efficiency. It's about optimizing queues to improve customer satisfaction and system performance in various settings like retail, banks, airports, and healthcare facilities.
 
 <p align="center">

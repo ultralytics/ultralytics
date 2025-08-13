@@ -163,11 +163,9 @@ class BaseValidator:
             )
             self.device = model.device  # update device
             self.args.half = model.fp16  # update half
-            stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
+            stride, pt, jit = model.stride, model.pt, model.jit
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
-            if engine:
-                self.args.batch = model.batch_size
-            elif not (pt or jit or getattr(model, "dynamic", False)):
+            if not (pt or jit or getattr(model, "dynamic", False)):
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 

@@ -23,26 +23,26 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 libpython3-dev gnupg \
-    && rm -rf /var/lib/apt/lists/*
+    python3-pip git zip unzip wget curl htop gcc libgl1 libglib2.0-0 gnupg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create working directory
 WORKDIR /ultralytics
 
 # Copy contents and configure git
 COPY . .
-RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
+    sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
-# Install pip packages
-RUN pip install uv
-RUN uv pip install --system -e ".[export]" --break-system-packages
-
-# Creates a symbolic link to make 'python' point to 'python3'
-RUN which python3 && ln -sf $(which python3) $(dirname $(which python3))/python || echo "Python3 not found"
-
-# Remove extra build files
-RUN rm -rf /root/.config/Ultralytics/persistent_cache.json
+# Install pip packages, create python symlink, and remove build files
+RUN pip install uv && \
+    uv pip install --system -e ".[export]" --break-system-packages && \
+    # Creates a symbolic link to make 'python' point to 'python3'
+    ln -sf /usr/bin/python3 /usr/bin/python && \
+    # Remove extra build files
+    rm -rf /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

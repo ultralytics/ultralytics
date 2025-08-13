@@ -1,13 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CUDA-optimized for YOLO11 single/multi-GPU training and inference
+# Image is CUDA-optimized for YOLO single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 
 # Set environment variables
-# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
 # Suppress TensorFlow cuDNN, cuBLAS, and cuFFT Registration Warnings
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -27,32 +27,24 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg libsm6 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Security updates
-# https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
-RUN apt upgrade --no-install-recommends -y openssl tar
+    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 gnupg libsm6 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create working directory
 WORKDIR /ultralytics
 
 # Copy contents and configure git
 COPY . .
-RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config
+RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
+    sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Install pip packages
-RUN pip install uv
-RUN uv pip install --system -e ".[export]" albumentations faster-coco-eval "onnxruntime-gpu" tensorrt wandb
-
-# Run exports to AutoInstall packages
-RUN yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32
-RUN yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32
-RUN uv pip install --system paddlepaddle x2paddle
-
-# Remove extra build files
-RUN rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+RUN pip install uv && \
+    uv pip install --system -e "." albumentations faster-coco-eval wandb && \
+    # Remove extra build files \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
-from collections import defaultdict
+from collections import Counter, defaultdict
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -250,8 +250,10 @@ class BaseSolution:
         result.speed = {track_or_predict: track_or_predict_speed, "solution": solution_speed}
         if self.CFG["verbose"]:
             self.frame_no += 1
+            counts = Counter(self.clss)  # Only for logging.
             LOGGER.info(
-                f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms\n"
+                f"{self.frame_no}: {result.plot_im.shape[0]}x{result.plot_im.shape[1]} {solution_speed:.1f}ms,"
+                f" {', '.join([f'{v} {self.names[k]}' for k, v in counts.items()])}\n"
                 f"Speed: {track_or_predict_speed:.1f}ms {track_or_predict}, "
                 f"{solution_speed:.1f}ms solution per image at shape "
                 f"(1, {getattr(self.model, 'ch', 3)}, {result.plot_im.shape[0]}, {result.plot_im.shape[1]})\n"

@@ -210,17 +210,17 @@ class BOTSORT(BYTETracker):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
         return KalmanFilterXYWH()
 
-    def init_track(
-        self, dets: np.ndarray, scores: np.ndarray, cls: np.ndarray, img: Optional[np.ndarray] = None
-    ) -> List[BOTrack]:
+    def init_track(self, results, img: Optional[np.ndarray] = None) -> List[BOTrack]:
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
-        if len(dets) == 0:
+        if len(results) == 0:
             return []
+        bboxes = results.xywhr if hasattr(results, "xywhr") else results.xywh
+        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         if self.args.with_reid and self.encoder is not None:
-            features_keep = self.encoder(img, dets)
-            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(dets, scores, cls, features_keep)]  # detections
+            features_keep = self.encoder(img, bboxes)
+            return [BOTrack(xywh, s, c, f) for (xywh, s, c, f) in zip(bboxes, results.conf, results.cls, features_keep)]
         else:
-            return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(dets, scores, cls)]  # detections
+            return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
     def get_dists(self, tracks: List[BOTrack], detections: List[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""

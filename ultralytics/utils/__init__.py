@@ -1036,7 +1036,7 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(path.parent):
         LOGGER.warning(
-            f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
+            f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD. "
             "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
         )
         path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir

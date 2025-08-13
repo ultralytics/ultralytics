@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
 import torch
 
 from ultralytics.data.build import load_inference_source

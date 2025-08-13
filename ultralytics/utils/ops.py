@@ -245,8 +245,6 @@ def non_max_suppression(
     if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
     if classes is not None:
-        if isinstance(classes, str) or isinstance(classes[0], str):
-            classes = list(range(len(classes)))
         classes = torch.tensor(classes, device=prediction.device)
 
     if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)

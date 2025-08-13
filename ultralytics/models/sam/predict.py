@@ -2020,10 +2020,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             points, labels = points.squeeze(1), labels.squeeze(1)
         # apply letterbox preprocessing to masks
 
+
         letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
         if masks is not None and len(masks) > 0:
-            masks = [letterbox(mask=x).squeeze() for x in masks]
-            masks = torch.tensor(masks, dtype=torch.float32).unsqueeze(0)
+            masks = [letterbox(image=x).squeeze() for x in masks]
+            masks = torch.tensor(masks, dtype=torch.float32)
 
         return bboxes, points, labels, masks
 
@@ -2072,7 +2073,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         bboxes, points, labels, masks = self._prepare_prompts(
             dst_shape=(self.image_size, self.image_size), points=points, bboxes=bboxes, labels=labels, masks=masks
         )
-
         # check if the input is valid
         if points is not None:
             assert masks is not None or bboxes is not None, (
@@ -2333,8 +2333,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
 
         if mask is not None:
-            assert mask.dim() == 3
-            mask = mask[None]  # add batch and channel dimension
+            assert mask.dim() == 2
+            mask = mask.unsqueeze(0).unsqueeze(0) # add batch and channel dimension
             mask = mask.float().to(imgState.device)
             imgState.mask_inputs[obj_idx] = mask
 

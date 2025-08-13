@@ -2284,8 +2284,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     # Flatten the nested list if needed
                     points = torch.tensor(points, dtype=torch.float32)
                 else:
-                    print("Warning: points is a list of single points, converting to tensor.")
-                    print("points:", points)
                     # Single point case
                     points = torch.tensor([points], dtype=torch.float32)
             else:
@@ -2306,11 +2304,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if labels.dim() == 1:
             labels = labels.unsqueeze(0)  # add batch dimension
         if bbox is not None:
-            bbox = torch.tensor(bbox, dtype=torch.float32, device=points.device)
+            bbox = bbox.to(points.device)
             box_coords = bbox.reshape(1, 2, 2)
             box_labels = torch.tensor([2, 3], dtype=torch.int32, device=labels.device)
             box_labels = box_labels.reshape(1, 2)
-            print(box_coords.shape, points.shape, box_labels.shape, labels.shape)
             points = torch.cat([box_coords, points], dim=1)
             labels = torch.cat([box_labels, labels], dim=1)
         if normalize_coords:

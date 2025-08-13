@@ -81,33 +81,45 @@ def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
     return X
 
 
+def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
+    momentum.lerp_(grad, 1 - beta)
+    update = grad.lerp_(momentum, beta) if nesterov else momentum
+    if update.ndim == 4:  # for the case of conv filters
+        update = update.view(len(update), -1)
+    update = zeropower_via_newtonschulz5(update, steps=ns_steps)
+    update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
+    return update
+
+
 class Muon(torch.optim.Optimizer):
-    def __init__(self, params, lr=0.02, weight_decay=0, momentum=0.95, nesterov: bool = False):
-        defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum, nesterov=nesterov)
-        assert isinstance(params, list) and len(params) >= 1 and isinstance(params[0], torch.nn.Parameter)
-        params = sorted(params, key=lambda x: x.size(), reverse=True)
+    """
+    Muon variant for usage in non-distributed settings.
+    """
+
+    def __init__(self, params, lr=0.02, weight_decay=0, momentum=0.95):
+        defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum)
         super().__init__(params, defaults)
 
-    def step(self):
+    @torch.no_grad()
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
         for group in self.param_groups:
-            lr = group["lr"]
-            momentum = group["momentum"]
             for p in group["params"]:
-                g = p.grad
-                if g is None:
-                    continue
+                if p.grad is None:
+                    # continue
+                    p.grad = torch.zeros_like(p)  # Force synchronization
                 state = self.state[p]
+                if len(state) == 0:
+                    state["momentum_buffer"] = torch.zeros_like(p)
+                update = muon_update(p.grad, state["momentum_buffer"], beta=group["momentum"])
+                p.mul_(1 - group["lr"] * group["weight_decay"])
+                p.add_(update.reshape(p.shape), alpha=-group["lr"])
 
-                if "momentum_buffer" not in state.keys():
-                    state["momentum_buffer"] = torch.zeros_like(g)
-                buf = state["momentum_buffer"]
-                buf.mul_(momentum).add_(g)
-                # g = g.add(buf, alpha=momentum) if group["nesterov"] else buf
-                g = g.add(buf, alpha=momentum) if group["nesterov"] else buf
-
-                p.data.mul_(len(p.data) ** 0.5 / p.data.norm())  # normalize the weight
-                update = zeropower_via_newtonschulz5(g.reshape(len(g), -1)).view(g.shape)  # whiten the update
-                p.data.add_(update, alpha=-lr)  # take a step
+        return loss
 
 
 class BaseTrainer:

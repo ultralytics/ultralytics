@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, ChannelAttention, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -50,6 +50,7 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "SimSPPF",
 )
 
 
@@ -224,6 +225,35 @@ class SPPF(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 
+class SimSPPF(nn.Module):
+    """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
+
+    def __init__(self, c1, c2, k=5, act=True):
+        """
+        Initialize the SPPF layer with given input/output channels and kernel size.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            k (int): Kernel size.
+
+        Notes:
+            This module is equivalent to SPP(k=(5, 9, 13)).
+        """
+        super().__init__()
+        c_ = c1 // 2  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c_ * 2, c2, 1, 1, act=act)
+        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.ca = ChannelAttention(c_)  # Channel Attention
+
+    def forward(self, x):
+        """Apply sequential pooling operations to input and return concatenated feature maps."""
+        y = [self.cv1(x)]
+        y.append(self.ca(y[0]) * self.m(y[0]))
+        return self.cv2(torch.cat(y, 1)) + x
+
+
 class C1(nn.Module):
     """CSP Bottleneck with 1 convolution."""
 
@@ -336,10 +366,12 @@ class C3(nn.Module):
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
+        self.add = shortcut and c1 == c2
 
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 3 convolutions."""
-        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+        y = self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+        return x + y if self.add else y
 
 
 class C3x(C3):
@@ -1083,7 +1115,7 @@ class C3f(nn.Module):
 class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, act=True, g=1, shortcut=True):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, act=True, g=1, shortcut=True, chattn=False):
         """
         Initialize C3k2 module.
 
@@ -1101,6 +1133,20 @@ class C3k2(C2f):
             C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
         )
         self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
+        self.chattn = ChannelAttention(c1) if chattn else None
+        # self.add = c1 == c2
+
+    def forward(self, x):
+        if self.chattn is not None:
+            x = self.chattn(x)
+        return super().forward(x)
+        # return x + super().forward(x) if self.add else super().forward(x)
+
+    def forward_split(self, x):
+        if self.chattn is not None:
+            x = self.chattn(x)
+        return super().forward(x)
+        # return x + super().forward_split(x) if self.add else super().forward_split(x)
 
 
 class C3k(C3):
@@ -1335,6 +1381,74 @@ class Attention(nn.Module):
         return x
 
 
+class DSAttention(nn.Module):
+    """
+    Attention module that performs self-attention on the input tensor.
+
+    Args:
+        dim (int): The input tensor dimension.
+        num_heads (int): The number of attention heads.
+        attn_ratio (float): The ratio of the attention key dimension to the head dimension.
+
+    Attributes:
+        num_heads (int): The number of attention heads.
+        head_dim (int): The dimension of each attention head.
+        key_dim (int): The dimension of the attention key.
+        scale (float): The scaling factor for the attention scores.
+        qkv (Conv): Convolutional layer for computing the query, key, and value.
+        proj (Conv): Convolutional layer for projecting the attended values.
+        pe (Conv): Convolutional layer for positional encoding.
+    """
+
+    def __init__(self, dim, num_heads=8, attn_ratio=0.5, downsample_ratio=2):
+        """
+        Initialize multi-head attention module.
+
+        Args:
+            dim (int): Input dimension.
+            num_heads (int): Number of attention heads.
+            attn_ratio (float): Attention ratio for key dimension.
+        """
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = dim // num_heads
+        self.key_dim = int(self.head_dim * attn_ratio)
+        self.scale = self.key_dim**-0.5
+        nh_kd = self.key_dim * num_heads
+        self.q = Conv(dim, nh_kd, 1, act=False)
+        self.k = Conv(dim, nh_kd, 1, act=False)
+        self.v = Conv(dim, dim, 1, act=False)
+        self.proj = Conv(dim, dim, 1, act=False)
+        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
+        self.downsample = nn.MaxPool2d(kernel_size=downsample_ratio, stride=downsample_ratio)
+        self.downsample_ratio = downsample_ratio
+
+    def forward(self, x):
+        """
+        Forward pass of the Attention module.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            (torch.Tensor): The output tensor after self-attention.
+        """
+        B, C, H, W = x.shape
+        N = H * W
+        N_q = int(H / self.downsample_ratio * W / self.downsample_ratio)
+        x_q = self.downsample(x)
+        q = self.q(x_q).view(B, self.num_heads, self.key_dim, N_q)
+        k = self.k(x_q).view(B, self.num_heads, self.key_dim, N_q)
+        v = self.v(x).view(B, self.num_heads, self.head_dim, N)
+
+        attn = (q.transpose(-2, -1) @ k) * self.scale
+        attn = attn.softmax(dim=-1)
+        v = v.reshape(B, self.num_heads, self.head_dim * int(N / N_q), N_q)
+        x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+        x = self.proj(x)
+        return x
+
+
 class SimAttention(nn.Module):
     """
     Simplified Attention Module from MobileViTv2.
@@ -1390,7 +1504,8 @@ class SimAttention(nn.Module):
         )
         q = q.softmax(dim=-1)  # (B, num_heads, 1, N)
         k = k * q  # (B, num_heads, head_dim, N)
-        k = k.sum(dim=-1, keepdim=True)
+        k = k.sum(dim=-1, keepdim=True)  # (B, num_heads, head_dim, 1)
+        # (B, num_heads, head_dim, 1) * (B, num_heads, head_dim, N)
         x = (F.silu(v) * k).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         return self.proj(x)
 
@@ -1507,7 +1622,7 @@ class PSABlock(nn.Module):
         >>> output_tensor = psablock(input_tensor)
     """
 
-    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True, attn="default", area=1) -> None:
+    def __init__(self, c, attn_ratio=0.5, num_heads=4, shortcut=True, attn="default", area=1, downsample=1) -> None:
         """
         Initialize the PSABlock.
 
@@ -1519,11 +1634,13 @@ class PSABlock(nn.Module):
         """
         super().__init__()
 
-        assert attn in {"default", "sim", "area"}
+        assert attn in {"default", "sim", "area", "ds"}
         if attn == "default":
             self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
         elif attn == "sim":
             self.attn = SimAttention(c, num_heads=num_heads)
+        elif attn == "ds":
+            self.attn = DSAttention(c, attn_ratio=attn_ratio, num_heads=num_heads, downsample_ratio=downsample)
         else:
             self.attn = AreaAttention(c, num_heads=num_heads, attn_ratio=attn_ratio, area=area)
         self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
@@ -1630,7 +1747,7 @@ class C2PSA(nn.Module):
         >>> output_tensor = c2psa(input_tensor)
     """
 
-    def __init__(self, c1, c2, n=1, e=0.5, act=True, attn="default", area=1):
+    def __init__(self, c1, c2, n=1, e=0.5, act=True, attn="default", area=1, downsample=1):
         """
         Initialize C2PSA module.
 
@@ -1647,8 +1764,16 @@ class C2PSA(nn.Module):
         self.cv2 = Conv(2 * self.c, c1, 1, act=act)
 
         self.m = nn.Sequential(
-            *(PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, area=area) for _ in range(n))
+            *(
+                PSABlock(
+                    self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, area=area, downsample=downsample
+                )
+                for _ in range(n)
+            )
         )
+        # self.m = nn.Sequential(
+        #     *(PSABlock(self.c * 2, attn_ratio=0.5, num_heads=max(self.c * 2 // 64, 1), attn=attn, area=area) for _ in range(n))
+        # )
 
     def forward(self, x):
         """
@@ -1660,6 +1785,7 @@ class C2PSA(nn.Module):
         Returns:
             (torch.Tensor): Output tensor after processing.
         """
+        # return self.cv2(self.m(self.cv1(x)))
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = self.m(b)
         return self.cv2(torch.cat((a, b), 1))

@@ -366,7 +366,6 @@ class BaseTrainer:
             model=self.model,
             name=self.args.optimizer,
             lr=self.args.lr0,
-            muon_lr=self.args.muon_lr0,
             momentum=self.args.momentum,
             decay=weight_decay,
             iterations=iterations,
@@ -865,7 +864,7 @@ class BaseTrainer:
             LOGGER.info("Closing dataloader mosaic")
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
-    def build_optimizer(self, model, name="auto", lr=0.001, muon_lr=0.01, momentum=0.9, decay=1e-5, iterations=1e5):
+    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
         Construct an optimizer for the given model.
 
@@ -898,9 +897,11 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if int(module_name.split(".")[1]) < 23 and param.ndim >= 2:
-                    # if param.ndim >= 2:
-                    g[3].append(param)
+                if param.ndim >= 2:
+                    if self.args.muon_head:
+                        g[3].append(param)
+                    elif int(module_name.split(".")[1]) < 23:
+                        g[3].append(param)
                 elif "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
@@ -924,7 +925,7 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        optimizer_muon = Muon(g[3], lr=muon_lr, weight_decay=decay, momentum=momentum)
+        optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)

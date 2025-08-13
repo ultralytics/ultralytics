@@ -210,15 +210,15 @@ jobs:
 
       - name: Check Environment
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags == 'latest-python' && 'latest-python-export' || matrix.tags == 'latest' && 'latest-export' || matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "yolo checks && uv pip list"
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags == 'latest-python' && 'latest-python-export' || matrix.tags == 'latest' && 'latest-export' || matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ matrix.tags == 'latest-python' && 'latest-python-export' || matrix.tags == 'latest' && 'latest-export' || matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} yolo benchmark model=yolo11n.pt imgsz=160 verbose=0.309
 
       - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')

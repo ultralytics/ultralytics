@@ -954,7 +954,11 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import YOLO
 
         model = YOLO(model, task=task)
-
+        if "yoloe" in stem:
+            cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
+            if isinstance(cls_list, str):  # convert "person, bus" -> ['person', ' bus'] for prompt-based inference.
+                cls_list = cls_list.split(",")
+            model.set_classes(cls_list, model.get_text_pe(cls_list))
     # Task Update
     if task != model.task:
         if task:

@@ -366,6 +366,7 @@ class BaseTrainer:
             model=self.model,
             name=self.args.optimizer,
             lr=self.args.lr0,
+            muon_lr=self.args.muon_lr0,
             momentum=self.args.momentum,
             decay=weight_decay,
             iterations=iterations,
@@ -856,7 +857,7 @@ class BaseTrainer:
             LOGGER.info("Closing dataloader mosaic")
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
-    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+    def build_optimizer(self, model, name="auto", lr=0.001, muon_lr=0.01, momentum=0.9, decay=1e-5, iterations=1e5):
         """
         Construct an optimizer for the given model.
 
@@ -915,7 +916,7 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        optimizer_muon = Muon(g[3], lr=lr, weight_decay=decay, momentum=momentum)
+        optimizer_muon = Muon(g[3], lr=muon_lr, weight_decay=decay, momentum=momentum)
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)

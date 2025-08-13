@@ -956,9 +956,9 @@ def entrypoint(debug: str = "") -> None:
         model = YOLO(model, task=task)
         if "yoloe" in stem:
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
-            if isinstance(cls_list, str):  # convert "person, bus" -> ['person', ' bus'] for prompt-based inference.
+            if cls_list is not None and isinstance(cls_list, str):  # convert "person, bus" -> ['person', ' bus'].
                 cls_list = cls_list.split(",")
-            model.set_classes(cls_list, model.get_text_pe(cls_list))
+                model.set_classes(cls_list, model.get_text_pe(cls_list))
     # Task Update
     if task != model.task:
         if task:

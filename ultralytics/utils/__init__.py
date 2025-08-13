@@ -343,7 +343,46 @@ class DataExportMixin:
             For engine="sqlalchemy": requires sqlalchemy, pandas, and pyarrow packages.
             For engine="adbc": requires adbc_driver_manager and pyarrow packages.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).write_database(
+        import polars as pl
+
+        df = self.to_df(normalize=normalize, decimals=decimals)
+
+        complex_columns = [
+            col for col in df.columns if df[col].dtype == pl.Object or isinstance(df[col].dtype, pl.Struct)
+        ]
+        if complex_columns:
+            struct_columns = [col for col in complex_columns if isinstance(df[col].dtype, pl.Struct)]
+            object_columns = [col for col in complex_columns if df[col].dtype == pl.Object]
+
+            conversion_exprs = []
+
+            if struct_columns:
+                conversion_exprs.extend([pl.col(col).struct.json_encode().alias(col) for col in struct_columns])
+
+            if object_columns:
+
+                def _to_sql_compatible(v):
+                    """Convert complex types to SQL-compatible strings."""
+                    if v is None:
+                        return None
+                    elif isinstance(v, dict):
+                        return json.dumps(v)
+                    elif isinstance(v, (list, tuple, set)):
+                        return json.dumps(list(v))
+                    else:
+                        return v
+
+                conversion_exprs.extend(
+                    [
+                        pl.col(col).map_elements(_to_sql_compatible, return_dtype=pl.String).alias(col)
+                        for col in object_columns
+                    ]
+                )
+
+            if conversion_exprs:
+                df = df.with_columns(conversion_exprs)
+
+        return df.write_database(
             table_name=table_name, connection=db_path, engine=engine, if_table_exists=if_table_exists
         )
 

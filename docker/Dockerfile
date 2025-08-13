@@ -4,7 +4,7 @@
 # Image is CUDA-optimized for YOLO single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
@@ -22,13 +22,14 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
     /root/.config/Ultralytics/
 
-# Install linux packages
+# Install linux packages and security updates
 # gnupg required for Edge TPU install
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 gnupg libsm6 && \
-    apt-get clean && \
+    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libpython3-dev gnupg libsm6 && \
+    # Security updates: https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
+    apt upgrade --no-install-recommends -y openssl tar && \
     rm -rf /var/lib/apt/lists/*
 
 # Create working directory

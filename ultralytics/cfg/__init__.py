@@ -957,8 +957,7 @@ def entrypoint(debug: str = "") -> None:
         if "yoloe" in stem:
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
-                cls_list = cls_list.split(",")  # convert "person, bus" -> ['person', ' bus'].
-                model.set_classes(cls_list, model.get_text_pe(cls_list))
+                model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].
     # Task Update
     if task != model.task:
         if task:

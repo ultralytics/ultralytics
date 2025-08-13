@@ -1979,8 +1979,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         return self.model.image_size
 
-
-
     def _prepare_prompts(
         self,
         dst_shape: Tuple[int, int],

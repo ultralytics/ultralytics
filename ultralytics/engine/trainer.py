@@ -892,7 +892,7 @@ class BaseTrainer:
                 if int(module_name.split(".")[1]) < 23 and param.ndim >= 2:
                 # if param.ndim >= 2:
                     g[3].append(param)
-                elif "bias" in fullname:  # bias (no decay)
+                if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
                     # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'

@@ -439,6 +439,14 @@ class BaseTrainer:
                         )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
+                    if self.args.muon_warmup:
+                        for j, x in enumerate(self.optimizer2.param_groups):
+                            # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
+                            x["lr"] = np.interp(
+                                ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                            )
+                            if "momentum" in x:
+                                x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
                 with autocast(self.amp):
@@ -891,7 +899,7 @@ class BaseTrainer:
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if int(module_name.split(".")[1]) < 23 and param.ndim >= 2:
-                # if param.ndim >= 2:
+                    # if param.ndim >= 2:
                     g[3].append(param)
                 elif "bias" in fullname:  # bias (no decay)
                     g[2].append(param)

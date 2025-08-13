@@ -227,17 +227,21 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
 ## Dynamic Interactive Segment and Track
-SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training. 
+
+SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
 
 ![SAM 2 Example Results](https://private-user-images.githubusercontent.com/31230805/477503604-e51792ee-bbc1-4245-a482-ec1f834f9051.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NTUwODQ3OTcsIm5iZiI6MTc1NTA4NDQ5NywicGF0aCI6Ii8zMTIzMDgwNS80Nzc1MDM2MDQtZTUxNzkyZWUtYmJjMS00MjQ1LWE0ODItZWMxZjgzNGY5MDUxLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA4MTMlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwODEzVDExMjgxN1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTNjNmRmM2UwOGJkMmIyMmZlMjY1OWU0MTUxZmM4YzI1YjRkMTVlY2NkNDk1MTM5NzFhYjA3N2E4ZTJiYjc5MzImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.qRgw395R7Y2NzMYim4zXOj8HfzB6l7TRUBrAcEpx8uo)
 
 ### Key Features
+
 It offers three significant enhancements:
+
 1. **Dynamic Interactive**: Add new prompts for merging/untracked new instances in following frames anytime during video processing
 2. **Continual Learning**: Add new prompts for existing instances to improve the model performance over time
 3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
 
 ### Core Capabilities
+
 - **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
 - **Multi-Object Tracking**: Supports tracking multiple objects simultaneously with individual object IDs
 - **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts

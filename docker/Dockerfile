@@ -4,7 +4,7 @@
 # Image is CUDA-optimized for YOLO single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.7.0-cuda12.6-cudnn9-runtime
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
@@ -40,14 +40,10 @@ RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
     sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
-# Install pip packages and run exports to AutoInstall packages
+# Install pip packages
 RUN pip install uv && \
-    uv pip install --system -e ".[export]" albumentations faster-coco-eval "onnxruntime-gpu" tensorrt wandb && \
-    # Run exports to AutoInstall packages
-    yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
-    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
-    uv pip install --system paddlepaddle x2paddle && \
-    # Remove extra build files
+    uv pip install --system -e "." albumentations faster-coco-eval wandb && \
+    # Remove extra build files \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

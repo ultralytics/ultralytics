@@ -92,14 +92,38 @@ dev = [
     "mkdocs-macros-plugin>=1.0.5", # duplicating content (i.e. export tables) in multiple places
 ]
 export = [
-    "onnx>=1.12.0,<1.18.0", # ONNX export
+    # ONNX
+    "onnx>=1.12.0,<1.18.0",
+    "onnxslim>=0.1.56", 
+    # CoreML
     "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
+    # OpenVINO
     "openvino>=2024.0.0",  # OpenVINO export
-    "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "packaging>=23.2",  # int8 export
+    "nncf>=2.14.0; python_version >= '3.9'",
+    # TensorFlow SavedModel
+    "tensorflow>=2.0.0; python_version >= '3.10'", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tf_keras; python_version >= '3.10'",  # required by 'onnx2tf' package
+    "sng4onnx>=1.0.1; python_version >= '3.10'",  # required by 'onnx2tf' package
+    "onnx_graphsurgeon>=0.3.26; python_version >= '3.10'",  # required by 'onnx2tf' package
+    "ai-edge-litert>=1.2.0; platform_system != 'Windows' and python_version >= '3.10'",  # required by 'onnx2tf' package
+    "onnx2tf>=1.26.3; python_version >= '3.10'",
+    "protobuf>=5; python_version >= '3.10'",
+    # TensorFlow.js
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+    "x2paddle",  # Paddle
+    "MNN>=2.9.6",  # MNN
+    "ncnn",  # NCNN
+    # "tensorrt>7.0.0,!=10.1.0",  # TensorRT, commented as it's gpu-specific
+    # "rknn-toolkit2",  # RKNN, commented for now as it'd downgrade torch to 2.4.0
+    # IMX, commented for now as now it's not supported in tests
+    # "model-compression-toolkit>=2.3.0",
+    # "sony-custom-layers>=0.3.0",
+    # "edge-mdt-tpc>=1.1.0",
+    # "imx500-converter[pt]>=3.16.1",
 ]
 solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching

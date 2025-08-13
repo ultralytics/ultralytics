@@ -220,10 +220,12 @@ jobs:
     runs-on: github-linux-gpu-t4-4-core
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      # - uses: astral-sh/setup-uv@v6
       - name: Install requirements
-        shell: bash # for Windows compatibility
-        run: pip install --break-system-packages -e . pytest-cov
+        # shell: bash # for Windows compatibility
+        run: | 
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv pip install --system --break-system-packages -e . pytest-cov
       - name: Check environment
         run: |
           yolo checks

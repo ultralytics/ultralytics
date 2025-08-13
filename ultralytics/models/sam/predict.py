@@ -2054,7 +2054,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             bboxes (List[List[float]] | None): Optional list of bounding boxes to update the memory.
             masks (List[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
             points (List[List[float]] | None): Optional list of points to update the memory, each point is [x, y].
-            labels (List[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for negative). 
+            labels (List[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for negative).
             obj_ids (List[int] | None): Optional list of object IDs corresponding to the prompts.
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
             *args (Any): Additional arguments for the inference process.
@@ -2075,9 +2075,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         # check if the input is valid
         if points is not None:
-            assert masks is not None or bboxes is not None, (
-                "masks or bboxes must be provided when points are provided!"
-            )
+            assert masks is not None or bboxes is not None, "masks or bboxes must be provided when points are provided!"
 
         if update_memory:
             assert bboxes is not None or masks is not None or points is not None, (
@@ -2129,8 +2127,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                         )
 
                     self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=labels_, points=points_)
-
-
 
             self.update_memory(imgState)
 

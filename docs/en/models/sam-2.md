@@ -227,15 +227,19 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
 ## Dynamic Interactive Segment and Track
-SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training. 
+
+SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
 
 ### Key Features
+
 It offers three significant enhancements:
+
 1. **Dynamic Interactive**: Add new prompts for merging/untracked new instances in following frames anytime during video processing
 2. **Continual Learning**: Add new prompts for existing instances to improve the model performance over time
 3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
 
 ### Core Capabilities
+
 - **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
 - **Multi-Object Tracking**: Supports tracking multiple objects simultaneously with individual object IDs
 - **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts

@@ -6,6 +6,7 @@ import torch
 from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.models.yolo.segment import SegmentationPredictor
+from ultralytics.utils import DEFAULT_CFG
 
 
 class YOLOEVPDetectPredictor(DetectionPredictor):
@@ -165,5 +166,4 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
     """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
-
     pass

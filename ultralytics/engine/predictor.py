@@ -397,6 +397,7 @@ class BasePredictor:
             fuse=True,
             verbose=verbose,
         )
+        print(self.args.device)
 
         self.device = self.model.device  # update device
         self.args.half = self.model.fp16  # update half

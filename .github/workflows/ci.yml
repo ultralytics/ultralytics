@@ -220,15 +220,13 @@ jobs:
     runs-on: github-linux-gpu-t4-4-core
     steps:
       - uses: actions/checkout@v4
-      # - uses: astral-sh/setup-uv@v6
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: sudo env "PATH=$PATH" uv pip install --system --break-system-packages -e . pytest-cov
       - name: Check environment
         run: |
           sudo yolo checks
-          sudo uv pip list
+          sudo env "PATH=$PATH" uv pip list
       - name: Pytest tests
         run: |
           slow=""

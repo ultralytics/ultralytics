@@ -954,7 +954,7 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import YOLO
 
         model = YOLO(model, task=task)
-        if "yoloe" in stem:
+        if "yoloe" in stem or "world" in stem:
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
                 model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].

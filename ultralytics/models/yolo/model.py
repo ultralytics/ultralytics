@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+import torch
+
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -315,7 +317,7 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)
 
-    def set_classes(self, classes: List[str], embeddings) -> None:
+    def set_classes(self, classes: List[str], embeddings: Optional[torch.Tensor] = None) -> None:
         """
         Set the model's class names and embeddings for detection.
 
@@ -324,6 +326,8 @@ class YOLOE(Model):
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
+        if embeddings is None:
+            embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
         self.model.set_classes(classes, embeddings)
         # Verify no background class is present
         assert " " not in classes

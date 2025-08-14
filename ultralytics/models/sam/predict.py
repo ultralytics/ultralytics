@@ -2367,7 +2367,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 mask_inputs=mask_inputs,
                 high_res_features=high_res_features,
                 multimask_output=False,
-                keep_sparse_dense_embeddings=False,
             )
 
             (
@@ -2394,7 +2393,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         mask_inputs: Optional[torch.Tensor] = None,
         high_res_features: Optional[List[torch.Tensor]] = None,
         multimask_output: bool = False,
-        **kwargs: Any,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Forward SAM prompt encoders and mask heads.

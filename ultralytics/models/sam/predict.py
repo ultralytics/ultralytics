@@ -496,8 +496,9 @@ class Predictor(BasePredictor):
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
                 idx = pred_scores > self.args.conf
-                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
-            results.append(Results(orig_img, path=img_path, names=names, masks=masks[idx], boxes=pred_bboxes[idx]))
+                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)[idx]
+                masks = masks[idx]
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False
         return results

@@ -2385,6 +2385,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         return current_out
 
+    # TODO: remove this
     def _forward_sam_heads(
         self,
         backbone_features: torch.Tensor,
@@ -2424,7 +2425,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             object_score_logits (torch.Tensor): Object score logits with shape [B, 1].
         """
         B = backbone_features.size(0)
-        if isinstance(obj_idx, int):
+        if isinstance(obj_idx, int):  # TODO
             B = 1
         device = backbone_features.device
         assert backbone_features.size(1) == self.model.sam_prompt_embed_dim
@@ -2470,19 +2471,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             masks=sam_mask_prompt,
         )
 
-        (
-            low_res_multimasks,
-            ious,
-            sam_output_tokens,
-            object_score_logits,
-        ) = self.model.sam_mask_decoder(
-            image_embeddings=backbone_features[:B],
+        low_res_multimasks, ious, sam_output_tokens, object_score_logits = self.model.sam_mask_decoder(
+            image_embeddings=backbone_features[:B],  # TODO: additional ":B"
             image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embeddings,
             dense_prompt_embeddings=dense_embeddings,
             multimask_output=multimask_output,
             repeat_image=False,  # the image is already batched
-            high_res_features=[feat[:B] for feat in high_res_features],
+            high_res_features=[feat[:B] for feat in high_res_features],  # TODO
         )
 
         if self.model.pred_obj_scores:
@@ -2490,11 +2486,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
             # Mask used for spatial memories is always a *hard* choice between obj and no obj,
             # consistent with the actual mask prediction
-            low_res_multimasks = torch.where(
-                is_obj_appearing[:, None, None],
-                low_res_multimasks,
-                self.no_obj_score,
-            )
+            low_res_multimasks = torch.where(is_obj_appearing[:, None, None], low_res_multimasks, self.no_obj_score)
 
         # convert masks from possibly bfloat16 (or float16) to float32
         # (older PyTorch versions before 2.1 don't support `interpolate` on bf16)

@@ -2032,7 +2032,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                         point, label = points[i], labels[i]
                     else:
                         point, label = None, None
-
                     self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=label, points=point)
 
             self.update_memory(imgState)
@@ -2181,28 +2180,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         if points is None:
             points = torch.zeros(0, 2, dtype=torch.float32)
-        elif not isinstance(points, torch.Tensor):
-            if isinstance(points, list) and len(points) > 0:
-                # Handle nested list structure
-                if isinstance(points[0], list):
-                    # Flatten the nested list if needed
-                    points = torch.tensor(points, dtype=torch.float32)
-                else:
-                    # Single point case
-                    points = torch.tensor([points], dtype=torch.float32)
-            else:
-                assert False, "points must be a list of points or a tensor"
-                # Empty list or other cases
-                points = torch.zeros(0, 2, dtype=torch.float32)
         if labels is None:
             labels = torch.zeros(0, dtype=torch.int32)
-        elif not isinstance(labels, torch.Tensor):
-            if isinstance(labels, list) and len(labels) > 0:
-                labels = torch.tensor(labels, dtype=torch.int32)
-            else:
-                assert False, "points must be a list of points or a tensor"
-                # Empty list or other cases
-                labels = torch.zeros(0, dtype=torch.int32)
         if points.dim() == 2:
             points = points.unsqueeze(0)  # add batch dimension
         if labels.dim() == 1:

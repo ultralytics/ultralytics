@@ -2005,9 +2005,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         points, labels, masks = self._prepare_prompts(
             dst_shape=(self.image_size, self.image_size), points=points, bboxes=bboxes, labels=labels, masks=masks
         )
-        # TODO: support point prompts without bboxes/masks
-        if points is not None:
-            assert masks is not None or bboxes is not None, "masks or bboxes must be provided when points are provided!"
 
         if update_memory:
             if isinstance(obj_ids, int):

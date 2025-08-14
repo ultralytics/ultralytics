@@ -1924,10 +1924,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             ... )
         """
         super().__init__(cfg, overrides, _callbacks)
-
-        self.done_warmup = True
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
         self.use_high_res_features_in_sam = True
         self.num_feature_levels = 3
 
@@ -1949,25 +1945,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             self.obj_id_to_idx[i + 1] = i
             self.obj_idx_to_id[i] = i + 1
 
-    def get_model(self) -> torch.nn.Module:
-        """
-        Retrieve and configure the model with binarization enabled.
-
-        Returns:
-            model (torch.nn.Module): The configured SAM2 model with binarization enabled.
-
-        Note:
-            This method overrides the base class implementation to set the binarize flag to True.
-        """
-        model = super().get_model()
-        model.set_binarize(True)
+    def setup_model(self, model=None, verbose=True) -> None:
+        """Set up the model for inference, including initializing parameters for handling no-object embeddings."""
+        super().setup_model(model, verbose)
 
         # Initialize the no-object embedding for spatial features
         self.no_obj_embed_spatial = torch.nn.Parameter(torch.zeros(1, 64))
         trunc_normal_(self.no_obj_embed_spatial, std=0.02)
         self.no_obj_embed_spatial = self.no_obj_embed_spatial.to(self.device, non_blocking=True)
-
-        return model
 
     @property
     def image_size(self) -> int:

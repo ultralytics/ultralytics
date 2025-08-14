@@ -1924,10 +1924,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             ... )
         """
         super().__init__(cfg, overrides, _callbacks)
-        self.use_high_res_features_in_sam = True
-        self.num_feature_levels = 3
-
-        self.use_mask_input_as_output_without_sam = True
         self.no_obj_score = -1024.0
         self.non_overlap_masks = True
 
@@ -2219,7 +2215,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         )
         img_batch = imgState.image_data.cuda().float().unsqueeze(0)
         backbone_out = self.model.forward_image(img_batch)
-        imgState._prepare_backbone_features(backbone_out, self.num_feature_levels)
+        imgState._prepare_backbone_features(backbone_out, self.model.num_feature_levels)
 
         return imgState
 
@@ -2532,7 +2528,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
 
-        if mask_inputs is not None and self.use_mask_input_as_output_without_sam:
+        if mask_inputs is not None and self.model.use_mask_input_as_output_without_sam:
             # When use_mask_input_as_output_without_sam=True, we directly output the mask input
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
             pix_feat = current_vision_feats[-1].permute(1, 2, 0)

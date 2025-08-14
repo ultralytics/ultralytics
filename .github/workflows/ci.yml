@@ -222,7 +222,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
-        run: sudo env "PATH=$PATH" uv pip install --system --break-system-packages -e . pytest-cov
+        run: sudo env "PATH=$PATH" uv pip install --system --break-system-packages -e . pytest-cov pynvml tensorrt onnxruntime-gpu
       - name: Check environment
         run: |
           sudo yolo checks

@@ -495,8 +495,9 @@ class Predictor(BasePredictor):
                     pred_bboxes = batched_mask_to_box(masks)
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+                idx = pred_scores > self.args.conf
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
-            results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
+            results.append(Results(orig_img, path=img_path, names=names, masks=masks[idx], boxes=pred_bboxes[idx]))
         # Reset segment-all mode.
         self.segment_all = False
         return results
@@ -2104,7 +2105,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
-                filtered_index = (pred_scores > self.args.conf).cpu().numpy().tolist()
+                filtered_index = pred_scores > self.args.conf
                 result = Results(
                     orig_img, path=img_path, names=names, masks=masks[filtered_index], boxes=pred_bboxes[filtered_index]
                 )

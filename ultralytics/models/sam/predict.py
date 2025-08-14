@@ -2003,33 +2003,32 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         points, labels, masks = self._prepare_prompts(
             dst_shape=(self.image_size, self.image_size), points=points, bboxes=bboxes, labels=labels, masks=masks
         )
-        # check if the input is valid
+        # TODO: support point prompts without bboxes/masks
         if points is not None:
             assert masks is not None or bboxes is not None, "masks or bboxes must be provided when points are provided!"
 
         if update_memory:
-            assert bboxes is not None or masks is not None or points is not None, (
+            if isinstance(obj_ids, int):
+                obj_ids = [obj_ids]
+            assert obj_ids is not None, "obj_ids must be provided when update_memory is True"
+            assert masks is not None or points is not None, (
                 "bboxes, masks, or points must be provided when update_memory is True"
             )
-
-            assert obj_ids is not None, "obj_ids must be provided when update_memory is True"
-
-            # Validate input consistency
-            if bboxes is not None:
-                assert len(bboxes) == len(obj_ids), "bboxes and obj_ids must have the same length"
-                for point, label, obj_id in zip(points, labels, obj_ids):
-                    # Initialize points and labels for this bbox
-                    self.add_new_prompt(imgState, obj_id=int(obj_id), labels=label, points=point)
-
+            if points is None:  # placeholder
+                points = torch.zeros((len(obj_ids), 0, 2), dtype=torch.float32, device=self.device)
+                labels = torch.zeros((len(obj_ids), 0), dtype=torch.int32, device=self.device)
             if masks is not None:
-                assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length"
-                for i, (mask, obj_id) in enumerate(zip(masks, obj_ids)):
-                    # Initialize points and labels for this mask
-                    if points is not None:
-                        point, label = points[i], labels[i]
-                    else:
-                        point, label = None, None
-                    self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=label, points=point)
+                assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length."
+            assert len(points) == len(obj_ids), "points and obj_ids must have the same length."
+            for i, obj_id in enumerate(obj_ids):
+                # Initialize points and labels for this bbox
+                self.add_new_prompt(
+                    imgState,
+                    obj_id=int(obj_id),
+                    labels=labels[[i]],  # keep the dimension
+                    points=points[[i]],
+                    mask=masks[[i]] if masks is not None else None,
+                )
 
             self.update_memory(imgState)
 
@@ -2174,22 +2173,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # assert   bbox or points  mask is not None, "Either bbox or points or mask is required"
         # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
         assert points is not None or mask is not None, "Either bbox, points or mask is required"
-
-        if points is None:
-            points = torch.zeros(0, 2, dtype=torch.float32)
-        if labels is None:
-            labels = torch.zeros(0, dtype=torch.int32)
-        if points.dim() == 2:
-            points = points.unsqueeze(0)  # add batch dimension
-        if labels.dim() == 1:
-            labels = labels.unsqueeze(0)  # add batch dimension
         imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
 
         if mask is not None:
-            assert mask.dim() == 2
-            mask = mask.unsqueeze(0).unsqueeze(0)  # add batch and channel dimension
-            mask = mask.float().to(imgState.device)
-            imgState.mask_inputs[obj_idx] = mask
+            imgState.mask_inputs[obj_idx] = mask[None]
 
     def concat_points(self, old_point_inputs, new_points, new_labels):
         """

@@ -1989,7 +1989,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (torch.Tensor | None): Transformed labels corresponding to the points.
             masks (torch.Tensor | None): Transformed masks resized to the target shape.
         """
-        return Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, masks)
+        return super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
         bboxes, points, labels, _ = Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, None)
         # (N, 1, 2) -> (N,2), (N,1 ) --> (N)
         if points is not None:
@@ -2041,7 +2041,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         imgState = self.createState(img, image_name)
 
-        bboxes, points, labels, masks = self._prepare_prompts(
+        points, labels, masks = self._prepare_prompts(
             dst_shape=(self.image_size, self.image_size), points=points, bboxes=bboxes, labels=labels, masks=masks
         )
         # check if the input is valid
@@ -2060,37 +2060,21 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             if bboxes is not None:
                 prompt_count += len(bboxes)
                 assert len(bboxes) == len(obj_ids), "bboxes and obj_ids must have the same length"
-                for box, obj_id in zip(bboxes, obj_ids):
+                for point, label, obj_id in zip(points, labels, obj_ids):
                     # Initialize points and labels for this bbox
-                    points_ = None
-                    labels_ = None
-
-                    if points is not None:
-                        # select points and labels corresponding to the current object id, and negative points ( label= 0)
-                        label_mask = (labels == 0) | (labels == obj_id)
-                        points_ = points[label_mask]
-                        labels_ = labels[label_mask]
-                        # convert labels to 0 and 1 to fit SAM2's requirements
-                        labels_[labels_ > 0] = 1
-                    self.add_new_prompt(imgState, bbox=box, obj_id=int(obj_id), labels=labels_, points=points_)
+                    self.add_new_prompt(imgState, obj_id=int(obj_id), labels=label, points=point)
 
             if masks is not None:
                 prompt_count += len(masks)
                 assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length"
-                for mask, obj_id in zip(masks, obj_ids):
+                for i, (mask, obj_id) in enumerate(zip(masks, obj_ids)):
                     # Initialize points and labels for this mask
-                    points_ = None
-                    labels_ = None
-
                     if points is not None:
-                        # select points and labels corresponding to the current object id, and negative points ( label= 0)
-                        label_mask = (labels == 0) | (labels == obj_id)
-                        points_ = points[label_mask]
-                        labels_ = labels[label_mask]
-                        # convert labels to 0 and 1 to fit SAM2's requirements
-                        labels_[labels_ > 0] = 1
+                        point, label = points[i], labels[i]
+                    else:
+                        point, label = None, None
 
-                    self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=labels_, points=points_)
+                    self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=label, points=point)
 
             self.update_memory(imgState)
 
@@ -2211,7 +2195,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         points: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None,
         mask: Optional[torch.Tensor] = None,
-        bbox: Optional[Union[torch.Tensor, List[float]]] = None,
     ) -> None:
         """
         Add new prompts to a specific frame for a given object ID.
@@ -2226,7 +2209,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             points (torch.Tensor | None): The coordinates of the points of interest with shape (N, 2).
             labels (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
             mask (torch.Tensor | None): The mask input for the object with shape (H, W).
-            bbox (torch.Tensor | List[float] | None): The bounding box coordinates for the object in XYXY format.
 
         Raises:
             AssertionError: If none of bbox, points, or mask is provided.
@@ -2236,7 +2218,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         # assert   bbox or points  mask is not None, "Either bbox or points or mask is required"
         # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
-        assert bbox is not None or points is not None or mask is not None, "Either bbox, points or mask is required"
+        assert points is not None or mask is not None, "Either bbox, points or mask is required"
 
         if points is None:
             points = torch.zeros(0, 2, dtype=torch.float32)
@@ -2266,14 +2248,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             points = points.unsqueeze(0)  # add batch dimension
         if labels.dim() == 1:
             labels = labels.unsqueeze(0)  # add batch dimension
-        if bbox is not None:
-            bbox = bbox.to(points.device)
-            box_coords = bbox.reshape(1, 2, 2)
-            box_labels = torch.tensor([2, 3], dtype=torch.int32, device=labels.device)
-            box_labels = box_labels.reshape(1, 2)
-            points = torch.cat([box_coords, points], dim=1)
-            labels = torch.cat([box_labels, labels], dim=1)
-
         imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
 
         if mask is not None:

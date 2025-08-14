@@ -1891,7 +1891,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         _prepare_memory_conditioned_features(imgState, obj_idx): Prepare memory-conditioned features for the current image state.
         _forward_sam_heads(backbone_features, obj_idx, point_inputs=None, mask_inputs=None, high_res_features=None, multimask_output=False): Forward SAM prompt encoders and mask heads.
         _get_orig_image_res_output(any_res_masks): Resize masks to original image resolution and apply non-overlapping constraints.
-        _encode_new_memory(current_vision_feats, feat_sizes, pred_masks_high_res, object_score_logits, is_mask_from_pts): Encode the current image and its prediction into a memory feature.
         _use_mask_as_output(mask_inputs): Directly turn binary mask_inputs into output mask logits without using SAM.
 
     Examples:
@@ -1945,14 +1944,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         for i in range(self._max_obj_num):
             self.obj_id_to_idx[i + 1] = i
             self.obj_idx_to_id[i] = i + 1
-
-    def setup_model(self, model=None, verbose=True) -> None:
-        """Set up the model for inference, including initializing parameters for handling no-object embeddings."""
-        super().setup_model(model, verbose)
-
-        # Initialize the no-object embedding for spatial features
-        self.no_obj_embed_spatial = torch.nn.Parameter(torch.zeros(1, 64, device=self.device))
-        torch.nn.init.trunc_normal_(self.no_obj_embed_spatial, std=0.02)
 
     @property
     def image_size(self) -> int:
@@ -2207,7 +2198,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         if self.model.non_overlap_masks_for_mem_enc:
             high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
-        maskmem_features, maskmem_pos_enc = self._encode_new_memory(
+        maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
             current_vision_feats=imgState.vision_feats,
             feat_sizes=imgState.feat_sizes,
             pred_masks_high_res=high_res_masks,
@@ -2583,46 +2574,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.non_overlap_masks:
             image_res_masks = self.model._apply_non_overlapping_constraints(image_res_masks)
         return any_res_masks, image_res_masks
-
-    def _encode_new_memory(
-        self,
-        current_vision_feats: List[torch.Tensor],
-        feat_sizes: List[Tuple[int, int]],
-        pred_masks_high_res: torch.Tensor,
-        object_score_logits: torch.Tensor,
-        is_mask_from_pts: bool,
-    ) -> Tuple[torch.Tensor, List[torch.Tensor]]:
-        """
-        Encode the current image and its prediction into a memory feature.
-
-        Args:
-            current_vision_feats (List[torch.Tensor]): List of vision features from the image encoder.
-            feat_sizes (List[Tuple[int, int]]): List of feature sizes corresponding to the vision features.
-            pred_masks_high_res (torch.Tensor): The predicted masks at high resolution, shape [B, 1, H, W].
-            object_score_logits (torch.Tensor): The object score logits for the current frame.
-            is_mask_from_pts (bool): Whether the mask is derived from points.
-
-        Returns:
-            maskmem_features (torch.Tensor): The encoded memory features, shape [B, C, H, W].
-            maskmem_pos_enc (List[torch.Tensor]): The positional encodings for the memory features.
-        """
-        maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
-            current_vision_feats=current_vision_feats,
-            feat_sizes=feat_sizes,
-            pred_masks_high_res=pred_masks_high_res,
-            is_mask_from_pts=is_mask_from_pts,
-            object_score_logits=object_score_logits,
-        )
-
-        # TODO: probably remove this
-        # add a no-object embedding to the spatial memory to indicate that the frame
-        # is predicted to be occluded (i.e. no object is appearing in the frame)
-        if self.no_obj_embed_spatial is not None:
-            no_obj_embed_spatial_expanded = self.no_obj_embed_spatial[..., None, None].expand(*maskmem_features.shape)
-            is_obj_appearing = (object_score_logits > 0).float()
-            maskmem_features += (1 - is_obj_appearing[..., None, None]) * no_obj_embed_spatial_expanded
-
-        return maskmem_features, maskmem_pos_enc
 
     def _use_mask_as_output(self, mask_inputs):
         """

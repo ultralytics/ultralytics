@@ -2212,7 +2212,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         labels: Optional[torch.Tensor] = None,
         mask: Optional[torch.Tensor] = None,
         bbox: Optional[Union[torch.Tensor, List[float]]] = None,
-        normalize_coords: bool = True,
     ) -> None:
         """
         Add new prompts to a specific frame for a given object ID.
@@ -2228,7 +2227,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
             mask (torch.Tensor | None): The mask input for the object with shape (H, W).
             bbox (torch.Tensor | List[float] | None): The bounding box coordinates for the object in XYXY format.
-            normalize_coords (bool): Whether to normalize the coordinates of the points based on the image size. Default is True.
 
         Raises:
             AssertionError: If none of bbox, points, or mask is provided.
@@ -2275,14 +2273,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             box_labels = box_labels.reshape(1, 2)
             points = torch.cat([box_coords, points], dim=1)
             labels = torch.cat([box_labels, labels], dim=1)
-        if normalize_coords:
-            image_H = self.image_size
-            image_W = self.image_size
-            points = points / torch.tensor([image_W, image_H]).to(points.device)
-        # scale the (normalized) coordinates by the model's internal image size
-        points = points * self.image_size
-        points = points.to(self.device)
-        labels = labels.to(self.device)
         clear_old_points = False
         if clear_old_points and obj_idx in imgState.point_inputs.keys():
             imgState.point_inputs[obj_idx] = None

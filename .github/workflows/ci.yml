@@ -216,7 +216,7 @@ jobs:
 
   GPU:
     # if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'workflow_dispatch' && github.event.inputs.gpu == 'true')
+    if: false
     timeout-minutes: 360
     runs-on: gpu-latest
     steps:

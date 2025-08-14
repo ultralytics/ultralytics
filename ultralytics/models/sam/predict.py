@@ -2293,7 +2293,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         to_cat_memory, to_cat_memory_pos_embed = [], []
         t_pos = 0
-        for img_name, state in valued_memory_bank.items():
+        for state in valued_memory_bank.values():
             feats = state.consolidated_out["maskmem_features"].cuda(non_blocking=True)
             to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))
             maskmem_enc = state.consolidated_out["maskmem_pos_enc"][-1].cuda()
@@ -2606,36 +2606,15 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             maskmem_features (torch.Tensor): The encoded memory features, shape [B, C, H, W].
             maskmem_pos_enc (List[torch.Tensor]): The positional encodings for the memory features.
         """
-        B = current_vision_feats[-1].size(1)  # batch size on this frame
-        C = self.model.memory_attention.d_model
-        H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
-        # top-level feature, (HW)BC => BCHW
-        pix_feat = current_vision_feats[-1].permute(1, 2, 0).view(B, C, H, W)
-        if self.model.non_overlap_masks_for_mem_enc and not self.model.training:
-            # optionally, apply non-overlapping constraints to the masks (it's applied
-            # in the batch dimension and should only be used during eval, where all
-            # the objects come from the same video under batch size 1).
-            pred_masks_high_res = self._apply_non_overlapping_constraints(pred_masks_high_res)
-        # scale the raw mask logits with a temperature before applying sigmoid
-        binarize = self.model.binarize_mask_from_pts_for_mem_enc and is_mask_from_pts
-        if binarize and not self.model.training:
-            mask_for_mem = (pred_masks_high_res > 0).float()
-        else:
-            # apply sigmoid on the raw mask logits to turn them into range (0, 1)
-            mask_for_mem = torch.sigmoid(pred_masks_high_res)
-        # apply scale and bias terms to the sigmoid probabilities
-        if self.model.sigmoid_scale_for_mem_enc != 1.0:
-            mask_for_mem = mask_for_mem * self.model.sigmoid_scale_for_mem_enc
-        if self.model.sigmoid_bias_for_mem_enc != 0.0:
-            mask_for_mem = mask_for_mem + self.model.sigmoid_bias_for_mem_enc
-        maskmem_out = self.model.memory_encoder(
-            pix_feat,
-            mask_for_mem,
-            skip_mask_sigmoid=True,  # sigmoid already applied
+        maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
+            current_vision_feats=current_vision_feats,
+            feat_sizes=feat_sizes,
+            pred_masks_high_res=pred_masks_high_res,
+            is_mask_from_pts=is_mask_from_pts,
+            object_score_logits=object_score_logits,
         )
-        maskmem_features = maskmem_out["vision_features"]
-        maskmem_pos_enc = maskmem_out["vision_pos_enc"]
 
+        # TODO: probably remove this
         # add a no-object embedding to the spatial memory to indicate that the frame
         # is predicted to be occluded (i.e. no object is appearing in the frame)
         if self.no_obj_embed_spatial is not None:

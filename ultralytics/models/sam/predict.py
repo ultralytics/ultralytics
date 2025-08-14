@@ -2015,16 +2015,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             assert obj_ids is not None, "obj_ids must be provided when update_memory is True"
 
             # Validate input consistency
-            prompt_count = 0
             if bboxes is not None:
-                prompt_count += len(bboxes)
                 assert len(bboxes) == len(obj_ids), "bboxes and obj_ids must have the same length"
                 for point, label, obj_id in zip(points, labels, obj_ids):
                     # Initialize points and labels for this bbox
                     self.add_new_prompt(imgState, obj_id=int(obj_id), labels=label, points=point)
 
             if masks is not None:
-                prompt_count += len(masks)
                 assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length"
                 for i, (mask, obj_id) in enumerate(zip(masks, obj_ids)):
                     # Initialize points and labels for this mask

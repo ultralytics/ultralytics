@@ -2071,56 +2071,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         certain applications.
 
         Args:
-            preds (tuple): The predictions from the model.
+            preds (Tuple[torch.Tensor]): The predictions from the model.
             img (torch.Tensor): The processed image tensor.
             orig_imgs (List[np.ndarray]): The original images before processing.
 
         Returns:
-            results (list): The post-processed predictions.
-
-        Note:
-            If `non_overlap_masks` is True, the method applies constraints to ensure non-overlapping masks.
+            results (List[Results]): The post-processed predictions.
         """
-        # (N, 1, H, W), (N, 1)
-        pred_masks, pred_scores = preds[:2]
-        pred_bboxes = preds[2] if self.segment_all else None
-        names = dict(enumerate(str(i) for i in range(len(pred_masks))))
-
-        if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
-            orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
-
-        results = []
-        for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
-            if len(masks) == 0:
-                masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
-            else:
-                masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
-                masks = masks > self.model.mask_threshold  # to bool
-
-                masks[pred_scores <= self.args.conf] = False
-
-                if pred_bboxes is not None:
-                    pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
-                else:
-                    pred_bboxes = batched_mask_to_box(masks)
-                # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-                cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
-                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
-                filtered_index = pred_scores > self.args.conf
-                result = Results(
-                    orig_img, path=img_path, names=names, masks=masks[filtered_index], boxes=pred_bboxes[filtered_index]
-                )
-
-            results.append(result)
-        # Reset segment-all mode.
-        self.segment_all = False
-
-        if self.non_overlap_masks:
-            for result in results:
-                if result.masks is None or len(result.masks) == 0:
-                    continue
-                result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
-        return results
+        return SAM2Predictor.postprocess(self, preds, img, orig_imgs)
 
     @smart_inference_mode()
     def createState(self, img: Union[torch.Tensor, np.ndarray], img_name: Optional[str] = None) -> ImageState:

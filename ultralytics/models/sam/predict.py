@@ -261,7 +261,7 @@ class Predictor(BasePredictor):
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
-            masks (List | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array with shape (H, W).
 
         Returns:
             bboxes (torch.Tensor | None): Transformed bounding boxes.
@@ -294,7 +294,11 @@ class Predictor(BasePredictor):
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
-            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
+            masks = np.asarray(masks, dtype=np.uint8)
+            masks = masks[None] if masks.ndim == 2 else masks
+            letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
+            masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)
+            masks = torch.tensor(masks, dtype=torch.float32, device=self.device)
         return bboxes, points, labels, masks
 
     def generate(

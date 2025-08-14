@@ -1985,14 +1985,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (torch.Tensor | None): Transformed labels corresponding to the points.
             masks (torch.Tensor | None): Transformed masks resized to the target shape.
         """
-        self.batch[1][0].shape[:2]
-        dst_shape = [self.image_size, self.image_size]
-
-        # if labels is not None:
-        #     labels=np.array(labels, dtype=np.int32)
-        #     if len(labels.shape) == 1:
-        #         labels = labels[None]  # add the batch dimension if labels is 1D
-
         bboxes, points, labels, _ = Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, None)
         # (N, 1, 2) -> (N,2), (N,1 ) --> (N)
         if points is not None:
@@ -2017,8 +2009,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         labels: Optional[List[int]] = None,
         obj_ids: Optional[List[int]] = None,
         update_memory: bool = False,
-        *args: Any,
-        **kwargs: Any,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Perform inference on a single image with optional bounding boxes, masks, points and object IDs.
@@ -2036,8 +2026,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (List[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for negative).
             obj_ids (List[int] | None): Optional list of object IDs corresponding to the prompts.
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
-            *args (Any): Additional arguments for the inference process.
-            **kwargs (Any): Additional keyword arguments for the inference process.
 
         Returns:
             res_masks (torch.Tensor): The output masks in shape (C, H, W)

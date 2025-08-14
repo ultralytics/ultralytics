@@ -2273,9 +2273,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             box_labels = box_labels.reshape(1, 2)
             points = torch.cat([box_coords, points], dim=1)
             labels = torch.cat([box_labels, labels], dim=1)
-        clear_old_points = False
-        if clear_old_points and obj_idx in imgState.point_inputs.keys():
-            imgState.point_inputs[obj_idx] = None
 
         imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
 

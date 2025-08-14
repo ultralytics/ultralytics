@@ -17,7 +17,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from torch.nn.init import trunc_normal_
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -1913,8 +1912,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Args:
             cfg (Dict[str, Any]): Configuration dictionary containing default settings.
             overrides (Dict[str, Any] | None): Dictionary of values to override default configuration.
-            _callbacks (Dict[str, Any] | None): Dictionary of callback functions to customize behavior.
             max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size for the model.
+            _callbacks (Dict[str, Any] | None): Dictionary of callback functions to customize behavior.
 
         Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
@@ -1946,9 +1945,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         super().setup_model(model, verbose)
 
         # Initialize the no-object embedding for spatial features
-        self.no_obj_embed_spatial = torch.nn.Parameter(torch.zeros(1, 64))
-        trunc_normal_(self.no_obj_embed_spatial, std=0.02)
-        self.no_obj_embed_spatial = self.no_obj_embed_spatial.to(self.device, non_blocking=True)
+        self.no_obj_embed_spatial = torch.nn.Parameter(torch.zeros(1, 64, device=self.device))
+        torch.nn.init.trunc_normal_(self.no_obj_embed_spatial, std=0.02)
 
     @property
     def image_size(self) -> int:

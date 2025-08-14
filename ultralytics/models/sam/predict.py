@@ -1989,6 +1989,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (torch.Tensor | None): Transformed labels corresponding to the points.
             masks (torch.Tensor | None): Transformed masks resized to the target shape.
         """
+        return Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, masks)
         bboxes, points, labels, _ = Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, None)
         # (N, 1, 2) -> (N,2), (N,1 ) --> (N)
         if points is not None:
@@ -2067,14 +2068,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     if points is not None:
                         # select points and labels corresponding to the current object id, and negative points ( label= 0)
                         label_mask = (labels == 0) | (labels == obj_id)
-                        indices = torch.where(label_mask)[0].tolist()
-                        points_ = points[indices]
-                        labels_ = labels[indices]
-                        # convert labels to binary labels, 1 for foreground, 0 for background
-                        labels_ = torch.where(
-                            labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
-                        )
-
+                        points_ = points[label_mask]
+                        labels_ = labels[label_mask]
+                        # convert labels to 0 and 1 to fit SAM2's requirements
+                        labels_[labels_ > 0] = 1
                     self.add_new_prompt(imgState, bbox=box, obj_id=int(obj_id), labels=labels_, points=points_)
 
             if masks is not None:
@@ -2088,13 +2085,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     if points is not None:
                         # select points and labels corresponding to the current object id, and negative points ( label= 0)
                         label_mask = (labels == 0) | (labels == obj_id)
-                        indices = torch.where(label_mask)[0].tolist()
-                        points_ = points[indices]
-                        labels_ = labels[indices]
-                        # convert labels to binary labels, 1 for foreground, 0 for background
-                        labels_ = torch.where(
-                            labels_ > 0, torch.tensor(1, dtype=torch.int32), torch.tensor(0, dtype=torch.int32)
-                        )
+                        points_ = points[label_mask]
+                        labels_ = labels[label_mask]
+                        # convert labels to 0 and 1 to fit SAM2's requirements
+                        labels_[labels_ > 0] = 1
 
                     self.add_new_prompt(imgState, mask=mask, obj_id=int(obj_id), labels=labels_, points=points_)
 

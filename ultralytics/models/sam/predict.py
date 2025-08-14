@@ -2165,17 +2165,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
                 prev_sam_mask_logits = torch.clamp(prev_sam_mask_logits, -32.0, 32.0)
 
-            current_out = self.track_step(
-                imgState=imgState,
-                obj_idx=obj_idx,
-            )
-
+            current_out = self.track_step(imgState=imgState, obj_idx=obj_idx)
             imgState.current_out[obj_idx] = current_out
-
             out = imgState.current_out[obj_idx]
-            if out is None:
-                pass
-            else:
+            if out is not None:
                 obj_mask = out["pred_masks"]
                 assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], (
                     f"Expected mask shape {consolidated_out['pred_masks'].shape[-2:]} but got {obj_mask.shape[-2:]} for object {obj_idx}."
@@ -2185,12 +2178,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
                 if "object_score_logits" in out.keys():
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
-                else:
-                    print("warning, KeyError: 'object_score_logits'  ")
 
-        device = self.device
         high_res_masks = torch.nn.functional.interpolate(
-            consolidated_out["pred_masks"].to(device, non_blocking=True),
+            consolidated_out["pred_masks"].to(self.device, non_blocking=True),
             size=(self.image_size, self.image_size),
             mode="bilinear",
             align_corners=False,

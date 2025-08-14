@@ -224,8 +224,11 @@ jobs:
       # - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: |
-          pip install -e . pytest-cov
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pip install -e . pytest-cov pynvml
+          # echo "$HOME/.local/bin" >> $GITHUB_PATH
+          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
+            pip install tensorrt onnxruntime-gpu
+          fi
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

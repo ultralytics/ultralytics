@@ -1962,47 +1962,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         return self.model.image_size
 
-    def _prepare_prompts(
-        self,
-        dst_shape: Tuple[int, int],
-        bboxes: Optional[Union[np.ndarray, List]] = None,
-        points: Optional[Union[np.ndarray, List]] = None,
-        labels: Optional[Union[np.ndarray, List]] = None,
-        masks: Optional[Union[List, np.ndarray]] = None,
-    ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
-        """
-        Prepare and transform the input prompts for processing based on the destination shape.
-
-        This method transforms various types of prompts (bounding boxes, points, labels, and masks) from the original
-        image coordinates to the model's expected input format and size, applying letterbox preprocessing to masks.
-
-        Args:
-            dst_shape (tuple): The target shape (height, width) for the prompts.
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
-            masks (List | np.ndarray | None): Masks for the objects, where each mask is a 2D array and has the shape with the src image size.
-
-        Returns:
-            bboxes (torch.Tensor | None): Transformed bounding boxes in the target coordinate system.
-            points (torch.Tensor | None): Transformed points in the target coordinate system.
-            labels (torch.Tensor | None): Transformed labels corresponding to the points.
-            masks (torch.Tensor | None): Transformed masks resized to the target shape.
-        """
-        return super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
-        bboxes, points, labels, _ = Predictor._prepare_prompts(self, dst_shape, bboxes, points, labels, None)
-        # (N, 1, 2) -> (N,2), (N,1 ) --> (N)
-        if points is not None:
-            points, labels = points.squeeze(1), labels.squeeze(1)
-        # apply letterbox preprocessing to masks
-
-        letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
-        if masks is not None and len(masks) > 0:
-            masks = [letterbox(image=x).squeeze() for x in masks]
-            masks = torch.tensor(masks, dtype=torch.float32)
-
-        return bboxes, points, labels, masks
-
     @smart_inference_mode()
     def inference(
         self,

@@ -222,7 +222,7 @@ class SPPF(nn.Module):
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
         y.extend(self.m(y[-1]) for _ in range(3))
-        return self.cv2(torch.cat(y, 1))
+        return self.cv2(torch.cat(y, 1)) + x
 
 
 class SimSPPF(nn.Module):
@@ -371,8 +371,8 @@ class C3(nn.Module):
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 3 convolutions."""
         y = self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
-        return x + y if self.add else y
-        # return y
+        # return x + y if self.add else y
+        return y
 
 
 class C3x(C3):

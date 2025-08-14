@@ -226,6 +226,8 @@ jobs:
         run: |
           pip install -e . pytest-cov
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
         run: |
           yolo checks

@@ -223,6 +223,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: pip install -e . pytest-cov
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
         run: |
           yolo checks
@@ -234,6 +236,8 @@ jobs:
             slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v5
         with:

@@ -223,9 +223,9 @@ jobs:
       # Disable uv on GitHub runners as not working
       # - uses: astral-sh/setup-uv@v6
       - name: Install requirements
-        run: pip install -e . pytest-cov
-        env:
-          PIP_BREAK_SYSTEM_PACKAGES: 1
+        run: |
+          pip install -e . pytest-cov
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Check environment
         run: |
           yolo checks

@@ -220,7 +220,8 @@ jobs:
     runs-on: github-linux-gpu-t4-4-core
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      # Disable uv on GitHub runners as not working
+      # - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         run: pip install -e . pytest-cov
         env:

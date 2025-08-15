@@ -297,7 +297,7 @@ class DINOv2ReID:
             torch.inference_mode = torch.no_grad
 
         self.device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
-        self.model = torch.hub.load("facebookresearch/dinov2", model).to(self.device).eval()
+        self.model = torch.hub.load("facebookresearch/dinov2:qasfb-patch-3", model).to(self.device).eval()
         self.return_clstoken = return_clstoken
 
         # Define the image transformation pipeline as expected by DINOv2

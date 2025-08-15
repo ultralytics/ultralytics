@@ -23,6 +23,8 @@ __all__ = (
     "Concat",
     "RepConv",
     "Index",
+    "Permute",
+    "Reshape",
 )
 
 
@@ -33,6 +35,62 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
+
+
+class Permute(nn.Module):
+    """Permute the channels of a tensor."""
+
+    def __init__(self, permutation: List[int]):
+        """
+        Initialize the Permute module.
+
+        Args:
+                permutation (List[int]): New order of the channels. Refer to torch.permute for more details.
+        """
+        super().__init__()
+        assert all(isinstance(p, int) for p in permutation), "All permutation indices should be integers"
+        self.permutation = permutation
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Permute the channels of the input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Permuted tensor
+        """
+        assert x.dim() == len(self.permutation), (
+            f"The permutation must have same number of channels as the input tensor. Found: permutation channels: {self.permutation}, input tensor channels: {x.dim()}"
+        )
+        return torch.permute(x, self.permutation)
+
+
+class Reshape(nn.Module):
+    """Reshape the input tensor to a new shape."""
+
+    def __init__(self, shape: List[int]):
+        """
+        Initialize the Reshape module.
+
+        Args:
+            shape (List[int]): New shape of the tensor.
+        """
+        super().__init__()
+        self.shape = tuple(shape)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Reshape the input tensor to the specified shape.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Reshaped tensor
+        """
+        return torch.reshape(x, self.shape)
 
 
 class Conv(nn.Module):

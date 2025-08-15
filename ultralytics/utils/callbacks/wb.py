@@ -34,9 +34,9 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
     """
-    import pandas  # scope for faster 'import ultralytics'
+    import polars  # scope for faster 'import ultralytics'
 
-    df = pandas.DataFrame({"class": classes, "y": y, "x": x}).round(3)
+    df = polars.DataFrame({"class": classes, "y": y, "x": x}).round(3)
     fields = {"x": "x", "y": "y", "class": "class"}
     string_fields = {"title": title, "x-axis-title": x_title, "y-axis-title": y_title}
     return wb.plot_table(

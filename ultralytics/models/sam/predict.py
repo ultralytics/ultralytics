@@ -1835,16 +1835,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             self.obj_id_to_idx[i + 1] = i
             self.obj_idx_to_id[i] = i + 1
 
-    @property
-    def image_size(self) -> int:
-        """
-        Returns the input  size of the model.
-
-        Returns:
-            image_size (int): The image size of the model input size
-        """
-        return self.model.image_size
-
     @smart_inference_mode()
     def inference(
         self,
@@ -1884,7 +1874,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         imgState = self.createState(img, image_name)
 
         points, labels, masks = self._prepare_prompts(
-            dst_shape=(self.image_size, self.image_size), points=points, bboxes=bboxes, labels=labels, masks=masks
+            dst_shape=self.imgsz, points=points, bboxes=bboxes, labels=labels, masks=masks
         )
 
         if update_memory:
@@ -1973,7 +1963,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         imgState = ImageState(
             image=img,
             img_name=img_name,
-            image_size=self.image_size,
+            image_size=self.imgsz[0],
             device=self.device,
             max_obj_num=self._max_obj_num,
         )
@@ -2082,7 +2072,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         high_res_masks = torch.nn.functional.interpolate(
             consolidated_out["pred_masks"].to(self.device, non_blocking=True),
-            size=(self.image_size, self.image_size),
+            size=self.imgsz,
             mode="bilinear",
             align_corners=False,
         )
@@ -2387,12 +2377,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # convert masks from possibly bfloat16 (or float16) to float32
         # (older PyTorch versions before 2.1 don't support `interpolate` on bf16)
         low_res_multimasks = low_res_multimasks.float()
-        high_res_multimasks = F.interpolate(
-            low_res_multimasks,
-            size=(self.image_size, self.image_size),
-            mode="bilinear",
-            align_corners=False,
-        )
+        high_res_multimasks = F.interpolate(low_res_multimasks, size=self.imgsz, mode="bilinear", align_corners=False)
 
         sam_output_token = sam_output_tokens[:, 0]
         if multimask_output:
@@ -2444,16 +2429,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             any_res_masks (torch.Tensor): The original resolution masks, shape [B, C, H, W].
             image_res_masks (torch.Tensor): The resized masks to the image resolution, shape [B, C, image_H, image_W].
         """
-        device = self.device
-        image_H = self.image_size
-        image_W = self.image_size
-        any_res_masks = any_res_masks.to(device, non_blocking=True)
-        if any_res_masks.shape[-2:] == (image_H, image_W):
+        any_res_masks = any_res_masks.to(self.device, non_blocking=True)
+        if any_res_masks.shape[-2:] == self.imgsz:
             image_res_masks = any_res_masks
         else:
             image_res_masks = torch.nn.functional.interpolate(
                 any_res_masks,
-                size=(image_H, image_W),
+                size=self.imgsz,
                 mode="bilinear",
                 align_corners=False,
             )

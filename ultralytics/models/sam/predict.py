@@ -1627,47 +1627,6 @@ class SAM2VideoPredictor(SAM2Predictor):
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)
 
 
-class ImageState:
-    """
-    ImageState is a class that encapsulates the state of an image during the inference process, which includes the image
-    data, its dimensions, and various features extracted from it. It is designed to handle the image preprocessing,
-    feature extraction, and storage of various outputs related to the image, such as backbone features, positional
-    encodings, and mask features.
-
-    It also manages the prompts (points, boxes, and masks) that are used for segmentation tasks, allowing for the initialization and updating of these prompts as needed.
-
-    Attributes:
-        maskmem_features (torch.Tensor): Features related to mask memory for segmentation tasks.
-        point_inputs (dict): A dictionary mapping object indices to their point inputs.
-        mask_inputs (dict): A dictionary mapping object indices to their mask inputs.
-        current_out (dict): A dictionary mapping object indices to their current outputs.
-
-    Methods:
-        perpare_data: Prepares the image data by resizing and normalizing it, returning the processed tensor and its dimensions.
-        set_prompt: Sets the prompt data (points, box, mask) for the image state.
-        get_im_features: Extracts and processes image features using the model's image encoder for
-
-    Examples:
-        >>> imgState = ImageState(image=img, img_name=img_name,
-                              image_size=self.image_size,
-                              device=self.device,
-                              max_obj_num=self._max_obj_num
-                              )
-    """
-
-    def __init__(self, max_obj_num, img_name) -> None:
-        """Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of
-        objects.
-        """
-        self.img_name = img_name
-        if img_name is not None:
-            self.img_name = img_name
-        else:
-            # use date and timestamp (ms) to generate a unique image name
-            date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            self.img_name = f"image_{date_time}"
-
-
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
     """
     SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
@@ -1686,11 +1645,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         _prepare_prompts(dst_shape, bboxes=None, points=None, labels=None, masks=None): Prepare and transform the input prompts for processing.
         inference(img, image_name=None, bboxes=None, masks=None, points=None, labels=None, obj_ids=None, update_memory=False): Performs inference on a single image with optional prompts and object IDs.
         postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.
-        createState(img, img_name=None): Create a new ImageState object for the given image.
         concat_points(old_point_inputs, new_points, new_labels): Add new points and labels to previous point inputs.
         update_memory(imgState): Append the imgState to the memory_bank and update the memory for the model.
         track_step(imgState, obj_idx): Tracking step for the current image state to predict masks.
-        selected_memory_bank(): Get the list of states that have valid memory features.
         get_maskmem_enc(valued_memory_bank): Get memory and positional encoding from the memory bank.
         _obj_id_to_idx(obj_id): Map client-side object id to model-side object index.
         _prepare_memory_conditioned_features(imgState, obj_idx): Prepare memory-conditioned features for the current image state.
@@ -1737,7 +1694,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.non_overlap_masks = True
 
         # Initialize the memory bank to store image states
-        self.memory_bank = OrderedDict()
+        self.memory_bank = []
 
         # Initialize the object index set and mappings
         self.obj_idx_set = set()
@@ -1754,7 +1711,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     def inference(
         self,
         img: Union[torch.Tensor, np.ndarray],
-        image_name: Optional[str] = None,
         bboxes: Optional[List[List[float]]] = None,
         masks: Optional[Union[torch.Tensor, np.ndarray]] = None,
         points: Optional[List[List[float]]] = None,
@@ -1771,7 +1727,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         Args:
             img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
-            image_name (str | None): Optional name for the image, used for identification.
             bboxes (List[List[float]] | None): Optional list of bounding boxes to update the memory.
             masks (List[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
             points (List[List[float]] | None): Optional list of points to update the memory, each point is [x, y].
@@ -1786,7 +1741,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.model is None:
             self.setup_model(model=None)
 
-        imgState = self.createState(img, image_name)
+        self.createState(img)
 
         points, labels, masks = self._prepare_prompts(
             dst_shape=self.imgsz, points=points, bboxes=bboxes, labels=labels, masks=masks
@@ -1805,7 +1760,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             if masks is not None:
                 assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length."
             assert len(points) == len(obj_ids), "points and obj_ids must have the same length."
-            self.update_memory(imgState, obj_ids, points, labels, masks)
+            self.update_memory(obj_ids, points, labels, masks)
 
         current_out = self.track_step()
         pred_masks_gpu = current_out["pred_masks"]
@@ -1854,18 +1809,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         return SAM2Predictor.postprocess(self, preds, img, orig_imgs)
 
     @smart_inference_mode()
-    def createState(self, img: Union[torch.Tensor, np.ndarray], img_name: Optional[str] = None) -> ImageState:
+    def createState(self, img: Union[torch.Tensor, np.ndarray]) -> None:
         """
-        Create a new ImageState object for the given image.
+        Initialize the image state by processing the input image and extracting features.
 
         Args:
             img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
             img_name (str | None): Optional name for the image, used for identification.
-
-        Returns:
-            imgState (ImageState): The created ImageState object.
         """
-        imgState = ImageState(self._max_obj_num, img_name)
         vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
 
         def get_high_res_features(current_vision_feats, current_feat_sizes):
@@ -1883,16 +1834,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.vision_pos_embeds = vis_pos_embed
         self.feat_sizes = feat_sizes
 
-        return imgState
-
-
     @smart_inference_mode()
-    def update_memory(self, imgState: ImageState, obj_ids, points, labels, masks) -> None:
+    def update_memory(self, obj_ids, points, labels, masks) -> None:
         """
         Append the imgState to the memory_bank and update the memory for the model.
 
         Args:
-            imgState (ImageState): The ImageState object containing the image data and prompts.
+            obj_ids (List[int]): List of object IDs corresponding to the prompts.
+            points (torch.Tensor): Tensor of shape (B, N, 2) representing the input points for N objects.
+            labels (torch.Tensor): Tensor of shape (B, N) representing the labels for the input points.
+            masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.
         """
         consolidated_out = self.init_consolidated_out(self._max_obj_num)
 
@@ -1938,8 +1889,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         )
         consolidated_out["maskmem_features"] = maskmem_features
         consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
-        imgState.consolidated_out = consolidated_out
-        self.memory_bank[imgState.img_name] = imgState
+        self.memory_bank.append(consolidated_out)
 
     def init_consolidated_out(self, batch: int) -> Dict[str, torch.Tensor]:
         """
@@ -2009,8 +1959,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 return pix_feat_with_mem
         else:
             # for inference frames, use the memory features from previous frames
-            valued_memory_bank = self.selected_memory_bank()
-            memory, memory_pos_embed = self.get_maskmem_enc(valued_memory_bank)
+            memory, memory_pos_embed = self.get_maskmem_enc()
 
             pix_feat_with_mem = self.model.memory_attention(
                 curr=self.vision_feats[-1:],
@@ -2026,17 +1975,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
             return pix_feat_with_mem
 
-    def selected_memory_bank(self) -> OrderedDict:
-        """
-        Get the list of states that have valid memory features, based on the assumption that all states in
-        `self.memory_bank` are valid.
-
-        Returns:
-            (OrderedDict): The memory bank containing valid states.
-        """
-        return self.memory_bank  # keep all states
-
-    def get_maskmem_enc(self, valued_memory_bank: OrderedDict) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
+    def get_maskmem_enc(self) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
         """
         Get the memory and positional encoding from the memory, which is used to condition the current image features.
 
@@ -2049,10 +1988,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         to_cat_memory, to_cat_memory_pos_embed = [], []
         t_pos = 0
-        for state in valued_memory_bank.values():
-            feats = state.consolidated_out["maskmem_features"].cuda(non_blocking=True)
+        for consolidated_out in self.memory_bank:
+            feats = consolidated_out["maskmem_features"].cuda(non_blocking=True)
             to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))  # (H*W, B, C)
-            maskmem_enc = state.consolidated_out["maskmem_pos_enc"][-1].cuda()
+            maskmem_enc = consolidated_out["maskmem_pos_enc"][-1].cuda()
             maskmem_enc = maskmem_enc.flatten(2).permute(2, 0, 1)
             maskmem_enc = maskmem_enc + self.model.maskmem_tpos_enc[self.model.num_maskmem - t_pos - 1]
             to_cat_memory_pos_embed.append(maskmem_enc)
@@ -2099,7 +2038,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
                 Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
-        
+
         points = {"point_coords": point, "point_labels": label} if obj_idx is not None else None
         current_out = {"point_inputs": points, "mask_inputs": mask}
         if mask is not None and self.model.use_mask_input_as_output_without_sam:

@@ -543,7 +543,7 @@ class Predictor(BasePredictor):
             - The extracted features are stored in the `self.features` attribute for later use.
         """
         if self.model is None:
-            self.setup_model(model=None)
+            self.setup_model()
         self.setup_source(image)
         assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
         for batch in self.dataset:

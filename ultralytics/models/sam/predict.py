@@ -1814,7 +1814,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         Args:
             img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
-            img_name (str | None): Optional name for the image, used for identification.
         """
         vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
 
@@ -1976,16 +1975,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             return pix_feat_with_mem
 
     def get_maskmem_enc(self) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
-        """
-        Get the memory and positional encoding from the memory, which is used to condition the current image features.
-
-        Args:
-            valued_memory_bank (OrderedDict): A dictionary containing the states of each image with valid memory features.
-
-        Returns:
-            memory(torch.Tensor): The concatenated memory features from the valid states.
-            memory_pos_embed(torch.Tensor): The concatenated positional embeddings corresponding to the memory features.
-        """
+        """Get the memory and positional encoding from the memory, which is used to condition the current image features."""
         to_cat_memory, to_cat_memory_pos_embed = [], []
         t_pos = 0
         for consolidated_out in self.memory_bank:

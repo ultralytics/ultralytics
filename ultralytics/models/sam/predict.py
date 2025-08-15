@@ -1638,17 +1638,6 @@ class ImageState:
     It also manages the prompts (points, boxes, and masks) that are used for segmentation tasks, allowing for the initialization and updating of these prompts as needed.
 
     Attributes:
-        image_data (torch.Tensor): The preprocessed image tensor ready for model input.
-        img_w (int): The width of the original image.
-        img_h (int): The height of the original image.
-        img_name (str): The name of the image, generated based on the current date and time if not provided.
-        device (torch.device): The device on which the image data is stored (e.g., CPU or GPU).
-        backbone_fpn (dict): A dictionary containing backbone features.
-        vision_pos_enc (list): A list of positional encodings for the visual features.
-        high_res_features (torch.Tensor): High-resolution features extracted from the image.
-        vision_feats (torch.Tensor): The visual features extracted from the image.
-        vision_pos_embeds (torch.Tensor): The positional embeddings for the visual features.
-        feat_sizes (list): A list containing the sizes of the extracted features.
         maskmem_features (torch.Tensor): Features related to mask memory for segmentation tasks.
         point_inputs (dict): A dictionary mapping object indices to their point inputs.
         mask_inputs (dict): A dictionary mapping object indices to their mask inputs.
@@ -1667,89 +1656,14 @@ class ImageState:
                               )
     """
 
-    def __init__(
-        self,
-        image: Union[torch.Tensor, np.ndarray, Image.Image],
-        image_size: int,
-        device: torch.device,
-        max_obj_num: int,
-        img_name: Optional[str] = None,
-    ) -> None:
-        """
-        Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of
-        objects.
-
-        Args:
-            image (torch.Tensor | np.ndarray | PIL.Image): The input image to be processed.
-            image_size (int): The target size to which the image will be preprocessed.
-            device (torch.device): The device on which the image data will be stored (e.g., CPU or GPU).
-            max_obj_num (int): The maximum number of objects that can be tracked in the image.
-            img_name (str, optional): The name of the image. If not provided, a unique name will be generated based on the current date and time.
-        """
-        self.device = device
-        self.image_data, self.img_w, self.img_h = self.perpare_data(image, image_size=image_size)
-        if img_name is not None:
-            self.img_name = img_name
-        else:
-            # use date and timestamp (ms) to generate a unique image name
-            date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            self.img_name = f"image_{date_time}"
-
+    def __init__(self, max_obj_num, img_name) -> None:
+        """Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of objects."""
         self.maskmem_features = None
-        self._max_obj_num = max_obj_num
-
-        self.point_inputs = {i: None for i in range(self._max_obj_num)}
-        self.mask_inputs = {i: None for i in range(self._max_obj_num)}
-        self.current_out = {i: None for i in range(self._max_obj_num)}
-
-    def perpare_data(
-        self,
-        img: Union[torch.Tensor, np.ndarray, Image.Image],
-        image_size: int = 1024,
-        img_mean: Tuple[float, float, float] = (0.485, 0.456, 0.406),
-        img_std: Tuple[float, float, float] = (0.229, 0.224, 0.225),
-    ) -> Tuple[torch.Tensor, int, int]:
-        """
-        Prepare the image data for processing by resizing and normalizing it. if the input is a tensor, it will be
-        returned directly with its width and height. If the input is a numpy array or PIL image, it will be resized to
-        the specified image size, normalized using the provided mean and standard deviation, and converted to a torch
-        tensor.
-
-        Args:
-            img (torch.Tensor | np.ndarray | PIL.Image): The input image to be processed.
-            image_size (int): The target size to which the image will be resized.
-            img_mean (tuple): The mean values for normalization.
-            img_std (tuple): The standard deviation values for normalization.
-
-        Returns:
-            img (torch.Tensor): The processed image tensor ready for model input.
-            width (int): The width of the original image.
-            height (int): The height of the original image.
-        """
-        if isinstance(img, torch.Tensor):
-            height, width = img.shape[-2:]
-            img = img.view(-1, height, width)
-            return img, width, height
-        elif isinstance(img, np.ndarray):
-            img_np = img
-            img_np = cv2.resize(img_np, (image_size, image_size)) / 255.0
-            height, width = img.shape[:2]
-            img = torch.from_numpy(img_np).permute(2, 0, 1).float()
-            img_mean = torch.tensor(img_mean, dtype=torch.float32)[:, None, None]
-            img_std = torch.tensor(img_std, dtype=torch.float32)[:, None, None]
-            img -= img_mean.to(self.device)
-            img /= img_std.to(self.device)
-            return img, width, height
-        elif isinstance(img, Image.Image):
-            img_np = np.array(img.convert("RGB").resize((image_size, image_size))) / 255.0
-            width, height = img.size
-            img = torch.from_numpy(img_np).permute(2, 0, 1).float()
-
-            img_mean = torch.tensor(img_mean, dtype=torch.float32)[:, None, None]
-            img_std = torch.tensor(img_std, dtype=torch.float32)[:, None, None]
-            img -= img_mean.to(self.device)
-            img /= img_std.to(self.device)
-            return img, width, height
+        self.img_name = img_name
+        # TODO: probably simplify this as well
+        self.point_inputs = {i: None for i in range(max_obj_num)}
+        self.mask_inputs = {i: None for i in range(max_obj_num)}
+        self.current_out = {i: None for i in range(max_obj_num)}
 
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
@@ -1960,17 +1874,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Returns:
             imgState (ImageState): The created ImageState object.
         """
-        imgState = ImageState(
-            image=img,
-            img_name=img_name,
-            image_size=self.imgsz[0],
-            device=self.device,
-            max_obj_num=self._max_obj_num,
-        )
-        img_batch = imgState.image_data.cuda().float().unsqueeze(0)
-        vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(
-            self, img_batch, batch=imgState._max_obj_num
-        )
+        imgState = ImageState(self._max_obj_num, img_name)
+        vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
 
         def get_high_res_features(current_vision_feats, current_feat_sizes):
             if len(current_vision_feats) > 1:
@@ -2053,8 +1958,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Args:
             imgState (ImageState): The ImageState object containing the image data and prompts.
         """
-        consolidated_out = self.init_consolidated_out(imgState._max_obj_num)
-        for obj_idx in range(imgState._max_obj_num):
+        consolidated_out = self.init_consolidated_out(self._max_obj_num)
+        for obj_idx in range(self._max_obj_num):
             if obj_idx not in self.obj_idx_set:
                 continue
             imgState.current_out[obj_idx] = self.track_step(imgState=imgState, obj_idx=obj_idx)
@@ -2152,7 +2057,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 # directly add no-mem embedding (instead of using the transformer encoder)
                 pix_feat_with_mem = self.vision_feats[-1] + self.model.no_mem_embed
                 C = self.model.memory_attention.d_model
-                B = imgState._max_obj_num
+                B = self._max_obj_num
                 # B=1
                 H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
 
@@ -2172,7 +2077,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             )
             # reshape the output (HW)BC => BCHW
             C = self.model.memory_attention.d_model
-            B = imgState._max_obj_num
+            B = self._max_obj_num
             H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
             pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
             return pix_feat_with_mem
@@ -2468,8 +2373,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         high_res_masks = mask_inputs_float * out_scale + out_bias
 
         # check the mask_inputs shape
-        assert mask_inputs.shape[-1] == self.image_size and mask_inputs.shape[-2] == self.image_size, (
-            f"mask_inputs shape: {mask_inputs.shape}, expected ({self.image_size}, {self.image_size})"
+        assert mask_inputs.shape[-1] == self.imgsz[0] and mask_inputs.shape[-2] == self.imgsz[1], (
+            f"mask_inputs shape: {mask_inputs.shape}, expected {self.imgsz}"
         )
 
         # down sample the mask inputs to low resolution (1/4 of the original size)

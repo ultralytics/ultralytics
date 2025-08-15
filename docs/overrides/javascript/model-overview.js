@@ -393,10 +393,10 @@
           desc: "Baidu framework",
         },
         {
-          name: "PyTorch",
+          name: "TorchScript",
           icon: "pytorch.svg",
           format: "torchscript",
-          desc: "PyTorch native",
+          desc: "TorchScript format",
         },
       ];
 

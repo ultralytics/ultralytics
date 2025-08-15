@@ -42,6 +42,13 @@ overlap_mask: True # (bool) merge object masks into a single image mask during t
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
+# Prune
+prune: False # (bool) prune model during training, i.e. prune=True
+prune_type: l2 # (str) prune importance type, choices=[l1, l2, slim]
+prune_method: GroupNorm # (str) pruning method, choices=[BNScale, GroupNorm, GrowingReg]
+prune_ratio: 0.5 # (float) pruning ratio, i.e. 0.5 for 50% pruning
+prune_global: False # (bool) prune globally across all layers
+prune_sparse: False # (bool) use sparse training during pruning
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) validate/test during training

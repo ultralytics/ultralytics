@@ -6,6 +6,7 @@ import random
 import subprocess
 import time
 import zipfile
+import tarfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
@@ -389,24 +390,57 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
     Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
-    unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
-    resolves paths related to the dataset.
+    unzip the dataset. Ascertain key requirements are met and also resolves paths related to the dataset.
 
     Args:
-        dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
+        dataset (str): Path to the dataset or dataset descriptor (like a YAML file or directory).
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
         (Dict[str, Any]): Parsed dataset information and paths.
     """
-    file = check_file(dataset)
+    dataset_path = Path(dataset).resolve()
+    LOGGER.info(f"Checking dataset at: {dataset_path}")
 
-    # Download (optional)
+    # Check if path exists
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Dataset path '{dataset_path}' does not exist.")
+
+    # Check read permissions
+    if not os.access(dataset_path, os.R_OK):
+        raise PermissionError(
+            f"Permission denied for '{dataset_path}'. "
+            "Ensure user 'agan0' has Read permissions. "
+            "Right-click the file/folder, go to Properties > Security, and verify Full control."
+        )
+
+    # Handle directory
+    file = dataset_path
     extract_dir = ""
-    if zipfile.is_zipfile(file) or is_tarfile(file):
-        new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
-        file = find_dataset_yaml(DATASETS_DIR / new_dir)
-        extract_dir, autodownload = file.parent, False
+    if dataset_path.is_dir():
+        LOGGER.info(f"'{dataset_path}' is a directory. Checking for data.yaml...")
+        yaml_file = dataset_path / "data.yaml"
+        if not yaml_file.exists():
+            raise FileNotFoundError(
+                f"No data.yaml found in directory '{dataset_path}'. "
+                "Make sure the folder contains a valid data.yaml file with train/val paths."
+            )
+        if not os.access(yaml_file, os.R_OK):
+            raise PermissionError(f"Permission denied for '{yaml_file}'. Check permissions.")
+        LOGGER.info(f"Found data.yaml at: {yaml_file}")
+        file = yaml_file
+    elif dataset_path.is_file():
+        LOGGER.info(f"'{dataset_path}' is a file. Checking if it's a valid YAML or archive...")
+        if dataset_path.suffix not in {".yaml", ".yml", ".zip", ".tar", ".tar.gz"}:
+            raise ValueError(f"Unsupported file type for '{dataset_path}'. Expected .yaml, .yml, .zip, or .tar.")
+        # Download (optional)
+        if zipfile.is_zipfile(file) or tarfile.is_tarfile(file):
+            new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
+            file = find_dataset_yaml(DATASETS_DIR / new_dir)
+            extract_dir = file.parent
+            autodownload = False
+    else:
+        raise ValueError(f"'{dataset_path}' is neither a file nor a directory.")
 
     # Read YAML
     data = YAML.load(file, append_filename=True)  # dictionary
@@ -446,8 +480,14 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
                 if not x.exists() and data[k].startswith("../"):
                     x = (path / data[k][3:]).resolve()
                 data[k] = str(x)
+                # Check permissions for subfolders
+                if x.is_dir() and not os.access(x, os.R_OK | os.X_OK):
+                    raise PermissionError(f"Permission denied for '{x}'. Check permissions.")
             else:
                 data[k] = [str((path / x).resolve()) for x in data[k]]
+                for x in data[k]:
+                    if Path(x).is_dir() and not os.access(x, os.R_OK | os.X_OK):
+                        raise PermissionError(f"Permission denied for '{x}'. Check permissions.")
 
     # Parse YAML
     val, s = (data.get(x) for x in ("val", "download"))

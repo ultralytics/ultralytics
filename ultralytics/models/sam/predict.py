@@ -1806,18 +1806,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             if masks is not None:
                 assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length."
             assert len(points) == len(obj_ids), "points and obj_ids must have the same length."
-            for i, obj_id in enumerate(obj_ids):
-                # Initialize points and labels for this bbox
-                self.add_new_prompt(
-                    obj_id=int(obj_id),
-                    labels=labels[[i]],  # keep the dimension
-                    points=points[[i]],
-                    mask=masks[[i]] if masks is not None else None,
-                )
+            self.update_memory(imgState, obj_ids, points, labels, masks)
 
-            self.update_memory(imgState)
-
-        current_out = self.track_step(imgState=imgState)
+        current_out = self.track_step()
         pred_masks_gpu = current_out["pred_masks"]
 
         _, res_masks = self._get_orig_image_res_output(pred_masks_gpu)
@@ -1876,8 +1867,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             imgState (ImageState): The created ImageState object.
         """
         imgState = ImageState(self._max_obj_num, img_name)
-        self.point_inputs = {i: None for i in range(self._max_obj_num)}
-        self.mask_inputs = {i: None for i in range(self._max_obj_num)}
+        self.point_inputs, self.mask_inputs = {}, {}
         vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
 
         def get_high_res_features(current_vision_feats, current_feat_sizes):
@@ -1932,7 +1922,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             self.mask_inputs[obj_idx] = mask[None]
 
     @smart_inference_mode()
-    def update_memory(self, imgState: ImageState) -> None:
+    def update_memory(self, imgState: ImageState, obj_ids, points, labels, masks) -> None:
         """
         Append the imgState to the memory_bank and update the memory for the model.
 
@@ -1940,10 +1930,21 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             imgState (ImageState): The ImageState object containing the image data and prompts.
         """
         consolidated_out = self.init_consolidated_out(self._max_obj_num)
-        for obj_idx in range(self._max_obj_num):
-            if obj_idx not in self.obj_idx_set:
-                continue
-            out = self.track_step(imgState=imgState, obj_idx=obj_idx)
+
+        for i, obj_id in enumerate(obj_ids):
+            assert obj_id < self._max_obj_num
+            obj_idx = self._obj_id_to_idx(int(obj_id))
+            self.obj_idx_set.add(obj_idx)
+            point = points[[i]]
+            label = labels[[i]]
+            mask = masks[[i]] if masks is not None else None
+            # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
+            assert point is not None or mask is not None, "Either bbox, points or mask is required"
+            self.point_inputs[obj_idx] = {"point_coords": point, "point_labels": label}
+            if mask is not None:
+                self.mask_inputs[obj_idx] = mask[None]
+
+            out = self.track_step(obj_idx=obj_idx)
             if out is not None:
                 obj_mask = out["pred_masks"]
                 assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], (
@@ -2014,7 +2015,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         }
         return consolidated_out
 
-    def _prepare_memory_conditioned_features(self, imgState: ImageState, obj_idx: Optional[int]) -> torch.Tensor:
+    def _prepare_memory_conditioned_features(self, obj_idx: Optional[int]) -> torch.Tensor:
         """
         Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
         prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features for all
@@ -2023,7 +2024,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         vision features using a transformer attention mechanism.
 
         Args:
-            imgState (ImageState): The current image state containing vision features and positional encodings.
             obj_idx (int | None): The index of the object for which to prepare the features.
 
         Returns:
@@ -2110,7 +2110,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx = self.obj_id_to_idx.get(obj_id, None)
         return obj_idx
 
-    def track_step(self, imgState: ImageState, obj_idx: Optional[int] = None) -> Dict[str, Any]:
+    def track_step(self, obj_idx: Optional[int] = None) -> Dict[str, Any]:
         """
         Tracking step for the current image state to predict masks.
 
@@ -2120,7 +2120,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         SAM processing with memory-conditioned features.
 
         Args:
-            imgState (ImageState): The current image state containing the image data and prompts.
             obj_idx (int | None): The index of the object for which to predict masks. If None, it processes all objects.
 
         Returns:
@@ -2129,7 +2128,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         if obj_idx is not None:
             point_inputs = self.point_inputs[obj_idx]
-            mask_inputs = self.mask_inputs[obj_idx]
+            mask_inputs = self.mask_inputs.get(obj_idx, None)
         else:
             point_inputs = None
             mask_inputs = None
@@ -2143,7 +2142,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask_inputs)
         else:
             # fused the visual feature with previous memory features in the memory bank
-            pix_feat_with_mem = self._prepare_memory_conditioned_features(imgState, obj_idx)
+            pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._forward_sam_heads(
                 backbone_features=pix_feat_with_mem,
                 obj_idx=obj_idx,

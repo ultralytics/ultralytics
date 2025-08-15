@@ -1654,7 +1654,6 @@ class ImageState:
         point_inputs (dict): A dictionary mapping object indices to their point inputs.
         mask_inputs (dict): A dictionary mapping object indices to their mask inputs.
         current_out (dict): A dictionary mapping object indices to their current outputs.
-        prev_out (dict): A dictionary mapping object indices to their previous outputs.
 
     Methods:
         init_consolidated_out: Initializes the consolidated output for the image state, preparing it for segmentation tasks.
@@ -1715,7 +1714,6 @@ class ImageState:
         self.point_inputs = {i: None for i in range(self._max_obj_num)}
         self.mask_inputs = {i: None for i in range(self._max_obj_num)}
         self.current_out = {i: None for i in range(self._max_obj_num)}
-        self.prev_out = {i: None for i in range(self._max_obj_num)}
         self.no_obj_score = -1024.0  #
 
     def init_consolidated_out(self, hidden_dim: int) -> Dict[str, torch.Tensor]:
@@ -1730,11 +1728,10 @@ class ImageState:
         Returns:
             consolidated_out (dict): A dictionary containing the initialized consolidated outputs.
         """
-        consolidated_mask_key = "pred_masks"
         consolidated_out = {
             "maskmem_features": None,
             "maskmem_pos_enc": None,
-            consolidated_mask_key: torch.full(
+            "pred_masks": torch.full(
                 size=(self._max_obj_num, 1, self.img_h // 4, self.img_w // 4),
                 fill_value=self.no_obj_score,
                 dtype=torch.float32,
@@ -2118,7 +2115,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx = self._obj_id_to_idx(obj_id)
         self.obj_idx_set.add(obj_idx)
 
-        # assert   bbox or points  mask is not None, "Either bbox or points or mask is required"
         # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
         assert points is not None or mask is not None, "Either bbox, points or mask is required"
         imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
@@ -2158,13 +2154,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         for obj_idx in range(imgState._max_obj_num):
             if obj_idx not in self.obj_idx_set:
                 continue
-            prev_out = imgState.prev_out.get(obj_idx)
-            prev_sam_mask_logits = None
-            if prev_out is not None and prev_out["pred_masks"] is not None:
-                prev_sam_mask_logits = prev_out["pred_masks"].cuda(non_blocking=True)
-                # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
-                prev_sam_mask_logits = torch.clamp(prev_sam_mask_logits, -32.0, 32.0)
-
             current_out = self.track_step(imgState=imgState, obj_idx=obj_idx)
             imgState.current_out[obj_idx] = current_out
             out = imgState.current_out[obj_idx]
@@ -2338,19 +2327,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
             pix_feat = current_vision_feats[-1].permute(1, 2, 0)
             pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *feat_sizes[-1])
-            sam_outputs = self._use_mask_as_output(mask_inputs)
-            (
-                _,
-                low_res_masks,
-                high_res_masks,
-                obj_ptr,
-                object_score_logits,
-            ) = sam_outputs
+            _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask_inputs)
 
         else:
             # fused the visual feature with previous memory features in the memory bank
             imgState.pix_feat_with_mem = self._prepare_memory_conditioned_features(imgState, obj_idx)
-            sam_outputs = self._forward_sam_heads(
+            _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._forward_sam_heads(
                 backbone_features=imgState.pix_feat_with_mem,
                 obj_idx=obj_idx,
                 point_inputs=point_inputs,
@@ -2358,16 +2340,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 high_res_features=high_res_features,
                 multimask_output=False,
             )
-
-            (
-                _,
-                _,
-                _,
-                low_res_masks,
-                high_res_masks,
-                obj_ptr,
-                object_score_logits,
-            ) = sam_outputs
         current_out["pred_masks"] = low_res_masks
         current_out["pred_masks_high_res"] = high_res_masks
         current_out["obj_ptr"] = obj_ptr

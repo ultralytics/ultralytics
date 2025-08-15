@@ -1659,7 +1659,6 @@ class ImageState:
         """Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of
         objects.
         """
-        self.maskmem_features = None
         self.img_name = img_name
         if img_name is not None:
             self.img_name = img_name
@@ -1667,10 +1666,6 @@ class ImageState:
             # use date and timestamp (ms) to generate a unique image name
             date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             self.img_name = f"image_{date_time}"
-        # TODO: probably simplify this as well
-        self.point_inputs = {i: None for i in range(max_obj_num)}
-        self.mask_inputs = {i: None for i in range(max_obj_num)}
-        self.current_out = {i: None for i in range(max_obj_num)}
 
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
@@ -1755,6 +1750,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         for i in range(self._max_obj_num):
             self.obj_id_to_idx[i + 1] = i
             self.obj_idx_to_id[i] = i + 1
+        # TODO: probably simplify this as well
 
     @smart_inference_mode()
     def inference(
@@ -1882,6 +1878,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             imgState (ImageState): The created ImageState object.
         """
         imgState = ImageState(self._max_obj_num, img_name)
+        self.point_inputs = {i: None for i in range(self._max_obj_num)}
+        self.mask_inputs = {i: None for i in range(self._max_obj_num)}
         vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
 
         def get_high_res_features(current_vision_feats, current_feat_sizes):
@@ -1932,30 +1930,32 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
         assert points is not None or mask is not None, "Either bbox, points or mask is required"
-        imgState.point_inputs[obj_idx] = self.concat_points(imgState.point_inputs[obj_idx], points, labels)
+        self.concat_points(obj_idx, points, labels)
 
         if mask is not None:
-            imgState.mask_inputs[obj_idx] = mask[None]
+            self.mask_inputs[obj_idx] = mask[None]
 
-    def concat_points(self, old_point_inputs, new_points, new_labels):
+    def concat_points(self, obj_idx: int, new_points, new_labels):
         """
         Add new points and labels to previous point inputs (add at the end).
 
         Args:
-            old_point_inputs (dict | None): Previous point inputs, can be None.
+            obj_idx (int): The index of the object to which the points and labels are associated.
             new_points (torch.Tensor): New points to be added, shape (B, N, 2).
             new_labels (torch.Tensor): Labels corresponding to the new points, shape (B, N).
 
         Returns:
             (Dict): A dictionary containing the concatenated point coordinates and labels.
         """
-        if old_point_inputs is None:
-            points, labels = new_points, new_labels
+        if self.point_inputs[obj_idx] is None:
+            self.point_inputs[obj_idx] = {"point_coords": new_points, "point_labels": new_labels}
         else:
-            points = torch.cat([old_point_inputs["point_coords"], new_points], dim=1)
-            labels = torch.cat([old_point_inputs["point_labels"], new_labels], dim=1)
-
-        return {"point_coords": points, "point_labels": labels}
+            self.point_inputs[obj_idx]["point_coords"] = torch.cat(
+                [self.point_inputs[obj_idx]["point_coords"], new_points], dim=1
+            )
+            self.point_inputs[obj_idx]["point_labels"] = torch.cat(
+                [self.point_inputs[obj_idx]["point_labels"], new_labels], dim=1
+            )
 
     @smart_inference_mode()
     def update_memory(self, imgState: ImageState) -> None:
@@ -1969,8 +1969,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         for obj_idx in range(self._max_obj_num):
             if obj_idx not in self.obj_idx_set:
                 continue
-            imgState.current_out[obj_idx] = self.track_step(imgState=imgState, obj_idx=obj_idx)
-            out = imgState.current_out[obj_idx]
+            out = self.track_step(imgState=imgState, obj_idx=obj_idx)
             if out is not None:
                 obj_mask = out["pred_masks"]
                 assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], (
@@ -2155,8 +2154,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
         if obj_idx is not None:
-            point_inputs = imgState.point_inputs[obj_idx]
-            mask_inputs = imgState.mask_inputs[obj_idx]
+            point_inputs = self.point_inputs[obj_idx]
+            mask_inputs = self.mask_inputs[obj_idx]
         else:
             point_inputs = None
             mask_inputs = None

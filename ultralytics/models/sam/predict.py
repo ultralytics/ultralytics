@@ -1975,7 +1975,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             return pix_feat_with_mem
 
     def get_maskmem_enc(self) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
-        """Get the memory and positional encoding from the memory, which is used to condition the current image features."""
+        """Get the memory and positional encoding from the memory, which is used to condition the current image
+        features.
+        """
         to_cat_memory, to_cat_memory_pos_embed = [], []
         t_pos = 0
         for consolidated_out in self.memory_bank:

@@ -1649,7 +1649,6 @@ class ImageState:
         vision_feats (torch.Tensor): The visual features extracted from the image.
         vision_pos_embeds (torch.Tensor): The positional embeddings for the visual features.
         feat_sizes (list): A list containing the sizes of the extracted features.
-        pix_feat_with_mem (torch.Tensor): Pixel features with memory for segmentation tasks.
         maskmem_features (torch.Tensor): Features related to mask memory for segmentation tasks.
         point_inputs (dict): A dictionary mapping object indices to their point inputs.
         mask_inputs (dict): A dictionary mapping object indices to their mask inputs.
@@ -1698,16 +1697,11 @@ class ImageState:
             date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             self.img_name = f"image_{date_time}"
 
-        # self.cached_features=None
-        self.backbone_fpn = None  #
-        self.vision_pos_enc = None
-
         self.high_res_features = None
         self.vision_feats = None
         self.vision_pos_embeds = None
         self.feat_sizes = None
 
-        self.pix_feat_with_mem: Optional[torch.Tensor] = None
         self.maskmem_features = None
         self._max_obj_num = max_obj_num
 
@@ -1819,12 +1813,12 @@ class ImageState:
             backbone_out (dict): A dictionary containing backbone features with keys "backbone_fpn" and "vision_pos_enc" that output from the image encoder.
             num_feature_levels (int): Number of feature levels to be used from the backbone.
         """
-        self.backbone_fpn = backbone_out["backbone_fpn"]
-        self.vision_pos_enc = backbone_out["vision_pos_enc"]
+        backbone_fpn = backbone_out["backbone_fpn"]
+        vision_pos_enc = backbone_out["vision_pos_enc"]
 
         expanded_backbone_out = {
-            "backbone_fpn": self.backbone_fpn.copy(),
-            "vision_pos_enc": self.vision_pos_enc.copy(),
+            "backbone_fpn": backbone_fpn.copy(),
+            "vision_pos_enc": vision_pos_enc.copy(),
         }
         for i, feat in enumerate(expanded_backbone_out["backbone_fpn"]):
             expanded_backbone_out["backbone_fpn"][i] = feat.expand(self._max_obj_num, -1, -1, -1)
@@ -2078,11 +2072,33 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             imgState (ImageState): The created ImageState object.
         """
         imgState = ImageState(
-            image=img, img_name=img_name, image_size=self.image_size, device=self.device, max_obj_num=self._max_obj_num
+            image=img,
+            img_name=img_name,
+            image_size=self.image_size,
+            device=self.device,
+            max_obj_num=self._max_obj_num,
         )
         img_batch = imgState.image_data.cuda().float().unsqueeze(0)
         backbone_out = self.model.forward_image(img_batch)
         imgState._prepare_backbone_features(backbone_out, self.model.num_feature_levels)
+        # vis_feats, vis_pos_embed, feat_sizes = SAM2Predictor.get_im_features(
+        #     self, img_batch, batch=imgState._max_obj_num
+        # )
+        #
+        # def get_high_res_features(current_vision_feats, current_feat_sizes):
+        #     if len(current_vision_feats) > 1:
+        #         high_res_features = [
+        #             x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
+        #             for x, s in zip(current_vision_feats[:-1], current_feat_sizes[:-1])
+        #         ]
+        #     else:
+        #         high_res_features = None
+        #     return high_res_features
+        #
+        # self.high_res_features = get_high_res_features(vis_feats, feat_sizes)
+        # self.vision_feats = vis_feats
+        # self.vision_pos_embeds = vis_pos_embed
+        # self.feat_sizes = feat_sizes
 
         return imgState
 
@@ -2320,9 +2336,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask_inputs)
         else:
             # fused the visual feature with previous memory features in the memory bank
-            imgState.pix_feat_with_mem = self._prepare_memory_conditioned_features(imgState, obj_idx)
+            pix_feat_with_mem = self._prepare_memory_conditioned_features(imgState, obj_idx)
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._forward_sam_heads(
-                backbone_features=imgState.pix_feat_with_mem,
+                backbone_features=pix_feat_with_mem,
                 obj_idx=obj_idx,
                 point_inputs=point_inputs,
                 mask_inputs=mask_inputs,

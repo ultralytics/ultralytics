@@ -125,39 +125,33 @@ class STrack(BaseTrack):
     def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int):
         """Activate a new tracklet using the provided Kalman filter and initialize its state and covariance."""
         self.kalman_filter = kalman_filter
-        self.track_id = self.next_id()
         self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
 
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         if frame_id == 1:
+            self.track_id = self.next_id()
             self.is_activated = True
+        else:
+            self.track_id = self.next_tentative_id()
+
         self.frame_id = frame_id
         self.start_frame = frame_id
 
     def re_activate(self, new_track: "STrack", frame_id: int, new_id: bool = False):
         """Reactivate a previously lost track using new detection data and update its state and attributes."""
-        self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.convert_coords(new_track.tlwh)
-        )
+        self.update(new_track, frame_id, new_id)
         self.tracklet_len = 0
-        self.state = TrackState.Tracked
         self.is_activated = True
-        self.frame_id = frame_id
-        if new_id:
-            self.track_id = self.next_id()
-        self.score = new_track.score
-        self.cls = new_track.cls
-        self.angle = new_track.angle
-        self.idx = new_track.idx
 
-    def update(self, new_track: "STrack", frame_id: int):
+    def update(self, new_track: "STrack", frame_id: int, new_id: bool = False):
         """
         Update the state of a matched track.
 
         Args:
             new_track (STrack): The new track containing updated information.
             frame_id (int): The ID of the current frame.
+            new_id (bool): Whether to assign a new track ID to the track.
 
         Examples:
             Update the state of a track with new detection information
@@ -173,7 +167,9 @@ class STrack(BaseTrack):
             self.mean, self.covariance, self.convert_coords(new_tlwh)
         )
         self.state = TrackState.Tracked
-        self.is_activated = True
+        if new_id:
+            self.track_id = self.next_id()
+            self.is_activated = True
 
         self.score = new_track.score
         self.cls = new_track.cls
@@ -375,8 +371,9 @@ class BYTETracker:
         dists = self.get_dists(unconfirmed, detections)
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
         for itracked, idet in matches:
-            unconfirmed[itracked].update(detections[idet], self.frame_id)
-            activated_stracks.append(unconfirmed[itracked])
+            track = unconfirmed[itracked]
+            track.update(detections[idet], self.frame_id, new_id=(track.tracklet_len + 2 >= self.args.min_hits))
+            activated_stracks.append(track)
         for it in u_unconfirmed:
             track = unconfirmed[it]
             track.mark_removed()

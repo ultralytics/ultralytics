@@ -159,7 +159,7 @@ def test_autobatch():
     """Check optimal batch size for YOLO model training using autobatch utility."""
     from ultralytics.utils.autobatch import check_train_batch_size
 
-    check_train_batch_size(YOLO(MODEL).model.to(f"cuda:{DEVICES[0]}"), imgsz=128, amp=True)
+    check_train_batch_size(model=YOLO(MODEL).model.to(f"cuda:{DEVICES[0]}"), device_type="cuda", imgsz=128, amp=True)
 
 
 @pytest.mark.slow

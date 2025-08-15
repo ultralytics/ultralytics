@@ -4,12 +4,11 @@ import json
 import os
 import random
 import subprocess
+import tarfile
 import time
 import zipfile
-import tarfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from tarfile import is_tarfile
 from typing import Any, Dict, List, Tuple, Union
 
 import cv2

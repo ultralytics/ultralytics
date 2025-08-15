@@ -2019,7 +2019,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
             self.update_memory(imgState)
 
-        current_out = self.track_step(imgState=imgState, obj_idx=None)
+        current_out = self.track_step(imgState=imgState)
         pred_masks_gpu = current_out["pred_masks"]
 
         _, res_masks = self._get_orig_image_res_output(pred_masks_gpu)
@@ -2154,8 +2154,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         for obj_idx in range(imgState._max_obj_num):
             if obj_idx not in self.obj_idx_set:
                 continue
-            current_out = self.track_step(imgState=imgState, obj_idx=obj_idx)
-            imgState.current_out[obj_idx] = current_out
+            imgState.current_out[obj_idx] = self.track_step(imgState=imgState, obj_idx=obj_idx)
             out = imgState.current_out[obj_idx]
             if out is not None:
                 obj_mask = out["pred_masks"]
@@ -2288,11 +2287,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx = self.obj_id_to_idx.get(obj_id, None)
         return obj_idx
 
-    def track_step(
-        self,
-        imgState: ImageState,
-        obj_idx: Optional[int],
-    ) -> Dict[str, Any]:
+    def track_step(self, imgState: ImageState, obj_idx: Optional[int] = None) -> Dict[str, Any]:
         """
         Tracking step for the current image state to predict masks.
 
@@ -2316,19 +2311,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             point_inputs = None
             mask_inputs = None
 
-        current_vision_feats = imgState.vision_feats
-        high_res_features = imgState.high_res_features
-        feat_sizes = imgState.feat_sizes
-
         current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
-
         if mask_inputs is not None and self.model.use_mask_input_as_output_without_sam:
             # When use_mask_input_as_output_without_sam=True, we directly output the mask input
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
-            pix_feat = current_vision_feats[-1].permute(1, 2, 0)
-            pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *feat_sizes[-1])
+            pix_feat = imgState.vision_feats[-1].permute(1, 2, 0)
+            pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *imgState.feat_sizes[-1])
             _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask_inputs)
-
         else:
             # fused the visual feature with previous memory features in the memory bank
             imgState.pix_feat_with_mem = self._prepare_memory_conditioned_features(imgState, obj_idx)
@@ -2337,7 +2326,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 obj_idx=obj_idx,
                 point_inputs=point_inputs,
                 mask_inputs=mask_inputs,
-                high_res_features=high_res_features,
+                high_res_features=imgState.high_res_features,
                 multimask_output=False,
             )
         current_out["pred_masks"] = low_res_masks

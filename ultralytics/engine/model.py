@@ -623,7 +623,7 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
-            >>> results = model.val(data="coco8.yaml", imgsz=640)
+            >>> results = model.val(data="path/to/dataset", imgsz=640)
             >>> print(results.box.map)  # Print mAP50-95
         """
         custom = {"rect": True}  # method defaults
@@ -752,7 +752,7 @@ class Model(torch.nn.Module):
         Args:
             trainer (BaseTrainer, optional): Custom trainer instance for model training. If None, uses default.
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
-                data (str): Path to dataset configuration file.
+                data (str): Path to dataset.
                 epochs (int): Number of training epochs.
                 batch (int): Batch size for training.
                 imgsz (int): Input image size.
@@ -767,7 +767,7 @@ class Model(torch.nn.Module):
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
-            >>> results = model.train(data="coco8.yaml", epochs=3)
+            >>> results = model.train(data="path/to/dataset", epochs=3)
         """
         self._check_is_pytorch_model()
         if hasattr(self.session, "model") and self.session.model.id:  # Ultralytics HUB session with loaded model

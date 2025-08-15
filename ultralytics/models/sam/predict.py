@@ -9,7 +9,6 @@ segmentation tasks.
 """
 
 from collections import OrderedDict
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
@@ -2039,7 +2038,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
                 Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
-
         points = {"point_coords": point, "point_labels": label} if obj_idx is not None else None
         current_out = {"point_inputs": points, "mask_inputs": mask}
         if mask is not None and self.model.use_mask_input_as_output_without_sam:

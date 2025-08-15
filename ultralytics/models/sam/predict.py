@@ -1656,7 +1656,9 @@ class ImageState:
     """
 
     def __init__(self, max_obj_num, img_name) -> None:
-        """Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of objects."""
+        """Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of
+        objects.
+        """
         self.maskmem_features = None
         self.img_name = img_name
         if img_name is not None:

@@ -1655,7 +1655,6 @@ class ImageState:
         current_out (dict): A dictionary mapping object indices to their current outputs.
 
     Methods:
-        init_consolidated_out: Initializes the consolidated output for the image state, preparing it for segmentation tasks.
         perpare_data: Prepares the image data by resizing and normalizing it, returning the processed tensor and its dimensions.
         set_prompt: Sets the prompt data (points, box, mask) for the image state.
         get_im_features: Extracts and processes image features using the model's image encoder for
@@ -1702,45 +1701,6 @@ class ImageState:
         self.point_inputs = {i: None for i in range(self._max_obj_num)}
         self.mask_inputs = {i: None for i in range(self._max_obj_num)}
         self.current_out = {i: None for i in range(self._max_obj_num)}
-        self.no_obj_score = -1024.0  #
-
-    def init_consolidated_out(self, hidden_dim: int) -> Dict[str, torch.Tensor]:
-        """
-        Initialize the consolidated output for the image state. This method prepares a dictionary that will hold the
-        consolidated outputs for the image state, including mask features, positional encodings, predicted masks, object
-        pointers, and object score logits.
-
-        Args:
-            hidden_dim (int): The hidden dimension size for object pointers.
-
-        Returns:
-            consolidated_out (dict): A dictionary containing the initialized consolidated outputs.
-        """
-        consolidated_out = {
-            "maskmem_features": None,
-            "maskmem_pos_enc": None,
-            "pred_masks": torch.full(
-                size=(self._max_obj_num, 1, self.img_h // 4, self.img_w // 4),
-                fill_value=self.no_obj_score,
-                dtype=torch.float32,
-                device=self.device,
-            ),
-            "obj_ptr": torch.full(
-                size=(self._max_obj_num, hidden_dim),
-                fill_value=self.no_obj_score,
-                dtype=torch.float32,
-                device=self.device,
-            ),
-            "object_score_logits": torch.full(
-                size=(self._max_obj_num, 1),
-                # default to 10.0 for object_score_logits, i.e. assuming the object is
-                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
-                fill_value=-32,  # 10.0,
-                dtype=torch.float32,
-                device=self.device,
-            ),
-        }
-        return consolidated_out
 
     def perpare_data(
         self,
@@ -2103,7 +2063,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Args:
             imgState (ImageState): The ImageState object containing the image data and prompts.
         """
-        consolidated_out = imgState.init_consolidated_out(self.model.hidden_dim)
+        consolidated_out = self.init_consolidated_out(imgState._max_obj_num)
         for obj_idx in range(imgState._max_obj_num):
             if obj_idx not in self.obj_idx_set:
                 continue
@@ -2140,6 +2100,44 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
         imgState.consolidated_out = consolidated_out
         self.memory_bank[imgState.img_name] = imgState
+
+    def init_consolidated_out(self, batch: int) -> Dict[str, torch.Tensor]:
+        """
+        Initialize the consolidated output for the image state. This method prepares a dictionary that will hold the
+        consolidated outputs for the image state, including mask features, positional encodings, predicted masks, object
+        pointers, and object score logits.
+
+        Args:
+            batch (int): The hidden dimension size for object pointers.
+
+        Returns:
+            consolidated_out (dict): A dictionary containing the initialized consolidated outputs.
+        """
+        consolidated_out = {
+            "maskmem_features": None,
+            "maskmem_pos_enc": None,
+            "pred_masks": torch.full(
+                size=(batch, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
+                fill_value=self.no_obj_score,
+                dtype=torch.float32,
+                device=self.device,
+            ),
+            "obj_ptr": torch.full(
+                size=(batch, self.model.hidden_dim),
+                fill_value=self.no_obj_score,
+                dtype=torch.float32,
+                device=self.device,
+            ),
+            "object_score_logits": torch.full(
+                size=(batch, 1),
+                # default to 10.0 for object_score_logits, i.e. assuming the object is
+                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
+                fill_value=-32,  # 10.0,
+                dtype=torch.float32,
+                device=self.device,
+            ),
+        }
+        return consolidated_out
 
     def _prepare_memory_conditioned_features(self, imgState: ImageState, obj_idx: Optional[int]) -> torch.Tensor:
         """

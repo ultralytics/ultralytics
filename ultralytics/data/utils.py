@@ -398,7 +398,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
     Returns:
         (Dict[str, Any]): Parsed dataset information and paths.
     """
-    dataset_path = Path(dataset).resolve()
+    # Use check_file to resolve dataset path (searches cfg/datasets/ etc.)
+    dataset_path = check_file(dataset)
+    dataset_path = Path(dataset_path).resolve()
     LOGGER.info(f"Checking dataset at: {dataset_path}")
 
     # Check if path exists
@@ -409,8 +411,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
     if not os.access(dataset_path, os.R_OK):
         raise PermissionError(
             f"Permission denied for '{dataset_path}'. "
-            "Ensure user 'agan0' has Read permissions. "
-            "Right-click the file/folder, go to Properties > Security, and verify Full control."
+            "Ensure user has Read permissions. "
+            "(Windows) Right-click the file/folder, go to Properties > Security, and verify Full control."
         )
 
     # Handle directory

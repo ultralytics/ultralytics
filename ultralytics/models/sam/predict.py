@@ -1658,7 +1658,6 @@ class ImageState:
         init_consolidated_out: Initializes the consolidated output for the image state, preparing it for segmentation tasks.
         perpare_data: Prepares the image data by resizing and normalizing it, returning the processed tensor and its dimensions.
         set_prompt: Sets the prompt data (points, box, mask) for the image state.
-        _prepare_backbone_features: Prepares and flattens visual features for processing by the model.
         get_im_features: Extracts and processes image features using the model's image encoder for
 
     Examples:
@@ -1796,61 +1795,6 @@ class ImageState:
             img -= img_mean.to(self.device)
             img /= img_std.to(self.device)
             return img, width, height
-
-    def _prepare_backbone_features(self, backbone_out: Dict[str, List[torch.Tensor]], num_feature_levels: int):
-        """
-        Prepare and flatten visual features.
-
-        Resulting features will be stored in the image state, including:
-            - backbone_fpn: list of backbone features from the image encoder.
-            - vision_pos_enc: list of positional encodings from the image encoder.
-            - high_res_features: list of high-resolution features for skip connections in the mask decoder.
-            - vision_feats: list of flattened visual features for transformer input.
-            - vision_pos_embeds: list of flattened positional embeddings for transformer input.
-            - feat_sizes: list of tuples representing the sizes of the features.
-
-        Args:
-            backbone_out (dict): A dictionary containing backbone features with keys "backbone_fpn" and "vision_pos_enc" that output from the image encoder.
-            num_feature_levels (int): Number of feature levels to be used from the backbone.
-        """
-        backbone_fpn = backbone_out["backbone_fpn"]
-        vision_pos_enc = backbone_out["vision_pos_enc"]
-
-        expanded_backbone_out = {
-            "backbone_fpn": backbone_fpn.copy(),
-            "vision_pos_enc": vision_pos_enc.copy(),
-        }
-        for i, feat in enumerate(expanded_backbone_out["backbone_fpn"]):
-            expanded_backbone_out["backbone_fpn"][i] = feat.expand(self._max_obj_num, -1, -1, -1)
-        for i, pos in enumerate(expanded_backbone_out["vision_pos_enc"]):
-            pos = pos.expand(self._max_obj_num, -1, -1, -1)
-            expanded_backbone_out["vision_pos_enc"][i] = pos
-
-        assert len(expanded_backbone_out["backbone_fpn"]) == len(expanded_backbone_out["vision_pos_enc"])
-        assert len(expanded_backbone_out["backbone_fpn"]) >= num_feature_levels
-
-        feature_maps = expanded_backbone_out["backbone_fpn"][-num_feature_levels:]
-        vision_pos_embeds = expanded_backbone_out["vision_pos_enc"][-num_feature_levels:]
-
-        feat_sizes = [(x.shape[-2], x.shape[-1]) for x in vision_pos_embeds]
-        # flatten NxCxHxW to HWxNxC
-        vision_feats = [x.flatten(2).permute(2, 0, 1) for x in feature_maps]
-        vision_pos_embeds = [x.flatten(2).permute(2, 0, 1) for x in vision_pos_embeds]
-
-        def get_high_res_features(current_vision_feats, current_feat_sizes):
-            if len(current_vision_feats) > 1:
-                high_res_features = [
-                    x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
-                    for x, s in zip(current_vision_feats[:-1], current_feat_sizes[:-1])
-                ]
-            else:
-                high_res_features = None
-            return high_res_features
-
-        self.high_res_features = get_high_res_features(vision_feats, feat_sizes)
-        self.vision_feats = vision_feats
-        self.vision_pos_embeds = vision_pos_embeds
-        self.feat_sizes = feat_sizes
 
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
@@ -2079,26 +2023,24 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             max_obj_num=self._max_obj_num,
         )
         img_batch = imgState.image_data.cuda().float().unsqueeze(0)
-        backbone_out = self.model.forward_image(img_batch)
-        imgState._prepare_backbone_features(backbone_out, self.model.num_feature_levels)
-        # vis_feats, vis_pos_embed, feat_sizes = SAM2Predictor.get_im_features(
-        #     self, img_batch, batch=imgState._max_obj_num
-        # )
-        #
-        # def get_high_res_features(current_vision_feats, current_feat_sizes):
-        #     if len(current_vision_feats) > 1:
-        #         high_res_features = [
-        #             x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
-        #             for x, s in zip(current_vision_feats[:-1], current_feat_sizes[:-1])
-        #         ]
-        #     else:
-        #         high_res_features = None
-        #     return high_res_features
-        #
-        # self.high_res_features = get_high_res_features(vis_feats, feat_sizes)
-        # self.vision_feats = vis_feats
-        # self.vision_pos_embeds = vis_pos_embed
-        # self.feat_sizes = feat_sizes
+        vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(
+            self, img_batch, batch=imgState._max_obj_num
+        )
+
+        def get_high_res_features(current_vision_feats, current_feat_sizes):
+            if len(current_vision_feats) > 1:
+                high_res_features = [
+                    x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
+                    for x, s in zip(current_vision_feats[:-1], current_feat_sizes[:-1])
+                ]
+            else:
+                high_res_features = None
+            return high_res_features
+
+        self.high_res_features = get_high_res_features(vis_feats, feat_sizes)
+        self.vision_feats = vis_feats
+        self.vision_pos_embeds = vis_pos_embed
+        self.feat_sizes = feat_sizes
 
         return imgState
 
@@ -2193,8 +2135,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.model.non_overlap_masks_for_mem_enc:
             high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
         maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
-            current_vision_feats=imgState.vision_feats,
-            feat_sizes=imgState.feat_sizes,
+            current_vision_feats=self.vision_feats,
+            feat_sizes=self.feat_sizes,
             pred_masks_high_res=high_res_masks,
             object_score_logits=consolidated_out["object_score_logits"],
             is_mask_from_pts=True,
@@ -2219,18 +2161,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Returns:
             pix_feat_with_mem (torch.Tensor): The memory-conditioned pixel features.
         """
-        current_vision_feats = imgState.vision_feats
-        feat_sizes = imgState.feat_sizes
+        feat_sizes = self.feat_sizes
         if len(self.memory_bank) == 0 or isinstance(obj_idx, int):
             # # for initial conditioning frames with, encode them without using any previous memory
             directly_add_no_mem_embed = True
             if directly_add_no_mem_embed:
                 # directly add no-mem embedding (instead of using the transformer encoder)
-                pix_feat_with_mem = current_vision_feats[-1] + self.model.no_mem_embed
+                pix_feat_with_mem = self.vision_feats[-1] + self.model.no_mem_embed
                 C = self.model.memory_attention.d_model
                 B = imgState._max_obj_num
                 # B=1
-                feat_sizes = imgState.feat_sizes
                 H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
 
                 pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
@@ -2241,8 +2181,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             memory, memory_pos_embed = self.get_maskmem_enc(valued_memory_bank)
 
             pix_feat_with_mem = self.model.memory_attention(
-                curr=imgState.vision_feats[-1:],
-                curr_pos=imgState.vision_pos_embeds[-1:],
+                curr=self.vision_feats[-1:],
+                curr_pos=self.vision_pos_embeds[-1:],
                 memory=memory,
                 memory_pos=memory_pos_embed,
                 num_obj_ptr_tokens=0,  # num_obj_ptr_tokens
@@ -2250,7 +2190,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             # reshape the output (HW)BC => BCHW
             C = self.model.memory_attention.d_model
             B = imgState._max_obj_num
-            feat_sizes = imgState.feat_sizes
             H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
             pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
             return pix_feat_with_mem
@@ -2331,8 +2270,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if mask_inputs is not None and self.model.use_mask_input_as_output_without_sam:
             # When use_mask_input_as_output_without_sam=True, we directly output the mask input
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
-            pix_feat = imgState.vision_feats[-1].permute(1, 2, 0)
-            pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *imgState.feat_sizes[-1])
+            pix_feat = self.vision_feats[-1].permute(1, 2, 0)
+            pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *self.feat_sizes[-1])
             _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask_inputs)
         else:
             # fused the visual feature with previous memory features in the memory bank
@@ -2342,7 +2281,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 obj_idx=obj_idx,
                 point_inputs=point_inputs,
                 mask_inputs=mask_inputs,
-                high_res_features=imgState.high_res_features,
                 multimask_output=False,
             )
         current_out["pred_masks"] = low_res_masks
@@ -2359,7 +2297,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx: Optional[int],
         point_inputs: Optional[Dict[str, torch.Tensor]] = None,
         mask_inputs: Optional[torch.Tensor] = None,
-        high_res_features: Optional[List[torch.Tensor]] = None,
         multimask_output: bool = False,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -2375,7 +2312,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                    positive clicks, 0 means negative clicks, and -1 means padding.
             mask_inputs (Optional[torch.Tensor]): A mask of [B, 1, H*16, W*16] shape, float or bool, with the
                 same spatial size as the image.
-            high_res_features (Optional[List[torch.Tensor]]): Either None or a list of length 2 containing
                 two feature maps of [B, C, 4*H, 4*W] and [B, C, 2*H, 2*W] shapes respectively,
                 which will be used as high-resolution feature maps for SAM decoder.
             multimask_output (bool): If True, output 3 candidate masks and their 3
@@ -2445,7 +2381,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             dense_prompt_embeddings=dense_embeddings,
             multimask_output=multimask_output,
             repeat_image=False,  # the image is already batched
-            high_res_features=[feat[:B] for feat in high_res_features],  # TODO
+            high_res_features=[feat[:B] for feat in self.high_res_features],  # TODO
         )
 
         if self.model.pred_obj_scores:

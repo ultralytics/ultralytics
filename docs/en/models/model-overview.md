@@ -29,7 +29,7 @@ Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
   <div id="mo-content" class="mo-content" aria-live="polite"></div>
 </div>
 
-<link rel="stylesheet" href="../model-overview.css">
+<link rel="stylesheet" href="../../stylesheets/model-overview.css">
 
 <!-- Modal root -->
 <div id="mo-modal-backdrop" class="mo-modal-backdrop" aria-hidden="true">
@@ -55,4 +55,4 @@ Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
   </div>
 </div>
 
-<script src="../model-overview.js"></script>
+<script src="../../javascript/model-overview.js"></script>

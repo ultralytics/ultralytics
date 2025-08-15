@@ -1,10 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import sys
+import warnings
 from collections import deque
 from typing import Any, List, Optional
 
-import sys
-import warnings
 import numpy as np
 import torch
 from torchvision import transforms

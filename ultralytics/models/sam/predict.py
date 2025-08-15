@@ -1687,7 +1687,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         inference(img, image_name=None, bboxes=None, masks=None, points=None, labels=None, obj_ids=None, update_memory=False): Performs inference on a single image with optional prompts and object IDs.
         postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.
         createState(img, img_name=None): Create a new ImageState object for the given image.
-        add_new_prompt(imgState, obj_id, points=None, labels=None, mask=None, bbox=None, normalize_coords=True): Add new prompts to a specific frame for a given object ID.
         concat_points(old_point_inputs, new_points, new_labels): Add new points and labels to previous point inputs.
         update_memory(imgState): Append the imgState to the memory_bank and update the memory for the model.
         track_step(imgState, obj_idx): Tracking step for the current image state to predict masks.
@@ -1867,7 +1866,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             imgState (ImageState): The created ImageState object.
         """
         imgState = ImageState(self._max_obj_num, img_name)
-        self.point_inputs, self.mask_inputs = {}, {}
         vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
 
         def get_high_res_features(current_vision_feats, current_feat_sizes):
@@ -1887,39 +1885,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         return imgState
 
-    @smart_inference_mode()
-    def add_new_prompt(
-        self,
-        obj_id: int,
-        points: Optional[torch.Tensor] = None,
-        labels: Optional[torch.Tensor] = None,
-        mask: Optional[torch.Tensor] = None,
-    ) -> None:
-        """
-        Add new prompts to a specific frame for a given object ID.
-
-        This method updates the imgState with new prompts (points, bounding boxes, or masks) for a specified object
-        and updates the internal state accordingly. It supports multiple types of prompts and can handle coordinate
-        normalization and prompt combination.
-
-        Args:
-            obj_id (int): The ID of the object to which the prompts are associated.
-            points (torch.Tensor | None): The coordinates of the points of interest with shape (N, 2).
-            labels (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
-            mask (torch.Tensor | None): The mask input for the object with shape (H, W).
-
-        Raises:
-            AssertionError: If none of bbox, points, or mask is provided.
-        """
-        obj_idx = self._obj_id_to_idx(obj_id)
-        self.obj_idx_set.add(obj_idx)
-
-        # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
-        assert points is not None or mask is not None, "Either bbox, points or mask is required"
-        self.point_inputs[obj_idx] = {"point_coords": points, "point_labels": labels}
-
-        if mask is not None:
-            self.mask_inputs[obj_idx] = mask[None]
 
     @smart_inference_mode()
     def update_memory(self, imgState: ImageState, obj_ids, points, labels, masks) -> None:
@@ -1940,10 +1905,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             mask = masks[[i]] if masks is not None else None
             # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
             assert point is not None or mask is not None, "Either bbox, points or mask is required"
-            self.point_inputs[obj_idx] = {"point_coords": point, "point_labels": label}
             if mask is not None:
                 mask = mask[None]
-                self.mask_inputs[obj_idx] = mask[None]
 
             out = self.track_step(obj_idx, point, label, mask)
             if out is not None:

@@ -16,7 +16,6 @@ import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
-from PIL import Image
 
 from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
@@ -1660,6 +1659,12 @@ class ImageState:
         """Initializes the ImageState with the provided image, frame index, image size, device, and maximum number of objects."""
         self.maskmem_features = None
         self.img_name = img_name
+        if img_name is not None:
+            self.img_name = img_name
+        else:
+            # use date and timestamp (ms) to generate a unique image name
+            date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            self.img_name = f"image_{date_time}"
         # TODO: probably simplify this as well
         self.point_inputs = {i: None for i in range(max_obj_num)}
         self.mask_inputs = {i: None for i in range(max_obj_num)}

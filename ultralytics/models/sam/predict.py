@@ -1750,7 +1750,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         for i in range(self._max_obj_num):
             self.obj_id_to_idx[i + 1] = i
             self.obj_idx_to_id[i] = i + 1
-        # TODO: probably simplify this as well
 
     @smart_inference_mode()
     def inference(
@@ -1810,7 +1809,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             for i, obj_id in enumerate(obj_ids):
                 # Initialize points and labels for this bbox
                 self.add_new_prompt(
-                    imgState,
                     obj_id=int(obj_id),
                     labels=labels[[i]],  # keep the dimension
                     points=points[[i]],
@@ -1902,7 +1900,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def add_new_prompt(
         self,
-        imgState: ImageState,
         obj_id: int,
         points: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None,
@@ -1916,7 +1913,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         normalization and prompt combination.
 
         Args:
-            imgState (ImageState): The imgState to be updated.
             obj_id (int): The ID of the object to which the prompts are associated.
             points (torch.Tensor | None): The coordinates of the points of interest with shape (N, 2).
             labels (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
@@ -1930,32 +1926,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
         assert points is not None or mask is not None, "Either bbox, points or mask is required"
-        self.concat_points(obj_idx, points, labels)
+        self.point_inputs[obj_idx] = {"point_coords": points, "point_labels": labels}
 
         if mask is not None:
             self.mask_inputs[obj_idx] = mask[None]
-
-    def concat_points(self, obj_idx: int, new_points, new_labels):
-        """
-        Add new points and labels to previous point inputs (add at the end).
-
-        Args:
-            obj_idx (int): The index of the object to which the points and labels are associated.
-            new_points (torch.Tensor): New points to be added, shape (B, N, 2).
-            new_labels (torch.Tensor): Labels corresponding to the new points, shape (B, N).
-
-        Returns:
-            (Dict): A dictionary containing the concatenated point coordinates and labels.
-        """
-        if self.point_inputs[obj_idx] is None:
-            self.point_inputs[obj_idx] = {"point_coords": new_points, "point_labels": new_labels}
-        else:
-            self.point_inputs[obj_idx]["point_coords"] = torch.cat(
-                [self.point_inputs[obj_idx]["point_coords"], new_points], dim=1
-            )
-            self.point_inputs[obj_idx]["point_labels"] = torch.cat(
-                [self.point_inputs[obj_idx]["point_labels"], new_labels], dim=1
-            )
 
     @smart_inference_mode()
     def update_memory(self, imgState: ImageState) -> None:

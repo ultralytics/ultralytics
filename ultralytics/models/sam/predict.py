@@ -1696,11 +1696,6 @@ class ImageState:
             date_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             self.img_name = f"image_{date_time}"
 
-        self.high_res_features = None
-        self.vision_feats = None
-        self.vision_pos_embeds = None
-        self.feat_sizes = None
-
         self.maskmem_features = None
         self._max_obj_num = max_obj_num
 

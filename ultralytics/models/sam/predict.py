@@ -1942,9 +1942,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             assert point is not None or mask is not None, "Either bbox, points or mask is required"
             self.point_inputs[obj_idx] = {"point_coords": point, "point_labels": label}
             if mask is not None:
+                mask = mask[None]
                 self.mask_inputs[obj_idx] = mask[None]
 
-            out = self.track_step(obj_idx=obj_idx)
+            out = self.track_step(obj_idx, point, label, mask)
             if out is not None:
                 obj_mask = out["pred_masks"]
                 assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], (
@@ -2110,7 +2111,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx = self.obj_id_to_idx.get(obj_id, None)
         return obj_idx
 
-    def track_step(self, obj_idx: Optional[int] = None) -> Dict[str, Any]:
+    def track_step(
+        self,
+        obj_idx: Optional[int] = None,
+        point: Optional[torch.Tensor] = None,
+        label: Optional[torch.Tensor] = None,
+        mask: Optional[torch.Tensor] = None,
+    ) -> Dict[str, Any]:
         """
         Tracking step for the current image state to predict masks.
 
@@ -2121,33 +2128,31 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         Args:
             obj_idx (int | None): The index of the object for which to predict masks. If None, it processes all objects.
+            point (torch.Tensor | None): The coordinates of the points of interest with shape (N, 2).
+            label (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
+            mask (torch.Tensor | None): The mask input for the object with shape (H, W).
 
         Returns:
             current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
                 Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
-        if obj_idx is not None:
-            point_inputs = self.point_inputs[obj_idx]
-            mask_inputs = self.mask_inputs.get(obj_idx, None)
-        else:
-            point_inputs = None
-            mask_inputs = None
-
-        current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
-        if mask_inputs is not None and self.model.use_mask_input_as_output_without_sam:
+        
+        points = {"point_coords": point, "point_labels": label} if obj_idx is not None else None
+        current_out = {"point_inputs": points, "mask_inputs": mask}
+        if mask is not None and self.model.use_mask_input_as_output_without_sam:
             # When use_mask_input_as_output_without_sam=True, we directly output the mask input
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
             pix_feat = self.vision_feats[-1].permute(1, 2, 0)
             pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *self.feat_sizes[-1])
-            _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask_inputs)
+            _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask)
         else:
             # fused the visual feature with previous memory features in the memory bank
             pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._forward_sam_heads(
                 backbone_features=pix_feat_with_mem,
                 obj_idx=obj_idx,
-                point_inputs=point_inputs,
-                mask_inputs=mask_inputs,
+                point_inputs=points,
+                mask_inputs=mask,
                 multimask_output=False,
             )
         current_out["pred_masks"] = low_res_masks

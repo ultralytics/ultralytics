@@ -453,11 +453,10 @@ class Exporter:
             else tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         )
         self.pretty_name = Path(self.model.yaml.get("yaml_file", self.file)).stem.replace("yolo", "YOLO")
-        
+
         # Extract model type for export naming
         model_type = None
-        
-        
+
         # First, try to determine from model class
         if hasattr(self.model, "__class__"):
             model_class_name = self.model.__class__.__name__
@@ -472,29 +471,28 @@ class Exporter:
                 last_layer = self.model.model[-1]
                 if hasattr(last_layer, "__class__") and "RTDETR" in last_layer.__class__.__name__:
                     model_type = "rtdetr"
-        
+
         # If not determined from class, try yaml file or checkpoint train_args
         if not model_type:
             yaml_stem = ""
-            
-            # First priority: try to get original training model from checkpoint 
-            parent_ckpt = getattr(self, '_parent_ckpt', None)
-            if parent_ckpt and 'train_args' in parent_ckpt and 'model' in parent_ckpt['train_args']:
-                yaml_stem = Path(parent_ckpt['train_args']['model']).stem
-            
+
+            # First priority: try to get original training model from checkpoint
+            parent_ckpt = getattr(self, "_parent_ckpt", None)
+            if parent_ckpt and "train_args" in parent_ckpt and "model" in parent_ckpt["train_args"]:
+                yaml_stem = Path(parent_ckpt["train_args"]["model"]).stem
+
             # Second priority: try from model.yaml
             if not yaml_stem:
                 yaml_stem = Path(self.model.yaml.get("yaml_file", "")).stem if self.model.yaml.get("yaml_file") else ""
-            
+
             # Third priority: try from model.args if available (for loaded .pt files)
             if not yaml_stem and hasattr(self.model, "args") and isinstance(self.model.args, dict):
                 if "model" in self.model.args:
                     yaml_stem = Path(self.model.args["model"]).stem
-            
-            
+
             if yaml_stem:
                 yaml_lower = yaml_stem.lower()
-                
+
                 # Handle different model naming patterns
                 if "rtdetr" in yaml_lower:
                     model_type = "rtdetr"
@@ -517,32 +515,33 @@ class Exporter:
                 elif "yolo" in yaml_lower:
                     # Extract version from patterns like yolo3, yolo4, etc.
                     import re
-                    match = re.search(r'yolo(?:v)?(\d+)', yaml_lower)
+
+                    match = re.search(r"yolo(?:v)?(\d+)", yaml_lower)
                     if match:
                         model_type = f"yolo{match.group(1)}"
                 elif yaml_lower in {"custom", "model", "config"}:
                     # For generic config names like custom.yaml, try to infer from model architecture
                     # Check the model's backbone/head structure to determine type
-                    if hasattr(self.model, 'yaml') and 'backbone' in self.model.yaml:
-                        backbone_str = str(self.model.yaml.get('backbone', ''))
-                        head_str = str(self.model.yaml.get('head', ''))
-                        
+                    if hasattr(self.model, "yaml") and "backbone" in self.model.yaml:
+                        backbone_str = str(self.model.yaml.get("backbone", ""))
+                        head_str = str(self.model.yaml.get("head", ""))
+
                         # Look for RT-DETR specific components
-                        if 'RTDETRDecoder' in head_str or 'HGStem' in backbone_str or 'HGBlock' in backbone_str:
+                        if "RTDETRDecoder" in head_str or "HGStem" in backbone_str or "HGBlock" in backbone_str:
                             model_type = "rtdetr"
                         # Look for C2f (YOLOv8+ indicator) vs C3 (YOLOv5/v6/v7)
-                        elif 'C2f' in backbone_str:
+                        elif "C2f" in backbone_str:
                             # Default to yolov8 for C2f-based models if version unclear
                             model_type = "yolov8"
-                        elif 'C3' in backbone_str:
+                        elif "C3" in backbone_str:
                             # Could be v5/v6/v7, default to v5
                             model_type = "yolov5"
-        
+
         # Add model type prefix to exported file name if determined
         if model_type:
             original_name = self.file.stem
             original_lower = original_name.lower()
-            
+
             # Check if the original filename already contains model type information
             skip_prefix = False
             if model_type == "rtdetr" and ("rtdetr" in original_lower or "detr" in original_lower):
@@ -553,7 +552,7 @@ class Exporter:
                 skip_prefix = True
             elif model_type == "yoloe" and ("yoloe" in original_lower or "yolo" in original_lower):
                 skip_prefix = True
-            
+
             # Only add prefix if not already present
             if not skip_prefix:
                 self.file = self.file.with_name(f"{model_type}_{original_name}{self.file.suffix}")

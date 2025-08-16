@@ -83,7 +83,7 @@ class ClassificationValidator(BaseValidator):
         self.nc = len(model.names)
         self.pred = []
         self.targets = []
-        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
+        self.confusion_matrix = ConfusionMatrix(names=model.names)
 
     def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""

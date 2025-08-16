@@ -26,9 +26,12 @@ try:
     # Names of plots created by Ultralytics that are logged to Comet
     CONFUSION_MATRIX_PLOT_NAMES = "confusion_matrix", "confusion_matrix_normalized"
     EVALUATION_PLOT_NAMES = "F1_curve", "P_curve", "R_curve", "PR_curve"
-    LABEL_PLOT_NAMES = "labels", "labels_correlogram"
+    LABEL_PLOT_NAMES = ["labels"]
     SEGMENT_METRICS_PLOT_PREFIX = "Box", "Mask"
     POSE_METRICS_PLOT_PREFIX = "Box", "Pose"
+    DETECTION_METRICS_PLOT_PREFIX = ["Box"]
+    RESULTS_TABLE_NAME = "results.csv"
+    ARGS_YAML_NAME = "args.yaml"
 
     _comet_image_prediction_count = 0
 
@@ -353,7 +356,7 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     )
 
 
-def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
+def _log_images(experiment, image_paths, curr_step: Optional[int], annotations=None) -> None:
     """
     Log images to the experiment with optional annotations.
 
@@ -361,7 +364,7 @@ def _log_images(experiment, image_paths, curr_step, annotations=None) -> None:
     such as bounding boxes or segmentation masks.
 
     Args:
-        experiment (comet_ml.Experiment): The Comet ML experiment to log images to.
+        experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
         image_paths (List[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
         annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each
@@ -385,7 +388,7 @@ def _log_image_predictions(experiment, validator, curr_step) -> None:
     dashboard. The function respects configured limits on the number of images to log.
 
     Args:
-        experiment (comet_ml.Experiment): The Comet ML experiment to log to.
+        experiment (comet_ml.CometExperiment): The Comet ML experiment to log to.
         validator (BaseValidator): The validator instance containing validation data and predictions.
         curr_step (int): The current training step for logging timeline.
 
@@ -448,7 +451,7 @@ def _log_plots(experiment, trainer) -> None:
     for each type.
 
     Args:
-        experiment (comet_ml.Experiment): The Comet ML experiment to log plots to.
+        experiment (comet_ml.CometExperiment): The Comet ML experiment to log plots to.
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing validation metrics and save
             directory information.
 
@@ -470,7 +473,11 @@ def _log_plots(experiment, trainer) -> None:
             for prefix in POSE_METRICS_PLOT_PREFIX
         ]
     elif isinstance(trainer.validator.metrics, (DetMetrics, OBBMetrics)):
-        plot_filenames = [trainer.save_dir / f"{plots}.png" for plots in EVALUATION_PLOT_NAMES]
+        plot_filenames = [
+            trainer.save_dir / f"{prefix}{plots}.png"
+            for plots in EVALUATION_PLOT_NAMES
+            for prefix in DETECTION_METRICS_PLOT_PREFIX
+        ]
 
     if plot_filenames is not None:
         _log_images(experiment, plot_filenames, None)
@@ -493,6 +500,34 @@ def _log_image_batches(experiment, trainer, curr_step: int) -> None:
     """Log samples of image batches for train, validation, and test."""
     _log_images(experiment, trainer.save_dir.glob("train_batch*.jpg"), curr_step)
     _log_images(experiment, trainer.save_dir.glob("val_batch*.jpg"), curr_step)
+
+
+def _log_asset(experiment, asset_path) -> None:
+    """
+    Logs a specific asset file to the given experiment.
+
+    This function facilitates logging an asset, such as a file, to the provided
+    experiment. It enables integration with experiment tracking platforms.
+
+    Args:
+        experiment (comet_ml.CometExperiment): The experiment instance to which the asset will be logged.
+        asset_path (Path): The file path of the asset to log.
+    """
+    experiment.log_asset(asset_path)
+
+
+def _log_table(experiment, table_path) -> None:
+    """
+    Logs a table to the provided experiment.
+
+    This function is used to log a table file to the given experiment. The table
+    is identified by its file path.
+
+    Args:
+        experiment (comet_ml.CometExperiment): The experiment object where the table file will be logged.
+        table_path (Path): The file path of the table to be logged.
+    """
+    experiment.log_table(str(table_path))
 
 
 def on_pretrain_routine_start(trainer) -> None:
@@ -576,6 +611,16 @@ def on_train_end(trainer) -> None:
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
     _log_image_batches(experiment, trainer, curr_step)
+    # log results table
+    table_path = trainer.save_dir / RESULTS_TABLE_NAME
+    if table_path.exists():
+        _log_table(experiment, table_path)
+
+    # log arguments YAML
+    args_path = trainer.save_dir / ARGS_YAML_NAME
+    if args_path.exists():
+        _log_asset(experiment, args_path)
+
     experiment.end()
 
     global _comet_image_prediction_count

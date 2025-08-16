@@ -47,6 +47,7 @@ Inference:
                          yolo11n.mnn                # MNN
                          yolo11n_ncnn_model         # NCNN
                          yolo11n_imx_model          # IMX
+                         yolo11n_rknn_model         # RKNN
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -115,7 +116,7 @@ def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
-        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms"]],
+        ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
         ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
         [
             "OpenVINO",
@@ -142,8 +143,8 @@ def export_formats():
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"]],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
-        ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction"]],
-        ["RKNN", "rknn", "_rknn_model", True, True, ["batch", "name"]],
+        ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -313,8 +314,11 @@ class Exporter:
             if not self.args.int8:
                 LOGGER.warning("IMX export requires int8=True, setting int8=True.")
                 self.args.int8 = True
-            if model.task != "detect":
-                raise ValueError("IMX export only supported for detection models.")
+            if not self.args.nms:
+                LOGGER.warning("IMX export requires nms=True, setting nms=True.")
+                self.args.nms = True
+            if model.task not in {"detect", "pose"}:
+                raise ValueError("IMX export only supported for detection and pose estimation models.")
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -415,6 +419,8 @@ class Exporter:
                 m.format = self.args.format
                 m.max_det = self.args.max_det
                 m.xyxy = self.args.nms and not coreml
+                if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
+                    m.fuse(model.pe.to(self.device))
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
@@ -430,7 +436,7 @@ class Exporter:
 
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and not coreml else model(im)
+            y = NMSModel(model, self.args)(im) if self.args.nms and not (coreml or imx) else model(im)
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -761,7 +767,7 @@ class Exporter:
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
-        check_requirements("ncnn")
+        check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
         import ncnn  # noqa
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
@@ -1013,7 +1019,6 @@ class Exporter:
             enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
             output_signaturedefs=True,  # fix error with Attention block group convolution
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},  # fix error with group convolution
-            optimization_for_gpu_delegate=True,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
@@ -1170,14 +1175,15 @@ class Exporter:
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
-            ("model-compression-toolkit>=2.3.0,<2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0")
+            ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
         )
         check_requirements("imx500-converter[pt]>=3.16.1")  # Separate requirements for imx500-converter
+        check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
 
         import model_compression_toolkit as mct
         import onnx
         from edgemdt_tpc import get_target_platform_capabilities
-        from sony_custom_layers.pytorch import multiclass_nms
+        from sony_custom_layers.pytorch import multiclass_nms_with_indices
 
         LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
@@ -1201,13 +1207,23 @@ class Exporter:
 
         bit_cfg = mct.core.BitWidthConfig()
         if "C2PSA" in self.model.__str__():  # YOLO11
-            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
-            weights_memory = 2585350.2439
-            n_layers = 238  # 238 layers for fused YOLO11n
+            if self.model.task == "detect":
+                layer_names = ["sub", "mul_2", "add_14", "cat_21"]
+                weights_memory = 2585350.2439
+                n_layers = 238  # 238 layers for fused YOLO11n
+            elif self.model.task == "pose":
+                layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
+                weights_memory = 2437771.67
+                n_layers = 257  # 257 layers for fused YOLO11n-pose
         else:  # YOLOv8
-            layer_names = ["sub", "mul", "add_6", "cat_17"]
-            weights_memory = 2550540.8
-            n_layers = 168  # 168 layers for fused YOLOv8n
+            if self.model.task == "detect":
+                layer_names = ["sub", "mul", "add_6", "cat_17"]
+                weights_memory = 2550540.8
+                n_layers = 168  # 168 layers for fused YOLOv8n
+            elif self.model.task == "pose":
+                layer_names = ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"]
+                weights_memory = 2482451.85
+                n_layers = 187  # 187 layers for fused YOLO11n-pose
 
         # Check if the model has the expected number of layers
         if len(list(self.model.modules())) != n_layers:
@@ -1254,6 +1270,7 @@ class Exporter:
                 score_threshold: float = 0.001,
                 iou_threshold: float = 0.7,
                 max_detections: int = 300,
+                task: str = "detect",
             ):
                 """
                 Initialize NMSWrapper with PyTorch Module and NMS parameters.
@@ -1263,34 +1280,40 @@ class Exporter:
                     score_threshold (float): Score threshold for non-maximum suppression.
                     iou_threshold (float): Intersection over union threshold for non-maximum suppression.
                     max_detections (int): The number of detections to return.
+                    task (str): Task type, either 'detect' or 'pose'.
                 """
                 super().__init__()
                 self.model = model
                 self.score_threshold = score_threshold
                 self.iou_threshold = iou_threshold
                 self.max_detections = max_detections
+                self.task = task
 
             def forward(self, images):
                 """Forward pass with model inference and NMS post-processing."""
                 # model inference
                 outputs = self.model(images)
 
-                boxes = outputs[0]
-                scores = outputs[1]
-                nms = multiclass_nms(
+                boxes, scores = outputs[0], outputs[1]
+                nms_outputs = multiclass_nms_with_indices(
                     boxes=boxes,
                     scores=scores,
                     score_threshold=self.score_threshold,
                     iou_threshold=self.iou_threshold,
                     max_detections=self.max_detections,
                 )
-                return nms
+                if self.task == "pose":
+                    kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
+                    out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
+                    return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
+                return nms_outputs
 
         quant_model = NMSWrapper(
             model=quant_model,
             score_threshold=self.args.conf or 0.001,
             iou_threshold=self.args.iou,
             max_detections=self.args.max_det,
+            task=self.model.task,
         ).to(self.device)
 
         f = Path(str(self.file).replace(self.file.suffix, "_imx_model"))

@@ -731,7 +731,11 @@ class Model(torch.nn.Module):
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
-        return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
+        exporter = Exporter(overrides=args, _callbacks=self.callbacks)
+        # Pass the checkpoint information to help with model type detection
+        if hasattr(self, 'ckpt') and self.ckpt:
+            exporter._parent_ckpt = self.ckpt
+        return exporter(model=self.model)
 
     def train(
         self,

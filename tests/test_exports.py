@@ -121,7 +121,9 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms)
-        for task, dynamic, int8, half, batch, nms in product(TASKS, [False], [True, False], [True, False], [1], [True, False])
+        for task, dynamic, int8, half, batch, nms in product(
+            TASKS, [False], [True, False], [True, False], [1], [True, False]
+        )
         if not (int8 and half)
     ],
 )

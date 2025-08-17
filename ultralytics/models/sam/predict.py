@@ -230,7 +230,9 @@ class Predictor(BasePredictor):
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
-        bboxes, points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+        bboxes, points, labels, masks = self._prepare_prompts(
+            im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
+        )
         points = (points, labels) if points is not None else None
         # Embed prompts
         sparse_embeddings, dense_embeddings = self.model.prompt_encoder(points=points, boxes=bboxes, masks=masks)
@@ -248,12 +250,13 @@ class Predictor(BasePredictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
             dst_shape (tuple): The target shape (height, width) for the prompts.
+            src_shape (tuple): The source shape (height, width) of the input image.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
@@ -268,7 +271,6 @@ class Predictor(BasePredictor):
         Raises:
             AssertionError: If the number of points don't match the number of labels, in case labels were passed.
         """
-        src_shape = self.batch[1][0].shape[:2]
         r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         # Transform input prompts
         if points is not None:
@@ -707,7 +709,9 @@ class SAM2Predictor(Predictor):
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
-        points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+        points, labels, masks = self._prepare_prompts(
+            im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
+        )
         points = (points, labels) if points is not None else None
 
         sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
@@ -731,12 +735,13 @@ class SAM2Predictor(Predictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
             dst_shape (tuple): The target shape (height, width) for the prompts.
+            src_shape (tuple): The source shape (height, width) of the input image.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
@@ -750,7 +755,7 @@ class SAM2Predictor(Predictor):
         Raises:
             AssertionError: If the number of points don't match the number of labels, in case labels were passed.
         """
-        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
+        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
             bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
@@ -912,7 +917,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
-            points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+            points, labels, masks = self._prepare_prompts(
+                im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
+            )
             if points is not None:
                 for i in range(len(points)):
                     self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)

@@ -138,7 +138,8 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch, nms):
         batch=batch,
         nms=nms,
     )
-    YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    # YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
+    YOLO(file)([SOURCE] * batch, imgsz=64)  # temporary change to 64
     shutil.rmtree(file)  # cleanup
 
 

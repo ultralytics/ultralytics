@@ -242,7 +242,8 @@ class Predictor(BasePredictor):
         masks=None,
         multimask_output=False,
     ):
-        """Perform inference on image features using the SAM model.
+        """
+        Perform inference on image features using the SAM model.
 
         Args:
             features (dict): Extracted image features from the SAM2 model.
@@ -807,7 +808,8 @@ class SAM2Predictor(Predictor):
         multimask_output=False,
         img_idx=-1,
     ):
-        """Perform inference on image features using the SAM2 model.
+        """
+        Perform inference on image features using the SAM2 model.
 
         Args:
             features (dict): Extracted image features from the SAM2 model.

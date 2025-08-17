@@ -124,7 +124,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False]
         )
-        if not (int8 and half) or (task == "classify" and nms)
+        if not ((int8 and half) or (task == "classify" and nms))
     ],
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, batch, nms):

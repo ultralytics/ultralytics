@@ -712,28 +712,7 @@ class SAM2Predictor(Predictor):
         points, labels, masks = self._prepare_prompts(
             im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
         )
-        points = (points, labels) if points is not None else None
-
-        sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
-            points=points,
-            boxes=None,
-            masks=masks,
-        )
-        # Predict masks
-        batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
-        high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
-        pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
-            image_embeddings=features["image_embed"][img_idx].unsqueeze(0),
-            image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
-            sparse_prompt_embeddings=sparse_embeddings,
-            dense_prompt_embeddings=dense_embeddings,
-            multimask_output=multimask_output,
-            repeat_image=batched_mode,
-            high_res_features=high_res_features,
-        )
-        # (N, d, H, W) --> (N*d, H, W), (N, d) --> (N*d, )
-        # `d` could be 1 or 3 depends on `multimask_output`.
-        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
+        return self._inference_features(features, points, labels, masks, multimask_output, img_idx)
 
     def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """
@@ -817,6 +796,78 @@ class SAM2Predictor(Predictor):
             for feat, feat_size in zip(vision_feats[::-1], self._bb_feat_sizes[::-1])
         ][::-1]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
+
+    def _inference_features(
+        self,
+        features,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+        img_idx=-1,
+    ):
+        """Perform inference on image features using the SAM2 model.
+
+        Args:
+            features (dict): Extracted image features from the SAM2 model.
+            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
+            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+            img_idx (int): Index of the image in the batch to process.
+        Returns:
+            pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): Quality scores for each mask, with length C.
+        """
+        points = (points, labels) if points is not None else None
+        sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
+            points=points,
+            boxes=None,
+            masks=masks,
+        )
+        # Predict masks
+        batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
+        high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+        pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
+            image_embeddings=features["image_embed"][img_idx].unsqueeze(0),
+            image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embeddings,
+            dense_prompt_embeddings=dense_embeddings,
+            multimask_output=multimask_output,
+            repeat_image=batched_mode,
+            high_res_features=high_res_features,
+        )
+        # (N, d, H, W) --> (N*d, H, W), (N, d) --> (N*d, )
+        # `d` could be 1 or 3 depends on `multimask_output`.
+        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
+
+    def inference_features(
+        self,
+        features,
+        src_shape,
+        dst_shape=None,
+        bboxes=None,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+        img_idx=-1,
+    ):
+        """Perform inference on image features using the SAM2 model with specified prompts."""
+        dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
+        points, labels, masks = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
+        pred_masks, pred_scores = self._inference_features(features, points, labels, masks, multimask_output, img_idx)
+        for masks in [pred_masks]:
+            if len(masks) == 0:
+                masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
+            else:
+                masks = ops.scale_masks(masks[None].float(), src_shape, padding=False)[0]
+                masks = masks > self.model.mask_threshold  # to bool
+                pred_bboxes = batched_mask_to_box(masks)
+                # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
+                cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
+        return masks, pred_bboxes
 
 
 class SAM2VideoPredictor(SAM2Predictor):

@@ -252,6 +252,7 @@ class Predictor(BasePredictor):
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
             img_idx (int): Index of the image in the batch to process.
+
         Returns:
             pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.
@@ -815,6 +816,7 @@ class SAM2Predictor(Predictor):
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
             img_idx (int): Index of the image in the batch to process.
+
         Returns:
             pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.

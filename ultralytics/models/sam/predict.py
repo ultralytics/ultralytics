@@ -647,6 +647,7 @@ class Predictor(BasePredictor):
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
 
+    @smart_inference_mode()
     def inference_features(
         self,
         features,

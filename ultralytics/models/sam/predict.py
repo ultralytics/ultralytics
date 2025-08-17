@@ -645,6 +645,32 @@ class Predictor(BasePredictor):
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
 
+    def inference_features(
+        self,
+        features,
+        src_shape,
+        dst_shape=None,
+        bboxes=None,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+    ):
+        """Perform prompts preprocessing and inference on provided image features using the SAM model."""
+        dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
+        prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
+        pred_masks, pred_scores = self._inference_features(features, *prompts, multimask_output)
+        if len(pred_masks) == 0:
+            pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
+        else:
+            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
+            pred_masks = pred_masks > self.model.mask_threshold  # to bool
+            pred_bboxes = batched_mask_to_box(pred_masks)
+            # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
+            cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+            pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
+        return pred_masks, pred_bboxes
+
 
 class SAM2Predictor(Predictor):
     """
@@ -814,34 +840,6 @@ class SAM2Predictor(Predictor):
         # (N, d, H, W) --> (N*d, H, W), (N, d) --> (N*d, )
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
-
-    def inference_features(
-        self,
-        features,
-        src_shape,
-        dst_shape=None,
-        bboxes=None,
-        points=None,
-        labels=None,
-        masks=None,
-        multimask_output=False,
-        img_idx=-1,
-    ):
-        """Perform inference on image features using the SAM2 model with specified prompts."""
-        dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
-        points, labels, masks = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
-        pred_masks, pred_scores = self._inference_features(features, points, labels, masks, multimask_output, img_idx)
-        for masks in [pred_masks]:
-            if len(masks) == 0:
-                masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
-            else:
-                masks = ops.scale_masks(masks[None].float(), src_shape, padding=False)[0]
-                masks = masks > self.model.mask_threshold  # to bool
-                pred_bboxes = batched_mask_to_box(masks)
-                # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-                cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
-                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
-        return masks, pred_bboxes
 
 
 class SAM2VideoPredictor(SAM2Predictor):

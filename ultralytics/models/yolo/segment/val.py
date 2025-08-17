@@ -242,6 +242,15 @@ class SegmentationValidator(DetectionValidator):
         for i, r in enumerate(rles):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
 
+    def scale_preds(self, predn, pbatch):
+       return {**super().scale_preds(predn, pbatch),
+            "masks": ops.scale_image(
+            torch.as_tensor(predn["masks"], dtype=torch.uint8).permute(1, 2, 0).contiguous().cpu().numpy(),
+            pbatch["ori_shape"],
+            ratio_pad=pbatch["ratio_pad"],
+        )
+}
+
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Return COCO-style instance segmentation evaluation metrics."""
         pred_json = self.save_dir / "predictions.json"  # predictions

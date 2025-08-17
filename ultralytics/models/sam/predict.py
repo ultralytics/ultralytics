@@ -230,9 +230,32 @@ class Predictor(BasePredictor):
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
-        bboxes, points, labels, masks = self._prepare_prompts(
-            im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
-        )
+        prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
+        return self._inference_features(features, *prompts, multimask_output)
+
+    def _inference_features(
+        self,
+        features,
+        bboxes=None,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+    ):
+        """Perform inference on image features using the SAM model.
+
+        Args:
+            features (dict): Extracted image features from the SAM2 model.
+            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
+            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+            img_idx (int): Index of the image in the batch to process.
+        Returns:
+            pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): Quality scores for each mask, with length C.
+        """
         points = (points, labels) if points is not None else None
         # Embed prompts
         sparse_embeddings, dense_embeddings = self.model.prompt_encoder(points=points, boxes=bboxes, masks=masks)
@@ -664,55 +687,6 @@ class SAM2Predictor(Predictor):
         from .build import build_sam  # slow import
 
         return build_sam(self.args.model)
-
-    def prompt_inference(
-        self,
-        im,
-        bboxes=None,
-        points=None,
-        labels=None,
-        masks=None,
-        multimask_output=False,
-        img_idx=-1,
-    ):
-        """
-        Perform image segmentation inference based on various prompts using SAM2 architecture.
-
-        This method leverages the Segment Anything Model 2 (SAM2) to generate segmentation masks for input images
-        based on provided prompts such as bounding boxes, points, or existing masks. It supports both single and
-        multi-object prediction scenarios.
-
-        Args:
-            im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
-            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
-            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
-            masks (np.ndarray | None): Low-resolution masks from previous predictions with shape (N, H, W).
-            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
-            img_idx (int): Index of the image in the batch to process.
-
-        Returns:
-            pred_masks (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
-            pred_scores (np.ndarray): Quality scores for each mask, with length C.
-
-        Examples:
-            >>> predictor = SAM2Predictor(cfg)
-            >>> image = torch.rand(1, 3, 640, 640)
-            >>> bboxes = [[100, 100, 200, 200]]
-            >>> result = predictor(image, bboxes=bboxes)[0]
-            >>> print(f"Generated {result.masks.shape[0]} masks with average score {result.boxes.conf.mean():.2f}")
-
-        Notes:
-            - The method supports batched inference for multiple objects when points or bboxes are provided.
-            - Input prompts (bboxes, points) are automatically scaled to match the input image dimensions.
-            - When both bboxes and points are provided, they are merged into a single 'points' input for the model.
-        """
-        features = self.get_im_features(im) if self.features is None else self.features
-
-        points, labels, masks = self._prepare_prompts(
-            im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
-        )
-        return self._inference_features(features, points, labels, masks, multimask_output, img_idx)
 
     def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """

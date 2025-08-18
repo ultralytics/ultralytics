@@ -1682,6 +1682,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.non_overlap_masks = True
 
         # Initialize the memory bank to store image states
+        # NOTE: probably need to use dict for better query
         self.memory_bank = []
 
         # Initialize the object index set and mappings
@@ -1758,25 +1759,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
-
-    def postprocess(
-        self, preds: Tuple[torch.Tensor, ...], img: torch.Tensor, orig_imgs: List[np.ndarray]
-    ) -> List[Results]:
-        """
-        Post-process the predictions to apply non-overlapping constraints if required. This method extends the post-
-        processing functionality by applying non-overlapping constraints to the predicted masks if the
-        `non_overlap_masks` flag is set to True. This ensures that the masks do not overlap, which can be useful for
-        certain applications.
-
-        Args:
-            preds (Tuple[torch.Tensor]): The predictions from the model.
-            img (torch.Tensor): The processed image tensor.
-            orig_imgs (List[np.ndarray]): The original images before processing.
-
-        Returns:
-            results (List[Results]): The post-processed predictions.
-        """
-        return SAM2Predictor.postprocess(self, preds, img, orig_imgs)
 
     def get_im_features(self, img: Union[torch.Tensor, np.ndarray]) -> None:
         """

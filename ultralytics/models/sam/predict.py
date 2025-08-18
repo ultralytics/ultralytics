@@ -659,7 +659,8 @@ class Predictor(BasePredictor):
         masks=None,
         multimask_output=False,
     ):
-        """Perform prompts preprocessing and inference on provided image features using the SAM model.
+        """
+        Perform prompts preprocessing and inference on provided image features using the SAM model.
 
         Args:
             features (torch.Tensor | Dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.

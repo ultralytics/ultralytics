@@ -938,15 +938,32 @@ def entrypoint(debug: str = "") -> None:
         LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
-    if "rtdetr" in stem:  # guess architecture
+    
+    # Function to get architecture from ONNX metadata
+    def get_onnx_architecture(model_path):
+        """Extract architecture from ONNX model metadata."""
+        try:
+            if str(model_path).lower().endswith('.onnx'):
+                import onnxruntime
+                session = onnxruntime.InferenceSession(str(model_path), providers=['CPUExecutionProvider'])
+                metadata = session.get_modelmeta().custom_metadata_map
+                return metadata.get('architecture', None)
+        except Exception:
+            pass
+        return None
+    
+    # Try to get architecture from ONNX metadata first, then fall back to filename inference
+    architecture = get_onnx_architecture(model)
+    
+    if architecture == "rtdetr" or (architecture is None and "rtdetr" in stem):  # use metadata or guess from filename
         from ultralytics import RTDETR
 
         model = RTDETR(model)  # no task argument
-    elif "fastsam" in stem:
+    elif architecture == "fastsam" or (architecture is None and "fastsam" in stem):
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam_" in stem or "sam2_" in stem or "sam2.1_" in stem:
+    elif architecture in ["sam", "sam2"] or (architecture is None and ("sam_" in stem or "sam2_" in stem or "sam2.1_" in stem)):
         from ultralytics import SAM
 
         model = SAM(model)
@@ -954,7 +971,7 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import YOLO
 
         model = YOLO(model, task=task)
-        if "yoloe" in stem or "world" in stem:
+        if architecture in ["yoloe", "yoloworld"] or (architecture is None and ("yoloe" in stem or "world" in stem)):
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
                 model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].

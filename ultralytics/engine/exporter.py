@@ -573,6 +573,9 @@ class Exporter:
             "args": {k: v for k, v in self.args if k in fmt_keys},
             "channels": model.yaml.get("channels", 3),
         }  # model metadata
+        # Add architecture field for model type detection
+        if model_type:
+            self.metadata["architecture"] = model_type
         if dla is not None:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

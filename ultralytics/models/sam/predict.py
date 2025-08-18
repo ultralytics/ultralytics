@@ -182,9 +182,8 @@ class Predictor(BasePredictor):
             **kwargs (Any): Additional keyword arguments.
 
         Returns:
-            pred_masks (np.ndarray): The output masks in shape (C, H, W), where C is the number of generated masks.
-            pred_scores (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
-            pred_logits (np.ndarray): Low-resolution logits of shape (C, H, W) for subsequent inference, where H=W=256.
+            pred_masks (torch.Tensor): The output masks in shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): An array of length C containing quality scores predicted by the model for each mask.
 
         Examples:
             >>> predictor = Predictor()
@@ -219,8 +218,8 @@ class Predictor(BasePredictor):
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
         Returns:
-            pred_masks (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
-            pred_scores (np.ndarray): Quality scores predicted by the model for each mask, with length C.
+            pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): Quality scores predicted by the model for each mask, with length C.
 
         Examples:
             >>> predictor = Predictor()
@@ -955,8 +954,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
 
         Returns:
-            pred_masks (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
-            pred_scores (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+            pred_masks (torch.Tensor): The output masks in shape CxHxW, where C is the number of generated masks.
+            pred_scores (torch.Tensor): An array of length C containing quality scores predicted by the model for each mask.
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)

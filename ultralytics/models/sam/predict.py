@@ -1651,7 +1651,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         _prepare_memory_conditioned_features(imgState, obj_idx): Prepare memory-conditioned features for the current image state.
         _forward_sam_heads(backbone_features, obj_idx, point_inputs=None, mask_inputs=None, high_res_features=None, multimask_output=False): Forward SAM prompt encoders and mask heads.
         _get_orig_image_res_output(any_res_masks): Resize masks to original image resolution and apply non-overlapping constraints.
-        _use_mask_as_output(mask_inputs): Directly turn binary mask_inputs into output mask logits without using SAM.
 
     Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
@@ -2018,6 +2017,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             pix_feat = self.vision_feats[-1].permute(1, 2, 0)
             pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *self.feat_sizes[-1])
             _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask)
+            # _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._use_mask_as_output(mask)
         else:
             # fused the visual feature with previous memory features in the memory bank
             pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)

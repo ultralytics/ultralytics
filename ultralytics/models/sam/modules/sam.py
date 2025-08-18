@@ -576,7 +576,7 @@ class SAM2Model(torch.nn.Module):
             object_score_logits,
         )
 
-    def _use_mask_as_output(self, backbone_features, high_res_features, mask_inputs):
+    def _use_mask_as_output(self, mask_inputs, backbone_features=None, high_res_features=None):
         """Process mask inputs directly as output, bypassing SAM encoder/decoder."""
         # Use -10/+10 as logits for neg/pos pixels (very close to 0/1 in prob after sigmoid).
         out_scale, out_bias = 20.0, -10.0  # sigmoid(-10.0)=4.5398e-05
@@ -591,7 +591,7 @@ class SAM2Model(torch.nn.Module):
         )
         # a dummy IoU prediction of all 1's under mask input
         ious = mask_inputs.new_ones(mask_inputs.size(0), 1).float()
-        if not self.use_obj_ptrs_in_encoder:
+        if not self.use_obj_ptrs_in_encoder or backbone_features is None or high_res_features is None:
             # all zeros as a dummy object pointer (of shape [B, C])
             obj_ptr = torch.zeros(mask_inputs.size(0), self.hidden_dim, device=mask_inputs.device)
         else:
@@ -885,7 +885,7 @@ class SAM2Model(torch.nn.Module):
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
             pix_feat = current_vision_feats[-1].permute(1, 2, 0)
             pix_feat = pix_feat.view(-1, self.hidden_dim, *feat_sizes[-1])
-            sam_outputs = self._use_mask_as_output(pix_feat, high_res_features, mask_inputs)
+            sam_outputs = self._use_mask_as_output(mask_inputs, pix_feat, high_res_features)
         else:
             # fused the visual feature with previous memory features in the memory bank
             pix_feat = self._prepare_memory_conditioned_features(

@@ -1631,7 +1631,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     sequence of images.
 
     Attributes:
-        memory_bank: OrderedDict: Stores the states of each image with prompts.
+        memory_bank (list): OrderedDict: Stores the states of each image with prompts.
         obj_idx_set (set): A set to keep track of the object indices that have been added.
         obj_id_to_idx (OrderedDict): Maps object IDs to their corresponding indices.
         obj_idx_to_id (OrderedDict): Maps object indices to their corresponding IDs.

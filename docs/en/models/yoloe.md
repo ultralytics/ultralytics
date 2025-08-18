@@ -95,10 +95,10 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         # Fine-tune on your segmentation dataset
         results = model.train(
-            data="coco128-seg.yaml",     # Segmentation dataset
+            data="coco128-seg.yaml",  # Segmentation dataset
             epochs=80,
             patience=10,
-            trainer=YOLOEPESegTrainer,   # <- Important: use segmentation trainer
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
         )
         ```
 
@@ -112,16 +112,16 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         # Initialize a detection model from a config
         model = YOLOE("yoloe-11s.yaml")
-        
+
         # Load weights from a pretrained segmentation checkpoint (same scale)
         model.load("yoloe-11s-seg.pt")
-        
+
         # Fine-tune on your detection dataset
         results = model.train(
-            data="coco128.yaml",        # Detection dataset
+            data="coco128.yaml",  # Detection dataset
             epochs=80,
             patience=10,
-            trainer=YOLOEPETrainer,     # <- Important: use detection trainer
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
         )
         ```
 
@@ -134,21 +134,21 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         ```python
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
-        
+
         # Load a pretrained segmentation model
         model = YOLOE("yoloe-11s-seg.pt")
-        
+
         # Identify the head layer index
         head_index = len(model.model.model) - 1
-        
+
         # Freeze all backbone and neck layers (i.e. everything before the head)
         freeze = [str(i) for i in range(0, head_index)]
-        
+
         # Freeze parts of the segmentation head, keeping only the classification branch trainable
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
                 freeze.append(f"{head_index}.{name}")
-        
+
         # Freeze detection branch components
         freeze.extend(
             [
@@ -160,13 +160,13 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
                 f"{head_index}.cv3.2.1",
             ]
         )
-        
+
         # Train only the classification branch
         results = model.train(
-            data="coco128-seg.yaml",     # Segmentation dataset
+            data="coco128-seg.yaml",  # Segmentation dataset
             epochs=80,
             patience=10,
-            trainer=YOLOEPESegTrainer,   # <- Important: use segmentation trainer
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
             freeze=freeze,
         )
         ```
@@ -179,23 +179,23 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPETrainer
 
-         # Initialize a detection model from a config
+        # Initialize a detection model from a config
         model = YOLOE("yoloe-11s.yaml")
-        
+
         # Load weights from a pretrained segmentation checkpoint (same scale)
         model.load("yoloe-11s-seg.pt")
 
         # Identify the head layer index
         head_index = len(model.model.model) - 1
-        
+
         # Freeze all backbone and neck layers (i.e. everything before the head)
         freeze = [str(i) for i in range(0, head_index)]
-        
+
         # Freeze parts of the segmentation head, keeping only the classification branch trainable
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
                 freeze.append(f"{head_index}.{name}")
-        
+
         # Freeze detection branch components
         freeze.extend(
             [
@@ -207,13 +207,13 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
                 f"{head_index}.cv3.2.1",
             ]
         )
-        
+
         # Train only the classification branch
         results = model.train(
-            data="coco128.yaml",        # Detection dataset
+            data="coco128.yaml",  # Detection dataset
             epochs=80,
             patience=10,
-            trainer=YOLOEPETrainer,     # <- Important: use detection trainer
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
             freeze=freeze,
         )
         ```
@@ -463,7 +463,7 @@ The export process is similar to other YOLO models, with the added flexibility o
     ```python
     from ultralytics import YOLOE
 
-    # Select yoloe-11s/m-seg.pt for different sizes 
+    # Select yoloe-11s/m-seg.pt for different sizes
     model = YOLOE("yoloe-11l-seg.pt")
 
     # Configure the set_classes() before exporting the model
@@ -472,7 +472,7 @@ The export process is similar to other YOLO models, with the added flexibility o
 
     export_model = model.export(format="onnx")
     model = YOLOE(export_model)
-    
+
     # Run detection on the given image
     results = model.predict("path/to/image.jpg")
 
@@ -480,7 +480,7 @@ The export process is similar to other YOLO models, with the added flexibility o
     results[0].show()
     ```
 
-       
+
 
 ### Train Official Models
 

@@ -1737,8 +1737,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.model is None:
             self.setup_model(model=None)
 
-        self.createState(img)
-
+        self.get_im_features(img)
         points, labels, masks = self._prepare_prompts(
             dst_shape=self.imgsz, points=points, bboxes=bboxes, labels=labels, masks=masks
         )
@@ -1789,8 +1788,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         return SAM2Predictor.postprocess(self, preds, img, orig_imgs)
 
-    @smart_inference_mode()
-    def createState(self, img: Union[torch.Tensor, np.ndarray]) -> None:
+    def get_im_features(self, img: Union[torch.Tensor, np.ndarray]) -> None:
         """
         Initialize the image state by processing the input image and extracting features.
 
@@ -1847,8 +1845,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             assert obj_id < self._max_obj_num
             obj_idx = self._obj_id_to_idx(int(obj_id))
             self.obj_idx_set.add(obj_idx)
-            point = points[[i]]
-            label = labels[[i]]
+            point, label = points[[i]], labels[[i]]
             mask = masks[[i]] if masks is not None else None
             # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
             assert point is not None or mask is not None, "Either bbox, points or mask is required"

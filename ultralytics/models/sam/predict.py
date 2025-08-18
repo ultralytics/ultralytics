@@ -1650,7 +1650,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         _obj_id_to_idx(obj_id): Map client-side object id to model-side object index.
         _prepare_memory_conditioned_features(imgState, obj_idx): Prepare memory-conditioned features for the current image state.
         _forward_sam_heads(backbone_features, obj_idx, point_inputs=None, mask_inputs=None, high_res_features=None, multimask_output=False): Forward SAM prompt encoders and mask heads.
-        _get_orig_image_res_output(any_res_masks): Resize masks to original image resolution and apply non-overlapping constraints.
 
     Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
@@ -1760,17 +1759,15 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             self.update_memory(obj_ids, points, labels, masks)
 
         current_out = self.track_step()
-        pred_masks_gpu = current_out["pred_masks"]
-
-        _, res_masks = self._get_orig_image_res_output(pred_masks_gpu)
+        pred_masks = current_out["pred_masks"]
 
         # filter the masks and logits based on the object indices
         obj_idx_set = self.obj_idx_set
         if len(obj_idx_set) == 0:
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
 
-        res_masks = res_masks.to(self.device, non_blocking=True)
-        res_masks = res_masks[torch.tensor(list(obj_idx_set), device=self.device)]
+        pred_masks = pred_masks.to(self.device, non_blocking=True)
+        pred_masks = pred_masks[torch.tensor(list(obj_idx_set), device=self.device)]
         object_score_logits = current_out["object_score_logits"].to(self.device, non_blocking=True)
 
         object_score_logits = object_score_logits[torch.tensor(list(obj_idx_set), device=self.device)]
@@ -1778,13 +1775,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         object_score_logits = object_score_logits / 32
 
         #  we use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
-        object_score_logits = torch.relu(object_score_logits)
-        res_masks = res_masks.squeeze()
-        if len(res_masks.shape) == 2:
-            res_masks = res_masks.unsqueeze(0)
+        object_score_logits = torch.clamp_(object_score_logits, min=0)
+        pred_masks = pred_masks.squeeze()
+        if len(pred_masks.shape) == 2:
+            pred_masks = pred_masks.unsqueeze(0)
         if len(object_score_logits.shape) > 1:
             object_score_logits = object_score_logits.squeeze(1)
-        return res_masks, object_score_logits
+        return pred_masks, object_score_logits
 
     def postprocess(
         self, preds: Tuple[torch.Tensor, ...], img: torch.Tensor, orig_imgs: List[np.ndarray]
@@ -2035,30 +2032,3 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         current_out["object_score_logits"] = object_score_logits
 
         return current_out
-
-    def _get_orig_image_res_output(self, any_res_masks: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Resize the object scores to the original image resolution (res_masks) and apply non-overlapping constraints for
-        final output.
-
-        Args:
-            any_res_masks (torch.Tensor): The masks to be resized, shape [B, C, H, W], where C is the number of masks,
-                                          H and W are the height and width of the masks.
-
-        Returns:
-            any_res_masks (torch.Tensor): The original resolution masks, shape [B, C, H, W].
-            image_res_masks (torch.Tensor): The resized masks to the image resolution, shape [B, C, image_H, image_W].
-        """
-        any_res_masks = any_res_masks.to(self.device, non_blocking=True)
-        if any_res_masks.shape[-2:] == self.imgsz:
-            image_res_masks = any_res_masks
-        else:
-            image_res_masks = torch.nn.functional.interpolate(
-                any_res_masks,
-                size=self.imgsz,
-                mode="bilinear",
-                align_corners=False,
-            )
-        if self.non_overlap_masks:
-            image_res_masks = self.model._apply_non_overlapping_constraints(image_res_masks)
-        return any_res_masks, image_res_masks

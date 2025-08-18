@@ -707,4 +707,3 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> Optional[str]:
 
 # Define constants
 LOADERS = (LoadStreams, LoadPilAndNumpy, LoadImagesAndVideos, LoadScreenshots)
-

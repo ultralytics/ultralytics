@@ -12,7 +12,7 @@
     "show_graph": false,
     "graph_color_override": "#1f77b4",
     "show_card": false,
-    "tasks": ["Detection", "Segmentation", "Classification"],
+    "tasks": ["Detect", "Segment", "Classify"],
     "performance": {
       "n": {
         "size": 640,
@@ -61,10 +61,10 @@
       }
     }
   },
-  "YOLO11": {
+  "Ultralytics YOLO11": {
     "author": "Glenn Jocher and Jing Qiu",
     "org": "Ultralytics",
-    "short_description": "YOLO11 is the latest iteration in the Ultralytics YOLO series of real-time object detectors, redefining what's possible with cutting-edge accuracy, speed, and efficiency.",
+    "short_description": "Ultralytics YOLO11 is the latest iteration in the Ultralytics YOLO series of real-time object detectors, redefining what's possible with cutting-edge accuracy, speed, and efficiency.",
     "date": "2024-09-27",
     "arxiv": "",
     "github": "https://github.com/ultralytics/ultralytics",
@@ -72,9 +72,10 @@
     "official": true,
     "latest": true,
     "show_graph": true,
+    "weightBase": "yolo11",
     "graph_color_override": "#0b23a9",
     "show_card": true,
-    "tasks": ["Detection", "Segmentation", "Classification", "Pose", "OBB"],
+    "tasks": ["Detect", "Segment", "Classify", "Pose", "OBB"],
     "performance": {
       "n": {
         "size": 640,
@@ -136,7 +137,7 @@
     "show_graph": true,
     "graph_color_override": "#ff7f0e",
     "show_card": true,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "n": {
         "size": 640,
@@ -207,7 +208,7 @@
     "show_graph": true,
     "graph_color_override": "#2ca02c",
     "show_card": true,
-    "tasks": ["Detection", "Segmentation"],
+    "tasks": ["Detect", "Segment"],
     "performance": {
       "t": {
         "size": 640,
@@ -256,10 +257,10 @@
       }
     }
   },
-  "YOLOv8": {
+  "Ultralytics YOLOv8": {
     "author": "Glenn Jocher, Ayush Chaurasia, and Jing Qiu",
     "org": "Ultralytics",
-    "short_description": "YOLOv8 was released by Ultralytics on January 10th, 2023, offering cutting-edge performance in terms of accuracy and speed.",
+    "short_description": "Ultralytics YOLOv8 was released by Ultralytics on January 10th, 2023, offering cutting-edge performance in terms of accuracy and speed.",
     "date": "2023-01-10",
     "arxiv": "",
     "github": "https://github.com/ultralytics/ultralytics",
@@ -267,9 +268,10 @@
     "official": true,
     "latest": false,
     "show_graph": true,
+    "weightBase": "yolov8",
     "graph_color_override": "#d62728",
     "show_card": true,
-    "tasks": ["Detection", "Segmentation", "Classification", "Pose", "OBB"],
+    "tasks": ["Detect", "Segment", "Classify", "Pose", "OBB"],
     "performance": {
       "n": {
         "size": 640,
@@ -331,7 +333,7 @@
     "show_graph": true,
     "graph_color_override": "#9467bd",
     "show_card": true,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "l": {
         "size": 640,
@@ -367,7 +369,7 @@
     "graph_color_override": "#8c564b",
     "show_card": true,
     "weightBase": "yolov6",
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "n": {
         "size": 640,
@@ -407,10 +409,10 @@
       }
     }
   },
-  "YOLOv5": {
+  "Ultralytics YOLOv5": {
     "author": "Glenn Jocher",
     "org": "Ultralytics",
-    "short_description": "YOLOv5u represents an advancement in object detection methodologies. Originating from the foundational architecture of the YOLOv5 model developed by Ultralytics, YOLOv5u integrates the anchor-free, objectness-free split head, a feature previously introduced in the YOLOv8 models.",
+    "short_description": "Ultralytics YOLOv5u represents an advancement in object detection methodologies. Originating from the foundational architecture of the YOLOv5 model developed by Ultralytics, Ultralytics YOLOv5u integrates the anchor-free, objectness-free split head, a feature previously introduced in the YOLOv8 models.",
     "date": "2020-06-26",
     "arxiv": "",
     "github": "https://github.com/ultralytics/yolov5",
@@ -419,8 +421,9 @@
     "latest": false,
     "show_graph": true,
     "graph_color_override": "#e377c2",
+    "weightBase": "yolov5",
     "show_card": true,
-    "tasks": ["Detection", "Segmentation"],
+    "tasks": ["Detect", "Segment"],
     "performance": {
       "n": {
         "size": 640,
@@ -482,7 +485,7 @@
     "show_graph": true,
     "graph_color_override": "#7f7f7f",
     "show_card": false,
-    "tasks": ["Detection", "Segmentation"],
+    "tasks": ["Detect", "Segment"],
     "performance": {
       "t": {
         "size": 640,
@@ -544,7 +547,7 @@
     "show_graph": true,
     "graph_color_override": "#bcbd22",
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "t": {
         "size": 640,
@@ -597,7 +600,7 @@
     "show_graph": true,
     "graph_color_override": "#17becf",
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "nano": {
         "size": 416,
@@ -668,7 +671,7 @@
     "show_graph": true,
     "graph_color_override": "#eccd22",
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "s": {
         "size": 640,
@@ -721,7 +724,7 @@
     "show_graph": true,
     "graph_color_override": "#000000",
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "d0": {
         "size": 640,
@@ -809,7 +812,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "n": {
         "size": 640,
@@ -860,7 +863,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "n": {
         "size": 640,
@@ -922,7 +925,7 @@
     "show_graph": false,
     "show_card": true,
     "weightBase": "yolov8",
-    "tasks": ["Open Vocabulary", "Detection"],
+    "tasks": ["Open Vocabulary", "Detect"],
     "performance": {
       "s": {
         "size": 640,
@@ -974,7 +977,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "t": {
         "size": 640,
@@ -1035,7 +1038,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "s": {
         "size": 640,
@@ -1078,7 +1081,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "R50": {
         "size": 800,
@@ -1112,7 +1115,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "300": {
         "size": 300,
@@ -1147,7 +1150,7 @@
     "show_graph": false,
     "show_card": true,
     "weightBase": "rtdetr-",
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "s": {
         "size": 640,
@@ -1199,7 +1202,7 @@
     "latest": false,
     "show_graph": false,
     "show_card": false,
-    "tasks": ["Detection"],
+    "tasks": ["Detect"],
     "performance": {
       "t": {
         "size": 640,

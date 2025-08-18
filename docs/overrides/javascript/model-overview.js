@@ -3,9 +3,9 @@
 (function () {
   let DATA = [];
   const TASK_ORDER = [
-    "Detection",
-    "Segmentation",
-    "Classification",
+    "Detect",
+    "Segment",
+    "Classify",
     "Pose",
     "OBB",
     "Open Vocabulary",
@@ -333,16 +333,22 @@
     function buildDeployHTML(model, size) {
       const deployPlatforms = [
         {
+          name: "Torch",
+          icon: "pytorch.svg",
+          format: "torch",
+          desc: "Torch Native",
+        },
+        {
+          name: "TorchScript",
+          icon: "pytorch.svg",
+          format: "torchscript",
+          desc: "TorchScript format",
+        },
+        {
           name: "ONNX",
           icon: "onnx.svg",
           format: "onnx",
           desc: "Cross-platform inference",
-        },
-        {
-          name: "TensorRT",
-          icon: "nvidia.svg",
-          format: "engine",
-          desc: "NVIDIA GPU acceleration",
         },
         {
           name: "OpenVINO",
@@ -351,16 +357,34 @@
           desc: "Intel optimization",
         },
         {
+          name: "TensorRT",
+          icon: "nvidia.svg",
+          format: "engine",
+          desc: "NVIDIA GPU acceleration",
+        },
+        {
           name: "CoreML",
           icon: "coreml.svg",
           format: "coreml",
           desc: "Apple devices",
         },
         {
-          name: "TensorFlow",
+          name: "Sony's IMX500",
+          icon: "aitrios.svg",
+          format: "imx",
+          desc: "Sony's IMX500",
+        },
+        {
+          name: "TensorFlow SavedModel",
           icon: "tensorflow.svg",
           format: "tf",
-          desc: "Google ecosystem",
+          desc: "TensorFlow SavedModel",
+        },
+        {
+          name: "TensorFlow GraphDef",
+          icon: "tensorflow.svg",
+          format: "tf",
+          desc: "TensorFlow GraphDef",
         },
         {
           name: "TensorFlow Lite",
@@ -369,22 +393,16 @@
           desc: "Mobile & edge devices",
         },
         {
-          name: "TensorFlow.js",
-          icon: "tensorflow-js.svg",
-          format: "tfjs",
-          desc: "Browser & Node.js",
-        },
-        {
           name: "Edge TPU",
           icon: "tensorflow-edge-tpu.svg",
           format: "edgetpu",
           desc: "Google Coral devices",
         },
         {
-          name: "NCNN",
-          icon: "ncnn.svg",
-          format: "ncnn",
-          desc: "Mobile optimization",
+          name: "TensorFlow.js",
+          icon: "tensorflow-js.svg",
+          format: "tfjs",
+          desc: "Browser & Node.js",
         },
         {
           name: "PaddlePaddle",
@@ -393,10 +411,10 @@
           desc: "Baidu framework",
         },
         {
-          name: "TorchScript",
-          icon: "pytorch.svg",
-          format: "torchscript",
-          desc: "TorchScript format",
+          name: "NCNN",
+          icon: "ncnn.svg",
+          format: "ncnn",
+          desc: "Mobile optimization",
         },
       ];
 

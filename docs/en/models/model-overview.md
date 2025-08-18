@@ -17,9 +17,9 @@ Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
     <div class="mo-filters" role="tablist" aria-label="Task">
       <span class="mo-filter-label">Task:</span>
       <button class="mo-chip is-active" data-task="all" role="tab">All</button>
-      <button class="mo-chip" data-task="Detection" role="tab">Detection</button>
-      <button class="mo-chip" data-task="Segmentation" role="tab">Segmentation</button>
-      <button class="mo-chip" data-task="Classification" role="tab">Classification</button>
+      <button class="mo-chip" data-task="Detect" role="tab">Detect</button>
+      <button class="mo-chip" data-task="Segment" role="tab">Segment</button>
+      <button class="mo-chip" data-task="Classify" role="tab">Classify</button>
       <button class="mo-chip" data-task="Pose" role="tab">Pose</button>
       <button class="mo-chip" data-task="OBB" role="tab">OBB</button>
       <button class="mo-chip" data-task="Open Vocabulary" role="tab">Open Vocabulary</button>

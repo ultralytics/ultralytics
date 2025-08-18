@@ -265,18 +265,13 @@ It offers three significant enhancements:
         image1 = "path/to/frame1.jpg"
         results1 = predictor.inference(
             img=image1,
-            image_name="frame1",  # option
             bboxes=[[100, 100, 200, 200], [300, 150, 400, 250]],  # Two bounding boxes
             obj_ids=[1, 2],  # Object IDs
             update_memory=True,  # Update memory with these objects
         )
 
         # Process subsequent frames without prompts (tracking mode)
-        image2 = "path/to/frame2.jpg"
-        results2 = predictor.inference(
-            img=image2,
-            image_name="frame2",  # option
-        )
+        results2 = predictor.inference(img="path/to/frame2.jpg")
         ```
 
 !!! example "Dynamic Object Addition"
@@ -296,7 +291,7 @@ It offers three significant enhancements:
         predictor.inference(img="frame1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
 
         # Track existing objects in frame 2
-        results2 = predictor(source="frame2.jpg", update_memory=False)
+        results2 = predictor(source="frame2.jpg")
 
         # Add new object that appeared in frame 3
         results3 = predictor(
@@ -307,7 +302,7 @@ It offers three significant enhancements:
         )
 
         # Continue tracking all objects
-        results4 = predictor(source="frame4.jpg", update_memory=False)
+        results4 = predictor(source="frame4.jpg")
         ```
 
 !!! example "Continual Learning"
@@ -327,7 +322,7 @@ It offers three significant enhancements:
 
         # Process several frames
         for i in range(2, 10):
-            results = predictor.inference(img=f"frame{i}.jpg", update_memory=False)
+            results = predictor.inference(img=f"frame{i}.jpg")
 
         # Add refinement prompts for better tracking
         # This helps when object appearance changes significantly
@@ -340,7 +335,7 @@ It offers three significant enhancements:
         )
 
         # Continue tracking with improved model
-        results11 = predictor(source="frame11.jpg", update_memory=False)
+        results11 = predictor(source="frame11.jpg")
         ```
 
 #### Parameters

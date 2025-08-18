@@ -55,7 +55,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.12"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -110,7 +110,7 @@ jobs:
         python-version: ["3.12"]
         model: [yolo11n]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -175,7 +175,7 @@ jobs:
             python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -220,7 +220,7 @@ jobs:
     timeout-minutes: 360
     runs-on: gpu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
@@ -248,7 +248,7 @@ jobs:
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Activate Virtual Environment for Tests
         run: |
           python3.11 -m venv env-tests
@@ -322,7 +322,7 @@ jobs:
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - name: Activate virtual environment
         run: |

@@ -1815,19 +1815,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
         """
         vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
+        self.high_res_features = [
+            feat.permute(1, 2, 0).view(*feat.shape[1:], *feat_size)
+            for feat, feat_size in zip(vis_feats[:-1], feat_sizes[:-1])
+        ]
 
-        def get_high_res_features(current_vision_feats, current_feat_sizes):
-            if len(current_vision_feats) > 1:
-                high_res_features = [
-                    x.permute(1, 2, 0).view(x.size(1), x.size(2), *s)
-                    for x, s in zip(current_vision_feats[:-1], current_feat_sizes[:-1])
-                ]
-            else:
-                high_res_features = None
-            return high_res_features
-
-        # TODO: optimize this
-        self.high_res_features = get_high_res_features(vis_feats, feat_sizes)
         self.vision_feats = vis_feats
         self.vision_pos_embeds = vis_pos_embed
         self.feat_sizes = feat_sizes

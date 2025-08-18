@@ -1686,7 +1686,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             ... )
         """
         super().__init__(cfg, overrides, _callbacks)
-        self.no_obj_score = -1024.0
         self.non_overlap_masks = True
 
         # Initialize the memory bank to store image states
@@ -1694,10 +1693,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         # Initialize the object index set and mappings
         self.obj_idx_set = set()
-        if not hasattr(self, "obj_id_to_idx"):
-            self.obj_id_to_idx = OrderedDict()
-        if not hasattr(self, "obj_idx_to_id"):
-            self.obj_idx_to_id = OrderedDict()
+        self.obj_id_to_idx = OrderedDict()
+        self.obj_idx_to_id = OrderedDict()
         self._max_obj_num = max_obj_num
         for i in range(self._max_obj_num):
             self.obj_id_to_idx[i + 1] = i
@@ -1821,13 +1818,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             "maskmem_pos_enc": None,
             "pred_masks": torch.full(
                 size=(self._max_obj_num, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
-                fill_value=self.no_obj_score,
+                fill_value=-1024.0,
                 dtype=torch.float32,
                 device=self.device,
             ),
             "obj_ptr": torch.full(
                 size=(self._max_obj_num, self.model.hidden_dim),
-                fill_value=self.no_obj_score,
+                fill_value=-1024.0,
                 dtype=torch.float32,
                 device=self.device,
             ),

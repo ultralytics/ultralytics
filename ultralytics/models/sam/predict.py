@@ -2016,8 +2016,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
             pix_feat = self.vision_feats[-1].permute(1, 2, 0)
             pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *self.feat_sizes[-1])
-            _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self._use_mask_as_output(mask)
-            # _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._use_mask_as_output(mask)
+            _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._use_mask_as_output(mask)
         else:
             # fused the visual feature with previous memory features in the memory bank
             pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
@@ -2063,72 +2062,3 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         if self.non_overlap_masks:
             image_res_masks = self.model._apply_non_overlapping_constraints(image_res_masks)
         return any_res_masks, image_res_masks
-
-    def _use_mask_as_output(self, mask_inputs):
-        """
-        Directly turn binary mask_inputs into output mask logits without using SAM.
-
-        This method bypasses the SAM prompt encoder and mask decoder, treating the input masks as ground truth
-        and converting them directly to output format. It maintains the same input and output shapes as
-        _forward_sam_heads for consistency.
-
-        Args:
-            mask_inputs (torch.Tensor): A mask of [B, 1, image_size, image_size] shape, float or bool, with the
-                same spatial size as the image.
-
-        Returns:
-            ious (torch.Tensor): Estimated IoU of each output mask with shape [B, 1]. Always returns 1.0 for mask inputs.
-            low_res_masks (torch.Tensor): Low-resolution mask with shape [B, 1, H*4, W*4].
-            high_res_masks (torch.Tensor): High-resolution mask with shape [B, 1, H*16, W*16].
-            obj_ptr (torch.Tensor): Object pointer vector with shape [B, C]. Returns zero tensor for mask inputs.
-            object_score_logits (torch.Tensor): Object score logits with shape [B, 1].
-        """
-        # Use -10/+10 as logits for neg/pos pixels (very close to 0/1 in prob after sigmoid).
-        out_scale, out_bias = 20.0, -10.0  # sigmoid(-10.0)=4.5398e-05
-        mask_inputs_float = mask_inputs.float()
-        high_res_masks = mask_inputs_float * out_scale + out_bias
-
-        # check the mask_inputs shape
-        assert mask_inputs.shape[-1] == self.imgsz[0] and mask_inputs.shape[-2] == self.imgsz[1], (
-            f"mask_inputs shape: {mask_inputs.shape}, expected {self.imgsz}"
-        )
-
-        # down sample the mask inputs to low resolution (1/4 of the original size)
-        low_res_masks = F.interpolate(
-            high_res_masks,
-            size=(high_res_masks.size(-2) // 4, high_res_masks.size(-1) // 4),
-            align_corners=False,
-            mode="bilinear",
-            antialias=True,  # use antialias for downsampling
-        )
-
-        # a dummy IoU prediction of all 1's under mask input
-        ious = mask_inputs.new_ones(mask_inputs.size(0), 1).float()
-
-        # In this method, we are treating mask_input as output, e.g. using it directly to create spatial mem;
-        # Below, we follow the same design axiom to use mask_input to decide if obj appears or not instead of relying
-        # on the object_scores from the SAM decoder.
-        is_obj_appearing = torch.any(mask_inputs.flatten(1).float() > 0.0, dim=1)
-        is_obj_appearing = is_obj_appearing[..., None]
-        lambda_is_obj_appearing = is_obj_appearing.float()
-        object_score_logits = out_scale * lambda_is_obj_appearing + out_bias
-
-        # a dumy ojb_ptr ,  all zeros as a dummy object pointer (of shape [B, C])
-        obj_ptr = torch.zeros(mask_inputs.size(0), self.model.hidden_dim, device=mask_inputs.device)
-
-        # Only relevant if pred_obj_scores=True and use_obj_ptrs_in_encoder=True;
-        # Whether to have a fixed no obj pointer when there is no object present
-        # or to use it as an additive embedding with obj_ptr produced by decoder
-        fixed_no_obj_ptr = self.model.fixed_no_obj_ptr
-        if self.model.pred_obj_scores:
-            if fixed_no_obj_ptr:
-                obj_ptr = lambda_is_obj_appearing * obj_ptr
-            obj_ptr = obj_ptr + (1 - lambda_is_obj_appearing) * self.model.no_obj_ptr.to(obj_ptr.device)
-
-        return (
-            ious,
-            low_res_masks,
-            high_res_masks,
-            obj_ptr,
-            object_score_logits,
-        )

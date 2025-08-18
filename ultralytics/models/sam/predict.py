@@ -853,7 +853,9 @@ class SAM2Predictor(Predictor):
         )
         # Predict masks
         batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
-        high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+        high_res_features = features.get("high_res_feats", None)
+        if high_res_features is not None:
+            high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
         pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
             image_embeddings=features["image_embed"][img_idx].unsqueeze(0),
             image_pe=self.model.sam_prompt_encoder.get_dense_pe(),

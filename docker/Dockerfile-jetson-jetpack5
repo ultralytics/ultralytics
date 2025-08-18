@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Builds ultralytics/ultralytics:jetson-jetpack5 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Supports JetPack5.1.2 for YOLO11 on Jetson Xavier NX, AGX Xavier, AGX Orin, Orin Nano and Orin NX
+# Builds ultralytics/ultralytics:latest-jetson-jetpack5 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Supports JetPack5.1.2 for YOLO on Jetson Xavier NX, AGX Xavier, AGX Orin, Orin Nano and Orin NX
 
 # Start FROM https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-jetpack
 FROM nvcr.io/nvidia/l4t-jetpack:r35.4.1

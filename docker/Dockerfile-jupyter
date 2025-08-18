@@ -11,7 +11,8 @@ RUN uv pip install --system jupyterlab && \
     # Create persistent data directory structure
     mkdir -p /data/{datasets,weights,runs} && \
     # Configure YOLO directories
-    yolo settings datasets_dir="/data/datasets" weights_dir="/data/weights" runs_dir="/data/runs"
+    yolo settings datasets_dir="/data/datasets" weights_dir="/data/weights" runs_dir="/data/runs" && \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Start JupyterLab with tutorial notebook
 ENTRYPOINT ["/usr/local/bin/jupyter", "lab", "--allow-root", "--ip=*", "/ultralytics/examples/tutorial.ipynb"]

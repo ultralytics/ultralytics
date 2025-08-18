@@ -1933,20 +1933,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Returns:
             pix_feat_with_mem (torch.Tensor): The memory-conditioned pixel features.
         """
-        feat_sizes = self.feat_sizes
         if len(self.memory_bank) == 0 or isinstance(obj_idx, int):
-            # # for initial conditioning frames with, encode them without using any previous memory
-            directly_add_no_mem_embed = True
-            if directly_add_no_mem_embed:
-                # directly add no-mem embedding (instead of using the transformer encoder)
-                pix_feat_with_mem = self.vision_feats[-1] + self.model.no_mem_embed
-                C = self.model.memory_attention.d_model
-                B = self._max_obj_num
-                # B=1
-                H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
-
-                pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
-                return pix_feat_with_mem
+            # for initial conditioning frames with, encode them without using any previous memory
+            # directly add no-mem embedding (instead of using the transformer encoder)
+            pix_feat_with_mem = self.vision_feats[-1] + self.model.no_mem_embed
         else:
             # for inference frames, use the memory features from previous frames
             memory, memory_pos_embed = self.get_maskmem_enc()
@@ -1958,12 +1948,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 memory_pos=memory_pos_embed,
                 num_obj_ptr_tokens=0,  # num_obj_ptr_tokens
             )
-            # reshape the output (HW)BC => BCHW
-            C = self.model.memory_attention.d_model
-            B = self._max_obj_num
-            H, W = feat_sizes[-1]  # top-level (lowest-resolution) feature size
-            pix_feat_with_mem = pix_feat_with_mem.permute(1, 2, 0).view(B, C, H, W)
-            return pix_feat_with_mem
+        # reshape the output (HW)BC => BCHW
+        return pix_feat_with_mem.permute(1, 2, 0).view(
+            self.model.memory_attention.d_model,
+            self._max_obj_num,
+            *self.feat_sizes,
+        )
 
     def get_maskmem_enc(self) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
         """Get the memory and positional encoding from the memory, which is used to condition the current image

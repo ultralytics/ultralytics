@@ -1949,8 +1949,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             )
         # reshape the output (HW)BC => BCHW
         return pix_feat_with_mem.permute(1, 2, 0).view(
-            self.model.memory_attention.d_model,
             self._max_obj_num,
+            self.model.memory_attention.d_model,
             *self.feat_sizes[-1],
         )
 

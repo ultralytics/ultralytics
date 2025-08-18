@@ -480,8 +480,6 @@ The export process is similar to other YOLO models, with the added flexibility o
     results[0].show()
     ```
 
-
-
 ### Train Official Models
 
 #### Prepare datasets

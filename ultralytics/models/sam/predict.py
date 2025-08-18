@@ -659,7 +659,20 @@ class Predictor(BasePredictor):
         masks=None,
         multimask_output=False,
     ):
-        """Perform prompts preprocessing and inference on provided image features using the SAM model."""
+        """Perform prompts preprocessing and inference on provided image features using the SAM model.
+
+        Args:
+            features (torch.Tensor | Dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.
+            src_shape (Tuple(int, int)): The source shape (height, width) of the input image.
+            dst_shape (Tuple(int, int) | None): The target shape (height, width) for the prompts. If None, defaults to (imgsz, imgsz).
+            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
+            points (np.ndarray | List[List[float]] | None): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N, ).
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+        Notes:
+            features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a Dict[str, Any] if performing on SAM2.
+        """
         dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
         prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         pred_masks, pred_scores = self._inference_features(features, *prompts, multimask_output)

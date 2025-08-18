@@ -1952,7 +1952,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         return pix_feat_with_mem.permute(1, 2, 0).view(
             self.model.memory_attention.d_model,
             self._max_obj_num,
-            *self.feat_sizes,
+            *self.feat_sizes[-1],
         )
 
     def get_maskmem_enc(self) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:

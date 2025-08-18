@@ -123,7 +123,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         results = predictor(points=[900, 370], labels=[1])
 
         # Run inference with multiple points prompt
-        results = predictor(points=[[400, 370], [900, 370]], labels=[[1, 1]])
+        results = predictor(points=[[400, 370], [900, 370]], labels=[1, 1])
 
         # Run inference with negative points prompt
         results = predictor(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])

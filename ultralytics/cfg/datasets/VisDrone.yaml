@@ -78,7 +78,7 @@ download: |
       "https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-test-dev.zip",
       # "https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-test-challenge.zip",
   ]
-  download(urls, dir=dir, curl=True, threads=4)
+  download(urls, dir=dir, threads=4)
 
   # Convert
   splits = {"VisDrone2019-DET-train": "train", "VisDrone2019-DET-val": "val", "VisDrone2019-DET-test-dev": "test"}

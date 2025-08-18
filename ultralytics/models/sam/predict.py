@@ -1637,19 +1637,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_idx_to_id (OrderedDict): Maps object indices to their corresponding IDs.
 
     Methods:
-        __init__(cfg, overrides=None, max_obj_num=3, _callbacks=None): Initializes the predictor with the given configuration and overrides.
-        get_model(): Retrieves and configures the model with binarization enabled.
-        image_size: Property that returns the input size of the model.
-        _prepare_prompts(dst_shape, bboxes=None, points=None, labels=None, masks=None): Prepare and transform the input prompts for processing.
-        inference(img, image_name=None, bboxes=None, masks=None, points=None, labels=None, obj_ids=None, update_memory=False): Performs inference on a single image with optional prompts and object IDs.
-        postprocess(preds, img, orig_imgs): Post-processes the predictions to apply non-overlapping constraints if required.
-        concat_points(old_point_inputs, new_points, new_labels): Add new points and labels to previous point inputs.
-        update_memory(imgState): Append the imgState to the memory_bank and update the memory for the model.
-        track_step(imgState, obj_idx): Tracking step for the current image state to predict masks.
-        get_maskmem_enc(valued_memory_bank): Get memory and positional encoding from the memory bank.
-        _obj_id_to_idx(obj_id): Map client-side object id to model-side object index.
-        _prepare_memory_conditioned_features(imgState, obj_idx): Prepare memory-conditioned features for the current image state.
-        _forward_sam_heads(backbone_features, obj_idx, point_inputs=None, mask_inputs=None, high_res_features=None, multimask_output=False): Forward SAM prompt encoders and mask heads.
+        get_model: Retrieves and configures the model with binarization enabled.
+        inference: Performs inference on a single image with optional prompts and object IDs.
+        postprocess: Post-processes the predictions to apply non-overlapping constraints if required.
+        update_memory: Append the imgState to the memory_bank and update the memory for the model.
+        track_step: Tracking step for the current image state to predict masks.
+        get_maskmem_enc: Get memory and positional encoding from the memory bank.
 
     Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)

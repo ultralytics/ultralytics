@@ -246,7 +246,7 @@ class Predictor(BasePredictor):
         Perform inference on image features using the SAM model.
 
         Args:
-            features (dict): Extracted image features from the SAM2 model.
+            features (torch.Tensor): Extracted image features with shape (B, C, H, W) from the SAM model image encoder.
             bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
@@ -813,7 +813,9 @@ class SAM2Predictor(Predictor):
         Perform inference on image features using the SAM2 model.
 
         Args:
-            features (dict): Extracted image features from the SAM2 model.
+            features (Dict[str, Any]): Extracted image information from the SAM2 model image encoder, it's a dictionary including:
+                image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
+                high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
             points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.

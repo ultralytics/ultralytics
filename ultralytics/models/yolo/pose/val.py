@@ -248,13 +248,15 @@ class PoseValidator(DetectionValidator):
 
     def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
         """Scales predictions to the original image size."""
-        return {**super().scale_preds(predn, pbatch),
+        return {
+            **super().scale_preds(predn, pbatch),
             "kpts": ops.scale_coords(
-            pbatch["imgsz"],
-            predn["keypoints"].clone(),
-            pbatch["ori_shape"],
-            ratio_pad=pbatch["ratio_pad"],
-        )}
+                pbatch["imgsz"],
+                predn["keypoints"].clone(),
+                pbatch["ori_shape"],
+                ratio_pad=pbatch["ratio_pad"],
+            ),
+        }
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""

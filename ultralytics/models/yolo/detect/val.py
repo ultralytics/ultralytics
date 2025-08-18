@@ -388,9 +388,7 @@ class DetectionValidator(BaseValidator):
             )
 
     def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Scales predictions to the original image size.
-        """
+        """Scales predictions to the original image size."""
         return {**predn,
             "bboxes": ops.scale_boxes(
             pbatch["imgsz"],

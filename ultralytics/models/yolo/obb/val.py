@@ -219,9 +219,7 @@ class OBBValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Scales predictions to the original image size.
-        """
+        """Scales predictions to the original image size."""
         return {**predn,
             "bboxes": ops.scale_boxes(
             pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True

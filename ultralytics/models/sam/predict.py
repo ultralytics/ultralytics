@@ -279,8 +279,8 @@ class Predictor(BasePredictor):
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
-            dst_shape (tuple): The target shape (height, width) for the prompts.
-            src_shape (tuple): The source shape (height, width) of the input image.
+            dst_shape (Tuple[int, int]): The target shape (height, width) for the prompts.
+            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
@@ -663,8 +663,8 @@ class Predictor(BasePredictor):
 
         Args:
             features (torch.Tensor | Dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.
-            src_shape (Tuple(int, int)): The source shape (height, width) of the input image.
-            dst_shape (Tuple(int, int) | None): The target shape (height, width) for the prompts. If None, defaults to (imgsz, imgsz).
+            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
+            dst_shape (Tuple[int, int] | None): The target shape (height, width) for the prompts. If None, defaults to (imgsz, imgsz).
             bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
             points (np.ndarray | List[List[float]] | None): Points indicating object locations with shape (N, 2), in pixels.
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N, ).
@@ -741,8 +741,8 @@ class SAM2Predictor(Predictor):
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
-            dst_shape (tuple): The target shape (height, width) for the prompts.
-            src_shape (tuple): The source shape (height, width) of the input image.
+            dst_shape (Tuple[int, int]): The target shape (height, width) for the prompts.
+            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
@@ -1022,7 +1022,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         the masks do not overlap, which can be useful for certain applications.
 
         Args:
-            preds (tuple): The predictions from the model.
+            preds (Tuple[torch.Tensor, torch.Tensor]): The predicted masks and scores from the model.
             img (torch.Tensor): The processed image tensor.
             orig_imgs (List[np.ndarray]): The original images before processing.
 

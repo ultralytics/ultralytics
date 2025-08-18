@@ -1759,29 +1759,16 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             self.update_memory(obj_ids, points, labels, masks)
 
         current_out = self.track_step()
-        pred_masks = current_out["pred_masks"]
-
+        pred_masks, pred_scores = current_out["pred_masks"], current_out["object_score_logits"]
         # filter the masks and logits based on the object indices
-        obj_idx_set = self.obj_idx_set
-        if len(obj_idx_set) == 0:
+        if len(self.obj_idx_set) == 0:
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
-
-        pred_masks = pred_masks.to(self.device, non_blocking=True)
-        pred_masks = pred_masks[torch.tensor(list(obj_idx_set), device=self.device)]
-        object_score_logits = current_out["object_score_logits"].to(self.device, non_blocking=True)
-
-        object_score_logits = object_score_logits[torch.tensor(list(obj_idx_set), device=self.device)]
-        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range
-        object_score_logits = object_score_logits / 32
-
-        #  we use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
-        object_score_logits = torch.clamp_(object_score_logits, min=0)
-        pred_masks = pred_masks.squeeze()
-        if len(pred_masks.shape) == 2:
-            pred_masks = pred_masks.unsqueeze(0)
-        if len(object_score_logits.shape) > 1:
-            object_score_logits = object_score_logits.squeeze(1)
-        return pred_masks, object_score_logits
+        pred_masks = pred_masks[list(self.obj_idx_set)]
+        pred_scores = pred_scores[list(self.obj_idx_set)]
+        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
+        # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
+        pred_scores = torch.clamp_(pred_scores / 32, min=0)
+        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
     def postprocess(
         self, preds: Tuple[torch.Tensor, ...], img: torch.Tensor, orig_imgs: List[np.ndarray]

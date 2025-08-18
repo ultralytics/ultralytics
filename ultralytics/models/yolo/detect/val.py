@@ -207,7 +207,7 @@ class DetectionValidator(BaseValidator):
             if self.args.save_json or self.args.save_txt:
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
-                self.pred_to_json(predn_scaled)
+                self.pred_to_json(predn_scaled, pbatch)
             if self.args.save_txt:
                 self.save_one_txt(
                     predn_scaled,
@@ -387,7 +387,10 @@ class DetectionValidator(BaseValidator):
                 }
             )
 
-    def scale_preds(self, predn, pbatch):
+    def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+        """
+        Scales predictions to the original image size.
+        """
         return {**predn,
             "bboxes": ops.scale_boxes(
             pbatch["imgsz"],

@@ -1818,7 +1818,30 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             labels (torch.Tensor): Tensor of shape (B, N) representing the labels for the input points.
             masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.
         """
-        consolidated_out = self.init_consolidated_out(self._max_obj_num)
+        consolidated_out = {
+            "maskmem_features": None,
+            "maskmem_pos_enc": None,
+            "pred_masks": torch.full(
+                size=(self._max_obj_num, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
+                fill_value=self.no_obj_score,
+                dtype=torch.float32,
+                device=self.device,
+            ),
+            "obj_ptr": torch.full(
+                size=(self._max_obj_num, self.model.hidden_dim),
+                fill_value=self.no_obj_score,
+                dtype=torch.float32,
+                device=self.device,
+            ),
+            "object_score_logits": torch.full(
+                size=(self._max_obj_num, 1),
+                # default to 10.0 for object_score_logits, i.e. assuming the object is
+                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
+                fill_value=-32,  # 10.0,
+                dtype=torch.float32,
+                device=self.device,
+            ),
+        }
 
         for i, obj_id in enumerate(obj_ids):
             assert obj_id < self._max_obj_num
@@ -1863,44 +1886,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         consolidated_out["maskmem_features"] = maskmem_features
         consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
         self.memory_bank.append(consolidated_out)
-
-    def init_consolidated_out(self, batch: int) -> Dict[str, torch.Tensor]:
-        """
-        Initialize the consolidated output for the image state. This method prepares a dictionary that will hold the
-        consolidated outputs for the image state, including mask features, positional encodings, predicted masks, object
-        pointers, and object score logits.
-
-        Args:
-            batch (int): The hidden dimension size for object pointers.
-
-        Returns:
-            consolidated_out (dict): A dictionary containing the initialized consolidated outputs.
-        """
-        consolidated_out = {
-            "maskmem_features": None,
-            "maskmem_pos_enc": None,
-            "pred_masks": torch.full(
-                size=(batch, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
-                fill_value=self.no_obj_score,
-                dtype=torch.float32,
-                device=self.device,
-            ),
-            "obj_ptr": torch.full(
-                size=(batch, self.model.hidden_dim),
-                fill_value=self.no_obj_score,
-                dtype=torch.float32,
-                device=self.device,
-            ),
-            "object_score_logits": torch.full(
-                size=(batch, 1),
-                # default to 10.0 for object_score_logits, i.e. assuming the object is
-                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
-                fill_value=-32,  # 10.0,
-                dtype=torch.float32,
-                device=self.device,
-            ),
-        }
-        return consolidated_out
 
     def _prepare_memory_conditioned_features(self, obj_idx: Optional[int]) -> torch.Tensor:
         """

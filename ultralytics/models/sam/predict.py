@@ -670,8 +670,14 @@ class Predictor(BasePredictor):
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N, ).
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+
+        Returns:
+            pred_masks (torch.Tensor): The output masks in shape (C, H, W), where C is the number of generated masks.
+            pred_bboxes (torch.Tensor): Bounding boxes for each mask with shape (N, 6), where N is the number of boxes.
+                Each box is in xyxy format with additional columns for score and class.
+
         Notes:
-            features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a Dict[str, Any] if performing on SAM2.
+            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a Dict[str, Any] if performing on SAM2.
         """
         dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
         prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)

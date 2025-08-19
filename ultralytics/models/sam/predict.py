@@ -251,7 +251,6 @@ class Predictor(BasePredictor):
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
-            img_idx (int): Index of the image in the batch to process.
 
         Returns:
             pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
@@ -832,9 +831,10 @@ class SAM2Predictor(Predictor):
         Perform inference on image features using the SAM2 model.
 
         Args:
-            features (Dict[str, Any]): Extracted image information from the SAM2 model image encoder, it's a dictionary including:
-                image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
-                high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
+            features (torch.Tensor | Dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
+                could also be a dictionary including:
+                - image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
+                - high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
             points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
@@ -853,9 +853,12 @@ class SAM2Predictor(Predictor):
         )
         # Predict masks
         batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
-        high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+        high_res_features = None
+        if isinstance(features, dict):
+            high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+            features = features["image_embed"][[img_idx]]
         pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
-            image_embeddings=features["image_embed"][img_idx].unsqueeze(0),
+            image_embeddings=features,
             image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embeddings,
             dense_prompt_embeddings=dense_embeddings,

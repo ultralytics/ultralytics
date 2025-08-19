@@ -3,7 +3,7 @@
 import copy
 import math
 from functools import partial
-from typing import Any, Optional, Tuple, Type, Union
+from typing import Optional, Tuple, Type, Union
 
 import numpy as np
 import torch

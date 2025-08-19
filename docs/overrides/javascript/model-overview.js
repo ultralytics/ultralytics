@@ -177,7 +177,7 @@
           <div>
             <div class="mo-subtle">Choose size</div>
             <div class="mo-size-row" role="tablist" aria-label="Choose size">
-              ${sizes.map((s) => `<button class=\"mo-size ${s === defaultSize ? "is-active" : ""}\" data-size=\"${s}\"><span class=\"mo-size__label\">${s.toUpperCase()}</span><span class=\"mo-size__sub\">${model.performance[s].params || ""}${model.performance[s].params ? "M" : ""}</span></button>`).join("")}
+              ${sizes.map((s) => `<button class=\"mo-size ${s === defaultSize ? "is-active" : ""}\" data-size=\"${s}\"><span class=\"mo-size-label\">${s.toUpperCase()}</span><span class=\"mo-size-sub\">${model.performance[s].params || ""}${model.performance[s].params ? "M" : ""}</span></button>`).join("")}
             </div>
           </div>
           <div class="mo-bars">
@@ -482,7 +482,7 @@
       backdrop.classList.add("is-open");
       backdrop.removeAttribute("aria-hidden");
       lastFocus = document.activeElement;
-      backdrop.querySelector(".mo-modal__close").focus();
+      backdrop.querySelector(".mo-modal-close").focus();
       document.addEventListener("keydown", escListener);
       highlightInline(backdrop);
     }
@@ -500,7 +500,7 @@
       if (e.target === backdrop) closeModal();
     });
     backdrop
-      .querySelector(".mo-modal__close")
+      .querySelector(".mo-modal-close")
       .addEventListener("click", closeModal);
     backdrop.querySelectorAll(".mo-tab").forEach((btn) =>
       btn.addEventListener("click", () => {

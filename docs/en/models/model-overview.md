@@ -34,12 +34,12 @@ Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 <!-- Modal root -->
 <div id="mo-modal-backdrop" class="mo-modal-backdrop" aria-hidden="true">
   <div class="mo-modal" role="dialog" aria-modal="true" aria-labelledby="mo-modal-title">
-    <div class="mo-modal__header">
-      <div class="mo-modal__title-row">
-        <div class="mo-modal__title" id="mo-modal-title"></div>
-        <div class="mo-modal__actions">
-          <a id="mo-modal-details" class="mo-modal__details" href="#" target="_self">Details</a>
-          <button class="mo-modal__close" type="button" aria-label="Close dialog">✕</button>
+    <div class="mo-modal-header">
+      <div class="mo-modal-title-row">
+        <div class="mo-modal-title" id="mo-modal-title"></div>
+        <div class="mo-modal-actions">
+          <a id="mo-modal-details" class="mo-modal-details" href="#" target="_self">Details</a>
+          <button class="mo-modal-close" type="button" aria-label="Close dialog">✕</button>
         </div>
       </div>
       <div class="mo-tablist" role="tablist" aria-label="Model details tabs">
@@ -48,10 +48,10 @@ Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
         <button class="mo-tab" role="tab" aria-selected="false" data-tab="deploy" id="mo-tab-deploy">Deployment Options</button>
       </div>
     </div>
-    <div class="mo-modal__description" id="mo-modal-description"></div>
-    <div class="mo-modal__panel is-active" id="mo-panel-overview" role="tabpanel" aria-labelledby="mo-tab-overview"></div>
-    <div class="mo-modal__panel" id="mo-panel-quick" role="tabpanel" aria-labelledby="mo-tab-quick"></div>
-    <div class="mo-modal__panel" id="mo-panel-deploy" role="tabpanel" aria-labelledby="mo-tab-deploy"></div>
+    <div class="mo-modal-description" id="mo-modal-description"></div>
+    <div class="mo-moda-panel is-active" id="mo-panel-overview" role="tabpanel" aria-labelledby="mo-tab-overview"></div>
+    <div class="mo-moda-panel" id="mo-panel-quick" role="tabpanel" aria-labelledby="mo-tab-quick"></div>
+    <div class="mo-moda-panel" id="mo-panel-deploy" role="tabpanel" aria-labelledby="mo-tab-deploy"></div>
   </div>
 </div>
 

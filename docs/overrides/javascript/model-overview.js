@@ -209,7 +209,7 @@
         if (t4 > 0 && speedPct < 5) {
           speedPct = 5;
         }
-        
+
         const bars = $$(".mo-bar", card);
         bars[0].querySelector(".mo-bar__fill").style.width =
           mapPct.toFixed(1) + "%";

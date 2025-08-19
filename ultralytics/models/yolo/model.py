@@ -406,7 +406,7 @@ class YOLOE(Model):
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"
             )
-            if not (type(self.predictor) and type(self.predictor) is (predictor or yolo.yoloe.YOLOEVPDetectPredictor)):
+            if not (self.predictor and type(self.predictor) is (predictor or yolo.yoloe.YOLOEVPDetectPredictor)):
                 self.predictor = (predictor or yolo.yoloe.YOLOEVPDetectPredictor)(
                     overrides={
                         "task": self.model.task,

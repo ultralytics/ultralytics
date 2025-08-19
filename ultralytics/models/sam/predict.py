@@ -1791,7 +1791,12 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         self.get_im_features(img)
         points, labels, masks = self._prepare_prompts(
-            dst_shape=self.imgsz, points=points, bboxes=bboxes, labels=labels, masks=masks
+            dst_shape=self.imgsz,
+            src_shape=self.batch[1][0].shape[:2],
+            points=points,
+            bboxes=bboxes,
+            labels=labels,
+            masks=masks,
         )
 
         if update_memory:

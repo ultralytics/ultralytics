@@ -66,9 +66,9 @@ class YOLO(Model):
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
             scale (str, optional): Override model scale when loading from a .yaml config.
-            If provided, this value takes precedence over the scale inferred from the YAML
-            filename (via `guess_model_scale`). Useful for choosing between variants like
-            'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
+                If provided, this value takes precedence over the scale inferred from the YAML
+                filename (via `guess_model_scale`). Useful for choosing between variants like
+                'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Examples:
             >>> from ultralytics import YOLO

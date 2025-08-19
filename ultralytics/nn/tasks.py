@@ -1758,7 +1758,9 @@ def yaml_model_load(path, scale=None):
     Args:
         path (str | Path): Path to the YAML file.
         scale (str, optional): Override model scale when loading from a .yaml config.
-                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
+                If provided, this value takes precedence over the scale inferred from the YAML
+                filename (via `guess_model_scale`). Useful for choosing between variants like
+                'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
     Returns:
         (dict): Model dictionary.

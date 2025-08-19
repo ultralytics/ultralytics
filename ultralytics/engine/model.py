@@ -99,7 +99,9 @@ class Model(torch.nn.Module):
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
             scale (str, optional): Override model scale when loading from a .yaml config.
-                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
+                If provided, this value takes precedence over the scale inferred from the YAML
+                filename (via `guess_model_scale`). Useful for choosing between variants like
+                'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Raises:
             FileNotFoundError: If the specified model file does not exist or is inaccessible.
@@ -250,14 +252,14 @@ class Model(torch.nn.Module):
             model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of
                 creating a new one.
             verbose (bool): If True, displays model information during loading.
-            scale (str, optional): Override model scale when loading from a .yaml config. 
-                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
+            scale (str, optional): Override model scale when loading from a .yaml config.
+                If provided, this value takes precedence over the scale inferred from the YAML
+                filename (via `guess_model_scale`). Useful for choosing between variants like
+                'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Raises:
-            ValueError: If the configuration file is invalid or the task cannot be inferred.
+            ValueError: If the configuration file is invalid or the task cannot be inferred or the scale provided is invalid.
             ImportError: If the required dependencies for the specified task are not installed.
-            scale (str, optional): Override model scale when loading from a .yaml config.
-                Useful for choosing between variants like 'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Examples:
             >>> model = Model()

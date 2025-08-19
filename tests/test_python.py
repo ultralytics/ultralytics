@@ -200,6 +200,70 @@ def test_track_stream(model):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
+@pytest.mark.parametrize("independent_tracker_flag", [False, True])
+@pytest.mark.parametrize("batch_mode", [False, True])
+def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
+    """Test YOLO trackers with independent_trackers option (single and multi-stream)."""
+    video = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
+
+    # Load two models independently
+    model1 = YOLO("yolo11n.pt")
+    model2 = YOLO("yolo11n.pt")
+
+    # Open video
+    cap = cv2.VideoCapture(video)
+    assert cap.isOpened(), f"Could not open video: {video}"
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    ids1, ids2 = [], []
+    frame_idx = 0
+
+    while True:
+        if frame_idx < 10:
+            # Black canvas frames to "prime" tracker so reset_id() isn't called later
+            frame = np.zeros((height, width, 3), dtype=np.uint8)
+        else:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+        if batch_mode:
+            # Multi-stream (bs > 1) by passing a list of frames
+            res1 = model1.track([frame, frame], imgsz=160, tracker="bytetrack.yaml",
+                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+            res2 = model2.track([frame, frame], imgsz=160, tracker="bytetrack.yaml",
+                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+        else:
+            # Single-stream
+            res1 = model1.track(frame, imgsz=160, tracker="bytetrack.yaml",
+                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+            res2 = model2.track(frame, imgsz=160, tracker="bytetrack.yaml",
+                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+
+        # Check IDs on first *real* frame
+        if frame_idx == 11:
+            if res1[0].boxes.id is not None:
+                ids1 = res1[0].boxes.id.int().tolist()
+            if res2[0].boxes.id is not None:
+                ids2 = res2[0].boxes.id.int().tolist()
+
+        frame_idx += 1
+
+    cap.release()
+
+    if ids1 and ids2:
+        if independent_tracker_flag:
+            # When independent trackers are enabled, both should restart IDs at 1
+            assert min(ids1) == 1, f"Model1 IDs did not restart at 1, got {ids1}"
+            assert min(ids2) == 1, f"Model2 IDs did not restart at 1, got {ids2}"
+        else:
+            # When disabled, just check IDs exist but don't enforce restart
+            assert all(isinstance(i, int) for i in ids1)
+            assert all(isinstance(i, int) for i in ids2)
+    else:
+        pytest.skip("No IDs detected in the first video frame of one or both models")
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:

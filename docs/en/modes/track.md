@@ -168,6 +168,7 @@ The following table provides a description of each parameter:
 | `appearance_thresh` | `0.0-1.0`                                     | Minimum appearance similarity required for ReID. Sets how visually similar two detections must be to be linked.                                        |
 | `with_reid`         | `True`, `False`                               | Indicates whether to use ReID. Enables appearance-based matching for better tracking across occlusions. Only supported by BoTSORT.                     |
 | `model`             | `auto`, `yolo11[nsmlx]-cls.pt`                | Specifies the model to use. Defaults to `auto`, which uses native features if the detector is YOLO, otherwise uses `yolo11n-cls.pt`.                   |
+| `independent_trackers`             | `True`, `False`                | If True, each tracker instance maintains its own ID counter (IDs restart at 1 per model) and IDs from one instance will not affect another. Use when running multiple models to keep tracker IDs distinct and independent. |
 
 ### Enabling Re-Identification (ReID)
 

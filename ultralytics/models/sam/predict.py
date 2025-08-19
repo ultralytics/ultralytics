@@ -1499,13 +1499,13 @@ class SAM2VideoPredictor(SAM2Predictor):
             "pred_masks": torch.full(
                 size=(batch_size, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
                 fill_value=-1024.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
             "obj_ptr": torch.full(
                 size=(batch_size, self.model.hidden_dim),
                 fill_value=-1024.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
             "object_score_logits": torch.full(
@@ -1513,7 +1513,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # default to 10.0 for object_score_logits, i.e. assuming the object is
                 # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
                 fill_value=10.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
         }
@@ -1585,7 +1585,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             feat_sizes=feat_sizes,
             point_inputs=None,
             # A dummy (empty) mask with a single object
-            mask_inputs=torch.zeros((1, 1, *self.imgsz), dtype=torch.float32, device=self.device),
+            mask_inputs=torch.zeros((1, 1, *self.imgsz), dtype=self.torch_dtype, device=self.device),
             output_dict={},
             num_frames=self.inference_state["num_frames"],
             track_in_reverse=False,

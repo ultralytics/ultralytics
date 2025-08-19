@@ -471,7 +471,7 @@ class Exporter:
         # If not RTDETR, check yaml file
         if not model_type:
             yaml_stem = ""
-            
+
             # Try to get yaml file name from model
             if self.model.yaml.get("yaml_file"):
                 yaml_stem = Path(self.model.yaml.get("yaml_file")).stem

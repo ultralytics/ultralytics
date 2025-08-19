@@ -600,9 +600,9 @@ class AutoBackend(nn.Module):
             self.architecture = metadata.get("architecture", "")
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"Metadata not found for 'model={weights}'")
-        
+
         # Initialize architecture if not set
-        if not hasattr(self, 'architecture'):
+        if not hasattr(self, "architecture"):
             self.architecture = ""
 
         # Check names

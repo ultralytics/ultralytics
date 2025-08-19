@@ -132,9 +132,9 @@ class Predictor(BasePredictor):
             im = torch.from_numpy(im)
 
         im = im.to(self.device)
-        im = im.half() if self.model.fp16 else im.float()
         if not_tensor:
             im = (im - self.mean) / self.std
+        im = im.half() if self.model.fp16 else im.float()
         return im
 
     def pre_transform(self, im):
@@ -182,9 +182,8 @@ class Predictor(BasePredictor):
             **kwargs (Any): Additional keyword arguments.
 
         Returns:
-            pred_masks (np.ndarray): The output masks in shape (C, H, W), where C is the number of generated masks.
-            pred_scores (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
-            pred_logits (np.ndarray): Low-resolution logits of shape (C, H, W) for subsequent inference, where H=W=256.
+            pred_masks (torch.Tensor): The output masks in shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): An array of length C containing quality scores predicted by the model for each mask.
 
         Examples:
             >>> predictor = Predictor()
@@ -219,8 +218,8 @@ class Predictor(BasePredictor):
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
         Returns:
-            pred_masks (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
-            pred_scores (np.ndarray): Quality scores predicted by the model for each mask, with length C.
+            pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): Quality scores predicted by the model for each mask, with length C.
 
         Examples:
             >>> predictor = Predictor()
@@ -230,7 +229,33 @@ class Predictor(BasePredictor):
         """
         features = self.get_im_features(im) if self.features is None else self.features
 
-        bboxes, points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+        prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
+        return self._inference_features(features, *prompts, multimask_output)
+
+    def _inference_features(
+        self,
+        features,
+        bboxes=None,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+    ):
+        """
+        Perform inference on image features using the SAM model.
+
+        Args:
+            features (torch.Tensor): Extracted image features with shape (B, C, H, W) from the SAM model image encoder.
+            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
+            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+
+        Returns:
+            pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): Quality scores for each mask, with length C.
+        """
         points = (points, labels) if points is not None else None
         # Embed prompts
         sparse_embeddings, dense_embeddings = self.model.prompt_encoder(points=points, boxes=bboxes, masks=masks)
@@ -248,12 +273,13 @@ class Predictor(BasePredictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
-            dst_shape (tuple): The target shape (height, width) for the prompts.
+            dst_shape (Tuple[int, int]): The target shape (height, width) for the prompts.
+            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
@@ -268,11 +294,10 @@ class Predictor(BasePredictor):
         Raises:
             AssertionError: If the number of points don't match the number of labels, in case labels were passed.
         """
-        src_shape = self.batch[1][0].shape[:2]
         r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         # Transform input prompts
         if points is not None:
-            points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            points = torch.as_tensor(points, dtype=self.torch_dtype, device=self.device)
             points = points[None] if points.ndim == 1 else points
             # Assuming labels are all positive if users don't pass labels.
             if labels is None:
@@ -286,11 +311,11 @@ class Predictor(BasePredictor):
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
                 points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
-            bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
+            bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
-            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
+            masks = torch.as_tensor(masks, dtype=self.torch_dtype, device=self.device).unsqueeze(1)
         return bboxes, points, labels, masks
 
     def generate(
@@ -424,7 +449,8 @@ class Predictor(BasePredictor):
         if model is None:
             model = self.get_model()
         model.eval()
-        self.model = model.to(device)
+        model = model.to(device)
+        self.model = model.half() if self.args.half else model.float()
         self.device = device
         self.mean = torch.tensor([123.675, 116.28, 103.53]).view(-1, 1, 1).to(device)
         self.std = torch.tensor([58.395, 57.12, 57.375]).view(-1, 1, 1).to(device)
@@ -433,8 +459,9 @@ class Predictor(BasePredictor):
         self.model.pt = False
         self.model.triton = False
         self.model.stride = 32
-        self.model.fp16 = False
+        self.model.fp16 = self.args.half
         self.done_warmup = True
+        self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 
     def get_model(self):
         """Retrieve or build the Segment Anything Model (SAM) for image segmentation tasks."""
@@ -543,7 +570,7 @@ class Predictor(BasePredictor):
             - The extracted features are stored in the `self.features` attribute for later use.
         """
         if self.model is None:
-            self.setup_model(model=None)
+            self.setup_model()
         self.setup_source(image)
         assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
         for batch in self.dataset:
@@ -620,6 +647,53 @@ class Predictor(BasePredictor):
 
         return new_masks[keep].to(device=masks.device, dtype=masks.dtype), keep
 
+    @smart_inference_mode()
+    def inference_features(
+        self,
+        features,
+        src_shape,
+        dst_shape=None,
+        bboxes=None,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+    ):
+        """
+        Perform prompts preprocessing and inference on provided image features using the SAM model.
+
+        Args:
+            features (torch.Tensor | Dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.
+            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
+            dst_shape (Tuple[int, int] | None): The target shape (height, width) for the prompts. If None, defaults to (imgsz, imgsz).
+            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
+            points (np.ndarray | List[List[float]] | None): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N, ).
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+
+        Returns:
+            pred_masks (torch.Tensor): The output masks in shape (C, H, W), where C is the number of generated masks.
+            pred_bboxes (torch.Tensor): Bounding boxes for each mask with shape (N, 6), where N is the number of boxes.
+                Each box is in xyxy format with additional columns for score and class.
+
+        Notes:
+            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a Dict[str, Any] if performing on SAM2.
+        """
+        dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
+        prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
+        pred_masks, pred_scores = self._inference_features(features, *prompts, multimask_output)
+        if len(pred_masks) == 0:
+            pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
+        else:
+            pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
+            pred_masks = pred_masks > self.model.mask_threshold  # to bool
+            pred_bboxes = batched_mask_to_box(pred_masks)
+            # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
+            cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+            pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
+        return pred_masks, pred_bboxes
+
 
 class SAM2Predictor(Predictor):
     """
@@ -663,80 +737,13 @@ class SAM2Predictor(Predictor):
 
         return build_sam(self.args.model)
 
-    def prompt_inference(
-        self,
-        im,
-        bboxes=None,
-        points=None,
-        labels=None,
-        masks=None,
-        multimask_output=False,
-        img_idx=-1,
-    ):
-        """
-        Perform image segmentation inference based on various prompts using SAM2 architecture.
-
-        This method leverages the Segment Anything Model 2 (SAM2) to generate segmentation masks for input images
-        based on provided prompts such as bounding boxes, points, or existing masks. It supports both single and
-        multi-object prediction scenarios.
-
-        Args:
-            im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
-            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
-            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
-            masks (np.ndarray | None): Low-resolution masks from previous predictions with shape (N, H, W).
-            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
-            img_idx (int): Index of the image in the batch to process.
-
-        Returns:
-            pred_masks (np.ndarray): Output masks with shape (C, H, W), where C is the number of generated masks.
-            pred_scores (np.ndarray): Quality scores for each mask, with length C.
-
-        Examples:
-            >>> predictor = SAM2Predictor(cfg)
-            >>> image = torch.rand(1, 3, 640, 640)
-            >>> bboxes = [[100, 100, 200, 200]]
-            >>> result = predictor(image, bboxes=bboxes)[0]
-            >>> print(f"Generated {result.masks.shape[0]} masks with average score {result.boxes.conf.mean():.2f}")
-
-        Notes:
-            - The method supports batched inference for multiple objects when points or bboxes are provided.
-            - Input prompts (bboxes, points) are automatically scaled to match the input image dimensions.
-            - When both bboxes and points are provided, they are merged into a single 'points' input for the model.
-        """
-        features = self.get_im_features(im) if self.features is None else self.features
-
-        points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
-        points = (points, labels) if points is not None else None
-
-        sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
-            points=points,
-            boxes=None,
-            masks=masks,
-        )
-        # Predict masks
-        batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
-        high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
-        pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
-            image_embeddings=features["image_embed"][img_idx].unsqueeze(0),
-            image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
-            sparse_prompt_embeddings=sparse_embeddings,
-            dense_prompt_embeddings=dense_embeddings,
-            multimask_output=multimask_output,
-            repeat_image=batched_mode,
-            high_res_features=high_res_features,
-        )
-        # (N, d, H, W) --> (N*d, H, W), (N, d) --> (N*d, )
-        # `d` could be 1 or 3 depends on `multimask_output`.
-        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
-
-    def _prepare_prompts(self, dst_shape, bboxes=None, points=None, labels=None, masks=None):
+    def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
         """
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
-            dst_shape (tuple): The target shape (height, width) for the prompts.
+            dst_shape (Tuple[int, int]): The target shape (height, width) for the prompts.
+            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
@@ -750,7 +757,7 @@ class SAM2Predictor(Predictor):
         Raises:
             AssertionError: If the number of points don't match the number of labels, in case labels were passed.
         """
-        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, bboxes, points, labels, masks)
+        bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
             bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
@@ -812,6 +819,58 @@ class SAM2Predictor(Predictor):
             for feat, feat_size in zip(vision_feats[::-1], self._bb_feat_sizes[::-1])
         ][::-1]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
+
+    def _inference_features(
+        self,
+        features,
+        points=None,
+        labels=None,
+        masks=None,
+        multimask_output=False,
+        img_idx=-1,
+    ):
+        """
+        Perform inference on image features using the SAM2 model.
+
+        Args:
+            features (torch.Tensor | Dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
+                could also be a dictionary including:
+                - image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
+                - high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
+            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
+            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+            img_idx (int): Index of the image in the batch to process.
+
+        Returns:
+            pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
+            pred_scores (torch.Tensor): Quality scores for each mask, with length C.
+        """
+        points = (points, labels) if points is not None else None
+        sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
+            points=points,
+            boxes=None,
+            masks=masks,
+        )
+        # Predict masks
+        batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
+        high_res_features = None
+        if isinstance(features, dict):
+            high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+            features = features["image_embed"][[img_idx]]
+        pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
+            image_embeddings=features,
+            image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embeddings,
+            dense_prompt_embeddings=dense_embeddings,
+            multimask_output=multimask_output,
+            repeat_image=batched_mode,
+            high_res_features=high_res_features,
+        )
+        # (N, d, H, W) --> (N*d, H, W), (N, d) --> (N*d, )
+        # `d` could be 1 or 3 depends on `multimask_output`.
+        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
 
 class SAM2VideoPredictor(SAM2Predictor):
@@ -900,8 +959,8 @@ class SAM2VideoPredictor(SAM2Predictor):
             masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
 
         Returns:
-            pred_masks (np.ndarray): The output masks in shape CxHxW, where C is the number of generated masks.
-            pred_scores (np.ndarray): An array of length C containing quality scores predicted by the model for each mask.
+            pred_masks (torch.Tensor): The output masks in shape CxHxW, where C is the number of generated masks.
+            pred_scores (torch.Tensor): An array of length C containing quality scores predicted by the model for each mask.
         """
         # Override prompts if any stored in self.prompts
         bboxes = self.prompts.pop("bboxes", bboxes)
@@ -912,7 +971,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
-            points, labels, masks = self._prepare_prompts(im.shape[2:], bboxes, points, labels, masks)
+            points, labels, masks = self._prepare_prompts(
+                im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
+            )
             if points is not None:
                 for i in range(len(points)):
                     self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
@@ -966,7 +1027,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         the masks do not overlap, which can be useful for certain applications.
 
         Args:
-            preds (tuple): The predictions from the model.
+            preds (Tuple[torch.Tensor, torch.Tensor]): The predicted masks and scores from the model.
             img (torch.Tensor): The processed image tensor.
             orig_imgs (List[np.ndarray]): The original images before processing.
 
@@ -1441,13 +1502,13 @@ class SAM2VideoPredictor(SAM2Predictor):
             "pred_masks": torch.full(
                 size=(batch_size, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
                 fill_value=-1024.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
             "obj_ptr": torch.full(
                 size=(batch_size, self.model.hidden_dim),
                 fill_value=-1024.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
             "object_score_logits": torch.full(
@@ -1455,7 +1516,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # default to 10.0 for object_score_logits, i.e. assuming the object is
                 # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
                 fill_value=10.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
         }
@@ -1527,7 +1588,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             feat_sizes=feat_sizes,
             point_inputs=None,
             # A dummy (empty) mask with a single object
-            mask_inputs=torch.zeros((1, 1, *self.imgsz), dtype=torch.float32, device=self.device),
+            mask_inputs=torch.zeros((1, 1, *self.imgsz), dtype=self.torch_dtype, device=self.device),
             output_dict={},
             num_frames=self.inference_state["num_frames"],
             track_in_reverse=False,

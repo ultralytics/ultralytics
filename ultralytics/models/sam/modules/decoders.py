@@ -423,7 +423,7 @@ class SAM2MaskDecoder(nn.Module):
 
         # Upscale mask embeddings and predict masks using the mask tokens
         src = src.transpose(1, 2).view(b, c, h, w)
-        if not self.use_high_res_features:
+        if not self.use_high_res_features or high_res_features is None:
             upscaled_embedding = self.output_upscaling(src)
         else:
             dc1, ln1, act1, dc2, act2 = self.output_upscaling

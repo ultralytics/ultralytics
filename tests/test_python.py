@@ -200,6 +200,7 @@ def test_track_stream(model):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
+
 @pytest.mark.parametrize("independent_tracker_flag", [False, True])
 @pytest.mark.parametrize("batch_mode", [False, True])
 def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
@@ -231,16 +232,40 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
 
         if batch_mode:
             # Multi-stream (bs > 1) by passing a list of frames
-            res1 = model1.track([frame, frame], imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
-            res2 = model2.track([frame, frame], imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+            res1 = model1.track(
+                [frame, frame],
+                imgsz=160,
+                tracker="bytetrack.yaml",
+                persist=True,
+                independent_trackers=independent_tracker_flag,
+                verbose=False,
+            )
+            res2 = model2.track(
+                [frame, frame],
+                imgsz=160,
+                tracker="bytetrack.yaml",
+                persist=True,
+                independent_trackers=independent_tracker_flag,
+                verbose=False,
+            )
         else:
             # Single-stream
-            res1 = model1.track(frame, imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
-            res2 = model2.track(frame, imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+            res1 = model1.track(
+                frame,
+                imgsz=160,
+                tracker="bytetrack.yaml",
+                persist=True,
+                independent_trackers=independent_tracker_flag,
+                verbose=False,
+            )
+            res2 = model2.track(
+                frame,
+                imgsz=160,
+                tracker="bytetrack.yaml",
+                persist=True,
+                independent_trackers=independent_tracker_flag,
+                verbose=False,
+            )
 
         # Check IDs on first *real* frame
         if frame_idx == 11:
@@ -264,6 +289,7 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
             assert all(isinstance(i, int) for i in ids2)
     else:
         pytest.skip("No IDs detected in the first video frame of one or both models")
+
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:

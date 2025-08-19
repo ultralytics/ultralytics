@@ -18,36 +18,33 @@
       const modelData = await response.json();
 
       DATA = Object.entries(modelData)
-        .filter(([name, info]) => info.show_card === true)
-        .map(([name, info]) => {
-          const id = name
+        .filter(([, info]) => info.show_card)
+        .map(([name, info]) => ({
+          id: name
             .toLowerCase()
             .replace(/[-\s]/g, "-")
-            .replace(/[^a-z0-9-]/g, "");
-
-          const performance = {};
-          Object.entries(info.performance).forEach(([size, perf]) => {
-            performance[size] = {
-              map: perf.map,
-              t4: perf.t4,
-              params: perf.params,
-              file_size: perf.file_size,
-            };
-          });
-
-          return {
-            id: id,
-            name: name,
-            org: info.org,
-            docs: info.docs,
-            latest: info.latest,
-            official: info.official,
-            tasks: info.tasks,
-            performance: performance,
-            weightBase: info.weightBase || undefined,
-            shortDescription: info.short_description || undefined,
-          };
-        });
+            .replace(/[^a-z0-9-]/g, ""),
+          name,
+          org: info.org,
+          docs: info.docs,
+          latest: info.latest,
+          official: info.official,
+          tasks: info.tasks,
+          performance: Object.fromEntries(
+            Object.entries(info.performance).map(([size, perf]) => [
+              size,
+              {
+                map: perf.map,
+                t4: perf.t4,
+                params: perf.params,
+                file_size: perf.file_size,
+                model_full_name: perf.model_full_name,
+              },
+            ]),
+          ),
+          weightBase: info.weightBase,
+          shortDescription: info.short_description,
+        }));
 
       return true;
     } catch (error) {
@@ -82,22 +79,17 @@
     const searchInput = document.getElementById("mo-search");
 
     function groupByTask(task) {
-      const groups = {};
-      TASK_ORDER.forEach((t) => (groups[t] = []));
+      const groups = Object.fromEntries(TASK_ORDER.map((t) => [t, []]));
+
       DATA.filter(
         (m) => !query || m.name.toLowerCase().includes(query),
-      ).forEach((m) => {
-        m.tasks.forEach((t) => {
-          if (groups[t]) groups[t].push(m);
-        });
-      });
-      if (task !== "all")
-        Object.keys(groups).forEach((k) => {
-          if (k !== task) delete groups[k];
-        });
-      Object.keys(groups).forEach((k) => {
-        if (groups[k].length === 0) delete groups[k];
-      });
+      ).forEach((m) => m.tasks.forEach((t) => groups[t]?.push(m)));
+
+      if (task !== "all") {
+        Object.keys(groups).forEach((k) => k !== task && delete groups[k]);
+      }
+
+      Object.keys(groups).forEach((k) => !groups[k].length && delete groups[k]);
       return groups;
     }
 
@@ -109,6 +101,7 @@
         container.innerHTML = "<p>No models found.</p>";
         return;
       }
+
       const maxMap = Math.max(
         60,
         ...visible.flatMap((m) =>
@@ -121,31 +114,52 @@
           Object.values(m.performance).map((v) => v.t4 || 0),
         ),
       );
-      // model sort: latest official -> official -> others, then name
       const modelRank = (m) =>
         m.official && m.latest ? 0 : m.official ? 1 : 2;
-      for (const task of Object.keys(groups)) {
-        groups[task].sort((a, b) => {
+
+      Object.entries(groups).forEach(([task, models]) => {
+        models.sort((a, b) => {
           const ra = modelRank(a),
             rb = modelRank(b);
           return ra !== rb ? ra - rb : a.name.localeCompare(b.name);
         });
+
         const section = document.createElement("section");
         section.className = "mo-section";
         section.innerHTML = `<h2>${task} models</h2>`;
+
         const grid = document.createElement("div");
         grid.className = "mo-grid";
-        for (const model of groups[task])
-          grid.appendChild(renderCard(model, { maxMap, maxT4, task }));
+        models.forEach((model) =>
+          grid.appendChild(renderCard(model, { maxMap, maxT4, task })),
+        );
+
         section.appendChild(grid);
         container.appendChild(section);
-      }
+      });
     }
 
     function brandIcon(model) {
       return model.official
         ? '<img class="mo-brand" src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics-logomark-color.png" alt="Ultralytics" width="24" height="24" />'
         : "";
+    }
+
+    function getModelWeight(model, size) {
+      return model.weightBase
+        ? `${model.weightBase}${size}.pt`
+        : `${model.name.toLowerCase().replace(/[-]/g, "")}${size}.pt`;
+    }
+
+    function getModelClass(model) {
+      if (model.name.includes("YOLO-World"))
+        return {
+          class: "YOLOWorld",
+          import: "from ultralytics import YOLOWorld",
+        };
+      if (model.name.includes("RT-DETR"))
+        return { class: "RTDETR", import: "from ultralytics import RTDETR" };
+      return { class: "YOLO", import: "from ultralytics import YOLO" };
     }
 
     function renderCard(model, scales) {
@@ -307,25 +321,13 @@
         : "—";
       return `<h3>Key Features</h3><div class=\"mo-chipline\">${chips}<span class=\"mo-mini-chip\">Real-time</span><span class=\"mo-mini-chip\">ONNX Runtime</span></div>
       <h3>Model Architecture</h3>
-      <div class=\"mo-infobar\">\n        <div class=\"mo-infobox\"><span>Model Size</span><strong>${size.toUpperCase()} (${fileSize || "?"})</strong></div>\n        <div class=\"mo-infobox\"><span>Parameters</span><strong>${perf.params || "?"}M</strong></div>\n        <div class=\"mo-infobox\"><span>Input Size</span><strong>640x640</strong></div>\n      </div>`;
+      <div class=\"mo-infobar\">\n        <div class=\"mo-infobox\"><span>Model Size</span><strong>${perf.model_full_name || size.toUpperCase()} (${fileSize || "?"})</strong></div>\n        <div class=\"mo-infobox\"><span>Parameters</span><strong>${perf.params || "?"}M</strong></div>\n        <div class=\"mo-infobox\"><span>Input Size</span><strong>640x640</strong></div>\n      </div>`;
     }
 
     function buildQuickHTML(model, size) {
-      const weight = model.weightBase
-        ? model.weightBase + size + ".pt"
-        : model.name.toLowerCase().replace(/[-]/g, "") + size + ".pt";
-
-      // Determine the correct import and class based on model type
-      let importClass = "YOLO";
-      let importStatement = "from ultralytics import YOLO";
-
-      if (model.name.includes("YOLO-World")) {
-        importClass = "YOLOWorld";
-        importStatement = "from ultralytics import YOLOWorld";
-      } else if (model.name.includes("RT-DETR")) {
-        importClass = "RTDETR";
-        importStatement = "from ultralytics import RTDETR";
-      }
+      const weight = getModelWeight(model, size);
+      const { class: importClass, import: importStatement } =
+        getModelClass(model);
 
       return `<h3>CLI</h3><pre class=\"mo-code\"><code class=\"lang-bash\">yolo detect predict model=${weight} source=path/to/images</code></pre>\n<h3>Python</h3><pre class=\"mo-code\"><code class=\"lang-python\">${importStatement}\nmodel = ${importClass}('${weight}')\nresults = model('image.jpg')</code></pre>`;
     }
@@ -418,10 +420,7 @@
         },
       ];
 
-      const weight = model.weightBase
-        ? model.weightBase + size + ".pt"
-        : model.name.toLowerCase().replace(/[-]/g, "") + size + ".pt";
-
+      const weight = getModelWeight(model, size);
       const deployGrid = deployPlatforms
         .map(
           (platform, index) =>
@@ -429,7 +428,12 @@
         )
         .join("");
 
-      return `<h3>Deployment Platforms</h3>\n        <p>Choose your target platform for optimized deployment:</p>\n        <div class="mo-deploy-grid">${deployGrid}</div>\n        <h3 id="mo-deploy-format-title">Export Command (${deployPlatforms[0].name})</h3>\n        <p>Use the following command to export your model:</p>\n        <pre class="mo-code"><code class="lang-bash" id="mo-deploy-command">yolo export model=${weight} format=${deployPlatforms[0].format}</code></pre>`;
+      const initialCommand =
+        deployPlatforms[0].format === "torch"
+          ? ""
+          : `yolo export model=${weight} format=${deployPlatforms[0].format}`;
+
+      return `<h3>Deployment Platforms</h3>\n        <p>Choose your target platform for optimized deployment:</p>\n        <div class="mo-deploy-grid">${deployGrid}</div>\n        <h3 id="mo-deploy-format-title">Export Command (${deployPlatforms[0].name})</h3>\n        <p>Use the following command to export your model:</p>\n        <pre class="mo-code"><code class="lang-bash" id="mo-deploy-command">${initialCommand}</code></pre>`;
     }
 
     function setTab(tab) {
@@ -540,14 +544,12 @@
         const titleEl = document.getElementById("mo-deploy-format-title");
 
         if (commandEl && activeModel && activeSize) {
-          const weight = activeModel.weightBase
-            ? activeModel.weightBase + activeSize + ".pt"
-            : activeModel.name.toLowerCase().replace(/[-]/g, "") +
-              activeSize +
-              ".pt";
+          const weight = getModelWeight(activeModel, activeSize);
 
-          commandEl.textContent = `yolo export model=${weight} format=${format}`;
-
+          commandEl.textContent =
+            format === "torch"
+              ? ""
+              : `yolo export model=${weight} format=${format}`;
           commandEl.dataset.hl = "";
           commandEl.dataset.needsUpdate = "1";
 

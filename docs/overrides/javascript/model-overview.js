@@ -202,10 +202,14 @@
         const map = perf.map || 0;
         const t4 = perf.t4 || 0;
         const mapPct = Math.min(100, (map / scales.maxMap) * 100);
-        const speedPct = Math.min(
+        let speedPct = Math.min(
           100,
           Math.max(0, (1 - t4 / scales.maxT4) * 100),
         );
+        if (t4 > 0 && speedPct < 5) {
+          speedPct = 5;
+        }
+        
         const bars = $$(".mo-bar", card);
         bars[0].querySelector(".mo-bar__fill").style.width =
           mapPct.toFixed(1) + "%";
@@ -424,7 +428,7 @@
       const deployGrid = deployPlatforms
         .map(
           (platform, index) =>
-            `\n        <div class="mo-deploy-item ${index === 0 ? "is-active" : ""}" title="${platform.desc}" data-format="${platform.format}" data-name="${platform.name}">\n          <img class="mo-deploy-icon" src="https://raw.githubusercontent.com/ultralytics/assets/main/mkdocs/logos/${platform.icon}" alt="${platform.name}" />\n          <span class="mo-deploy-name">${platform.name}</span>\n        </div>\n      `,
+            `\n        <div class="mo-deploy-item ${index === 0 ? "is-active" : ""}" title="${platform.desc}" data-format="${platform.format}" data-name="${platform.name}">\n          <img class="mo-deploy-icon" src="https://raw.githubusercontent.com/ultralytics/assets/main/mkdocs/logos/${platform.icon}" alt="${platform.name}" />\n          <div class="mo-deploy-content">\n            <div class="mo-deploy-name">${platform.name}</div>\n            <div class="mo-deploy-desc"></div>\n          </div>\n        </div>\n      `,
         )
         .join("");
 

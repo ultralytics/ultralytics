@@ -258,8 +258,8 @@ class PromptEncoder(nn.Module):
         """Embed point prompts by applying positional encoding and label-specific embeddings."""
         points = points + 0.5  # Shift to center of pixel
         if pad:
-            padding_point = torch.zeros((points.shape[0], 1, 2), device=points.device)
-            padding_label = -torch.ones((labels.shape[0], 1), device=labels.device)
+            padding_point = torch.zeros((points.shape[0], 1, 2), dtype=points.dtype, device=points.device)
+            padding_label = -torch.ones((labels.shape[0], 1), dtype=labels.dtype, device=labels.device)
             points = torch.cat([points, padding_point], dim=1)
             labels = torch.cat([labels, padding_label], dim=1)
         point_embedding = self.pe_layer.forward_with_coords(points, self.input_image_size)
@@ -300,10 +300,6 @@ class PromptEncoder(nn.Module):
         else:
             return 1
 
-    def _get_device(self) -> torch.device:
-        """Return the device of the first point embedding's weight tensor."""
-        return self.point_embeddings[0].weight.device
-
     def forward(
         self,
         points: Optional[Tuple[torch.Tensor, torch.Tensor]],
@@ -334,7 +330,11 @@ class PromptEncoder(nn.Module):
             torch.Size([1, 7, 256]) torch.Size([1, 256, 64, 64])
         """
         bs = self._get_batch_size(points, boxes, masks)
-        sparse_embeddings = torch.empty((bs, 0, self.embed_dim), device=self._get_device())
+        sparse_embeddings = torch.empty(
+            (bs, 0, self.embed_dim),
+            dtype=self.point_embeddings[0].weight.dtype,
+            device=self.point_embeddings[0].weight.device,
+        )
         if points is not None:
             coords, labels = points
             point_embeddings = self._embed_points(coords, labels, pad=(boxes is None))
@@ -637,7 +637,7 @@ class FpnNeck(nn.Module):
             lateral_features = self.convs[n - i](x)
             if i in self.fpn_top_down_levels and prev_features is not None:
                 top_down_features = F.interpolate(
-                    prev_features.to(dtype=torch.float32),
+                    prev_features.to(dtype=x.dtype),
                     scale_factor=2.0,
                     mode=self.fpn_interp_model,
                     align_corners=(None if self.fpn_interp_model == "nearest" else False),

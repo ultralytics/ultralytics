@@ -414,6 +414,8 @@ class YOLOE(Model):
                         "save": False,
                         "verbose": refer_image is None,
                         "batch": 1,
+                        "device": kwargs.get("device", None),
+                        "half": kwargs.get("half", False),
                     },
                     _callbacks=self.callbacks,
                 )

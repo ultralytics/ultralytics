@@ -454,108 +454,36 @@ class Exporter:
         )
         self.pretty_name = Path(self.model.yaml.get("yaml_file", self.file)).stem.replace("yolo", "YOLO")
 
-        # Extract model type for export naming
+        # Detect model architecture for metadata
         model_type = None
 
-        # First, try to determine from model class
+        # Check model class name first
         if hasattr(self.model, "__class__"):
             model_class_name = self.model.__class__.__name__
             if "RTDETR" in model_class_name:
                 model_type = "rtdetr"
-            elif "WorldModel" in model_class_name:
-                model_type = "yoloworld"
-            elif "YOLOEModel" in model_class_name or "YOLOESegModel" in model_class_name:
-                model_type = "yoloe"
             # Check if the last layer is RTDETRDecoder
             elif hasattr(self.model, "model") and len(self.model.model) > 0:
                 last_layer = self.model.model[-1]
                 if hasattr(last_layer, "__class__") and "RTDETR" in last_layer.__class__.__name__:
                     model_type = "rtdetr"
 
-        # If not determined from class, try yaml file or checkpoint train_args
+        # If not RTDETR, check yaml file
         if not model_type:
             yaml_stem = ""
+            
+            # Try to get yaml file name from model
+            if self.model.yaml.get("yaml_file"):
+                yaml_stem = Path(self.model.yaml.get("yaml_file")).stem
+            elif hasattr(self.model, "args") and isinstance(self.model.args, dict) and "model" in self.model.args:
+                yaml_stem = Path(self.model.args["model"]).stem
 
-            # First priority: try to get original training model from checkpoint
-            parent_ckpt = getattr(self, "_parent_ckpt", None)
-            if parent_ckpt and "train_args" in parent_ckpt and "model" in parent_ckpt["train_args"]:
-                yaml_stem = Path(parent_ckpt["train_args"]["model"]).stem
+            if yaml_stem and "rtdetr" in yaml_stem.lower():
+                model_type = "rtdetr"
 
-            # Second priority: try from model.yaml
-            if not yaml_stem:
-                yaml_stem = Path(self.model.yaml.get("yaml_file", "")).stem if self.model.yaml.get("yaml_file") else ""
-
-            # Third priority: try from model.args if available (for loaded .pt files)
-            if not yaml_stem and hasattr(self.model, "args") and isinstance(self.model.args, dict):
-                if "model" in self.model.args:
-                    yaml_stem = Path(self.model.args["model"]).stem
-
-            if yaml_stem:
-                yaml_lower = yaml_stem.lower()
-
-                # Handle different model naming patterns
-                if "rtdetr" in yaml_lower:
-                    model_type = "rtdetr"
-                elif "world" in yaml_lower:
-                    model_type = "yoloworld"
-                elif "yoloe" in yaml_lower:
-                    model_type = "yoloe"
-                elif "yolo11" in yaml_lower:
-                    model_type = "yolo11"
-                elif "yolo12" in yaml_lower:
-                    model_type = "yolo12"
-                elif "yolo10" in yaml_lower or "yolov10" in yaml_lower:
-                    model_type = "yolo10"
-                elif "yolov8" in yaml_lower:
-                    model_type = "yolov8"
-                elif "yolov6" in yaml_lower:
-                    model_type = "yolov6"
-                elif "yolov5" in yaml_lower:
-                    model_type = "yolov5"
-                elif "yolo" in yaml_lower:
-                    # Extract version from patterns like yolo3, yolo4, etc.
-                    import re
-
-                    match = re.search(r"yolo(?:v)?(\d+)", yaml_lower)
-                    if match:
-                        model_type = f"yolo{match.group(1)}"
-                elif yaml_lower in {"custom", "model", "config"}:
-                    # For generic config names like custom.yaml, try to infer from model architecture
-                    # Check the model's backbone/head structure to determine type
-                    if hasattr(self.model, "yaml") and "backbone" in self.model.yaml:
-                        backbone_str = str(self.model.yaml.get("backbone", ""))
-                        head_str = str(self.model.yaml.get("head", ""))
-
-                        # Look for RT-DETR specific components
-                        if "RTDETRDecoder" in head_str or "HGStem" in backbone_str or "HGBlock" in backbone_str:
-                            model_type = "rtdetr"
-                        # Look for C2f (YOLOv8+ indicator) vs C3 (YOLOv5/v6/v7)
-                        elif "C2f" in backbone_str:
-                            # Default to yolov8 for C2f-based models if version unclear
-                            model_type = "yolov8"
-                        elif "C3" in backbone_str:
-                            # Could be v5/v6/v7, default to v5
-                            model_type = "yolov5"
-
-        # Add model type prefix to exported file name if determined
-        if model_type:
-            original_name = self.file.stem
-            original_lower = original_name.lower()
-
-            # Check if the original filename already contains model type information
-            skip_prefix = False
-            if model_type == "rtdetr" and ("rtdetr" in original_lower or "detr" in original_lower):
-                skip_prefix = True
-            elif model_type.startswith("yolo") and "yolo" in original_lower:
-                skip_prefix = True
-            elif model_type == "yoloworld" and ("world" in original_lower or "yolo" in original_lower):
-                skip_prefix = True
-            elif model_type == "yoloe" and ("yoloe" in original_lower or "yolo" in original_lower):
-                skip_prefix = True
-
-            # Only add prefix if not already present
-            if not skip_prefix:
-                self.file = self.file.with_name(f"{model_type}_{original_name}{self.file.suffix}")
+        # Default to yolo if not rtdetr
+        if not model_type:
+            model_type = "yolo"
         data = model.args["data"] if hasattr(model, "args") and isinstance(model.args, dict) else ""
         description = f"Ultralytics {self.pretty_name} model {f'trained on {data}' if data else ''}"
         self.metadata = {

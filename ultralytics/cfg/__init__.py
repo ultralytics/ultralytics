@@ -960,13 +960,11 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import RTDETR
 
         model = RTDETR(model)  # no task argument
-    elif architecture == "fastsam" or (architecture is None and "fastsam" in stem):
+    elif architecture is None and "fastsam" in stem:
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif architecture in ["sam", "sam2"] or (
-        architecture is None and ("sam_" in stem or "sam2_" in stem or "sam2.1_" in stem)
-    ):
+    elif architecture is None and ("sam_" in stem or "sam2_" in stem or "sam2.1_" in stem):
         from ultralytics import SAM
 
         model = SAM(model)
@@ -974,7 +972,7 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import YOLO
 
         model = YOLO(model, task=task)
-        if architecture in ["yoloe", "yoloworld"] or (architecture is None and ("yoloe" in stem or "world" in stem)):
+        if architecture is None and ("yoloe" in stem or "world" in stem):
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
                 model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].

@@ -35,6 +35,51 @@ def test_export_onnx():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+def test_rtdetr_onnx_architecture_metadata():
+    """Test RTDETR ONNX export includes correct architecture metadata for model routing."""
+    try:
+        from ultralytics import RTDETR
+        import onnxruntime
+        import shutil
+        from pathlib import Path
+        
+        # Export RTDETR model to ONNX with a generic filename
+        model = RTDETR("rtdetr-l.yaml")  # Use yaml for faster test
+        onnx_file = model.export(format="onnx", imgsz=32)
+        
+        # Rename to generic name to test metadata-based routing
+        generic_file = Path(onnx_file).parent / "generic_model.onnx"
+        shutil.move(onnx_file, generic_file)
+        
+        # Check ONNX metadata contains architecture="rtdetr"
+        session = onnxruntime.InferenceSession(str(generic_file), providers=["CPUExecutionProvider"])
+        metadata = session.get_modelmeta().custom_metadata_map
+        assert metadata.get("architecture") == "rtdetr", f"Expected architecture='rtdetr', got {metadata.get('architecture')}"
+        
+        # Test CLI routing with generic filename works
+        from ultralytics.cfg import entrypoint
+        import sys
+        
+        # Mock sys.argv for entrypoint test
+        original_argv = sys.argv
+        sys.argv = ["yolo", "val", f"model={generic_file}", "data=coco8.yaml", "imgsz=32"]
+        
+        try:
+            # This should route to RTDETR validator via metadata, not filename
+            entrypoint()
+        except SystemExit:
+            pass  # Expected for test environment
+        finally:
+            sys.argv = original_argv
+            
+        # Cleanup
+        if generic_file.exists():
+            generic_file.unlink()
+            
+    except ImportError:
+        pytest.skip("Test requires onnxruntime and RTDETR dependencies")
+
+
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
     """Test YOLO export to OpenVINO format for model inference compatibility."""

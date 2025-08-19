@@ -488,7 +488,7 @@ class SAM2Model(torch.nn.Module):
             assert sam_point_coords.size(0) == B and sam_point_labels.size(0) == B
         else:
             # If no points are provide, pad with an empty point (with label -1)
-            sam_point_coords = torch.zeros(B, 1, 2, device=device)
+            sam_point_coords = torch.zeros(B, 1, 2, device=device, dtype=backbone_features.dtype)
             sam_point_labels = -torch.ones(B, 1, dtype=torch.int32, device=device)
 
         # b) Handle mask prompts
@@ -533,7 +533,6 @@ class SAM2Model(torch.nn.Module):
 
         # convert masks from possibly bfloat16 (or float16) to float32
         # (older PyTorch versions before 2.1 don't support `interpolate` on bf16)
-        low_res_multimasks = low_res_multimasks.float()
         high_res_multimasks = F.interpolate(
             low_res_multimasks,
             size=(self.image_size, self.image_size),
@@ -560,12 +559,11 @@ class SAM2Model(torch.nn.Module):
             if self.soft_no_obj_ptr:
                 lambda_is_obj_appearing = object_score_logits.sigmoid()
             else:
-                lambda_is_obj_appearing = is_obj_appearing.float()
+                lambda_is_obj_appearing = is_obj_appearing.to(obj_ptr.dtype)
 
             if self.fixed_no_obj_ptr:
                 obj_ptr = lambda_is_obj_appearing * obj_ptr
             obj_ptr = obj_ptr + (1 - lambda_is_obj_appearing) * self.no_obj_ptr
-
         return (
             low_res_multimasks,
             high_res_multimasks,
@@ -769,7 +767,7 @@ class SAM2Model(torch.nn.Module):
                     if self.add_tpos_enc_to_obj_ptrs:
                         t_diff_max = max_obj_ptrs_in_encoder - 1
                         tpos_dim = C if self.proj_tpos_enc_in_obj_ptrs else self.mem_dim
-                        obj_pos = torch.tensor(pos_list, device=device)
+                        obj_pos = torch.tensor(pos_list, device=device, dtype=current_vision_feats[-1].dtype)
                         obj_pos = get_1d_sine_pe(obj_pos / t_diff_max, dim=tpos_dim)
                         obj_pos = self.obj_ptr_tpos_proj(obj_pos)
                         obj_pos = obj_pos.unsqueeze(1).expand(-1, B, self.mem_dim)
@@ -834,7 +832,7 @@ class SAM2Model(torch.nn.Module):
         # scale the raw mask logits with a temperature before applying sigmoid
         binarize = self.binarize_mask_from_pts_for_mem_enc and is_mask_from_pts
         if binarize and not self.training:
-            mask_for_mem = (pred_masks_high_res > 0).float()
+            mask_for_mem = (pred_masks_high_res > 0).to(pix_feat.dtype)
         else:
             # apply sigmoid on the raw mask logits to turn them into range (0, 1)
             mask_for_mem = torch.sigmoid(pred_masks_high_res)
@@ -927,11 +925,10 @@ class SAM2Model(torch.nn.Module):
     ):
         """Run memory encoder on predicted mask to encode it into a new memory feature for future frames."""
         if run_mem_encoder and self.num_maskmem > 0:
-            high_res_masks_for_mem_enc = high_res_masks
             maskmem_features, maskmem_pos_enc = self._encode_new_memory(
                 current_vision_feats=current_vision_feats,
                 feat_sizes=feat_sizes,
-                pred_masks_high_res=high_res_masks_for_mem_enc,
+                pred_masks_high_res=high_res_masks,
                 object_score_logits=object_score_logits,
                 is_mask_from_pts=(point_inputs is not None),
             )

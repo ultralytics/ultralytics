@@ -292,7 +292,7 @@
 .mo-modal {
   background: var(--md-default-bg-color);
   color: var(--md-typeset-color);
-  width: min(980px, 100%);
+  width: min(1120px, 100%);
   border-radius: 0.8rem;
   box-shadow: var(--md-shadow-z3);
   display: flex;
@@ -308,11 +308,67 @@
   flex-direction: column;
   gap: 0.9rem;
 }
+
+/* Responsive modal header */
+@media (max-width: 900px) {
+  .mo-modal-header {
+    padding: 1.2rem 1.4rem 0.8rem;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .mo-modal-header {
+    padding: 1rem 1.2rem 0.7rem;
+    gap: 0.6rem;
+  }
+}
 .mo-modal-title-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+}
+
+/* Responsive modal title row */
+@media (max-width: 900px) {
+  .mo-modal-title-row {
+    position: relative;
+  }
+  
+  .mo-modal-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  
+  .mo-modal-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .mo-modal-details {
+    margin-top: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .mo-modal-title-row {
+    gap: 0.5rem;
+  }
+  
+  .mo-modal-title {
+    font-size: 1.3rem;
+    padding-right: 3rem; /* Add space for the close button */
+  }
+  
+  .mo-modal-details {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.75rem;
+    white-space: nowrap; /* Prevent text wrapping */
+    margin-top: 2rem;
+  }
 }
 .mo-modal-title {
   font-size: 1.55rem;
@@ -379,6 +435,25 @@
   overflow-x: auto;
   border-bottom: 1px solid var(--md-default-fg-color--lightest);
 }
+
+/* Responsive tablist */
+@media (max-width: 900px) {
+  .mo-tablist {
+    padding: 0 1.4rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .mo-tablist {
+    padding: 0 1.2rem;
+    gap: 0.1rem;
+  }
+  
+  .mo-tab {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+}
 .mo-tab {
   appearance: none;
   border: none;
@@ -444,16 +519,31 @@
 
 .mo-deploy-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
   margin: 1rem 0;
+}
+
+/* Responsive deployment grid */
+@media (max-width: 900px) {
+  .mo-deploy-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .mo-deploy-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+  }
 }
 .mo-deploy-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 0.6rem;
-  padding: 1rem;
+  padding: 0.8rem 0.7rem 0.8rem 0.8rem;
   border: 1px solid var(--md-default-fg-color--lightest);
   border-radius: 0.6rem;
   text-decoration: none;
@@ -463,6 +553,8 @@
     transform 0.18s ease,
     background-color 0.18s ease;
   cursor: pointer;
+  min-height: 52px;
+  overflow: hidden;
 }
 .mo-deploy-item:hover {
   border-color: #4145a9;
@@ -479,15 +571,35 @@
 .mo-deploy-item.is-active .mo-deploy-name {
   color: #fff;
 }
+
+.mo-deploy-item.is-active .mo-deploy-desc {
+  color: rgba(255, 255, 255, 0.9);
+}
 .mo-deploy-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   opacity: 0.8;
+  flex-shrink: 0;
+}
+.mo-deploy-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
 }
 .mo-deploy-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.mo-deploy-desc {
+  font-size: 0.72rem;
+  color: var(--md-default-fg-color--light);
+  line-height: 1.2;
 }
 [data-md-color-scheme="slate"] .mo-deploy-item {
   border-color: #374151;
@@ -505,6 +617,41 @@
 }
 [data-md-color-scheme="slate"] .mo-deploy-item.is-active .mo-deploy-icon {
   filter: none;
+}
+
+/* Responsive deployment items */
+@media (max-width: 900px) {
+  .mo-deploy-item {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.6rem 0.4rem;
+    min-height: 60px;
+    justify-content: center;
+  }
+  
+  .mo-deploy-content {
+    text-align: center;
+  }
+  
+  .mo-deploy-name {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .mo-deploy-item {
+    padding: 0.5rem 0.3rem;
+    min-height: 50px;
+  }
+  
+  .mo-deploy-content {
+    display: none;
+  }
+  
+  .mo-deploy-icon {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 .mo-infobar {

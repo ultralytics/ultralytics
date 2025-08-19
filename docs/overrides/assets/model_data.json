@@ -1007,7 +1007,7 @@
         "t4": 3.46,
         "params": 12.7,
         "flops": 51.0,
-        "file_size": "",
+        "file_size": "24.7",
         "model_full_name": "YOLO-World-S"
       },
       "m": {
@@ -1017,7 +1017,7 @@
         "t4": 7.26,
         "params": 28.4,
         "flops": 110.5,
-        "file_size": "",
+        "file_size": "54.6",
         "model_full_name": "YOLO-World-M"
       },
       "l": {
@@ -1027,7 +1027,7 @@
         "t4": 11.0,
         "params": 46.8,
         "flops": 204.5,
-        "file_size": "",
+        "file_size": "89.9",
         "model_full_name": "YOLO-World-L"
       },
       "x": {
@@ -1037,7 +1037,7 @@
         "t4": 17.24,
         "params": 72.88,
         "flops": 309.3,
-        "file_size": "",
+        "file_size": "140",
         "model_full_name": "YOLO-World-X"
       }
     }

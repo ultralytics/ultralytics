@@ -200,7 +200,7 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(self, c1, c2, k=5, act=True):
+    def __init__(self, c1, c2, k=5, n=3, act=True):
         """
         Initialize the SPPF layer with given input/output channels and kernel size.
 
@@ -215,13 +215,14 @@ class SPPF(nn.Module):
         super().__init__()
         c_ = c1 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * 4, c2, 1, 1, act=act)
+        self.cv2 = Conv(c_ * (n + 1), c2, 1, 1, act=act)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.n = n
 
     def forward(self, x):
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
-        y.extend(self.m(y[-1]) for _ in range(3))
+        y.extend(self.m(y[-1]) for _ in range(getattr(self, "n", 3)))
         return self.cv2(torch.cat(y, 1)) + x
 
 

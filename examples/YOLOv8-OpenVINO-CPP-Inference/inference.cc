@@ -76,8 +76,11 @@ void Inference::Preprocessing(const cv::Mat &frame) {
 	scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
 	scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
 
-	float *input_data = (float *)resized_frame.data; // Get pointer to resized frame data
-	const ov::Tensor input_tensor = ov::Tensor(compiled_model_.input().get_element_type(), compiled_model_.input().get_shape(), input_data); // Create input tensor
+    ov::Tensor input_tensor = inference_request_.get_input_tensor();
+    uint8_t* input_data = input_tensor.data<uint8_t>();
+    size_t bytes_to_copy = resized_frame.total() * resized_frame.elemSize();
+    memcpy(input_data, resized_frame.data, bytes_to_copy);
+	
 	inference_request_.set_input_tensor(input_tensor); // Set input tensor for inference
 }
 

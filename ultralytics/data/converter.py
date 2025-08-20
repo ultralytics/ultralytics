@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
+import os
 import random
 import shutil
 from collections import defaultdict
@@ -759,7 +760,38 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
 
 
 def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
-    """Convert NDJSON format to Ultralytics YOLO11 dataset structure."""
+    """
+    Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO
+    format with separate directories for images and labels. It supports parallel processing for efficient
+    conversion of large datasets and can download images from URLs if they don't exist locally.
+
+    The NDJSON format consists of:
+    - First line: Dataset metadata with class names and configuration
+    - Subsequent lines: Individual image records with annotations and optional URLs
+
+    Args:
+        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
+        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset
+            will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
+
+    Returns:
+        (Path): Path to the generated data.yaml file that can be used for YOLO training.
+
+    Examples:
+        Convert a local NDJSON file:
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson")
+        >>> print(f"Dataset converted to: {yaml_path}")
+
+        Convert with custom output directory:
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", "./converted_datasets")
+
+        # Use with YOLO training
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")
+        >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.ndjson", epochs=100)
+    """
     from threading import local
     
     ndjson_path, output_path = Path(ndjson_path), Path(output_path or ndjson_path.parent)

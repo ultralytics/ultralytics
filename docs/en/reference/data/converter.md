@@ -49,8 +49,4 @@ keywords: Ultralytics, data conversion, YOLO models, COCO, DOTA, YOLO bbox2segme
 
 ## ::: ultralytics.data.converter.convert_to_multispectral
 
-<br><br><hr><br>
-
-## ::: ultralytics.data.converter.convert_ndjson_to_yolo
-
 <br><br>

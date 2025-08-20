@@ -792,8 +792,6 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         >>> model = YOLO("yolo11n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.ndjson", epochs=100)
     """
-    from threading import local
-
     ndjson_path = Path(check_file(ndjson_path))
     output_path = Path(output_path or DATASETS_DIR)
     with open(ndjson_path) as f:

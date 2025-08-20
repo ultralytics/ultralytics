@@ -87,7 +87,7 @@ download: |
       f"{url}VOCtest_06-Nov-2007.zip",  # 438MB, 4953 images
       f"{url}VOCtrainval_11-May-2012.zip",  # 1.95GB, 17126 images
   ]
-  download(urls, dir=dir / "images", curl=True, threads=3, exist_ok=True)  # download and unzip over existing (required)
+  download(urls, dir=dir / "images", threads=3, exist_ok=True)  # download and unzip over existing (required)
 
   # Convert
   path = dir / "images/VOCdevkit"

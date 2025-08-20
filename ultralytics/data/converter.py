@@ -840,6 +840,8 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
         # Download image if URL exists
         if http_url := record.get("url"):
             local_path = dataset_dir / "images" / split / original_name
+            if local_path.exists():
+                return True  # Image already exists, skip download
             # Get thread-local session for connection reuse
             if not hasattr(thread_local, "session"):
                 thread_local.session = requests.Session()

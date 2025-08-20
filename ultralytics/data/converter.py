@@ -10,8 +10,8 @@ from typing import List, Optional, Union
 
 import cv2
 import numpy as np
-from PIL import Image
 import requests
+from PIL import Image
 from tqdm import tqdm
 
 from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
@@ -861,7 +861,7 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
     with ThreadPoolExecutor(max_workers=32) as executor:
         results = list(tqdm(executor.map(process_record, tasks), total=len(tasks), 
                            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)"))
-        success_count = sum(results)
+        sum(results)
 
     # Write data.yaml
     yaml_path = dataset_dir / "data.yaml"

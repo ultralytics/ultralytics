@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
-import os
 import random
 import shutil
 from collections import defaultdict
@@ -16,6 +15,7 @@ import requests
 from tqdm import tqdm
 
 from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -793,8 +793,9 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.ndjson", epochs=100)
     """
     from threading import local
-    
-    ndjson_path, output_path = Path(ndjson_path), Path(output_path or ndjson_path.parent)
+
+    ndjson_path = Path(check_file(ndjson_path))
+    output_path = Path(output_path or ndjson_path.parent)
     LOGGER.info(f"Converting {ndjson_path} to YOLO dataset in {output_path}")
 
     with open(ndjson_path) as f:
@@ -821,11 +822,11 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
         """Process single image record with thread-local session."""
         record, dataset_dir = args
         split, original_name = record["split"], record["file"]
-        
+
         # Create label file
         label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
         annotations = record.get("annotations", {})
-        
+
         lines_to_write = []
         for key in ["boxes", "segments", "pose", "obb"]:
             if key in annotations:
@@ -833,12 +834,12 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
                 break
         if "classification" in annotations:
             lines_to_write = [str(cls) for cls in annotations["classification"]]
-        
+
         if lines_to_write:
             label_path.write_text("\n".join(lines_to_write) + "\n")
         else:
             label_path.write_text("")  # Create empty file
-        
+
         # Download image if URL exists
         if http_url := record.get("url"):
             local_path = dataset_dir / "images" / split / original_name

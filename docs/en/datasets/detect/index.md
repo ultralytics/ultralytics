@@ -30,7 +30,7 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 <p align="center"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie-2.avif" alt="Example dataset directory structure"></p>
 
-#### Usage with YOLO format
+#### Usage Example
 
 Here's how you can use YOLO format datasets to train your model:
 
@@ -106,7 +106,7 @@ An NDJSON dataset file contains:
 - **OBB:** `"annotation": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}`
 - **Classification:** `"annotation": {"classification": [class_id]}`
 
-#### Usage with NDJSON format
+#### Usage Example
 
 To use an NDJSON dataset with YOLO11, simply specify the path to the `.ndjson` file:
 
@@ -138,31 +138,6 @@ To use an NDJSON dataset with YOLO11, simply specify the path to the `.ndjson` f
 - **Cloud integration**: Supports remote image URLs for cloud-based training
 - **Extensible**: Easy to add custom metadata fields
 - **Version control**: Single file format works well with git and version control systems
-
-#### Usage
-
-Here's how you can use these formats to train your model:
-
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-
-        # Train the model
-        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
-        ```
-
-    === "CLI"
-
-        ```bash
-        # Start training from a pretrained *.pt model
-        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
-        ```
 
 ## Supported Datasets
 

@@ -232,7 +232,9 @@ def test_train_scratch():
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
-    model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson", epochs=1, imgsz=32)
+    model.train(
+        data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson", epochs=1, imgsz=32
+    )
 
 
 @pytest.mark.parametrize("scls", [False, True])

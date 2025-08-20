@@ -448,10 +448,10 @@ Model validation on a dataset is streamlined as follows:
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg-pf.pt")  # or select yoloe-11s/m-seg-pf.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
-        metrics = model.val(data="coco128-seg.yaml")
+        metrics = model.val(data="coco128-seg.yaml", single_cls=True)
         ```
 
 ### Export Usage

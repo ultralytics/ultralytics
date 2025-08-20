@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import asyncio
 import json
 import random
 import shutil
@@ -8,9 +9,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Optional, Union
 
+import aiohttp
 import cv2
 import numpy as np
-import requests
 from PIL import Image
 
 from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
@@ -758,7 +759,7 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
         LOGGER.info(f"Converted {output_path}")
 
 
-def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
     """
     Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
 
@@ -804,7 +805,7 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
 
     # Create directories and prepare YAML structure
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    data_yaml = dict(dataset_record)  # Copy all dataset fields
+    data_yaml = dict(dataset_record)
     data_yaml["names"] = {int(k): v for k, v in dataset_record.get("names", {}).items()}
 
     for split in sorted(splits):
@@ -812,61 +813,49 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
         (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
         data_yaml[split] = f"images/{split}"
 
-    # Thread-local storage for sessions (created only when function is called)
-    thread_local = local()
+    async def process_record(session, semaphore, record):
+        """Process single image record with async session."""
+        async with semaphore:
+            split, original_name = record["split"], record["file"]
+            label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+            annotations = record.get("annotation", {})
 
-    def process_record(args):
-        """Process single image record with thread-local session."""
-        record, dataset_dir = args
-        split, original_name = record["split"], record["file"]
+            lines_to_write = []
+            for key in annotations.keys():
+                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                break
+            if "classification" in annotations:
+                lines_to_write = [str(cls) for cls in annotations["classification"]]
 
-        # Create label file
-        label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-        annotations = record.get("annotation", {})
+            label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-        lines_to_write = []
-        for key in annotations.keys():
-            lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-            break
-        if "classification" in annotations:
-            lines_to_write = [str(cls) for cls in annotations["classification"]]
+            if http_url := record.get("url"):
+                local_path = dataset_dir / "images" / split / original_name
+                if local_path.exists():
+                    return True
+                try:
+                    async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                        response.raise_for_status()
+                        with open(local_path, "wb") as f:
+                            async for chunk in response.content.iter_chunked(8192):
+                                f.write(chunk)
+                    return True
+                except Exception as e:
+                    LOGGER.warning(f"Failed to download {http_url}: {e}")
+                    return False
+            return True
 
-        if lines_to_write:
-            label_path.write_text("\n".join(lines_to_write) + "\n")
-        else:
-            label_path.write_text("")  # Create empty file
-
-        # Download image if URL exists
-        if http_url := record.get("url"):
-            local_path = dataset_dir / "images" / split / original_name
-            if local_path.exists():
-                return True  # Image already exists, skip download
-            # Get thread-local session for connection reuse
-            if not hasattr(thread_local, "session"):
-                thread_local.session = requests.Session()
-            try:
-                response = thread_local.session.get(http_url, stream=True, timeout=30)
-                response.raise_for_status()
-                with open(local_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                return True
-            except Exception as e:
-                LOGGER.warning(f"Failed to download {http_url}: {e}")
-                return False
-        return True
-
-    # Process all images in parallel
-    tasks = [(record, dataset_dir) for record in image_records]
-    with ThreadPoolExecutor(max_workers=32) as executor:
-        results = list(
-            TQDM(
-                executor.map(process_record, tasks),
-                total=len(tasks),
-                desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
-            )
-        )
-        sum(results)
+    # Process all images with async downloads
+    semaphore = asyncio.Semaphore(64)  # Control concurrent downloads
+    async with aiohttp.ClientSession() as session:
+        tasks = [process_record(session, semaphore, record) for record in image_records]
+        results = []
+        for task in TQDM(
+            asyncio.as_completed(tasks), 
+            total=len(tasks), 
+            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)"
+        ):
+            results.append(await task)
 
     # Write data.yaml
     yaml_path = dataset_dir / "data.yaml"

@@ -2,20 +2,21 @@
 
 <!--Site announcement bar-->
 {% extends "base.html" %} {% block announce %}
-<div class="banner-wrapper">
-  <div
-    class="banner-content-wrapper"
-    onclick="window.open('https://docs.ultralytics.com/models/yolo11/')"
-  >
-    <p>Introducing</p>
+<a
+  class="banner-wrapper"
+  href="https://www.ultralytics.com/events/yolovision"
+  target="_blank"
+>
+  <div class="banner-content-wrapper">
+    <p>Register now for</p>
     <img
-      src="https://assets-global.website-files.com/646dd1f1a3703e451ba81ecc/67d044caa316aa50fba40a08_Ultralytics_YOLO11_Logotype_Reverse.svg"
+      src="https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6895ca9b3ece7244d9981ab9_yv25-logo.avif"
       loading="lazy"
       height="40"
-      alt="Ultralytics YOLO11"
+      alt="Ultralytics YOLO Vision"
     />
   </div>
-</div>
+</a>
 {% endblock %}
 
 <!--Page titles-->

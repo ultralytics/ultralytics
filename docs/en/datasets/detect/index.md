@@ -66,7 +66,7 @@ An NDJSON dataset file contains:
 1. **Dataset record** (first line): Contains dataset metadata including task type, class names, and general information
 2. **Image records** (subsequent lines): Contains individual image data including dimensions, annotations, and file paths
 
-!!! NDJSON Example
+!!! "NDJSON Example" example
 
     === "Dataset record (line 1)"
 

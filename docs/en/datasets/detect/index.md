@@ -72,12 +72,13 @@ An NDJSON dataset file contains:
 {
     "type": "dataset",
     "task": "detect",
-    "name": "Sample Dataset",
-    "description": "YOLO11 detect dataset",
-    "url": "https://app.ultralytics.com/datasets/sample",
+    "name": "Example",
+    "description": "COCO NDJSON example dataset",
+    "url": "https://app.ultralytics.com/user/datasets/example",
     "names": { "0": "person", "1": "bicycle", "2": "car" },
-    "version": "v1.0.0",
-    "created_at": "2024-01-01T00:00:00Z"
+    "version": 0,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z"
 }
 ```
 

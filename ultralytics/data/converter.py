@@ -789,7 +789,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         # Use with YOLO training
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.ndjson", epochs=100)
+        >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
     check_requirements("aiohttp")
     import aiohttp

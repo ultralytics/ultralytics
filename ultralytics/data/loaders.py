@@ -355,9 +355,10 @@ class LoadImagesAndVideos:
             channels (int): Number of image channels (1 for grayscale, 3 for RGB).
         """
         parent = None
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
-            parent = Path(path).parent
-            path = Path(path).read_text().splitlines()  # list of sources
+        if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
+            parent, content = Path(path).parent, Path(path).read_text()
+            path = content.splitlines() if Path(path).suffix == ".txt" else content.split(",")  # list of sources
+            path = [p.strip() for p in path]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912

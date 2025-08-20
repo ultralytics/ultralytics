@@ -784,7 +784,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         >>> print(f"Dataset converted to: {yaml_path}")
 
         Convert with custom output directory:
-        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", "./converted_datasets")
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
 
         # Use with YOLO training
         >>> from ultralytics import YOLO

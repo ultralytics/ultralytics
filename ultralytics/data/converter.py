@@ -796,8 +796,6 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
 
     ndjson_path = Path(check_file(ndjson_path))
     output_path = Path(output_path or DATASETS_DIR)
-    LOGGER.info(f"Converting {ndjson_path} to YOLO dataset in {output_path}")
-
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
 
@@ -861,12 +859,13 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
     # Process all images in parallel
     tasks = [(record, dataset_dir) for record in image_records]
     with ThreadPoolExecutor(max_workers=32) as executor:
-        results = list(tqdm(executor.map(process_record, tasks), total=len(tasks), desc="Processing images"))
+        results = list(tqdm(executor.map(process_record, tasks), total=len(tasks), 
+                           desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)"))
         success_count = sum(results)
 
     # Write data.yaml
     yaml_path = dataset_dir / "data.yaml"
     YAML.save(yaml_path, data_yaml)
 
-    LOGGER.info(f"Converted {success_count}/{len(image_records)} images to YOLO dataset: {dataset_dir}")
+
     return yaml_path

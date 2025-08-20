@@ -111,6 +111,7 @@ All [Ultralytics YOLO11 models](../models/index.md) are designed to support expo
 | ---------- | ---------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`            | `'torchscript'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
 | `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
+| `dynamic`  | `bool`           | `False`         | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                 |
 | `optimize` | `bool`           | `False`         | Applies optimization for mobile devices, potentially reducing model size and improving performance.                                     |
 | `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |

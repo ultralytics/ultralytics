@@ -55,7 +55,7 @@ Here's how you can use YOLO format datasets to train your model:
         yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
-### NDJSON format
+### Ultralytics NDJSON format
 
 The NDJSON (Newline Delimited JSON) format provides an alternative way to define datasets for Ultralytics YOLO11 models. This format stores dataset metadata and annotations in a single file where each line contains a separate JSON object.
 

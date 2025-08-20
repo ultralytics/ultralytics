@@ -247,7 +247,7 @@ To start training a YOLO11 model, ensure your dataset is formatted correctly and
         yolo detect train data=path/to/your_dataset.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
 
-Refer to the [Usage](#usage) section for more details on utilizing different modes, including CLI commands.
+Refer to the [Usage](#usage-example) section for more details on utilizing different modes, including CLI commands.
 
 ### Where can I find practical examples of using Ultralytics YOLO for object detection?
 

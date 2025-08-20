@@ -501,7 +501,9 @@ def download(
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
+    urls = [url] if isinstance(url, (str, Path)) else url
     if threads > 1:
+        LOGGER.info(f"Downloading {len(urls)} file(s) with {threads} threads to {dir}...")
         with ThreadPool(threads) as pool:
             pool.map(
                 lambda x: safe_download(
@@ -512,12 +514,12 @@ def download(
                     curl=curl,
                     retry=retry,
                     exist_ok=exist_ok,
-                    progress=threads <= 1,
+                    progress=True,
                 ),
-                zip(url, repeat(dir)),
+                zip(urls, repeat(dir)),
             )
             pool.close()
             pool.join()
     else:
-        for u in [url] if isinstance(url, (str, Path)) else url:
+        for u in urls:
             safe_download(url=u, dir=dir, unzip=unzip, delete=delete, curl=curl, retry=retry, exist_ok=exist_ok)

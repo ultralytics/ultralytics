@@ -181,7 +181,7 @@ class YOLOEDetectValidator(DetectionValidator):
         else:
             if refer_data is not None:
                 assert load_vp, "Refer data is only used for visual prompt validation."
-            self.device = select_device(self.args.device)
+            self.device = select_device(self.args.device, verbose=False)
 
             if isinstance(model, (str, Path)):
                 from ultralytics.nn.tasks import attempt_load_weights

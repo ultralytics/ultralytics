@@ -458,32 +458,77 @@ class Exporter:
         model_type = None
 
         # Check model class name first
-        if hasattr(self.model, "__class__"):
+        if not model_type and hasattr(self.model, "__class__"):
             model_class_name = self.model.__class__.__name__
             if "RTDETR" in model_class_name:
-                model_type = "rtdetr"
-            # Check if the last layer is RTDETRDecoder
-            elif hasattr(self.model, "model") and len(self.model.model) > 0:
-                last_layer = self.model.model[-1]
-                if hasattr(last_layer, "__class__") and "RTDETR" in last_layer.__class__.__name__:
-                    model_type = "rtdetr"
+                model_type = "RTDETR"
+            elif "World" in model_class_name:
+                model_type = "YOLOWorld"
+            elif "YOLOE" in model_class_name:
+                model_type = "YOLOE"
 
-        # If not RTDETR, check yaml file
+        # Check for YOLO11 architecture by looking for C2PSA module
+        if not model_type and "C2PSA" in str(self.model):
+            model_type = "YOLO11"
+
+        # Check training args from checkpoint metadata if available
+        if not model_type and hasattr(self.model, "ckpt") and self.model.ckpt is not None:
+            train_args = self.model.ckpt.get("train_args", {})
+            if train_args and "model" in train_args:
+                train_model_path = Path(str(train_args["model"])).stem.lower()
+                if "rtdetr" in train_model_path:
+                    model_type = "RTDETR"
+                elif "yolo11" in train_model_path or "11" in train_model_path:
+                    model_type = "YOLO11"
+                elif "yolov10" in train_model_path or "v10" in train_model_path:
+                    model_type = "YOLOv10"
+                elif "yolov8" in train_model_path or "v8" in train_model_path:
+                    model_type = "YOLOv8"
+                elif "yolov5" in train_model_path or "v5" in train_model_path or "yolov6" in train_model_path or "v6" in train_model_path or "yolov7" in train_model_path or "v7" in train_model_path:
+                    model_type = "YOLOv5"
+                elif "world" in train_model_path:
+                    model_type = "YOLOWorld"
+                elif "yoloe" in train_model_path:
+                    model_type = "YOLOE"
+
+        # Check current model yaml file path if not detected yet
+        yaml_stem = ""
         if not model_type:
-            yaml_stem = ""
-
             # Try to get yaml file name from model
             if self.model.yaml.get("yaml_file"):
                 yaml_stem = Path(self.model.yaml.get("yaml_file")).stem
             elif hasattr(self.model, "args") and isinstance(self.model.args, dict) and "model" in self.model.args:
                 yaml_stem = Path(self.model.args["model"]).stem
 
-            if yaml_stem and "rtdetr" in yaml_stem.lower():
-                model_type = "rtdetr"
+            if yaml_stem:
+                yaml_lower = yaml_stem.lower()
+                if "rtdetr" in yaml_lower:
+                    model_type = "RTDETR"
+                elif "yolo11" in yaml_lower or "11" in yaml_lower:
+                    model_type = "YOLO11"
+                elif "yolov10" in yaml_lower or "v10" in yaml_lower:
+                    model_type = "YOLOv10"
+                elif "yolov8" in yaml_lower or "v8" in yaml_lower:
+                    model_type = "YOLOv8"
+                elif "yolov5" in yaml_lower or "v5" in yaml_lower:
+                    model_type = "YOLOv5"
+                elif "world" in yaml_lower:
+                    model_type = "YOLOWorld"
+                elif "yoloe" in yaml_lower:
+                    model_type = "YOLOE"
 
-        # Default to yolo if not rtdetr
+        # Architecture analysis for generic configs - simplified to YOLO vs RTDETR
+        if not model_type or (yaml_stem and yaml_stem.lower() in {"custom", "model", "config"}):
+            # Check for RTDETR first
+            if "RTDETRDecoder" in str(self.model):
+                model_type = "RTDETR"
+            else:
+                # Default to YOLO for all other cases
+                model_type = "YOLO"
+
+        # Fallback default
         if not model_type:
-            model_type = "yolo"
+            model_type = "YOLO"
         data = model.args["data"] if hasattr(model, "args") and isinstance(model.args, dict) else ""
         description = f"Ultralytics {self.pretty_name} model {f'trained on {data}' if data else ''}"
         self.metadata = {
@@ -689,7 +734,7 @@ class Exporter:
 
         def serialize(ov_model, file):
             """Set RT info, serialize, and save metadata YAML."""
-            ov_model.set_rt_info("YOLO", ["model_info", "model_type"])
+            ov_model.set_rt_info(self.metadata.get("architecture", "YOLO"), ["model_info", "model_type"])
             ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
             ov_model.set_rt_info(114, ["model_info", "pad_value"])
             ov_model.set_rt_info([255.0], ["model_info", "scale_values"])

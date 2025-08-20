@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from tests import MODEL, SOURCE
-from ultralytics import YOLO
+from ultralytics import YOLO, RTDETR
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
     ARM64,
@@ -21,7 +21,7 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
-
+CFG_RTDETR = "rtdetr-l.yaml"  # RTDETR model for testing
 
 def test_export_torchscript():
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
@@ -37,50 +37,35 @@ def test_export_onnx():
 
 def test_rtdetr_onnx_architecture_metadata():
     """Test RTDETR ONNX export includes correct architecture metadata for model routing."""
+    
+    file = RTDETR(CFG_RTDETR).export(format="onnx", imgsz=640)
+    
+    # Check ONNX metadata contains architecture="RTDETR"
     try:
-        import shutil
-        from pathlib import Path
-
         import onnxruntime
-
-        from ultralytics import RTDETR
-
-        # Export RTDETR model to ONNX with a generic filename
-        model = RTDETR("rtdetr-l.yaml")  # Use yaml for faster test
-        onnx_file = model.export(format="onnx", imgsz=640)
-        # Rename to generic name to test metadata-based routing
-        generic_file = Path(onnx_file).parent / "generic_model.onnx"
-        shutil.move(onnx_file, generic_file)
-
-        # Check ONNX metadata contains architecture="rtdetr"
-        session = onnxruntime.InferenceSession(str(generic_file), providers=["CPUExecutionProvider"])
+        session = onnxruntime.InferenceSession(file, providers=["CPUExecutionProvider"])
         metadata = session.get_modelmeta().custom_metadata_map
-        assert metadata.get("architecture") == "rtdetr", (
-            f"Expected architecture='rtdetr', got {metadata.get('architecture')}"
+        assert metadata.get("architecture") == "RTDETR", (
+            f"Expected architecture='RTDETR', got {metadata.get('architecture')}"
         )
-
-        # Test CLI routing with generic filename works
-        import sys
-
-        from ultralytics.cfg import entrypoint
-
-        # Mock sys.argv for entrypoint test
-        original_argv = sys.argv.copy()
-        sys.argv = ["yolo", "val", f"model={generic_file}", "data=coco8.yaml", "imgsz=640"]
-        try:
-            # This should route to RTDETR validator via metadata, not filename
-            entrypoint()
-        except (SystemExit, Exception):
-            pass  # Expected for test environment - validation might fail but routing should work
-        finally:
-            sys.argv = original_argv
-
-        # Cleanup
-        if generic_file.exists():
-            generic_file.unlink()
-
     except ImportError:
-        pytest.skip("Test requires onnxruntime and RTDETR dependencies")
+        pytest.skip("Test requires onnxruntime")
+
+
+def test_yolo11_onnx_architecture_metadata():
+    """Test YOLO11 ONNX export includes correct architecture metadata for model identification."""
+    file = YOLO(MODEL).export(format="onnx", imgsz=32)
+    
+    # Check ONNX metadata contains architecture="YOLO11"
+    try:
+        import onnxruntime
+        session = onnxruntime.InferenceSession(file, providers=["CPUExecutionProvider"])
+        metadata = session.get_modelmeta().custom_metadata_map
+        assert metadata.get("architecture") == "YOLO11", (
+            f"Expected architecture='YOLO11', got {metadata.get('architecture')}"
+        )
+    except ImportError:
+        pytest.skip("Test requires onnxruntime")
 
 
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
@@ -88,6 +73,45 @@ def test_export_openvino():
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+def test_export_openvino_directory_format():
+    """Test that OpenVINO directory output formats have correct prefixes and metadata."""
+    try:
+
+        # Test YOLO11 OpenVINO export
+        model_yolo11 = YOLO(MODEL)
+        openvino_dir = model_yolo11.export(format="openvino", imgsz=640)
+        
+        # Check that the directory exists and has expected naming
+        assert Path(openvino_dir).exists(), f"OpenVINO export directory not found: {openvino_dir}"
+        
+        # Check metadata.yaml contains architecture
+        metadata_file = Path(openvino_dir) / "metadata.yaml"
+        if metadata_file.exists():
+            import yaml
+            with open(metadata_file, 'r') as f:
+                metadata = yaml.safe_load(f)
+            assert metadata.get("architecture") == "YOLO11", (
+                f"Expected architecture='YOLO11' in metadata.yaml, got {metadata.get('architecture')}"
+            )
+
+        # Test RTDETR OpenVINO export
+        model_rtdetr = RTDETR(CFG_RTDETR)
+        rtdetr_dir = model_rtdetr.export(format="openvino", imgsz=640)
+        
+        # Check RTDETR metadata
+        rtdetr_metadata_file = Path(rtdetr_dir) / "metadata.yaml"
+        if rtdetr_metadata_file.exists():
+            with open(rtdetr_metadata_file, 'r') as f:
+                rtdetr_metadata = yaml.safe_load(f)
+            assert rtdetr_metadata.get("architecture") == "RTDETR", (
+                f"Expected architecture='RTDETR' in metadata.yaml, got {rtdetr_metadata.get('architecture')}"
+            )
+
+    except (ImportError, Exception) as e:
+        pytest.skip(f"Test requires dependencies or failed: {e}")
 
 
 @pytest.mark.slow

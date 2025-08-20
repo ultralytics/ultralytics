@@ -858,7 +858,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
             pbar.update(1)
             return result
 
-        results = await asyncio.gather(*[tracked_process(record) for record in image_records])
+        await asyncio.gather(*[tracked_process(record) for record in image_records])
         pbar.close()
 
     # Write data.yaml

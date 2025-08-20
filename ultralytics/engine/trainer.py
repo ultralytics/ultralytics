@@ -701,9 +701,9 @@ class BaseTrainer:
 
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
-        self.scaler.unscale_(self.optimizer)  # unscale gradients
-        self.scaler.unscale_(self.optimizer2)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
+        # self.scaler.unscale_(self.optimizer)  # unscale gradients
+        # self.scaler.unscale_(self.optimizer2)  # unscale gradients
+        # torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
         self.scaler.step(self.optimizer2)
         self.scaler.update()
@@ -914,7 +914,7 @@ class BaseTrainer:
                         g[3].append(param)
                     elif int(module_name.split(".")[1]) < 23:
                         g[3].append(param)
-                if "bias" in fullname:  # bias (no decay)
+                elif "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
                     # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
@@ -939,7 +939,8 @@ class BaseTrainer:
             )
         optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
 
-        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+        if len(g[0]):
+            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

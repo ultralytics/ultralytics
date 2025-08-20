@@ -9,13 +9,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Optional, Union
 
-import aiohttp
 import cv2
 import numpy as np
 from PIL import Image
 
 from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
-from ultralytics.utils.checks import check_file
+from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -792,6 +791,9 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         >>> model = YOLO("yolo11n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.ndjson", epochs=100)
     """
+    check_requirements("aiohttp")
+    import aiohttp
+
     ndjson_path = Path(check_file(ndjson_path))
     output_path = Path(output_path or DATASETS_DIR)
     with open(ndjson_path) as f:
@@ -844,16 +846,20 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
             return True
 
     # Process all images with async downloads
-    semaphore = asyncio.Semaphore(64)  # Control concurrent downloads
+    semaphore = asyncio.Semaphore(64)
     async with aiohttp.ClientSession() as session:
-        tasks = [process_record(session, semaphore, record) for record in image_records]
-        results = []
-        for task in TQDM(
-            asyncio.as_completed(tasks),
-            total=len(tasks),
+        pbar = TQDM(
+            total=len(image_records),
             desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
-        ):
-            results.append(await task)
+        )
+
+        async def tracked_process(record):
+            result = await process_record(session, semaphore, record)
+            pbar.update(1)
+            return result
+
+        results = await asyncio.gather(*[tracked_process(record) for record in image_records])
+        pbar.close()
 
     # Write data.yaml
     yaml_path = dataset_dir / "data.yaml"

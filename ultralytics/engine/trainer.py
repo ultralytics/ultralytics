@@ -598,6 +598,15 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
+            elif self.args.data.rsplit(".", 1)[-1] == "ndjson":
+                # Convert NDJSON to YOLO format
+                import asyncio
+
+                from ultralytics.data.converter import convert_ndjson_to_yolo
+
+                yaml_path = asyncio.run(convert_ndjson_to_yolo(self.args.data))
+                self.args.data = str(yaml_path)
+                data = check_det_dataset(self.args.data)
             elif self.args.data.rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",

@@ -806,7 +806,7 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
     # Create directories and prepare YAML structure
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = dict(dataset_record)  # Copy all dataset fields
-    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("names", {}).items()}
 
     for split in sorted(splits):
         (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
@@ -823,13 +823,12 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
 
         # Create label file
         label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-        annotations = record.get("annotations", {})
+        annotations = record.get("annotation", {})
 
         lines_to_write = []
-        for key in ["boxes", "segments", "pose", "obb"]:
-            if key in annotations:
-                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
-                break
+        for key in annotations.keys():
+            lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+            break
         if "classification" in annotations:
             lines_to_write = [str(cls) for cls in annotations["classification"]]
 

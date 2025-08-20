@@ -89,7 +89,7 @@ An NDJSON dataset file contains:
 {
     "type": "image",
     "file": "image1.jpg",
-    "url": "https://storage.googleapis.com/bucket/image1.jpg",
+    "url": "https://www.url.com/path/to/image1.jpg",
     "width": 640,
     "height": 480,
     "split": "train",

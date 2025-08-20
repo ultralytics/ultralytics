@@ -795,7 +795,7 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
     from threading import local
 
     ndjson_path = Path(check_file(ndjson_path))
-    output_path = Path(output_path or ndjson_path.parent)
+    output_path = Path(output_path or DATASETS_DIR)
     LOGGER.info(f"Converting {ndjson_path} to YOLO dataset in {output_path}")
 
     with open(ndjson_path) as f:

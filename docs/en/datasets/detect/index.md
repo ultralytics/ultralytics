@@ -68,7 +68,7 @@ An NDJSON dataset file contains:
 
 !!! NDJSON Example
 
-    === "Dataset record"
+    === "Dataset record (line 1)"
 
         ```json
         {
@@ -85,7 +85,7 @@ An NDJSON dataset file contains:
         }
         ```
 
-    === "Image record"
+    === "Image record (lines 2+)"
 
         ```json
         {

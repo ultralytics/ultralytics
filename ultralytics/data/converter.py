@@ -10,9 +10,12 @@ from typing import List, Optional, Union
 
 import cv2
 import numpy as np
+import requests
 from PIL import Image
+from tqdm import tqdm
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -754,3 +757,119 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
         multispectral = f(target_wavelengths)
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         LOGGER.info(f"Converted {output_path}")
+
+
+def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
+    """
+    Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO
+    format with separate directories for images and labels. It supports parallel processing for efficient
+    conversion of large datasets and can download images from URLs if they don't exist locally.
+
+    The NDJSON format consists of:
+    - First line: Dataset metadata with class names and configuration
+    - Subsequent lines: Individual image records with annotations and optional URLs
+
+    Args:
+        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
+        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset
+            will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
+
+    Returns:
+        (Path): Path to the generated data.yaml file that can be used for YOLO training.
+
+    Examples:
+        Convert a local NDJSON file:
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson")
+        >>> print(f"Dataset converted to: {yaml_path}")
+
+        Convert with custom output directory:
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", "./converted_datasets")
+
+        # Use with YOLO training
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")
+        >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8.ndjson", epochs=100)
+    """
+    from threading import local
+
+    ndjson_path = Path(check_file(ndjson_path))
+    output_path = Path(output_path or DATASETS_DIR)
+    with open(ndjson_path) as f:
+        lines = [json.loads(line.strip()) for line in f if line.strip()]
+
+    dataset_record, image_records = lines[0], lines[1:]
+    dataset_dir = output_path / ndjson_path.stem
+    splits = {record["split"] for record in image_records}
+
+    # Create directories and prepare YAML structure
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    data_yaml = dict(dataset_record)  # Copy all dataset fields
+    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+
+    for split in sorted(splits):
+        (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
+        (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+        data_yaml[split] = f"images/{split}"
+
+    # Thread-local storage for sessions (created only when function is called)
+    thread_local = local()
+
+    def process_record(args):
+        """Process single image record with thread-local session."""
+        record, dataset_dir = args
+        split, original_name = record["split"], record["file"]
+
+        # Create label file
+        label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+        annotations = record.get("annotations", {})
+
+        lines_to_write = []
+        for key in ["boxes", "segments", "pose", "obb"]:
+            if key in annotations:
+                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                break
+        if "classification" in annotations:
+            lines_to_write = [str(cls) for cls in annotations["classification"]]
+
+        if lines_to_write:
+            label_path.write_text("\n".join(lines_to_write) + "\n")
+        else:
+            label_path.write_text("")  # Create empty file
+
+        # Download image if URL exists
+        if http_url := record.get("url"):
+            local_path = dataset_dir / "images" / split / original_name
+            # Get thread-local session for connection reuse
+            if not hasattr(thread_local, "session"):
+                thread_local.session = requests.Session()
+            try:
+                response = thread_local.session.get(http_url, stream=True, timeout=30)
+                response.raise_for_status()
+                with open(local_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                return True
+            except Exception as e:
+                LOGGER.warning(f"Failed to download {http_url}: {e}")
+                return False
+        return True
+
+    # Process all images in parallel
+    tasks = [(record, dataset_dir) for record in image_records]
+    with ThreadPoolExecutor(max_workers=32) as executor:
+        results = list(
+            tqdm(
+                executor.map(process_record, tasks),
+                total=len(tasks),
+                desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
+            )
+        )
+        sum(results)
+
+    # Write data.yaml
+    yaml_path = dataset_dir / "data.yaml"
+    YAML.save(yaml_path, data_yaml)
+
+    return yaml_path

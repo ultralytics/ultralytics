@@ -849,9 +849,9 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         tasks = [process_record(session, semaphore, record) for record in image_records]
         results = []
         for task in TQDM(
-            asyncio.as_completed(tasks), 
-            total=len(tasks), 
-            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)"
+            asyncio.as_completed(tasks),
+            total=len(tasks),
+            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
         ):
             results.append(await task)
 

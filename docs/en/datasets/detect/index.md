@@ -60,20 +60,46 @@ Here's how you can use YOLO format datasets to train your model:
 The NDJSON (Newline Delimited JSON) format provides an alternative way to define datasets for Ultralytics YOLO11 models. This format stores dataset metadata and annotations in a single file where each line contains a separate JSON object.
 
 An NDJSON dataset file contains:
+
 1. **Dataset record** (first line): Contains dataset metadata including task type, class names, and general information
 2. **Image records** (subsequent lines): Contains individual image data including dimensions, annotations, and file paths
 
 **Example Dataset Record:**
+
 ```json
-{"type": "dataset", "task": "detect", "name": "Sample Dataset", "description": "YOLO11 detect dataset", "url": "https://app.ultralytics.com/datasets/sample", "names": {"0": "person", "1": "bicycle", "2": "car"}, "version": "v1.0.0", "created_at": "2024-01-01T00:00:00Z"}
+{
+    "type": "dataset",
+    "task": "detect",
+    "name": "Sample Dataset",
+    "description": "YOLO11 detect dataset",
+    "url": "https://app.ultralytics.com/datasets/sample",
+    "names": { "0": "person", "1": "bicycle", "2": "car" },
+    "version": "v1.0.0",
+    "created_at": "2024-01-01T00:00:00Z"
+}
 ```
 
 **Example Image Record:**
+
 ```json
-{"type": "image", "file": "image1.jpg", "url": "https://storage.googleapis.com/bucket/image1.jpg", "width": 640, "height": 480, "split": "train", "annotation": {"boxes": [[0, 0.5, 0.5, 0.3, 0.4], [1, 0.7, 0.3, 0.2, 0.3]]}}
+{
+    "type": "image",
+    "file": "image1.jpg",
+    "url": "https://storage.googleapis.com/bucket/image1.jpg",
+    "width": 640,
+    "height": 480,
+    "split": "train",
+    "annotation": {
+        "boxes": [
+            [0, 0.5, 0.5, 0.3, 0.4],
+            [1, 0.7, 0.3, 0.2, 0.3]
+        ]
+    }
+}
 ```
 
 **Annotation formats by task:**
+
 - **Detection:** `"annotation": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
 - **Segmentation:** `"annotation": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
 - **Pose:** `"annotation": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
@@ -104,6 +130,7 @@ To use an NDJSON dataset with YOLO11, simply specify the path to the `.ndjson` f
         # Start training with NDJSON dataset
         yolo detect train data=path/to/dataset.ndjson model=yolo11n.pt epochs=100 imgsz=640
         ```
+
 #### Advantages of NDJSON format
 
 - **Single file**: All dataset information contained in one file

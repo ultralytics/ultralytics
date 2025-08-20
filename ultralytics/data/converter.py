@@ -818,7 +818,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         async with semaphore:
             split, original_name = record["split"], record["file"]
             label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-            annotations = record.get("annotation", {})
+            annotations = record.get("annotations", {})
 
             lines_to_write = []
             for key in annotations.keys():

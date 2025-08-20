@@ -760,63 +760,80 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
 
 def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
     """Convert NDJSON format to Ultralytics YOLO11 dataset structure."""
+    from threading import local
+    
     ndjson_path, output_path = Path(ndjson_path), Path(output_path or ndjson_path.parent)
     LOGGER.info(f"Converting {ndjson_path} to YOLO dataset in {output_path}")
 
-    # Parse NDJSON file
     with open(ndjson_path) as f:
         lines = [json.loads(line.strip()) for line in f if line.strip()]
+
     dataset_record, image_records = lines[0], lines[1:]
     dataset_dir = output_path / ndjson_path.stem
     splits = {record["split"] for record in image_records}
 
-    # Create directories and YAML structure
+    # Create directories and prepare YAML structure
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    data_yaml = {"names": {int(k): v for k, v in dataset_record.get("class_names", {}).items()}, "nc": len(dataset_record.get("class_names", {}))}
+    data_yaml = {"names": {int(k): v for k, v in dataset_record.get("class_names", {}).items()}}
+    data_yaml["nc"] = len(data_yaml["names"])
+
     for split in sorted(splits):
         (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
         (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
         data_yaml[split] = f"images/{split}"
 
-    def process_record(record):
-        """Process single image record - create label and download image if needed."""
+    # Thread-local storage for sessions (created only when function is called)
+    thread_local = local()
+
+    def process_record(args):
+        """Process single image record with thread-local session."""
+        record, dataset_dir = args
         split, original_name = record["split"], record["file"]
+        
+        # Create label file
         label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
         annotations = record.get("annotations", {})
         
-        # Create label file
-        lines = []
+        lines_to_write = []
         for key in ["boxes", "segments", "pose", "obb"]:
             if key in annotations:
-                lines = [" ".join(map(str, item)) for item in annotations[key]]
+                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
                 break
         if "classification" in annotations:
-            lines = [str(cls) for cls in annotations["classification"]]
-        label_path.write_text("\n".join(lines) + ("\n" if lines else ""))
+            lines_to_write = [str(cls) for cls in annotations["classification"]]
+        
+        if lines_to_write:
+            label_path.write_text("\n".join(lines_to_write) + "\n")
+        else:
+            label_path.write_text("")  # Create empty file
         
         # Download image if URL exists
-        if url := record.get("url"):
+        if http_url := record.get("url"):
             local_path = dataset_dir / "images" / split / original_name
+            # Get thread-local session for connection reuse
+            if not hasattr(thread_local, "session"):
+                thread_local.session = requests.Session()
             try:
-                response = requests.get(url, stream=True, timeout=30)
+                response = thread_local.session.get(http_url, stream=True, timeout=30)
                 response.raise_for_status()
                 with open(local_path, "wb") as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
                 return True
             except Exception as e:
-                LOGGER.warning(f"Failed to download {url}: {e}")
+                LOGGER.warning(f"Failed to download {http_url}: {e}")
                 return False
         return True
 
     # Process all images in parallel
+    tasks = [(record, dataset_dir) for record in image_records]
     with ThreadPoolExecutor(max_workers=16) as executor:
-        results = list(tqdm(executor.map(process_record, image_records), total=len(image_records), desc="Processing images"))
+        results = list(tqdm(executor.map(process_record, tasks), total=len(tasks), desc="Processing images"))
         success_count = sum(results)
 
-    # Write data.yaml and return path
+    # Write data.yaml
     yaml_path = dataset_dir / "data.yaml"
     YAML.save(yaml_path, data_yaml)
-    
+
     LOGGER.info(f"Converted {success_count}/{len(image_records)} images to YOLO dataset: {dataset_dir}")
     return yaml_path

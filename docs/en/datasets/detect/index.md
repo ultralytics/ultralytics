@@ -14,9 +14,11 @@ Training a robust and accurate [object detection](https://www.ultralytics.com/gl
 
 The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or `*.txt` files containing image paths, and a dictionary of class names. Here is an example:
 
-```yaml
---8<-- "ultralytics/cfg/datasets/coco8.yaml"
-```
+!!! example "ultralytics/cfg/datasets/coco8.yaml"
+
+    ```yaml
+    --8<-- "ultralytics/cfg/datasets/coco8.yaml"
+    ```
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 

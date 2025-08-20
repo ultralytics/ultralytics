@@ -3,7 +3,7 @@
 import copy
 import math
 from functools import partial
-from typing import Any, Optional, Tuple, Type, Union
+from typing import Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
@@ -856,8 +856,11 @@ class PositionEmbeddingRandom(nn.Module):
     def forward(self, size: Tuple[int, int]) -> torch.Tensor:
         """Generate positional encoding for a grid using random spatial frequencies."""
         h, w = size
-        device: Any = self.positional_encoding_gaussian_matrix.device
-        grid = torch.ones((h, w), device=device, dtype=torch.float32)
+        grid = torch.ones(
+            (h, w),
+            device=self.positional_encoding_gaussian_matrix.device,
+            dtype=self.positional_encoding_gaussian_matrix.dtype,
+        )
         y_embed = grid.cumsum(dim=0) - 0.5
         x_embed = grid.cumsum(dim=1) - 0.5
         y_embed = y_embed / h
@@ -871,7 +874,7 @@ class PositionEmbeddingRandom(nn.Module):
         coords = coords_input.clone()
         coords[:, :, 0] = coords[:, :, 0] / image_size[1]
         coords[:, :, 1] = coords[:, :, 1] / image_size[0]
-        return self._pe_encoding(coords.to(torch.float))  # B x N x C
+        return self._pe_encoding(coords)  # B x N x C
 
 
 class Block(nn.Module):

@@ -24,7 +24,7 @@ jobs:
       current_tag: ${{ steps.check_pypi.outputs.current_tag }}
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
@@ -63,7 +63,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
@@ -86,11 +86,37 @@ jobs:
     permissions:
       id-token: write # for PyPI trusted publishing
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  sbom:
+    needs: [check, build, publish]
+    if: needs.check.outputs.increment == 'True'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: astral-sh/setup-uv@v6
+      - run: |
+          uv venv sbom-env
+          uv pip install -e .
+        env:
+          VIRTUAL_ENV: sbom-env
+      - uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+          path: sbom-env
+      - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   notify:
     needs: [check, publish]
@@ -99,14 +125,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Extract PR Details
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_JSON=$(gh pr list --search "${GITHUB_SHA}" --state merged --json number,title --jq '.[0]')
           PR_NUMBER=$(echo "${PR_JSON}" | jq -r '.number')
-          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title')
+          PR_TITLE=$(echo "${PR_JSON}" | jq -r '.title' | sed 's/"/\\"/g')
           echo "PR_NUMBER=${PR_NUMBER}" >> "${GITHUB_ENV}"
           echo "PR_TITLE=${PR_TITLE}" >> "${GITHUB_ENV}"
       - name: Notify Success

@@ -807,8 +807,8 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
 
     # Create directories and prepare YAML structure
     dataset_dir.mkdir(parents=True, exist_ok=True)
-    data_yaml = {"names": {int(k): v for k, v in dataset_record.get("class_names", {}).items()}}
-    data_yaml["nc"] = len(data_yaml["names"])
+    data_yaml = dict(dataset_record)  # Copy all dataset fields
+    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
 
     for split in sorted(splits):
         (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
@@ -860,7 +860,7 @@ def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[
 
     # Process all images in parallel
     tasks = [(record, dataset_dir) for record in image_records]
-    with ThreadPoolExecutor(max_workers=16) as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
         results = list(tqdm(executor.map(process_record, tasks), total=len(tasks), desc="Processing images"))
         success_count = sum(results)
 

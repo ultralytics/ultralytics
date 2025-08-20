@@ -109,7 +109,7 @@ An NDJSON dataset file contains:
 - **Detection:** `"annotations": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
 - **Segmentation:** `"annotations": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
 - **Pose:** `"annotations": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
-- **OBB:** `"annotations": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}`
+- **OBB:** `"annotations": {"obb": [[class_id, x_center, y_center, width, height, angle], ...]}`
 - **Classification:** `"annotations": {"classification": [class_id]}`
 
 #### Usage Example

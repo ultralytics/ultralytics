@@ -132,9 +132,9 @@ class Predictor(BasePredictor):
             im = torch.from_numpy(im)
 
         im = im.to(self.device)
-        im = im.half() if self.model.fp16 else im.float()
         if not_tensor:
             im = (im - self.mean) / self.std
+        im = im.half() if self.model.fp16 else im.float()
         return im
 
     def pre_transform(self, im):
@@ -251,7 +251,6 @@ class Predictor(BasePredictor):
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
-            img_idx (int): Index of the image in the batch to process.
 
         Returns:
             pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
@@ -298,7 +297,7 @@ class Predictor(BasePredictor):
         r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         # Transform input prompts
         if points is not None:
-            points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            points = torch.as_tensor(points, dtype=self.torch_dtype, device=self.device)
             points = points[None] if points.ndim == 1 else points
             # Assuming labels are all positive if users don't pass labels.
             if labels is None:
@@ -312,11 +311,11 @@ class Predictor(BasePredictor):
                 # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
                 points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
-            bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
+            bboxes = torch.as_tensor(bboxes, dtype=self.torch_dtype, device=self.device)
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
-            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device).unsqueeze(1)
+            masks = torch.as_tensor(masks, dtype=self.torch_dtype, device=self.device).unsqueeze(1)
         return bboxes, points, labels, masks
 
     def generate(
@@ -450,7 +449,8 @@ class Predictor(BasePredictor):
         if model is None:
             model = self.get_model()
         model.eval()
-        self.model = model.to(device)
+        model = model.to(device)
+        self.model = model.half() if self.args.half else model.float()
         self.device = device
         self.mean = torch.tensor([123.675, 116.28, 103.53]).view(-1, 1, 1).to(device)
         self.std = torch.tensor([58.395, 57.12, 57.375]).view(-1, 1, 1).to(device)
@@ -459,8 +459,9 @@ class Predictor(BasePredictor):
         self.model.pt = False
         self.model.triton = False
         self.model.stride = 32
-        self.model.fp16 = False
+        self.model.fp16 = self.args.half
         self.done_warmup = True
+        self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 
     def get_model(self):
         """Retrieve or build the Segment Anything Model (SAM) for image segmentation tasks."""
@@ -832,9 +833,10 @@ class SAM2Predictor(Predictor):
         Perform inference on image features using the SAM2 model.
 
         Args:
-            features (Dict[str, Any]): Extracted image information from the SAM2 model image encoder, it's a dictionary including:
-                image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
-                high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
+            features (torch.Tensor | Dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
+                could also be a dictionary including:
+                - image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
+                - high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
             points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
             labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
@@ -853,9 +855,12 @@ class SAM2Predictor(Predictor):
         )
         # Predict masks
         batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
-        high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+        high_res_features = None
+        if isinstance(features, dict):
+            high_res_features = [feat_level[img_idx].unsqueeze(0) for feat_level in features["high_res_feats"]]
+            features = features["image_embed"][[img_idx]]
         pred_masks, pred_scores, _, _ = self.model.sam_mask_decoder(
-            image_embeddings=features["image_embed"][img_idx].unsqueeze(0),
+            image_embeddings=features,
             image_pe=self.model.sam_prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embeddings,
             dense_prompt_embeddings=dense_embeddings,
@@ -1278,6 +1283,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             - If `batch` is greater than 1, the features are expanded to fit the batch size.
             - The method leverages the model's `_prepare_backbone_features` method to prepare the backbone features.
         """
+        self.model.set_imgsz(self.imgsz)
         backbone_out = self.model.forward_image(im)
         if batch > 1:  # expand features if there's more than one prompt
             for i, feat in enumerate(backbone_out["backbone_fpn"]):
@@ -1497,13 +1503,13 @@ class SAM2VideoPredictor(SAM2Predictor):
             "pred_masks": torch.full(
                 size=(batch_size, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
                 fill_value=-1024.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
             "obj_ptr": torch.full(
                 size=(batch_size, self.model.hidden_dim),
                 fill_value=-1024.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
             "object_score_logits": torch.full(
@@ -1511,7 +1517,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # default to 10.0 for object_score_logits, i.e. assuming the object is
                 # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
                 fill_value=10.0,
-                dtype=torch.float32,
+                dtype=self.torch_dtype,
                 device=self.device,
             ),
         }
@@ -1583,7 +1589,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             feat_sizes=feat_sizes,
             point_inputs=None,
             # A dummy (empty) mask with a single object
-            mask_inputs=torch.zeros((1, 1, *self.imgsz), dtype=torch.float32, device=self.device),
+            mask_inputs=torch.zeros((1, 1, *self.imgsz), dtype=self.torch_dtype, device=self.device),
             output_dict={},
             num_frames=self.inference_state["num_frames"],
             track_in_reverse=False,

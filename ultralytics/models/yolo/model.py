@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+import torch
+
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
@@ -243,10 +245,6 @@ class YOLOE(Model):
         """
         super().__init__(model=model, task=task, verbose=verbose)
 
-        # Assign default COCO class names when there are no custom names
-        if not hasattr(self.model, "names"):
-            self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
-
     @property
     def task_map(self) -> Dict[str, Dict[str, Any]]:
         """Map head to model, validator, and predictor classes."""
@@ -287,7 +285,7 @@ class YOLOE(Model):
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
             >>> img = torch.rand(1, 3, 640, 640)
-            >>> visual_features = model.model.backbone(img)
+            >>> visual_features = torch.rand(1, 1, 80, 80)
             >>> pe = model.get_visual_pe(img, visual_features)
         """
         assert isinstance(self.model, YOLOEModel)
@@ -319,7 +317,7 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)
 
-    def set_classes(self, classes: List[str], embeddings) -> None:
+    def set_classes(self, classes: List[str], embeddings: Optional[torch.Tensor] = None) -> None:
         """
         Set the model's class names and embeddings for detection.
 
@@ -328,6 +326,8 @@ class YOLOE(Model):
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
+        if embeddings is None:
+            embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
         self.model.set_classes(classes, embeddings)
         # Verify no background class is present
         assert " " not in classes
@@ -370,7 +370,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: Dict[str, List] = {},
         refer_image=None,
-        predictor=None,
+        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
     ):
         """
@@ -406,14 +406,16 @@ class YOLOE(Model):
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"
             )
-            if not isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-                self.predictor = (predictor or yolo.yoloe.YOLOEVPDetectPredictor)(
+            if type(self.predictor) is not predictor:
+                self.predictor = predictor(
                     overrides={
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
                         "verbose": refer_image is None,
                         "batch": 1,
+                        "device": kwargs.get("device", None),
+                        "half": kwargs.get("half", False),
                     },
                     _callbacks=self.callbacks,
                 )

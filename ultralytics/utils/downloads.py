@@ -9,8 +9,6 @@ from pathlib import Path
 from typing import List, Tuple
 from urllib import parse, request
 
-import torch
-
 from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
@@ -335,7 +333,6 @@ def safe_download(
             "https://ultralytics.com/assets/",  # assets alias
         )
         desc = f"Downloading {uri} to '{f}'"
-        LOGGER.info(f"{desc}...")
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         check_disk_space(url, path=f.parent)
         curl_installed = shutil.which("curl")
@@ -346,22 +343,19 @@ def safe_download(
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                     assert r == 0, f"Curl return value {r}"
                 else:  # urllib download
-                    method = "torch"
-                    if method == "torch":
-                        torch.hub.download_url_to_file(url, f, progress=progress)
-                    else:
-                        with request.urlopen(url) as response, TQDM(
-                            total=int(response.getheader("Content-Length", 0)),
-                            desc=desc,
-                            disable=not progress,
-                            unit="B",
-                            unit_scale=True,
-                            unit_divisor=1024,
-                        ) as pbar:
-                            with open(f, "wb") as f_opened:
-                                for data in response:
-                                    f_opened.write(data)
-                                    pbar.update(len(data))
+                    # torch.hub.download_url_to_file(url, f, progress=progress)  # do not use as progress tqdm differs
+                    with request.urlopen(url) as response, TQDM(
+                        total=int(response.getheader("Content-Length", 0)),
+                        desc=desc,
+                        disable=not progress,
+                        unit="B",
+                        unit_scale=True,
+                        unit_divisor=1024,
+                    ) as pbar:
+                        with open(f, "wb") as f_opened:
+                            for data in response:
+                                f_opened.write(data)
+                                pbar.update(len(data))
 
                 if f.exists():
                     if f.stat().st_size > min_bytes:
@@ -507,7 +501,9 @@ def download(
     """
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
+    urls = [url] if isinstance(url, (str, Path)) else url
     if threads > 1:
+        LOGGER.info(f"Downloading {len(urls)} file(s) with {threads} threads to {dir}...")
         with ThreadPool(threads) as pool:
             pool.map(
                 lambda x: safe_download(
@@ -518,12 +514,12 @@ def download(
                     curl=curl,
                     retry=retry,
                     exist_ok=exist_ok,
-                    progress=threads <= 1,
+                    progress=True,
                 ),
-                zip(url, repeat(dir)),
+                zip(urls, repeat(dir)),
             )
             pool.close()
             pool.join()
     else:
-        for u in [url] if isinstance(url, (str, Path)) else url:
+        for u in urls:
             safe_download(url=u, dir=dir, unzip=unzip, delete=delete, curl=curl, retry=retry, exist_ok=exist_ok)

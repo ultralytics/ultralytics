@@ -451,7 +451,7 @@ Model validation on a dataset is streamlined as follows:
         model = YOLOE("yoloe-11l-seg-pf.pt")  # or select yoloe-11s/m-seg-pf.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
-        metrics = model.val(data="coco128-seg.yaml",single_cls=True)
+        metrics = model.val(data="coco128-seg.yaml", single_cls=True)
         ```
 
 ### Export Usage

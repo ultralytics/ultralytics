@@ -93,7 +93,7 @@ An NDJSON dataset file contains:
     "width": 640,
     "height": 480,
     "split": "train",
-    "annotation": {
+    "annotations": {
         "boxes": [
             [0, 0.52481, 0.37629, 0.28394, 0.41832],
             [1, 0.73526, 0.29847, 0.19275, 0.33691]
@@ -104,11 +104,11 @@ An NDJSON dataset file contains:
 
 **Annotation formats by task:**
 
-- **Detection:** `"annotation": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
-- **Segmentation:** `"annotation": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
-- **Pose:** `"annotation": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
-- **OBB:** `"annotation": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}`
-- **Classification:** `"annotation": {"classification": [class_id]}`
+- **Detection:** `"annotations": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
+- **Segmentation:** `"annotations": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
+- **Pose:** `"annotations": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
+- **OBB:** `"annotations": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}`
+- **Classification:** `"annotations": {"classification": [class_id]}`
 
 #### Usage Example
 

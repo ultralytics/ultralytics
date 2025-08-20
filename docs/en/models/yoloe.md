@@ -89,23 +89,16 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         ```python
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer as Trainer
+        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
         model = YOLOE("yoloe-11s-seg.pt")
 
+        # Fine-tune on your segmentation dataset
         results = model.train(
-            data="coco128-seg.yaml",
+            data="coco128-seg.yaml",  # Segmentation dataset
             epochs=80,
-            close_mosaic=10,
-            batch=16,
-            optimizer="AdamW",
-            lr0=1e-3,
-            warmup_bias_lr=0.0,
-            weight_decay=0.025,
-            momentum=0.9,
-            workers=4,
-            device="0",
-            trainer=Trainer,
+            patience=10,
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
         )
         ```
 
@@ -115,11 +108,21 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         ```python
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEPETrainer as Trainer  # noqa
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
 
-        # create detection model from yaml then load segmentation weights
-        model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")
-        # rest of the code is same as the instance segmentation fine-tuning example above
+        # Initialize a detection model from a config
+        model = YOLOE("yoloe-11s.yaml")
+
+        # Load weights from a pretrained segmentation checkpoint (same scale)
+        model.load("yoloe-11s-seg.pt")
+
+        # Fine-tune on your detection dataset
+        results = model.train(
+            data="coco128.yaml",  # Detection dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
+        )
         ```
 
     === "Linear Probing"
@@ -130,13 +133,18 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         ```python
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer as Trainer
+        from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
+        # Load a pretrained segmentation model
         model = YOLOE("yoloe-11s-seg.pt")
-        head_index = len(model.model.model) - 1
-        freeze = [str(f) for f in range(0, head_index)]  # freeze all layers except head
 
-        # Freeze all head components except classification branch
+        # Identify the head layer index
+        head_index = len(model.model.model) - 1
+
+        # Freeze all backbone and neck layers (i.e. everything before the head)
+        freeze = [str(i) for i in range(0, head_index)]
+
+        # Freeze parts of the segmentation head, keeping only the classification branch trainable
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
                 freeze.append(f"{head_index}.{name}")
@@ -153,19 +161,12 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
             ]
         )
 
+        # Train only the classification branch
         results = model.train(
-            data="coco128-seg.yaml",
-            epochs=2,
-            close_mosaic=0,
-            batch=16,
-            optimizer="AdamW",
-            lr0=1e-3,
-            warmup_bias_lr=0.0,
-            weight_decay=0.025,
-            momentum=0.9,
-            workers=4,
-            device="0",
-            trainer=Trainer,
+            data="coco128-seg.yaml",  # Segmentation dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
             freeze=freeze,
         )
         ```
@@ -176,11 +177,45 @@ You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on you
 
         ```python
         from ultralytics import YOLOE
-        from ultralytics.models.yolo.yoloe import YOLOEPETrainer as Trainer  # noqa
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
 
-        # create detection model from yaml then load segmentation weights
-        model = YOLOE("yoloe-11s.yaml").load("yoloe-11s-seg.pt")
-        # rest of the code is same as the instance segmentation fine-tuning example above
+        # Initialize a detection model from a config
+        model = YOLOE("yoloe-11s.yaml")
+
+        # Load weights from a pretrained segmentation checkpoint (same scale)
+        model.load("yoloe-11s-seg.pt")
+
+        # Identify the head layer index
+        head_index = len(model.model.model) - 1
+
+        # Freeze all backbone and neck layers (i.e. everything before the head)
+        freeze = [str(i) for i in range(0, head_index)]
+
+        # Freeze parts of the segmentation head, keeping only the classification branch trainable
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        # Freeze detection branch components
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        # Train only the classification branch
+        results = model.train(
+            data="coco128.yaml",  # Detection dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
+            freeze=freeze,
+        )
         ```
 
 ### Predict Usage
@@ -363,6 +398,8 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
 ### Val Usage
 
+Model validation on a dataset is streamlined as follows:
+
 !!! example
 
     === "Text Prompt"
@@ -417,7 +454,31 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         metrics = model.val(data="coco128-seg.yaml")
         ```
 
-Model validation on a dataset is streamlined as follows:
+### Export Usage
+
+The export process is similar to other YOLO models, with the added flexibility of handling text and visual prompts:
+
+!!! example
+
+    ```python
+    from ultralytics import YOLOE
+
+    # Select yoloe-11s/m-seg.pt for different sizes
+    model = YOLOE("yoloe-11l-seg.pt")
+
+    # Configure the set_classes() before exporting the model
+    names = ["person", "bus"]
+    model.set_classes(names, model.get_text_pe(names))
+
+    export_model = model.export(format="onnx")
+    model = YOLOE(export_model)
+
+    # Run detection on the given image
+    results = model.predict("path/to/image.jpg")
+
+    # Show results
+    results[0].show()
+    ```
 
 ### Train Official Models
 

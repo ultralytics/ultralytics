@@ -945,11 +945,12 @@ def entrypoint(debug: str = "") -> None:
         """Extract architecture from model metadata across different formats."""
         model_path = Path(model_path)
         model_str = str(model_path).lower()
-        
+
         # ONNX format
         if model_str.endswith(".onnx"):
             try:
                 import onnxruntime
+
                 session = onnxruntime.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
                 metadata = session.get_modelmeta().custom_metadata_map
                 return metadata.get("architecture", None)
@@ -960,6 +961,7 @@ def entrypoint(debug: str = "") -> None:
         elif model_str.endswith(".mlpackage") or model_str.endswith(".mlmodel"):
             try:
                 import coremltools as ct
+
                 model = ct.models.MLModel(str(model_path))
                 metadata = model.user_defined_metadata
                 return metadata.get("architecture", None)
@@ -980,7 +982,17 @@ def entrypoint(debug: str = "") -> None:
                 pass
 
         # Directory-based formats (OpenVINO, PaddlePaddle, NCNN, RKNN, etc.)
-        elif model_path.is_dir() or any(suffix in model_str for suffix in ["_saved_model", "_paddle_model", "_ncnn_model", "_rknn_model", "openvino_model", "_imx_model"]):
+        elif model_path.is_dir() or any(
+            suffix in model_str
+            for suffix in [
+                "_saved_model",
+                "_paddle_model",
+                "_ncnn_model",
+                "_rknn_model",
+                "openvino_model",
+                "_imx_model",
+            ]
+        ):
             # Look for metadata.yaml in the directory
             if model_path.is_dir():
                 metadata_file = model_path / "metadata.yaml"
@@ -992,7 +1004,7 @@ def entrypoint(debug: str = "") -> None:
                 else:
                     # Assume it's a directory path even if it doesn't exist yet
                     metadata_file = model_path / "metadata.yaml"
-            
+
             if metadata_file.exists():
                 try:
                     metadata = YAML.load(metadata_file)
@@ -1004,6 +1016,7 @@ def entrypoint(debug: str = "") -> None:
         elif model_str.endswith(".tflite"):
             try:
                 import zipfile
+
                 with zipfile.ZipFile(model_path, "r") as zf:
                     for name in zf.namelist():
                         if name == "metadata.json":
@@ -1027,7 +1040,7 @@ def entrypoint(debug: str = "") -> None:
             architecture = "YOLOWorld"
         else:
             architecture = architecture.upper()
-    
+
     if architecture == "RTDETR" or (architecture is None and "rtdetr" in stem):  # use metadata or guess from filename
         from ultralytics import RTDETR
 

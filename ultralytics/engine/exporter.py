@@ -484,7 +484,14 @@ class Exporter:
                     model_type = "YOLOv10"
                 elif "yolov8" in train_model_path or "v8" in train_model_path:
                     model_type = "YOLOv8"
-                elif "yolov5" in train_model_path or "v5" in train_model_path or "yolov6" in train_model_path or "v6" in train_model_path or "yolov7" in train_model_path or "v7" in train_model_path:
+                elif (
+                    "yolov5" in train_model_path
+                    or "v5" in train_model_path
+                    or "yolov6" in train_model_path
+                    or "v6" in train_model_path
+                    or "yolov7" in train_model_path
+                    or "v7" in train_model_path
+                ):
                     model_type = "YOLOv5"
                 elif "world" in train_model_path:
                     model_type = "YOLOWorld"

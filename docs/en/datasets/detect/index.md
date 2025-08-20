@@ -66,41 +66,43 @@ An NDJSON dataset file contains:
 1. **Dataset record** (first line): Contains dataset metadata including task type, class names, and general information
 2. **Image records** (subsequent lines): Contains individual image data including dimensions, annotations, and file paths
 
-**Example Dataset Record:**
+!!! NDJSON Examples 
 
-```json
-{
-    "type": "dataset",
-    "task": "detect",
-    "name": "Example",
-    "description": "COCO NDJSON example dataset",
-    "url": "https://app.ultralytics.com/user/datasets/example",
-    "names": { "0": "person", "1": "bicycle", "2": "car" },
-    "bytes": 426342,
-    "version": 0,
-    "created_at": "2024-01-01T00:00:00Z",
-    "updated_at": "2025-01-01T00:00:00Z"
-}
-```
+    === "Dataset record"
 
-**Example Image Record:**
+        ```json
+        {
+            "type": "dataset",
+            "task": "detect",
+            "name": "Example",
+            "description": "COCO NDJSON example dataset",
+            "url": "https://app.ultralytics.com/user/datasets/example",
+            "names": { "0": "person", "1": "bicycle", "2": "car" },
+            "bytes": 426342,
+            "version": 0,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2025-01-01T00:00:00Z"
+        }
+        ```
 
-```json
-{
-    "type": "image",
-    "file": "image1.jpg",
-    "url": "https://www.url.com/path/to/image1.jpg",
-    "width": 640,
-    "height": 480,
-    "split": "train",
-    "annotations": {
-        "boxes": [
-            [0, 0.52481, 0.37629, 0.28394, 0.41832],
-            [1, 0.73526, 0.29847, 0.19275, 0.33691]
-        ]
-    }
-}
-```
+    === "Image record"
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "annotations": {
+                "boxes": [
+                    [0, 0.52481, 0.37629, 0.28394, 0.41832],
+                    [1, 0.73526, 0.29847, 0.19275, 0.33691]
+                ]
+            }
+        }
+        ```
 
 **Annotation formats by task:**
 

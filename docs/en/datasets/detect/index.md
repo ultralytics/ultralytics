@@ -44,38 +44,65 @@ An NDJSON dataset file contains two types of records:
 #### Example NDJSON Dataset Record
 
 ```json
-{"type": "dataset", "task": "detect", "name": "Sample Dataset", "description": "YOLO11 detect dataset", "url": "https://app.ultralytics.com/datasets/sample", "names": {"0": "person", "1": "bicycle", "2": "car"}, "version": "v1.0.0", "created_at": "2024-01-01T00:00:00Z"}
+{
+    "type": "dataset",
+    "task": "detect",
+    "name": "Sample Dataset",
+    "description": "YOLO11 detect dataset",
+    "url": "https://app.ultralytics.com/datasets/sample",
+    "names": { "0": "person", "1": "bicycle", "2": "car" },
+    "version": "v1.0.0",
+    "created_at": "2024-01-01T00:00:00Z"
+}
 ```
 
 #### Example NDJSON Image Record
 
 ```json
-{"type": "image", "file": "image1.jpg", "url": "https://storage.googleapis.com/bucket/image1.jpg", "width": 640, "height": 480, "split": "train", "annotation": {"boxes": [[0, 0.5, 0.5, 0.3, 0.4], [1, 0.7, 0.3, 0.2, 0.3]]}}
+{
+    "type": "image",
+    "file": "image1.jpg",
+    "url": "https://storage.googleapis.com/bucket/image1.jpg",
+    "width": 640,
+    "height": 480,
+    "split": "train",
+    "annotation": {
+        "boxes": [
+            [0, 0.5, 0.5, 0.3, 0.4],
+            [1, 0.7, 0.3, 0.2, 0.3]
+        ]
+    }
+}
 ```
 
 #### Annotation Formats by Task
 
 **Detection (`detect`):**
+
 ```json
 "annotation": {"boxes": [[class_id, x_center, y_center, width, height], ...]}
 ```
 
 **Segmentation (`segment`):**
+
 ```json
 "annotation": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}
 ```
 
 **Pose Estimation (`pose`):**
+
 ```json
 "annotation": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}
 ```
 
 **Oriented Bounding Boxes (`obb`):**
+
 ```json
 "annotation": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}
 ```
 
 **Classification (`classify`):**
+
 ```json
 "annotation": {"classification": [class_id]}
 ```

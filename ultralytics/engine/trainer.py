@@ -601,6 +601,7 @@ class BaseTrainer:
             elif self.args.data.rsplit(".", 1)[-1] == "ndjson":
                 # Convert NDJSON to YOLO format
                 from ultralytics.data.converter import convert_ndjson_to_yolo
+
                 yaml_path = convert_ndjson_to_yolo(self.args.data)
                 self.args.data = str(yaml_path)
                 data = check_det_dataset(self.args.data)

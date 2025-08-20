@@ -30,57 +30,57 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 <p align="center"><img width="800" src="https://github.com/ultralytics/docs/releases/download/0/two-persons-tie-2.avif" alt="Example dataset directory structure"></p>
 
-### Ultralytics NDJSON format
+#### Usage with YOLO format
+
+Here's how you can use YOLO format datasets to train your model:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+
+        # Train the model
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Start training from a pretrained *.pt model
+        yolo detect train data=coco8.yaml model=yolo11n.pt epochs=100 imgsz=640
+        ```
+
+### NDJSON format
 
 The NDJSON (Newline Delimited JSON) format provides an alternative way to define datasets for Ultralytics YOLO11 models. This format stores dataset metadata and annotations in a single file where each line contains a separate JSON object.
 
-#### Structure
-
-An NDJSON dataset file contains two types of records:
-
+An NDJSON dataset file contains:
 1. **Dataset record** (first line): Contains dataset metadata including task type, class names, and general information
 2. **Image records** (subsequent lines): Contains individual image data including dimensions, annotations, and file paths
 
-#### Example NDJSON Dataset Record
-
+**Example Dataset Record:**
 ```json
 {"type": "dataset", "task": "detect", "name": "Sample Dataset", "description": "YOLO11 detect dataset", "url": "https://app.ultralytics.com/datasets/sample", "names": {"0": "person", "1": "bicycle", "2": "car"}, "version": "v1.0.0", "created_at": "2024-01-01T00:00:00Z"}
 ```
 
-#### Example NDJSON Image Record
-
+**Example Image Record:**
 ```json
 {"type": "image", "file": "image1.jpg", "url": "https://storage.googleapis.com/bucket/image1.jpg", "width": 640, "height": 480, "split": "train", "annotation": {"boxes": [[0, 0.5, 0.5, 0.3, 0.4], [1, 0.7, 0.3, 0.2, 0.3]]}}
 ```
 
-#### Annotation Formats by Task
+**Annotation formats by task:**
+- **Detection:** `"annotation": {"boxes": [[class_id, x_center, y_center, width, height], ...]}`
+- **Segmentation:** `"annotation": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}`
+- **Pose:** `"annotation": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}`
+- **OBB:** `"annotation": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}`
+- **Classification:** `"annotation": {"classification": [class_id]}`
 
-**Detection (`detect`):**
-```json
-"annotation": {"boxes": [[class_id, x_center, y_center, width, height], ...]}
-```
-
-**Segmentation (`segment`):**
-```json
-"annotation": {"segments": [[class_id, x1, y1, x2, y2, ...], ...]}
-```
-
-**Pose Estimation (`pose`):**
-```json
-"annotation": {"pose": [[class_id, x1, y1, v1, x2, y2, v2, ...], ...]}
-```
-
-**Oriented Bounding Boxes (`obb`):**
-```json
-"annotation": {"obb": [[class_id, x_center, y_center, width, height, rotation], ...]}
-```
-
-**Classification (`classify`):**
-```json
-"annotation": {"classification": [class_id]}
-```
-
-#### Usage with YOLO11
+#### Usage with NDJSON format
 
 To use an NDJSON dataset with YOLO11, simply specify the path to the `.ndjson` file:
 
@@ -104,8 +104,7 @@ To use an NDJSON dataset with YOLO11, simply specify the path to the `.ndjson` f
         # Start training with NDJSON dataset
         yolo detect train data=path/to/dataset.ndjson model=yolo11n.pt epochs=100 imgsz=640
         ```
-
-#### Advantages of NDJSON Format
+#### Advantages of NDJSON format
 
 - **Single file**: All dataset information contained in one file
 - **Streaming**: Can process large datasets line-by-line without loading everything into memory
@@ -113,7 +112,7 @@ To use an NDJSON dataset with YOLO11, simply specify the path to the `.ndjson` f
 - **Extensible**: Easy to add custom metadata fields
 - **Version control**: Single file format works well with git and version control systems
 
-## Usage
+#### Usage
 
 Here's how you can use these formats to train your model:
 

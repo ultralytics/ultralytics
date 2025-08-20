@@ -694,7 +694,7 @@ def collect_system_info():
         "GPU count": torch.cuda.device_count() if cuda else None,
         "CUDA": torch.version.cuda if cuda else None,
     }
-    LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
+    LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
     for r in parse_requirements(package="ultralytics"):
@@ -705,7 +705,7 @@ def collect_system_info():
             current = "(not installed)"
             is_met = "❌ "
         package_info[r.name] = f"{is_met}{current}{r.specifier}"
-        LOGGER.info(f"{r.name:<20}{package_info[r.name]}")
+        LOGGER.info(f"{r.name:<23}{package_info[r.name]}")
 
     info_dict["Package Info"] = package_info
 

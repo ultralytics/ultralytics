@@ -911,7 +911,9 @@ class BaseTrainer:
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2:
-                    if self.args.muon_head:
+                    if self.args.muon_head == "all":
+                        g[3].append(param)
+                    elif self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
                         g[3].append(param)
                     elif int(module_name.split(".")[1]) < 23:
                         g[3].append(param)

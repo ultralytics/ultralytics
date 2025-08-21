@@ -9,8 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from time import time
 
-from ultralytics.utils import LOGGER, RANK, SETTINGS
-
+from ultralytics.utils import RANK
 
 # Global early logger for debugging - start capture immediately when module loads
 _global_logger = None
@@ -167,7 +166,7 @@ class ConsoleLogger:
         existing_content = ""
         try:
             existing_content = blob.download_as_text()
-        except Exception as e:
+        except Exception:
             pass  # File doesn't exist yet
             
         blob.upload_from_string(existing_content + text)

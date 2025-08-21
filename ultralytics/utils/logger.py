@@ -301,13 +301,13 @@ class SystemLogger:
         - cpu (float): CPU usage percentage (0-100%)
         - ram (float): RAM usage percentage (0-100%)
         - disk (dict):
-            - read_mb (float): Cumulative disk read in megabytes since initialization
-            - write_mb (float): Cumulative disk write in megabytes since initialization
-            - used_gb (float): Total disk space used in gigabytes
+            - read_mb (float): Cumulative disk read in MB since initialization
+            - write_mb (float): Cumulative disk write in MB since initialization
+            - used_gb (float): Total disk space used in GB
         - network (dict):
-            - recv_mb (float): Cumulative network received in megabytes since initialization
-            - sent_mb (float): Cumulative network sent in megabytes since initialization
-        - gpus (dict): GPU metrics by device index string (e.g., '0', '1') containing:
+            - recv_mb (float): Cumulative network received in MB since initialization
+            - sent_mb (float): Cumulative network sent in MB since initialization
+        - gpus (dict): GPU metrics by device index (e.g., 0, 1) containing:
             - usage (int): GPU utilization percentage (0-100%)
             - memory (float): VRAM usage percentage (0-100%)
             - temp (int): GPU temperature in degrees Celsius

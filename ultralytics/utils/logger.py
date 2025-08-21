@@ -24,10 +24,10 @@ if RANK in {-1, 0} and DEFAULT_LOG_PATH.exists():
 class ConsoleLogger:
     """
     Console output capture with API/file streaming and deduplication.
-    
+
     Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent
     deduplication to reduce noise from repetitive console output.
-    
+
     Attributes:
         destination: Target destination for streaming (URL or Path object).
         is_api (bool): Whether destination is an API endpoint (True) or local file (False).
@@ -40,16 +40,16 @@ class ConsoleLogger:
         last_time (float): Timestamp of last processed line.
         last_progress_line (str): Last progress bar line for progress deduplication.
         last_was_progress (bool): Whether the last line was a progress bar.
-        
+
     Examples:
         Basic file logging:
-        >>> logger = ConsoleLogger('training.log')
+        >>> logger = ConsoleLogger("training.log")
         >>> logger.start_capture()
-        >>> print('This will be logged')
+        >>> print("This will be logged")
         >>> logger.stop_capture()
-        
+
         API streaming:
-        >>> logger = ConsoleLogger('https://api.example.com/logs')
+        >>> logger = ConsoleLogger("https://api.example.com/logs")
         >>> logger.start_capture()
         >>> # All output streams to API
         >>> logger.stop_capture()
@@ -58,7 +58,7 @@ class ConsoleLogger:
     def __init__(self, destination):
         """
         Initialize with API endpoint or local file path.
-        
+
         Args:
             destination: API endpoint URL (http/https) or local file path for streaming output.
         """
@@ -231,26 +231,26 @@ class ConsoleLogger:
 class SystemLogger:
     """
     Log dynamic system metrics for training monitoring.
-    
+
     Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for
     training performance monitoring and analysis.
-    
+
     Attributes:
         pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
         process (psutil.Process): Current psutil.Process instance for process-specific metrics.
         net_start: Initial network I/O counters for calculating cumulative usage.
         disk_start: Initial disk I/O counters for calculating cumulative usage.
-        
+
     Examples:
         Basic usage:
         >>> logger = SystemLogger()
         >>> metrics = logger.get_metrics()
         >>> print(f"CPU: {metrics['cpu']}%, RAM: {metrics['ram']}%")
-        >>> if metrics['gpus']:
-        ...     gpu0 = metrics['gpus']['0']
+        >>> if metrics["gpus"]:
+        ...     gpu0 = metrics["gpus"]["0"]
         ...     print(f"GPU0: {gpu0['usage']}% usage, {gpu0['temp']}°C")
-        
+
         Training loop integration:
         >>> system_logger = SystemLogger()
         >>> for epoch in range(epochs):
@@ -280,10 +280,10 @@ class SystemLogger:
     def get_metrics(self):
         """
         Get current system metrics.
-        
+
         Collects comprehensive system metrics including CPU usage, RAM usage,
         disk I/O statistics, network I/O statistics, and GPU metrics (if available).
-        
+
         Returns:
             (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
         """

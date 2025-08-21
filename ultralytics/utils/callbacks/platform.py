@@ -10,7 +10,7 @@ def on_pretrain_routine_start(trainer):
         # Create and start logger immediately before any other output
         trainer.console_logger = ConsoleLogger(DEFAULT_LOG_PATH)
         trainer.console_logger.start_capture()
-        
+
         # Initialize SystemLogger for metrics collection
         trainer.system_logger = SystemLogger()
 
@@ -22,19 +22,16 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Handle end of training epoch event and collect system metrics."""
-    if RANK in {-1, 0} and hasattr(trainer, 'system_logger'):
+    if RANK in {-1, 0} and hasattr(trainer, "system_logger"):
         # Get current system metrics
         system_metrics = trainer.system_logger.get_metrics()
         print(f"SystemLogger: {system_metrics}")
-        
+
         # Add to trainer metrics for logging/storage
-        if not hasattr(trainer, 'system_metrics_log'):
+        if not hasattr(trainer, "system_metrics_log"):
             trainer.system_metrics_log = []
-        
-        trainer.system_metrics_log.append({
-            'epoch': trainer.epoch + 1,
-            'system': system_metrics
-        })
+
+        trainer.system_metrics_log.append({"epoch": trainer.epoch + 1, "system": system_metrics})
 
 
 def on_model_save(trainer):

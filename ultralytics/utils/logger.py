@@ -12,7 +12,7 @@ from time import time
 import psutil
 import requests
 
-from ultralytics.utils import RANK
+from ultralytics.utils import RANK, MACOS
 from ultralytics.utils.checks import check_requirements
 
 # Initialize default log file
@@ -269,6 +269,7 @@ class SystemLogger:
     def _init_nvidia(self):
         """Initialize NVIDIA GPU monitoring with pynvml."""
         try:
+            assert not MACOS
             check_requirements("pynvml>=12.0.0")
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()

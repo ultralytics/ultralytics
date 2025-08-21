@@ -12,7 +12,7 @@ from time import time
 import psutil
 import requests
 
-from ultralytics.utils import RANK, MACOS
+from ultralytics.utils import MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
 # Initialize default log file

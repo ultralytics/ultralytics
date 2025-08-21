@@ -910,11 +910,11 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim >= 2 and self.muon_head == "all":
+                if param.ndim >= 2 and self.args.muon_head == "all":
                     g[3].append(param)
-                elif param.ndim >= 2 and self.muon_head == "head" and int(module_name.split(".")[1]) == 23:
+                elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
                     g[3].append(param)
-                elif param.ndim >= 2 and self.muon_head is None and int(module_name.split(".")[1]) < 23:
+                elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
                     g[3].append(param)
                 elif "bias" in fullname:  # bias (no decay)
                     g[2].append(param)

@@ -11,10 +11,6 @@ keywords: TODO ADD KEYWORDS
 
 <br>
 
-## ::: ultralytics.utils.callbacks.platform.ConsoleLogger
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.callbacks.platform.on_pretrain_routine_start
 
 <br><br><hr><br>

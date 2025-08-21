@@ -5,9 +5,9 @@ import queue
 import shutil
 import sys
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
-import time
 
 import psutil
 import requests

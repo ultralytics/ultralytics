@@ -241,12 +241,12 @@ It offers three significant enhancements:
 3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
 
 ### Core Capabilities
+
 - **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts
 - **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
 - **Multi-Object Tracking**: Supports tracking multiple objects simultaneously with individual object IDs
 - **Real-Time Updates**: Allows adding new prompts during inference without reprocessing previous frames
 - **Independent Image Processing**: Process standalone images with shared memory context for cross-image object consistency
-
 
 !!! example "Dynamic Object Addition"
 
@@ -279,16 +279,14 @@ It offers three significant enhancements:
 
         # Add refinement prompts for better tracking
         # This helps when object appearance changes significantly
-        results10= predictor(
+        results10 = predictor(
             source="frame10.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
             obj_ids=[1],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
-
         ```
-
 
 #### Parameters
 

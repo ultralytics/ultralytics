@@ -828,8 +828,9 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         async with semaphore:
             split, original_name = record["split"], record["file"]
             label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
-            annotations = record.get("annotations", {})
+            image_path = dataset_dir / "images" / split / original_name
 
+            annotations = record.get("annotations", {})
             lines_to_write = []
             for key in annotations.keys():
                 lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
@@ -840,12 +841,11 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
             label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
             if http_url := record.get("url"):
-                local_path = dataset_dir / "images" / split / original_name
-                if not local_path.exists():
+                if not image_path.exists():
                     try:
                         async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
                             response.raise_for_status()
-                            with open(local_path, "wb") as f:
+                            with open(image_path, "wb") as f:
                                 async for chunk in response.content.iter_chunked(8192):
                                     f.write(chunk)
                         return True

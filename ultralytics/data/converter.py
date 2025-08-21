@@ -21,14 +21,6 @@ from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
-def hash_content(data: Union[str, bytes], length: int = 11) -> str:
-    """Generate hash-based ID of specified length."""
-    if isinstance(data, str):
-        data = data.encode()
-    encoded = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).decode().rstrip("=")
-    return encoded[:length] if length else encoded
-
-
 def coco91_to_coco80_class() -> List[int]:
     """
     Convert 91-index COCO class IDs to 80-index COCO class IDs.

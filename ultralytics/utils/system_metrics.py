@@ -169,7 +169,7 @@ class SystemMetrics:
         
         try:
             # Basic implementation - would need detailed powermetrics parsing for full functionality
-            result = subprocess.run(
+            subprocess.run(
                 ["sudo", "powermetrics", "--samplers", "gpu_power", "-n", "1", "-f", "plist"],
                 capture_output=True, text=True, timeout=5
             )

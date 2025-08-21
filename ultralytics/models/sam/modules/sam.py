@@ -869,7 +869,6 @@ class SAM2Model(torch.nn.Module):
         prev_sam_mask_logits,
     ):
         """Perform a single tracking step, updating object masks and memory features based on current frame inputs."""
-        current_out = {"point_inputs": point_inputs, "mask_inputs": mask_inputs}
         # High-resolution feature maps for the SAM head, reshape (HW)BC => BCHW
         if len(current_vision_feats) > 1:
             high_res_features = [
@@ -911,7 +910,7 @@ class SAM2Model(torch.nn.Module):
                 high_res_features=high_res_features,
                 multimask_output=multimask_output,
             )
-        return current_out, sam_outputs, high_res_features, pix_feat
+        return sam_outputs, high_res_features, pix_feat
 
     def _encode_memory_in_output(
         self,
@@ -960,7 +959,8 @@ class SAM2Model(torch.nn.Module):
         prev_sam_mask_logits=None,
     ):
         """Perform a single tracking step, updating object masks and memory features based on current frame inputs."""
-        current_out, sam_outputs, _, _ = self._track_step(
+        current_out = {}
+        sam_outputs, _, _ = self._track_step(
             frame_idx,
             is_init_cond_frame,
             current_vision_feats,

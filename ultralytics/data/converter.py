@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import asyncio
+import base64
+import hashlib
 import json
 import random
 import shutil
@@ -17,6 +19,14 @@ from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+
+
+def hash_content(data: Union[str, bytes], length: int = 11) -> str:
+    """Generate hash-based ID of specified length."""
+    if isinstance(data, str):
+        data = data.encode()
+    encoded = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).decode().rstrip("=")
+    return encoded[:length] if length else encoded
 
 
 def coco91_to_coco80_class() -> List[int]:
@@ -831,18 +841,17 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
 
             if http_url := record.get("url"):
                 local_path = dataset_dir / "images" / split / original_name
-                if local_path.exists():
-                    return True
-                try:
-                    async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
-                        response.raise_for_status()
-                        with open(local_path, "wb") as f:
-                            async for chunk in response.content.iter_chunked(8192):
-                                f.write(chunk)
-                    return True
-                except Exception as e:
-                    LOGGER.warning(f"Failed to download {http_url}: {e}")
-                    return False
+                if not local_path.exists():
+                    try:
+                        async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                            response.raise_for_status()
+                            with open(local_path, "wb") as f:
+                                async for chunk in response.content.iter_chunked(8192):
+                                    f.write(chunk)
+                        return True
+                    except Exception as e:
+                        LOGGER.warning(f"Failed to download {http_url}: {e}")
+                        return False
             return True
 
     # Process all images with async downloads

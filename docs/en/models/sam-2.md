@@ -259,34 +259,38 @@ It offers three significant enhancements:
         overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
-        # Initialize with first objects
-        predictor.inference(img="frame1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        # Define a category by box prompt
+        predictor.inference(img="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
 
-        # Track existing objects in frame 2
-        results2 = predictor(source="frame2.jpg")
+        # Detect this particular object in a new image
+        results = predictor(source="image2.jpg")
 
-        # Add new object that appears in frame 3
-        results3 = predictor(
-            source="frame3.jpg",
+        # Add new category with a new object ID
+        results = predictor(
+            source="image4.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
             obj_ids=[2],  # New object ID
             update_memory=True,  # Add to memory
         )
+        # perferm inference
+        results = predictor.inference(img="image5.jpg")
 
-        # Process several frames
-        for i in range(4, 10):
-            results = predictor.inference(img=f"frame{i}.jpg")
-
-        # Add refinement prompts for better tracking
+        # Add refinement prompts to the same category to boost performance
         # This helps when object appearance changes significantly
-        results10 = predictor(
-            source="frame10.jpg",
+        results = predictor(
+            source="image6.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
             obj_ids=[1],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
+        # perferm inference on new image
+        results = predictor(source="image7.jpg")
         ```
+!!! note
+
+    The `SAM2DynamicInteractivePredictor` is designed to work with SAM2 models, and support adding/refining categories by all the [box/point/mask prompts](#sam-2-prediction-examples) natively that SAM2 supports. It is particularly useful for scenarios where objects appear or change over time, such as in video annotation or interactive editing tasks.
+
 
 #### Parameters
 

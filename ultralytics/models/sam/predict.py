@@ -1982,10 +1982,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             obj_id (int): The client-side object ID.
 
         Returns:
-            obj_idx(int): The model-side object index, or None if not found.
+            (int): The model-side object index, or None if not found.
         """
-        obj_idx = self.obj_id_to_idx.get(obj_id, None)
-        return obj_idx
+        return self.obj_id_to_idx.get(obj_id, None)
 
     def track_step(
         self,

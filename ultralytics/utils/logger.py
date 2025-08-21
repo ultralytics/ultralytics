@@ -14,12 +14,8 @@ from ultralytics.utils import RANK
 
 # Initialize default log file
 DEFAULT_LOG_PATH = Path("train.log")
-if RANK in {-1, 0}:
-    try:
-        if DEFAULT_LOG_PATH.exists():
-            DEFAULT_LOG_PATH.unlink()
-    except Exception:
-        pass
+if RANK in {-1, 0} and DEFAULT_LOG_PATH.exists():
+    DEFAULT_LOG_PATH.unlink(missing_ok=True)
 
 
 class ConsoleLogger:

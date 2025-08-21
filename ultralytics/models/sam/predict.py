@@ -1965,10 +1965,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         """
         to_cat_memory, to_cat_memory_pos_embed = [], []
         for consolidated_out in self.memory_bank:
-            feats = consolidated_out["maskmem_features"].cuda(non_blocking=True)
-            to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))  # (H*W, B, C)
-            maskmem_enc = consolidated_out["maskmem_pos_enc"][-1].cuda()
-            maskmem_enc = maskmem_enc.flatten(2).permute(2, 0, 1)
+            to_cat_memory.append(consolidated_out["maskmem_features"].flatten(2).permute(2, 0, 1))  # (H*W, B, C)
+            maskmem_enc = consolidated_out["maskmem_pos_enc"][-1].flatten(2).permute(2, 0, 1)
             maskmem_enc = maskmem_enc + self.model.maskmem_tpos_enc[self.model.num_maskmem - 1]
             to_cat_memory_pos_embed.append(maskmem_enc)
 

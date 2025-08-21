@@ -8,8 +8,8 @@ def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
         # Create and start logger immediately before any other output
-        trainer.platform_logger = ConsoleLogger(DEFAULT_LOG_PATH)
-        trainer.platform_logger.start_capture()
+        trainer.console_logger = ConsoleLogger(DEFAULT_LOG_PATH)
+        trainer.console_logger.start_capture()
         
         # Initialize SystemLogger for metrics collection
         trainer.system_logger = SystemLogger()
@@ -44,7 +44,7 @@ def on_model_save(trainer):
 
 def on_train_end(trainer):
     """Stop console capture and finalize logs."""
-    if logger := getattr(trainer, "platform_logger", None):
+    if logger := getattr(trainer, "console_logger", None):
         logger.stop_capture()
 
 

@@ -35,7 +35,7 @@ class ConsoleLogger:
         self.active = False
         self.worker_thread = None
         
-        # Deduplication state
+        # State tracking
         self.last_line = ""
         self.last_time = 0.0
         self.last_progress_line = ""  # Track 100% progress lines separately
@@ -50,18 +50,16 @@ class ConsoleLogger:
         sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
         sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
         
-        self._hook_ultralytics_logger()
+        # Hook Ultralytics logger
+        try:
+            handler = self._LogHandler(self._queue_log)
+            logging.getLogger("ultralytics").addHandler(handler)
+        except Exception:
+            pass
+        
         self.worker_thread = threading.Thread(target=self._stream_worker, daemon=True)
         self.worker_thread.start()
 
-    def _hook_ultralytics_logger(self):
-        """Hook Ultralytics logger to capture log messages."""
-        try:
-            logger = logging.getLogger("ultralytics")
-            handler = self._LogHandler(self._queue_log)
-            logger.addHandler(handler)
-        except Exception:
-            pass
 
     def stop_capture(self):
         """Stop capturing console output."""
@@ -80,36 +78,35 @@ class ConsoleLogger:
         
         current_time = time()
         
-        # Handle carriage returns
+        # Handle carriage returns and process lines
         if "\r" in text:
             text = text.split("\r")[-1]
         
-        # Process each line, skip trailing empty from newlines
         lines = text.split("\n")
         if lines and lines[-1] == "":
-            lines = lines[:-1]
+            lines.pop()
         
         for line in lines:
             line = line.rstrip()
             
-            # Skip tqdm progress bars unless they're 100% complete
+            # Handle progress bars - only show 100% completions
             if "it/s" in line and "%|" in line:
-                if not line.count("100%"):
+                if "100%" not in line:
                     continue
-                # For 100% lines, dedupe by removing timing info
-                progress_core = line.split("[")[0].strip()  # Keep everything before timing
+                # Dedupe 100% lines by core content (strip timing)
+                progress_core = line.split("[")[0].strip()
                 if progress_core == self.last_progress_line:
                     continue
                 self.last_progress_line = progress_core
                 self.last_was_progress = True
             else:
-                # Skip empty line immediately after progress bar
+                # Skip empty line after progress bar
                 if not line and self.last_was_progress:
                     self.last_was_progress = False
                     continue
                 self.last_was_progress = False
             
-            # Deduplicate any identical subsequent lines within 0.1s
+            # General deduplication
             if line == self.last_line and current_time - self.last_time < 0.1:
                 continue
             
@@ -117,19 +114,26 @@ class ConsoleLogger:
             self.last_time = current_time
             
             # Add timestamp if needed
-            if not line.startswith("[20"):  # Simple timestamp check
+            if not line.startswith("[20"):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
             
             # Queue with overflow protection
+            if not self._safe_put(f"{line}\n"):
+                continue  # Skip if queue handling fails
+
+    def _safe_put(self, item):
+        """Safely put item in queue with overflow handling."""
+        try:
+            self.log_queue.put_nowait(item)
+            return True
+        except queue.Full:
             try:
-                self.log_queue.put_nowait(f"{line}\n")
-            except queue.Full:
-                try:
-                    self.log_queue.get_nowait()
-                    self.log_queue.put_nowait(f"{line}\n")
-                except queue.Empty:
-                    pass
+                self.log_queue.get_nowait()  # Drop oldest
+                self.log_queue.put_nowait(item)
+                return True
+            except queue.Empty:
+                return False
 
     def _stream_worker(self):
         """Background worker for streaming logs."""
@@ -146,22 +150,14 @@ class ConsoleLogger:
         """Write log to destination."""
         try:
             if self.is_api:
-                self._write_api(text)
+                payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
+                requests.post(self.destination, json=payload, timeout=5)
             else:
-                self._write_local(text)
+                self.destination.parent.mkdir(parents=True, exist_ok=True)
+                with self.destination.open("a", encoding="utf-8") as f:
+                    f.write(text)
         except Exception as e:
             print(f"Platform logging error: {e}", file=self.original_stderr)
-
-    def _write_api(self, text):
-        """Send log to API endpoint."""
-        payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
-        requests.post(self.destination, json=payload, timeout=5)
-
-    def _write_local(self, text):
-        """Write log to local file."""
-        self.destination.parent.mkdir(parents=True, exist_ok=True)
-        with self.destination.open("a", encoding="utf-8") as f:
-            f.write(text)
 
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""

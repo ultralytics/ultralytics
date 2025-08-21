@@ -27,14 +27,14 @@ class ConsoleLogger:
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if not self.is_api:
             self.destination = Path(destination)
-        
+
         # Console capture
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.log_queue = queue.Queue(maxsize=1000)
         self.active = False
         self.worker_thread = None
-        
+
         # State tracking
         self.last_line = ""
         self.last_time = 0.0
@@ -45,27 +45,26 @@ class ConsoleLogger:
         """Start capturing console output."""
         if self.active:
             return
-        
+
         self.active = True
         sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
         sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
-        
+
         # Hook Ultralytics logger
         try:
             handler = self._LogHandler(self._queue_log)
             logging.getLogger("ultralytics").addHandler(handler)
         except Exception:
             pass
-        
+
         self.worker_thread = threading.Thread(target=self._stream_worker, daemon=True)
         self.worker_thread.start()
-
 
     def stop_capture(self):
         """Stop capturing console output."""
         if not self.active:
             return
-        
+
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
@@ -75,20 +74,20 @@ class ConsoleLogger:
         """Queue console text with deduplication."""
         if not self.active:
             return
-        
+
         current_time = time()
-        
+
         # Handle carriage returns and process lines
         if "\r" in text:
             text = text.split("\r")[-1]
-        
+
         lines = text.split("\n")
         if lines and lines[-1] == "":
             lines.pop()
-        
+
         for line in lines:
             line = line.rstrip()
-            
+
             # Handle progress bars - only show 100% completions
             if ("it/s" in line and ("%|" in line or "━" in line)) or ("100%" in line and ("it/s" in line or "[" in line)):
                 if "100%" not in line:
@@ -105,19 +104,19 @@ class ConsoleLogger:
                     self.last_was_progress = False
                     continue
                 self.last_was_progress = False
-            
+
             # General deduplication
             if line == self.last_line and current_time - self.last_time < 0.1:
                 continue
-            
+
             self.last_line = line
             self.last_time = current_time
-            
+
             # Add timestamp if needed
             if not line.startswith("[20"):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
-            
+
             # Queue with overflow protection
             if not self._safe_put(f"{line}\n"):
                 continue  # Skip if queue handling fails
@@ -161,28 +160,28 @@ class ConsoleLogger:
 
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
-        
+
         __slots__ = ("original", "callback")
-        
+
         def __init__(self, original, callback):
             self.original = original
             self.callback = callback
-        
+
         def write(self, text):
             self.original.write(text)
             self.callback(text)
-        
+
         def flush(self):
             self.original.flush()
-    
+
     class _LogHandler(logging.Handler):
         """Lightweight logging handler."""
-        
+
         __slots__ = ("callback",)
-        
+
         def __init__(self, callback):
             super().__init__()
             self.callback = callback
-        
+
         def emit(self, record):
             self.callback(self.format(record) + "\n")

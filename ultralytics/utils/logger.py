@@ -90,11 +90,11 @@ class ConsoleLogger:
             line = line.rstrip()
             
             # Handle progress bars - only show 100% completions
-            if "it/s" in line and "%|" in line:
+            if ("it/s" in line and ("%|" in line or "━" in line)) or ("100%" in line and ("it/s" in line or "[" in line)):
                 if "100%" not in line:
                     continue
                 # Dedupe 100% lines by core content (strip timing)
-                progress_core = line.split("[")[0].strip()
+                progress_core = line.split("[")[0].split("]")[0].strip()
                 if progress_core == self.last_progress_line:
                     continue
                 self.last_progress_line = progress_core

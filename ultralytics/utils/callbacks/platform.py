@@ -13,17 +13,17 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_pretrain_routine_end(trainer):
-    """Console capture already started in on_pretrain_routine_start."""
+    """Handle pre-training routine completion event."""
     pass
 
 
 def on_fit_epoch_end(trainer):
-    """Log epoch completion."""
+    """Handle end of training epoch event."""
     pass
 
 
 def on_model_save(trainer):
-    """Log model save events."""
+    """Handle model checkpoint save event."""
     pass
 
 
@@ -34,22 +34,22 @@ def on_train_end(trainer):
 
 
 def on_train_start(trainer):
-    """Log training start."""
+    """Handle training start event."""
     pass
 
 
 def on_val_start(validator):
-    """Disabled - only log training."""
+    """Handle validation start event."""
     pass
 
 
 def on_predict_start(predictor):
-    """Disabled - only log training."""
+    """Handle prediction start event."""
     pass
 
 
 def on_export_start(exporter):
-    """Disabled - only log training."""
+    """Handle model export start event."""
     pass
 
 

@@ -281,7 +281,7 @@ It offers three significant enhancements:
             source="image6.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
-            obj_ids=[1],  # Same object ID
+            obj_ids=[2],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
         # perferm inference on new image
@@ -302,7 +302,7 @@ It offers three significant enhancements:
 
 ### Use Cases
 
-SAM2DynamicInteractivePredictor is ideal for:
+`SAM2DynamicInteractivePredictor` is ideal for:
 
 - **Video annotation workflows** where new objects appear during the sequence
 - **Interactive video editing** requiring real-time object addition and refinement

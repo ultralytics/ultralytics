@@ -100,21 +100,15 @@ class ConsoleLogger:
                 line = line.rstrip()
                 if line:
                     # Check if line already has timestamp
-                    has_timestamp = line.startswith('[') and ']' in line[:15]
+                    has_timestamp = line.startswith('[') and ']' in line[:30]
                     
-                    # Check for tqdm progress bar pattern
-                    is_progress = re.search(r'\s*\d+%\|[#\s]*\|\s*\d+/\d+\s*\[', line)
+                    # Check for tqdm progress bar pattern - any line with percentage and it/s
+                    is_progress = ('it/s' in line and '%|' in line)
                     
-                    # For progress bars, only log 100% completion or every 25%
+                    # Skip all progress bars except 100% completion
                     if is_progress:
-                        progress_match = re.search(r'(\d+)%', line)
-                        if progress_match:
-                            progress_pct = int(progress_match.group(1))
-                            # Only log 25%, 50%, 75%, 100% or if it's been >2 seconds
-                            should_log = (progress_pct in [25, 50, 75, 100] or 
-                                        current_time - self.last_line_time > 2.0)
-                            if not should_log:
-                                continue
+                        if not re.search(r'100%\|[#\s]*\|', line):
+                            continue
                     
                     # Regular deduplication for non-progress lines
                     elif line == self.last_line and current_time - self.last_line_time < 0.1:

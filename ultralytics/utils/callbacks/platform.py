@@ -25,7 +25,7 @@ def on_fit_epoch_end(trainer):
     if RANK in {-1, 0} and hasattr(trainer, 'system_logger'):
         # Get current system metrics
         system_metrics = trainer.system_logger.get_metrics()
-        print(system_metrics)
+        print(f"SystemLogger: {system_metrics}")
         
         # Add to trainer metrics for logging/storage
         if not hasattr(trainer, 'system_metrics_log'):
@@ -80,6 +80,6 @@ callbacks = (
         "on_predict_start": on_predict_start,
         "on_export_start": on_export_start,
     }
-    if SETTINGS.get("platform", True) is True  # disabled for debugging
+    if SETTINGS.get("platform", False) is True  # disabled for debugging
     else {}
 )

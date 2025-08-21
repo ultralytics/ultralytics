@@ -356,7 +356,7 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
 
 @TryExcept()
-def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
+def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds="", reload=False):
     """
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
@@ -366,6 +366,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
+        reload (bool): Reload the package(s) after installation. May not work correctly for some packages.
 
     Examples:
         >>> from ultralytics.utils.checks import check_requirements
@@ -424,9 +425,15 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 LOGGER.info(attempt_install(s, cmds, use_uv=not ARM64 and check_uv()))
                 dt = time.time() - t
                 LOGGER.info(f"{prefix} AutoUpdate success ✅ {dt:.1f}s")
-                LOGGER.warning(
-                    f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-                )
+                if reload:
+                    import sys
+
+                    for m in pkgs:
+                        sys.modules.pop(m, None)
+                else:
+                    LOGGER.warning(
+                        f"{prefix} {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
+                    )
             except Exception as e:
                 LOGGER.warning(f"{prefix} ❌ {e}")
                 return False

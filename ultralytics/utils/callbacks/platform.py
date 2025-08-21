@@ -3,24 +3,13 @@
 from pathlib import Path
 
 from ultralytics.utils import RANK
-from ultralytics.utils.logger import ConsoleLogger
-
-# Global early logger for debugging - start capture immediately when module loads
-_global_logger = None
-if RANK in {-1, 0}:
-    try:
-        log_path = Path("train.log")
-        if log_path.exists():
-            log_path.unlink()
-    except Exception:
-        pass
-
+from ultralytics.utils.logger import ConsoleLogger, DEFAULT_LOG_PATH
 
 def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
         # Create and start logger immediately before any other output
-        trainer.platform_logger = ConsoleLogger(log_path)
+        trainer.platform_logger = ConsoleLogger(DEFAULT_LOG_PATH)
         trainer.platform_logger.start_capture()
 
 

@@ -1003,8 +1003,8 @@ class Exporter:
                 np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
                 np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
-        import onnx2tf  # scoped for after ONNX export for reduced conflict during import
         import onnx
+        import onnx2tf  # scoped for after ONNX export for reduced conflict during import
 
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
         keras_model = onnx2tf.convert(

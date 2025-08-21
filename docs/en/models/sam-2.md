@@ -230,7 +230,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
 
-![SAM 2 Example Results](https://private-user-images.githubusercontent.com/31230805/478951604-27e3b96c-2ecb-497e-9bb5-c19157fe6266.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NTU1MDcxMzAsIm5iZiI6MTc1NTUwNjgzMCwicGF0aCI6Ii8zMTIzMDgwNS80Nzg5NTE2MDQtMjdlM2I5NmMtMmVjYi00OTdlLTliYjUtYzE5MTU3ZmU2MjY2LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA4MTglMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwODE4VDA4NDcxMFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTc1YWJmNWM2MDQ2NmEwOGIwMDViYTcxN2Y3ZmI1OTQ4NGJiNzlhMmJhNDQxYWM5MTM0YjZlOTFhYmZjMGYwOWImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.GjYb3bnbZq9Wk11ysUc4BhPwaE2nlR9zF6TrCWVh0TE)
+![SAM 2 Example Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam2-interative-sample.avif)
 
 ### Key Features
 

@@ -2,15 +2,18 @@
 
 import logging
 import queue
+import shutil
 import sys
 import threading
 from datetime import datetime
 from pathlib import Path
 from time import time
 
+import psutil
 import requests
 
 from ultralytics.utils import RANK
+from ultralytics.utils.checks import check_requirements
 
 # Initialize default log file
 DEFAULT_LOG_PATH = Path("train.log")
@@ -187,3 +190,76 @@ class ConsoleLogger:
 
         def emit(self, record):
             self.callback(self.format(record) + "\n")
+
+
+class SystemLogger:
+    """Log dynamic system metrics for training monitoring."""
+
+    def __init__(self):
+        self.pynvml = None
+        self.nvidia_initialized = self._init_nvidia()
+        self.process = psutil.Process()
+        self.net_start = psutil.net_io_counters()
+        self.disk_start = psutil.disk_io_counters()
+
+    def _init_nvidia(self):
+        """Initialize NVIDIA GPU monitoring."""
+        try:
+            check_requirements("pynvml>=12.0.0")
+            self.pynvml = __import__("pynvml")
+            self.pynvml.nvmlInit()
+            return True
+        except Exception:
+            return False
+
+    def get_metrics(self):
+        """Get current system metrics."""
+        net = psutil.net_io_counters()
+        disk = psutil.disk_io_counters()
+        memory = psutil.virtual_memory()
+        disk_usage = shutil.disk_usage("/")
+
+        metrics = {
+            "cpu": psutil.cpu_percent(),
+            "ram": memory.percent,
+            "disk": {
+                "read_mb": (disk.read_bytes - self.disk_start.read_bytes) / 1024**2,
+                "write_mb": (disk.write_bytes - self.disk_start.write_bytes) / 1024**2,
+                "used_gb": (disk_usage.used) / 1024**3,
+            },
+            "network": {
+                "recv_mb": (net.bytes_recv - self.net_start.bytes_recv) / 1024**2,
+                "sent_mb": (net.bytes_sent - self.net_start.bytes_sent) / 1024**2,
+            },
+            "gpus": {},
+        }
+
+        # Add GPU metrics (NVIDIA only)
+        if self.nvidia_initialized:
+            metrics["gpus"].update(self._get_nvidia_metrics())
+
+        return metrics
+
+    def _get_nvidia_metrics(self):
+        """Get NVIDIA GPU metrics."""
+        gpus = {}
+        if not self.nvidia_initialized or not self.pynvml:
+            return gpus
+        try:
+            device_count = self.pynvml.nvmlDeviceGetCount()
+            for i in range(device_count):
+                handle = self.pynvml.nvmlDeviceGetHandleByIndex(i)
+                util = self.pynvml.nvmlDeviceGetUtilizationRates(handle)
+                memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
+                temp = self.pynvml.nvmlDeviceGetTemperature(handle, self.pynvml.NVML_TEMPERATURE_GPU)
+                power = self.pynvml.nvmlDeviceGetPowerUsage(handle) // 1000
+
+                gpus[str(i)] = {
+                    "usage": util.gpu,
+                    "memory": (memory.used / memory.total) * 100,
+                    "temp": temp,
+                    "power": power,
+                }
+        except Exception:
+            pass
+        return gpus

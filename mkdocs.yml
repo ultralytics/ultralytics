@@ -672,6 +672,7 @@ nav:
               - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
+              - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md

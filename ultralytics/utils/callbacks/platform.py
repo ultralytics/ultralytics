@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import logging
 import queue
 import re
@@ -8,6 +9,8 @@ import threading
 from datetime import datetime
 from pathlib import Path
 from time import time
+
+import requests
 
 from ultralytics.utils import RANK
 
@@ -23,11 +26,16 @@ if RANK in {-1, 0}:
 
 
 class ConsoleLogger:
-    """Captures console output and streams to GCP bucket or local file."""
+    """Captures console output and streams to GCP bucket, API endpoint, or local file."""
 
     def __init__(self, source):
-        """Initialize console logger with GCP bucket or local file path."""
-        self.source = Path(source) if not source.startswith("gs://") else source
+        """Initialize console logger with GCP bucket, API endpoint, or local file path."""
+        self.source = source
+        self.is_gcs = isinstance(source, str) and source.startswith("gs://")
+        self.is_api = isinstance(source, str) and (source.startswith("http://") or source.startswith("https://"))
+        self.is_local = not (self.is_gcs or self.is_api)
+        if self.is_local:
+            self.source = Path(source)
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.log_queue = queue.Queue()
@@ -140,10 +148,12 @@ class ConsoleLogger:
                 continue
 
     def _write_log(self, text):
-        """Write log to GCS bucket or local file."""
+        """Write log to GCS bucket, API endpoint, or local file."""
         try:
-            if str(self.source).startswith("gs://"):
+            if self.is_gcs:
                 self._write_gcs(text)
+            elif self.is_api:
+                self._write_api(text)
             else:
                 self._write_local(text)
         except Exception as e:
@@ -154,8 +164,8 @@ class ConsoleLogger:
         """Write log to GCS bucket."""
         from google.cloud import storage
 
-        bucket_name = str(self.source).replace("gs://", "").split("/")[0]
-        blob_path = "/".join(str(self.source).replace("gs://", "").split("/")[1:])
+        bucket_name = self.source.replace("gs://", "").split("/")[0]
+        blob_path = "/".join(self.source.replace("gs://", "").split("/")[1:])
 
         client = storage.Client()
         bucket = client.bucket(bucket_name)
@@ -170,10 +180,15 @@ class ConsoleLogger:
 
         blob.upload_from_string(existing_content + text)
 
+    def _write_api(self, text):
+        """Send log to API endpoint."""
+        payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
+        requests.post(self.source, json=payload, timeout=5)
+
     def _write_local(self, text):
         """Write log to local file."""
         self.source.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.source, "a", encoding="utf-8") as f:
+        with self.source.open("a", encoding="utf-8") as f:
             f.write(text)
             f.flush()
 

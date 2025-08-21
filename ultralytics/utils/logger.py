@@ -341,16 +341,16 @@ class SystemLogger:
 if __name__ == "__main__":
     print("SystemLogger Real-time Metrics Monitor")
     print("Press Ctrl+C to stop\n")
-    
+
     logger = SystemLogger()
-    
+
     try:
         while True:
             metrics = logger.get_metrics()
-            
+
             # Clear screen (works on most terminals)
             print("\033[H\033[J", end="")
-            
+
             # Display system metrics
             print(f"CPU: {metrics['cpu']:5.1f}%")
             print(f"RAM: {metrics['ram']:5.1f}%")
@@ -359,19 +359,21 @@ if __name__ == "__main__":
             print(f"Disk Used: {metrics['disk']['used_gb']:8.1f} GB")
             print(f"Net Recv: {metrics['network']['recv_mb']:9.1f} MB")
             print(f"Net Sent: {metrics['network']['sent_mb']:9.1f} MB")
-            
+
             # Display GPU metrics if available
-            if metrics['gpus']:
+            if metrics["gpus"]:
                 print("\nGPU Metrics:")
-                for gpu_id, gpu_data in metrics['gpus'].items():
-                    print(f"  GPU {gpu_id}: {gpu_data['usage']:3}% | "
-                          f"Mem: {gpu_data['memory']:5.1f}% | "
-                          f"Temp: {gpu_data['temp']:2}°C | "
-                          f"Power: {gpu_data['power']:3}W")
+                for gpu_id, gpu_data in metrics["gpus"].items():
+                    print(
+                        f"  GPU {gpu_id}: {gpu_data['usage']:3}% | "
+                        f"Mem: {gpu_data['memory']:5.1f}% | "
+                        f"Temp: {gpu_data['temp']:2}°C | "
+                        f"Power: {gpu_data['power']:3}W"
+                    )
             else:
                 print("\nGPU: No NVIDIA GPUs detected")
-            
+
             time.sleep(1)
-            
+
     except KeyboardInterrupt:
         print("\n\nStopped monitoring.")

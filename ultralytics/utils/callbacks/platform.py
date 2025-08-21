@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 from ultralytics.utils import RANK
 from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger
 

@@ -15,9 +15,7 @@ from ultralytics.utils import RANK
 _global_logger = None
 if RANK in {-1, 0}:
     try:
-        from pathlib import Path
-
-        log_path = Path("ultralytics_debug.log")
+        log_path = Path("train.log")
         if log_path.exists():
             log_path.unlink()
     except Exception:
@@ -197,13 +195,8 @@ class ConsoleLogger:
 def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
-        # Delete existing log and start capture FIRST
-        log_path = Path("train.log")
-        if log_path.exists():
-            log_path.unlink()
-
         # Create and start logger immediately before any other output
-        trainer.platform_logger = ConsoleLogger("train.log")
+        trainer.platform_logger = ConsoleLogger(log_path)
         trainer.platform_logger.start_capture()
 
 
@@ -214,14 +207,12 @@ def on_pretrain_routine_end(trainer):
 
 def on_fit_epoch_end(trainer):
     """Log epoch completion."""
-    if logger := getattr(trainer, "platform_logger", None):
-        pass
+    pass
 
 
 def on_model_save(trainer):
     """Log model save events."""
-    if logger := getattr(trainer, "platform_logger", None):
-        pass
+    pass
 
 
 def on_train_end(trainer):
@@ -232,8 +223,7 @@ def on_train_end(trainer):
 
 def on_train_start(trainer):
     """Log training start."""
-    if logger := getattr(trainer, "platform_logger", None):
-        pass
+    pass
 
 
 def on_val_start(validator):

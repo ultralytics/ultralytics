@@ -807,6 +807,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = dict(dataset_record)
     data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    data_yaml.pop("class_names")
 
     for split in sorted(splits):
         (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)

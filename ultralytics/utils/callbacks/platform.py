@@ -26,15 +26,13 @@ if RANK in {-1, 0}:
 
 
 class ConsoleLogger:
-    """Captures console output and streams to GCP bucket, API endpoint, or local file."""
+    """Captures console output and streams to API endpoint or local file."""
 
     def __init__(self, source):
-        """Initialize console logger with GCP bucket, API endpoint, or local file path."""
+        """Initialize console logger with API endpoint or local file path."""
         self.source = source
-        self.is_gcs = isinstance(source, str) and source.startswith("gs://")
         self.is_api = isinstance(source, str) and (source.startswith("http://") or source.startswith("https://"))
-        self.is_local = not (self.is_gcs or self.is_api)
-        if self.is_local:
+        if not self.is_api:
             self.source = Path(source)
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
@@ -148,37 +146,15 @@ class ConsoleLogger:
                 continue
 
     def _write_log(self, text):
-        """Write log to GCS bucket, API endpoint, or local file."""
+        """Write log to API endpoint or local file."""
         try:
-            if self.is_gcs:
-                self._write_gcs(text)
-            elif self.is_api:
+            if self.is_api:
                 self._write_api(text)
             else:
                 self._write_local(text)
         except Exception as e:
             # Don't break training if logging fails
             print(f"Platform logging error: {e}", file=self.original_stderr)
-
-    def _write_gcs(self, text):
-        """Write log to GCS bucket."""
-        from google.cloud import storage
-
-        bucket_name = self.source.replace("gs://", "").split("/")[0]
-        blob_path = "/".join(self.source.replace("gs://", "").split("/")[1:])
-
-        client = storage.Client()
-        bucket = client.bucket(bucket_name)
-        blob = bucket.blob(blob_path)
-
-        # Append to existing file
-        existing_content = ""
-        try:
-            existing_content = blob.download_as_text()
-        except Exception:
-            pass  # File doesn't exist yet
-
-        blob.upload_from_string(existing_content + text)
 
     def _write_api(self, text):
         """Send log to API endpoint."""

@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -107,7 +107,7 @@ jobs:
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
         os: [ubuntu-latest, macos-latest, ubuntu-24.04-arm]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         model: [yolo11n]
     steps:
       - uses: actions/checkout@v5
@@ -168,7 +168,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         torch: [latest]
         include:
           - os: ubuntu-latest
@@ -205,7 +205,7 @@ jobs:
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
           flags: Tests
@@ -360,7 +360,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.12"]
+        python-version: ["3.13"]
     defaults:
       run:
         shell: bash -el {0}

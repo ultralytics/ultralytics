@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Platform callback functions for console logging during YOLO11 training lifecycle events.
+keywords: platform callbacks, training callbacks, console logging, YOLO11 training, lifecycle events, Ultralytics
 ---
 
 # Reference for `ultralytics/utils/callbacks/platform.py`

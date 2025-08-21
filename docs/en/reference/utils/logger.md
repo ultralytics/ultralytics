@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: High-performance console output capture with API/file streaming for YOLO11 training logs.
+keywords: ConsoleLogger, console capture, log streaming, API logging, file logging, YOLO11, Ultralytics
 ---
 
 # Reference for `ultralytics/utils/logger.py`

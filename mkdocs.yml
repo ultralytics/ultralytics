@@ -672,6 +672,7 @@ nav:
               - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
+              - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md
@@ -682,6 +683,7 @@ nav:
           - export: reference/utils/export.md
           - files: reference/utils/files.md
           - instance: reference/utils/instance.md
+          - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
           - ops: reference/utils/ops.md

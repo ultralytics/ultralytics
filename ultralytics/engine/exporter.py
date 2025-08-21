@@ -582,7 +582,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0,<1.18.0"]
+        requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.59", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)

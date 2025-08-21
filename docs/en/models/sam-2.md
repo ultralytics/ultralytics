@@ -287,19 +287,18 @@ It offers three significant enhancements:
         # perferm inference on new image
         results = predictor(source="image7.jpg")
         ```
+
 !!! note
 
     The `SAM2DynamicInteractivePredictor` is designed to work with SAM2 models, and support adding/refining categories by all the [box/point/mask prompts](#sam-2-prediction-examples) natively that SAM2 supports. It is particularly useful for scenarios where objects appear or change over time, such as in video annotation or interactive editing tasks.
 
-
 #### Arguments
 
-| Name               | Default Value         | Data Type   | Description                                                                                                      |
-| ------------------ | --------------------- | ---------   | ---------------------------------------------------------------------------------------------------------------- |
-| `max_obj_num`      | `3`                   | `str`       | The preset maximum number of categories                                                                          |
-| `update_memory`    | `False`               | `bool`      | Whether to update memory with new prompts                                                                        |
-| `obj_ids`          | `None`                | `List[int]` | List of object IDs corresponding to prompts                                                                      |
-
+| Name            | Default Value | Data Type   | Description                                 |
+| --------------- | ------------- | ----------- | ------------------------------------------- |
+| `max_obj_num`   | `3`           | `str`       | The preset maximum number of categories     |
+| `update_memory` | `False`       | `bool`      | Whether to update memory with new prompts   |
+| `obj_ids`       | `None`        | `List[int]` | List of object IDs corresponding to prompts |
 
 ### Use Cases
 

@@ -2,7 +2,6 @@
 
 import logging
 import queue
-import re
 import sys
 import threading
 from datetime import datetime
@@ -24,7 +23,7 @@ if RANK in {-1, 0}:
 
 
 class ConsoleLogger:
-    """High-performance console output capture with API/file streaming."""
+    """Console output capture with API/file streaming and deduplication."""
 
     def __init__(self, destination):
         """Initialize with API endpoint or local file path."""
@@ -32,33 +31,29 @@ class ConsoleLogger:
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if not self.is_api:
             self.destination = Path(destination)
-
+        
         # Console capture
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.log_queue = queue.Queue(maxsize=1000)
         self.active = False
         self.worker_thread = None
-
+        
         # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
-        self.last_progress_core = ""
-
-        # Compiled regex for performance
-        self._progress_pattern = re.compile(r"100%\|[#\s]*\|")
-        self._timing_pattern = re.compile(r"\[\d+:\d+<[\d:,]+\s*[\d.]+it/s\]")
-        self._timestamp_pattern = re.compile(r"^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]")
+        self.last_progress_line = ""  # Track 100% progress lines separately
+        self.last_was_progress = False  # Track if last line was a progress bar
 
     def start_capture(self):
         """Start capturing console output."""
         if self.active:
             return
-
+        
         self.active = True
         sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
         sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
-
+        
         self._hook_ultralytics_logger()
         self.worker_thread = threading.Thread(target=self._stream_worker, daemon=True)
         self.worker_thread.start()
@@ -76,55 +71,60 @@ class ConsoleLogger:
         """Stop capturing console output."""
         if not self.active:
             return
-
+        
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
-        self.log_queue.put(None)  # Stop signal
+        self.log_queue.put(None)
 
     def _queue_log(self, text):
         """Queue console text with deduplication."""
         if not self.active:
             return
-
+        
         current_time = time()
-
+        
         # Handle carriage returns
         if "\r" in text:
             text = text.split("\r")[-1]
-
-        # Process each line, but skip the last empty element if text ends with newline
+        
+        # Process each line, skip trailing empty from newlines
         lines = text.split("\n")
         if lines and lines[-1] == "":
             lines = lines[:-1]
-
+        
         for line in lines:
             line = line.rstrip()
-
-            # Check for progress bars (skip empty lines for this check)
-            if line:
-                is_progress = "it/s" in line and "%|" in line
-                if is_progress:
-                    if not self._progress_pattern.search(line):
-                        continue
-                    # Dedupe by core content (strip timing)
-                    progress_core = self._timing_pattern.sub("", line).strip()
-                    if progress_core == self.last_progress_core:
-                        continue
-                    self.last_progress_core = progress_core
-                else:
-                    # Regular deduplication
-                    if line == self.last_line and current_time - self.last_time < 0.1:
-                        continue
-
+            
+            # Skip tqdm progress bars unless they're 100% complete
+            if "it/s" in line and "%|" in line:
+                if not line.count("100%"):
+                    continue
+                # For 100% lines, dedupe by removing timing info
+                progress_core = line.split("[")[0].strip()  # Keep everything before timing
+                if progress_core == self.last_progress_line:
+                    continue
+                self.last_progress_line = progress_core
+                self.last_was_progress = True
+            else:
+                # Skip empty line immediately after progress bar
+                if not line and self.last_was_progress:
+                    self.last_was_progress = False
+                    continue
+                self.last_was_progress = False
+            
+            # Deduplicate any identical subsequent lines within 0.1s
+            if line == self.last_line and current_time - self.last_time < 0.1:
+                continue
+            
             self.last_line = line
             self.last_time = current_time
-
-            # Add timestamp (for all lines including empty ones)
-            if not self._timestamp_pattern.match(line):
+            
+            # Add timestamp if needed
+            if not line.startswith("[20"):  # Simple timestamp check
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
-
+            
             # Queue with overflow protection
             try:
                 self.log_queue.put_nowait(f"{line}\n")
@@ -169,28 +169,28 @@ class ConsoleLogger:
 
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
-
+        
         __slots__ = ("original", "callback")
-
+        
         def __init__(self, original, callback):
             self.original = original
             self.callback = callback
-
+        
         def write(self, text):
             self.original.write(text)
             self.callback(text)
-
+        
         def flush(self):
             self.original.flush()
-
+    
     class _LogHandler(logging.Handler):
         """Lightweight logging handler."""
-
+        
         __slots__ = ("callback",)
-
+        
         def __init__(self, callback):
             super().__init__()
             self.callback = callback
-
+        
         def emit(self, record):
             self.callback(self.format(record) + "\n")

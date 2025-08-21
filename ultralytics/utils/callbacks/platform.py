@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from pathlib import Path
 
 from ultralytics.utils import RANK
-from ultralytics.utils.logger import ConsoleLogger, DEFAULT_LOG_PATH
+from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger
+
 
 def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""

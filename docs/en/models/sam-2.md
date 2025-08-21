@@ -292,7 +292,7 @@ It offers three significant enhancements:
     The `SAM2DynamicInteractivePredictor` is designed to work with SAM2 models, and support adding/refining categories by all the [box/point/mask prompts](#sam-2-prediction-examples) natively that SAM2 supports. It is particularly useful for scenarios where objects appear or change over time, such as in video annotation or interactive editing tasks.
 
 
-#### Parameters
+#### Arguments
 
 | Name               | Default Value         | Data Type   | Description                                                                                                      |
 | ------------------ | --------------------- | ---------   | ---------------------------------------------------------------------------------------------------------------- |

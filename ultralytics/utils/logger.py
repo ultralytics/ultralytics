@@ -7,7 +7,7 @@ import sys
 import threading
 from datetime import datetime
 from pathlib import Path
-from time import time
+import time
 
 import psutil
 import requests
@@ -114,7 +114,7 @@ class ConsoleLogger:
         if not self.active:
             return
 
-        current_time = time()
+        current_time = time.time()
 
         # Handle carriage returns and process lines
         if "\r" in text:
@@ -296,13 +296,13 @@ class SystemLogger:
             "cpu": psutil.cpu_percent(),
             "ram": memory.percent,
             "disk": {
-                "read_mb": (disk.read_bytes - self.disk_start.read_bytes) / 1024**2,
-                "write_mb": (disk.write_bytes - self.disk_start.write_bytes) / 1024**2,
-                "used_gb": (disk_usage.used) / 1024**3,
+                "read_mb": (disk.read_bytes - self.disk_start.read_bytes) / (1 << 20),
+                "write_mb": (disk.write_bytes - self.disk_start.write_bytes) / (1 << 20),
+                "used_gb": (disk_usage.used) / (1 << 30),
             },
             "network": {
-                "recv_mb": (net.bytes_recv - self.net_start.bytes_recv) / 1024**2,
-                "sent_mb": (net.bytes_sent - self.net_start.bytes_sent) / 1024**2,
+                "recv_mb": (net.bytes_recv - self.net_start.bytes_recv) / (1 << 20),
+                "sent_mb": (net.bytes_sent - self.net_start.bytes_sent) / (1 << 20),
             },
             "gpus": {},
         }
@@ -336,3 +336,42 @@ class SystemLogger:
         except Exception:
             pass
         return gpus
+
+
+if __name__ == "__main__":
+    print("SystemLogger Real-time Metrics Monitor")
+    print("Press Ctrl+C to stop\n")
+    
+    logger = SystemLogger()
+    
+    try:
+        while True:
+            metrics = logger.get_metrics()
+            
+            # Clear screen (works on most terminals)
+            print("\033[H\033[J", end="")
+            
+            # Display system metrics
+            print(f"CPU: {metrics['cpu']:5.1f}%")
+            print(f"RAM: {metrics['ram']:5.1f}%")
+            print(f"Disk Read: {metrics['disk']['read_mb']:8.1f} MB")
+            print(f"Disk Write: {metrics['disk']['write_mb']:7.1f} MB")
+            print(f"Disk Used: {metrics['disk']['used_gb']:8.1f} GB")
+            print(f"Net Recv: {metrics['network']['recv_mb']:9.1f} MB")
+            print(f"Net Sent: {metrics['network']['sent_mb']:9.1f} MB")
+            
+            # Display GPU metrics if available
+            if metrics['gpus']:
+                print("\nGPU Metrics:")
+                for gpu_id, gpu_data in metrics['gpus'].items():
+                    print(f"  GPU {gpu_id}: {gpu_data['usage']:3}% | "
+                          f"Mem: {gpu_data['memory']:5.1f}% | "
+                          f"Temp: {gpu_data['temp']:2}°C | "
+                          f"Power: {gpu_data['power']:3}W")
+            else:
+                print("\nGPU: No NVIDIA GPUs detected")
+            
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("\n\nStopped monitoring.")

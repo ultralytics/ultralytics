@@ -294,9 +294,12 @@ It offers three significant enhancements:
 
 #### Parameters
 
-- **`max_obj_num`**: Maximum number of objects to track simultaneously
-- **`update_memory`**: Whether to update memory with new prompts
-- **`obj_ids`**: List of object IDs corresponding to prompts
+| Name               | Default Value         | Data Type   | Description                                                                                                      |
+| ------------------ | --------------------- | ---------   | ---------------------------------------------------------------------------------------------------------------- |
+| `max_obj_num`      | `3`                   | `str`       | The preset maximum number of categories                                                                          |
+| `update_memory`    | `False`               | `bool`      | Whether to update memory with new prompts                                                                        |
+| `obj_ids`          | `None`                | `List[int]` | List of object IDs corresponding to prompts                                                                      |
+
 
 ### Use Cases
 

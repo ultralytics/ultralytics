@@ -241,42 +241,14 @@ It offers three significant enhancements:
 3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
 
 ### Core Capabilities
-
+- **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts
 - **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
 - **Multi-Object Tracking**: Supports tracking multiple objects simultaneously with individual object IDs
-- **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts
 - **Real-Time Updates**: Allows adding new prompts during inference without reprocessing previous frames
 - **Independent Image Processing**: Process standalone images with shared memory context for cross-image object consistency
 
-!!! example "Basic Usage"
-
-    Initialize the predictor and perform basic inference with prompts.
-
-    === "Python"
-
-        ```python
-        from ultralytics.models.sam import SAM2DynamicInteractivePredictor
-
-        # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
-        predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=3)
-
-        # Load first frame with initial prompts
-        image1 = "path/to/frame1.jpg"
-        results1 = predictor.inference(
-            img=image1,
-            bboxes=[[100, 100, 200, 200], [300, 150, 400, 250]],  # Two bounding boxes
-            obj_ids=[1, 2],  # Object IDs
-            update_memory=True,  # Update memory with these objects
-        )
-
-        # Process subsequent frames without prompts (tracking mode)
-        results2 = predictor.inference(img="path/to/frame2.jpg")
-        ```
 
 !!! example "Dynamic Object Addition"
-
-    Add new objects during video processing for untracked instances.
 
     === "Python"
 
@@ -293,7 +265,7 @@ It offers three significant enhancements:
         # Track existing objects in frame 2
         results2 = predictor(source="frame2.jpg")
 
-        # Add new object that appeared in frame 3
+        # Add new object that appears in frame 3
         results3 = predictor(
             source="frame3.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
@@ -301,32 +273,13 @@ It offers three significant enhancements:
             update_memory=True,  # Add to memory
         )
 
-        # Continue tracking all objects
-        results4 = predictor(source="frame4.jpg")
-        ```
-
-!!! example "Continual Learning"
-
-    Improve tracking performance by adding refinement prompts for existing objects.
-
-    === "Python"
-
-        ```python
-        from ultralytics.models.sam import SAM2DynamicInteractivePredictor
-
-        # Create SAM2DynamicInteractivePredictor
-        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
-        predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
-        # Initial object setup
-        predictor.inference(img="frame1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
-
         # Process several frames
-        for i in range(2, 10):
+        for i in range(4, 10):
             results = predictor.inference(img=f"frame{i}.jpg")
 
         # Add refinement prompts for better tracking
         # This helps when object appearance changes significantly
-        predictor(
+        results10= predictor(
             source="frame10.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
@@ -334,9 +287,8 @@ It offers three significant enhancements:
             update_memory=True,  # Update memory with new information
         )
 
-        # Continue tracking with improved model
-        results11 = predictor(source="frame11.jpg")
         ```
+
 
 #### Parameters
 

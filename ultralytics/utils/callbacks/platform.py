@@ -5,6 +5,7 @@ import queue
 import re
 import sys
 import threading
+from datetime import datetime
 from pathlib import Path
 from time import time
 
@@ -19,7 +20,6 @@ if RANK in {-1, 0}:
         log_path = Path("ultralytics_debug.log")
         if log_path.exists():
             log_path.unlink()
-        print("DEBUG: Starting global early logger", file=sys.__stderr__)
     except Exception:
         pass
 
@@ -36,7 +36,7 @@ class ConsoleLogger:
         self.active = False
         self.worker_thread = None
         self.last_line = ""
-        self.last_line_time = 0  # Track when last line was logged
+        self.last_line_time = 0
         
     def start_capture(self):
         """Start capturing console output and hook into Ultralytics LOGGER."""
@@ -85,7 +85,7 @@ class ConsoleLogger:
         self.log_queue.put(None)  # Signal worker to stop
         
     def _queue_log(self, text):
-        """Queue console text for streaming with smarter deduplication and multiline handling."""
+        """Queue console text for streaming with progress bar deduplication."""
         if self.active and text.strip():
             current_time = time()
             
@@ -102,19 +102,33 @@ class ConsoleLogger:
                     # Check if line already has timestamp
                     has_timestamp = line.startswith('[') and ']' in line[:15]
                     
-                    # Only dedupe if exact same line AND within 0.1 seconds
-                    is_duplicate = (line == self.last_line and 
-                                   current_time - self.last_line_time < 0.1)
+                    # Check for tqdm progress bar pattern
+                    is_progress = re.search(r'\s*\d+%\|[#\s]*\|\s*\d+/\d+\s*\[', line)
                     
-                    if not is_duplicate:
-                        self.last_line = line
-                        self.last_line_time = current_time
-                        
-                        # Add timestamp if not already present
-                        if has_timestamp:
-                            self.log_queue.put(f"{line}\n")
-                        else:
-                            self.log_queue.put(f"[{current_time:.3f}] {line}\n")
+                    # For progress bars, only log 100% completion or every 25%
+                    if is_progress:
+                        progress_match = re.search(r'(\d+)%', line)
+                        if progress_match:
+                            progress_pct = int(progress_match.group(1))
+                            # Only log 25%, 50%, 75%, 100% or if it's been >2 seconds
+                            should_log = (progress_pct in [25, 50, 75, 100] or 
+                                        current_time - self.last_line_time > 2.0)
+                            if not should_log:
+                                continue
+                    
+                    # Regular deduplication for non-progress lines
+                    elif line == self.last_line and current_time - self.last_line_time < 0.1:
+                        continue
+                    
+                    self.last_line = line
+                    self.last_line_time = current_time
+                    
+                    # Add timestamp if not already present
+                    if has_timestamp:
+                        self.log_queue.put(f"{line}\n")
+                    else:
+                        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        self.log_queue.put(f"[{timestamp}] {line}\n")
             
     def _stream_worker(self):
         """Background worker to stream logs."""
@@ -153,7 +167,7 @@ class ConsoleLogger:
         existing_content = ""
         try:
             existing_content = blob.download_as_text()
-        except:
+        except Exception as e:
             pass  # File doesn't exist yet
             
         blob.upload_from_string(existing_content + text)
@@ -191,41 +205,35 @@ def on_pretrain_routine_start(trainer):
         # Create and start logger immediately before any other output
         trainer.platform_logger = ConsoleLogger("ultralytics_debug.log")
         trainer.platform_logger.start_capture()
-        
-        print("DEBUG: Platform logger started at routine start", file=trainer.platform_logger.original_stderr)
 
 
 def on_pretrain_routine_end(trainer):
     """Console capture already started in on_pretrain_routine_start."""
-    if logger := getattr(trainer, "platform_logger", None):
-        print(f"DEBUG: Platform console logging active: {logger.source}", file=logger.original_stderr)
-        LOGGER.info(f"Platform console logging active: {logger.source}")
+    pass
 
 
 def on_fit_epoch_end(trainer):
     """Log epoch completion."""
     if logger := getattr(trainer, "platform_logger", None):
-        logger._queue_log(f"Epoch {trainer.epoch} completed\n")
+        pass
 
 
 def on_model_save(trainer):
     """Log model save events."""
     if logger := getattr(trainer, "platform_logger", None):
-        logger._queue_log(f"Model saved: {trainer.last}\n")
+        pass
 
 
 def on_train_end(trainer):
     """Stop console capture and finalize logs."""
     if logger := getattr(trainer, "platform_logger", None):
-        logger._queue_log("Training completed\n")
         logger.stop_capture()
-        LOGGER.info("Platform console logging stopped")
 
 
 def on_train_start(trainer):
     """Log training start."""
     if logger := getattr(trainer, "platform_logger", None):
-        logger._queue_log(f"Training started: {trainer.args.model}\n")
+        pass
 
 
 def on_val_start(validator):

@@ -29,7 +29,7 @@ class ConsoleLogger:
     deduplication to reduce noise from repetitive console output.
 
     Attributes:
-        destination: Target destination for streaming (URL or Path object).
+        destination (str | Path): Target destination for streaming (URL or Path object).
         is_api (bool): Whether destination is an API endpoint (True) or local file (False).
         original_stdout: Reference to original sys.stdout for restoration.
         original_stderr: Reference to original sys.stderr for restoration.
@@ -60,7 +60,7 @@ class ConsoleLogger:
         Initialize with API endpoint or local file path.
 
         Args:
-            destination: API endpoint URL (http/https) or local file path for streaming output.
+            destination (str | Path): API endpoint URL (http/https) or local file path for streaming output.
         """
         self.destination = destination
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))

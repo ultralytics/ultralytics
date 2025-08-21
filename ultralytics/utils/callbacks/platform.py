@@ -65,6 +65,6 @@ callbacks = (
         "on_predict_start": on_predict_start,
         "on_export_start": on_export_start,
     }
-    if SETTINGS.get("platform", True) is True  # disabled for debugging
+    if SETTINGS.get("platform", False) is True  # disabled for debugging
     else {}
 )

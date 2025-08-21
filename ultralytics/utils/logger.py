@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import logging
 import queue
 import re
@@ -32,19 +33,19 @@ class ConsoleLogger:
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if not self.is_api:
             self.destination = Path(destination)
-
+        
         # Console capture
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.log_queue = queue.Queue(maxsize=1000)
         self.active = False
         self.worker_thread = None
-
+        
         # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
         self.last_progress_core = ""
-
+        
         # Compiled regex for performance
         self._progress_pattern = re.compile(r"100%\|[#\s]*\|")
         self._timing_pattern = re.compile(r"\[\d+:\d+<[\d:,]+\s*[\d.]+it/s\]")
@@ -54,11 +55,11 @@ class ConsoleLogger:
         """Start capturing console output."""
         if self.active:
             return
-
+        
         self.active = True
         sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
         sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
-
+        
         self._hook_ultralytics_logger()
         self.worker_thread = threading.Thread(target=self._stream_worker, daemon=True)
         self.worker_thread.start()
@@ -76,7 +77,7 @@ class ConsoleLogger:
         """Stop capturing console output."""
         if not self.active:
             return
-
+        
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
@@ -84,21 +85,31 @@ class ConsoleLogger:
 
     def _queue_log(self, text):
         """Queue console text with deduplication."""
-        if not (self.active and text.strip()):
+        if not self.active:
             return
-
+        
         current_time = time()
-
+        
         # Handle carriage returns
         if "\r" in text:
             text = text.split("\r")[-1]
-
+        
         # Process each line
         for line in text.split("\n"):
             line = line.rstrip()
+            
+            # Handle empty lines - preserve them but don't add timestamps
             if not line:
+                try:
+                    self.log_queue.put_nowait("\n")
+                except queue.Full:
+                    try:
+                        self.log_queue.get_nowait()
+                        self.log_queue.put_nowait("\n")
+                    except queue.Empty:
+                        pass
                 continue
-
+            
             # Check for progress bars
             is_progress = "it/s" in line and "%|" in line
             if is_progress:
@@ -113,15 +124,15 @@ class ConsoleLogger:
                 # Regular deduplication
                 if line == self.last_line and current_time - self.last_time < 0.1:
                     continue
-
+            
             self.last_line = line
             self.last_time = current_time
-
+            
             # Add timestamp if needed
             if not self._timestamp_pattern.match(line):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 line = f"[{timestamp}] {line}"
-
+            
             # Queue with overflow protection
             try:
                 self.log_queue.put_nowait(f"{line}\n")
@@ -167,28 +178,28 @@ class ConsoleLogger:
 
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
-
+        
         __slots__ = ("original", "callback")
-
+        
         def __init__(self, original, callback):
             self.original = original
             self.callback = callback
-
+        
         def write(self, text):
             self.original.write(text)
             self.callback(text)
-
+        
         def flush(self):
             self.original.flush()
-
+    
     class _LogHandler(logging.Handler):
         """Lightweight logging handler."""
-
+        
         __slots__ = ("callback",)
-
+        
         def __init__(self, callback):
             super().__init__()
             self.callback = callback
-
+        
         def emit(self, record):
             self.callback(self.format(record) + "\n")

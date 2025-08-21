@@ -37,6 +37,7 @@ class ConsoleLogger:
         self.worker_thread = None
         self.last_line = ""
         self.last_line_time = 0
+        self.last_progress_core = ""  # Track core progress content without timing
         
     def start_capture(self):
         """Start capturing console output and hook into Ultralytics LOGGER."""
@@ -109,6 +110,11 @@ class ConsoleLogger:
                     if is_progress:
                         if not re.search(r'100%\|[#\s]*\|', line):
                             continue
+                        # For 100% progress bars, dedupe by core content (strip timing)
+                        progress_core = re.sub(r'\[\d+:\d+<[\d:,]+\s*[\d.]+it/s\]', '', line).strip()
+                        if progress_core == self.last_progress_core:
+                            continue
+                        self.last_progress_core = progress_core
                     
                     # Regular deduplication for non-progress lines
                     elif line == self.last_line and current_time - self.last_line_time < 0.1:

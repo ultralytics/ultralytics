@@ -198,12 +198,12 @@ def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
         # Delete existing log and start capture FIRST
-        log_path = Path("ultralytics_debug.log")
+        log_path = Path("train.log")
         if log_path.exists():
             log_path.unlink()
         
         # Create and start logger immediately before any other output
-        trainer.platform_logger = ConsoleLogger("ultralytics_debug.log")
+        trainer.platform_logger = ConsoleLogger("train.log")
         trainer.platform_logger.start_capture()
 
 

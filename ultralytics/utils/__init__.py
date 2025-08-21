@@ -26,6 +26,7 @@ import tqdm
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
+from ultralytics.utils.system_metrics import SystemMetrics, get_system_info
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))

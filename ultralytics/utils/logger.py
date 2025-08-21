@@ -260,6 +260,7 @@ class SystemLogger:
     """
 
     def __init__(self):
+        """Initialize the system logger."""
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
         self.process = psutil.Process()

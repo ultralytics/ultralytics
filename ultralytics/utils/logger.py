@@ -297,24 +297,24 @@ class SystemLogger:
         }
         ```
 
+        - cpu (float): CPU usage percentage (0-100%)
+        - ram (float): RAM usage percentage (0-100%)
+        - disk (dict):
+            - read_mb (float): Cumulative disk read in megabytes since initialization
+            - write_mb (float): Cumulative disk write in megabytes since initialization
+            - used_gb (float): Total disk space used in gigabytes
+        - network (dict):
+            - recv_mb (float): Cumulative network received in megabytes since initialization
+            - sent_mb (float): Cumulative network sent in megabytes since initialization
+        - gpus (dict): GPU metrics by device index string (e.g., '0', '1') containing:
+            - usage (int): GPU utilization percentage (0-100%)
+            - memory (float): VRAM usage percentage (0-100%)
+            - temp (int): GPU temperature in degrees Celsius
+            - power (int): GPU power consumption in watts
+
+
         Returns:
             (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
-
-        Notes:
-            - cpu (float): CPU usage percentage (0-100%)
-            - ram (float): RAM usage percentage (0-100%)
-            - disk (dict):
-                - read_mb (float): Cumulative disk read in megabytes since initialization
-                - write_mb (float): Cumulative disk write in megabytes since initialization
-                - used_gb (float): Total disk space used in gigabytes
-            - network (dict):
-                - recv_mb (float): Cumulative network received in megabytes since initialization
-                - sent_mb (float): Cumulative network sent in megabytes since initialization
-            - gpus (dict): GPU metrics by device index string (e.g., '0', '1') containing:
-                - usage (int): GPU utilization percentage (0-100%)
-                - memory (float): VRAM usage percentage (0-100%)
-                - temp (int): GPU temperature in degrees Celsius
-                - power (int): GPU power consumption in watts
         """
         net = psutil.net_io_counters()
         disk = psutil.disk_io_counters()

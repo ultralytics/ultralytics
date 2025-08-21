@@ -65,6 +65,6 @@ callbacks = (
         "on_predict_start": on_predict_start,
         "on_export_start": on_export_start,
     }
-    if SETTINGS.get("platform", False) is True
+    if SETTINGS.get("platform", True) is True
     else {}
 )  # verify hub is enabled before registering callbacks

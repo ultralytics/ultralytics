@@ -106,4 +106,4 @@ callbacks = (
     }
     if SETTINGS["hub"] is True
     else {}
-)  # verify hub is enabled before registering callbacks
+)

@@ -209,10 +209,11 @@ def add_integration_callbacks(instance):
         >>> trainer = BaseTrainer()
         >>> add_integration_callbacks(trainer)
     """
-    # Load HUB callbacks
     from .hub import callbacks as hub_cb
+    from .platform import callbacks as platform_cb
 
-    callbacks_list = [hub_cb]
+    # Load Ultralytics callbacks
+    callbacks_list = [hub_cb, platform_cb]
 
     # Load training callbacks
     if "Trainer" in instance.__class__.__name__:

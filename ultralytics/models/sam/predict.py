@@ -1845,14 +1845,20 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.feat_sizes = feat_sizes
 
     @smart_inference_mode()
-    def update_memory(self, obj_ids, points, labels, masks) -> None:
+    def update_memory(
+        self,
+        obj_ids: List[int] = None,
+        points: Optional[torch.Tensor] = None,
+        labels: Optional[torch.Tensor] = None,
+        masks: Optional[torch.Tensor] = None,
+    ) -> None:
         """
         Append the imgState to the memory_bank and update the memory for the model.
 
         Args:
             obj_ids (List[int]): List of object IDs corresponding to the prompts.
-            points (torch.Tensor): Tensor of shape (B, N, 2) representing the input points for N objects.
-            labels (torch.Tensor): Tensor of shape (B, N) representing the labels for the input points.
+            points (torch.Tensor | None): Tensor of shape (B, N, 2) representing the input points for N objects.
+            labels (torch.Tensor | None): Tensor of shape (B, N) representing the labels for the input points.
             masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.
         """
         consolidated_out = {

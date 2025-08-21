@@ -313,7 +313,6 @@ class SystemLogger:
             - temp (int): GPU temperature in degrees Celsius
             - power (int): GPU power consumption in watts
 
-
         Returns:
             (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
         """

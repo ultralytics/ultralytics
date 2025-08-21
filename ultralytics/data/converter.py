@@ -1,8 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import asyncio
-import base64
-import hashlib
 import json
 import random
 import shutil

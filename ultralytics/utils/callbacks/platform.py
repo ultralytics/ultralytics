@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.utils import RANK
+from ultralytics.utils import RANK, SETTINGS
 from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger
 
 
@@ -53,14 +53,18 @@ def on_export_start(exporter):
     pass
 
 
-callbacks = {
-    "on_pretrain_routine_start": on_pretrain_routine_start,
-    "on_pretrain_routine_end": on_pretrain_routine_end,
-    "on_fit_epoch_end": on_fit_epoch_end,
-    "on_model_save": on_model_save,
-    "on_train_end": on_train_end,
-    "on_train_start": on_train_start,
-    "on_val_start": on_val_start,
-    "on_predict_start": on_predict_start,
-    "on_export_start": on_export_start,
-}  # always register callbacks, check platform_source in each callback
+callbacks = (
+    {
+        "on_pretrain_routine_start": on_pretrain_routine_start,
+        "on_pretrain_routine_end": on_pretrain_routine_end,
+        "on_fit_epoch_end": on_fit_epoch_end,
+        "on_model_save": on_model_save,
+        "on_train_end": on_train_end,
+        "on_train_start": on_train_start,
+        "on_val_start": on_val_start,
+        "on_predict_start": on_predict_start,
+        "on_export_start": on_export_start,
+    }
+    if SETTINGS.get("platform", False) is True
+    else {}
+)  # verify hub is enabled before registering callbacks

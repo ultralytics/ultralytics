@@ -22,10 +22,46 @@ if RANK in {-1, 0} and DEFAULT_LOG_PATH.exists():
 
 
 class ConsoleLogger:
-    """Console output capture with API/file streaming and deduplication."""
+    """
+    Console output capture with API/file streaming and deduplication.
+    
+    Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent
+    deduplication to reduce noise from repetitive console output.
+    
+    Attributes:
+        destination: Target destination for streaming (URL or Path object).
+        is_api (bool): Whether destination is an API endpoint (True) or local file (False).
+        original_stdout: Reference to original sys.stdout for restoration.
+        original_stderr: Reference to original sys.stderr for restoration.
+        log_queue (queue.Queue): Thread-safe queue for buffering log messages.
+        active (bool): Whether console capture is currently active.
+        worker_thread (threading.Thread): Background thread for processing log queue.
+        last_line (str): Last processed line for deduplication.
+        last_time (float): Timestamp of last processed line.
+        last_progress_line (str): Last progress bar line for progress deduplication.
+        last_was_progress (bool): Whether the last line was a progress bar.
+        
+    Examples:
+        Basic file logging:
+        >>> logger = ConsoleLogger('training.log')
+        >>> logger.start_capture()
+        >>> print('This will be logged')
+        >>> logger.stop_capture()
+        
+        API streaming:
+        >>> logger = ConsoleLogger('https://api.example.com/logs')
+        >>> logger.start_capture()
+        >>> # All output streams to API
+        >>> logger.stop_capture()
+    """
 
     def __init__(self, destination):
-        """Initialize with API endpoint or local file path."""
+        """
+        Initialize with API endpoint or local file path.
+        
+        Args:
+            destination: API endpoint URL (http/https) or local file path for streaming output.
+        """
         self.destination = destination
         self.is_api = isinstance(destination, str) and destination.startswith(("http://", "https://"))
         if not self.is_api:
@@ -45,7 +81,7 @@ class ConsoleLogger:
         self.last_was_progress = False  # Track if last line was a progress bar
 
     def start_capture(self):
-        """Start capturing console output."""
+        """Start capturing console output and redirect stdout/stderr to custom capture objects."""
         if self.active:
             return
 
@@ -64,7 +100,7 @@ class ConsoleLogger:
         self.worker_thread.start()
 
     def stop_capture(self):
-        """Stop capturing console output."""
+        """Stop capturing console output and restore original stdout/stderr."""
         if not self.active:
             return
 
@@ -74,7 +110,7 @@ class ConsoleLogger:
         self.log_queue.put(None)
 
     def _queue_log(self, text):
-        """Queue console text with deduplication."""
+        """Queue console text with deduplication and timestamp processing."""
         if not self.active:
             return
 
@@ -140,7 +176,7 @@ class ConsoleLogger:
                 return False
 
     def _stream_worker(self):
-        """Background worker for streaming logs."""
+        """Background worker for streaming logs to destination."""
         while self.active:
             try:
                 log_text = self.log_queue.get(timeout=1)
@@ -151,7 +187,7 @@ class ConsoleLogger:
                 continue
 
     def _write_log(self, text):
-        """Write log to destination."""
+        """Write log to API endpoint or local file destination."""
         try:
             if self.is_api:
                 payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
@@ -193,7 +229,35 @@ class ConsoleLogger:
 
 
 class SystemLogger:
-    """Log dynamic system metrics for training monitoring."""
+    """
+    Log dynamic system metrics for training monitoring.
+    
+    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for
+    training performance monitoring and analysis.
+    
+    Attributes:
+        pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
+        nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
+        process (psutil.Process): Current psutil.Process instance for process-specific metrics.
+        net_start: Initial network I/O counters for calculating cumulative usage.
+        disk_start: Initial disk I/O counters for calculating cumulative usage.
+        
+    Examples:
+        Basic usage:
+        >>> logger = SystemLogger()
+        >>> metrics = logger.get_metrics()
+        >>> print(f"CPU: {metrics['cpu']}%, RAM: {metrics['ram']}%")
+        >>> if metrics['gpus']:
+        ...     gpu0 = metrics['gpus']['0']
+        ...     print(f"GPU0: {gpu0['usage']}% usage, {gpu0['temp']}°C")
+        
+        Training loop integration:
+        >>> system_logger = SystemLogger()
+        >>> for epoch in range(epochs):
+        ...     # Training code here
+        ...     metrics = system_logger.get_metrics()
+        ...     # Log to database/file
+    """
 
     def __init__(self):
         self.pynvml = None
@@ -203,7 +267,7 @@ class SystemLogger:
         self.disk_start = psutil.disk_io_counters()
 
     def _init_nvidia(self):
-        """Initialize NVIDIA GPU monitoring."""
+        """Initialize NVIDIA GPU monitoring with pynvml."""
         try:
             check_requirements("pynvml>=12.0.0")
             self.pynvml = __import__("pynvml")
@@ -213,7 +277,15 @@ class SystemLogger:
             return False
 
     def get_metrics(self):
-        """Get current system metrics."""
+        """
+        Get current system metrics.
+        
+        Collects comprehensive system metrics including CPU usage, RAM usage,
+        disk I/O statistics, network I/O statistics, and GPU metrics (if available).
+        
+        Returns:
+            (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
+        """
         net = psutil.net_io_counters()
         disk = psutil.disk_io_counters()
         memory = psutil.virtual_memory()
@@ -241,7 +313,7 @@ class SystemLogger:
         return metrics
 
     def _get_nvidia_metrics(self):
-        """Get NVIDIA GPU metrics."""
+        """Get NVIDIA GPU metrics including utilization, memory, temperature, and power."""
         gpus = {}
         if not self.nvidia_initialized or not self.pynvml:
             return gpus

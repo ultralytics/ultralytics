@@ -19,6 +19,9 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
   <strong>Watch:</strong> Ultralytics YOLO Quick Start Guide
 </p>
 
+!!! warning "Python 3.13+ not fully supported"
+Ultralytics is tested and verified with Python 3.8-3.12. While Python 3.13+ may work, it's experimental and could cause unexpected issues. Stick with Python 3.12 or lower for reliable performance.
+
 !!! example "Install"
 
     <p align="left" style="margin-bottom: -20px;">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)<p>

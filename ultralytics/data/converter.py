@@ -786,7 +786,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         Convert with custom output directory:
         >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
 
-        # Use with YOLO training
+        Use with YOLO training
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")

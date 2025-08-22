@@ -174,6 +174,8 @@ class BaseTrainer:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in {-1, 0}:
             callbacks.add_integration_callbacks(self)
+            # Start console logging immediately at trainer initialization
+            self.run_callbacks("on_pretrain_routine_start")
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the event's callback list."""
@@ -249,8 +251,6 @@ class BaseTrainer:
 
     def _setup_train(self, world_size):
         """Build dataloaders and optimizer on correct rank process."""
-        # Model
-        self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()

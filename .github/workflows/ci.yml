@@ -224,7 +224,6 @@ jobs:
       - name: Install requirements
         run: |
           uv venv --python 3.12
-          source .venv/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
           uv pip install -e . pytest-cov
         env:

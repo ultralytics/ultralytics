@@ -80,7 +80,9 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         # Perform tracking with the model
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # with ByteTrack
-        results = model.track("https://youtu.be/LNwODJXcvt4", show=True, independent_trackers = True)  # with independant track ids
+        results = model.track(
+            "https://youtu.be/LNwODJXcvt4", show=True, independent_trackers=True
+        )  # with independant track ids
         ```
 
     === "CLI"

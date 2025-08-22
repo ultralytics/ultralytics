@@ -41,8 +41,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
     cfg.independent_trackers = getattr(
-        predictor.args, "independent_trackers",
-        getattr(cfg, "independent_trackers", False)
+        predictor.args, "independent_trackers", getattr(cfg, "independent_trackers", False)
     )
 
     predictor._feats = None  # reset in case used earlier

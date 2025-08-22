@@ -228,7 +228,7 @@ jobs:
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
-          uv pip install --system -e . pytest-cov
+          uv pip install -e . pytest-cov
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

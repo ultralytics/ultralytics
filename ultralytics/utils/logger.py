@@ -309,7 +309,7 @@ class SystemLogger:
             - sent_mb (float): Cumulative network sent in MB since initialization
         - gpus (dict): GPU metrics by device index (e.g., 0, 1) containing:
             - usage (int): GPU utilization percentage (0-100%)
-            - memory (float): VRAM usage percentage (0-100%)
+            - memory (float): CUDA memory usage percentage (0-100%)
             - temp (int): GPU temperature in degrees Celsius
             - power (int): GPU power consumption in watts
 
@@ -327,7 +327,7 @@ class SystemLogger:
             "disk": {
                 "read_mb": (disk.read_bytes - self.disk_start.read_bytes) / (1 << 20),
                 "write_mb": (disk.write_bytes - self.disk_start.write_bytes) / (1 << 20),
-                "used_gb": (disk_usage.used) / (1 << 30),
+                "used_gb": disk_usage.used / (1 << 30),
             },
             "network": {
                 "recv_mb": (net.bytes_recv - self.net_start.bytes_recv) / (1 << 20),

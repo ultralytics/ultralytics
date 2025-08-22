@@ -223,7 +223,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Activate Virtual Environment for Tests
         run: |
-          python -m venv env-tests
+          python3.12 -m venv env-tests
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements

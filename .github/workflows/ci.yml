@@ -222,7 +222,9 @@ jobs:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
-        run: uv pip install --system -e . pytest-cov
+        run: 
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          uv pip install --system -e . pytest-cov
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

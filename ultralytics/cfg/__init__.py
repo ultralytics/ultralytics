@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
+from difflib import get_close_matches
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -487,8 +488,6 @@ def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
     if mismatched := [k for k in custom_keys if k not in base_keys]:
-        from difflib import get_close_matches
-
         string = ""
         for x in mismatched:
             matches = get_close_matches(x, base_keys)  # key list
@@ -927,7 +926,12 @@ def entrypoint(debug: str = "") -> None:
                 )
                 task, mode = "detect", "track"
             else:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
+                match = get_close_matches(task, list(TASKS), n=1, cutoff=0.7)
+                if match:
+                    LOGGER.warning(f"invalid 'task={task}', updating it to closet match 'task={match[0]}'")
+                    task = match[0]  # i.e, segm -> segment, pos -> pose
+                else:
+                    raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

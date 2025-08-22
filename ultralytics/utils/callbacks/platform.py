@@ -23,6 +23,7 @@ def on_fit_epoch_end(trainer):
         system_metrics = trainer.system_logger.get_metrics()
         if trainer.metrics is not None:
             trainer.metrics["system"] = system_metrics
+            print(trainer.metrics)
 
 
 def on_model_save(trainer):
@@ -68,6 +69,6 @@ callbacks = (
         "on_predict_start": on_predict_start,
         "on_export_start": on_export_start,
     }
-    if SETTINGS.get("platform", False) is True  # disabled for debugging
+    if SETTINGS.get("platform", True) is True  # disabled for debugging
     else {}
 )

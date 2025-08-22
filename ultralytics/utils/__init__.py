@@ -170,6 +170,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         Notes:
             - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
             - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
+            - In GitHub Actions, progress bars only update at completion to keep CI logs clean.
 
         Examples:
             >>> from ultralytics.utils import TQDM
@@ -178,6 +179,8 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     pass
         """
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        if is_github_action_running():
+            kwargs["miniters"] = -1  # Only update at completion in GitHub Actions
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
         super().__init__(*args, **kwargs)

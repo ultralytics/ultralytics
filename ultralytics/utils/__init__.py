@@ -180,7 +180,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
         """
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
         if is_github_action_running():
-             #kwargs["mininterval"] = 60  # Update every 60 seconds
+            # kwargs["mininterval"] = 60  # Update every 60 seconds
             kwargs["miniters"] = 1e9  # High threshold to reduce updates
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed

@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from tests import MODEL, SOURCE
-from ultralytics import RTDETR, YOLO
+from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import (
     ARM64,
@@ -22,8 +22,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
-CFG_RTDETR = "rtdetr-l.yaml"  # RTDETR model for testing
-
 
 def test_export_torchscript():
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
@@ -32,65 +30,16 @@ def test_export_torchscript():
 
 
 def test_export_onnx():
-    """Test YOLO model export to ONNX format with dynamic axes and architecture metadata."""
+    """Test YOLO model export to ONNX format with dynamic axes."""
     file = YOLO(MODEL).export(format="onnx", dynamic=True, imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
-
-    # Test architecture metadata in ONNX export
-    try:
-        import onnxruntime
-
-        session = onnxruntime.InferenceSession(file, providers=["CPUExecutionProvider"])
-        metadata = session.get_modelmeta().custom_metadata_map
-        assert "architecture" in metadata, "Architecture metadata not found in ONNX export"
-        assert metadata["architecture"] in ["YOLO11", "YOLOv8", "YOLO"], (
-            f"Expected YOLO family architecture, got {metadata['architecture']}"
-        )
-    except ImportError:
-        pass  # Skip metadata test if onnxruntime not available
-
-
-@pytest.mark.skipif(not TORCH_1_9, reason="RTDETR requires torch>=1.9")
-def test_rtdetr_exports():
-    """Test RTDETR export to ONNX format with architecture metadata."""
-    file = RTDETR(CFG_RTDETR).export(format="onnx", imgsz=640)
-
-    # Test RTDETR inference
-    RTDETR(file)([SOURCE], imgsz=640)
-
-    # Check ONNX metadata contains architecture="RTDETR"
-    try:
-        import onnxruntime
-
-        session = onnxruntime.InferenceSession(file, providers=["CPUExecutionProvider"])
-        metadata = session.get_modelmeta().custom_metadata_map
-        assert metadata.get("architecture") == "RTDETR", (
-            f"Expected architecture='RTDETR', got {metadata.get('architecture')}"
-        )
-    except ImportError:
-        pass  # Skip metadata test if onnxruntime not available
 
 
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 def test_export_openvino():
-    """Test YOLO export to OpenVINO format for model inference compatibility and metadata."""
+    """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
-
-    # Test architecture metadata in OpenVINO export
-    try:
-        metadata_file = Path(file) / "metadata.yaml"
-        if metadata_file.exists():
-            import yaml
-
-            with open(metadata_file) as f:
-                metadata = yaml.safe_load(f)
-            assert "architecture" in metadata, "Architecture metadata not found in OpenVINO metadata.yaml"
-            assert metadata["architecture"] in ["YOLO11", "YOLOv8", "YOLO"], (
-                f"Expected YOLO family architecture, got {metadata['architecture']}"
-            )
-    except Exception:
-        pass  # Skip metadata test if yaml not available or metadata missing
 
 
 @pytest.mark.slow

@@ -10,8 +10,9 @@ from pathlib import Path
 import pytest
 
 from tests import MODEL, SOURCE
-from ultralytics import YOLO
+from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.engine.exporter import Exporter
 from ultralytics.utils import (
     ARM64,
     IS_RASPBERRYPI,
@@ -261,3 +262,21 @@ def test_export_imx():
     model = YOLO("yolov8n.pt")
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
+
+
+# Architecture metadata tests
+def test_metadata_arch():
+    """Test ONNX export includes correct architecture metadata."""
+    args = {"format": "onnx", "imgsz": 32}
+    exporter = Exporter(overrides=args)
+    exporter(model=YOLO(MODEL).model)
+    assert exporter.metadata["architecture"] == "YOLO11", "ONNX architecture metadata test failed"
+
+
+@pytest.mark.skipif(not TORCH_1_9, reason="RTDETR requires torch>=1.9")
+def test_metadata_rtdetr_arch():
+    """Test RTDETR ONNX export includes correct architecture metadata."""
+    args = {"format": "onnx", "imgsz": 640}
+    exporter = Exporter(overrides=args)
+    exporter(model=RTDETR("rtdetr-l.yaml").model)
+    assert exporter.metadata["architecture"] == "RTDETR", "RTDETR ONNX architecture metadata test failed"

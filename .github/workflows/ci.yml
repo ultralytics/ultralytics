@@ -191,7 +191,7 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="faster-coco-eval mlflow"
           fi
-          uv pip install --system -e ".[export,solutions]" rich $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export,solutions]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
@@ -203,7 +203,7 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="--slow"
           fi
-          YOLO_TQDM_RICH=true pytest $slow --cov=ultralytics/ --cov-report xml tests/
+          Ypytest $slow --cov=ultralytics/ --cov-report xml tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
@@ -225,7 +225,7 @@ jobs:
       - name: Install requirements
         run: |
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          pip install -e . pytest-cov pynvml rich
+          pip install -e . pytest-cov pynvml
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             pip install tensorrt onnxruntime-gpu
           fi
@@ -241,7 +241,7 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             slow="--slow"
           fi
-          YOLO_TQDM_RICH=true pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov

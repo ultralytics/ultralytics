@@ -179,6 +179,7 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     pass
         """
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        print("GITHUB_ACTIONS_RUNNING", is_github_action_running())
         if is_github_action_running():
             kwargs["miniters"] = -1  # Only update at completion in GitHub Actions
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20

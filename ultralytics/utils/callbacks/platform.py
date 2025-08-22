@@ -1,15 +1,15 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import RANK, SETTINGS
-from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger
+from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger, SystemLogger
 
 
 def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
-        # Create and start logger immediately before any other output
-        trainer.platform_logger = ConsoleLogger(DEFAULT_LOG_PATH)
-        trainer.platform_logger.start_capture()
+        trainer.system_logger = SystemLogger()
+        trainer.console_logger = ConsoleLogger(DEFAULT_LOG_PATH)
+        trainer.console_logger.start_capture()
 
 
 def on_pretrain_routine_end(trainer):
@@ -18,8 +18,10 @@ def on_pretrain_routine_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    """Handle end of training epoch event."""
-    pass
+    """Handle end of training epoch event and collect system metrics."""
+    if RANK in {-1, 0} and hasattr(trainer, "system_logger"):
+        system_metrics = trainer.system_logger.get_metrics()
+        print(system_metrics)  # for debug
 
 
 def on_model_save(trainer):
@@ -29,7 +31,7 @@ def on_model_save(trainer):
 
 def on_train_end(trainer):
     """Stop console capture and finalize logs."""
-    if logger := getattr(trainer, "platform_logger", None):
+    if logger := getattr(trainer, "console_logger", None):
         logger.stop_capture()
 
 

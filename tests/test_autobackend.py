@@ -8,7 +8,7 @@ import pytest
 from tests import MODEL
 from ultralytics import RTDETR, YOLO
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
 CFG_RTDETR = "rtdetr-l.yaml"  # RTDETR model for testing
@@ -25,7 +25,7 @@ def test_autobackend_architecture_onnx():
     try:
         backend = AutoBackend(onnx_file)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11",  "YOLO"], (
+        assert backend.architecture in ["YOLO11", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -67,7 +67,7 @@ def test_autobackend_architecture_openvino():
     try:
         backend = AutoBackend(openvino_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11",  "YOLO"], (
+        assert backend.architecture in ["YOLO11", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -110,7 +110,7 @@ def test_autobackend_architecture_coreml():
     try:
         backend = AutoBackend(coreml_file)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11",  "YOLO"], (
+        assert backend.architecture in ["YOLO11", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -202,7 +202,7 @@ def test_autobackend_architecture_tflite():
     try:
         backend = AutoBackend(tflite_file)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11",  "YOLO"], (
+        assert backend.architecture in ["YOLO11", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -222,7 +222,7 @@ def test_autobackend_architecture_paddle():
     try:
         backend = AutoBackend(paddle_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11",  "YOLO"], (
+        assert backend.architecture in ["YOLO11", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -243,7 +243,7 @@ def test_autobackend_architecture_ncnn():
     try:
         backend = AutoBackend(ncnn_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11",  "YOLO"], (
+        assert backend.architecture in ["YOLO11", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"

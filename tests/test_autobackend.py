@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import MODEL, CUDA_IS_AVAILABLE
+from tests import CUDA_IS_AVAILABLE, MODEL
 from ultralytics import RTDETR, YOLO
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks

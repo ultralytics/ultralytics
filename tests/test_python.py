@@ -2,13 +2,13 @@
 
 import contextlib
 import csv
+import threading
 import urllib
 from copy import copy
 from pathlib import Path
 
 import cv2
 import numpy as np
-import threading
 import pytest
 import torch
 from PIL import Image
@@ -214,14 +214,17 @@ def test_track_stream(model):
 )
 def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream, tracker_cfg, with_reid):
     """Test YOLO trackers with independent_trackers (single/multi-stream, ByteTrack, BoT-SORT)."""
-
     errors = []
 
     def run_tracker_in_thread(thread_idx, model_name, source, tracker_yaml):
         # --- Write black-prefixed video to negate---
         new_video_path = tmp_path / f"{thread_idx}_{Path(source).name}"
         cap = cv2.VideoCapture(str(source))
-        fps, w, h = int(cap.get(cv2.CAP_PROP_FPS)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps, w, h = (
+            int(cap.get(cv2.CAP_PROP_FPS)),
+            int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        )
         out = cv2.VideoWriter(str(new_video_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         # prefix black frames

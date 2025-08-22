@@ -221,13 +221,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
-      - name: Activate Virtual Environment for Tests
-        run: |
-          python3.12 -m venv env-tests
-          source env-tests/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
       - name: Install requirements
         run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
           uv pip install -e . pytest-cov
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1

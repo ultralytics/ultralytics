@@ -221,10 +221,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
       - name: Install requirements
         run: |
-          uv venv --python 3.12
-          echo PATH=$PATH >> $GITHUB_ENV
           uv pip install -e . pytest-cov
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1

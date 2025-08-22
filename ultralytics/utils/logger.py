@@ -325,13 +325,13 @@ class SystemLogger:
             "cpu": round(psutil.cpu_percent(), 3),
             "ram": round(memory.percent, 3),
             "disk": {
-                "read_mb": round((disk.read_bytes - self.disk_start.read_bytes) / 1 << 20, 3),
-                "write_mb": round((disk.write_bytes - self.disk_start.write_bytes) / 1 << 20, 3),
-                "used_gb": round(disk_usage.used / 1 << 30, 3),
+                "read_mb": round((disk.read_bytes - self.disk_start.read_bytes) / (1 << 20), 3),
+                "write_mb": round((disk.write_bytes - self.disk_start.write_bytes) / (1 << 20), 3),
+                "used_gb": round(disk_usage.used / (1 << 30), 3),
             },
             "network": {
-                "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / 1 << 20, 3),
-                "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / 1 << 20, 3),
+                "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / (1 << 20), 3),
+                "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / (1 << 20), 3),
             },
             "gpus": {},
         }

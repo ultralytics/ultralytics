@@ -200,7 +200,6 @@ def test_track_stream(model):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
-\
 @pytest.mark.parametrize("independent_tracker_flag", [False, True])
 @pytest.mark.parametrize("batch_mode", [False, True])
 @pytest.mark.parametrize("tracker_cfg,with_reid", [
@@ -275,6 +274,7 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode, t
             assert all(isinstance(i, int) for i in ids2)
     else:
         pytest.skip(f"No IDs detected in the first video frame of one or both models ({tracker_cfg})")
+
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

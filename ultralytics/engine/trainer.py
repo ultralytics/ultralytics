@@ -703,8 +703,8 @@ class BaseTrainer:
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         self.scaler.unscale_(self.optimizer2)  # unscale gradients
-        torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=0.5)  # clip gradients
-        # torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
+        # torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=0.5)  # clip gradients
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
         self.scaler.step(self.optimizer2)
         self.scaler.update()
@@ -910,13 +910,17 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim >= 2 and self.args.muon_head == "all":
+                if param.ndim >= 2 and self.args.muon_head == "model":
                     g[3].append(param)
                 elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
                     g[3].append(param)
+                elif param.ndim >= 2 and self.args.muon_head == "backbone" and int(module_name.split(".")[1]) in set(range(11)):
+                    g[3].append(param)
+                elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
+                    g[3].append(param)
                 elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
                     g[3].append(param)
-                elif "bias" in fullname:  # bias (no decay)
+                if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
                     # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'

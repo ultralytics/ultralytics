@@ -139,7 +139,7 @@ def test_cli_metadata_routing_onnx():
     import shutil
     import tempfile
     from pathlib import Path
-    
+
     from ultralytics import RTDETR
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -147,22 +147,22 @@ def test_cli_metadata_routing_onnx():
             # Export RTDETR model to ONNX
             model = RTDETR("rtdetr-l.yaml")
             onnx_file = model.export(format="onnx", imgsz=640)
-            
+
             # Create generic filename to test metadata-based routing
             generic_file = Path(tmp_dir) / "generic_model.onnx"
             shutil.copy2(onnx_file, generic_file)
-            
+
             # Test CLI validation with generic filename - should route to RTDETR via metadata
             try:
                 run(f"yolo val model={generic_file} data=coco8.yaml imgsz=640 batch=1")
             except subprocess.CalledProcessError:
                 # Expected in test environment - validation might fail but routing should work
                 pass
-            
+
             # Cleanup original file
             if Path(onnx_file).exists():
                 Path(onnx_file).unlink()
-                
+
         except ImportError:
             pytest.skip("Test requires onnxruntime")
         except Exception as e:
@@ -174,7 +174,7 @@ def test_cli_metadata_routing_yolo():
     import shutil
     import tempfile
     from pathlib import Path
-    
+
     from ultralytics import YOLO
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -182,22 +182,22 @@ def test_cli_metadata_routing_yolo():
             # Export YOLO model to ONNX
             model = YOLO("yolo11n.pt")
             onnx_file = model.export(format="onnx", imgsz=32)
-            
+
             # Create generic filename
             generic_file = Path(tmp_dir) / "best.onnx"
             shutil.copy2(onnx_file, generic_file)
-            
+
             # Test CLI validation - should route correctly via metadata
             try:
                 run(f"yolo val model={generic_file} data=coco8.yaml imgsz=32 batch=1")
             except subprocess.CalledProcessError:
                 # Expected in test environment
                 pass
-            
+
             # Cleanup
             if Path(onnx_file).exists():
                 Path(onnx_file).unlink()
-                
+
         except ImportError:
             pytest.skip("Test requires onnxruntime")
         except Exception as e:
@@ -210,7 +210,7 @@ def test_cli_metadata_routing_openvino():
     import shutil
     import tempfile
     from pathlib import Path
-    
+
     from ultralytics import YOLO
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -218,22 +218,22 @@ def test_cli_metadata_routing_openvino():
             # Export YOLO model to OpenVINO
             model = YOLO("yolo11n.pt")
             openvino_dir = model.export(format="openvino", imgsz=32)
-            
+
             # Create generic directory name
             generic_dir = Path(tmp_dir) / "custom_model_openvino_model"
             shutil.copytree(openvino_dir, generic_dir)
-            
+
             # Test CLI validation - should route correctly via metadata.yaml
             try:
                 run(f"yolo val model={generic_dir} data=coco8.yaml imgsz=32 batch=1")
             except subprocess.CalledProcessError:
                 # Expected in test environment
                 pass
-            
+
             # Cleanup
             if Path(openvino_dir).exists():
                 shutil.rmtree(openvino_dir)
-                
+
         except Exception as e:
             pytest.skip(f"OpenVINO CLI routing test failed: {e}")
 
@@ -243,11 +243,11 @@ def test_cli_fallback_routing():
     try:
         # Test with regular PyTorch model - should route based on task inference
         run("yolo val model=yolo11n.pt data=coco8.yaml imgsz=32 batch=1")
-        
+
         # Test RTDETR with filename-based routing
         if TORCH_1_9:
             run("yolo val model=rtdetr-l.pt data=coco8.yaml imgsz=640 batch=1")
-            
+
     except subprocess.CalledProcessError:
         # Expected in test environment
         pass

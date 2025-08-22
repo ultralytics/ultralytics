@@ -250,12 +250,7 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode, t
 
         YAML.save(temp_tracker_yaml, custom_args)
 
-        track_kwargs = dict(
-            imgsz=160,
-            tracker=temp_tracker_yaml,
-            persist=True,
-            verbose=False
-        )
+        track_kwargs = dict(imgsz=160, tracker=temp_tracker_yaml, persist=True, verbose=False)
 
         if batch_mode:
             res1 = model1.track([frame, frame], **track_kwargs)

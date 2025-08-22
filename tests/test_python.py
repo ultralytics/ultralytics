@@ -234,17 +234,22 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode, t
             if not ret:
                 break
 
-        if tracker_cfg == "botsort.yaml" and with_reid:
-            default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
-            custom_yaml = TMP / f"botsort-temp.yaml"
-            YAML.save(custom_yaml, {**default_args, "with_reid": True})
-            tracker_cfg = custom_yaml
-            
+        default_args = YAML.load(ROOT / f"cfg/trackers/{tracker_cfg}")
+        temp_tracker_yaml = TMP / f"{tracker_cfg}-temp.yaml"  # keep separate
+
+        custom_args = {**default_args, "independent_trackers": independent_tracker_flag}
+        if "botsort" in tracker_cfg.lower():
+            custom_args["with_reid"] = with_reid
+
+        # Ensure TMP exists
+        TMP.mkdir(parents=True, exist_ok=True)
+
+        YAML.save(temp_tracker_yaml, custom_args)
+
         track_kwargs = dict(
             imgsz=160,
-            tracker=tracker_cfg,
+            tracker=temp_tracker_yaml,
             persist=True,
-            independent_trackers=independent_tracker_flag,
             verbose=False
         )
 

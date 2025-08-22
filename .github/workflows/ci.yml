@@ -225,6 +225,7 @@ jobs:
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
           uv pip install -e . pytest-cov
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import threading
 import pytest
 import torch
 from PIL import Image
@@ -202,7 +203,7 @@ def test_track_stream(model):
 
 
 @pytest.mark.parametrize("independent_tracker_flag", [False, True])
-@pytest.mark.parametrize("batch_mode", [False, True])
+@pytest.mark.parametrize("multi_stream", [False, True])
 @pytest.mark.parametrize(
     "tracker_cfg,with_reid",
     [
@@ -211,73 +212,66 @@ def test_track_stream(model):
         ("botsort.yaml", True),
     ],
 )
-def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode, tracker_cfg, with_reid):
+def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream, tracker_cfg, with_reid):
     """Test YOLO trackers with independent_trackers (single/multi-stream, ByteTrack, BoT-SORT)."""
-    video = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
-    # Load two models independently
-    model1 = YOLO("yolo11n.pt")
-    model2 = YOLO("yolo11n.pt")
+    errors = []
 
-    # Open video
-    cap = cv2.VideoCapture(video)
-    assert cap.isOpened(), f"Could not open video: {video}"
+    def run_tracker_in_thread(thread_idx, model_name, source, tracker_yaml):
+        # --- Write black-prefixed video to negate---
+        new_video_path = tmp_path / f"{thread_idx}_{Path(source).name}"
+        cap = cv2.VideoCapture(str(source))
+        fps, w, h = int(cap.get(cv2.CAP_PROP_FPS)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        out = cv2.VideoWriter(str(new_video_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        # prefix black frames
+        for _ in range(5):
+            out.write(np.zeros((h, w, 3), dtype=np.uint8))
 
-    ids1, ids2 = [], []
-    frame_idx = 0
-
-    while True:
-        if frame_idx < 10:
-            # Black canvas frames to "prime" tracker so reset_id() isn't called later
-            frame = np.zeros((height, width, 3), dtype=np.uint8)
-        else:
+        while True:
             ret, frame = cap.read()
             if not ret:
                 break
+            out.write(frame)
 
-        default_args = YAML.load(ROOT / f"cfg/trackers/{tracker_cfg}")
-        temp_tracker_yaml = TMP / f"{tracker_cfg}-temp.yaml"  # keep separate
+        cap.release(), out.release()
 
-        custom_args = {**default_args, "independent_trackers": independent_tracker_flag}
-        if "botsort" in tracker_cfg.lower():
-            custom_args["with_reid"] = with_reid
+        # --- Run tracking ---
+        model = YOLO(model_name)
+        min_id = None
+        for frame_result in model.track(source=str(new_video_path), stream=True, persist=True, tracker=tracker_yaml):
+            track_ids = getattr(frame_result.boxes, "id", [])
+            if track_ids is not None:
+                min_id = min(track_ids) if min_id is None else min(min_id, min(track_ids))
 
-        # Ensure TMP exists
-        TMP.mkdir(parents=True, exist_ok=True)
+        if min_id and min_id != 1:
+            errors.append(f"Thread {thread_idx}: Min Track ID is {min_id}, expected 1")
 
-        YAML.save(temp_tracker_yaml, custom_args)
+    # --- Config setup ---
+    default_args = YAML.load(ROOT / f"cfg/trackers/{tracker_cfg}")
+    custom_args = {**default_args, "independent_trackers": independent_tracker_flag}
+    if "botsort" in tracker_cfg.lower():
+        custom_args["with_reid"] = with_reid
+    TMP.mkdir(parents=True, exist_ok=True)
+    temp_tracker_yaml = TMP / f"{tracker_cfg}-temp.yaml"
+    YAML.save(temp_tracker_yaml, custom_args)
 
-        track_kwargs = dict(imgsz=160, tracker=temp_tracker_yaml, persist=True, verbose=False)
+    # --- Run parallel threads ---
+    sources = [
+        "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov",
+    ]
+    if multi_stream:
+        sources.append("https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov")
+    threads = [
+        threading.Thread(target=run_tracker_in_thread, args=(i, "yolo11n.pt", src, temp_tracker_yaml), daemon=True)
+        for i, src in enumerate(sources)
+    ]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
 
-        if batch_mode:
-            res1 = model1.track([frame, frame], **track_kwargs)
-            res2 = model2.track([frame, frame], **track_kwargs)
-        else:
-            res1 = model1.track(frame, **track_kwargs)
-            res2 = model2.track(frame, **track_kwargs)
-
-        if frame_idx == 11:
-            if res1[0].boxes.id is not None:
-                ids1 = res1[0].boxes.id.int().tolist()
-            if res2[0].boxes.id is not None:
-                ids2 = res2[0].boxes.id.int().tolist()
-
-        frame_idx += 1
-
-    cap.release()
-
-    if ids1 and ids2:
-        if independent_tracker_flag:
-            assert min(ids1) == 1, f"{tracker_cfg}: Model1 IDs did not restart at 1, got {ids1}"
-            assert min(ids2) == 1, f"{tracker_cfg}: Model2 IDs did not restart at 1, got {ids2}"
-        else:
-            assert all(isinstance(i, int) for i in ids1)
-            assert all(isinstance(i, int) for i in ids2)
-    else:
-        pytest.skip(f"No IDs detected in the first video frame of one or both models ({tracker_cfg})")
+    # --- Validation ---
+    if independent_tracker_flag:
+        assert not errors, f"Errors in threads: {errors}"
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

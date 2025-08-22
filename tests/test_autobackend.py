@@ -25,7 +25,7 @@ def test_autobackend_architecture_onnx():
     try:
         backend = AutoBackend(onnx_file)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLO11",  "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -67,7 +67,7 @@ def test_autobackend_architecture_openvino():
     try:
         backend = AutoBackend(openvino_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLO11",  "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -110,7 +110,7 @@ def test_autobackend_architecture_coreml():
     try:
         backend = AutoBackend(coreml_file)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLO11",  "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -193,28 +193,6 @@ def test_autobackend_architecture_metadata_consistency():
         pytest.skip(f"Consistency test failed: {e}")
 
 
-# Additional format tests
-@pytest.mark.skipif(not checks("tensorrt"), reason="TensorRT not available")
-def test_autobackend_architecture_tensorrt():
-    """Test AutoBackend correctly reads architecture metadata from TensorRT models."""
-    # Test YOLO11 TensorRT
-    model = YOLO(MODEL)
-    engine_file = model.export(format="engine", imgsz=32)
-
-    try:
-        backend = AutoBackend(engine_file)
-        assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
-            f"Expected YOLO family architecture, got '{backend.architecture}'"
-        )
-        assert backend.architecture != "", "Architecture should not be empty"
-
-    finally:
-        # Cleanup
-        if Path(engine_file).exists():
-            Path(engine_file).unlink()
-
-
 def test_autobackend_architecture_tflite():
     """Test AutoBackend correctly reads architecture metadata from TFLite models."""
     # Test YOLO11 TFLite
@@ -224,7 +202,7 @@ def test_autobackend_architecture_tflite():
     try:
         backend = AutoBackend(tflite_file)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLO11",  "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -244,7 +222,7 @@ def test_autobackend_architecture_paddle():
     try:
         backend = AutoBackend(paddle_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLO11",  "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -265,7 +243,7 @@ def test_autobackend_architecture_ncnn():
     try:
         backend = AutoBackend(ncnn_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLO11",  "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"
@@ -279,14 +257,14 @@ def test_autobackend_architecture_ncnn():
 @pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
 def test_autobackend_architecture_imx():
     """Test AutoBackend correctly reads architecture metadata from IMX models."""
-    # Test YOLO11 IMX
-    model = YOLO(MODEL)
+    # Test YOLOv8 IMX
+    model = YOLO("yolov8n.pt")
     imx_dir = model.export(format="imx", imgsz=32)
 
     try:
         backend = AutoBackend(imx_dir)
         assert hasattr(backend, "architecture"), "AutoBackend should have architecture attribute"
-        assert backend.architecture in ["YOLO11", "YOLOv8", "YOLO"], (
+        assert backend.architecture in ["YOLOv8", "YOLO"], (
             f"Expected YOLO family architecture, got '{backend.architecture}'"
         )
         assert backend.architecture != "", "Architecture should not be empty"

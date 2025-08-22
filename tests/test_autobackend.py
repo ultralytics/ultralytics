@@ -17,7 +17,7 @@ CFG_RTDETR = "rtdetr-l.yaml"  # RTDETR model for testing
 def test_autobackend_architecture_onnx():
     """Test AutoBackend correctly reads architecture metadata from ONNX models."""
     pytest.importorskip("onnxruntime", reason="Test requires onnxruntime")
-    
+
     # Test YOLO11 ONNX
     model = YOLO(MODEL)
     onnx_file = model.export(format="onnx", imgsz=32)
@@ -40,7 +40,7 @@ def test_autobackend_architecture_onnx():
 def test_autobackend_architecture_rtdetr_onnx():
     """Test AutoBackend correctly reads RTDETR architecture from ONNX models."""
     pytest.importorskip("onnxruntime", reason="Test requires onnxruntime")
-    
+
     # Test RTDETR ONNX
     model = RTDETR(CFG_RTDETR)
     onnx_file = model.export(format="onnx", imgsz=640)
@@ -303,7 +303,7 @@ def test_autobackend_rtdetr_openvino_architecture():
     """Test RTDETR OpenVINO architecture metadata consistency."""
     if not TORCH_1_13:
         pytest.skip("OpenVINO requires torch>=1.13")
-        
+
     # Test RTDETR OpenVINO
     model = RTDETR(CFG_RTDETR)
     openvino_dir = model.export(format="openvino", imgsz=640)

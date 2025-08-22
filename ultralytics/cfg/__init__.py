@@ -927,7 +927,14 @@ def entrypoint(debug: str = "") -> None:
                 )
                 task, mode = "detect", "track"
             else:
-                raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
+                from difflib import get_close_matches
+
+                match = get_close_matches(task, list(TASKS), n=1, cutoff=0.7)
+                if match:
+                    LOGGER.warning(f"invalid task={task}, updating it to closet match task={match[0]}")
+                    task = match[0]
+                else:
+                    raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")
         if "model" not in overrides:
             overrides["model"] = TASK2MODEL[task]
 

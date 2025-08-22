@@ -3,10 +3,10 @@
 import shutil
 import subprocess
 import sys
+from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
-from difflib import get_close_matches
 
 from ultralytics import __version__
 from ultralytics.utils import (

@@ -200,10 +200,16 @@ def test_track_stream(model):
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
+\
 @pytest.mark.parametrize("independent_tracker_flag", [False, True])
 @pytest.mark.parametrize("batch_mode", [False, True])
-def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
-    """Test YOLO trackers with independent_trackers option (single and multi-stream)."""
+@pytest.mark.parametrize("tracker_cfg,with_reid", [
+    ("bytetrack.yaml", False),
+    ("botsort.yaml", False),
+    ("botsort.yaml", True),
+])
+def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode, tracker_cfg, with_reid):
+    """Test YOLO trackers with independent_trackers (single/multi-stream, ByteTrack, BoT-SORT)."""
     video = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
 
     # Load two models independently
@@ -229,20 +235,27 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
             if not ret:
                 break
 
-        if batch_mode:
-            # Multi-stream (bs > 1) by passing a list of frames
-            res1 = model1.track([frame, frame], imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
-            res2 = model2.track([frame, frame], imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
-        else:
-            # Single-stream
-            res1 = model1.track(frame, imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
-            res2 = model2.track(frame, imgsz=160, tracker="bytetrack.yaml",
-                                persist=True, independent_trackers=independent_tracker_flag, verbose=False)
+        if tracker_cfg == "botsort.yaml" and with_reid:
+            default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
+            custom_yaml = TMP / f"botsort-temp.yaml"
+            YAML.save(custom_yaml, {**default_args, "with_reid": True})
+            tracker_cfg = custom_yaml
+            
+        track_kwargs = dict(
+            imgsz=160,
+            tracker=tracker_cfg,
+            persist=True,
+            independent_trackers=independent_tracker_flag,
+            verbose=False
+        )
 
-        # Check IDs on first *real* frame
+        if batch_mode:
+            res1 = model1.track([frame, frame], **track_kwargs)
+            res2 = model2.track([frame, frame], **track_kwargs)
+        else:
+            res1 = model1.track(frame, **track_kwargs)
+            res2 = model2.track(frame, **track_kwargs)
+
         if frame_idx == 11:
             if res1[0].boxes.id is not None:
                 ids1 = res1[0].boxes.id.int().tolist()
@@ -255,15 +268,14 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, batch_mode):
 
     if ids1 and ids2:
         if independent_tracker_flag:
-            # When independent trackers are enabled, both should restart IDs at 1
-            assert min(ids1) == 1, f"Model1 IDs did not restart at 1, got {ids1}"
-            assert min(ids2) == 1, f"Model2 IDs did not restart at 1, got {ids2}"
+            assert min(ids1) == 1, f"{tracker_cfg}: Model1 IDs did not restart at 1, got {ids1}"
+            assert min(ids2) == 1, f"{tracker_cfg}: Model2 IDs did not restart at 1, got {ids2}"
         else:
-            # When disabled, just check IDs exist but don't enforce restart
             assert all(isinstance(i, int) for i in ids1)
             assert all(isinstance(i, int) for i in ids2)
     else:
-        pytest.skip("No IDs detected in the first video frame of one or both models")
+        pytest.skip(f"No IDs detected in the first video frame of one or both models ({tracker_cfg})")
+
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:

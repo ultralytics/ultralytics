@@ -54,6 +54,12 @@ Ultralytics YOLO supports the following tracking algorithms. They can be enabled
 
 The default tracker is BoT-SORT.
 
+## Independant Trackers
+
+When tracking multiple sources (like a video file and a webcam) using different YOLO models, trackers by default share ID numbers. This can cause confusion because IDs from one source continue into another.
+
+Setting independent_trackers=True makes each tracker start its IDs from 1, keeping them separate.
+
 ## Tracking
 
 To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLO11n, YOLO11n-seg and YOLO11n-pose.
@@ -74,6 +80,7 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         # Perform tracking with the model
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True)  # Tracking with default tracker
         results = model.track("https://youtu.be/LNwODJXcvt4", show=True, tracker="bytetrack.yaml")  # with ByteTrack
+        results = model.track("https://youtu.be/LNwODJXcvt4", show=True, independent_trackers = True)  # with independant track ids
         ```
 
     === "CLI"

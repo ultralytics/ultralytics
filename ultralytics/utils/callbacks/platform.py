@@ -7,12 +7,9 @@ from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger, SystemLogg
 def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
-        # Create and start logger immediately before any other output
+        trainer.system_logger = SystemLogger()
         trainer.console_logger = ConsoleLogger(DEFAULT_LOG_PATH)
         trainer.console_logger.start_capture()
-
-        # Initialize SystemLogger for metrics collection
-        trainer.system_logger = SystemLogger()
 
 
 def on_pretrain_routine_end(trainer):
@@ -23,10 +20,7 @@ def on_pretrain_routine_end(trainer):
 def on_fit_epoch_end(trainer):
     """Handle end of training epoch event and collect system metrics."""
     if RANK in {-1, 0} and hasattr(trainer, "system_logger"):
-        # Get current system metrics
         system_metrics = trainer.system_logger.get_metrics()
-
-        # Add system metrics to trainer.metrics dict under "system" key
         if trainer.metrics is not None:
             trainer.metrics["system"] = system_metrics
 

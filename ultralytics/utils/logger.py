@@ -322,16 +322,16 @@ class SystemLogger:
         disk_usage = shutil.disk_usage("/")
 
         metrics = {
-            "cpu": psutil.cpu_percent(),
-            "ram": memory.percent,
+            "cpu": round(psutil.cpu_percent(), 3),
+            "ram": round(memory.percent, 3),
             "disk": {
-                "read_mb": (disk.read_bytes - self.disk_start.read_bytes) / (1 << 20),
-                "write_mb": (disk.write_bytes - self.disk_start.write_bytes) / (1 << 20),
-                "used_gb": disk_usage.used / (1 << 30),
+                "read_mb": round((disk.read_bytes - self.disk_start.read_bytes) / 1 << 20, 3),
+                "write_mb": round((disk.write_bytes - self.disk_start.write_bytes) / 1 << 20, 3),
+                "used_gb": round(disk_usage.used / 1 << 30, 3),
             },
             "network": {
-                "recv_mb": (net.bytes_recv - self.net_start.bytes_recv) / (1 << 20),
-                "sent_mb": (net.bytes_sent - self.net_start.bytes_sent) / (1 << 20),
+                "recv_mb": round((net.bytes_recv - self.net_start.bytes_recv) / 1 << 20, 3),
+                "sent_mb": round((net.bytes_sent - self.net_start.bytes_sent) / 1 << 20, 3),
             },
             "gpus": {},
         }
@@ -357,8 +357,8 @@ class SystemLogger:
                 power = self.pynvml.nvmlDeviceGetPowerUsage(handle) // 1000
 
                 gpus[str(i)] = {
-                    "usage": util.gpu,
-                    "memory": (memory.used / memory.total) * 100,
+                    "usage": round(util.gpu, 3),
+                    "memory": round((memory.used / memory.total) * 100, 3),
                     "temp": temp,
                     "power": power,
                 }

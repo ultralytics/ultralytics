@@ -931,7 +931,7 @@ def entrypoint(debug: str = "") -> None:
 
                 match = get_close_matches(task, list(TASKS), n=1, cutoff=0.7)
                 if match:
-                    LOGGER.warning(f"invalid task={task}, updating it to closet match task={match[0]}")
+                    LOGGER.warning(f"invalid 'task={task}', updating it to closet match 'task={match[0]}'")
                     task = match[0]
                 else:
                     raise ValueError(f"Invalid 'task={task}'. Valid tasks are {list(TASKS)}.\n{CLI_HELP_MSG}")

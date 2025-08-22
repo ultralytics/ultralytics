@@ -1152,7 +1152,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
     @property
     def results_dict(self) -> Dict[str, float]:
         """Return dictionary of computed performance metrics and statistics."""
-        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+        results = dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+        return {k: float(v) if hasattr(v, 'item') else v for k, v in results.items()}  # Convert numpy types to Python floats
 
     @property
     def curves(self) -> List[str]:

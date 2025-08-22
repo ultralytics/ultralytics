@@ -179,7 +179,6 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     pass
         """
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
-        print("GITHUB_ACTIONS_RUNNING", is_github_action_running())
         if is_github_action_running():
             kwargs["mininterval"] = 60  # (seconds) Only update at completion in GitHub Actions
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
@@ -934,7 +933,6 @@ def is_github_action_running() -> bool:
     Returns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
-    print("PRINT_OS_ENVIRON", os.environ)
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
 
 

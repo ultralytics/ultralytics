@@ -1009,7 +1009,7 @@ class Exporter:
         keras_model = onnx2tf.convert(
             input_onnx_file_path=f_onnx,
             output_folder_path=str(f),
-            not_use_onnxsim=True,
+            not_use_onnxsim=False if MACOS else True,
             verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
             output_integer_quantized_tflite=self.args.int8,
             quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)

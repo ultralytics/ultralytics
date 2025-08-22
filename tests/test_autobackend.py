@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from tests import MODEL
+from tests import MODEL, CUDA_IS_AVAILABLE
 from ultralytics import RTDETR, YOLO
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
 CFG_RTDETR = "rtdetr-l.yaml"  # RTDETR model for testing
@@ -78,6 +78,7 @@ def test_autobackend_architecture_openvino():
             shutil.rmtree(openvino_dir)
 
 
+@pytest.mark.skipif(not CUDA_IS_AVAILABLE, reason="GridSample not supported on CPU")
 @pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
 @pytest.mark.skipif(not TORCH_1_9, reason="RTDETR requires torch>=1.9")
 def test_autobackend_architecture_rtdetr_openvino():
@@ -193,6 +194,12 @@ def test_autobackend_architecture_metadata_consistency():
         pytest.skip(f"Consistency test failed: {e}")
 
 
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="TFLite export requires Python>=3.10")
+@pytest.mark.skipif(
+    not LINUX or IS_RASPBERRYPI,
+    reason="Test disabled as TF suffers from install conflicts on Windows, macOS and Raspberry Pi",
+)
 def test_autobackend_architecture_tflite():
     """Test AutoBackend correctly reads architecture metadata from TFLite models."""
     # Test YOLO11 TFLite
@@ -254,7 +261,8 @@ def test_autobackend_architecture_ncnn():
             shutil.rmtree(ncnn_dir)
 
 
-@pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
+@pytest.mark.skipif(True, reason="Test disabled as keras and tensorflow version conflicts with TFlite export.")
+@pytest.mark.skipif(not LINUX or MACOS, reason="Skipping test on Windows and Macos")
 def test_autobackend_architecture_imx():
     """Test AutoBackend correctly reads architecture metadata from IMX models."""
     # Test YOLOv8 IMX

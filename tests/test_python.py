@@ -2,13 +2,13 @@
 
 import contextlib
 import csv
+import threading
 import urllib
 from copy import copy
 from pathlib import Path
 
 import cv2
 import numpy as np
-import threading
 import pytest
 import torch
 from PIL import Image
@@ -214,7 +214,6 @@ def test_track_stream(model):
 )
 def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream, tracker_cfg, with_reid):
     """Test YOLO trackers with independent_trackers (single/multi-stream, ByteTrack, BoT-SORT)."""
-
     errors = []
 
     def run_tracker_in_thread(thread_idx, model_name, source, tracker_yaml):
@@ -282,6 +281,15 @@ def test_train_scratch():
     model = YOLO(CFG)
     model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
     model(SOURCE)
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+def test_train_ndjson():
+    """Test training the YOLO model using NDJSON format dataset."""
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    model.train(
+        data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson", epochs=1, imgsz=32
+    )
 
 
 @pytest.mark.parametrize("scls", [False, True])

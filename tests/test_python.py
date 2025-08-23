@@ -217,7 +217,6 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream,
     errors = []
 
     def run_tracker_in_thread(thread_idx, model_name, source, tracker_yaml):
-        
         # --- Run tracking ---
         model = YOLO(model_name)
         min_id = None

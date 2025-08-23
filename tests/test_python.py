@@ -218,28 +218,11 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream,
     errors = []
 
     def run_tracker_in_thread(thread_idx, model_name, source, tracker_yaml):
-        # --- Write black-prefixed video to negate---
-        new_video_path = tmp_path / f"{thread_idx}_{Path(source).name}"
-        cap = cv2.VideoCapture(str(source))
-        fps, w, h = int(cap.get(cv2.CAP_PROP_FPS)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        out = cv2.VideoWriter(str(new_video_path), cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
-
-        # prefix black frames
-        for _ in range(5):
-            out.write(np.zeros((h, w, 3), dtype=np.uint8))
-
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            out.write(frame)
-
-        cap.release(), out.release()
-
+        
         # --- Run tracking ---
         model = YOLO(model_name)
         min_id = None
-        for frame_result in model.track(source=str(new_video_path), stream=True, persist=True, tracker=tracker_yaml):
+        for frame_result in model.track(source=str(source), stream=True, persist=True, tracker=tracker_yaml):
             track_ids = getattr(frame_result.boxes, "id", [])
             if track_ids is not None:
                 min_id = min(track_ids) if min_id is None else min(min_id, min(track_ids))

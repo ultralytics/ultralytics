@@ -12,7 +12,7 @@ from typing import IO, Any
 def supports_interactive_progress():
     """Test if carriage return actually works by trying it."""
     import os
-    
+
     # Quick check for known broken environments
     if "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ:
         return False

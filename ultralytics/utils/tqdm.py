@@ -215,12 +215,7 @@ class TQDM:
 
         # GitHub Actions: suppress all displays except completion
         if is_github_action_running():
-            # Only show final display when complete (if we know the total)
-            if self.total is not None and self.n < self.total:
-                return False
-            # For unknown totals, use time-based updates in GitHub Actions
-            elif self.total is None and dt < 60.0:  # Update every 60s in GHA
-                return False
+            return False  # Never show intermediate progress in GitHub Actions
 
         return dt >= self.mininterval and dn >= 1
 
@@ -385,3 +380,78 @@ class TQDM:
             file.flush()
         except Exception:
             pass
+
+
+if __name__ == "__main__":
+    import time
+    
+    print("=== TQDM Usage Examples ===")
+    print()
+    
+    # Example 1: Basic usage with known total
+    print("1. Basic progress bar with known total:")
+    for i in TQDM(range(20), desc="Known total"):
+        time.sleep(0.05)
+    print()
+    
+    # Example 2: Manual updates with known total
+    print("2. Manual updates with known total:")
+    pbar = TQDM(total=30, desc="Manual updates", unit="files")
+    for i in range(30):
+        time.sleep(0.03)
+        pbar.update(1)
+        if i % 10 == 9:
+            pbar.set_description(f"Processing batch {i//10 + 1}")
+    pbar.close()
+    print()
+    
+    # Example 3: Unknown total - this was the problematic case
+    print("3. Progress bar with unknown total (FIXED):")
+    pbar = TQDM(desc="Unknown total", unit="items")
+    for i in range(25):
+        time.sleep(0.08)
+        pbar.update(1)
+        if i % 5 == 4:
+            pbar.set_postfix(processed=i+1, status="OK")
+    pbar.close()
+    print()
+    
+    # Example 4: Context manager with unknown total
+    print("4. Context manager with unknown total:")
+    with TQDM(desc="Processing stream", unit="MB", unit_scale=True) as pbar:
+        for i in range(15):
+            time.sleep(0.1)
+            pbar.update(1024 * (i + 1))  # Simulate processing MBs of data
+    print()
+    
+    # Example 5: Generator with unknown length
+    print("5. Iterator with unknown length:")
+    def data_stream():
+        """Simulate a data stream of unknown length."""
+        import random
+        for i in range(random.randint(10, 20)):
+            yield f"data_chunk_{i}"
+            
+    for chunk in TQDM(data_stream(), desc="Stream processing", unit="chunks"):
+        time.sleep(0.1)
+    print()
+    
+    # Example 6: File-like processing simulation
+    print("6. File processing simulation (unknown size):")
+    def process_files():
+        """Simulate processing files of unknown count."""
+        files = [f"file_{i}.txt" for i in range(18)]
+        return files
+    
+    pbar = TQDM(desc="Scanning files", unit="files")
+    files = process_files()
+    for i, filename in enumerate(files):
+        time.sleep(0.06)
+        pbar.update(1)
+        pbar.set_description(f"Processing {filename}")
+    pbar.close()
+    print()
+    
+    print("=== All examples completed! ===")
+    print("Note: Example 3 demonstrates the fix for unknown totals - ")
+    print("it now shows a moving activity indicator instead of being broken.")

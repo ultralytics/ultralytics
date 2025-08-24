@@ -314,7 +314,7 @@ class SystemLogger:
             - power (int): GPU power consumption in watts
 
         Returns:
-            (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
+            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
         """
         net = psutil.net_io_counters()
         disk = psutil.disk_io_counters()

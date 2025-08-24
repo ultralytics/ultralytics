@@ -210,10 +210,6 @@ class TQDM:
 
     def _should_update(self, dt, dn):
         """Check if display should update."""
-        if self.total is not None and self.n >= self.total:
-            return True
-
-        # GitHub Actions: suppress all displays except completion
         if is_github_action_running():
             return False  # Never show intermediate progress in GitHub Actions
 

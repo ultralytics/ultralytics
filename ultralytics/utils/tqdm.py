@@ -314,9 +314,9 @@ class TQDM:
         """Close progress bar."""
         if self.closed:
             return
-        
+
         self.closed = True  # Set before final display
-        
+
         if not self.disable:
             # Final display
             if self.total and self.n >= self.total:
@@ -391,14 +391,14 @@ if __name__ == "__main__":
     # Known total
     for i in TQDM(range(10), desc="Known total"):
         time.sleep(0.05)
-    
+
     # Unknown total
     pbar = TQDM(desc="Unknown total", unit="items")
     for i in range(15):
         time.sleep(0.03)
         pbar.update(1)
     pbar.close()
-    
+
     # Context manager
     with TQDM(desc="Context manager", unit="MB", unit_scale=True) as pbar:
         for i in range(10):

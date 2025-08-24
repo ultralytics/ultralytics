@@ -285,15 +285,15 @@ class SystemLogger:
         Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics,
         network I/O statistics, and GPU metrics (if available). Example output:
 
-        ```json
-        {
-            'cpu': 45.2,
-            'ram': 78.9,
-            'disk': {'read_mb': 156.7, 'write_mb': 89.3, 'used_gb': 256.8},
-            'network': {'recv_mb': 157.2, 'sent_mb': 89.1},
-            'gpus': {
-                0: {'usage': 95.6, 'memory': 85.4, 'temp': 72, 'power': 285},
-                1: {'usage': 94.1, 'memory': 82.7, 'temp': 70, 'power': 278}
+        ```python
+        metrics = {
+            "cpu": 45.2,
+            "ram": 78.9,
+            "disk": {"read_mb": 156.7, "write_mb": 89.3, "used_gb": 256.8},
+            "network": {"recv_mb": 157.2, "sent_mb": 89.1},
+            "gpus": {
+                0: {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
+                1: {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278}
             }
         }
         ```

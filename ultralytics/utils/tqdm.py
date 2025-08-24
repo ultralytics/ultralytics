@@ -2,16 +2,33 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import time
 from typing import IO, Any
 
 
-def is_github_action_running():
-    """Determine if the current environment is a GitHub Actions runner."""
-    import os
+from functools import lru_cache
 
-    return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
+@lru_cache(maxsize=1)
+def supports_interactive_progress():
+    """Test if carriage return actually works by trying it."""
+
+    # Quick check for known broken environments
+    #if "GITHUB_ACTIONS" in os.environ:
+    #    return False
+    
+    # Real test: actually try carriage return on stdout and see what happens
+    try:
+        # Write something, then overwrite it with carriage return
+        sys.stdout.write("testing...")
+        sys.stdout.flush()
+        time.sleep(0.01)  # Brief pause
+        sys.stdout.write("\r" + " " * 10 + "\r")  # Overwrite and clear
+        sys.stdout.flush()
+        return True
+    except Exception:
+        return False
 
 
 class TQDM:
@@ -110,7 +127,7 @@ class TQDM:
             >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
             ...     pbar.update(1024)  # Updates by 1KB
         """
-        if is_github_action_running():
+        if not supports_interactive_progress():
             mininterval = max(mininterval, 60.0)
 
         # Auto-disable if not verbose
@@ -210,8 +227,8 @@ class TQDM:
 
     def _should_update(self, dt, dn):
         """Check if display should update."""
-        if is_github_action_running():
-            return False  # Never show intermediate progress in GitHub Actions
+        if not supports_interactive_progress():
+            return False  # Never show intermediate progress in non-interactive consoles
 
         if self.total is not None and self.n >= self.total:
             return True

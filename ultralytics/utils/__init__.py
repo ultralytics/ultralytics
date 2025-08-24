@@ -184,7 +184,7 @@ class TQDM:
     """
 
     def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
-                 ncols=None, mininterval=1.0, maxinterval=10.0, miniters=None,
+                 ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
                  ascii=None, disable=None, unit='it', unit_scale=False,
                  dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
                  position=None, postfix=None, unit_divisor=1000, write_bytes=False,
@@ -221,7 +221,7 @@ class TQDM:
         """
         # Handle GitHub Actions environment
         if is_github_action_running():
-            mininterval = max(mininterval, 10)  # only update every 10 seconds in CI
+            mininterval = max(mininterval, 1.0)  # minimum 1 second interval in CI
 
         # Determine if progress bar should be disabled
         if disable is None:
@@ -265,7 +265,7 @@ class TQDM:
             import shutil
             return shutil.get_terminal_size().columns
         except Exception:
-            return 200
+            return 80
 
     def _format_number(self, num, is_rate=False):
         """Format numbers with appropriate units and scaling."""
@@ -327,7 +327,16 @@ class TQDM:
 
     def _should_update(self, dt, dn):
         """Check if progress bar should be updated based on time and iteration intervals."""
-        return dt >= self.mininterval or dn >= 1 or self.n >= (self.total or float('inf'))
+        # Always update if we've reached the total
+        if self.n >= (self.total or float('inf')):
+            return True
+        
+        # Require minimum time interval to have passed
+        if dt < self.mininterval:
+            return False
+            
+        # Also update if we've made significant progress (at least 1 iteration)
+        return dn >= 1
 
     def _build_progress_components(self, rate, elapsed):
         """Build the left bar, progress bar, and right bar components."""

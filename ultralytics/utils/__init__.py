@@ -12,7 +12,6 @@ import subprocess
 import sys
 import threading
 import time
-import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -22,10 +21,10 @@ from urllib.parse import unquote
 import cv2
 import numpy as np
 import torch
-import tqdm
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
+from ultralytics.utils.tqdm import TQDM  # noqa
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -41,7 +40,6 @@ DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
-TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -129,73 +127,6 @@ os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
-
-if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
-    from rich.console import Console
-    from rich.progress import BarColumn
-    from tqdm import rich
-
-    # Patch Rich Console width=200 and BarColumn bar_width=10 to solve width=80 missing bars bug
-    _console_init = Console.__init__
-    _bar_init = BarColumn.__init__
-    Console.__init__ = lambda self, *a, **k: _console_init(self, *a, **{**k, "width": 200})
-    BarColumn.__init__ = lambda self, bar_width=None, *a, **k: _bar_init(self, 10, *a, **k)
-
-
-class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
-    """
-    A custom TQDM progress bar class that extends the original tqdm functionality.
-
-    This class modifies the behavior of the original tqdm progress bar based on global settings and provides
-    additional customization options for Ultralytics projects. The progress bar is automatically disabled when
-    VERBOSE is False or when explicitly disabled.
-
-    Attributes:
-        disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
-            any passed 'disable' argument.
-        bar_format (str): The format string for the progress bar. Uses the global TQDM_BAR_FORMAT if not
-            explicitly set.
-
-    Methods:
-        __init__: Initialize the TQDM object with custom settings.
-        __iter__: Return self as iterator to satisfy Iterable interface.
-
-    Examples:
-        >>> from ultralytics.utils import TQDM
-        >>> for i in TQDM(range(100)):
-        ...     # Your processing code here
-        ...     pass
-    """
-
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize a custom TQDM progress bar with Ultralytics-specific settings.
-
-        Args:
-            *args (Any): Variable length argument list to be passed to the original tqdm constructor.
-            **kwargs (Any): Arbitrary keyword arguments to be passed to the original tqdm constructor.
-
-        Notes:
-            - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
-            - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
-            - In GitHub Actions, progress bars only update at completion to keep CI logs clean.
-
-        Examples:
-            >>> from ultralytics.utils import TQDM
-            >>> for i in TQDM(range(100)):
-            ...     # Your code here
-            ...     pass
-        """
-        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
-        if is_github_action_running():
-            kwargs["mininterval"] = 60  # only update every 60 seconds
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
-        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        super().__init__(*args, **kwargs)
-
-    def __iter__(self):
-        """Return self as iterator to satisfy Iterable interface."""
-        return super().__iter__()
 
 
 class DataExportMixin:

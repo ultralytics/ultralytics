@@ -133,30 +133,51 @@ class TQDM:
     """
     A zero-dependency progress bar implementation that replaces the standard tqdm library.
 
-    This lightweight implementation provides the same interface as tqdm with clean, rich-style
-    progress bars suitable for logging in various environments including Weights & Biases,
-    console outputs, and other logging systems.
+    This lightweight implementation provides the same interface as tqdm with clean, rich-style progress bars suitable
+    for logging in various environments including Weights & Biases, console outputs, and other logging systems.
+    Features zero external dependencies, clean single-line output, rich-style progress bars with Unicode block
+    characters, context manager support, iterator protocol support, dynamic description updates, and customizable
+    progress bar formatting.
 
-    Features:
-    - Zero external dependencies
-    - Clean single-line output suitable for loggers
-    - Rich-style progress bars with Unicode block characters
-    - Context manager support
-    - Iterator protocol support
-    - Dynamic description updates
-    - Customizable progress bar formatting
+    Attributes:
+        iterable (object): Iterable to wrap with progress bar.
+        desc (str): Prefix for the progress bar description.
+        total (int): Expected number of iterations.
+        disable (bool): Whether to disable the progress bar.
+        unit (str): String for units of iteration.
+        unit_scale (bool): Auto-scale units flag.
+        unit_divisor (int): Divisor for unit scaling.
+        leave (bool): Whether to leave the progress bar after completion.
+        mininterval (float): Minimum time interval between updates.
+        smoothing (float): Smoothing factor for rate calculation.
+        initial (int): Initial counter value.
+        n (int): Current iteration count.
+        closed (bool): Whether the progress bar is closed.
+        max_len (int): Maximum progress string length for display consistency.
+        bar_format (str): Custom bar format string.
+        ncols (int): Terminal width for progress bar display.
+        file (object): Output file stream.
+
+    Methods:
+        update: Update progress by n steps.
+        set_description: Set or update the description.
+        set_postfix: Set postfix for the progress bar.
+        close: Close the progress bar and clean up.
+        refresh: Refresh the progress bar display.
+        clear: Clear the progress bar from display.
+        write: Write a message without breaking the progress bar.
 
     Examples:
-        >>> # Basic usage
+        Basic usage with iterator:
         >>> for i in TQDM(range(100)):
         ...     time.sleep(0.01)
-
-        >>> # With description
+        
+        With custom description:
         >>> pbar = TQDM(range(100), desc="Processing")
         >>> for i in pbar:
         ...     pbar.set_description(f"Processing item {i}")
-
-        >>> # Context manager
+        
+        Context manager usage:
         >>> with TQDM(total=100, unit="B", unit_scale=True) as pbar:
         ...     for i in range(100):
         ...         pbar.update(1)
@@ -169,18 +190,34 @@ class TQDM:
                  position=None, postfix=None, unit_divisor=1000, write_bytes=False,
                  lock_args=None, nrows=None, colour=None, **kwargs):
         """
-        Initialize the TQDM progress bar.
+        Initialize the TQDM progress bar with specified configuration options.
 
         Args:
-            iterable: Iterable to wrap with progress bar
-            desc: Prefix for the progress bar
-            total: Expected number of iterations
-            disable: Whether to disable the progress bar
-            unit: String for units of iteration
-            unit_scale: Auto-scale units
-            unit_divisor: Divisor for unit scaling
-            bar_format: Custom bar format string
-            **kwargs: Additional arguments for compatibility
+            iterable (object, optional): Iterable to wrap with progress bar.
+            desc (str, optional): Prefix description for the progress bar.
+            total (int, optional): Expected number of iterations.
+            leave (bool, optional): Whether to leave the progress bar after completion.
+            file (object, optional): Output file stream for progress display.
+            ncols (int, optional): Terminal width for progress bar display.
+            mininterval (float, optional): Minimum time interval between updates.
+            maxinterval (float, optional): Maximum time interval between updates.
+            miniters (int, optional): Minimum iteration interval between updates.
+            ascii (bool, optional): Whether to use ASCII characters for progress bar.
+            disable (bool, optional): Whether to disable the progress bar.
+            unit (str, optional): String for units of iteration.
+            unit_scale (bool, optional): Auto-scale units flag.
+            dynamic_ncols (bool, optional): Whether to dynamically resize progress bar.
+            smoothing (float, optional): Smoothing factor for rate calculation.
+            bar_format (str, optional): Custom bar format string.
+            initial (int, optional): Initial counter value.
+            position (int, optional): Position of progress bar (for compatibility).
+            postfix (str, optional): Additional information to display (for compatibility).
+            unit_divisor (int, optional): Divisor for unit scaling.
+            write_bytes (bool, optional): Whether writing bytes (for compatibility).
+            lock_args (tuple, optional): Lock arguments (for compatibility).
+            nrows (int, optional): Number of rows (for compatibility).
+            colour (str, optional): Progress bar color (for compatibility).
+            **kwargs: Additional keyword arguments for compatibility.
         """
         # Handle GitHub Actions environment
         if is_github_action_running():

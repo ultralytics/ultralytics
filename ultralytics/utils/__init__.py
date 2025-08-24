@@ -39,7 +39,7 @@ DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
-TQDM_BAR_FORMAT = "{l_bar} │{bar:10}│ {r_bar}" if VERBOSE else None  # tqdm bar format
+TQDM_BAR_FORMAT = "{l_bar} {bar:10} {r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -271,7 +271,7 @@ class TQDM:
         self.max_len = 0  # Track maximum progress string length
 
         # Format settings
-        self.bar_format = bar_format or TQDM_BAR_FORMAT or "{l_bar} │{bar:10}│ {r_bar}"
+        self.bar_format = bar_format or TQDM_BAR_FORMAT or "{l_bar} {bar:10} {r_bar}"
         self.ncols = ncols or self._get_terminal_width()
 
         # File output (default to stdout)
@@ -441,8 +441,10 @@ class TQDM:
         if "{l_bar}" in self.bar_format and "{r_bar}" in self.bar_format and "{bar" in self.bar_format:
             progress_str = self.bar_format.format(l_bar=l_bar, bar=bar, r_bar=r_bar)
         else:
-            separator = " │{bar}│ " if self.total is not None else " "
-            progress_str = f"{l_bar}{separator.format(bar=bar) if '{bar}' in separator else separator}{r_bar}"
+            if self.total is not None:
+                progress_str = f"{l_bar} {bar} {r_bar}"
+            else:
+                progress_str = f"{l_bar} {r_bar}"
 
         # Truncate if too long
         if len(progress_str) > self.ncols - 5:

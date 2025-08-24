@@ -349,6 +349,10 @@ class TQDM:
         if self.n >= (self.total or float("inf")):
             return True
 
+        # In GitHub Actions, suppress initial display until mininterval passes
+        if is_github_action_running() and self.n == self.initial and dt < self.mininterval:
+            return False
+
         # Require minimum time interval to have passed
         if dt < self.mininterval:
             return False

@@ -143,6 +143,7 @@ if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
     Console.__init__ = lambda self, *a, **k: _console_init(self, *a, **{**k, "width": 200})
     BarColumn.__init__ = lambda self, bar_width=None, *a, **k: _bar_init(self, 10, *a, **k)
 
+
 class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
     """
     A custom TQDM progress bar class that extends the original tqdm functionality.

@@ -283,12 +283,7 @@ class TQDM:
 
     def _get_terminal_width(self):
         """Get terminal width, default to 80 if unavailable."""
-        try:
-            import shutil
-
-            return shutil.get_terminal_size().columns
-        except Exception:
-            return 200
+        return 200
 
     def _format_number(self, num, is_rate=False):
         """Format numbers with appropriate units and scaling."""

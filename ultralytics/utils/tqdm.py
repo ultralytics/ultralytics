@@ -113,7 +113,7 @@ class TQDM:
         # Auto-disable if not verbose
         if disable is None:
             try:
-                from ultralytics.utils import VERBOSE, LOGGER
+                from ultralytics.utils import LOGGER, VERBOSE
                 disable = not VERBOSE or LOGGER.getEffectiveLevel() > 20
             except ImportError:
                 disable = False

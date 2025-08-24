@@ -295,7 +295,8 @@ def safe_download(
     progress: bool = True,
 ):
     """
-    Download files from a URL with options for retrying, unzipping, and deleting the downloaded file.
+    Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
+    robust partial download detection using Content-Length validation.
 
     Args:
         url (str): The URL of the file to be downloaded.
@@ -342,24 +343,33 @@ def safe_download(
                     s = "sS" * (not progress)  # silent
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
                     assert r == 0, f"Curl return value {r}"
+                    expected_size = None  # Can't get size with curl
                 else:  # urllib download
-                    # torch.hub.download_url_to_file(url, f, progress=progress)  # do not use as progress tqdm differs
-                    with request.urlopen(url) as response, TQDM(
-                        total=int(response.getheader("Content-Length", 0)),
-                        desc=desc,
-                        disable=not progress,
-                        unit="B",
-                        unit_scale=True,
-                        unit_divisor=1024,
-                    ) as pbar:
-                        with open(f, "wb") as f_opened:
-                            for data in response:
-                                f_opened.write(data)
-                                pbar.update(len(data))
+                    with request.urlopen(url) as response:
+                        expected_size = int(response.getheader("Content-Length", 0))
+                        with TQDM(
+                            total=expected_size,
+                            desc=desc,
+                            disable=not progress,
+                            unit="B",
+                            unit_scale=True,
+                            unit_divisor=1024,
+                        ) as pbar:
+                            with open(f, "wb") as f_opened:
+                                for data in response:
+                                    f_opened.write(data)
+                                    pbar.update(len(data))
 
                 if f.exists():
-                    if f.stat().st_size > min_bytes:
-                        break  # success
+                    file_size = f.stat().st_size
+                    if file_size > min_bytes:
+                        # Check if download is complete (only if we have expected_size)
+                        if expected_size and file_size != expected_size:
+                            LOGGER.warning(
+                                f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                            )
+                        else:
+                            break  # success
                     f.unlink()  # remove partial downloads
             except Exception as e:
                 if i == 0 and not is_online():

@@ -447,13 +447,13 @@ class TQDM:
         self._display()
 
     def set_description(self, desc):
-        """Set/update the description."""
+        """Set or update the description prefix for the progress bar."""
         self.desc = desc or ""
         if not self.disable:
             self._display()
 
     def set_postfix(self, **kwargs):
-        """Set postfix for the progress bar (for compatibility)."""
+        """Set postfix information for the progress bar."""
         # Convert postfix to description for simplicity
         if kwargs:
             postfix_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
@@ -463,7 +463,7 @@ class TQDM:
                 self.set_description(f"{self.desc}{postfix_str}")
 
     def close(self):
-        """Close the progress bar."""
+        """Close the progress bar and perform cleanup operations."""
         if self.closed:
             return
 
@@ -496,11 +496,11 @@ class TQDM:
         self.closed = True
 
     def __enter__(self):
-        """Context manager entry."""
+        """Enter the context manager."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit."""
+        """Exit the context manager and close the progress bar."""
         self.close()
 
     def __iter__(self):

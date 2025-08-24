@@ -128,6 +128,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+
 class TQDM:
     """
     A zero-dependency progress bar implementation that replaces the standard tqdm library.
@@ -170,24 +171,46 @@ class TQDM:
         Basic usage with iterator:
         >>> for i in TQDM(range(100)):
         ...     time.sleep(0.01)
-        
+
         With custom description:
         >>> pbar = TQDM(range(100), desc="Processing")
         >>> for i in pbar:
         ...     pbar.set_description(f"Processing item {i}")
-        
+
         Context manager usage:
         >>> with TQDM(total=100, unit="B", unit_scale=True) as pbar:
         ...     for i in range(100):
         ...         pbar.update(1)
     """
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
-                 ncols=None, mininterval=0.1, maxinterval=10.0, miniters=None,
-                 ascii=None, disable=None, unit='it', unit_scale=False,
-                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
-                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
-                 lock_args=None, nrows=None, colour=None, **kwargs):
+    def __init__(
+        self,
+        iterable=None,
+        desc=None,
+        total=None,
+        leave=True,
+        file=None,
+        ncols=None,
+        mininterval=0.1,
+        maxinterval=10.0,
+        miniters=None,
+        ascii=None,
+        disable=None,
+        unit="it",
+        unit_scale=False,
+        dynamic_ncols=False,
+        smoothing=0.3,
+        bar_format=None,
+        initial=0,
+        position=None,
+        postfix=None,
+        unit_divisor=1000,
+        write_bytes=False,
+        lock_args=None,
+        nrows=None,
+        colour=None,
+        **kwargs,
+    ):
         """
         Initialize the TQDM progress bar with specified configuration options.
 
@@ -228,7 +251,7 @@ class TQDM:
 
         self.iterable = iterable
         self.desc = desc or ""
-        self.total = total if total is not None else (len(iterable) if hasattr(iterable, '__len__') else None)
+        self.total = total if total is not None else (len(iterable) if hasattr(iterable, "__len__") else None)
         self.disable = disable
         self.unit = unit
         self.unit_scale = unit_scale
@@ -262,6 +285,7 @@ class TQDM:
         """Get terminal width, default to 80 if unavailable."""
         try:
             import shutil
+
             return shutil.get_terminal_size().columns
         except Exception:
             return 80
@@ -271,7 +295,7 @@ class TQDM:
         if not self.unit_scale:
             return str(num)
 
-        for unit in ['', 'k', 'M', 'G', 'T', 'P']:
+        for unit in ["", "k", "M", "G", "T", "P"]:
             if abs(num) < self.unit_divisor:
                 if unit:
                     return f"{num:3.1f}{unit}"
@@ -282,7 +306,7 @@ class TQDM:
 
     def _format_rate(self, rate):
         """Format iteration rate."""
-        if self.unit_scale and self.unit in ('B', 'bytes'):
+        if self.unit_scale and self.unit in ("B", "bytes"):
             return f"{self._format_sizeof(rate)}{self.unit}/s"
         else:
             return f"{rate:.2f}{self.unit}/s"
@@ -340,7 +364,7 @@ class TQDM:
 
         # Check if we should update (based on mininterval)
         dn = self.n - self.last_print_n
-        if dt < self.mininterval and dn < 1 and self.n < (self.total or float('inf')):
+        if dt < self.mininterval and dn < 1 and self.n < (self.total or float("inf")):
             return
 
         # Calculate rate
@@ -367,10 +391,11 @@ class TQDM:
 
         # Bar part
         bar_length = 10  # Default bar length
-        if '{bar' in self.bar_format:
+        if "{bar" in self.bar_format:
             # Extract bar length from format if specified
             import re
-            match = re.search(r'\{bar:?(\d+)\}', self.bar_format)
+
+            match = re.search(r"\{bar:?(\d+)\}", self.bar_format)
             if match:
                 bar_length = int(match.group(1))
 
@@ -381,14 +406,14 @@ class TQDM:
 
         # 1. Count (current/total or just current)
         if self.total is not None:
-            if self.unit_scale and self.unit in ('B', 'bytes'):
+            if self.unit_scale and self.unit in ("B", "bytes"):
                 current_str = self._format_sizeof(self.n)
                 total_str = self._format_sizeof(self.total)
                 count_str = f"{current_str}/{total_str}"
             else:
                 count_str = f"{self.n}/{self.total}"
         else:
-            if self.unit_scale and self.unit in ('B', 'bytes'):
+            if self.unit_scale and self.unit in ("B", "bytes"):
                 count_str = self._format_sizeof(self.n)
             else:
                 count_str = str(self.n)
@@ -396,7 +421,7 @@ class TQDM:
 
         # 2. Rate (if available)
         if rate > 0:
-            if self.unit_scale and self.unit in ('B', 'bytes'):
+            if self.unit_scale and self.unit in ("B", "bytes"):
                 rate_str = f"{self._format_sizeof(rate)}{self.unit}/s"
             else:
                 rate_str = f"{rate:.2f}{self.unit}/s"
@@ -424,11 +449,11 @@ class TQDM:
 
         # Truncate if too long
         if len(progress_str) > self.ncols - 5:
-            progress_str = progress_str[:self.ncols - 8] + "..."
+            progress_str = progress_str[: self.ncols - 8] + "..."
 
         # Output with consistent length (prevents leftover characters)
         try:
-            if hasattr(self.file, 'write'):
+            if hasattr(self.file, "write"):
                 # Track max length and pad to prevent leftover characters
                 self.max_len = max(self.max_len, len(progress_str))
                 padded_str = progress_str.ljust(self.max_len)
@@ -478,7 +503,7 @@ class TQDM:
             # Move to next line if leave is True
             if self.leave:
                 try:
-                    if hasattr(self.file, 'write'):
+                    if hasattr(self.file, "write"):
                         self.file.write("\n")
                         self.file.flush()
                 except Exception:
@@ -486,7 +511,7 @@ class TQDM:
             else:
                 # Clear the line
                 try:
-                    if hasattr(self.file, 'write'):
+                    if hasattr(self.file, "write"):
                         self.file.write("\r" + " " * self.ncols + "\r")
                         self.file.flush()
                 except Exception:
@@ -531,7 +556,7 @@ class TQDM:
         """Clear the progress bar."""
         if not self.disable:
             try:
-                if hasattr(self.file, 'write'):
+                if hasattr(self.file, "write"):
                     self.file.write("\r" + " " * self.ncols + "\r")
                     self.file.flush()
             except Exception:
@@ -542,7 +567,7 @@ class TQDM:
         """Write a message without breaking the progress bar."""
         file = file or sys.stdout
         try:
-            if hasattr(file, 'write'):
+            if hasattr(file, "write"):
                 file.write(s + end)
                 file.flush()
         except Exception:

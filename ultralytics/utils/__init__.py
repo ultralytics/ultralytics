@@ -243,7 +243,7 @@ class TQDM:
         """
         # Handle GitHub Actions environment
         if is_github_action_running():
-            mininterval = max(mininterval, 1.0)  # minimum 1 second interval in CI
+            mininterval = max(mininterval, 60.0)  # minimum 60s second interval in CI
 
         # Determine if progress bar should be disabled
         if disable is None:

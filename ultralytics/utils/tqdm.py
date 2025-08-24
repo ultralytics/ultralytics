@@ -1,7 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import sys
 import time
+from typing import Any, IO
 
 
 def is_github_action_running():
@@ -70,20 +73,20 @@ class TQDM:
 
     def __init__(
         self,
-        iterable=None,
-        desc=None,
-        total=None,
-        leave=True,
-        file=None,
-        mininterval=0.1,
-        disable=None,
-        unit="it",
-        unit_scale=False,
-        unit_divisor=1000,
-        bar_format=None,
-        initial=0,
+        iterable: Any = None,
+        desc: str | None = None,
+        total: int | None = None,
+        leave: bool = True,
+        file: IO[str] | None = None,
+        mininterval: float = 0.1,
+        disable: bool | None = None,
+        unit: str = "it",
+        unit_scale: bool = False,
+        unit_divisor: int = 1000,
+        bar_format: str | None = None,
+        initial: int = 0,
         **kwargs,  # Accept unused args for compatibility
-    ):
+    ) -> None:
         """
         Initialize the TQDM progress bar with specified configuration options.
 
@@ -100,7 +103,7 @@ class TQDM:
             unit_divisor (int, optional): Divisor for unit scaling (default 1000).
             bar_format (str, optional): Custom bar format string.
             initial (int, optional): Initial counter value.
-            **kwargs: Additional keyword arguments for compatibility (ignored).
+            **kwargs (Any): Additional keyword arguments for compatibility (ignored).
 
         Examples:
             >>> pbar = TQDM(range(100), desc="Processing")
@@ -245,14 +248,11 @@ class TQDM:
         else:
             rate = self.last_rate
 
-        # At completion, calculate the overall rate if we have valid data
+        # At completion, use the overall rate for more accurate display
         if self.n >= (self.total or float("inf")) and self.total and self.total > 0:
             overall_elapsed = current_time - self.start_t
             if overall_elapsed > 0:
-                overall_rate = self.n / overall_elapsed
-                # Use overall rate for final display if it seems reasonable
-                if overall_rate > 0:
-                    rate = overall_rate
+                rate = self.n / overall_elapsed
 
         # Update counters
         self.last_print_n = self.n
@@ -272,12 +272,7 @@ class TQDM:
             bar = ""
 
         elapsed_str = self._format_time(elapsed)
-        rate_fmt = self._format_rate(rate)
-
-        # Safeguard: if rate_fmt is empty at completion, use overall rate
-        if not rate_fmt and self.n >= (self.total or float("inf")) and elapsed > 0:
-            overall_rate = self.n / elapsed
-            rate_fmt = self._format_rate(overall_rate)
+        rate_fmt = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
         # Format progress string with rate
         progress_str = self.bar_format.format(
@@ -329,9 +324,11 @@ class TQDM:
             self._display()
 
             # Cleanup
-            end_char = "\n" if self.leave else "\r" + " " * 100 + "\r"
+            if self.leave:
+                self.file.write("\n")
+            else:
+                self.file.write("\r\033[K")
             try:
-                self.file.write(end_char)
                 self.file.flush()
             except Exception:
                 pass
@@ -374,7 +371,7 @@ class TQDM:
         """Clear progress bar."""
         if not self.disable:
             try:
-                self.file.write("\r" + " " * 100 + "\r")
+                self.file.write("\r\033[K")
                 self.file.flush()
             except Exception:
                 pass

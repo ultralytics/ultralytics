@@ -202,7 +202,7 @@ def test_track_stream(model):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
-@pytest.mark.parametrize("independent_tracker_flag", [False, True])
+@pytest.mark.parametrize("independent_trackers", [False, True])
 @pytest.mark.parametrize("multi_stream", [False, True])
 @pytest.mark.parametrize(
     "tracker_cfg,with_reid",
@@ -212,7 +212,7 @@ def test_track_stream(model):
         ("botsort.yaml", True),
     ],
 )
-def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream, tracker_cfg, with_reid):
+def test_independent_track_ids(tmp_path, independent_trackers, multi_stream, tracker_cfg, with_reid):
     """Test YOLO trackers with independent_trackers (single/multi-stream, ByteTrack, BoT-SORT)."""
     errors = []
 
@@ -231,7 +231,7 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream,
 
     # --- Config setup ---
     default_args = YAML.load(ROOT / f"cfg/trackers/{tracker_cfg}")
-    custom_args = {**default_args, "independent_trackers": independent_tracker_flag}
+    custom_args = {**default_args, "independent_trackers": independent_trackers}
     if "botsort" in tracker_cfg.lower():
         custom_args["with_reid"] = with_reid
     TMP.mkdir(parents=True, exist_ok=True)
@@ -252,7 +252,7 @@ def test_independent_track_ids(tmp_path, independent_tracker_flag, multi_stream,
     [t.join() for t in threads]
 
     # --- Validation ---
-    if independent_tracker_flag:
+    if independent_trackers:
         assert not errors, f"Errors in threads: {errors}"
 
 

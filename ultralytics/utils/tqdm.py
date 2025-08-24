@@ -290,12 +290,16 @@ class TQDM:
 
         # Write to output
         try:
-            # Clear line to avoid leftover characters, then write progress
-            self.file.write(f"\r\033[K{progress_str}")
+            if is_github_action_running():
+                # GitHub Actions doesn't handle ANSI escape sequences well
+                # Just use carriage return without clearing
+                self.file.write(f"\r{progress_str}")
+            else:
+                # Clear line to avoid leftover characters, then write progress
+                self.file.write(f"\r\033[K{progress_str}")
+            self.file.flush()
         except Exception:
-            # Fallback to space-based clearing if ANSI not supported
-            self.file.write("\r" + " " * 150 + "\r" + progress_str)
-        self.file.flush()
+            pass
 
     def update(self, n=1):
         """Update progress by n steps."""

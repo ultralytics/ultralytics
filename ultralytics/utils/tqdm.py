@@ -132,7 +132,13 @@ class TQDM:
         self.leave = leave
         self.mininterval = mininterval
         self.initial = initial
-        self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
+        
+        # Set bar format based on whether we have a total
+        if self.total is not None:
+            self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
+        else:
+            self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {unit} {rate_fmt} {elapsed}"
+        
         self.file = file or sys.stdout
 
         # Internal state
@@ -152,26 +158,22 @@ class TQDM:
         if rate <= 0:
             return ""
 
-        # For bytes, use appropriate units
+        # For bytes with scaling, use binary units
         if self.unit in ("B", "bytes") and self.unit_scale:
-            if rate < 1024:
-                return f"{rate:.1f}B/s"
-            elif rate < 1024**2:
-                return f"{rate / 1024:.1f}KB/s"
-            elif rate < 1024**3:
-                return f"{rate / 1024**2:.1f}MB/s"
-            else:
-                return f"{rate / 1024**3:.1f}GB/s"
-
-        # For regular items
-        if rate >= 1000000:
-            return f"{rate / 1000000:.1f}M{self.unit}/s"
-        elif rate >= 1000:
-            return f"{rate / 1000:.1f}K{self.unit}/s"
-        elif rate >= 1:
-            return f"{rate:.1f}{self.unit}/s"
-        else:
-            return f"{rate:.2f}{self.unit}/s"
+            for threshold, unit in [(1024**3, "GB/s"), (1024**2, "MB/s"), (1024, "KB/s")]:
+                if rate >= threshold:
+                    return f"{rate / threshold:.1f}{unit}"
+            return f"{rate:.1f}B/s"
+        
+        # For other scalable units, use decimal units  
+        if self.unit_scale and self.unit in ("it", "items", ""):
+            for threshold, prefix in [(1000000, "M"), (1000, "K")]:
+                if rate >= threshold:
+                    return f"{rate / threshold:.1f}{prefix}{self.unit}/s"
+        
+        # Default formatting
+        precision = ".1f" if rate >= 1 else ".2f"
+        return f"{rate:{precision}}{self.unit}/s"
 
     def _format_num(self, num):
         """Format number with optional unit scaling."""
@@ -196,29 +198,28 @@ class TQDM:
 
     def _generate_bar(self, width=16):
         """Generate progress bar."""
-        if self.total is None or self.total == 0:
-            return "━" * width
+        if self.total is None:
+            return "━" * width if self.closed else "─" * width
 
         frac = min(1.0, self.n / self.total)
         filled = int(frac * width)
-
         bar = "━" * filled + "─" * (width - filled)
-
-        # Add partial character for smoother progress
         if filled < width and frac * width - filled > 0.5:
             bar = bar[:filled] + "╸" + bar[filled + 1 :]
-
         return bar
 
     def _should_update(self, dt, dn):
         """Check if display should update."""
-        if self.n >= (self.total or float("inf")):
+        if self.total is not None and self.n >= self.total:
             return True
 
         # GitHub Actions: suppress all displays except completion
         if is_github_action_running():
-            # Only show final display when complete
-            if self.n < (self.total or float("inf")):
+            # Only show final display when complete (if we know the total)
+            if self.total is not None and self.n < self.total:
+                return False
+            # For unknown totals, use time-based updates in GitHub Actions
+            elif self.total is None and dt < 60.0:  # Update every 60s in GHA
                 return False
 
         return dt >= self.mininterval and dn >= 1
@@ -264,25 +265,24 @@ class TQDM:
             percentage = (self.n / self.total) * 100
             n_fmt = self._format_num(self.n)
             total_fmt = self._format_num(self.total)
-            bar = self._generate_bar()
         else:
             percentage = 0
             n_fmt = self._format_num(self.n)
             total_fmt = "?"
-            bar = ""
 
         elapsed_str = self._format_time(elapsed)
         rate_fmt = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
-        # Format progress string with rate
+        # Format progress string
         progress_str = self.bar_format.format(
             desc=self.desc,
             percentage=percentage,
-            bar=bar,
+            bar=self._generate_bar(),
             n_fmt=n_fmt,
             total_fmt=total_fmt,
             rate_fmt=rate_fmt,
             elapsed=elapsed_str,
+            unit=self.unit,
         )
 
         # Write to output

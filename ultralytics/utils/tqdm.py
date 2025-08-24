@@ -148,7 +148,7 @@ class TQDM:
         """Format rate with proper units and reasonable precision."""
         if rate <= 0:
             return ""
-        
+
         # For bytes, use appropriate units
         if self.unit in ("B", "bytes") and self.unit_scale:
             if rate < 1024:
@@ -156,9 +156,9 @@ class TQDM:
             elif rate < 1024**2:
                 return f"{rate/1024:.1f}KB/s"
             elif rate < 1024**3:
-                return f"{rate/(1024**2):.1f}MB/s"
+                return f"{rate/1024**2:.1f}MB/s"
             else:
-                return f"{rate/(1024**3):.1f}GB/s"
+                return f"{rate/1024**3:.1f}GB/s"
         
         # For regular items
         if rate >= 1000000:
@@ -233,11 +233,24 @@ class TQDM:
         # Calculate rate (avoid crazy numbers)
         if dt > 0.01:  # Only calculate rate if enough time has passed
             rate = dn / dt
-            # Cap the rate to reasonable values
+            # Cap the rate to reasonable values and smooth it
             if rate < 1000000:  # Less than 1M items/s
-                self.last_rate = 0.3 * rate + 0.7 * self.last_rate  # Smooth rate
+                self.last_rate = 0.3 * rate + 0.7 * self.last_rate
+                rate = self.last_rate
+            else:
+                # For very high rates, use the calculated rate but don't smooth
+                pass  # rate = rate (no change needed)
         else:
             rate = self.last_rate
+            
+        # At completion, calculate the overall rate if we have valid data
+        if self.n >= (self.total or float('inf')) and self.total and self.total > 0:
+            overall_elapsed = current_time - self.start_t
+            if overall_elapsed > 0:
+                overall_rate = self.n / overall_elapsed
+                # Use overall rate for final display if it seems reasonable
+                if overall_rate > 0:
+                    rate = overall_rate
 
         # Update counters
         self.last_print_n = self.n
@@ -258,6 +271,11 @@ class TQDM:
 
         elapsed_str = self._format_time(elapsed)
         rate_fmt = self._format_rate(rate)
+        
+        # Safeguard: if rate_fmt is empty at completion, use overall rate
+        if not rate_fmt and self.n >= (self.total or float('inf')) and elapsed > 0:
+            overall_rate = self.n / elapsed
+            rate_fmt = self._format_rate(overall_rate)
 
         # Format progress string with rate
         progress_str = self.bar_format.format(
@@ -266,10 +284,19 @@ class TQDM:
 
         # Write to output
         try:
-            self.file.write(f"\r{progress_str}")
+            # Clear the entire line more thoroughly to avoid leftover characters
+            # Use ANSI escape sequence to clear from cursor to end of line
+            self.file.write("\r\033[K")
+            self.file.write(progress_str)
             self.file.flush()
         except Exception:
-            pass
+            # Fallback to space-based clearing if ANSI not supported
+            try:
+                self.file.write("\r" + " " * 150 + "\r")
+                self.file.write(progress_str)
+                self.file.flush()
+            except Exception:
+                pass
 
     def update(self, n=1):
         """Update progress by n steps."""

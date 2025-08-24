@@ -132,6 +132,23 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 
 if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
     from tqdm import rich
+    
+    # Patch Rich BarColumn to use fixed bar_width of 10
+    try:
+        from rich.progress import BarColumn
+        
+        # Store original BarColumn __init__
+        original_bar_column_init = BarColumn.__init__
+        
+        def patched_bar_column_init(self, bar_width=None, *args, **kwargs):
+            """Patched BarColumn.__init__ that forces bar_width to 10."""
+            return original_bar_column_init(self, bar_width=10, *args, **kwargs)
+        
+        # Replace BarColumn.__init__ with our patched version
+        BarColumn.__init__ = patched_bar_column_init
+        
+    except ImportError:
+        pass
 
 
 class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):

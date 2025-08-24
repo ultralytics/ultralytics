@@ -217,7 +217,10 @@ class TQDM:
         if is_github_action_running():
             return False  # Never show intermediate progress in GitHub Actions
 
-        return dt >= self.mininterval and dn >= 1
+        if self.total is not None and self.n >= self.total:
+            return True
+
+        return dt >= self.mininterval
 
     def _display(self, final=False):
         """Display progress bar."""

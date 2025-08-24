@@ -221,7 +221,7 @@ class TQDM:
         """
         # Handle GitHub Actions environment
         if is_github_action_running():
-            mininterval = max(mininterval, 60)  # only update every 60 seconds
+            mininterval = max(mininterval, 10)  # only update every 10 seconds in CI
 
         # Determine if progress bar should be disabled
         if disable is None:
@@ -265,28 +265,31 @@ class TQDM:
             import shutil
             return shutil.get_terminal_size().columns
         except Exception:
-            return 80
+            return 200
 
-    def _format_sizeof(self, num):
-        """Format bytes with appropriate units."""
+    def _format_number(self, num, is_rate=False):
+        """Format numbers with appropriate units and scaling."""
+        if is_rate:
+            # For rates, only apply unit scaling to bytes/data units
+            if self.unit_scale and self.unit in ('B', 'bytes'):
+                for unit in ['', 'k', 'M', 'G', 'T', 'P']:
+                    if abs(num) < self.unit_divisor:
+                        formatted = f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
+                        return f"{formatted}{self.unit}/s"
+                    num /= self.unit_divisor
+                return f"{num:.1f}E{self.unit}/s"
+            else:
+                return f"{num:.2f}{self.unit}/s"
+        
+        # For counts, apply unit scaling if enabled
         if not self.unit_scale:
             return str(num)
-
+            
         for unit in ['', 'k', 'M', 'G', 'T', 'P']:
             if abs(num) < self.unit_divisor:
-                if unit:
-                    return f"{num:3.1f}{unit}"
-                else:
-                    return f"{num:.0f}"
+                return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
             num /= self.unit_divisor
         return f"{num:.1f}E"
-
-    def _format_rate(self, rate):
-        """Format iteration rate."""
-        if self.unit_scale and self.unit in ('B', 'bytes'):
-            return f"{self._format_sizeof(rate)}{self.unit}/s"
-        else:
-            return f"{rate:.2f}{self.unit}/s"
 
     def _format_time(self, seconds):
         """Format time duration cleanly."""
@@ -304,32 +307,72 @@ class TQDM:
         if self.total is None or self.total == 0:
             return "━" * n_bars
 
-        # Calculate progress
         frac = min(1.0, self.n / self.total) if self.total > 0 else 0
         filled_chars = frac * n_bars
         filled = int(filled_chars)
 
         # Rich-style progress characters
-        # Using rich's default progress bar characters
-        complete_char = "━"  # Rich uses this for completed sections
+        complete_char, remaining_char = "━", "─"
         partial_chars = [" ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
-        remaining_char = "─"  # Rich uses this for remaining sections
 
-        # Build the bar
         bar = complete_char * filled
-
-        # Add partial character if needed
         if filled < n_bars:
             remainder = filled_chars - filled
             if remainder > 0:
                 partial_idx = min(8, int(remainder * 8))
                 bar += partial_chars[partial_idx]
                 filled += 1
-
-        # Fill remaining with dash characters (rich style)
         bar += remaining_char * (n_bars - len(bar))
-
         return bar[:n_bars]
+
+    def _should_update(self, dt, dn):
+        """Check if progress bar should be updated based on time and iteration intervals."""
+        return dt >= self.mininterval or dn >= 1 or self.n >= (self.total or float('inf'))
+
+    def _build_progress_components(self, rate, elapsed):
+        """Build the left bar, progress bar, and right bar components."""
+        # Left part (description and progress)
+        if self.total is not None:
+            percentage = (self.n / self.total) * 100 if self.total > 0 else 0
+            l_bar = f"{self.desc}: {percentage:3.0f}%" if self.desc else f"{percentage:3.0f}%"
+        else:
+            l_bar = f"{self.desc}: {self.n}{self.unit}" if self.desc else f"{self.n}{self.unit}"
+
+        # Extract bar length from format if specified
+        bar_length = 10
+        if '{bar' in self.bar_format:
+            import re
+            match = re.search(r'\{bar:?(\d+)\}', self.bar_format)
+            if match:
+                bar_length = int(match.group(1))
+        bar = self._generate_bar(bar_length)
+
+        # Build r_bar components: count, rate, time
+        r_parts = []
+        
+        # Count (current/total or just current)
+        if self.total is not None:
+            current_str = self._format_number(self.n) if self.unit_scale and self.unit in ('B', 'bytes') else str(self.n)
+            total_str = self._format_number(self.total) if self.unit_scale and self.unit in ('B', 'bytes') else str(self.total)
+            count_str = f"{current_str}/{total_str}" if self.unit_scale and self.unit in ('B', 'bytes') else f"{self.n}/{self.total}"
+        else:
+            count_str = self._format_number(self.n) if self.unit_scale and self.unit in ('B', 'bytes') else str(self.n)
+        r_parts.append(count_str)
+
+        # Rate (if available)
+        if rate > 0:
+            r_parts.append(self._format_number(rate, is_rate=True))
+
+        # Elapsed time
+        r_parts.append(self._format_time(elapsed))
+        
+        return l_bar, bar, " ".join(r_parts)
+
+    def _write_progress(self, progress_str):
+        """Write progress string to output with proper formatting."""
+        self.max_len = max(self.max_len, len(progress_str))
+        padded_str = progress_str.ljust(self.max_len)
+        self._write_to_file(f"\r{padded_str}")
 
     def _display(self):
         """Display or update the progress bar."""
@@ -338,16 +381,14 @@ class TQDM:
 
         current_time = time.time()
         dt = current_time - self.last_print_t
-
-        # Check if we should update (based on mininterval)
         dn = self.n - self.last_print_n
-        if dt < self.mininterval and dn < 1 and self.n < (self.total or float('inf')):
+        
+        if not self._should_update(dt, dn):
             return
 
-        # Calculate rate
+        # Calculate and smooth rate
         if dt > 0:
             rate = dn / dt
-            # Smooth the rate
             self.last_rate = self.smoothing * rate + (1 - self.smoothing) * self.last_rate
         else:
             rate = self.last_rate
@@ -355,88 +396,23 @@ class TQDM:
         # Update counters
         self.last_print_n = self.n
         self.last_print_t = current_time
-
-        # Generate the progress string
         elapsed = current_time - self.start_t
 
-        # Left part (description and progress)
-        if self.total is not None:
-            percentage = (self.n / self.total) * 100 if self.total > 0 else 0
-            l_bar = f"{self.desc}: {percentage:3.0f}%" if self.desc else f"{percentage:3.0f}%"
-        else:
-            l_bar = f"{self.desc}: {self.n}{self.unit}" if self.desc else f"{self.n}{self.unit}"
+        # Build progress components
+        l_bar, bar, r_bar = self._build_progress_components(rate, elapsed)
 
-        # Bar part
-        bar_length = 10  # Default bar length
-        if '{bar' in self.bar_format:
-            # Extract bar length from format if specified
-            import re
-            match = re.search(r'\{bar:?(\d+)\}', self.bar_format)
-            if match:
-                bar_length = int(match.group(1))
-
-        bar = self._generate_bar(bar_length)
-
-        # Build r_bar components: count, rate, time
-        r_parts = []
-
-        # 1. Count (current/total or just current)
-        if self.total is not None:
-            if self.unit_scale and self.unit in ('B', 'bytes'):
-                current_str = self._format_sizeof(self.n)
-                total_str = self._format_sizeof(self.total)
-                count_str = f"{current_str}/{total_str}"
-            else:
-                count_str = f"{self.n}/{self.total}"
-        else:
-            if self.unit_scale and self.unit in ('B', 'bytes'):
-                count_str = self._format_sizeof(self.n)
-            else:
-                count_str = str(self.n)
-        r_parts.append(count_str)
-
-        # 2. Rate (if available)
-        if rate > 0:
-            if self.unit_scale and self.unit in ('B', 'bytes'):
-                rate_str = f"{self._format_sizeof(rate)}{self.unit}/s"
-            else:
-                rate_str = f"{rate:.2f}{self.unit}/s"
-            r_parts.append(rate_str)
-
-        # 3. Elapsed time
-        if elapsed < 60:
-            time_str = f"{elapsed:.1f}s"
-        else:
-            time_str = f"{elapsed // 60:.0f}:{elapsed % 60:02.0f}"
-        r_parts.append(time_str)
-
-        r_bar = " ".join(r_parts)
-
-        # Format the complete bar with proper spacing - simplified logic
+        # Format the complete progress string
         if "{l_bar}" in self.bar_format and "{r_bar}" in self.bar_format and "{bar" in self.bar_format:
-            # Use the custom format string directly - it should be clean now
             progress_str = self.bar_format.format(l_bar=l_bar, bar=bar, r_bar=r_bar)
         else:
-            # Default rich-style format with proper spacing
-            if self.total is not None:
-                progress_str = f"{l_bar} │{bar}│ {r_bar}"
-            else:
-                progress_str = f"{l_bar} {r_bar}"
+            separator = " │{bar}│ " if self.total is not None else " "
+            progress_str = f"{l_bar}{separator.format(bar=bar) if '{bar}' in separator else separator}{r_bar}"
 
         # Truncate if too long
         if len(progress_str) > self.ncols - 5:
             progress_str = progress_str[:self.ncols - 8] + "..."
 
-        # Output with consistent length (prevents leftover characters)
-        try:
-            if hasattr(self.file, 'write'):
-                # Track max length and pad to prevent leftover characters
-                self.max_len = max(self.max_len, len(progress_str))
-                padded_str = progress_str.ljust(self.max_len)
-                self.file.write(f"\r{padded_str}")
-                self.file.flush()
-        except Exception:
-            pass  # Silently handle output errors
+        self._write_progress(progress_str)
 
     def update(self, n=1):
         """Update progress by n steps."""
@@ -462,36 +438,22 @@ class TQDM:
             else:
                 self.set_description(f"{self.desc}{postfix_str}")
 
+    def _final_cleanup(self):
+        """Handle final display and cleanup operations."""
+        text = "\n" if self.leave else "\r" + " " * self.ncols + "\r"
+        self._write_to_file(text)
+
     def close(self):
         """Close the progress bar and perform cleanup operations."""
         if self.closed:
             return
 
         if not self.disable:
-            # Force final values for clean completion display
+            # Ensure completion display for finished progress bars
             if self.total is not None and self.n >= self.total:
-                # For completed progress bars, ensure clean final display
-                self.n = self.total  # Ensure we show completion
-
-            # Final display with current state
+                self.n = self.total
             self._display()
-
-            # Move to next line if leave is True
-            if self.leave:
-                try:
-                    if hasattr(self.file, 'write'):
-                        self.file.write("\n")
-                        self.file.flush()
-                except Exception:
-                    pass
-            else:
-                # Clear the line
-                try:
-                    if hasattr(self.file, 'write'):
-                        self.file.write("\r" + " " * self.ncols + "\r")
-                        self.file.flush()
-                except Exception:
-                    pass
+            self._final_cleanup()
 
         self.closed = True
 
@@ -522,7 +484,6 @@ class TQDM:
         except Exception:
             pass
 
-    # Compatibility methods
     def refresh(self):
         """Refresh the progress bar display."""
         if not self.disable:
@@ -531,12 +492,17 @@ class TQDM:
     def clear(self):
         """Clear the progress bar."""
         if not self.disable:
-            try:
-                if hasattr(self.file, 'write'):
-                    self.file.write("\r" + " " * self.ncols + "\r")
+            self._write_to_file("\r" + " " * self.ncols + "\r")
+
+    def _write_to_file(self, text, flush=True):
+        """Safely write text to file output."""
+        try:
+            if hasattr(self.file, 'write'):
+                self.file.write(text)
+                if flush:
                     self.file.flush()
-            except Exception:
-                pass
+        except Exception:
+            pass
 
     @staticmethod
     def write(s, file=None, end="\n", nolock=False):

@@ -377,7 +377,7 @@ def safe_download(
                 elif i >= retry:
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached.")) from e
                 LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}...")
-            
+
             if success:
                 break
             elif f.exists():

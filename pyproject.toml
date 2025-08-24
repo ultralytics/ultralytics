@@ -71,7 +71,6 @@ dependencies = [
     "torch>=1.8.0",
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
-    "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
     "pandas>=1.1.4",
@@ -85,6 +84,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
+    "tqdm>=4.64.0", # progress bars for docs building
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",

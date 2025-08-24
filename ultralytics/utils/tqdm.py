@@ -224,16 +224,16 @@ class TQDM:
 
         return dt >= self.mininterval and dn >= 1
 
-    def _display(self):
+    def _display(self, final=False):
         """Display progress bar."""
-        if self.disable or self.closed:
+        if self.disable or (self.closed and not final):
             return
 
         current_time = time.time()
         dt = current_time - self.last_print_t
         dn = self.n - self.last_print_n
 
-        if not self._should_update(dt, dn):
+        if not final and not self._should_update(dt, dn):
             return
 
         # Calculate rate (avoid crazy numbers)
@@ -316,12 +316,14 @@ class TQDM:
         """Close progress bar."""
         if self.closed:
             return
-
+        
+        self.closed = True  # Set before final display
+        
         if not self.disable:
             # Final display
             if self.total and self.n >= self.total:
                 self.n = self.total
-            self._display()
+            self._display(final=True)
 
             # Cleanup
             if self.leave:
@@ -332,8 +334,6 @@ class TQDM:
                 self.file.flush()
             except Exception:
                 pass
-
-        self.closed = True
 
     def __enter__(self):
         """Enter context manager."""

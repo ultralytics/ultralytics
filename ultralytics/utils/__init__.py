@@ -131,11 +131,10 @@ os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not in
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
 if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
-    from tqdm import rich
-
     # Patch Rich Console and BarColumn for fixed widths to solve width=80 bug
     from rich.console import Console
     from rich.progress import BarColumn
+    from tqdm import rich
 
     # Force Console width=200 and BarColumn bar_width=10
     _console_init = Console.__init__

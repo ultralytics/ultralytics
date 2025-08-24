@@ -132,13 +132,13 @@ class TQDM:
         self.leave = leave
         self.mininterval = mininterval
         self.initial = initial
-        
+
         # Set bar format based on whether we have a total
         if self.total is not None:
             self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
         else:
             self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {unit} {rate_fmt} {elapsed}"
-        
+
         self.file = file or sys.stdout
 
         # Internal state
@@ -164,13 +164,13 @@ class TQDM:
                 if rate >= threshold:
                     return f"{rate / threshold:.1f}{unit}"
             return f"{rate:.1f}B/s"
-        
-        # For other scalable units, use decimal units  
+
+        # For other scalable units, use decimal units
         if self.unit_scale and self.unit in ("it", "items", ""):
             for threshold, prefix in [(1000000, "M"), (1000, "K")]:
                 if rate >= threshold:
                     return f"{rate / threshold:.1f}{prefix}{self.unit}/s"
-        
+
         # Default formatting
         precision = ".1f" if rate >= 1 else ".2f"
         return f"{rate:{precision}}{self.unit}/s"

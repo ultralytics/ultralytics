@@ -11,21 +11,13 @@ from typing import IO, Any
 @lru_cache(maxsize=1)
 def supports_interactive_progress():
     """Test if carriage return actually works by trying it."""
+    import os, sys
+    
     # Quick check for known broken environments
-    # if "GITHUB_ACTIONS" in os.environ:
-    #    return False
-
-    # Real test: actually try carriage return on stdout and see what happens
-    try:
-        # Write something, then overwrite it with carriage return
-        sys.stdout.write("testing...")
-        sys.stdout.flush()
-        time.sleep(0.01)  # Brief pause
-        sys.stdout.write("\r" + " " * 10 + "\r")  # Overwrite and clear
-        sys.stdout.flush()
-        return True
-    except Exception:
+    if "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ:
         return False
+    else:
+        return True
 
 
 class TQDM:

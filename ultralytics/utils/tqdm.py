@@ -7,6 +7,7 @@ import time
 def is_github_action_running():
     """Determine if the current environment is a GitHub Actions runner."""
     import os
+
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
 
 
@@ -58,7 +59,7 @@ class TQDM:
         >>> with TQDM(total=100, unit="B", unit_scale=True) as pbar:
         ...     for i in range(100):
         ...         pbar.update(1)
-        
+
         Manual updates:
         >>> pbar = TQDM(total=100, desc="Training")
         >>> for epoch in range(100):
@@ -66,7 +67,6 @@ class TQDM:
         ...     pbar.update(1)
         >>> pbar.close()
     """
-
 
     def __init__(
         self,
@@ -114,6 +114,7 @@ class TQDM:
         if disable is None:
             try:
                 from ultralytics.utils import LOGGER, VERBOSE
+
                 disable = not VERBOSE or LOGGER.getEffectiveLevel() > 20
             except ImportError:
                 disable = False
@@ -147,7 +148,7 @@ class TQDM:
         """Format number with optional unit scaling."""
         if not self.unit_scale or self.unit not in ("B", "bytes"):
             return str(num)
-        
+
         for unit in ["", "K", "M", "G", "T"]:
             if abs(num) < self.unit_divisor:
                 return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
@@ -171,20 +172,20 @@ class TQDM:
 
         frac = min(1.0, self.n / self.total)
         filled = int(frac * width)
-        
+
         bar = "━" * filled + "─" * (width - filled)
-        
+
         # Add partial character for smoother progress
         if filled < width and frac * width - filled > 0.5:
-            bar = bar[:filled] + "╸" + bar[filled + 1:]
-            
+            bar = bar[:filled] + "╸" + bar[filled + 1 :]
+
         return bar
 
     def _should_update(self, dt, dn):
         """Check if display should update."""
         if self.n >= (self.total or float("inf")):
             return True
-        
+
         # GitHub Actions: suppress initial display until mininterval
         if is_github_action_running() and self.n == self.initial and dt < self.mininterval:
             return False
@@ -233,12 +234,7 @@ class TQDM:
 
         # Format progress string (no rate to avoid clutter)
         progress_str = self.bar_format.format(
-            desc=self.desc,
-            percentage=percentage,
-            bar=bar,
-            n_fmt=n_fmt,
-            total_fmt=total_fmt,
-            elapsed=elapsed_str
+            desc=self.desc, percentage=percentage, bar=bar, n_fmt=n_fmt, total_fmt=total_fmt, elapsed=elapsed_str
         )
 
         # Write to output
@@ -277,7 +273,7 @@ class TQDM:
             if self.total and self.n >= self.total:
                 self.n = self.total
             self._display()
-            
+
             # Cleanup
             end_char = "\n" if self.leave else "\r" + " " * 100 + "\r"
             try:
@@ -297,7 +293,7 @@ class TQDM:
     def __iter__(self):
         if self.iterable is None:
             raise TypeError("'NoneType' object is not iterable")
-        
+
         try:
             for item in self.iterable:
                 yield item

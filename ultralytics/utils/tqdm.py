@@ -154,17 +154,17 @@ class TQDM:
             if rate < 1024:
                 return f"{rate:.1f}B/s"
             elif rate < 1024**2:
-                return f"{rate/1024:.1f}KB/s"
+                return f"{rate / 1024:.1f}KB/s"
             elif rate < 1024**3:
-                return f"{rate/1024**2:.1f}MB/s"
+                return f"{rate / 1024**2:.1f}MB/s"
             else:
-                return f"{rate/1024**3:.1f}GB/s"
-        
+                return f"{rate / 1024**3:.1f}GB/s"
+
         # For regular items
         if rate >= 1000000:
-            return f"{rate/1000000:.1f}M{self.unit}/s"
+            return f"{rate / 1000000:.1f}M{self.unit}/s"
         elif rate >= 1000:
-            return f"{rate/1000:.1f}K{self.unit}/s"
+            return f"{rate / 1000:.1f}K{self.unit}/s"
         elif rate >= 1:
             return f"{rate:.1f}{self.unit}/s"
         else:
@@ -174,7 +174,7 @@ class TQDM:
         """Format number with optional unit scaling."""
         if not self.unit_scale or self.unit not in ("B", "bytes"):
             return str(num)
-        
+
         for unit in ["", "K", "M", "G", "T"]:
             if abs(num) < self.unit_divisor:
                 return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
@@ -242,9 +242,9 @@ class TQDM:
                 pass  # rate = rate (no change needed)
         else:
             rate = self.last_rate
-            
+
         # At completion, calculate the overall rate if we have valid data
-        if self.n >= (self.total or float('inf')) and self.total and self.total > 0:
+        if self.n >= (self.total or float("inf")) and self.total and self.total > 0:
             overall_elapsed = current_time - self.start_t
             if overall_elapsed > 0:
                 overall_rate = self.n / overall_elapsed
@@ -271,15 +271,21 @@ class TQDM:
 
         elapsed_str = self._format_time(elapsed)
         rate_fmt = self._format_rate(rate)
-        
+
         # Safeguard: if rate_fmt is empty at completion, use overall rate
-        if not rate_fmt and self.n >= (self.total or float('inf')) and elapsed > 0:
+        if not rate_fmt and self.n >= (self.total or float("inf")) and elapsed > 0:
             overall_rate = self.n / elapsed
             rate_fmt = self._format_rate(overall_rate)
 
         # Format progress string with rate
         progress_str = self.bar_format.format(
-            desc=self.desc, percentage=percentage, bar=bar, n_fmt=n_fmt, total_fmt=total_fmt, rate_fmt=rate_fmt, elapsed=elapsed_str
+            desc=self.desc,
+            percentage=percentage,
+            bar=bar,
+            n_fmt=n_fmt,
+            total_fmt=total_fmt,
+            rate_fmt=rate_fmt,
+            elapsed=elapsed_str,
         )
 
         # Write to output

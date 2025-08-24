@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 import time
-from typing import Any, IO
+from typing import IO, Any
 
 
 def is_github_action_running():

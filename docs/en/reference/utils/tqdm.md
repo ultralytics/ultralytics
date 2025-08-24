@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Lightweight zero-dependency progress bar for Ultralytics with rich-style displays, GitHub Actions support, and comprehensive formatting options.
+keywords: TQDM, progress bar, Ultralytics, GitHub Actions, zero dependencies, rich style, download progress, training progress, Unicode blocks
 ---
 
 # Reference for `ultralytics/utils/tqdm.py`

@@ -391,18 +391,18 @@ if __name__ == "__main__":
     import time
 
     # Known total
-    for i in TQDM(range(10), desc="Known total"):
+    for i in TQDM(range(20), desc="Known total"):
         time.sleep(0.05)
 
     # Unknown total
     pbar = TQDM(desc="Unknown total", unit="items")
-    for i in range(15):
+    for i in range(30):
         time.sleep(0.03)
         pbar.update(1)
     pbar.close()
 
     # Context manager
     with TQDM(desc="Context manager", unit="MB", unit_scale=True) as pbar:
-        for i in range(50):
+        for i in range(100):
             pbar.update(i + 1)
             time.sleep(0.02)

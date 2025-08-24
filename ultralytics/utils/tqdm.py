@@ -402,7 +402,7 @@ if __name__ == "__main__":
     pbar.close()
 
     # Context manager
-    with TQDM(desc="Context manager", unit="MB", unit_scale=True) as pbar:
-        for i in range(100):
-            pbar.update(i + 1)
-            time.sleep(0.02)
+    with TQDM(desc="Context manager", unit="B", unit_scale=True, total=10000*1024) as pbar:
+        for i in range(10):
+            pbar.update(1024 * 1000)  # Add 1MB each time for 10MB total
+            time.sleep(0.2)

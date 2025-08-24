@@ -129,7 +129,7 @@ class TQDM:
         self.leave = leave
         self.mininterval = mininterval
         self.initial = initial
-        self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {elapsed}"
+        self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
         self.file = file or sys.stdout
 
         # Internal state
@@ -144,11 +144,37 @@ class TQDM:
         if not self.disable and self.total is not None:
             self._display()
 
+    def _format_rate(self, rate):
+        """Format rate with proper units and reasonable precision."""
+        if rate <= 0:
+            return ""
+        
+        # For bytes, use appropriate units
+        if self.unit in ("B", "bytes") and self.unit_scale:
+            if rate < 1024:
+                return f"{rate:.1f}B/s"
+            elif rate < 1024**2:
+                return f"{rate/1024:.1f}KB/s"
+            elif rate < 1024**3:
+                return f"{rate/(1024**2):.1f}MB/s"
+            else:
+                return f"{rate/(1024**3):.1f}GB/s"
+        
+        # For regular items
+        if rate >= 1000000:
+            return f"{rate/1000000:.1f}M{self.unit}/s"
+        elif rate >= 1000:
+            return f"{rate/1000:.1f}K{self.unit}/s"
+        elif rate >= 1:
+            return f"{rate:.1f}{self.unit}/s"
+        else:
+            return f"{rate:.2f}{self.unit}/s"
+
     def _format_num(self, num):
         """Format number with optional unit scaling."""
         if not self.unit_scale or self.unit not in ("B", "bytes"):
             return str(num)
-
+        
         for unit in ["", "K", "M", "G", "T"]:
             if abs(num) < self.unit_divisor:
                 return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
@@ -231,10 +257,11 @@ class TQDM:
             bar = ""
 
         elapsed_str = self._format_time(elapsed)
+        rate_fmt = self._format_rate(rate)
 
-        # Format progress string (no rate to avoid clutter)
+        # Format progress string with rate
         progress_str = self.bar_format.format(
-            desc=self.desc, percentage=percentage, bar=bar, n_fmt=n_fmt, total_fmt=total_fmt, elapsed=elapsed_str
+            desc=self.desc, percentage=percentage, bar=bar, n_fmt=n_fmt, total_fmt=total_fmt, rate_fmt=rate_fmt, elapsed=elapsed_str
         )
 
         # Write to output
@@ -285,12 +312,15 @@ class TQDM:
         self.closed = True
 
     def __enter__(self):
+        """Enter context manager."""
         return self
 
     def __exit__(self, *args):
+        """Exit context manager and close progress bar."""
         self.close()
 
     def __iter__(self):
+        """Iterate over the wrapped iterable with progress updates."""
         if self.iterable is None:
             raise TypeError("'NoneType' object is not iterable")
 
@@ -302,6 +332,7 @@ class TQDM:
             self.close()
 
     def __del__(self):
+        """Destructor to ensure cleanup."""
         try:
             self.close()
         except Exception:

@@ -24,6 +24,7 @@ import torch
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
+from ultralytics.utils.tqdm import TQDM
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -126,10 +127,6 @@ os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
-
-
-# Import TQDM from dedicated module
-from ultralytics.utils.tqdm import TQDM
 
 
 class DataExportMixin:

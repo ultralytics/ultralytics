@@ -13,4 +13,8 @@ keywords: ConsoleLogger, console capture, log streaming, API logging, file loggi
 
 ## ::: ultralytics.utils.logger.ConsoleLogger
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.logger.SystemLogger
+
 <br><br>

@@ -133,29 +133,17 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
     from tqdm import rich
     
-    # Patch Rich Console and BarColumn for consistent behavior
+    # Patch Rich Console and BarColumn for fixed widths
     try:
         from rich.console import Console
         from rich.progress import BarColumn
         
-        # Patch Console to always use width=200
-        original_console_init = Console.__init__
+        # Force Console width=200 and BarColumn bar_width=10
+        _console_init = Console.__init__
+        _bar_init = BarColumn.__init__
         
-        def patched_console_init(self, *args, **kwargs):
-            """Patched Console.__init__ that forces width to 200."""
-            kwargs['width'] = 200
-            return original_console_init(self, *args, **kwargs)
-        
-        Console.__init__ = patched_console_init
-        
-        # Patch BarColumn to use fixed bar_width of 10
-        original_bar_column_init = BarColumn.__init__
-        
-        def patched_bar_column_init(self, bar_width=None, *args, **kwargs):
-            """Patched BarColumn.__init__ that forces bar_width to 10."""
-            return original_bar_column_init(self, bar_width=10, *args, **kwargs)
-        
-        BarColumn.__init__ = patched_bar_column_init
+        Console.__init__ = lambda self, *a, **k: _console_init(self, *a, **{**k, 'width': 200})
+        BarColumn.__init__ = lambda self, bar_width=None, *a, **k: _bar_init(self, 10, *a, **k)
         
     except ImportError:
         pass

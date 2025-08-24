@@ -295,8 +295,8 @@ def safe_download(
     progress: bool = True,
 ):
     """
-    Download files from a URL with options for retrying, unzipping, and deleting the downloaded file.
-    Enhanced with robust partial download detection using Content-Length validation.
+    Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
+    robust partial download detection using Content-Length validation.
 
     Args:
         url (str): The URL of the file to be downloaded.
@@ -352,12 +352,12 @@ def safe_download(
                     with request.urlopen(url) as response:
                         expected_size = int(response.getheader("Content-Length", 0))
                         with TQDM(
-                                total=expected_size,
-                                desc=desc,
-                                disable=not progress,
-                                unit="B",
-                                unit_scale=True,
-                                unit_divisor=1024,
+                            total=expected_size,
+                            desc=desc,
+                            disable=not progress,
+                            unit="B",
+                            unit_scale=True,
+                            unit_divisor=1024,
                         ) as pbar:
                             with open(f, "wb") as f_opened:
                                 for data in response:
@@ -369,7 +369,9 @@ def safe_download(
                     if file_size > min_bytes:
                         # Check if download is complete (only if we have expected_size)
                         if expected_size and file_size != expected_size:
-                            LOGGER.warning(f"Partial download: {file_size}/{expected_size} bytes ({file_size/expected_size*100:.1f}%)")
+                            LOGGER.warning(
+                                f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                            )
                             f.unlink()  # remove partial download
                         else:
                             break  # success

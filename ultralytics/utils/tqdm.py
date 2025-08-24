@@ -2,18 +2,15 @@
 
 from __future__ import annotations
 
-import os
 import sys
 import time
+from functools import lru_cache
 from typing import IO, Any
 
-
-from functools import lru_cache
 
 @lru_cache(maxsize=1)
 def supports_interactive_progress():
     """Test if carriage return actually works by trying it."""
-
     # Quick check for known broken environments
     #if "GITHUB_ACTIONS" in os.environ:
     #    return False

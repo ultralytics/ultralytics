@@ -338,11 +338,8 @@ def safe_download(
         check_disk_space(url, path=f.parent)
         curl_installed = shutil.which("curl")
         for i in range(retry + 1):
+            success = False
             try:
-                # Remove existing file before download
-                if f.exists():
-                    f.unlink()
-
                 if (curl or i > 0) and curl_installed:  # curl download with retry, continue
                     s = "sS" * (not progress)  # silent
                     r = subprocess.run(["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-"]).returncode
@@ -372,19 +369,19 @@ def safe_download(
                             LOGGER.warning(
                                 f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
                             )
-                            f.unlink()  # remove partial download
                         else:
-                            break  # success
-                    else:
-                        f.unlink()  # remove partial downloads
+                            success = True
             except Exception as e:
-                if f.exists():
-                    f.unlink()  # cleanup partial file on error
                 if i == 0 and not is_online():
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
                 elif i >= retry:
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached.")) from e
                 LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}...")
+            
+            if success:
+                break
+            elif f.exists():
+                f.unlink()  # cleanup failed/partial file
 
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile

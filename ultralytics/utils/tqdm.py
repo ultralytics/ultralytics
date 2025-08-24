@@ -284,19 +284,12 @@ class TQDM:
 
         # Write to output
         try:
-            # Clear the entire line more thoroughly to avoid leftover characters
-            # Use ANSI escape sequence to clear from cursor to end of line
-            self.file.write("\r\033[K")
-            self.file.write(progress_str)
-            self.file.flush()
+            # Clear line to avoid leftover characters, then write progress
+            self.file.write(f"\r\033[K{progress_str}")
         except Exception:
             # Fallback to space-based clearing if ANSI not supported
-            try:
-                self.file.write("\r" + " " * 150 + "\r")
-                self.file.write(progress_str)
-                self.file.flush()
-            except Exception:
-                pass
+            self.file.write("\r" + " " * 150 + "\r" + progress_str)
+        self.file.flush()
 
     def update(self, n=1):
         """Update progress by n steps."""

@@ -148,23 +148,23 @@ class TQDM:
         """Format rate with proper units and reasonable precision."""
         if rate <= 0:
             return ""
-        
+
         # For bytes, use appropriate units
         if self.unit in ("B", "bytes") and self.unit_scale:
             if rate < 1024:
                 return f"{rate:.1f}B/s"
             elif rate < 1024**2:
-                return f"{rate/1024:.1f}KB/s"
+                return f"{rate / 1024:.1f}KB/s"
             elif rate < 1024**3:
-                return f"{rate/(1024**2):.1f}MB/s"
+                return f"{rate / (1024**2):.1f}MB/s"
             else:
-                return f"{rate/(1024**3):.1f}GB/s"
-        
+                return f"{rate / (1024**3):.1f}GB/s"
+
         # For regular items
         if rate >= 1000000:
-            return f"{rate/1000000:.1f}M{self.unit}/s"
+            return f"{rate / 1000000:.1f}M{self.unit}/s"
         elif rate >= 1000:
-            return f"{rate/1000:.1f}K{self.unit}/s"
+            return f"{rate / 1000:.1f}K{self.unit}/s"
         elif rate >= 1:
             return f"{rate:.1f}{self.unit}/s"
         else:
@@ -174,7 +174,7 @@ class TQDM:
         """Format number with optional unit scaling."""
         if not self.unit_scale or self.unit not in ("B", "bytes"):
             return str(num)
-        
+
         for unit in ["", "K", "M", "G", "T"]:
             if abs(num) < self.unit_divisor:
                 return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
@@ -261,7 +261,13 @@ class TQDM:
 
         # Format progress string with rate
         progress_str = self.bar_format.format(
-            desc=self.desc, percentage=percentage, bar=bar, n_fmt=n_fmt, total_fmt=total_fmt, rate_fmt=rate_fmt, elapsed=elapsed_str
+            desc=self.desc,
+            percentage=percentage,
+            bar=bar,
+            n_fmt=n_fmt,
+            total_fmt=total_fmt,
+            rate_fmt=rate_fmt,
+            elapsed=elapsed_str,
         )
 
         # Write to output

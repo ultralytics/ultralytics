@@ -384,10 +384,7 @@ class TQDM:
 
 if __name__ == "__main__":
     import time
-    
-    print("=== TQDM Usage Examples ===")
-    print()
-    
+
     # Example 1: Basic usage with known total
     print("1. Basic progress bar with known total:")
     for i in TQDM(range(20), desc="Known total"):
@@ -451,7 +448,3 @@ if __name__ == "__main__":
         pbar.set_description(f"Processing {filename}")
     pbar.close()
     print()
-    
-    print("=== All examples completed! ===")
-    print("Note: Example 3 demonstrates the fix for unknown totals - ")
-    print("it now shows a moving activity indicator instead of being broken.")

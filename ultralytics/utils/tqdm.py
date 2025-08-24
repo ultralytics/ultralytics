@@ -194,7 +194,7 @@ class TQDM:
             h, m = int(seconds // 3600), int((seconds % 3600) // 60)
             return f"{h}:{m:02d}:{seconds % 60:02.0f}"
 
-    def _generate_bar(self, width=10):
+    def _generate_bar(self, width=16):
         """Generate progress bar."""
         if self.total is None or self.total == 0:
             return "━" * width

@@ -293,8 +293,8 @@ class SystemLogger:
             "network": {"recv_mb": 157.2, "sent_mb": 89.1},
             "gpus": {
                 0: {"usage": 95.6, "memory": 85.4, "temp": 72, "power": 285},
-                1: {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278}
-            }
+                1: {"usage": 94.1, "memory": 82.7, "temp": 70, "power": 278},
+            },
         }
         ```
 

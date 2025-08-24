@@ -397,6 +397,6 @@ if __name__ == "__main__":
 
     # Context manager
     with TQDM(desc="Context manager", unit="MB", unit_scale=True) as pbar:
-        for i in range(10):
-            pbar.update(1024 * (i + 1))
+        for i in range(50):
+            pbar.update(i + 1)
             time.sleep(0.02)

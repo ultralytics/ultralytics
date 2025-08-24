@@ -12,7 +12,6 @@ import subprocess
 import sys
 import threading
 import time
-import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -22,7 +21,7 @@ from urllib.parse import unquote
 import cv2
 import numpy as np
 import torch
-import tqdm
+
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
@@ -41,7 +40,7 @@ DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
-TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
+TQDM_BAR_FORMAT = "{l_bar} │{bar:10}│ {r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -130,72 +129,391 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
-if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
-    from rich.console import Console
-    from rich.progress import BarColumn
-    from tqdm import rich
-
-    # Patch Rich Console width=200 and BarColumn bar_width=10 to solve width=80 missing bars bug
-    _console_init = Console.__init__
-    _bar_init = BarColumn.__init__
-    Console.__init__ = lambda self, *a, **k: _console_init(self, *a, **{**k, "width": 200})
-    BarColumn.__init__ = lambda self, bar_width=None, *a, **k: _bar_init(self, 10, *a, **k)
-
-
-class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
+class TQDM:
     """
-    A custom TQDM progress bar class that extends the original tqdm functionality.
+    A zero-dependency progress bar implementation that replaces the standard tqdm library.
 
-    This class modifies the behavior of the original tqdm progress bar based on global settings and provides
-    additional customization options for Ultralytics projects. The progress bar is automatically disabled when
-    VERBOSE is False or when explicitly disabled.
+    This lightweight implementation provides the same interface as tqdm with clean, rich-style progress bars suitable
+    for logging in various environments including Weights & Biases, console outputs, and other logging systems.
+    Features zero external dependencies, clean single-line output, rich-style progress bars with Unicode block
+    characters, context manager support, iterator protocol support, dynamic description updates, and customizable
+    progress bar formatting.
 
     Attributes:
-        disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
-            any passed 'disable' argument.
-        bar_format (str): The format string for the progress bar. Uses the global TQDM_BAR_FORMAT if not
-            explicitly set.
+        iterable (object): Iterable to wrap with progress bar.
+        desc (str): Prefix for the progress bar description.
+        total (int): Expected number of iterations.
+        disable (bool): Whether to disable the progress bar.
+        unit (str): String for units of iteration.
+        unit_scale (bool): Auto-scale units flag.
+        unit_divisor (int): Divisor for unit scaling.
+        leave (bool): Whether to leave the progress bar after completion.
+        mininterval (float): Minimum time interval between updates.
+        smoothing (float): Smoothing factor for rate calculation.
+        initial (int): Initial counter value.
+        n (int): Current iteration count.
+        closed (bool): Whether the progress bar is closed.
+        max_len (int): Maximum progress string length for display consistency.
+        bar_format (str): Custom bar format string.
+        ncols (int): Terminal width for progress bar display.
+        file (object): Output file stream.
 
     Methods:
-        __init__: Initialize the TQDM object with custom settings.
-        __iter__: Return self as iterator to satisfy Iterable interface.
+        update: Update progress by n steps.
+        set_description: Set or update the description.
+        set_postfix: Set postfix for the progress bar.
+        close: Close the progress bar and clean up.
+        refresh: Refresh the progress bar display.
+        clear: Clear the progress bar from display.
+        write: Write a message without breaking the progress bar.
 
     Examples:
-        >>> from ultralytics.utils import TQDM
+        Basic usage with iterator:
         >>> for i in TQDM(range(100)):
-        ...     # Your processing code here
-        ...     pass
+        ...     time.sleep(0.01)
+        
+        With custom description:
+        >>> pbar = TQDM(range(100), desc="Processing")
+        >>> for i in pbar:
+        ...     pbar.set_description(f"Processing item {i}")
+        
+        Context manager usage:
+        >>> with TQDM(total=100, unit="B", unit_scale=True) as pbar:
+        ...     for i in range(100):
+        ...         pbar.update(1)
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None,
+                 ncols=None, mininterval=1.0, maxinterval=10.0, miniters=None,
+                 ascii=None, disable=None, unit='it', unit_scale=False,
+                 dynamic_ncols=False, smoothing=0.3, bar_format=None, initial=0,
+                 position=None, postfix=None, unit_divisor=1000, write_bytes=False,
+                 lock_args=None, nrows=None, colour=None, **kwargs):
         """
-        Initialize a custom TQDM progress bar with Ultralytics-specific settings.
+        Initialize the TQDM progress bar with specified configuration options.
 
         Args:
-            *args (Any): Variable length argument list to be passed to the original tqdm constructor.
-            **kwargs (Any): Arbitrary keyword arguments to be passed to the original tqdm constructor.
-
-        Notes:
-            - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
-            - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
-            - In GitHub Actions, progress bars only update at completion to keep CI logs clean.
-
-        Examples:
-            >>> from ultralytics.utils import TQDM
-            >>> for i in TQDM(range(100)):
-            ...     # Your code here
-            ...     pass
+            iterable (object, optional): Iterable to wrap with progress bar.
+            desc (str, optional): Prefix description for the progress bar.
+            total (int, optional): Expected number of iterations.
+            leave (bool, optional): Whether to leave the progress bar after completion.
+            file (object, optional): Output file stream for progress display.
+            ncols (int, optional): Terminal width for progress bar display.
+            mininterval (float, optional): Minimum time interval between updates.
+            maxinterval (float, optional): Maximum time interval between updates.
+            miniters (int, optional): Minimum iteration interval between updates.
+            ascii (bool, optional): Whether to use ASCII characters for progress bar.
+            disable (bool, optional): Whether to disable the progress bar.
+            unit (str, optional): String for units of iteration.
+            unit_scale (bool, optional): Auto-scale units flag.
+            dynamic_ncols (bool, optional): Whether to dynamically resize progress bar.
+            smoothing (float, optional): Smoothing factor for rate calculation.
+            bar_format (str, optional): Custom bar format string.
+            initial (int, optional): Initial counter value.
+            position (int, optional): Position of progress bar (for compatibility).
+            postfix (str, optional): Additional information to display (for compatibility).
+            unit_divisor (int, optional): Divisor for unit scaling.
+            write_bytes (bool, optional): Whether writing bytes (for compatibility).
+            lock_args (tuple, optional): Lock arguments (for compatibility).
+            nrows (int, optional): Number of rows (for compatibility).
+            colour (str, optional): Progress bar color (for compatibility).
+            **kwargs: Additional keyword arguments for compatibility.
         """
-        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        # Handle GitHub Actions environment
         if is_github_action_running():
-            kwargs["mininterval"] = 60  # only update every 60 seconds
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
-        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        super().__init__(*args, **kwargs)
+            mininterval = max(mininterval, 10)  # only update every 10 seconds in CI
+
+        # Determine if progress bar should be disabled
+        if disable is None:
+            disable = not VERBOSE or LOGGER.getEffectiveLevel() > 20
+
+        self.iterable = iterable
+        self.desc = desc or ""
+        self.total = total if total is not None else (len(iterable) if hasattr(iterable, '__len__') else None)
+        self.disable = disable
+        self.unit = unit
+        self.unit_scale = unit_scale
+        self.unit_divisor = unit_divisor
+        self.leave = leave
+        self.mininterval = mininterval
+        self.smoothing = smoothing
+        self.initial = initial
+
+        # Internal state
+        self.n = self.initial  # current iteration
+        self.last_print_n = self.initial
+        self.last_print_t = time.time()
+        self.start_t = time.time()
+        self.last_rate = 0
+        self.closed = False
+        self.max_len = 0  # Track maximum progress string length
+
+        # Format settings
+        self.bar_format = bar_format or TQDM_BAR_FORMAT or "{l_bar} │{bar:10}│ {r_bar}"
+        self.ncols = ncols or self._get_terminal_width()
+
+        # File output (default to stdout)
+        self.file = file or sys.stdout
+
+        # Display initial bar if we have total and not disabled
+        if not self.disable and self.total is not None:
+            self._display()
+
+    def _get_terminal_width(self):
+        """Get terminal width, default to 80 if unavailable."""
+        try:
+            import shutil
+            return shutil.get_terminal_size().columns
+        except Exception:
+            return 200
+
+    def _format_number(self, num, is_rate=False):
+        """Format numbers with appropriate units and scaling."""
+        if is_rate:
+            # For rates, only apply unit scaling to bytes/data units
+            if self.unit_scale and self.unit in ('B', 'bytes'):
+                for unit in ['', 'k', 'M', 'G', 'T', 'P']:
+                    if abs(num) < self.unit_divisor:
+                        formatted = f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
+                        return f"{formatted}{self.unit}/s"
+                    num /= self.unit_divisor
+                return f"{num:.1f}E{self.unit}/s"
+            else:
+                return f"{num:.2f}{self.unit}/s"
+        
+        # For counts, apply unit scaling if enabled
+        if not self.unit_scale:
+            return str(num)
+            
+        for unit in ['', 'k', 'M', 'G', 'T', 'P']:
+            if abs(num) < self.unit_divisor:
+                return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
+            num /= self.unit_divisor
+        return f"{num:.1f}E"
+
+    def _format_time(self, seconds):
+        """Format time duration cleanly."""
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        elif seconds < 3600:
+            return f"{seconds // 60:.0f}:{seconds % 60:02.0f}"
+        else:
+            hours = seconds // 3600
+            minutes = (seconds % 3600) // 60
+            return f"{hours:.0f}:{minutes:02.0f}:{seconds % 60:02.0f}"
+
+    def _generate_bar(self, n_bars=10):
+        """Generate rich-style progress bar with proper spacing."""
+        if self.total is None or self.total == 0:
+            return "━" * n_bars
+
+        frac = min(1.0, self.n / self.total) if self.total > 0 else 0
+        filled_chars = frac * n_bars
+        filled = int(filled_chars)
+
+        # Rich-style progress characters
+        complete_char, remaining_char = "━", "─"
+        partial_chars = [" ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
+
+        bar = complete_char * filled
+        if filled < n_bars:
+            remainder = filled_chars - filled
+            if remainder > 0:
+                partial_idx = min(8, int(remainder * 8))
+                bar += partial_chars[partial_idx]
+                filled += 1
+        bar += remaining_char * (n_bars - len(bar))
+        return bar[:n_bars]
+
+    def _should_update(self, dt, dn):
+        """Check if progress bar should be updated based on time and iteration intervals."""
+        return dt >= self.mininterval or dn >= 1 or self.n >= (self.total or float('inf'))
+
+    def _build_progress_components(self, rate, elapsed):
+        """Build the left bar, progress bar, and right bar components."""
+        # Left part (description and progress)
+        if self.total is not None:
+            percentage = (self.n / self.total) * 100 if self.total > 0 else 0
+            l_bar = f"{self.desc}: {percentage:3.0f}%" if self.desc else f"{percentage:3.0f}%"
+        else:
+            l_bar = f"{self.desc}: {self.n}{self.unit}" if self.desc else f"{self.n}{self.unit}"
+
+        # Extract bar length from format if specified
+        bar_length = 10
+        if '{bar' in self.bar_format:
+            import re
+            match = re.search(r'\{bar:?(\d+)\}', self.bar_format)
+            if match:
+                bar_length = int(match.group(1))
+        bar = self._generate_bar(bar_length)
+
+        # Build r_bar components: count, rate, time
+        r_parts = []
+        
+        # Count (current/total or just current)
+        if self.total is not None:
+            current_str = self._format_number(self.n) if self.unit_scale and self.unit in ('B', 'bytes') else str(self.n)
+            total_str = self._format_number(self.total) if self.unit_scale and self.unit in ('B', 'bytes') else str(self.total)
+            count_str = f"{current_str}/{total_str}" if self.unit_scale and self.unit in ('B', 'bytes') else f"{self.n}/{self.total}"
+        else:
+            count_str = self._format_number(self.n) if self.unit_scale and self.unit in ('B', 'bytes') else str(self.n)
+        r_parts.append(count_str)
+
+        # Rate (if available)
+        if rate > 0:
+            r_parts.append(self._format_number(rate, is_rate=True))
+
+        # Elapsed time
+        r_parts.append(self._format_time(elapsed))
+        
+        return l_bar, bar, " ".join(r_parts)
+
+    def _write_progress(self, progress_str):
+        """Write progress string to output with proper formatting."""
+        self.max_len = max(self.max_len, len(progress_str))
+        padded_str = progress_str.ljust(self.max_len)
+        self._write_to_file(f"\r{padded_str}")
+
+    def _display(self):
+        """Display or update the progress bar."""
+        if self.disable or self.closed:
+            return
+
+        current_time = time.time()
+        dt = current_time - self.last_print_t
+        dn = self.n - self.last_print_n
+        
+        if not self._should_update(dt, dn):
+            return
+
+        # Calculate and smooth rate
+        if dt > 0:
+            rate = dn / dt
+            self.last_rate = self.smoothing * rate + (1 - self.smoothing) * self.last_rate
+        else:
+            rate = self.last_rate
+
+        # Update counters
+        self.last_print_n = self.n
+        self.last_print_t = current_time
+        elapsed = current_time - self.start_t
+
+        # Build progress components
+        l_bar, bar, r_bar = self._build_progress_components(rate, elapsed)
+
+        # Format the complete progress string
+        if "{l_bar}" in self.bar_format and "{r_bar}" in self.bar_format and "{bar" in self.bar_format:
+            progress_str = self.bar_format.format(l_bar=l_bar, bar=bar, r_bar=r_bar)
+        else:
+            separator = " │{bar}│ " if self.total is not None else " "
+            progress_str = f"{l_bar}{separator.format(bar=bar) if '{bar}' in separator else separator}{r_bar}"
+
+        # Truncate if too long
+        if len(progress_str) > self.ncols - 5:
+            progress_str = progress_str[:self.ncols - 8] + "..."
+
+        self._write_progress(progress_str)
+
+    def update(self, n=1):
+        """Update progress by n steps."""
+        if self.disable or self.closed:
+            return
+
+        self.n += n
+        self._display()
+
+    def set_description(self, desc):
+        """Set or update the description prefix for the progress bar."""
+        self.desc = desc or ""
+        if not self.disable:
+            self._display()
+
+    def set_postfix(self, **kwargs):
+        """Set postfix information for the progress bar."""
+        # Convert postfix to description for simplicity
+        if kwargs:
+            postfix_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
+            if self.desc and not self.desc.endswith(": "):
+                self.set_description(f"{self.desc} | {postfix_str}")
+            else:
+                self.set_description(f"{self.desc}{postfix_str}")
+
+    def _final_cleanup(self):
+        """Handle final display and cleanup operations."""
+        text = "\n" if self.leave else "\r" + " " * self.ncols + "\r"
+        self._write_to_file(text)
+
+    def close(self):
+        """Close the progress bar and perform cleanup operations."""
+        if self.closed:
+            return
+
+        if not self.disable:
+            # Ensure completion display for finished progress bars
+            if self.total is not None and self.n >= self.total:
+                self.n = self.total
+            self._display()
+            self._final_cleanup()
+
+        self.closed = True
+
+    def __enter__(self):
+        """Enter the context manager."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the context manager and close the progress bar."""
+        self.close()
 
     def __iter__(self):
-        """Return self as iterator to satisfy Iterable interface."""
-        return super().__iter__()
+        """Iterator interface."""
+        if self.iterable is None:
+            raise TypeError("'NoneType' object is not iterable")
+
+        try:
+            for item in self.iterable:
+                yield item
+                self.update(1)
+        finally:
+            self.close()
+
+    def __del__(self):
+        """Destructor to ensure cleanup."""
+        try:
+            self.close()
+        except Exception:
+            pass
+
+    def refresh(self):
+        """Refresh the progress bar display."""
+        if not self.disable:
+            self._display()
+
+    def clear(self):
+        """Clear the progress bar."""
+        if not self.disable:
+            self._write_to_file("\r" + " " * self.ncols + "\r")
+
+    def _write_to_file(self, text, flush=True):
+        """Safely write text to file output."""
+        try:
+            if hasattr(self.file, 'write'):
+                self.file.write(text)
+                if flush:
+                    self.file.flush()
+        except Exception:
+            pass
+
+    @staticmethod
+    def write(s, file=None, end="\n", nolock=False):
+        """Write a message without breaking the progress bar."""
+        file = file or sys.stdout
+        try:
+            if hasattr(file, 'write'):
+                file.write(s + end)
+                file.flush()
+        except Exception:
+            pass
 
 
 class DataExportMixin:

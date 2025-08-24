@@ -396,7 +396,7 @@ def safe_download(
         if delete:
             f.unlink()  # remove zip
         return unzip_dir
-    return
+    return f
 
 
 def get_github_assets(

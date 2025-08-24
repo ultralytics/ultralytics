@@ -217,7 +217,7 @@ class TQDM:
             lock_args (tuple, optional): Lock arguments (for compatibility).
             nrows (int, optional): Number of rows (for compatibility).
             colour (str, optional): Progress bar color (for compatibility).
-            **kwargs: Additional keyword arguments for compatibility.
+            **kwargs (Any, optional): Additional keyword arguments for compatibility.
         """
         # Handle GitHub Actions environment
         if is_github_action_running():

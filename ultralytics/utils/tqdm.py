@@ -14,10 +14,13 @@ def supports_interactive_progress():
     import os
 
     # Known broken environments
-    if any(env in os.environ for env in [
-        "GITHUB_ACTIONS",     # GitHub Actions CI
-        "RUNPOD_POD_ID",      # RunPod cloud platform
-    ]):
+    if any(
+        env in os.environ
+        for env in [
+            "GITHUB_ACTIONS",  # GitHub Actions CI
+            "RUNPOD_POD_ID",  # RunPod cloud platform
+        ]
+    ):
         return False
 
     return True
@@ -406,7 +409,7 @@ if __name__ == "__main__":
         time.sleep(0.03)
         pbar.update(1)
         if i % 10 == 9:
-            pbar.set_description(f"Processing batch {i//10 + 1}")
+            pbar.set_description(f"Processing batch {i // 10 + 1}")
     pbar.close()
     print()
 
@@ -417,7 +420,7 @@ if __name__ == "__main__":
         time.sleep(0.08)
         pbar.update(1)
         if i % 5 == 4:
-            pbar.set_postfix(processed=i+1, status="OK")
+            pbar.set_postfix(processed=i + 1, status="OK")
     pbar.close()
     print()
 
@@ -431,9 +434,11 @@ if __name__ == "__main__":
 
     # Example 5: Generator with unknown length
     print("5. Iterator with unknown length:")
+
     def data_stream():
         """Simulate a data stream of unknown length."""
         import random
+
         for i in range(random.randint(10, 20)):
             yield f"data_chunk_{i}"
 
@@ -443,6 +448,7 @@ if __name__ == "__main__":
 
     # Example 6: File-like processing simulation
     print("6. File processing simulation (unknown size):")
+
     def process_files():
         """Simulate processing files of unknown count."""
         files = [f"file_{i}.txt" for i in range(18)]

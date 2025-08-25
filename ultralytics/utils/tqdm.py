@@ -191,9 +191,9 @@ class TQDM:
 
         for unit in ["", "K", "M", "G", "T"]:
             if abs(num) < self.unit_divisor:
-                return f"{num:3.1f}{unit}" if unit else f"{num:.0f}"
+                return f"{num:3.1f}{unit}B" if unit else f"{num:.0f}B"
             num /= self.unit_divisor
-        return f"{num:.1f}P"
+        return f"{num:.1f}PB"
 
     def _format_time(self, seconds):
         """Format time duration."""
@@ -266,8 +266,14 @@ class TQDM:
         # Build progress components
         if self.total is not None:
             percentage = (self.n / self.total) * 100
-            n_fmt = self._format_num(self.n)
-            total_fmt = self._format_num(self.total)
+            # For bytes, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
+            if self.unit_scale and self.unit in ("B", "bytes"):
+                n_str = self._format_num(self.n).rstrip("B")  # Remove 'B' from current
+                total_str = self._format_num(self.total)  # Keep 'B' on total
+                n_fmt, total_fmt = n_str, total_str
+            else:
+                n_fmt = self._format_num(self.n)
+                total_fmt = self._format_num(self.total)
         else:
             percentage = 0
             n_fmt = self._format_num(self.n)

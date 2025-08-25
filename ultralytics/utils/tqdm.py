@@ -408,7 +408,7 @@ if __name__ == "__main__":
     print()
 
     # Example 3: Unknown total - this was the problematic case
-    print("3. Progress bar with unknown total (FIXED):")
+    print("3. Progress bar with unknown total:")
     pbar = TQDM(desc="Unknown total", unit="items")
     for i in range(25):
         time.sleep(0.08)

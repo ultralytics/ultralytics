@@ -268,8 +268,8 @@ class TQDM:
             percentage = (self.n / self.total) * 100
             # For bytes, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
             if self.unit_scale and self.unit in ("B", "bytes"):
-                n_str = self._format_num(self.n).rstrip("B")  # Remove 'B' from current
-                total_str = self._format_num(self.total)  # Keep 'B' on total
+                n_str = self._format_num(self.n).rstrip("KMGTPB")  # Remove unit suffix from current
+                total_str = self._format_num(self.total)  # Keep unit on total
                 n_fmt, total_fmt = n_str, total_str
             else:
                 n_fmt = self._format_num(self.n)

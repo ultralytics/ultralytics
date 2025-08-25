@@ -218,7 +218,7 @@ class TQDM:
 
     def _display(self, final=False):
         """Display progress bar."""
-        if self.disable or (self.closed and not final):
+        if self.disable or (self.closed and not final) or noninteractive():
             return
 
         current_time = time.time()

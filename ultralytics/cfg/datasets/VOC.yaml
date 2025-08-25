@@ -48,10 +48,8 @@ download: |
   import xml.etree.ElementTree as ET
   from pathlib import Path
 
-  from tqdm import tqdm
-
   from ultralytics.utils.downloads import download
-
+  from ultralytics.utils import TQDM
 
   def convert_label(path, lb_path, year, image_id):
       """Converts XML annotations from VOC format to YOLO format by extracting bounding boxes and class IDs."""
@@ -99,7 +97,7 @@ download: |
 
       with open(path / f"VOC{year}/ImageSets/Main/{image_set}.txt") as f:
           image_ids = f.read().strip().split()
-      for id in tqdm(image_ids, desc=f"{image_set}{year}"):
+      for id in TQDM(image_ids, desc=f"{image_set}{year}"):
           f = path / f"VOC{year}/JPEGImages/{id}.jpg"  # old img path
           lb_path = (lbs_path / f.name).with_suffix(".txt")  # new label path
           f.rename(imgs_path / f.name)  # move image

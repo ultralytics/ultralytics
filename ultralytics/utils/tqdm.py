@@ -218,7 +218,7 @@ class TQDM:
 
     def _display(self, final=False):
         """Display progress bar."""
-        if self.disable or (self.closed and not final) or noninteractive():
+        if self.disable or (self.closed and not final):
             return
 
         current_time = time.time()
@@ -285,9 +285,12 @@ class TQDM:
 
         # Write to output
         try:
-            # Clear line to avoid leftover characters, then write progress
-            self.file.write(f"\r\033[K{progress_str}")
-
+            if noninteractive():
+                # In non-interactive environments, avoid carriage return which creates empty lines
+                self.file.write(f"{progress_str}")
+            else:
+                # In interactive terminals, use carriage return and clear line for updating display
+                self.file.write(f"\r\033[K{progress_str}")
             self.file.flush()
         except Exception:
             pass

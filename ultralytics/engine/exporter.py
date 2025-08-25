@@ -1464,7 +1464,7 @@ class Exporter:
 class IOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
-    def __init__(self, model, im, device: torch.device=None):
+    def __init__(self, model, im, device: torch.device = None):
         """
         Initialize the IOSDetectModel class with a YOLO model and example image.
 
@@ -1480,8 +1480,10 @@ class IOSDetectModel(torch.nn.Module):
         if w == h:
             self.normalize = 1.0 / w  # scalar
         else:
-            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h],  # broadcast (slower, smaller)
-                                          device=device)
+            self.normalize = torch.tensor(
+                [1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h],  # broadcast (slower, smaller)
+                device=device,
+            )
 
     def forward(self, x):
         """Normalize predictions of object detection model with input size-dependent factors."""

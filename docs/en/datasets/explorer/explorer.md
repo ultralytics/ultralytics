@@ -52,7 +52,7 @@ Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run
 Pip install `ultralytics` and [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) and check software and hardware.
 
 ```bash
-%pip install ultralytics[explorer] openai
+!uv pip install ultralytics[explorer] openai
 yolo checks
 ```
 

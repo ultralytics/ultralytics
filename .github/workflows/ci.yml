@@ -220,21 +220,18 @@ jobs:
     runs-on: github-linux-gpu-t4-4-core
     steps:
       - uses: actions/checkout@v5
-      # Disable uv on GitHub runners as not working
-      # - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
       - name: Install requirements
         run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          pip install -e . pytest-cov pynvml
-          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-            pip install tensorrt onnxruntime-gpu
-          fi
+          uv pip install -e . pytest-cov nvidia-ml-py
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
         run: |
           yolo checks
-          pip list
+          uv pip list
       - name: Pytest tests
         run: |
           slow=""

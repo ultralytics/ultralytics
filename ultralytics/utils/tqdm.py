@@ -326,12 +326,10 @@ class TQDM:
             self._display(final=True)
 
             # Cleanup
-            if not noninteractive():
-                if self.leave:
-                    self.file.write("\n")
-                else:
-                    self.file.write("\r\033[K")
-            # In non-interactive environments, newline is already written by _display()
+            if self.leave:
+                self.file.write("\n")
+            else:
+                self.file.write("\r\033[K")
 
             try:
                 self.file.flush()

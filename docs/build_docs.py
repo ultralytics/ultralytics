@@ -27,6 +27,7 @@ import subprocess
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+
 from ultralytics.utils.tqdm import TQDM
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs

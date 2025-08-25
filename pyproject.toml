@@ -118,7 +118,6 @@ extra = [
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
-    "pandas-stubs",
     "scipy-stubs",
     "types-pillow",
     "types-psutil",
@@ -126,13 +125,7 @@ typing = [
     "types-requests",
     "types-shapely",
 ]
-database-export = [
-    "adbc-driver-manager>=1.2.0",
-    "adbc-driver-sqlite>=1.2.0",
-    "pandas>=1.1.4",
-    "pyarrow>=17.0.0",
-    "sqlalchemy>=2.0.43",
-]
+
 
 [project.urls]
 "Homepage" = "https://ultralytics.com"

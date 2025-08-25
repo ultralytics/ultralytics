@@ -518,10 +518,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.        |
 | `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                         |
 | `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                 |
-| `to_xml()`    | `str`                  | Converts detection results to XML format.                                                 |
-| `to_html()`   | `str`                  | Converts detection results to HTML format.                                                |
 | `to_json()`   | `str`                  | Converts detection results to JSON format.                                                |
-| `to_sql()`    | `None`                 | Converts detection results to SQL-compatible format and saves to database.                |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 

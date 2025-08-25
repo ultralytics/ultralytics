@@ -584,24 +584,6 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     boxes = boxes[:1000000]  # limit to 1M boxes
     x = polars.DataFrame(boxes, schema=["x", "y", "width", "height"])
 
-    try:  # Seaborn correlogram
-        import pandas as pd
-        import seaborn
-
-        # NOTE: still use pandas dataframe here as seaborn does not support polars dataframe
-        seaborn.pairplot(
-            pd.DataFrame(x.to_numpy(), columns=x.columns),
-            corner=True,
-            diag_kind="auto",
-            kind="hist",
-            diag_kws=dict(bins=50),
-            plot_kws=dict(pmax=0.9),
-        )
-        plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-        plt.close()
-    except ImportError:
-        pass  # Skip if seaborn is not installed
-
     # Matplotlib labels
     subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()

@@ -1480,7 +1480,9 @@ class IOSDetectModel(torch.nn.Module):
         if w == h:
             self.normalize = 1.0 / w  # scalar
         else:
-            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h], device=device)  # broadcast (slower, smaller)
+            self.normalize = torch.tensor(
+                [1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h], device=device
+            )  # broadcast (slower, smaller)
 
     def forward(self, x):
         """Normalize predictions of object detection model with input size-dependent factors."""

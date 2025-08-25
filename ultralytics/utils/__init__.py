@@ -363,9 +363,7 @@ class DataExportMixin:
 
                 def _to_sql_compatible(v):
                     """Convert complex types to SQL-compatible strings."""
-                    if v is None:
-                        return None
-                    elif isinstance(v, dict):
+                    if isinstance(v, dict):
                         return json.dumps(v)
                     elif isinstance(v, (list, tuple, set)):
                         return json.dumps(list(v))

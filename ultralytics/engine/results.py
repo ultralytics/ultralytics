@@ -14,7 +14,7 @@ import numpy as np
 import torch
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, ops
+from ultralytics.utils import LOGGER, DataExportMixin, SimpleClass, handle_errors, ops
 from ultralytics.utils.plotting import Annotator, colors, save_one_box
 
 
@@ -661,6 +661,7 @@ class Results(SimpleClass, DataExportMixin):
         self.plot(save=True, filename=filename, *args, **kwargs)
         return filename
 
+    @handle_errors
     def verbose(self) -> str:
         """
         Return a log string for each task in the results, detailing detection and classification outcomes.

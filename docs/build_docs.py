@@ -27,7 +27,8 @@ import subprocess
 from pathlib import Path
 
 from bs4 import BeautifulSoup
-from tqdm import tqdm
+
+from ultralytics.utils.tqdm import TQDM
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
@@ -61,7 +62,7 @@ def prepare_docs_markdown(clone_repos: bool = True):
         print(f"Cloned/Updated {repo} in {local_dir}")
 
     # Add frontmatter
-    for file in tqdm((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
+    for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
         update_markdown_files(file)
 
 
@@ -81,7 +82,7 @@ def update_page_title(file_path: Path, new_title: str):
 def update_html_head(script: str = ""):
     """Update the HTML head section of each file."""
     html_files = Path(SITE).rglob("*.html")
-    for html_file in tqdm(html_files, desc="Processing HTML files"):
+    for html_file in TQDM(html_files, desc="Processing HTML files"):
         with html_file.open("r", encoding="utf-8") as file:
             html_content = file.read()
 
@@ -101,7 +102,7 @@ def update_subdir_edit_links(subdir: str = "", docs_url: str = ""):
     if str(subdir[0]) == "/":
         subdir = str(subdir[0])[1:]
     html_files = (SITE / subdir).rglob("*.html")
-    for html_file in tqdm(html_files, desc="Processing subdir files", mininterval=1.0):
+    for html_file in TQDM(html_files, desc="Processing subdir files", mininterval=1.0):
         with html_file.open("r", encoding="utf-8") as file:
             soup = BeautifulSoup(file, "html.parser")
 
@@ -166,7 +167,7 @@ def update_docs_html():
 
     # Convert plaintext links to HTML hyperlinks
     files_modified = 0
-    for html_file in tqdm(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
+    for html_file in TQDM(SITE.rglob("*.html"), desc="Updating bs4 soup", mininterval=1.0):
         with open(html_file, encoding="utf-8") as file:
             content = file.read()
         updated_content = update_docs_soup(content, html_file=html_file)
@@ -334,7 +335,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
     }.items():
         stats[ext] = {"original": 0, "minified": 0}
         directory = ""  # "stylesheets" if ext == css else "javascript" if ext == "js" else ""
-        for f in tqdm((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}", mininterval=1.0):
+        for f in TQDM((SITE / directory).rglob(f"*.{ext}"), desc=f"Minifying {ext.upper()}", mininterval=1.0):
             content = f.read_text(encoding="utf-8")
             minified = minifier(content) if minifier else remove_comments_and_empty_lines(content, ext)
             stats[ext]["original"] += len(content)

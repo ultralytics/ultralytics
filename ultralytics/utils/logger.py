@@ -77,7 +77,7 @@ class ConsoleLogger:
         # State tracking
         self.last_line = ""
         self.last_time = 0.0
-        self.last_progress_line = ""  # Track 100% progress lines separately
+        self.last_progress_line = ""  # Track last progress line for deduplication
         self.last_was_progress = False  # Track if last line was a progress bar
 
     def start_capture(self):
@@ -131,10 +131,10 @@ class ConsoleLogger:
             if "─" in line:  # Has thin lines but no thick lines
                 continue
 
-            # Deduplicate completed progress bars
-            if "━" in line and "100%" in line:
-                progress_core = line.split("100%")[0].strip()
-                if progress_core == self.last_progress_line:
+            # Deduplicate completed progress bars only if they match the previous progress line
+            if " ━━" in line:
+                progress_core = line.split(" ━━")[0].strip()
+                if progress_core == self.last_progress_line and self.last_was_progress:
                     continue
                 self.last_progress_line = progress_core
                 self.last_was_progress = True

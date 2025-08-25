@@ -424,10 +424,10 @@ if __name__ == "__main__":
 
     # Example 4: Context manager with unknown total
     print("4. Context manager with unknown total:")
-    with TQDM(desc="Processing stream", unit="MB", unit_scale=True) as pbar:
-        for i in range(15):
+    with TQDM(desc="Processing stream", unit="B", unit_scale=True, unit_divisor=1024) as pbar:
+        for i in range(30):
             time.sleep(0.1)
-            pbar.update(1024 * (i + 1))  # Simulate processing MBs of data
+            pbar.update(1024 * 1024 * i)  # Simulate processing MB of data
     print()
 
     # Example 5: Generator with unknown length

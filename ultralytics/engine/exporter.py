@@ -851,7 +851,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
             model = self.model
         elif self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im, self.device) if self.args.nms else self.model
+            model = IOSDetectModel(self.model.to(self.device), self.im) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
@@ -1464,14 +1464,13 @@ class Exporter:
 class IOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
-    def __init__(self, model, im, device: torch.device):
+    def __init__(self, model, im):
         """
         Initialize the IOSDetectModel class with a YOLO model and example image.
 
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
-            device (torch.device): Device to export the model (e.g. 'cpu', 'cuda', 'mps').
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width
@@ -1480,10 +1479,7 @@ class IOSDetectModel(torch.nn.Module):
         if w == h:
             self.normalize = 1.0 / w  # scalar
         else:
-            self.normalize = torch.tensor(
-                [1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h],  # broadcast (slower, smaller)
-                device=device,
-            )
+            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
 
     def forward(self, x):
         """Normalize predictions of object detection model with input size-dependent factors."""

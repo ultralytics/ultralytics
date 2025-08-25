@@ -338,7 +338,7 @@ class TQDM:
                 else:
                     self.file.write("\r\033[K")
             # In non-interactive environments, newline is already written by _display()
-            
+
             try:
                 self.file.flush()
             except Exception:

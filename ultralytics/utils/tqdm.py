@@ -71,11 +71,11 @@ class TQDM:
         ...     pbar.update(1)
         >>> pbar.close()
     """
-    
+
     # Constants
     MIN_RATE_CALC_INTERVAL = 0.01  # Minimum time interval for rate calculation
-    RATE_SMOOTHING_FACTOR = 0.3    # Factor for exponential smoothing of rates
-    MAX_SMOOTHED_RATE = 1000000    # Maximum rate to apply smoothing to
+    RATE_SMOOTHING_FACTOR = 0.3  # Factor for exponential smoothing of rates
+    MAX_SMOOTHED_RATE = 1000000  # Maximum rate to apply smoothing to
     NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
 
     def __init__(

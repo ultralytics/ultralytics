@@ -118,11 +118,11 @@ def zip_directory(directory, compress: bool = True, exclude=(".DS_Store", "__MAC
         raise FileNotFoundError(f"Directory '{directory}' does not exist.")
 
     # Zip with progress bar
-    files_to_zip = [f for f in directory.rglob("*") if f.is_file() and all(x not in f.name for x in exclude)]
+    files = [f for f in directory.rglob("*") if f.is_file() and all(x not in f.name for x in exclude)]  # files to zip
     zip_file = directory.with_suffix(".zip")
     compression = ZIP_DEFLATED if compress else ZIP_STORED
     with ZipFile(zip_file, "w", compression) as f:
-        for file in TQDM(files_to_zip, desc=f"Zipping {directory} to {zip_file}...", unit="file", disable=not progress):
+        for file in TQDM(files, desc=f"Zipping {directory} to {zip_file}...", unit="files", disable=not progress):
             f.write(file, file.relative_to(directory))
 
     return zip_file  # return path to zip file
@@ -187,7 +187,7 @@ def unzip_file(
             LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
             return path
 
-        for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="file", disable=not progress):
+        for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
             # Ensure the file is within the extract_path to avoid path traversal security vulnerability
             if ".." in Path(f).parts:
                 LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")

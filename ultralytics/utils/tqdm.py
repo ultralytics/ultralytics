@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from __future__ import annotations
-import os
 
+import os
 import sys
 import time
 from functools import lru_cache

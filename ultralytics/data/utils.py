@@ -19,7 +19,6 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
-    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,

@@ -142,7 +142,7 @@ class TQDM:
         if self.total is not None:
             self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
         else:
-            self.bar_format = bar_format or "{desc}: {bar} {n_fmt}{unit} {rate_fmt} {elapsed}"
+            self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {rate_fmt} {elapsed}"
 
         self.file = file or sys.stdout
 

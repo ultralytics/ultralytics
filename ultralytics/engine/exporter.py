@@ -1471,7 +1471,7 @@ class IOSDetectModel(torch.nn.Module):
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
-            device (torch.device): Device to load the model and export it (e.g. 'cpu', 'cuda', 'mps').
+            device (torch.device): Device to export the model (e.g. 'cpu', 'cuda', 'mps').
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width

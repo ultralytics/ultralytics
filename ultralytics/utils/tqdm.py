@@ -122,7 +122,6 @@ class TQDM:
             >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
             ...     pbar.update(1024)  # Updates by 1KB
         """
-
         # Auto-disable if not verbose
         if disable is None:
             try:

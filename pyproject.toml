@@ -84,7 +84,6 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
-    "tqdm>=4.64.0", # progress bars for docs building
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",

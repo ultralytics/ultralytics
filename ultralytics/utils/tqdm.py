@@ -12,7 +12,7 @@ from typing import IO, Any
 @lru_cache(maxsize=1)
 def noninteractive():
     """Check for known broken environments."""
-    return not ("GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ)
+    return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
 
 class TQDM:
@@ -286,14 +286,8 @@ class TQDM:
 
         # Write to output
         try:
-            # Handle different environments differently
-            if noninteractive():
-                # Non-interactive (GitHub Actions, etc.): only write on completion or at intervals
-                if final or (self.total and self.n >= self.total):
-                    self.file.write(f"{progress_str}\n")
-            else:
-                # Interactive terminal: use carriage return and clear line
-                self.file.write(f"\r\033[K{progress_str}")
+            # Clear line to avoid leftover characters, then write progress
+            self.file.write(f"\r\033[K{progress_str}")
 
             self.file.flush()
         except Exception:

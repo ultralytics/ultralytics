@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from __future__ import annotations
-import os
 
+import os
 import sys
 import time
 from functools import lru_cache
@@ -332,7 +332,7 @@ class TQDM:
                 else:
                     self.file.write("\r\033[K")
             # In non-interactive environments, newline is already written by _display()
-            
+
             try:
                 self.file.flush()
             except Exception:

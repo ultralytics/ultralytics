@@ -134,11 +134,11 @@ class DataExportMixin:
     Mixin class for exporting validation metrics or prediction results in various formats.
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
-    from classification, object detection, segmentation, or pose estimation tasks into various formats: Pandas
+    from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
     DataFrame, CSV, XML, HTML, JSON and SQLite (SQL).
 
     Methods:
-        to_df: Convert summary to a Pandas DataFrame.
+        to_df: Convert summary to a Polars DataFrame.
         to_csv: Export results as a CSV string.
         to_xml: Export results as an XML string.
         to_html: Export results as an HTML table.

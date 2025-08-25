@@ -222,7 +222,7 @@ class Results(SimpleClass, DataExportMixin):
         save_txt: Save detection results to a text file.
         save_crop: Save cropped detection images to specified directory.
         summary: Convert inference results to a summarized dictionary.
-        to_df: Convert detection results to a Pandas Dataframe.
+        to_df: Convert detection results to a Polars Dataframe.
         to_json: Convert detection results to JSON format.
         to_csv: Convert detection results to a CSV format.
         to_xml: Convert detection results to XML format.

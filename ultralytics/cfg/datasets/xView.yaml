@@ -85,8 +85,8 @@ download: |
 
   import numpy as np
   from PIL import Image
-  from tqdm import tqdm
 
+  from ultralytics.utils import TQDM
   from ultralytics.data.utils import autosplit
   from ultralytics.utils.ops import xyxy2xywhn
 
@@ -110,7 +110,7 @@ download: |
                            47, 48, 49, -1, 50, 51, -1, 52, -1, -1, -1, 53, 54, -1, 55, -1, -1, 56, -1, 57, -1, 58, 59]
 
       shapes = {}
-      for feature in tqdm(data["features"], desc=f"Converting {fname}"):
+      for feature in TQDM(data["features"], desc=f"Converting {fname}"):
           p = feature["properties"]
           if p["bounds_imcoords"]:
               id = p["image_id"]

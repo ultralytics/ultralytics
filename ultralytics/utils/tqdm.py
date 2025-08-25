@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from __future__ import annotations
+import os
 
 import sys
 import time
@@ -9,21 +10,9 @@ from typing import IO, Any
 
 
 @lru_cache(maxsize=1)
-def supports_interactive_progress():
-    """Test if carriage return actually works by trying it."""
-    import os
-
-    # Known broken environments
-    if any(
-        env in os.environ
-        for env in [
-            "GITHUB_ACTIONS",  # GitHub Actions CI
-            "RUNPOD_POD_ID",  # RunPod cloud platform
-        ]
-    ):
-        return False
-
-    return True
+def noninteractive():
+    """Check for known broken environments."""
+    return not ("GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ)
 
 
 class TQDM:
@@ -139,7 +128,7 @@ class TQDM:
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
         self.leave = leave
-        self.mininterval = mininterval if supports_interactive_progress() else max(mininterval, 60.0)
+        self.mininterval = max(mininterval, 60.0) if noninteractive() else mininterval
         self.initial = initial
 
         # Set bar format based on whether we have a total
@@ -159,7 +148,7 @@ class TQDM:
         self.closed = False
 
         # Display initial bar if we have total and not disabled
-        if supports_interactive_progress() and (not self.disable and self.total is not None):
+        if not self.disable and self.total is not None and not noninteractive():
             self._display()
 
     def _format_rate(self, rate):
@@ -219,8 +208,9 @@ class TQDM:
 
     def _should_update(self, dt, dn):
         """Check if display should update."""
-        if not supports_interactive_progress():
-            return False  # Silent until final in GitHub Actions
+        if noninteractive():
+            # In non-interactive environments, only update on completion
+            return self.total is not None and self.n >= self.total
 
         if self.total is not None and self.n >= self.total:
             return True
@@ -296,8 +286,15 @@ class TQDM:
 
         # Write to output
         try:
-            # Clear line to avoid leftover characters, then write progress
-            self.file.write(f"\r\033[K{progress_str}")
+            # Handle different environments differently
+            if noninteractive():
+                # Non-interactive (GitHub Actions, etc.): only write on completion or at intervals
+                if final or (self.total and self.n >= self.total):
+                    self.file.write(f"{progress_str}\n")
+            else:
+                # Interactive terminal: use carriage return and clear line
+                self.file.write(f"\r\033[K{progress_str}")
+
             self.file.flush()
         except Exception:
             pass
@@ -335,10 +332,13 @@ class TQDM:
             self._display(final=True)
 
             # Cleanup
-            if self.leave:
-                self.file.write("\n")
-            else:
-                self.file.write("\r\033[K")
+            if not noninteractive():
+                if self.leave:
+                    self.file.write("\n")
+                else:
+                    self.file.write("\r\033[K")
+            # In non-interactive environments, newline is already written by _display()
+            
             try:
                 self.file.flush()
             except Exception:

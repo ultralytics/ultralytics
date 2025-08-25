@@ -10,8 +10,8 @@ from typing import IO, Any
 
 
 @lru_cache(maxsize=1)
-def noninteractive():
-    """Check for known broken environments."""
+def is_noninteractive_console():
+    """Check for known non-interactive console environments."""
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
 
@@ -71,6 +71,12 @@ class TQDM:
         ...     pbar.update(1)
         >>> pbar.close()
     """
+    
+    # Constants
+    MIN_RATE_CALC_INTERVAL = 0.01  # Minimum time interval for rate calculation
+    RATE_SMOOTHING_FACTOR = 0.3    # Factor for exponential smoothing of rates
+    MAX_SMOOTHED_RATE = 1000000    # Maximum rate to apply smoothing to
+    NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
 
     def __init__(
         self,
@@ -111,7 +117,7 @@ class TQDM:
             >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
             ...     pbar.update(1024)  # Updates by 1KB
         """
-        # Auto-disable if not verbose
+        # Disable if not verbose
         if disable is None:
             try:
                 from ultralytics.utils import LOGGER, VERBOSE
@@ -128,7 +134,8 @@ class TQDM:
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
         self.leave = leave
-        self.mininterval = max(mininterval, 60.0) if noninteractive() else mininterval
+        self.noninteractive = is_noninteractive_console()
+        self.mininterval = max(mininterval, self.NONINTERACTIVE_MIN_INTERVAL) if self.noninteractive else mininterval
         self.initial = initial
 
         # Set bar format based on whether we have a total
@@ -148,7 +155,7 @@ class TQDM:
         self.closed = False
 
         # Display initial bar if we have total and not disabled
-        if not self.disable and self.total is not None and not noninteractive():
+        if not self.disable and self.total is not None and not self.noninteractive:
             self._display()
 
     def _format_rate(self, rate):
@@ -208,7 +215,7 @@ class TQDM:
 
     def _should_update(self, dt, dn):
         """Check if display should update."""
-        if noninteractive():
+        if self.noninteractive:
             return False
 
         if self.total is not None and self.n >= self.total:
@@ -229,15 +236,12 @@ class TQDM:
             return
 
         # Calculate rate (avoid crazy numbers)
-        if dt > 0.01:  # Only calculate rate if enough time has passed
+        if dt > self.MIN_RATE_CALC_INTERVAL:  # Only calculate rate if enough time has passed
             rate = dn / dt
-            # Cap the rate to reasonable values and smooth it
-            if rate < 1000000:  # Less than 1M items/s
-                self.last_rate = 0.3 * rate + 0.7 * self.last_rate
+            # Smooth rate for reasonable values, use raw rate for very high values
+            if rate < self.MAX_SMOOTHED_RATE:
+                self.last_rate = self.RATE_SMOOTHING_FACTOR * rate + (1 - self.RATE_SMOOTHING_FACTOR) * self.last_rate
                 rate = self.last_rate
-            else:
-                # For very high rates, use the calculated rate but don't smooth
-                pass  # rate = rate (no change needed)
         else:
             rate = self.last_rate
 
@@ -255,14 +259,11 @@ class TQDM:
         # Build progress components
         if self.total is not None:
             percentage = (self.n / self.total) * 100
-            # For bytes, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
+            # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
+            n_fmt = self._format_num(self.n)
+            total_fmt = self._format_num(self.total)
             if self.unit_scale and self.unit in ("B", "bytes"):
-                n_str = self._format_num(self.n).rstrip("KMGTPB")  # Remove unit suffix from current
-                total_str = self._format_num(self.total)  # Keep unit on total
-                n_fmt, total_fmt = n_str, total_str
-            else:
-                n_fmt = self._format_num(self.n)
-                total_fmt = self._format_num(self.total)
+                n_fmt = n_fmt.rstrip("KMGTPB")  # Remove unit suffix from current
         else:
             percentage = 0
             n_fmt = self._format_num(self.n)
@@ -285,9 +286,9 @@ class TQDM:
 
         # Write to output
         try:
-            if noninteractive():
+            if self.noninteractive:
                 # In non-interactive environments, avoid carriage return which creates empty lines
-                self.file.write(f"{progress_str}")
+                self.file.write(progress_str)
             else:
                 # In interactive terminals, use carriage return and clear line for updating display
                 self.file.write(f"\r\033[K{progress_str}")

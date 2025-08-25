@@ -271,7 +271,7 @@ class SystemLogger:
         """Initialize NVIDIA GPU monitoring with pynvml."""
         try:
             assert not MACOS
-            check_requirements("pynvml>=12.0.0")
+            check_requirements("nvidia-ml-py>=12.0.0")
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             return True

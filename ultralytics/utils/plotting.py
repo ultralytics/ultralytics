@@ -585,8 +585,8 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     x = polars.DataFrame(boxes, schema=["x", "y", "width", "height"])
 
     try:  # Seaborn correlogram
-        import seaborn
         import pandas as pd
+        import seaborn
 
         # NOTE: still use pandas dataframe here as seaborn does not support polars dataframe
         seaborn.pairplot(

@@ -266,7 +266,7 @@ class TQDM:
         # Build progress components
         if self.total is not None:
             percentage = (self.n / self.total) * 100
-            n_fmt = self._format_num(self.n)
+            n_fmt = self.n
             total_fmt = self._format_num(self.total)
         else:
             percentage = 0

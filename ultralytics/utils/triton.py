@@ -67,6 +67,11 @@ class TritonRemoteModel:
 
             self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
             config = self.triton_client.get_model_config(endpoint)
+        elif scheme == "https":
+            import tritonclient.http as client  # noqa
+
+            self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=True)
+            config = self.triton_client.get_model_config(endpoint)
         else:
             import tritonclient.grpc as client  # noqa
 

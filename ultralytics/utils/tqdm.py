@@ -122,8 +122,6 @@ class TQDM:
             >>> with TQDM(total=1000, unit="B", unit_scale=True) as pbar:
             ...     pbar.update(1024)  # Updates by 1KB
         """
-        if not supports_interactive_progress():
-            mininterval = max(mininterval, 60.0)
 
         # Auto-disable if not verbose
         if disable is None:
@@ -142,7 +140,7 @@ class TQDM:
         self.unit_scale = unit_scale
         self.unit_divisor = unit_divisor
         self.leave = leave
-        self.mininterval = mininterval
+        self.mininterval = mininterval if supports_interactive_progress() else max(mininterval, 60.0)
         self.initial = initial
 
         # Set bar format based on whether we have a total
@@ -162,7 +160,7 @@ class TQDM:
         self.closed = False
 
         # Display initial bar if we have total and not disabled
-        if not self.disable and self.total is not None:
+        if supports_interactive_progress() and (not self.disable and self.total is not None):
             self._display()
 
     def _format_rate(self, rate):
@@ -223,7 +221,7 @@ class TQDM:
     def _should_update(self, dt, dn):
         """Check if display should update."""
         if not supports_interactive_progress():
-            return False  # Never show intermediate progress in non-interactive consoles
+            return False  # Silent until final in GitHub Actions
 
         if self.total is not None and self.n >= self.total:
             return True

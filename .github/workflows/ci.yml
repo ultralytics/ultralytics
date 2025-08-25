@@ -196,6 +196,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
+          python ultralytics/utils/tqdm.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
         run: |

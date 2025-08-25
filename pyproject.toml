@@ -87,17 +87,6 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
-    "mkdocs-macros-plugin>=1.0.5", # duplicating content (i.e. export tables) in multiple places
-]
-[project.optional-dependencies]
-dev = [
-    "ipython",
-    "pytest",
-    "pytest-cov",
-    "coverage[toml]",
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.9",
-    "mkdocstrings[python]",
     # "mkdocs-ultralytics-plugin>=0.1.28", # for meta descriptions and images, dates and authors
     "mkdocs-ultralytics-plugin@git+https://github.com/ultralytics/mkdocs.git@bs4-tests",
     "mkdocs-macros-plugin>=1.0.5", # duplicating content (i.e. export tables) in multiple places

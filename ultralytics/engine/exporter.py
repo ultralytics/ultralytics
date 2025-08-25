@@ -1464,14 +1464,14 @@ class Exporter:
 class IOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
-    def __init__(self, model, im, device: str = None):
+    def __init__(self, model, im, device: torch.device):
         """
         Initialize the IOSDetectModel class with a YOLO model and example image.
 
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
-            device (str, optional): Device to run inference on (e.g. 'cpu', 'cuda', 'mps').
+            device (torch.device): Device to load the model and export it (e.g. 'cpu', 'cuda', 'mps').
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width

@@ -209,8 +209,7 @@ class TQDM:
     def _should_update(self, dt, dn):
         """Check if display should update."""
         if noninteractive():
-            # In non-interactive environments, only update on completion
-            return self.total is not None and self.n >= self.total
+            return False
 
         if self.total is not None and self.n >= self.total:
             return True

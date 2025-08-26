@@ -67,12 +67,40 @@ def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
     performance at all relative to UV^T, where USV^T = G is the SVD.
     """
     assert len(G.shape) == 2
-    a, b, c = (3.4445, -4.7750, 2.0315)
     X = G.bfloat16()
     X /= X.norm() + eps  # ensure top singular value <= 1
     if G.size(0) > G.size(1):
         X = X.T
-    for _ in range(steps):
+    for a, b, c in [  # num_steps fixed at 5
+        # original params
+        # (3.4445, -4.7750, 2.0315),
+        # (3.4445, -4.7750, 2.0315),
+        # (3.4445, -4.7750, 2.0315),
+        # (3.4445, -4.7750, 2.0315),
+        # (3.4445, -4.7750, 2.0315),
+        # option 1
+        (4.0848, -6.8946, 2.9270),
+        (3.9505, -6.3029, 2.6377),
+        (3.7418, -5.5913, 2.3037),
+        (2.8769, -3.1427, 1.2046),
+        (2.8366, -3.0525, 1.2012),
+        # option 2
+        # (4.01, -9.22, 5.80),
+        # (3.49, -6.38, 3.23),
+        # (3.34, -6.21, 3.20),
+        # (3.64, -7.48, 4.43),
+        # (3.46, -5.35, 2.85),
+        # # option 3
+        # (7.2086, -15.5131, 9.0178),
+        # (3.9623, -2.5813, 0.4542),
+        # (3.9466, -2.5765, 0.4544),
+        # (3.8991, -2.5671, 0.4566),
+        # (3.7186, -2.5308, 0.4653),
+        # (3.1390, -2.3073, 0.4733),
+        # (2.1715, -1.5246, 0.3885),
+        # (1.8648, -1.2224, 0.3577),
+    ]:
+        # for _ in range(steps):
         A = X @ X.T
         B = b * A + c * A @ A
         X = a * X + B @ X
@@ -914,10 +942,18 @@ class BaseTrainer:
                     g[3].append(param)
                 elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
                     g[3].append(param)
-                elif param.ndim >= 2 and self.args.muon_head == "backbone" and int(module_name.split(".")[1]) in set(range(11)):
+                elif (
+                    param.ndim >= 2
+                    and self.args.muon_head == "backbone"
+                    and int(module_name.split(".")[1]) in set(range(11))
+                ):
                     g[3].append(param)
                 # elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
-                elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]:
+                elif (
+                    param.ndim >= 2
+                    and self.args.muon_head == "neck"
+                    and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
+                ):
                     g[3].append(param)
                 elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
                     g[3].append(param)

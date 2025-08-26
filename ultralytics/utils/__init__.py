@@ -134,17 +134,14 @@ class DataExportMixin:
     Mixin class for exporting validation metrics or prediction results in various formats.
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
-    from classification, object detection, segmentation, or pose estimation tasks into various formats: Pandas
-    DataFrame, CSV, XML, HTML, JSON and SQLite (SQL).
+    from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
+    DataFrame, CSV and JSON.
 
     Methods:
-        to_df: Convert summary to a Pandas DataFrame.
+        to_df: Convert summary to a Polars DataFrame.
         to_csv: Export results as a CSV string.
-        to_xml: Export results as an XML string (requires `lxml`).
-        to_html: Export results as an HTML table.
         to_json: Export results as a JSON string.
         tojson: Deprecated alias for `to_json()`.
-        to_sql: Export results to an SQLite database.
 
     Examples:
         >>> model = YOLO("yolo11n.pt")
@@ -152,12 +149,11 @@ class DataExportMixin:
         >>> df = results.to_df()
         >>> print(df)
         >>> csv_data = results.to_csv()
-        >>> results.to_sql(table_name="yolo_results")
     """
 
     def to_df(self, normalize=False, decimals=5):
         """
-        Create a pandas DataFrame from the prediction results summary or validation metrics.
+        Create a polars DataFrame from the prediction results summary or validation metrics.
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
@@ -166,13 +162,13 @@ class DataExportMixin:
         Returns:
             (DataFrame): DataFrame containing the summary data.
         """
-        import pandas as pd  # scope for faster 'import ultralytics'
+        import polars as pl  # scope for faster 'import ultralytics'
 
-        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+        return pl.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def to_csv(self, normalize=False, decimals=5):
         """
-        Export results to CSV string format.
+        Export results or metrics to CSV string format.
 
         Args:
            normalize (bool, optional): Normalize numeric values.
@@ -181,44 +177,25 @@ class DataExportMixin:
         Returns:
            (str): CSV content as string.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
+        import polars as pl
 
-    def to_xml(self, normalize=False, decimals=5):
-        """
-        Export results to XML format.
-
-        Args:
-            normalize (bool, optional): Normalize numeric values.
-            decimals (int, optional): Decimal precision.
-
-        Returns:
-            (str): XML string.
-
-        Notes:
-            Requires `lxml` package to be installed.
-        """
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(parser="etree")
 
-    def to_html(self, normalize=False, decimals=5, index=False):
-        """
-        Export results to HTML table format.
+        try:
+            return df.write_csv()
+        except Exception:
+            # Minimal string conversion for any remaining complex types
+            def _to_str_simple(v):
+                if v is None:
+                    return ""
+                if isinstance(v, (dict, list, tuple, set)):
+                    return repr(v)
+                return str(v)
 
-        Args:
-            normalize (bool, optional): Normalize numeric values.
-            decimals (int, optional): Decimal precision.
-            index (bool, optional): Whether to include index column in the HTML table.
-
-        Returns:
-            (str): HTML representation of the results.
-        """
-        df = self.to_df(normalize=normalize, decimals=decimals)
-        return "<table></table>" if df.empty else df.to_html(index=index)
-
-    def tojson(self, normalize=False, decimals=5):
-        """Deprecated version of to_json()."""
-        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
-        return self.to_json(normalize, decimals)
+            df_str = df.select(
+                [pl.col(c).map_elements(_to_str_simple, return_dtype=pl.String).alias(c) for c in df.columns]
+            )
+            return df_str.write_csv()
 
     def to_json(self, normalize=False, decimals=5):
         """
@@ -231,52 +208,7 @@ class DataExportMixin:
         Returns:
             (str): JSON-formatted string of the results.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
-
-    def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
-        """
-        Save results to an SQLite database.
-
-        Args:
-            normalize (bool, optional): Normalize numeric values.
-            decimals (int, optional): Decimal precision.
-            table_name (str, optional): Name of the SQL table.
-            db_path (str, optional): SQLite database file path.
-        """
-        df = self.to_df(normalize, decimals)
-        if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
-            return
-
-        import sqlite3
-
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        # Dynamically create table schema based on summary to support prediction and validation results export
-        columns = []
-        for col in df.columns:
-            sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else ""
-            if isinstance(sample_val, dict):
-                col_type = "TEXT"
-            elif isinstance(sample_val, (float, int)):
-                col_type = "REAL"
-            else:
-                col_type = "TEXT"
-            columns.append(f'"{col}" {col_type}')  # Quote column names to handle special characters like hyphens
-
-        # Create table (Drop table from db if it's already exist)
-        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
-        cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
-
-        for _, row in df.iterrows():
-            values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
-            column_names = ", ".join(f'"{col}"' for col in df.columns)
-            placeholders = ", ".join("?" for _ in df.columns)
-            cursor.execute(f'INSERT INTO "{table_name}" ({column_names}) VALUES ({placeholders})', values)
-
-        conn.commit()
-        conn.close()
-        LOGGER.info(f"Results saved to SQL table '{table_name}' in '{db_path}'.")
+        return self.to_df(normalize=normalize, decimals=decimals).write_json()
 
 
 class SimpleClass:

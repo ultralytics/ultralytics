@@ -341,7 +341,8 @@ model = YOLO("http://localhost:8000/yolo", task="detect")
 # Run inference on the server
 results = model("path/to/image.jpg")
 ```
-You can also use TLS connection, you just need to specify your scheme as `https://` 
+
+You can also use TLS connection, you just need to specify your scheme as `https://`
 
 ```python
 from ultralytics import YOLO

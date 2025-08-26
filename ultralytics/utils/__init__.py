@@ -149,7 +149,6 @@ class DataExportMixin:
         >>> df = results.to_df()
         >>> print(df)
         >>> csv_data = results.to_csv()
-        >>> results.to_sql(table_name="yolo_results")
     """
 
     def to_df(self, normalize=False, decimals=5):

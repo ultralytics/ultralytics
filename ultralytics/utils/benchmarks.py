@@ -197,8 +197,8 @@ def benchmark(
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
-    df = df.with_row_index(" ", offset=1)
+    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
+    df = df.with_row_index(" ", offset=1)  # add index info
     df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
 
     name = model.model_name

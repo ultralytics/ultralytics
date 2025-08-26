@@ -96,7 +96,6 @@ def benchmark(
     pl.Config.set_tbl_hide_column_data_types(True)  # Hide data types
     pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
 
-
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)

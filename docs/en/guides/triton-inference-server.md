@@ -341,6 +341,29 @@ model = YOLO("http://localhost:8000/yolo", task="detect")
 # Run inference on the server
 results = model("path/to/image.jpg")
 ```
+You can also use TLS connection, you just need to specify your scheme as `https://` 
+
+```python
+from ultralytics import YOLO
+
+# Load the Triton Server model
+model = YOLO("https://triton.hosted.model:8000/yolo", task="detect")
+
+# Run inference on the server
+results = model("path/to/image.jpg")
+```
+
+And you can also use the v2 version of triton api
+
+```python
+from ultralytics import YOLO
+
+# Load the Triton Server model
+model = YOLO("https://triton.hosted.model:8000/v2/models/yolo", task="detect")
+
+# Run inference on the server
+results = model("path/to/image.jpg")
+```
 
 This approach allows you to leverage Triton's optimizations while using the familiar Ultralytics YOLO interface. For an in-depth guide on setting up and running Triton Server with YOLO11, refer to the [running triton inference server](#running-triton-inference-server) section.
 

@@ -95,6 +95,7 @@ def benchmark(
     pl.Config.set_tbl_width_chars(-1)  # No width limit
     pl.Config.set_tbl_hide_column_data_types(True)  # Hide data types
     pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
+    pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
 
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):

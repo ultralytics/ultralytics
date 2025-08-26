@@ -944,6 +944,7 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
 
 
+@plt_settings()
 def plot_tune_results(csv_file: str = "tune_results.csv"):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key

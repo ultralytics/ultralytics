@@ -126,7 +126,6 @@ typing = [
     "types-shapely",
 ]
 
-
 [project.urls]
 "Homepage" = "https://ultralytics.com"
 "Source" = "https://github.com/ultralytics/ultralytics"

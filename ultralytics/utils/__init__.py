@@ -12,7 +12,6 @@ import subprocess
 import sys
 import threading
 import time
-import warnings
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -22,10 +21,10 @@ from urllib.parse import unquote
 import cv2
 import numpy as np
 import torch
-import tqdm
 
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
+from ultralytics.utils.tqdm import TQDM  # noqa
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -41,7 +40,6 @@ DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
-TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
@@ -130,90 +128,20 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
-if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
-    from rich.console import Console
-    from rich.progress import BarColumn
-    from tqdm import rich
-
-    # Patch Rich Console width=200 and BarColumn bar_width=10 to solve width=80 missing bars bug
-    _console_init = Console.__init__
-    _bar_init = BarColumn.__init__
-    Console.__init__ = lambda self, *a, **k: _console_init(self, *a, **{**k, "width": 200})
-    BarColumn.__init__ = lambda self, bar_width=None, *a, **k: _bar_init(self, 10, *a, **k)
-
-
-class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
-    """
-    A custom TQDM progress bar class that extends the original tqdm functionality.
-
-    This class modifies the behavior of the original tqdm progress bar based on global settings and provides
-    additional customization options for Ultralytics projects. The progress bar is automatically disabled when
-    VERBOSE is False or when explicitly disabled.
-
-    Attributes:
-        disable (bool): Whether to disable the progress bar. Determined by the global VERBOSE setting and
-            any passed 'disable' argument.
-        bar_format (str): The format string for the progress bar. Uses the global TQDM_BAR_FORMAT if not
-            explicitly set.
-
-    Methods:
-        __init__: Initialize the TQDM object with custom settings.
-        __iter__: Return self as iterator to satisfy Iterable interface.
-
-    Examples:
-        >>> from ultralytics.utils import TQDM
-        >>> for i in TQDM(range(100)):
-        ...     # Your processing code here
-        ...     pass
-    """
-
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize a custom TQDM progress bar with Ultralytics-specific settings.
-
-        Args:
-            *args (Any): Variable length argument list to be passed to the original tqdm constructor.
-            **kwargs (Any): Arbitrary keyword arguments to be passed to the original tqdm constructor.
-
-        Notes:
-            - The progress bar is disabled if VERBOSE is False or if 'disable' is explicitly set to True in kwargs.
-            - The default bar format is set to TQDM_BAR_FORMAT unless overridden in kwargs.
-            - In GitHub Actions, progress bars only update at completion to keep CI logs clean.
-
-        Examples:
-            >>> from ultralytics.utils import TQDM
-            >>> for i in TQDM(range(100)):
-            ...     # Your code here
-            ...     pass
-        """
-        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
-        if is_github_action_running():
-            kwargs["mininterval"] = 60  # only update every 60 seconds
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False) or LOGGER.getEffectiveLevel() > 20
-        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        super().__init__(*args, **kwargs)
-
-    def __iter__(self):
-        """Return self as iterator to satisfy Iterable interface."""
-        return super().__iter__()
-
 
 class DataExportMixin:
     """
     Mixin class for exporting validation metrics or prediction results in various formats.
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
-    from classification, object detection, segmentation, or pose estimation tasks into various formats: Pandas
-    DataFrame, CSV, XML, HTML, JSON and SQLite (SQL).
+    from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
+    DataFrame, CSV and JSON.
 
     Methods:
-        to_df: Convert summary to a Pandas DataFrame.
+        to_df: Convert summary to a Polars DataFrame.
         to_csv: Export results as a CSV string.
-        to_xml: Export results as an XML string (requires `lxml`).
-        to_html: Export results as an HTML table.
         to_json: Export results as a JSON string.
         tojson: Deprecated alias for `to_json()`.
-        to_sql: Export results to an SQLite database.
 
     Examples:
         >>> model = YOLO("yolo11n.pt")
@@ -221,12 +149,11 @@ class DataExportMixin:
         >>> df = results.to_df()
         >>> print(df)
         >>> csv_data = results.to_csv()
-        >>> results.to_sql(table_name="yolo_results")
     """
 
     def to_df(self, normalize=False, decimals=5):
         """
-        Create a pandas DataFrame from the prediction results summary or validation metrics.
+        Create a polars DataFrame from the prediction results summary or validation metrics.
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
@@ -235,13 +162,13 @@ class DataExportMixin:
         Returns:
             (DataFrame): DataFrame containing the summary data.
         """
-        import pandas as pd  # scope for faster 'import ultralytics'
+        import polars as pl  # scope for faster 'import ultralytics'
 
-        return pd.DataFrame(self.summary(normalize=normalize, decimals=decimals))
+        return pl.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def to_csv(self, normalize=False, decimals=5):
         """
-        Export results to CSV string format.
+        Export results or metrics to CSV string format.
 
         Args:
            normalize (bool, optional): Normalize numeric values.
@@ -250,44 +177,25 @@ class DataExportMixin:
         Returns:
            (str): CSV content as string.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_csv()
+        import polars as pl
 
-    def to_xml(self, normalize=False, decimals=5):
-        """
-        Export results to XML format.
-
-        Args:
-            normalize (bool, optional): Normalize numeric values.
-            decimals (int, optional): Decimal precision.
-
-        Returns:
-            (str): XML string.
-
-        Notes:
-            Requires `lxml` package to be installed.
-        """
         df = self.to_df(normalize=normalize, decimals=decimals)
-        return '<?xml version="1.0" encoding="utf-8"?>\n<root></root>' if df.empty else df.to_xml(parser="etree")
 
-    def to_html(self, normalize=False, decimals=5, index=False):
-        """
-        Export results to HTML table format.
+        try:
+            return df.write_csv()
+        except Exception:
+            # Minimal string conversion for any remaining complex types
+            def _to_str_simple(v):
+                if v is None:
+                    return ""
+                if isinstance(v, (dict, list, tuple, set)):
+                    return repr(v)
+                return str(v)
 
-        Args:
-            normalize (bool, optional): Normalize numeric values.
-            decimals (int, optional): Decimal precision.
-            index (bool, optional): Whether to include index column in the HTML table.
-
-        Returns:
-            (str): HTML representation of the results.
-        """
-        df = self.to_df(normalize=normalize, decimals=decimals)
-        return "<table></table>" if df.empty else df.to_html(index=index)
-
-    def tojson(self, normalize=False, decimals=5):
-        """Deprecated version of to_json()."""
-        LOGGER.warning("'result.tojson()' is deprecated, replace with 'result.to_json()'.")
-        return self.to_json(normalize, decimals)
+            df_str = df.select(
+                [pl.col(c).map_elements(_to_str_simple, return_dtype=pl.String).alias(c) for c in df.columns]
+            )
+            return df_str.write_csv()
 
     def to_json(self, normalize=False, decimals=5):
         """
@@ -300,52 +208,7 @@ class DataExportMixin:
         Returns:
             (str): JSON-formatted string of the results.
         """
-        return self.to_df(normalize=normalize, decimals=decimals).to_json(orient="records", indent=2)
-
-    def to_sql(self, normalize=False, decimals=5, table_name="results", db_path="results.db"):
-        """
-        Save results to an SQLite database.
-
-        Args:
-            normalize (bool, optional): Normalize numeric values.
-            decimals (int, optional): Decimal precision.
-            table_name (str, optional): Name of the SQL table.
-            db_path (str, optional): SQLite database file path.
-        """
-        df = self.to_df(normalize, decimals)
-        if df.empty or df.columns.empty:  # Exit if df is None or has no columns (i.e., no schema)
-            return
-
-        import sqlite3
-
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        # Dynamically create table schema based on summary to support prediction and validation results export
-        columns = []
-        for col in df.columns:
-            sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else ""
-            if isinstance(sample_val, dict):
-                col_type = "TEXT"
-            elif isinstance(sample_val, (float, int)):
-                col_type = "REAL"
-            else:
-                col_type = "TEXT"
-            columns.append(f'"{col}" {col_type}')  # Quote column names to handle special characters like hyphens
-
-        # Create table (Drop table from db if it's already exist)
-        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
-        cursor.execute(f'CREATE TABLE "{table_name}" (id INTEGER PRIMARY KEY AUTOINCREMENT, {", ".join(columns)})')
-
-        for _, row in df.iterrows():
-            values = [json.dumps(v) if isinstance(v, dict) else v for v in row]
-            column_names = ", ".join(f'"{col}"' for col in df.columns)
-            placeholders = ", ".join("?" for _ in df.columns)
-            cursor.execute(f'INSERT INTO "{table_name}" ({column_names}) VALUES ({placeholders})', values)
-
-        conn.commit()
-        conn.close()
-        LOGGER.info(f"Results saved to SQL table '{table_name}' in '{db_path}'.")
+        return self.to_df(normalize=normalize, decimals=decimals).write_json()
 
 
 class SimpleClass:

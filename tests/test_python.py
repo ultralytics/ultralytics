@@ -760,5 +760,5 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     ],
 )
 def test_triton_url_check(model_url):
-    """Test validation of triton url"""
+    """Test validation of triton url."""
     assert Model.is_triton_model(model_url)

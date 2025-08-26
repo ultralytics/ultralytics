@@ -208,7 +208,12 @@ class Model(torch.nn.Module):
 
         url = urlsplit(model)
         is_file = url.path.endswith((".pt", ".onnx", ".engine", ".tflite", ".pb", ".mlmodel", ".pth"))
-        return url.netloc is not None and url.path is not None and (url.scheme in {"http", "grpc", "https"}) and not is_file
+        return (
+            url.netloc is not None
+            and url.path is not None
+            and (url.scheme in {"http", "grpc", "https"})
+            and not is_file
+        )
 
     @staticmethod
     def is_hub_model(model: str) -> bool:

@@ -32,7 +32,6 @@ from ultralytics.utils import (
     checks,
     is_dir_writeable,
     is_github_action_running,
-    plt_settings,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
@@ -586,7 +585,6 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@plt_settings()
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
     YOLO("yolo11n-pose.pt").tune(data="coco8-pose.yaml", plots=False, imgsz=32, epochs=1, iterations=2, device="cpu")

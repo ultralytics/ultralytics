@@ -293,7 +293,6 @@ nav:
           - Benchmark: modes/benchmark.md
   - Models:
       - models/index.md
-      - Model Overview: models/model-overview.md
       - YOLOv3: models/yolov3.md
       - YOLOv4: models/yolov4.md
       - YOLOv5: models/yolov5.md

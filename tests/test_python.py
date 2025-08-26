@@ -35,6 +35,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.engine.model import Model
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
@@ -748,3 +749,11 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+@pytest.mark.parametrize("model_url", [
+    "http://localhost:8000/v2/models/yolo/versions/1/infer",
+    "https://localhost:8000/v2/models/yolo/versions/1/infer",
+    "https://localhost:8000/yolo/2",
+])
+def test_triton_url_check(model_url):
+    assert Model.is_triton_model(model_url)

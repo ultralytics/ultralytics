@@ -51,10 +51,21 @@ class TritonRemoteModel:
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
             >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8")
+            >>> model = TritonRemoteModel(url="http://localhost:8000/v2/models/yolov8/versions/3")
         """
         if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)
-            endpoint = splits.path.strip("/").split("/", 1)[0]
+            if "models" in splits.path:
+                endpoint = splits.path.split("/")[3]
+                if "version" in splits.path:
+                    version = splits.path.split("/")[5]
+                    #TODO Add support for different model versions
+            else:
+                stripped_path = splits.path.strip("/").split("/", 1)
+                if len(stripped_path) > 1:
+                    version = stripped_path[1]
+                endpoint = stripped_path[0]
+
             scheme = splits.scheme
             url = splits.netloc
 

@@ -71,15 +71,16 @@ def test_mlflow_keep_run_active():
 
 
 @pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")
-def test_triton():
+@pytest.mark.parametrize("model_name", ["yolo", "v2/models/yolo"])
+def test_triton(model_name):
     """Test NVIDIA Triton Server functionalities with YOLO model."""
     check_requirements("tritonclient[all]")
     from tritonclient.http import InferenceServerClient  # noqa
 
     # Create variables
-    model_name = "yolo"
     triton_repo = TMP / "triton_repo"  # Triton repo path
-    triton_model = triton_repo / model_name  # Triton model path
+    local_model_name = model_name.split('/')[-1]
+    triton_model = triton_repo / local_model_name  # Triton model path
 
     # Export model to ONNX
     f = YOLO(MODEL).export(format="onnx", dynamic=True)
@@ -111,7 +112,7 @@ def test_triton():
     # Wait until model is ready
     for _ in range(10):
         with contextlib.suppress(Exception):
-            assert triton_client.is_model_ready(model_name)
+            assert triton_client.is_model_ready(local_model_name)
             break
         time.sleep(1)
 

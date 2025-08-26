@@ -85,9 +85,8 @@ class MuonWithSGD(optim.Optimizer):
         for group in self.param_groups:
             # Muon
             if group["use_muon"]:
-                params = [p for p in group["params"] if self.state[p]["use_muon"]]
                 # generate weight updates in distributed fashion
-                for p in params:
+                for p in group["params"]:
                     if p.grad is None:
                         # continue
                         p.grad = torch.zeros_like(p)  # Force synchronization

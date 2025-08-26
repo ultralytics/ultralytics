@@ -51,6 +51,10 @@ YOLO11 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 
 Train YOLO11n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
+!!! note
+
+    OBB angles are constrained to the range **0–90 degrees** (exclusive of 90). Angles of 90 degrees or greater are not supported.
+
 !!! example
 
     === "Python"

@@ -67,28 +67,8 @@ def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
 
 
 class MuonWithSGD(optim.Optimizer):
-    def __init__(
-        self,
-        lr=1e-3,
-        momentum=0.9,
-        weight_decay=0.0,
-        ns_steps=5,
-        nesterov=True,
-        muon_params=None,
-        sgd_params=None,
-    ):
-        defaults = dict(lr=lr, momentum=momentum, weight_decay=weight_decay, ns_steps=ns_steps, nesterov=nesterov)
-        params = list(muon_params)
-        sgd_params = list(sgd_params) if sgd_params is not None else []
-        params.extend(sgd_params)
-        super(MuonWithSGD, self).__init__(params, defaults)
-        for p in muon_params:
-            # Use Muon for every parameter in muon_params which is >= 2D and doesn't look like an embedding or head layer
-            # assert p.ndim == 2, p.ndim
-            self.state[p]["use_muon"] = True
-        for p in sgd_params:
-            # Do not use Muon for parameters in adamw_params
-            self.state[p]["use_muon"] = False
+    def __init__(self, param_groups):
+        super().__init__(param_groups, dict())
 
     def step(self, closure=None):
         """Perform a single optimization step.
@@ -104,43 +84,41 @@ class MuonWithSGD(optim.Optimizer):
 
         for group in self.param_groups:
             # Muon
-            params = [p for p in group["params"] if self.state[p]["use_muon"]]
-            # generate weight updates in distributed fashion
-            for p in params:
-                if p.grad is None:
-                    # continue
-                    p.grad = torch.zeros_like(p)  # Force synchronization
-                state = self.state[p]
-                if len(state) == 0:
-                    state["momentum_buffer"] = torch.zeros_like(p)
-                update = muon_update(p.grad, state["momentum_buffer"], beta=group["momentum"])
-                p.mul_(1 - group["lr"] * group["weight_decay"])
-                p.add_(update.reshape(p.shape), alpha=-group["lr"])
+            if group["use_muon"]:
+                params = [p for p in group["params"] if self.state[p]["use_muon"]]
+                # generate weight updates in distributed fashion
+                for p in params:
+                    if p.grad is None:
+                        # continue
+                        p.grad = torch.zeros_like(p)  # Force synchronization
+                    state = self.state[p]
+                    if len(state) == 0:
+                        state["momentum_buffer"] = torch.zeros_like(p)
+                    update = muon_update(p.grad, state["momentum_buffer"], beta=group["momentum"])
+                    p.mul_(1 - group["lr"] * group["weight_decay"])
+                    p.add_(update.reshape(p.shape), alpha=-group["lr"])
 
-            # SGD
-            params = [p for p in group["params"] if not self.state[p]["use_muon"]]
-            grads = [p.grad for p in group["params"] if not self.state[p]["use_muon"] and p.grad is not None]
-            momentum_buffer_list = [
-                self.state[p].get("momentum_buffer")
-                for p in group["params"]
-                if not self.state[p]["use_muon"] and group["momentum"] != 0
-            ]
-            sgd(
-                params,
-                grads,
-                momentum_buffer_list,
-                weight_decay=group["weight_decay"],
-                momentum=group["momentum"],
-                lr=group["lr"],
-                # dampening=group["dampening"],
-                nesterov=group["nesterov"],
-                maximize=group["maximize"],
-                has_sparse_grad=False,
-                # foreach=group["foreach"],
-                # fused=group["fused"],
-                grad_scale=getattr(self, "grad_scale", None),
-                found_inf=getattr(self, "found_inf", None),
-            )
+            else:  # SGD
+                grads = [p.grad for p in group["params"] if p.grad is not None]
+                momentum_buffer_list = [
+                    self.state[p].get("momentum_buffer") for p in group["params"] if group["momentum"] != 0
+                ]
+                sgd(
+                    group["params"],
+                    grads,
+                    momentum_buffer_list,
+                    weight_decay=group["weight_decay"],
+                    momentum=group["momentum"],
+                    lr=group["lr"],
+                    # dampening=group["dampening"],
+                    nesterov=group["nesterov"],
+                    maximize=group["maximize"],
+                    has_sparse_grad=False,
+                    # foreach=group["foreach"],
+                    # fused=group["fused"],
+                    grad_scale=getattr(self, "grad_scale", None),
+                    found_inf=getattr(self, "found_inf", None),
+                )
 
         return loss
 

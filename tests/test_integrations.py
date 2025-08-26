@@ -79,7 +79,7 @@ def test_triton(model_name):
 
     # Create variables
     triton_repo = TMP / "triton_repo"  # Triton repo path
-    local_model_name = model_name.split('/')[-1]
+    local_model_name = model_name.split("/")[-1]
     triton_model = triton_repo / local_model_name  # Triton model path
 
     # Export model to ONNX

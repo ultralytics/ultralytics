@@ -58,12 +58,12 @@ class TritonRemoteModel:
             if "models" in splits.path:
                 endpoint = splits.path.split("/")[3]
                 if "version" in splits.path:
-                    version = splits.path.split("/")[5]
-                    #TODO Add support for different model versions
+                    splits.path.split("/")[5]
+                    # TODO Add support for different model versions
             else:
                 stripped_path = splits.path.strip("/").split("/", 1)
                 if len(stripped_path) > 1:
-                    version = stripped_path[1]
+                    stripped_path[1]
                 endpoint = stripped_path[0]
 
             scheme = splits.scheme

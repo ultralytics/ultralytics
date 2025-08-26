@@ -70,6 +70,7 @@ class MuonWithSGD(optim.Optimizer):
     def __init__(self, param_groups):
         super().__init__(param_groups, dict())
 
+    @torch.no_grad()
     def step(self, closure=None):
         """Perform a single optimization step.
 
@@ -93,32 +94,27 @@ class MuonWithSGD(optim.Optimizer):
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
-                    update = muon_update(p.grad, state["momentum_buffer"], beta=group["momentum"])
+                    update = muon_update(
+                        p.grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    )
                     p.mul_(1 - group["lr"] * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-group["lr"])
 
             else:  # SGD
-                grads = [p.grad for p in group["params"] if p.grad is not None]
-                momentum_buffer_list = [
-                    self.state[p].get("momentum_buffer") for p in group["params"] if group["momentum"] != 0
-                ]
-                sgd(
-                    group["params"],
-                    grads,
-                    momentum_buffer_list,
-                    weight_decay=group["weight_decay"],
-                    momentum=group["momentum"],
-                    lr=group["lr"],
-                    # dampening=group["dampening"],
-                    nesterov=group["nesterov"],
-                    maximize=group["maximize"],
-                    has_sparse_grad=False,
-                    # foreach=group["foreach"],
-                    # fused=group["fused"],
-                    grad_scale=getattr(self, "grad_scale", None),
-                    found_inf=getattr(self, "found_inf", None),
-                )
-
+                for p in group["params"]:
+                    if p.grad is None:
+                        # continue
+                        p.grad = torch.zeros_like(p)  # Force synchronization
+                    state = self.state[p]
+                    if len(state) == 0:
+                        state["momentum_buffer"] = torch.zeros_like(p)
+                    p.mul_(1 - group["lr"] * group["weight_decay"])
+                    update = (
+                        p.grad.lerp_(state["momentum_buffer"], group["momentum"])
+                        if group["nesterov"]
+                        else state["momentum_buffer"]
+                    )
+                    p.add_(update, alpha=-group["lr"])
         return loss
 
 

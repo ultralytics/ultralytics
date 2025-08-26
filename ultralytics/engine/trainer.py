@@ -836,26 +836,26 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim >= 2 and self.args.muon_head == "model":
-                    g[3].append(param)
-                elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
-                    g[3].append(param)
-                elif (
-                    param.ndim >= 2
-                    and self.args.muon_head == "backbone"
-                    and int(module_name.split(".")[1]) in set(range(11))
-                ):
-                    g[3].append(param)
-                # elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
-                elif (
-                    param.ndim >= 2
-                    and self.args.muon_head == "neck"
-                    and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
-                ):
-                    g[3].append(param)
-                elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
-                    g[3].append(param)
-                elif "bias" in fullname:  # bias (no decay)
+                # if param.ndim >= 2 and self.args.muon_head == "model":
+                #     g[3].append(param)
+                # elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
+                #     g[3].append(param)
+                # elif (
+                #     param.ndim >= 2
+                #     and self.args.muon_head == "backbone"
+                #     and int(module_name.split(".")[1]) in set(range(11))
+                # ):
+                #     g[3].append(param)
+                # # elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
+                # elif (
+                #     param.ndim >= 2
+                #     and self.args.muon_head == "neck"
+                #     and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
+                # ):
+                #     g[3].append(param)
+                # elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
+                #     g[3].append(param)
+                if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
                     # ContrastiveHead and BNContrastiveHead included here with 'logit_scale'
@@ -880,10 +880,12 @@ class BaseTrainer:
             )
         # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
         param_groups = [
-            dict(params=g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum, use_muon=True),
-            dict(params=g[2], lr=lr, weight_decay=0.0, use_muon=False, nesterov=True),
-            dict(params=g[1], lr=lr, weight_decay=0.0, use_muon=False),
-            dict(params=g[0], lr=lr, weight_decay=decay, use_muon=False),
+            dict(
+                params=g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False
+            ),
+            dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
+            dict(params=g[1], lr=lr, weight_decay=0.0, momentum=0, nesterov=False, use_muon=False),
+            dict(params=g[0], lr=lr, weight_decay=decay, momentum=0, nesterov=False, use_muon=False),
         ]
         optimizer = MuonWithSGD(param_groups)
 

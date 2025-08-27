@@ -120,6 +120,7 @@ class BaseDataset(Dataset):
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
+        self.deterministic = hyp.deterministic
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()
@@ -276,6 +277,9 @@ class BaseDataset(Dataset):
                     b += self.ims[i].nbytes
                 pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
             pbar.close()
+
+        if self.cache == "ram" and self.deterministic:
+            self.buffer = []  # initialize empty buffer, since disk caching does the same
 
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""

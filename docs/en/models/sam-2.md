@@ -226,6 +226,94 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 - This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
+## Dynamic Interactive Segment and Track
+
+SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
+
+![SAM 2 Example Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam2-interative-sample.avif)
+
+### Key Features
+
+It offers three significant enhancements:
+
+1. **Dynamic Interactive**: Add new prompts for merging/untracked new instances in following frames anytime during video processing
+2. **Continual Learning**: Add new prompts for existing instances to improve the model performance over time
+3. **Independent Multi-Image Support**: Process multiple independent images (not necessarily from a video sequence) with memory sharing and cross-image object tracking
+
+### Core Capabilities
+
+- **Prompt Flexibility**: Accepts bounding boxes, points, and masks as prompts
+- **Memory Bank Management**: Maintains a dynamic memory bank to store object states across frames
+- **Multi-Object Tracking**: Supports tracking multiple objects simultaneously with individual object IDs
+- **Real-Time Updates**: Allows adding new prompts during inference without reprocessing previous frames
+- **Independent Image Processing**: Process standalone images with shared memory context for cross-image object consistency
+
+!!! example "Dynamic Object Addition"
+
+    === "Python"
+
+        ```python
+        from ultralytics.models.sam import SAM2DynamicInteractivePredictor
+
+        # Create SAM2DynamicInteractivePredictor
+        overrides = dict(conf=0.01, task="segment", mode="predict", imgsz=1024, model="sam2_t.pt", save=False)
+        predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
+
+        # Define a category by box prompt
+        predictor.inference(img="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+
+        # Detect this particular object in a new image
+        results = predictor(source="image2.jpg")
+
+        # Add new category with a new object ID
+        results = predictor(
+            source="image4.jpg",
+            bboxes=[[300, 300, 400, 400]],  # New object
+            obj_ids=[2],  # New object ID
+            update_memory=True,  # Add to memory
+        )
+        # perferm inference
+        results = predictor.inference(img="image5.jpg")
+
+        # Add refinement prompts to the same category to boost performance
+        # This helps when object appearance changes significantly
+        results = predictor(
+            source="image6.jpg",
+            points=[[150, 150]],  # Refinement point
+            labels=[1],  # Positive point
+            obj_ids=[2],  # Same object ID
+            update_memory=True,  # Update memory with new information
+        )
+        # perferm inference on new image
+        results = predictor(source="image7.jpg")
+        ```
+
+!!! note
+
+    The `SAM2DynamicInteractivePredictor` is designed to work with SAM2 models, and support adding/refining categories by all the [box/point/mask prompts](#sam-2-prediction-examples) natively that SAM2 supports. It is particularly useful for scenarios where objects appear or change over time, such as in video annotation or interactive editing tasks.
+
+#### Arguments
+
+| Name            | Default Value | Data Type   | Description                                 |
+| --------------- | ------------- | ----------- | ------------------------------------------- |
+| `max_obj_num`   | `3`           | `str`       | The preset maximum number of categories     |
+| `update_memory` | `False`       | `bool`      | Whether to update memory with new prompts   |
+| `obj_ids`       | `None`        | `List[int]` | List of object IDs corresponding to prompts |
+
+### Use Cases
+
+`SAM2DynamicInteractivePredictor` is ideal for:
+
+- **Video annotation workflows** where new objects appear during the sequence
+- **Interactive video editing** requiring real-time object addition and refinement
+- **Surveillance applications** with dynamic object tracking needs
+- **Medical imaging** for tracking anatomical structures across time series
+- **Autonomous systems** requiring adaptive object detection and tracking
+- **Multi-image datasets** for consistent object segmentation across independent images
+- **Image collection analysis** where objects need to be tracked across different scenes
+- **Cross-domain segmentation** leveraging memory from diverse image contexts
+- **Semi-automatic annotation** for efficient dataset creation with minimal manual intervention
+
 ## SAM 2 Comparison vs YOLO
 
 Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with Ultralytics smallest segmentation model, [YOLO11n-seg](../tasks/segment.md):

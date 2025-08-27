@@ -371,10 +371,12 @@ def main():
     # Print results and auto-serve on macOS
     size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
     print(f"Docs built correctly ✅ ({size:.1f} MB)")
-    
+
     import platform
+
     if platform.system() == "Darwin" and not os.getenv("GITHUB_ACTIONS"):
         import webbrowser
+
         webbrowser.open("http://localhost:8000")
         try:
             subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"])

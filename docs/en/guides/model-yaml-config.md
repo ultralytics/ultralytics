@@ -52,8 +52,8 @@ backbone:
     - [-1, 3, C2f, [128, True]] # 2: Feature processing
 
 head:
-    - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 6: Upsample
-    - [[-1, 4], 1, Concat, [1]] # 7: Skip connection
+    - [-1, 1, nn.Upsample, [None, 2, nearest]] # 6: Upsample
+    - [[-1, 2], 1, Concat, [1]] # 7: Skip connection
     - [-1, 3, C2f, [256]] # 8: Process features
     - [[8], 1, Detect, [nc]] # 9: Detection layer
 ```

@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const langs = [];
     let defaultLink = null;
 
-    // Extract language codes
+    // Extract language codes from dropdown links
     links.forEach((link) => {
       const href = link.getAttribute("href");
       if (!href) return;
@@ -185,20 +185,26 @@ document.addEventListener("DOMContentLoaded", () => {
       else if (url.pathname === "/" || url.pathname === "") defaultLink = link;
     });
 
-    // Find current language and base path
+    // Determine current language and base path
     let basePath = path;
     for (const lang of langs) {
-      if (path.startsWith("/" + lang.code + "/")) {
+      if (path.startsWith(`/${lang.code}/`)) {
         basePath = path.substring(lang.code.length + 1);
         break;
       }
     }
 
-    // Update links
-    langs.forEach(
-      (lang) => (lang.link.href = location.origin + "/" + lang.code + basePath),
-    );
-    if (defaultLink) defaultLink.href = location.origin + basePath;
+    // Only update links if we're on a localized page
+    if (basePath === path) return; // No language detected, skip
+
+    // Update language links
+    langs.forEach((lang) => {
+      lang.link.href = `${location.origin}/${lang.code}${basePath}`.replace(/\/+/g, "/");
+    });
+    
+    if (defaultLink) {
+      defaultLink.href = `${location.origin}${basePath}`.replace(/\/+/g, "/");
+    }
   }
 
   // Run immediately

@@ -223,7 +223,7 @@ class SPPF(nn.Module):
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
         y.extend(self.m(y[-1]) for _ in range(getattr(self, "n", 3)))
-        return self.cv2(torch.cat(y, 1))# + x
+        return self.cv2(torch.cat(y, 1))  # + x
 
 
 class SimSPPF(nn.Module):
@@ -1117,7 +1117,7 @@ class C3f(nn.Module):
 class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, act=True, g=1, shortcut=True, chattn=False):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, attn=None, act=True, g=1, shortcut=True, chattn=False):
         """
         Initialize C3k2 module.
 
@@ -1131,8 +1131,16 @@ class C3k2(C2f):
             shortcut (bool): Whether to use shortcut connections.
         """
         super().__init__(c1, c2, n, shortcut, g, e)
+        # self.m = nn.ModuleList(
+        #     C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+        # )
         self.m = nn.ModuleList(
-            C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+            PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn)
+            if attn is not None
+            else C3k(self.c, self.c, 2, shortcut, g)
+            if c3k
+            else Bottleneck(self.c, self.c, shortcut, g)
+            for _ in range(n)
         )
         self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
         self.chattn = ChannelAttention(c1) if chattn else None

@@ -265,7 +265,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
         - [-1, 1, Classify, [nc]] # useful for testing without actual head
     ```
 
-6. **Check FLOPs** to validate forward pass works:
+6. **Check FLOPs** to ensure the forward pass works:
 
     ```python
     from ultralytics import YOLO
@@ -373,8 +373,11 @@ head:
     # Build model with verbose output
     model = YOLO("debug_model.yaml", verbose=True)
 
-    # Inspect model architecture
+    # Inspect model FLOPs. Should be non-zero.
     model.info()
+
+    # Inspect layers
+    print(model.model.model)
     ```
 
 === "CLI"
@@ -386,10 +389,9 @@ head:
 
 ## Related Documentation
 
-- **[Configuration Guide](https://docs.ultralytics.com/usage/cfg/)**: Complete configuration options
-- **[Training Guide](https://docs.ultralytics.com/modes/train/)**: Model training workflows
-- **[Model Hub](https://docs.ultralytics.com/models/)**: Pre-trained model architectures
-- **[API Reference](https://docs.ultralytics.com/reference/)**: Complete API documentation
+- **[Configuration Guide](../usage/cfg/)**: Complete configuration options
+- **[Training Guide](../modes/train/)**: Model training workflows
+- **[Model Docs](../models)**: Available model architectures in Ultralytics
 
 ## Community & Support
 

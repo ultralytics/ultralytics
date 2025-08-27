@@ -171,6 +171,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 ### Index Module for Feature Selection
 
 When using models that output multiple feature maps, the Index module selects specific outputs:
+
 ```yaml
 backbone:
     - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]] # Multi-output
@@ -191,15 +192,11 @@ The framework uses a three-tier system in [`parse_model`](https://github.com/ult
 
 ```python
 # Core resolution logic
-m = (
-    getattr(torch.nn, m[3:]) if "nn." in m 
-    else getattr(torchvision.ops, m[4:]) if "ops." in m
-    else globals()[m]
-)
+m = getattr(torch.nn, m[3:]) if "nn." in m else getattr(torchvision.ops, m[4:]) if "ops." in m else globals()[m]
 ```
 
 1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace
-2. **TorchVision operations**: Names starting with `'ops.'` → `torchvision.ops` namespace  
+2. **TorchVision operations**: Names starting with `'ops.'` → `torchvision.ops` namespace
 3. **Ultralytics modules**: All other names → global namespace via imports
 
 ### Module Import Chain
@@ -207,10 +204,7 @@ m = (
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-from ultralytics.nn.modules import (
-    Conv, C2f, SPPF, TorchVision, Index, Detect,
-    # ... many more modules
-)  # noqa
+
 ```
 
 ## Custom Module Integration
@@ -231,7 +225,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
 2. **Add to module exports** in [`__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
 
     ```python
-    from .block import CustomBlock # noqa
+    from .block import CustomBlock  # noqa
     ```
 
 3. **Add to imports** in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
@@ -255,7 +249,7 @@ It's also possible, although hacky, to dynamically inject your module at runtime
     !!! warning "Multi-GPU training can't use dynamically injected module"
 
         Multi-GPU training launches a subprocess which wouldn't have access to the modules that were injected at runtime through this method.
-    
+
     The following code would add your custom module to Ultralytics namespace at runtime:
 
     ```python

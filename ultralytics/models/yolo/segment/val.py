@@ -219,7 +219,7 @@ class SegmentationValidator(DetectionValidator):
             pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Examples:
-             >>> result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
+             >>> result = {"image_id": 42, "filename": "42.jpg", "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         """
         from faster_coco_eval.core.mask import encode  # noqa
 

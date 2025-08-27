@@ -373,7 +373,9 @@ class DetectionValidator(BaseValidator):
                 with bounding box coordinates, confidence scores, and class predictions.
             pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        stem = Path(pbatch["im_file"]).stem
+        path = Path(pbatch["im_file"])
+        stem = path.stem
+        filename = path.name
         image_id = int(stem) if stem.isnumeric() else stem
         box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
@@ -381,6 +383,7 @@ class DetectionValidator(BaseValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
+                    "filename": filename,
                     "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
                     "score": round(s, 5),

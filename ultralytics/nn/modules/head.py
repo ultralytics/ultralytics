@@ -592,6 +592,7 @@ class LRPCHead(nn.Module):
             )
 
 
+
 class YOLOEDetect(Detect):
     """
     Head for integrating YOLO detection models with semantic understanding from text embeddings.
@@ -717,7 +718,89 @@ class YOLOEDetect(Detect):
             vpe = self.savpe(x, vpe)
         assert vpe.ndim == 3  # (B, N, D)
         return vpe
+    
 
+    def get_vpe(self, x: List[torch.Tensor], vpe: torch.Tensor) -> torch.Tensor:
+
+        import copy 
+        
+        self.bbox_prompt= vpe[1].unsqueeze(0) # [B,N,4] xyxy
+        vpe = vpe[0]
+        """Get visual prompt embeddings with spatial awareness."""
+        if vpe.shape[1] == 0:  # no visual prompt embeddings
+            return torch.zeros(x[0].shape[0], 0, self.embed, device=x[0].device)
+        if vpe.ndim == 4:  # (B, N, H, W)
+            vpe = self.savpe(x, vpe)
+        assert vpe.ndim == 3  # (B, N, D)
+        return vpe
+    
+
+    def get_vpe_bboxmatch(self, x: List[torch.Tensor], bbox_prompt: torch.Tensor) -> torch.Tensor:
+
+        assert bbox_prompt.ndim == 3  # (B, N, 4)
+        assert bbox_prompt.shape[0] == 1
+
+
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), None)), 1)
+
+
+        shape = x[0].shape  # BCHW
+        x_cat = torch.cat([xi.view(shape[0], shape[1], -1) for xi in x], 2)
+
+
+
+        box= x_cat[:,:self.reg_max * 4,:]  # (B ,M , 4)
+        embed = x_cat[:,self.reg_max * 4:,:]
+
+
+        if self.format != "imx" and (self.dynamic or self.shape != shape):
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+
+
+
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0),xywh=False) * self.strides
+
+        iou_score = iou(dbox.transpose(1,2), bbox_prompt)  # (N, M) where N=num_anchors, M=num_prompts
+        
+        # Use top-k selection for each prompt
+        k = min(1, iou_score.shape[0])  # Number of top matches to select per prompt, limited by available anchors
+        topk_values, topk_indices = torch.topk(iou_score, k=k, dim=0)  # (k, M)
+
+        # Debug: print shapes and values to understand the issue
+        print(f"iou_score shape: {iou_score.shape}")
+        print(f"topk_values shape: {topk_values.shape}")
+        print(f"topk_indices shape: {topk_indices.shape}")
+        print(f"topk_values:\n{topk_values}")
+        print(f"topk_indices:\n{topk_indices}")
+        
+        # Gather embeddings for top-k anchors for each prompt
+        B, embed_dim, N = embed.shape
+        M = bbox_prompt.shape[1]  # Number of prompts
+        
+        # Create prompt_embed tensor to store results
+        prompt_embed = torch.zeros(B, embed_dim, M, device=embed.device)
+        
+        # For each prompt, gather top-k embeddings and average them
+        for m in range(M):
+            topk_anchor_indices = topk_indices[:, m]  # (k,) - top-k anchor indices for prompt m
+            topk_embeds = embed[:, :, topk_anchor_indices]  # (B, embed_dim, k)
+            prompt_embed[:, :, m] = topk_embeds.mean(dim=-1)  # (B, embed_dim) - average of top-k
+        
+        # Get average IoU scores for top-k matches per prompt
+        prompt_score = topk_values.mean(dim=0)  # (M,) - average IoU score for each prompt
+        
+        print(f"prompt_score: {prompt_score}")
+
+        return prompt_embed.transpose(1,2)  # (B, M, embed_dim)
+    # def forward_anchor_match(self, x: List[torch.Tensor],bbox_prompt, return_mask: bool = False) -> Union[torch.Tensor, Tuple]:
+    #     """
+    #         step1 : get cls_feat and loc_feat
+    #         step2:  get dbox  by self.decode_bboxes
+    #         step3: cal the iou similarity between dbox and bbox_prompt
+    #         step4：  
+    #     """
     def forward_lrpc(self, x: List[torch.Tensor], return_mask: bool = False) -> Union[torch.Tensor, Tuple]:
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         masks = []
@@ -770,9 +853,41 @@ class YOLOEDetect(Detect):
         y = self._inference(x)
         return y if self.export else (y, x)
 
+    def forward(
+        self, x: List[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False
+    ) -> Union[torch.Tensor, Tuple]:
+        """Process features with class prompt embeddings to generate detections."""
+        if hasattr(self, "lrpc"):  # for prompt-free inference
+            return self.forward_lrpc(x, return_mask)
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)
+        if self.training:
+            return x
+        self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
+
+
+        # y = self._inference(x)
+        
+        from ultralytics.utils.filter import IOUFilter, FilterActuator
+
+        matcher = FilterActuator(IOUFilter(self.bbox_prompt),dfl=self.dfl)
+        dbox, embed, filter_mask = matcher(x)
+
+        y= torch.zeros_like(embed)
+        for i in range(filter_mask.shape[1]):
+
+            y[:, i, filter_mask[0, i]]=1
+
+        y =torch.cat((dbox, y), 1)
+
+        return y if self.export else (y, x)
+    
+
+
+
     def bias_init(self):
         """Initialize biases for detection heads."""
-        m = self  # self.model[-1]  # Detect() module
+        m = self  # self.model[-1]  # Detect() module 
         # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
         # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
         for a, b, c, s in zip(m.cv2, m.cv3, m.cv4, m.stride):  # from
@@ -780,6 +895,7 @@ class YOLOEDetect(Detect):
             # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
             b[-1].bias.data[:] = 0.0
             c.bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)
+
 
 
 class YOLOESegment(YOLOEDetect):

@@ -138,7 +138,8 @@ For complete module documentation, visit the [API Reference](https://docs.ultral
 The TorchVision module enables seamless integration of any [torchvision model](https://pytorch.org/vision/stable/models.html) as a backbone:
 
 === "Python"
-```python
+
+````python
 from ultralytics import YOLO
 
     # Model with ConvNeXt backbone
@@ -169,7 +170,6 @@ Set the last parameter to `True` to get intermediate feature maps for multi-scal
 ### Index Module for Feature Selection
 
 When using models that output multiple feature maps, the Index module selects specific outputs:
-
 ```yaml
 backbone:
     - [-1, 1, TorchVision, [768, "convnext_tiny", "DEFAULT", True, 2, True]] # Multi-output
@@ -178,7 +178,7 @@ head:
     - [0, 1, Index, [384, 6]] # Select 6th feature map (384 channels)
     - [0, 1, Index, [768, 8]] # Select 8th feature map (768 channels)
     - [[1, 2, 3], 1, Detect, [nc]] # Multi-scale detection
-```
+````
 
 ## Module Resolution System
 
@@ -232,7 +232,8 @@ Standard modules become available through imports in [`tasks.py`](https://github
 ### Method 2: Dynamic Injection
 
 === "Python"
-```python
+
+````python
 import torch.nn as nn
 
     from ultralytics import YOLO
@@ -268,7 +269,6 @@ import torch.nn as nn
 ### Method 3: Future YAML-Embedded Modules
 
 The upcoming [PR #19615](https://github.com/ultralytics/ultralytics/pull/19615) enables inline module definitions:
-
 ```yaml
 # Define modules directly in YAML
 init: |
@@ -278,7 +278,7 @@ init: |
             self.layers = nn.Sequential(*[
                 Conv(c1 if i == 0 else c2, c2, 3, 1) for i in range(depth)
             ])
-        
+
         def forward(self, x):
             return self.layers(x)
 
@@ -291,7 +291,7 @@ parse: |
 
 backbone:
     - [-1, 1, CustomBackbone, [64, 32, 4]]
-```
+````
 
 !!! warning "Development Feature"
 The YAML-embedded modules feature is not yet merged. Track [PR #19615](https://github.com/ultralytics/ultralytics/pull/19615) for updates.
@@ -390,7 +390,8 @@ head:
 ### Debugging Tips
 
 === "Python"
-```python
+
+````python
 from ultralytics import YOLO
 
     # Build model with verbose output
@@ -423,3 +424,4 @@ from ultralytics import YOLO
 ---
 
 For the latest updates and detailed examples, visit the [official Ultralytics documentation](https://docs.ultralytics.com/).
+````

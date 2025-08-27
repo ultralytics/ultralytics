@@ -859,6 +859,20 @@ def get_git_branch():
             return None
 
 
+def get_git_commit():
+    """
+    Return the current git commit hash. If not in a git repository, return None.
+
+    Returns:
+        (str | None): The current git commit hash or None if not a git directory.
+    """
+    if IS_GIT_DIR:
+        try:
+            return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
+        except subprocess.CalledProcessError:
+            return None
+
+
 def get_default_args(func):
     """
     Return a dictionary of default arguments for a function.

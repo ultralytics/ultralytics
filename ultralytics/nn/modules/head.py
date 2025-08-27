@@ -810,7 +810,7 @@ class YOLOEDetect(Detect):
             loc_feat = self.cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
             x[i], mask = self.lrpc[i](
-                cls_feat, loc_feat, 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
+                cls_feat, loc_feat, 0 if self.export and not self.dynamic else getattr(self, "conf", 0.000)
             )
             masks.append(mask)
         shape = x[0][0].shape

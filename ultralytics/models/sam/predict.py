@@ -9,7 +9,9 @@ segmentation tasks.
 """
 
 from collections import OrderedDict
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+import cv2
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -283,7 +285,7 @@ class Predictor(BasePredictor):
             bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
             points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
             labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
-            masks (List | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array with shape (H, W).
 
         Returns:
             bboxes (torch.Tensor | None): Transformed bounding boxes.
@@ -315,7 +317,11 @@ class Predictor(BasePredictor):
             bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
-            masks = torch.as_tensor(masks, dtype=self.torch_dtype, device=self.device).unsqueeze(1)
+            masks = np.asarray(masks, dtype=np.uint8)
+            masks = masks[None] if masks.ndim == 2 else masks
+            letterbox = LetterBox(dst_shape, auto=False, center=False, padding_value=0, interpolation=cv2.INTER_NEAREST)
+            masks = np.stack([letterbox(image=x).squeeze() for x in masks], axis=0)
+            masks = torch.tensor(masks, dtype=self.torch_dtype, device=self.device)
         return bboxes, points, labels, masks
 
     def generate(
@@ -514,7 +520,9 @@ class Predictor(BasePredictor):
                     pred_bboxes = batched_mask_to_box(masks)
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
-                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
+                idx = pred_scores > self.args.conf
+                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)[idx]
+                masks = masks[idx]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False
@@ -815,9 +823,8 @@ class SAM2Predictor(Predictor):
         if self.model.directly_add_no_mem_embed:
             vision_feats[-1] = vision_feats[-1] + self.model.no_mem_embed
         feats = [
-            feat.permute(1, 2, 0).view(1, -1, *feat_size)
-            for feat, feat_size in zip(vision_feats[::-1], self._bb_feat_sizes[::-1])
-        ][::-1]
+            feat.permute(1, 2, 0).view(1, -1, *feat_size) for feat, feat_size in zip(vision_feats, self._bb_feat_sizes)
+        ]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
 
     def _inference_features(
@@ -1678,3 +1685,353 @@ class SAM2VideoPredictor(SAM2Predictor):
             self.inference_state["output_dict"]["non_cond_frame_outputs"].pop(t, None)
             for obj_output_dict in self.inference_state["output_dict_per_obj"].values():
                 obj_output_dict["non_cond_frame_outputs"].pop(t, None)
+
+
+class SAM2DynamicInteractivePredictor(SAM2Predictor):
+    """
+    SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
+    sequence of images.
+
+    Attributes:
+        memory_bank (list): OrderedDict: Stores the states of each image with prompts.
+        obj_idx_set (set): A set to keep track of the object indices that have been added.
+        obj_id_to_idx (OrderedDict): Maps object IDs to their corresponding indices.
+        obj_idx_to_id (OrderedDict): Maps object indices to their corresponding IDs.
+
+    Methods:
+        get_model: Retrieves and configures the model with binarization enabled.
+        inference: Performs inference on a single image with optional prompts and object IDs.
+        postprocess: Post-processes the predictions to apply non-overlapping constraints if required.
+        update_memory: Append the imgState to the memory_bank and update the memory for the model.
+        track_step: Tracking step for the current image state to predict masks.
+        get_maskmem_enc: Get memory and positional encoding from the memory bank.
+
+    Examples:
+            >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
+            >>> predictor(source=support_img1, bboxes=bboxes1, obj_ids=labels1, update_memory=True)
+            >>> results1 = predictor(source=query_img1)
+            >>> predictor(source=support_img2, bboxes=bboxes2, obj_ids=labels2, update_memory=True)
+            >>> results2 = predictor(source=query_img2)
+    """
+
+    def __init__(
+        self,
+        cfg: Any = DEFAULT_CFG,
+        overrides: Optional[Dict[str, Any]] = None,
+        max_obj_num: int = 3,
+        _callbacks: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Initialize the predictor with configuration and optional overrides.
+
+        This constructor initializes the SAM2DynamicInteractivePredictor with a given configuration, applies any
+        specified overrides
+
+        Args:
+            cfg (Dict[str, Any]): Configuration dictionary containing default settings.
+            overrides (Dict[str, Any] | None): Dictionary of values to override default configuration.
+            max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size for the model.
+            _callbacks (Dict[str, Any] | None): Dictionary of callback functions to customize behavior.
+
+        Examples:
+            >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
+            >>> predictor_example_with_imgsz = SAM2DynamicInteractivePredictor(overrides={"imgsz": 640})
+            >>> predictor_example_with_callback = SAM2DynamicInteractivePredictor(
+            ...     _callbacks={"on_predict_start": custom_callback}
+            ... )
+        """
+        super().__init__(cfg, overrides, _callbacks)
+        self.non_overlap_masks = True
+
+        # Initialize the memory bank to store image states
+        # NOTE: probably need to use dict for better query
+        self.memory_bank = []
+
+        # Initialize the object index set and mappings
+        self.obj_idx_set = set()
+        self.obj_id_to_idx = OrderedDict()
+        self.obj_idx_to_id = OrderedDict()
+        self._max_obj_num = max_obj_num
+        for i in range(self._max_obj_num):
+            self.obj_id_to_idx[i + 1] = i
+            self.obj_idx_to_id[i] = i + 1
+
+    @smart_inference_mode()
+    def inference(
+        self,
+        img: Union[torch.Tensor, np.ndarray],
+        bboxes: Optional[List[List[float]]] = None,
+        masks: Optional[Union[torch.Tensor, np.ndarray]] = None,
+        points: Optional[List[List[float]]] = None,
+        labels: Optional[List[int]] = None,
+        obj_ids: Optional[List[int]] = None,
+        update_memory: bool = False,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Perform inference on a single image with optional bounding boxes, masks, points and object IDs.
+        It has two modes: one is to run inference on a single image without updating the memory,
+        and the other is to update the memory with the provided prompts and object IDs.
+        When update_memory is True, it will update the memory with the provided prompts and obj_ids.
+        When update_memory is False, it will only run inference on the provided image without updating the memory.
+
+        Args:
+            img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
+            bboxes (List[List[float]] | None): Optional list of bounding boxes to update the memory.
+            masks (List[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
+            points (List[List[float]] | None): Optional list of points to update the memory, each point is [x, y].
+            labels (List[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for negative).
+            obj_ids (List[int] | None): Optional list of object IDs corresponding to the prompts.
+            update_memory (bool): Flag to indicate whether to update the memory with new objects.
+
+        Returns:
+            res_masks (torch.Tensor): The output masks in shape (C, H, W)
+            object_score_logits (torch.Tensor): Quality scores for each mask
+        """
+        self.get_im_features(img)
+        points, labels, masks = self._prepare_prompts(
+            dst_shape=self.imgsz,
+            src_shape=self.batch[1][0].shape[:2],
+            points=points,
+            bboxes=bboxes,
+            labels=labels,
+            masks=masks,
+        )
+
+        if update_memory:
+            if isinstance(obj_ids, int):
+                obj_ids = [obj_ids]
+            assert obj_ids is not None, "obj_ids must be provided when update_memory is True"
+            assert masks is not None or points is not None, (
+                "bboxes, masks, or points must be provided when update_memory is True"
+            )
+            if points is None:  # placeholder
+                points = torch.zeros((len(obj_ids), 0, 2), dtype=self.torch_dtype, device=self.device)
+                labels = torch.zeros((len(obj_ids), 0), dtype=torch.int32, device=self.device)
+            if masks is not None:
+                assert len(masks) == len(obj_ids), "masks and obj_ids must have the same length."
+            assert len(points) == len(obj_ids), "points and obj_ids must have the same length."
+            self.update_memory(obj_ids, points, labels, masks)
+
+        current_out = self.track_step()
+        pred_masks, pred_scores = current_out["pred_masks"], current_out["object_score_logits"]
+        # filter the masks and logits based on the object indices
+        if len(self.obj_idx_set) == 0:
+            raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
+        idx = list(self.obj_idx_set)  # cls id
+        pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
+        # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
+        # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
+        pred_scores = torch.clamp_(pred_scores / 32, min=0)
+        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
+
+    def get_im_features(self, img: Union[torch.Tensor, np.ndarray]) -> None:
+        """
+        Initialize the image state by processing the input image and extracting features.
+
+        Args:
+            img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
+        """
+        vis_feats, vis_pos_embed, feat_sizes = SAM2VideoPredictor.get_im_features(self, img, batch=self._max_obj_num)
+        self.high_res_features = [
+            feat.permute(1, 2, 0).view(*feat.shape[1:], *feat_size)
+            for feat, feat_size in zip(vis_feats[:-1], feat_sizes[:-1])
+        ]
+
+        self.vision_feats = vis_feats
+        self.vision_pos_embeds = vis_pos_embed
+        self.feat_sizes = feat_sizes
+
+    @smart_inference_mode()
+    def update_memory(
+        self,
+        obj_ids: List[int] = None,
+        points: Optional[torch.Tensor] = None,
+        labels: Optional[torch.Tensor] = None,
+        masks: Optional[torch.Tensor] = None,
+    ) -> None:
+        """
+        Append the imgState to the memory_bank and update the memory for the model.
+
+        Args:
+            obj_ids (List[int]): List of object IDs corresponding to the prompts.
+            points (torch.Tensor | None): Tensor of shape (B, N, 2) representing the input points for N objects.
+            labels (torch.Tensor | None): Tensor of shape (B, N) representing the labels for the input points.
+            masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.
+        """
+        consolidated_out = {
+            "maskmem_features": None,
+            "maskmem_pos_enc": None,
+            "pred_masks": torch.full(
+                size=(self._max_obj_num, 1, self.imgsz[0] // 4, self.imgsz[1] // 4),
+                fill_value=-1024.0,
+                dtype=self.torch_dtype,
+                device=self.device,
+            ),
+            "obj_ptr": torch.full(
+                size=(self._max_obj_num, self.model.hidden_dim),
+                fill_value=-1024.0,
+                dtype=self.torch_dtype,
+                device=self.device,
+            ),
+            "object_score_logits": torch.full(
+                size=(self._max_obj_num, 1),
+                # default to 10.0 for object_score_logits, i.e. assuming the object is
+                # present as sigmoid(10)=1, same as in `predict_masks` of `MaskDecoder`
+                fill_value=-32,  # 10.0,
+                dtype=self.torch_dtype,
+                device=self.device,
+            ),
+        }
+
+        for i, obj_id in enumerate(obj_ids):
+            assert obj_id < self._max_obj_num
+            obj_idx = self._obj_id_to_idx(int(obj_id))
+            self.obj_idx_set.add(obj_idx)
+            point, label = points[[i]], labels[[i]]
+            mask = masks[[i]][None] if masks is not None else None
+            # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
+            assert point is not None or mask is not None, "Either bbox, points or mask is required"
+            out = self.track_step(obj_idx, point, label, mask)
+            if out is not None:
+                obj_mask = out["pred_masks"]
+                assert obj_mask.shape[-2:] == consolidated_out["pred_masks"].shape[-2:], (
+                    f"Expected mask shape {consolidated_out['pred_masks'].shape[-2:]} but got {obj_mask.shape[-2:]} for object {obj_idx}."
+                )
+                consolidated_out["pred_masks"][obj_idx : obj_idx + 1] = obj_mask
+                consolidated_out["obj_ptr"][obj_idx : obj_idx + 1] = out["obj_ptr"]
+
+                if "object_score_logits" in out.keys():
+                    consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
+
+        high_res_masks = F.interpolate(
+            consolidated_out["pred_masks"].to(self.device, non_blocking=True),
+            size=self.imgsz,
+            mode="bilinear",
+            align_corners=False,
+        )
+
+        if self.model.non_overlap_masks_for_mem_enc:
+            high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
+        maskmem_features, maskmem_pos_enc = self.model._encode_new_memory(
+            current_vision_feats=self.vision_feats,
+            feat_sizes=self.feat_sizes,
+            pred_masks_high_res=high_res_masks,
+            object_score_logits=consolidated_out["object_score_logits"],
+            is_mask_from_pts=True,
+        )
+        consolidated_out["maskmem_features"] = maskmem_features
+        consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
+        self.memory_bank.append(consolidated_out)
+
+    def _prepare_memory_conditioned_features(self, obj_idx: Optional[int]) -> torch.Tensor:
+        """
+        Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
+        prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features for all
+        objects in the image. If there is no memory, it will directly add a no-memory embedding to the current vision
+        features. If there is memory, it will use the memory features from previous frames to condition the current
+        vision features using a transformer attention mechanism.
+
+        Args:
+            obj_idx (int | None): The index of the object for which to prepare the features.
+
+        Returns:
+            pix_feat_with_mem (torch.Tensor): The memory-conditioned pixel features.
+        """
+        if len(self.memory_bank) == 0 or isinstance(obj_idx, int):
+            # for initial conditioning frames with, encode them without using any previous memory
+            # directly add no-mem embedding (instead of using the transformer encoder)
+            pix_feat_with_mem = self.vision_feats[-1] + self.model.no_mem_embed
+        else:
+            # for inference frames, use the memory features from previous frames
+            memory, memory_pos_embed = self.get_maskmem_enc()
+            pix_feat_with_mem = self.model.memory_attention(
+                curr=self.vision_feats[-1:],
+                curr_pos=self.vision_pos_embeds[-1:],
+                memory=memory,
+                memory_pos=memory_pos_embed,
+                num_obj_ptr_tokens=0,  # num_obj_ptr_tokens
+            )
+        # reshape the output (HW)BC => BCHW
+        return pix_feat_with_mem.permute(1, 2, 0).view(
+            self._max_obj_num,
+            self.model.memory_attention.d_model,
+            *self.feat_sizes[-1],
+        )
+
+    def get_maskmem_enc(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Get the memory and positional encoding from the memory, which is used to condition the current image
+        features.
+        """
+        to_cat_memory, to_cat_memory_pos_embed = [], []
+        for consolidated_out in self.memory_bank:
+            to_cat_memory.append(consolidated_out["maskmem_features"].flatten(2).permute(2, 0, 1))  # (H*W, B, C)
+            maskmem_enc = consolidated_out["maskmem_pos_enc"][-1].flatten(2).permute(2, 0, 1)
+            maskmem_enc = maskmem_enc + self.model.maskmem_tpos_enc[self.model.num_maskmem - 1]
+            to_cat_memory_pos_embed.append(maskmem_enc)
+
+        memory = torch.cat(to_cat_memory, dim=0)
+        memory_pos_embed = torch.cat(to_cat_memory_pos_embed, dim=0)
+        return memory, memory_pos_embed
+
+    def _obj_id_to_idx(self, obj_id: int) -> Optional[int]:
+        """
+        Map client-side object id to model-side object index.
+
+        Args:
+            obj_id (int): The client-side object ID.
+
+        Returns:
+            (int): The model-side object index, or None if not found.
+        """
+        return self.obj_id_to_idx.get(obj_id, None)
+
+    def track_step(
+        self,
+        obj_idx: Optional[int] = None,
+        point: Optional[torch.Tensor] = None,
+        label: Optional[torch.Tensor] = None,
+        mask: Optional[torch.Tensor] = None,
+    ) -> Dict[str, Any]:
+        """
+        Tracking step for the current image state to predict masks.
+
+        This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it
+        processes the features for a specific prompted object in the image. If obj_idx is None, it processes the
+        features for all objects in the image. The method supports both mask-based output without SAM and full
+        SAM processing with memory-conditioned features.
+
+        Args:
+            obj_idx (int | None): The index of the object for which to predict masks. If None, it processes all objects.
+            point (torch.Tensor | None): The coordinates of the points of interest with shape (N, 2).
+            label (torch.Tensor | None): The labels corresponding to the points where 1 means positive clicks, 0 means negative clicks.
+            mask (torch.Tensor | None): The mask input for the object with shape (H, W).
+
+        Returns:
+            current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
+                Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
+        """
+        current_out = {}
+        if mask is not None and self.model.use_mask_input_as_output_without_sam:
+            # When use_mask_input_as_output_without_sam=True, we directly output the mask input
+            # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
+            pix_feat = self.vision_feats[-1].permute(1, 2, 0)
+            pix_feat = pix_feat.view(-1, self.model.memory_attention.d_model, *self.feat_sizes[-1])
+            _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._use_mask_as_output(mask)
+        else:
+            # fused the visual feature with previous memory features in the memory bank
+            pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
+            # calculate the first feature if adding obj_idx exists(means adding prompts)
+            pix_feat_with_mem = pix_feat_with_mem[0:1] if obj_idx is not None else pix_feat_with_mem
+            _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._forward_sam_heads(
+                backbone_features=pix_feat_with_mem,
+                point_inputs={"point_coords": point, "point_labels": label} if obj_idx is not None else None,
+                mask_inputs=mask,
+                multimask_output=False,
+                high_res_features=[feat[: pix_feat_with_mem.size(0)] for feat in self.high_res_features],
+            )
+        current_out["pred_masks"] = low_res_masks
+        current_out["pred_masks_high_res"] = high_res_masks
+        current_out["obj_ptr"] = obj_ptr
+        current_out["object_score_logits"] = object_score_logits
+
+        return current_out

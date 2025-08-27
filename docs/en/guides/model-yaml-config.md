@@ -14,7 +14,7 @@ Model YAML files are organized into three main sections that work together to de
 
 ### Parameters Section
 
-The **parameters** section specifies the model’s global characteristics and scaling behavior:
+The **parameters** section specifies the model's global characteristics and scaling behavior:
 
 ```yaml
 # Parameters

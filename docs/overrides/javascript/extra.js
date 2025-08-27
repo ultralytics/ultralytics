@@ -207,16 +207,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   fixLanguageLinks();
-  
+
   // Handle navigation changes
   document$?.subscribe(() => setTimeout(fixLanguageLinks, 50)) ||
-  (() => {
-    let lastPath = location.pathname;
-    setInterval(() => {
-      if (location.pathname !== lastPath) {
-        lastPath = location.pathname;
-        setTimeout(fixLanguageLinks, 50);
-      }
-    }, 200);
-  })();
+    (() => {
+      let lastPath = location.pathname;
+      setInterval(() => {
+        if (location.pathname !== lastPath) {
+          lastPath = location.pathname;
+          setTimeout(fixLanguageLinks, 50);
+        }
+      }, 200);
+    })();
 })();

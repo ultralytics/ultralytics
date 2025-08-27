@@ -10,27 +10,35 @@ The model YAML configuration file serves as the architectural blueprint for Ultr
 
 ## Configuration Structure
 
-Model YAML files contain three main sections that work together to define your architecture:
+Model YAML files are organized into three main sections that work together to define the architecture.
 
 ### Parameters Section
 
-The parameters section establishes global model characteristics and scaling behaviors:
+The **parameters** section specifies the model’s global characteristics and scaling behavior:
 
 ```yaml
 # Parameters
 nc: 80 # number of classes
-scales: # model compound scaling constants
-    # [depth, width, max_channels]
+scales: # compound scaling constants [depth, width, max_channels]
     n: [0.50, 0.25, 1024] # nano: shallow layers, narrow channels
-    s: [0.50, 0.50, 1024] # small: standard width with shallow depth
-    m: [0.50, 1.00, 512] # medium: full width, moderate depth
-    l: [1.00, 1.00, 512] # large: full depth and width
-    x: [1.00, 1.50, 512] # extra-large: maximum performance
+    s: [0.50, 0.50, 1024] # small: shallow depth, standard width
+    m: [0.50, 1.00, 512]  # medium: moderate depth, full width
+    l: [1.00, 1.00, 512]  # large: full depth and width
+    x: [1.00, 1.50, 512]  # extra-large: maximum performance
+kpt_shape: [17, 3] # pose models only
 ```
 
-!!! tip "Model Scaling"
+* `nc` sets the number of classes the model predicts.
+* `scales` define compound scaling factors that adjust model depth, width, and maximum channels to produce different size variants (nano through extra-large).
+* `kpt_shape` applies to pose models. It can be `[N, 2]` for `(x, y)` keypoints or `[N, 3]` for `(x, y, visibility)`.
 
-    Model scales are defined in a single base YAML file. When you load `yolo11n.yaml`, Ultralytics automatically reads the base `yolo11.yaml` architecture and applies the scaling factors defined under the `n` key (depth=0.50, width=0.25) to create the nano variant. This single-file approach means one YAML defines multiple model sizes through the `scales` parameter.
+!!! tip "Reduce redundancy with `scales`"
+
+    The `scales` parameter lets you generate multiple model sizes from a single base YAML. For instance, when you load `yolo11n.yaml`, Ultralytics reads the base `yolo11.yaml` and applies the `n` scaling factors (`depth=0.50`, `width=0.25`) to build the nano variant.
+
+!!! note "`nc` and `kpt_shape` are dataset-dependent"
+
+    If your dataset specifies a different `nc` or `kpt_shape`, Ultralytics will automatically override the model config at runtime to match the dataset YAML.
 
 ### Backbone and Head Architecture
 

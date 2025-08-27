@@ -205,8 +205,13 @@ Standard modules become available through imports in [`tasks.py`](https://github
 
 ```python
 from ultralytics.nn.modules import (  # noqa: F401, E501
-    Conv, C2f, SPPF, TorchVision, Index, Detect,
+    SPPF,
+    C2f,
+    Conv,
+    Detect,
     # ... many more modules
+    Index,
+    TorchVision,
 )
 ```
 

@@ -272,7 +272,7 @@ It offers three significant enhancements:
             obj_ids=[2],  # New object ID
             update_memory=True,  # Add to memory
         )
-        # perform inference
+        # Perform inference
         results = predictor.inference(img="image5.jpg")
 
         # Add refinement prompts to the same category to boost performance
@@ -284,7 +284,7 @@ It offers three significant enhancements:
             obj_ids=[2],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
-        # perform inference on new image
+        # Perform inference on new image
         results = predictor(source="image7.jpg")
         ```
 

@@ -188,7 +188,7 @@ Understanding how Ultralytics locates and imports modules is crucial for customi
 
 ### Module Lookup Process
 
-The framework uses a three-tier system in [`parse_model`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
+Ultralytics uses a three-tier system in [`parse_model`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
 # Core resolution logic

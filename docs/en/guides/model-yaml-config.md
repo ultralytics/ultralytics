@@ -262,7 +262,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
     backbone:
         - [-1, 1, CustomBlock, [64]]
     head:
-        - [-1, 1, Classify, [nc]] # useful for testing without actual head
+        - [-1, 1, Classify, [nc]]
     ```
 
 6. **Check FLOPs** to ensure the forward pass works:
@@ -333,24 +333,27 @@ head:
 
 ## Best Practices
 
-!!! tip "Architecture Design Tips"
+### Architecture Design Tips
 
-    **Start Simple**: Begin with proven architectures before customizing
+**Start Simple**: Begin with proven architectures before customizing. Use existing YOLO configurations as templates and modify incrementally rather than building from scratch.
 
-    **Test Incrementally**: Validate each modification step-by-step
+**Test Incrementally**: Validate each modification step-by-step. Add one custom module at a time and verify it works before proceeding to the next change.
 
-    **Monitor Channels**: Ensure channel dimensions match between connected layers
+**Monitor Channels**: Ensure channel dimensions match between connected layers. The output channels (`c2`) of one layer must match the input channels (`c1`) of the next layer in the sequence.
 
-    **Use Skip Connections**: Leverage feature reuse with `[[-1, N], 1, Concat, [1]]` patterns
+**Use Skip Connections**: Leverage feature reuse with `[[-1, N], 1, Concat, [1]]` patterns. These connections help with gradient flow and allow the model to combine features from different scales.
 
-    **Scale Appropriately**: Choose model scales based on your computational constraints
+**Scale Appropriately**: Choose model scales based on your computational constraints. Use nano (`n`) for edge devices, small (`s`) for balanced performance, and larger scales (`m`, `l`, `x`) for maximum accuracy.
 
-!!! note "Performance Considerations"
+### Performance Considerations
 
-    - **Depth vs Width**: Deep networks capture complex features, wide networks process more information
-    - **Skip Connections**: Improve gradient flow and enable feature reuse
-    - **Bottleneck Blocks**: Reduce computational cost while maintaining expressiveness
-    - **Multi-Scale Features**: Essential for detecting objects at different sizes
+**Depth vs Width**: Deep networks capture complex hierarchical features through multiple transformation layers, while wide networks process more information in parallel at each layer. Balance these based on your task complexity.
+
+**Skip Connections**: Improve gradient flow during training and enable feature reuse throughout the network. They're particularly important in deeper architectures to prevent vanishing gradients.
+
+**Bottleneck Blocks**: Reduce computational cost while maintaining model expressiveness. Modules like `C2f` use fewer parameters than standard convolutions while preserving feature learning capacity.
+
+**Multi-Scale Features**: Essential for detecting objects at different sizes in the same image. Use Feature Pyramid Network (FPN) patterns with multiple detection heads at different scales.
 
 ## Troubleshooting
 
@@ -365,41 +368,99 @@ head:
 
 ### Debugging Tips
 
-=== "Python"
+When developing custom architectures, systematic debugging helps identify issues early:
 
-    ```python
-    from ultralytics import YOLO
+**Use Identity Head for Testing**
 
-    # Build model with verbose output
-    model = YOLO("debug_model.yaml", verbose=True)
+Replace complex heads with `nn.Identity` to isolate backbone issues:
 
-    # Inspect model FLOPs. Should be non-zero.
-    model.info()
+```yaml
+nc: 1
+backbone:
+    - [-1, 1, CustomBlock, [64]]
+head:
+    - [-1, 1, nn.Identity, []]  # Pass-through for debugging
+```
 
-    # Inspect layers
-    print(model.model.model)
-    ```
+This allows direct inspection of backbone outputs:
 
-=== "CLI"
+```python
+import torch
+from ultralytics import YOLO
 
-    ```bash
-    # Validate configuration
-    yolo cfg=debug_model.yaml task=detect mode=train epochs=1 verbose=True
-    ```
+model = YOLO("debug_model.yaml")
+output = model.model(torch.randn(1, 3, 640, 640))
+print(f"Output shape: {output.shape}")  # Should match expected dimensions
+```
 
-## Related Documentation
+**Model Architecture Inspection**
 
-- **[Configuration Guide](../usage/cfg/)**: Complete configuration options
-- **[Training Guide](../modes/train/)**: Model training workflows
-- **[Model Docs](../models)**: Available model architectures in Ultralytics
+Checking the FLOPs count and printing out each layer can also help debug issues with your custom model config. FLOPs count should be non-zero for a valid model. If it's zero, then there's likely an issue with the forward pass. Running a simple forward pass should show the exact error being encountered.
 
-## Community & Support
+```python
+from ultralytics import YOLO
 
-- **[GitHub Issues](https://github.com/ultralytics/ultralytics/issues)**: Bug reports and feature requests
-- **[GitHub Discussions](https://github.com/orgs/ultralytics/discussions)**: Community discussions and Q&A
-- **[Discord](https://discord.gg/ultralytics)**: Real-time community support
-- **[Contributing Guide](https://docs.ultralytics.com/help/contributing/)**: Contribute new modules and features
+# Build model with verbose output to see layer details
+model = YOLO("debug_model.yaml", verbose=True)
 
----
+# Check model FLOPs. Failed forward pass causes 0 FLOPs.
+model.info()
 
-For the latest updates and detailed examples, visit the [official Ultralytics documentation](https://docs.ultralytics.com/).
+# Inspect individual layers
+for i, layer in enumerate(model.model.model):
+    print(f"Layer {i}: {layer}")
+```
+
+**Step-by-Step Validation**
+
+1. **Start minimal**: Test with simplest possible architecture first
+2. **Add incrementally**: Build complexity layer by layer  
+3. **Check dimensions**: Verify channel and spatial size compatibility
+4. **Validate scaling**: Test with different model scales (`n`, `s`, `m`)
+
+## FAQ
+
+### How do I change the number of classes in my model?
+
+Set the `nc` parameter at the top of your YAML file to match your dataset's number of classes.
+
+```yaml
+nc: 5  # 5 classes
+```
+
+### Can I use a custom backbone in my model YAML?
+
+Yes. You can use any supported module, including TorchVision backbones, or define your own custom module and import it as described in [Custom Module Integration](#custom-module-integration).
+
+### How do I scale my model for different sizes (nano, small, medium, etc.)?
+
+Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo11n.yaml`).
+
+### What does the `[from, repeats, module, args]` format mean?
+
+This format specifies how each layer is constructed:
+
+- `from`: input source(s)
+- `repeats`: number of times to repeat the module
+- `module`: the layer type
+- `args`: arguments for the module
+
+### How do I troubleshoot channel mismatch errors?
+
+Check that the output channels of one layer match the expected input channels of the next. Use `print(model.model.model)` to inspect your model's architecture.
+
+### Where can I find a list of available modules and their arguments?
+
+Check the source code in the [`ultralytics/nn/modules` directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules) for all available modules and their arguments.
+
+### How do I add a custom module to my YAML configuration?
+
+Define your module in the source code, import it as shown in [Source Code Modification](#source-code-modification), and reference it by name in your YAML file.
+
+### Can I use pretrained weights with a custom YAML?
+
+Yes, you can use `model.load("path/to/weights")` to load weights from a pretrained checkpoint. However, only weights for layers that match would load successfully.
+
+### How do I validate my model configuration?
+
+Use `model.info()` to check whether FLOPs count is non-zero. A valid model should show non-zero FLOPs count. If it's zero, follow the suggestions in [Debugging Tips](#debugging-tips) to find the issue.

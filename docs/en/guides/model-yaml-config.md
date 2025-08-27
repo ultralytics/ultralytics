@@ -164,7 +164,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     ```
 
     **Parameter Breakdown:**
-    
+
     - `768`: Expected output channels
     - `convnext_tiny`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
     - `DEFAULT`: Use pretrained weights

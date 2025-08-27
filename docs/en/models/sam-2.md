@@ -228,7 +228,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 ## Dynamic Interactive Segment and Track
 
-SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with mulitple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
+SAM2DynamicInteractivePredictor is an advanced training free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor re-build the inference flow to make the best use of pre-trained SAM2 models without requiring additional training.
 
 ![SAM 2 Example Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam2-interative-sample.avif)
 
@@ -272,7 +272,7 @@ It offers three significant enhancements:
             obj_ids=[2],  # New object ID
             update_memory=True,  # Add to memory
         )
-        # perferm inference
+        # Perform inference
         results = predictor.inference(img="image5.jpg")
 
         # Add refinement prompts to the same category to boost performance
@@ -284,7 +284,7 @@ It offers three significant enhancements:
             obj_ids=[2],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
-        # perferm inference on new image
+        # Perform inference on new image
         results = predictor(source="image7.jpg")
         ```
 

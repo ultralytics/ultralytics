@@ -6,14 +6,7 @@ keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural netw
 
 # Model YAML Configuration
 
-The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes. Think of it as a programming language specifically designed for describing deep learning architectures with maximum flexibility and clarity.
-
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GsOGtPlZSTs" title="Ultralytics YOLO Model Training" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-  <br>
-  <strong>Watch:</strong> Ultralytics YOLO Model Configuration and Training
-</p>
+The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
 ## Configuration Structure
 
@@ -36,7 +29,8 @@ scales: # model compound scaling constants
 ```
 
 !!! tip "Model Scaling"
-Scales work like architectural templates. When you specify `yolo11n.yaml`, the framework automatically applies the 'n' scaling factors to create a lightweight model optimized for speed.
+
+    Model scales are defined in a single base YAML file. When you load `yolo11n.yaml`, Ultralytics automatically reads the base `yolo11.yaml` architecture and applies the scaling factors defined under the `n` key (depth=0.50, width=0.25) to create the nano variant. This single-file approach means one YAML defines multiple model sizes through the `scales` parameter.
 
 ### Backbone and Head Architecture
 
@@ -73,24 +67,25 @@ The `from` field creates flexible data flow patterns throughout your network:
 
 === "Sequential Flow"
 
-`yaml
+    ```yaml
     - [-1, 1, Conv, [64, 3, 2]]    # Takes input from previous layer
-    `
+    ```
 
 === "Skip Connections"
 
-`yaml
+    ```yaml
     - [[-1, 6], 1, Concat, [1]]    # Combines current layer with layer 6
-    `
+    ```
 
 === "Multi-Input Fusion"
 
-`yaml
+    ```yaml
     - [[4, 6, 8], 1, Detect, [nc]] # Detection head using 3 feature scales
-    `
+    ```
 
 !!! note "Layer Indexing"
-Layers are indexed starting from 0. Negative indices reference previous layers (`-1` = previous layer), while positive indices reference specific layers by their position.
+
+    Layers are indexed starting from 0. Negative indices reference previous layers (`-1` = previous layer), while positive indices reference specific layers by their position.
 
 ### Module Repetition
 
@@ -105,7 +100,7 @@ The actual repetition count gets multiplied by the depth scaling factor from you
 
 ## Available Modules
 
-Modules are organized by functionality and defined in the [Ultralytics modules directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules):
+Modules are organized by functionality and defined in the [Ultralytics modules directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules). The following tables show commonly used modules by category, with many more available in the source code:
 
 ### Basic Operations
 
@@ -131,19 +126,20 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | `Index`       | Extract specific tensor from list | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, index]`                                        |
 | `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc, anchors, ch]`                                      |
 
-!!! info "Module Documentation"
-For complete module documentation, visit the [API Reference](https://docs.ultralytics.com/reference/nn/modules/).
+!!! info "Complete Module List"
+
+    This represents a subset of available modules. For the full list of modules and their parameters, explore the [modules directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules).
 
 ## Advanced Features
 
 ### TorchVision Integration
 
-The TorchVision module enables seamless integration of any [torchvision model](https://pytorch.org/vision/stable/models.html) as a backbone:
+The TorchVision module enables seamless integration of any [TorchVision model](https://pytorch.org/vision/stable/models.html) as a backbone:
 
 === "Python"
 
-````python
-from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
     # Model with ConvNeXt backbone
     model = YOLO("convnext_backbone.yaml")
@@ -152,37 +148,38 @@ from ultralytics import YOLO
 
 === "YAML Configuration"
 
-`yaml
+    ```yaml
     backbone:
-      - [-1, 1, TorchVision, [768, "convnext_tiny", "DEFAULT", True, 2, False]]
+      - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, False]]
     head:
       - [-1, 1, Classify, [nc]]
-    `
+    ```
 
 **Parameter Breakdown:**
 
 - `768`: Expected output channels
-- `"convnext_tiny"`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
-- `"DEFAULT"`: Use pretrained weights
+- `convnext_tiny`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
+- `DEFAULT`: Use pretrained weights
 - `True`: Remove classification head
 - `2`: Truncate last 2 layers
 - `False`: Return single tensor (not list)
 
 !!! tip "Multi-Scale Features"
-Set the last parameter to `True` to get intermediate feature maps for multi-scale detection.
+
+    Set the last parameter to `True` to get intermediate feature maps for multi-scale detection.
 
 ### Index Module for Feature Selection
 
 When using models that output multiple feature maps, the Index module selects specific outputs:
 ```yaml
 backbone:
-    - [-1, 1, TorchVision, [768, "convnext_tiny", "DEFAULT", True, 2, True]] # Multi-output
+    - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]] # Multi-output
 head:
     - [0, 1, Index, [192, 4]] # Select 4th feature map (192 channels)
     - [0, 1, Index, [384, 6]] # Select 6th feature map (384 channels)
     - [0, 1, Index, [768, 8]] # Select 8th feature map (768 channels)
     - [[1, 2, 3], 1, Detect, [nc]] # Multi-scale detection
-````
+```
 
 ## Module Resolution System
 
@@ -190,27 +187,37 @@ Understanding how Ultralytics locates and imports modules is crucial for customi
 
 ### Module Lookup Process
 
-The framework uses a two-tier system in [`parse_model`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
+The framework uses a three-tier system in [`parse_model`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
 # Core resolution logic
-m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m]
+m = (
+    getattr(torch.nn, m[3:]) if "nn." in m 
+    else getattr(torchvision.ops, m[4:]) if "ops." in m
+    else globals()[m]
+)
 ```
 
 1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace
-2. **Ultralytics modules**: All other names → global namespace via imports
+2. **TorchVision operations**: Names starting with `'ops.'` → `torchvision.ops` namespace  
+3. **Ultralytics modules**: All other names → global namespace via imports
 
 ### Module Import Chain
 
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-
+from ultralytics.nn.modules import (
+    Conv, C2f, SPPF, TorchVision, Index, Detect,
+    # ... many more modules
+)  # noqa
 ```
 
 ## Custom Module Integration
 
 ### Method 1: Source Code Modification
+
+Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, you need perform the following steps:
 
 1. **Define your module** in [`block.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py):
 
@@ -221,13 +228,19 @@ Standard modules become available through imports in [`tasks.py`](https://github
             self.conv = Conv(c1, c2, kernel)
     ```
 
-2. **Add to imports** in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
+2. **Add to module exports** in [`__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
 
     ```python
-
+    from .block import CustomBlock # noqa
     ```
 
-3. **Use in YAML**:
+3. **Add to imports** in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
+
+    ```python
+    from ultralytics.nn.modules import CustomBlock  # noqa
+    ```
+
+4. **Use in YAML**:
     ```yaml
     backbone:
         - [-1, 1, CustomBlock, [128, 5]]
@@ -235,10 +248,18 @@ Standard modules become available through imports in [`tasks.py`](https://github
 
 ### Method 2: Dynamic Injection
 
+It's also possible, although hacky, to dynamically inject your module at runtime without having to modify Ultralytics source code.
+
 === "Python"
 
-````python
-import torch.nn as nn
+    !!! warning "Multi-GPU training can't use dynamically injected module"
+
+        Multi-GPU training launches a subprocess which wouldn't have access to the modules that were injected at runtime through this method.
+    
+    The following code would add your custom module to Ultralytics namespace at runtime:
+
+    ```python
+    import torch.nn as nn
 
     from ultralytics import YOLO
 
@@ -262,44 +283,15 @@ import torch.nn as nn
     model = YOLO("custom_model.yaml")
     ```
 
-=== "YAML"
+=== "`custom_model.yaml`"
 
-`yaml
+    After injecting `MyBlock` at runtime, this YAML file would load successfully:
+    ```yaml
     backbone:
       - [-1, 1, MyBlock, [64]]  # Now available
     head:
       - [-1, 1, Classify, [nc]]
-    `
-
-### Method 3: Future YAML-Embedded Modules
-
-The upcoming [PR #19615](https://github.com/ultralytics/ultralytics/pull/19615) enables inline module definitions:
-```yaml
-# Define modules directly in YAML
-init: |
-    class CustomBackbone(nn.Module):
-        def __init__(self, c1, c2, depth=3):
-            super().__init__()
-            self.layers = nn.Sequential(*[
-                Conv(c1 if i == 0 else c2, c2, 3, 1) for i in range(depth)
-            ])
-
-        def forward(self, x):
-            return self.layers(x)
-
-    globals()['CustomBackbone'] = CustomBackbone
-
-parse: |
-    # Custom argument processing
-    if m is CustomBackbone:
-        args = [c1, c2, *args]
-
-backbone:
-    - [-1, 1, CustomBackbone, [64, 32, 4]]
-````
-
-!!! warning "Development Feature"
-The YAML-embedded modules feature is not yet merged. Track [PR #19615](https://github.com/ultralytics/ultralytics/pull/19615) for updates.
+    ```
 
 ## Example Configurations
 
@@ -396,8 +388,8 @@ head:
 
 === "Python"
 
-````python
-from ultralytics import YOLO
+    ```python
+    from ultralytics import YOLO
 
     # Build model with verbose output
     model = YOLO("debug_model.yaml", verbose=True)
@@ -408,10 +400,10 @@ from ultralytics import YOLO
 
 === "CLI"
 
-`bash
+    ```bash
     # Validate configuration
     yolo cfg=debug_model.yaml task=detect mode=train epochs=1 verbose=True
-    `
+    ```
 
 ## Related Documentation
 
@@ -430,4 +422,3 @@ from ultralytics import YOLO
 ---
 
 For the latest updates and detailed examples, visit the [official Ultralytics documentation](https://docs.ultralytics.com/).
-````

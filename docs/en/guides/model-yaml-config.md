@@ -304,7 +304,7 @@ head:
 nc: 80
 
 backbone:
-    - [-1, 1, TorchVision, [768, "convnext_tiny", "DEFAULT", True, 2, True]]
+    - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]]
 
 head:
     - [0, 1, Index, [192, 4]] # P3 features

@@ -322,7 +322,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the
 
 ### Sony Model Compression Toolkit (MCT)
 
-[Sony's Model Compression Toolkit (MCT)](https://github.com/sony/model_optimization) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency.
+[Sony's Model Compression Toolkit (MCT)](https://github.com/SonySemiconductorSolutions/mct-model-optimization) is a powerful tool for optimizing deep learning models through quantization and pruning. It supports various quantization methods and provides advanced algorithms to reduce model size and computational complexity without significantly sacrificing accuracy. MCT is particularly useful for deploying models on resource-constrained devices, ensuring efficient inference and reduced latency.
 
 ### Supported Features of MCT
 

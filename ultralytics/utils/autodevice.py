@@ -49,7 +49,7 @@ class GPUInfo:
         self.gpu_stats: List[Dict[str, Any]] = []
 
         try:
-            check_requirements("pynvml>=12.0.0")
+            check_requirements("nvidia-ml-py>=12.0.0")
             self.pynvml = __import__("pynvml")
             self.pynvml.nvmlInit()
             self.nvml_available = True

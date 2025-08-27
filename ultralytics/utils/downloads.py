@@ -3,6 +3,7 @@
 import re
 import shutil
 import subprocess
+import time
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -347,6 +348,7 @@ def safe_download(
                 else:  # urllib download
                     with request.urlopen(url) as response:
                         expected_size = int(response.getheader("Content-Length", 0))
+                        buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
                         with TQDM(
                             total=expected_size,
                             desc=desc,
@@ -356,7 +358,10 @@ def safe_download(
                             unit_divisor=1024,
                         ) as pbar:
                             with open(f, "wb") as f_opened:
-                                for data in response:
+                                while True:
+                                    data = response.read(buffer_size)
+                                    if not data:
+                                        break
                                     f_opened.write(data)
                                     pbar.update(len(data))
 

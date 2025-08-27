@@ -178,10 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const href = link.getAttribute("href");
       if (!href) continue;
 
-      const match = href.match(/^\/([a-z]{2})\/?$/);
+      const url = new URL(href, location.origin);
+      const match = url.pathname.match(/^\/([a-z]{2})\/?$/);
       if (match) {
         langs.push({ code: match[1], link });
-      } else if (href === "/" || href === "") {
+      } else if (url.pathname === "/" || url.pathname === "") {
         defaultLink = link;
       }
     }

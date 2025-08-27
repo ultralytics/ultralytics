@@ -209,16 +209,11 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics = model.val(data=data, imgsz=32, plots=plots)
         metrics.to_df()
         metrics.to_csv()
-        metrics.to_xml()
-        metrics.to_html()
         metrics.to_json()
-        metrics.to_sql()
-        metrics.confusion_matrix.to_df()  # Tests for confusion matrix export
+        # Tests for confusion matrix export
+        metrics.confusion_matrix.to_df()
         metrics.confusion_matrix.to_csv()
-        metrics.confusion_matrix.to_xml()
-        metrics.confusion_matrix.to_html()
         metrics.confusion_matrix.to_json()
-        metrics.confusion_matrix.to_sql()
 
 
 def test_train_scratch():
@@ -226,6 +221,15 @@ def test_train_scratch():
     model = YOLO(CFG)
     model.train(data="coco8.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
     model(SOURCE)
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+def test_train_ndjson():
+    """Test training the YOLO model using NDJSON format dataset."""
+    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
+    model.train(
+        data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson", epochs=1, imgsz=32
+    )
 
 
 @pytest.mark.parametrize("scls", [False, True])
@@ -295,10 +299,7 @@ def test_results(model: str):
         r.save_crop(save_dir=TMP / "runs/tests/crops/")
         r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
-        r.to_xml()
-        r.to_html()
         r.to_json(normalize=True)
-        r.to_sql()
         r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods

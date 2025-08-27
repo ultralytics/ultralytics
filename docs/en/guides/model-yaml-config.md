@@ -204,7 +204,10 @@ m = getattr(torch.nn, m[3:]) if "nn." in m else getattr(torchvision.ops, m[4:]) 
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-
+from ultralytics.nn.modules import (  # noqa: F401, E501
+    Conv, C2f, SPPF, TorchVision, Index, Detect,
+    # ... many more modules
+)
 ```
 
 ## Custom Module Integration

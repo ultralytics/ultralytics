@@ -22,15 +22,15 @@ nc: 80 # number of classes
 scales: # compound scaling constants [depth, width, max_channels]
     n: [0.50, 0.25, 1024] # nano: shallow layers, narrow channels
     s: [0.50, 0.50, 1024] # small: shallow depth, standard width
-    m: [0.50, 1.00, 512]  # medium: moderate depth, full width
-    l: [1.00, 1.00, 512]  # large: full depth and width
-    x: [1.00, 1.50, 512]  # extra-large: maximum performance
+    m: [0.50, 1.00, 512] # medium: moderate depth, full width
+    l: [1.00, 1.00, 512] # large: full depth and width
+    x: [1.00, 1.50, 512] # extra-large: maximum performance
 kpt_shape: [17, 3] # pose models only
 ```
 
-* `nc` sets the number of classes the model predicts.
-* `scales` define compound scaling factors that adjust model depth, width, and maximum channels to produce different size variants (nano through extra-large).
-* `kpt_shape` applies to pose models. It can be `[N, 2]` for `(x, y)` keypoints or `[N, 3]` for `(x, y, visibility)`.
+- `nc` sets the number of classes the model predicts.
+- `scales` define compound scaling factors that adjust model depth, width, and maximum channels to produce different size variants (nano through extra-large).
+- `kpt_shape` applies to pose models. It can be `[N, 2]` for `(x, y)` keypoints or `[N, 3]` for `(x, y, visibility)`.
 
 !!! tip "Reduce redundancy with `scales`"
 

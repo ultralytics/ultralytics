@@ -163,14 +163,14 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
       - [-1, 1, Classify, [nc]]
     ```
 
-**Parameter Breakdown:**
-
-- `768`: Expected output channels
-- `convnext_tiny`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
-- `DEFAULT`: Use pretrained weights
-- `True`: Remove classification head
-- `2`: Truncate last 2 layers
-- `False`: Return single tensor (not list)
+    **Parameter Breakdown:**
+    
+    - `768`: Expected output channels
+    - `convnext_tiny`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
+    - `DEFAULT`: Use pretrained weights
+    - `True`: Remove classification head
+    - `2`: Truncate last 2 layers
+    - `False`: Return single tensor (not list)
 
 !!! tip "Multi-Scale Features"
 

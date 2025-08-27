@@ -3,7 +3,6 @@
 import re
 import shutil
 import subprocess
-import time
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path

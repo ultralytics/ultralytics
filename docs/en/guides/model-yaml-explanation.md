@@ -72,16 +72,19 @@ Every layer follows the consistent pattern: **`[from, repeats, module, args]`**
 The `from` field creates flexible data flow patterns throughout your network:
 
 === "Sequential Flow"
+
 `yaml
     - [-1, 1, Conv, [64, 3, 2]]    # Takes input from previous layer
     `
 
 === "Skip Connections"
+
 `yaml
     - [[-1, 6], 1, Concat, [1]]    # Combines current layer with layer 6
     `
 
 === "Multi-Input Fusion"
+
 `yaml
     - [[4, 6, 8], 1, Detect, [nc]] # Detection head using 3 feature scales
     `
@@ -148,6 +151,7 @@ from ultralytics import YOLO
     ```
 
 === "YAML Configuration"
+
 `yaml
     backbone:
       - [-1, 1, TorchVision, [768, "convnext_tiny", "DEFAULT", True, 2, False]]
@@ -259,6 +263,7 @@ import torch.nn as nn
     ```
 
 === "YAML"
+
 `yaml
     backbone:
       - [-1, 1, MyBlock, [64]]  # Now available
@@ -402,6 +407,7 @@ from ultralytics import YOLO
     ```
 
 === "CLI"
+
 `bash
     # Validate configuration
     yolo cfg=debug_model.yaml task=detect mode=train epochs=1 verbose=True

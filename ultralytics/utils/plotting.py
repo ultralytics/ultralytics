@@ -594,6 +594,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     if 0 < len(names) < 30:
         ax[0].set_xticks(range(len(names)))
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
+        ax[0].bar_label(y[2])
     else:
         ax[0].set_xlabel("classes")
     boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000

@@ -1787,9 +1787,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             res_masks (torch.Tensor): The output masks in shape (C, H, W)
             object_score_logits (torch.Tensor): Quality scores for each mask
         """
-        if self.model is None:
-            self.setup_model(model=None)
-
         self.get_im_features(img)
         points, labels, masks = self._prepare_prompts(
             dst_shape=self.imgsz,
@@ -1820,8 +1817,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         # filter the masks and logits based on the object indices
         if len(self.obj_idx_set) == 0:
             raise RuntimeError("No objects have been added to the state. Please add objects before inference.")
-        pred_masks = pred_masks[list(self.obj_idx_set)]
-        pred_scores = pred_scores[list(self.obj_idx_set)]
+        idx = list(self.obj_idx_set)  # cls id
+        pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
         # the original score are in [-32,32], and a object score larger than 0 means the object is present, we map it to [-1,1] range,
         # and use a activate function to make sure the object score logits are non-negative, so that we can use it as a mask
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
@@ -1891,12 +1888,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             obj_idx = self._obj_id_to_idx(int(obj_id))
             self.obj_idx_set.add(obj_idx)
             point, label = points[[i]], labels[[i]]
-            mask = masks[[i]] if masks is not None else None
+            mask = masks[[i]][None] if masks is not None else None
             # Currently, only bbox prompt or mask prompt is supported, so we assert that bbox is not None.
             assert point is not None or mask is not None, "Either bbox, points or mask is required"
-            if mask is not None:
-                mask = mask[None]
-
             out = self.track_step(obj_idx, point, label, mask)
             if out is not None:
                 obj_mask = out["pred_masks"]
@@ -1909,7 +1903,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 if "object_score_logits" in out.keys():
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
-        high_res_masks = torch.nn.functional.interpolate(
+        high_res_masks = F.interpolate(
             consolidated_out["pred_masks"].to(self.device, non_blocking=True),
             size=self.imgsz,
             mode="bilinear",
@@ -1964,7 +1958,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             *self.feat_sizes[-1],
         )
 
-    def get_maskmem_enc(self) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
+    def get_maskmem_enc(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Get the memory and positional encoding from the memory, which is used to condition the current image
         features.
         """

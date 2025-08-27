@@ -171,6 +171,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 ### Index Module for Feature Selection
 
 When using models that output multiple feature maps, the Index module selects specific outputs:
+
 ```yaml
 backbone:
     - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]] # Multi-output
@@ -191,15 +192,11 @@ The framework uses a three-tier system in [`parse_model`](https://github.com/ult
 
 ```python
 # Core resolution logic
-m = (
-    getattr(torch.nn, m[3:]) if "nn." in m 
-    else getattr(torchvision.ops, m[4:]) if "ops." in m
-    else globals()[m]
-)
+m = getattr(torch.nn, m[3:]) if "nn." in m else getattr(torchvision.ops, m[4:]) if "ops." in m else globals()[m]
 ```
 
 1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace
-2. **TorchVision operations**: Names starting with `'ops.'` → `torchvision.ops` namespace  
+2. **TorchVision operations**: Names starting with `'ops.'` → `torchvision.ops` namespace
 3. **Ultralytics modules**: All other names → global namespace via imports
 
 ### Module Import Chain
@@ -207,10 +204,7 @@ m = (
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-from ultralytics.nn.modules import (
-    Conv, C2f, SPPF, TorchVision, Index, Detect,
-    # ... many more modules
-)  # noqa
+
 ```
 
 ## Custom Module Integration
@@ -234,7 +228,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
 2. **Add to module exports** in [`ultralytics/nn/modules/__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
 
     ```python
-    from .block import CustomBlock # noqa
+    from .block import CustomBlock  # noqa
     ```
 
 3. **Add to imports** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
@@ -248,21 +242,23 @@ Modifying the source code is the most versatile way to integrate your custom mod
     ```python
     # Add to the special case handling section
     elif m is CustomBlock:
-        c1, c2 = ch[f], args[0]  # input channels, output channels  
+        c1, c2 = ch[f], args[0]  # input channels, output channels
         args = [c1, c2, *args[1:]]
     ```
 
 5. **Use in YAML**:
+
     ```yaml
     # custom_model.yaml
     nc: 1
     backbone:
         - [-1, 1, CustomBlock, [64]]
     head:
-        - [-1, 1, Classify, [nc]]  # useful for testing without actual head
-    ``` 
+        - [-1, 1, Classify, [nc]] # useful for testing without actual head
+    ```
 
 6. **Check FLOPs** to validate forward pass works:
+
     ```python
     from ultralytics import YOLO
 
@@ -286,7 +282,7 @@ scales:
 
 backbone:
     - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
-    - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4  
+    - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
     - [-1, 3, C2f, [128, True]] # 2
     - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
     - [-1, 6, C2f, [256, True]] # 4

@@ -274,10 +274,6 @@ Modifying the source code is the most versatile way to integrate your custom mod
     model.info()  # should print non-zero FLOPs if working
     ```
 
-!!! note "Argument Processing"
-
-    Step 4 is only needed if your module requires special argument processing like automatic channel inference or repeat count insertion. Most basic modules can use the default argument handling.
-
 ## Example Configurations
 
 ### Basic Detection Model

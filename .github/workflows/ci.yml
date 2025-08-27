@@ -55,7 +55,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.12"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -110,7 +110,7 @@ jobs:
         python-version: ["3.12"]
         model: [yolo11n]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -175,7 +175,7 @@ jobs:
             python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -217,13 +217,17 @@ jobs:
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     timeout-minutes: 360
-    runs-on: gpu-latest
+    runs-on: github-linux-gpu-t4-4-core
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
       - name: Install requirements
-        shell: bash # for Windows compatibility
-        run: uv pip install --system -e . pytest-cov
+        run: |
+          uv pip install -e . pytest-cov nvidia-ml-py
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
         run: |
           yolo checks
@@ -235,6 +239,8 @@ jobs:
             slow="--slow"
           fi
           pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov
         uses: codecov/codecov-action@v5
         with:
@@ -247,7 +253,7 @@ jobs:
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Activate Virtual Environment for Tests
         run: |
           python3.11 -m venv env-tests
@@ -321,7 +327,7 @@ jobs:
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - name: Activate virtual environment
         run: |

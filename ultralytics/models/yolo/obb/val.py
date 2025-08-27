@@ -179,9 +179,6 @@ class OBBValidator(DetectionValidator):
         stem = Path(pbatch["im_file"]).stem
         image_id = int(stem) if stem.isnumeric() else stem
         rbox = predn["bboxes"]
-        rbox = ops.scale_boxes(
-            pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
-        )  # native-space pred
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
         for r, b, s, c in zip(rbox.tolist(), poly.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(
@@ -220,6 +217,15 @@ class OBBValidator(DetectionValidator):
             names=self.names,
             obb=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
+
+    def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+        """Scales predictions to the original image size."""
+        return {
+            **predn,
+            "bboxes": ops.scale_boxes(
+                pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
+            ),
+        }
 
     def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
         """

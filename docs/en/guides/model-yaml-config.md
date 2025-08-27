@@ -379,13 +379,14 @@ nc: 1
 backbone:
     - [-1, 1, CustomBlock, [64]]
 head:
-    - [-1, 1, nn.Identity, []]  # Pass-through for debugging
+    - [-1, 1, nn.Identity, []] # Pass-through for debugging
 ```
 
 This allows direct inspection of backbone outputs:
 
 ```python
 import torch
+
 from ultralytics import YOLO
 
 model = YOLO("debug_model.yaml")
@@ -414,7 +415,7 @@ for i, layer in enumerate(model.model.model):
 **Step-by-Step Validation**
 
 1. **Start minimal**: Test with simplest possible architecture first
-2. **Add incrementally**: Build complexity layer by layer  
+2. **Add incrementally**: Build complexity layer by layer
 3. **Check dimensions**: Verify channel and spatial size compatibility
 4. **Validate scaling**: Test with different model scales (`n`, `s`, `m`)
 
@@ -425,7 +426,7 @@ for i, layer in enumerate(model.model.model):
 Set the `nc` parameter at the top of your YAML file to match your dataset's number of classes.
 
 ```yaml
-nc: 5  # 5 classes
+nc: 5 # 5 classes
 ```
 
 ### Can I use a custom backbone in my model YAML?

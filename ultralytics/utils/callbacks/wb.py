@@ -34,13 +34,19 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
     Returns:
         (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
     """
-    import pandas  # scope for faster 'import ultralytics'
+    import polars as pl  # scope for faster 'import ultralytics'
+    import polars.selectors as cs
 
-    df = pandas.DataFrame({"class": classes, "y": y, "x": x}).round(3)
+    df = pl.DataFrame({"class": classes, "y": y, "x": x}).with_columns(cs.numeric().round(3))
+    data = df.select(["class", "y", "x"]).rows()
+
     fields = {"x": "x", "y": "y", "class": "class"}
     string_fields = {"title": title, "x-axis-title": x_title, "y-axis-title": y_title}
     return wb.plot_table(
-        "wandb/area-under-curve/v0", wb.Table(dataframe=df), fields=fields, string_fields=string_fields
+        "wandb/area-under-curve/v0",
+        wb.Table(data=data, columns=["class", "y", "x"]),
+        fields=fields,
+        string_fields=string_fields,
     )
 
 

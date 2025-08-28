@@ -29,9 +29,11 @@ MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 
 
 def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]:
-    """Extract class and function names from a given Python file."""
+    """Extract top-level class and (a)sync function names from a Python file."""
     content = filepath.read_text()
-    return (re.findall(r"(?:^|\n)class\s(\w+)(?:\(|:)", content), re.findall(r"(?:^|\n)def\s(\w+)\(", content))
+    classes = re.findall(r"(?:^|\n)class\s(\w+)(?:\(|:)", content)
+    functions = re.findall(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(", content)
+    return classes, functions
 
 
 def create_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:

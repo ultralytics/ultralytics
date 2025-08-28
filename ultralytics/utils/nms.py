@@ -44,15 +44,15 @@ class FastNMS:
             w = (xx2 - xx1).clamp_(min=0)
             h = (yy2 - yy1).clamp_(min=0)
             inter = w * h
-            
+
             # Early termination: skip IoU calculation if no intersection
             if inter.sum() == 0:
                 # No overlaps with current box, keep all remaining boxes
                 remaining_count = rest.numel()
-                keep[keep_idx:keep_idx + remaining_count] = rest
+                keep[keep_idx : keep_idx + remaining_count] = rest
                 keep_idx += remaining_count
                 break
-            
+
             iou = inter / (areas[i] + areas[rest] - inter)
 
             # Keep boxes with IoU <= threshold

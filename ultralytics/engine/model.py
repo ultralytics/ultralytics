@@ -20,7 +20,7 @@ from ultralytics.utils import (
     SETTINGS,
     YAML,
     callbacks,
-    checks,
+    checks, HUB_WEB_ROOT,
 )
 
 
@@ -229,7 +229,6 @@ class Model(torch.nn.Module):
             >>> Model.is_hub_model("yolo11n.pt")
             False
         """
-        from ultralytics.hub import HUB_WEB_ROOT
 
         return model.startswith(f"{HUB_WEB_ROOT}/models/")
 

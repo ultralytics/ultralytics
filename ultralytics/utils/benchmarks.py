@@ -90,9 +90,13 @@ def benchmark(
 
     import polars as pl  # scope for faster 'import ultralytics'
 
-    pl.Config.set_tbl_cols(10)
-    pl.Config.set_tbl_width_chars(120)
-    pl.Config.set_tbl_hide_dataframe_shape(True)
+    pl.Config.set_tbl_cols(-1)  # Show all columns
+    pl.Config.set_tbl_rows(-1)  # Show all rows
+    pl.Config.set_tbl_width_chars(-1)  # No width limit
+    pl.Config.set_tbl_hide_column_data_types(True)  # Hide data types
+    pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
+    pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
+
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -194,12 +198,14 @@ def benchmark(
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
+    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
+    df = df.with_row_index(" ", offset=1)  # add index info
+    df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
 
     name = model.model_name
     dt = time.time() - t0
     legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fill_null('-')}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df_display}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
@@ -209,7 +215,7 @@ def benchmark(
         floor = verbose  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
         assert all(x > floor for x in metrics if not np.isnan(x)), f"Benchmark failure: metric(s) < floor {floor}"
 
-    return df
+    return df_display
 
 
 class RF100Benchmark:

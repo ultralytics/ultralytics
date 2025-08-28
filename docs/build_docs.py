@@ -29,6 +29,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 from ultralytics.utils.tqdm import TQDM
+from ultralytics.utils import MACOS, LINUX, LOGGER
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
 DOCS = Path(__file__).parent.resolve()
@@ -372,9 +373,7 @@ def main():
     size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
     print(f"Docs built correctly ✅ ({size:.1f} MB)")
 
-    import platform
-
-    if platform.system() == "Darwin" and not os.getenv("GITHUB_ACTIONS"):
+    if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
         import webbrowser
 
         webbrowser.open("http://localhost:8000")

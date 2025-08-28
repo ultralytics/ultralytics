@@ -258,7 +258,7 @@ def fuse_conv_and_bn(conv, bn):
         bn (nn.BatchNorm2d): Batch normalization layer to fuse.
 
     Returns:
-        nn.Conv2d: The fused convolutional layer with gradients disabled.
+        (nn.Conv2d): The fused convolutional layer with gradients disabled.
 
     Example:
         >>> conv = nn.Conv2d(3, 16, 3)
@@ -292,7 +292,7 @@ def fuse_deconv_and_bn(deconv, bn):
         bn (nn.BatchNorm2d): Batch normalization layer to fuse.
 
     Returns:
-        nn.ConvTranspose2d: The fused transposed convolutional layer with gradients disabled.
+        (nn.ConvTranspose2d): The fused transposed convolutional layer with gradients disabled.
 
     Example:
         >>> deconv = nn.ConvTranspose2d(16, 3, 3)

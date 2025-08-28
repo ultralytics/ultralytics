@@ -394,14 +394,11 @@ class TQDM:
 if __name__ == "__main__":
     import time
 
-    # Example 1: Basic usage with known total
     print("1. Basic progress bar with known total:")
     for i in TQDM(range(0), desc="Known total"):
         time.sleep(0.05)
-    print()
 
-    # Example 2: Manual updates with known total
-    print("2. Manual updates with known total:")
+    print("\n2. Manual updates with known total:")
     pbar = TQDM(total=30, desc="Manual updates", unit="files")
     for i in range(30):
         time.sleep(0.03)
@@ -409,10 +406,8 @@ if __name__ == "__main__":
         if i % 10 == 9:
             pbar.set_description(f"Processing batch {i // 10 + 1}")
     pbar.close()
-    print()
 
-    # Example 3: Unknown total - this was the problematic case
-    print("3. Progress bar with unknown total:")
+    print("\n3. Progress bar with unknown total:")
     pbar = TQDM(desc="Unknown total", unit="items")
     for i in range(25):
         time.sleep(0.08)
@@ -420,19 +415,14 @@ if __name__ == "__main__":
         if i % 5 == 4:
             pbar.set_postfix(processed=i + 1, status="OK")
     pbar.close()
-    print()
 
-    # Example 4: Context manager with unknown total
-    print("4. Context manager with unknown total:")
+    print("\n4. Context manager with unknown total:")
     with TQDM(desc="Processing stream", unit="B", unit_scale=True, unit_divisor=1024) as pbar:
         for i in range(30):
             time.sleep(0.1)
             pbar.update(1024 * 1024 * i)  # Simulate processing MB of data
-    print()
 
-    # Example 5: Generator with unknown length
-    print("5. Iterator with unknown length:")
-
+    print("\n5. Iterator with unknown length:")
     def data_stream():
         """Simulate a data stream of unknown length."""
         import random
@@ -442,11 +432,8 @@ if __name__ == "__main__":
 
     for chunk in TQDM(data_stream(), desc="Stream processing", unit="chunks"):
         time.sleep(0.1)
-    print()
 
-    # Example 6: File-like processing simulation
-    print("6. File processing simulation (unknown size):")
-
+    print("\n6. File processing simulation (unknown size):")
     def process_files():
         """Simulate processing files of unknown count."""
         files = [f"file_{i}.txt" for i in range(18)]
@@ -459,4 +446,3 @@ if __name__ == "__main__":
         pbar.update(1)
         pbar.set_description(f"Processing {filename}")
     pbar.close()
-    print()

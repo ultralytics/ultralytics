@@ -57,7 +57,7 @@ class ObjectCropper(BaseSolution):
         Crop detected objects from the input image and save them as separate images.
 
         Args:
-            im0 (numpy.ndarray): The input image containing detected objects.
+            im0 (np.ndarray): The input image containing detected objects.
 
         Returns:
             (SolutionResults): A SolutionResults object containing the total number of cropped objects and processed
@@ -78,6 +78,7 @@ class ObjectCropper(BaseSolution):
                 device=self.CFG["device"],
                 verbose=False,
             )[0]
+            self.clss = results.boxes.cls.tolist()  # required for logging only.
 
         for box in results.boxes:
             self.crop_idx += 1

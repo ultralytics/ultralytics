@@ -9,7 +9,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -19,7 +19,6 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
-    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,
@@ -37,7 +36,6 @@ from ultralytics.utils.ops import segments2boxes
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
-PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
@@ -214,13 +212,12 @@ def verify_image_label(args: Tuple) -> List:
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     points = lb[:, 1:]
-                assert points.max() <= 1, f"non-normalized or out of bounds coordinates {points[points > 1]}"
-                assert lb.min() >= 0, f"negative label values {lb[lb < 0]}"
+                # Coordinate points check with 1% tolerance
+                assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
+                assert lb.min() >= -0.01, f"negative class labels {lb[lb < -0.01]}"
 
                 # All labels
-                if single_cls:
-                    lb[:, 0] = 0
-                max_cls = lb[:, 0].max()  # max label count
+                max_cls = 0 if single_cls else lb[:, 0].max()  # max label count
                 assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
@@ -283,7 +280,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[
             w = width * img_width
             h = height * img_height
             annotations.append((x, y, w, h, int(class_id)))
-    fig, ax = plt.subplots(1)  # Plot the image and annotations
+    _, ax = plt.subplots(1)  # Plot the image and annotations
     for x, y, w, h, label in annotations:
         color = tuple(c / 255 for c in colors(label, True))  # Get and normalize the RGB color
         rect = plt.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor="none")  # Create a rectangle
@@ -383,7 +380,7 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
+def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]:
     """
     Download, verify, and/or unzip a dataset if not found locally.
 
@@ -396,7 +393,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
-        (Dict): Parsed dataset information and paths.
+        (Dict[str, Any]): Parsed dataset information and paths.
     """
     file = check_file(dataset)
 
@@ -482,7 +479,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict:
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
+def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, Any]:
     """
     Check a classification dataset such as Imagenet.
 
@@ -494,13 +491,13 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
-        (Dict): A dictionary containing the following keys:
+        (Dict[str, Any]): A dictionary containing the following keys:
 
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
-            - 'names' (Dict): A dictionary of class names in the dataset.
+            - 'names' (Dict[int, str]): A dictionary of class names in the dataset.
     """
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
@@ -538,6 +535,8 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict:
         if (data_dir / "val").exists()
         else data_dir / "validation"
         if (data_dir / "validation").exists()
+        else data_dir / "valid"
+        if (data_dir / "valid").exists()
         else None
     )  # data/test or data/val
     test_set = data_dir / "test" if (data_dir / "test").exists() else None  # data/val or data/test

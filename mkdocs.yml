@@ -418,6 +418,7 @@ nav:
       - A Guide on Model Testing: guides/model-testing.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
+      - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
@@ -671,6 +672,7 @@ nav:
               - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
+              - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md
@@ -681,6 +683,7 @@ nav:
           - export: reference/utils/export.md
           - files: reference/utils/files.md
           - instance: reference/utils/instance.md
+          - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
           - ops: reference/utils/ops.md
@@ -688,6 +691,7 @@ nav:
           - plotting: reference/utils/plotting.md
           - tal: reference/utils/tal.md
           - torch_utils: reference/utils/torch_utils.md
+          - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
 

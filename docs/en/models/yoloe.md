@@ -77,9 +77,15 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
 #### Fine-Tuning on custom dataset
 
+You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on your custom YOLO dataset for both detection and instance segmentation tasks.
+
 !!! example
 
     === "Fine-Tuning"
+
+        **Instance segmentation**
+
+        Fine-tuning a YOLOE pretrained checkpoint mostly follows the [standard YOLO training procedure](../modes/train.md). The key difference is explicitly passing `YOLOEPESegTrainer` as the `trainer` parameter to `model.train()`:
 
         ```python
         from ultralytics import YOLOE
@@ -87,35 +93,63 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
         model = YOLOE("yoloe-11s-seg.pt")
 
-        model.train(
-            data="coco128-seg.yaml",
+        # Fine-tune on your segmentation dataset
+        results = model.train(
+            data="coco128-seg.yaml",  # Segmentation dataset
             epochs=80,
-            close_mosaic=10,
-            batch=128,
-            optimizer="AdamW",
-            lr0=1e-3,
-            warmup_bias_lr=0.0,
-            weight_decay=0.025,
-            momentum=0.9,
-            workers=4,
-            device="0",
-            trainer=YOLOEPESegTrainer,
+            patience=10,
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
+        )
+        ```
+
+        **Object detection**
+
+        All [pretrained YOLOE models](#textvisual-prompt-models) perform instance segmentation by default. To use these pretrained checkpoints for training a detection model, initialize a detection model from scratch using the YAML configuration, then load the pretrained segmentation checkpoint of the same scale. Note that we use `YOLOEPETrainer` instead of `YOLOEPESegTrainer` since we're training a detection model:
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
+
+        # Initialize a detection model from a config
+        model = YOLOE("yoloe-11s.yaml")
+
+        # Load weights from a pretrained segmentation checkpoint (same scale)
+        model.load("yoloe-11s-seg.pt")
+
+        # Fine-tune on your detection dataset
+        results = model.train(
+            data="coco128.yaml",  # Detection dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
         )
         ```
 
     === "Linear Probing"
 
+        Linear probing fine-tunes only the classification branch while freezing the rest of the model. This approach is useful when working with limited data, as it prevents overfitting by leveraging previously learned features while adapting only the classification head.
+
+        **Instance segmentation**
+
         ```python
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
+        # Load a pretrained segmentation model
         model = YOLOE("yoloe-11s-seg.pt")
+
+        # Identify the head layer index
         head_index = len(model.model.model) - 1
-        freeze = [str(f) for f in range(0, head_index)]
+
+        # Freeze all backbone and neck layers (i.e. everything before the head)
+        freeze = [str(i) for i in range(0, head_index)]
+
+        # Freeze parts of the segmentation head, keeping only the classification branch trainable
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
                 freeze.append(f"{head_index}.{name}")
 
+        # Freeze detection branch components
         freeze.extend(
             [
                 f"{head_index}.cv3.0.0",
@@ -127,19 +161,59 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             ]
         )
 
-        model.train(
-            data="coco128-seg.yaml",
-            epochs=2,
-            close_mosaic=0,
-            batch=16,
-            optimizer="AdamW",
-            lr0=1e-3,
-            warmup_bias_lr=0.0,
-            weight_decay=0.025,
-            momentum=0.9,
-            workers=4,
-            device="0",
-            trainer=YOLOEPESegTrainer,
+        # Train only the classification branch
+        results = model.train(
+            data="coco128-seg.yaml",  # Segmentation dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
+            freeze=freeze,
+        )
+        ```
+
+        **Object detection**
+
+        For object detection task, the training process is almost the same as the instance segmentation example above but we use `YOLOEPETrainer` instead of `YOLOEPESegTrainer`, and initialize the object detection model using the YAML and then load the weights from the pretrained instance segmentation checkpoint.
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
+
+        # Initialize a detection model from a config
+        model = YOLOE("yoloe-11s.yaml")
+
+        # Load weights from a pretrained segmentation checkpoint (same scale)
+        model.load("yoloe-11s-seg.pt")
+
+        # Identify the head layer index
+        head_index = len(model.model.model) - 1
+
+        # Freeze all backbone and neck layers (i.e. everything before the head)
+        freeze = [str(i) for i in range(0, head_index)]
+
+        # Freeze parts of the segmentation head, keeping only the classification branch trainable
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        # Freeze detection branch components
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        # Train only the classification branch
+        results = model.train(
+            data="coco128.yaml",  # Detection dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
             freeze=freeze,
         )
         ```
@@ -251,6 +325,15 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         results[0].show()
         ```
 
+        Using `refer_image` also sets the classes permanently, so you can run predictions without having to supply the same visual prompts again, and export the model while retaining the ability to still detect the same classes after export:
+        ```python
+        # After making prediction with `refer_image`, you can run predictions without passing visual_prompts again and still get the same classes back
+        results = model("ultralytics/assets/bus.jpg")
+
+        # Or export it to a different format while retaining the classes
+        model.export(format="onnx")
+        ```
+
         You can also pass multiple target images to run prediction on:
 
         ```python
@@ -315,6 +398,8 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
 ### Val Usage
 
+Model validation on a dataset is streamlined as follows:
+
 !!! example
 
     === "Text Prompt"
@@ -363,13 +448,37 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg-pf.pt")  # or select yoloe-11s/m-seg-pf.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
-        metrics = model.val(data="coco128-seg.yaml")
+        metrics = model.val(data="coco128-seg.yaml", single_cls=True)
         ```
 
-Model validation on a dataset is streamlined as follows:
+### Export Usage
+
+The export process is similar to other YOLO models, with the added flexibility of handling text and visual prompts:
+
+!!! example
+
+    ```python
+    from ultralytics import YOLOE
+
+    # Select yoloe-11s/m-seg.pt for different sizes
+    model = YOLOE("yoloe-11l-seg.pt")
+
+    # Configure the set_classes() before exporting the model
+    names = ["person", "bus"]
+    model.set_classes(names, model.get_text_pe(names))
+
+    export_model = model.export(format="onnx")
+    model = YOLOE(export_model)
+
+    # Run detection on the given image
+    results = model.predict("path/to/image.jpg")
+
+    # Show results
+    results[0].show()
+    ```
 
 ### Train Official Models
 
@@ -412,12 +521,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -448,12 +557,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -469,12 +577,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -532,12 +640,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -550,12 +657,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),

@@ -76,7 +76,7 @@ class DistanceCalculation(BaseSolution):
         between two user-selected objects if they have been chosen.
 
         Args:
-            im0 (numpy.ndarray): The input image frame to process.
+            im0 (np.ndarray): The input image frame to process.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number

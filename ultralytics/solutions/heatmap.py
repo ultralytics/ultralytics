@@ -124,6 +124,6 @@ class Heatmap(ObjectCounter):
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
-            classwise_count=dict(self.classwise_counts),
+            classwise_count=dict(self.classwise_count),
             total_tracks=len(self.track_ids),
         )

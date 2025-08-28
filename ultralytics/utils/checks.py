@@ -694,7 +694,7 @@ def collect_system_info():
         "GPU count": torch.cuda.device_count() if cuda else None,
         "CUDA": torch.version.cuda if cuda else None,
     }
-    LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
+    LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
     for r in parse_requirements(package="ultralytics"):
@@ -705,7 +705,7 @@ def collect_system_info():
             current = "(not installed)"
             is_met = "❌ "
         package_info[r.name] = f"{is_met}{current}{r.specifier}"
-        LOGGER.info(f"{r.name:<20}{package_info[r.name]}")
+        LOGGER.info(f"{r.name:<23}{package_info[r.name]}")
 
     info_dict["Package Info"] = package_info
 
@@ -893,6 +893,27 @@ def is_rockchip():
         except OSError:
             return False
     else:
+        return False
+
+
+def is_intel():
+    """
+    Check if the system has Intel hardware (CPU or GPU).
+
+    Returns:
+        (bool): True if Intel hardware is detected, False otherwise.
+    """
+    from ultralytics.utils.torch_utils import get_cpu_info
+
+    # Check CPU
+    if "intel" in get_cpu_info().lower():
+        return True
+
+    # Check GPU via xpu-smi
+    try:
+        result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
+        return "intel" in result.stdout.lower()
+    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         return False
 
 

@@ -178,14 +178,10 @@ class Detect(nn.Module):
             grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
             norm = self.strides / (self.stride[0] * grid_size)
             dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        elif self.export and self.format == "imx":
-            dbox = self.decode_bboxes(
-                self.dfl(box) * self.strides, self.anchors.unsqueeze(0) * self.strides, xywh=False
-            )
-            return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-
+        if self.export and self.format == "imx":
+            return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
         return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):
@@ -384,6 +380,8 @@ class Pose(Detect):
         if self.training:
             return x, kpt
         pred_kpt = self.kpts_decode(bs, kpt)
+        if self.export and self.format == "imx":
+            return (*x, pred_kpt.permute(0, 2, 1))
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
     def kpts_decode(self, bs: int, kpts: torch.Tensor) -> torch.Tensor:

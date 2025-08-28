@@ -777,6 +777,8 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
+        if isinstance(kwargs.get("pretrained", None), (str, Path)):
+            self.load(kwargs["pretrained"])  # load pretrained weights if provided
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {
             # NOTE: handle the case when 'cfg' includes 'data'.
@@ -905,8 +907,9 @@ class Model(torch.nn.Module):
         if hasattr(self.model, "names"):
             return check_class_names(self.model.names)
         if not self.predictor:  # export formats will not have predictor defined until predict() is called
-            self.predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
-            self.predictor.setup_model(model=self.model, verbose=False)
+            predictor = self._smart_load("predictor")(overrides=self.overrides, _callbacks=self.callbacks)
+            predictor.setup_model(model=self.model, verbose=False)  # do not mess with self.predictor.model args
+            return predictor.model.names
         return self.predictor.model.names
 
     @property

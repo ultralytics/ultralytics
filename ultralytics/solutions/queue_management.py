@@ -50,7 +50,7 @@ class QueueManager(BaseSolution):
         Process queue management for a single frame of video.
 
         Args:
-            im0 (numpy.ndarray): Input image for processing, typically a frame from a video stream.
+            im0 (np.ndarray): Input image for processing, typically a frame from a video stream.
 
         Returns:
             (SolutionResults): Contains processed image `im0`, 'queue_count' (int, number of objects in the queue) and

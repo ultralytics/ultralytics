@@ -295,6 +295,7 @@ def non_max_suppression(
             # Use torchvision for low conf_thres (validation), FastNMS for high conf_thres (prediction)
             if conf_thres <= 0.01:  # Validation scenario - use faster torchvision
                 import torchvision
+
                 i = torchvision.ops.nms(boxes, scores, iou_thres)
             else:  # Prediction scenario - use custom FastNMS
                 i = FastNMS.nms(boxes, scores, iou_thres)

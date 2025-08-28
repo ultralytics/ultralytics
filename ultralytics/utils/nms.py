@@ -16,7 +16,7 @@ class FastNMS:
 
         # Sort by scores descending
         _, order = scores.sort(0, descending=True)
-        
+
         x1 = boxes[:, 0]
         y1 = boxes[:, 1]
         x2 = boxes[:, 2]
@@ -28,7 +28,7 @@ class FastNMS:
             if order.numel() == 1:
                 keep.append(order.item())
                 break
-                
+
             i = order[0].item()
             keep.append(i)
 
@@ -41,9 +41,9 @@ class FastNMS:
             w = torch.clamp(xx2 - xx1, min=0.0)
             h = torch.clamp(yy2 - yy1, min=0.0)
             inter = w * h
-            
+
             iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-7)
-            
+
             # Keep boxes with IoU <= threshold
             inds = torch.where(iou <= iou_threshold)[0]
             order = order[inds + 1]
@@ -51,7 +51,9 @@ class FastNMS:
         return torch.tensor(keep, dtype=torch.int64, device=boxes.device)
 
     @staticmethod
-    def batched_nms(boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float) -> torch.Tensor:
+    def batched_nms(
+        boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float
+    ) -> torch.Tensor:
         """Batched NMS for class-aware suppression."""
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)

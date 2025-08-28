@@ -63,7 +63,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model
+    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model <br /> &nbsp;
 
     ***
 

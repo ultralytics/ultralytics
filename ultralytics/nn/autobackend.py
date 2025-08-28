@@ -196,7 +196,9 @@ class AutoBackend(nn.Module):
         if nn_module:
             if fuse:
                 # Handle Jetson Jetpack5 fuse bug https://github.com/ultralytics/ultralytics/pull/21028
-                weights = weights.to(device).fuse(verbose=verbose) if is_jetson(jetpack=5) else weights.fuse(verbose=verbose)
+                weights = (
+                    weights.to(device).fuse(verbose=verbose) if is_jetson(jetpack=5) else weights.fuse(verbose=verbose)
+                )
             model = weights.to(device)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only

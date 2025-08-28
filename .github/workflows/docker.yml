@@ -230,7 +230,7 @@ jobs:
           run: |
             # Create array of all images to push (base + derivatives)
             images_to_push=("${{ matrix.tags }}")
-            
+
             # Add derivative images to array
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then
@@ -240,7 +240,7 @@ jobs:
                 images_to_push+=("$derivative_tag")
               done
             fi
-            
+
             # Push all images (base + derivatives)
             for tag in "${images_to_push[@]}"; do
               docker push "ultralytics/ultralytics:$tag"

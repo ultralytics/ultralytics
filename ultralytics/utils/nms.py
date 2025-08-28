@@ -17,14 +17,14 @@ class FastNMS:
         # Pre-allocate and extract coordinates once
         x1, y1, x2, y2 = boxes.unbind(1)
         areas = (x2 - x1) * (y2 - y1)
-        
+
         # Sort by scores descending
         _, order = scores.sort(0, descending=True)
-        
+
         # Pre-allocate keep list with maximum possible size
         keep = torch.zeros(order.numel(), dtype=torch.int64, device=boxes.device)
         keep_idx = 0
-        
+
         while order.numel() > 0:
             i = order[0]
             keep[keep_idx] = i
@@ -32,7 +32,7 @@ class FastNMS:
 
             if order.numel() == 1:
                 break
-                
+
             # Vectorized IoU calculation for remaining boxes
             rest = order[1:]
             xx1 = torch.maximum(x1[i], x1[rest])
@@ -45,7 +45,7 @@ class FastNMS:
             h = (yy2 - yy1).clamp_(min=0)
             inter = w * h
             iou = inter / (areas[i] + areas[rest] - inter)
-            
+
             # Keep boxes with IoU <= threshold
             mask = iou <= iou_threshold
             order = rest[mask]
@@ -53,7 +53,9 @@ class FastNMS:
         return keep[:keep_idx]
 
     @staticmethod
-    def batched_nms(boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float) -> torch.Tensor:
+    def batched_nms(
+        boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float
+    ) -> torch.Tensor:
         """Batched NMS for class-aware suppression."""
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)

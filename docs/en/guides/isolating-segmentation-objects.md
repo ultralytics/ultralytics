@@ -234,7 +234,6 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     ***
 
 6.  <u>What to do next is entirely left to you as the developer.</u> A basic example of one possible next step (saving the image to file for future use) is shown.
-
     - **NOTE:** this step is optional and can be skipped if not required for your specific use case.
 
     ??? example "Example Final Step"

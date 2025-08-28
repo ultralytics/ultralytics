@@ -227,7 +227,7 @@ from ultralytics.nn.modules import (  # noqa: F401, E501
 
 ### Source Code Modification
 
-Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, you need perform the following steps:
+Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, follow these steps:
 
 1. **Define your module** in [`ultralytics/nn/modules/block.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py):
 
@@ -235,34 +235,37 @@ Modifying the source code is the most versatile way to integrate your custom mod
     class CustomBlock(nn.Module):
         def __init__(self, c1, c2):
             super().__init__()
-            self.layers = nn.Sequential(nn.Conv2d(c1, c2, 3, 1, 1), nn.BatchNorm2d(c2), nn.ReLU())
+            self.layers = nn.Sequential(
+                nn.Conv2d(c1, c2, 3, 1, 1),
+                nn.BatchNorm2d(c2),
+                nn.ReLU()
+            )
 
         def forward(self, x):
             return self.layers(x)
     ```
 
-2. **Add to module exports** in [`ultralytics/nn/modules/__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
+2. **Expose your module at the package level** in [`ultralytics/nn/modules/__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
 
     ```python
-    from .block import CustomBlock  # noqa
+    from .block import CustomBlock  # makes CustomBlock available as ultralytics.nn.modules.CustomBlock
     ```
 
-3. **Add to imports** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
+3. **Import it where needed** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
     ```python
     from ultralytics.nn.modules import CustomBlock  # noqa
     ```
 
-4. **Add special argument handling** (if needed) inside the [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py) function in `ultralytics/nn/tasks.py`:
+4. **Handle special arguments** (if needed) inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py) in `ultralytics/nn/tasks.py`:
 
     ```python
-    # Add to the special case handling section
     elif m is CustomBlock:
         c1, c2 = ch[f], args[0]  # input channels, output channels
         args = [c1, c2, *args[1:]]
     ```
 
-5. **Use in YAML**:
+5. **Use the module** in your model YAML:
 
     ```yaml
     # custom_model.yaml

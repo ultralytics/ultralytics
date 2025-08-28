@@ -10,7 +10,7 @@ class FastNMS:
 
     @staticmethod
     def nms(boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float) -> torch.Tensor:
-        """Optimized NMS implementation that matches torchvision behavior exactly."""
+        """Optimized NMS with early termination that matches torchvision behavior exactly."""
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
 
@@ -44,6 +44,15 @@ class FastNMS:
             w = (xx2 - xx1).clamp_(min=0)
             h = (yy2 - yy1).clamp_(min=0)
             inter = w * h
+            
+            # Early termination: skip IoU calculation if no intersection
+            if inter.sum() == 0:
+                # No overlaps, keep all remaining boxes
+                remaining_count = rest.numel()
+                keep[keep_idx:keep_idx + remaining_count] = rest
+                keep_idx += remaining_count
+                break
+            
             iou = inter / (areas[i] + areas[rest] - inter)
 
             # Keep boxes with IoU <= threshold

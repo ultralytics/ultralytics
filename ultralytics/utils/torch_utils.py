@@ -1,991 +1,1860 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-import functools
-import gc
-import math
-import os
-import random
-import time
-from contextlib import contextmanager
+import contextlib
+import pickle
+import re
+import types
 from copy import deepcopy
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Union
 
-import numpy as np
 import torch
-import torch.distributed as dist
 import torch.nn as nn
-import torch.nn.functional as F
 
-from ultralytics import __version__
-from ultralytics.utils import (
-    DEFAULT_CFG_DICT,
-    DEFAULT_CFG_KEYS,
-    LOGGER,
-    NUM_THREADS,
-    PYTHON_VERSION,
-    TORCHVISION_VERSION,
-    WINDOWS,
-    colorstr,
+from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.modules import (
+    AIFI,
+    C1,
+    C2,
+    C2PSA,
+    C3,
+    C3TR,
+    ELAN1,
+    OBB,
+    PSA,
+    SPP,
+    SPPELAN,
+    SPPF,
+    A2C2f,
+    AConv,
+    ADown,
+    Bottleneck,
+    BottleneckCSP,
+    C2f,
+    C2fAttn,
+    C2fCIB,
+    C2fPSA,
+    C3Ghost,
+    C3k2,
+    C3x,
+    CBFuse,
+    CBLinear,
+    Classify,
+    Concat,
+    Conv,
+    Conv2,
+    ConvTranspose,
+    Detect,
+    DWConv,
+    DWConvTranspose2d,
+    Focus,
+    GhostBottleneck,
+    GhostConv,
+    HGBlock,
+    HGStem,
+    ImagePoolingAttn,
+    Index,
+    LRPCHead,
+    Pose,
+    RepC3,
+    RepConv,
+    RepNCSPELAN4,
+    RepVGGDW,
+    ResNetLayer,
+    RTDETRDecoder,
+    SCDown,
+    Segment,
+    TorchVision,
+    WorldDetect,
+    YOLOEDetect,
+    YOLOESegment,
+    v10Detect,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
+from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
+from ultralytics.utils.loss import (
+    E2EDetectLoss,
+    v8ClassificationLoss,
+    v8DetectionLoss,
+    v8OBBLoss,
+    v8PoseLoss,
+    v8SegmentationLoss,
+)
+from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
-
-# Version checks (all default to version>=min_version)
-TORCH_1_9 = check_version(torch.__version__, "1.9.0")
-TORCH_1_13 = check_version(torch.__version__, "1.13.0")
-TORCH_2_0 = check_version(torch.__version__, "2.0.0")
-TORCH_2_4 = check_version(torch.__version__, "2.4.0")
-TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
-TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
-TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
-TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
-    LOGGER.warning(
-        "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
-        "https://github.com/ultralytics/ultralytics/issues/15049"
-    )
+from ultralytics.utils.plotting import feature_visualization
+from ultralytics.utils.torch_utils import (
+    fuse_conv_and_bn,
+    fuse_deconv_and_bn,
+    initialize_weights,
+    intersect_dicts,
+    model_info,
+    scale_img,
+    smart_inference_mode,
+    time_sync,
+)
 
 
-@contextmanager
-def torch_distributed_zero_first(local_rank: int):
-    """Ensure all processes in distributed training wait for the local master (rank 0) to complete a task first."""
-    initialized = dist.is_available() and dist.is_initialized()
-    use_ids = initialized and dist.get_backend() == "nccl"
-
-    if initialized and local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
-    yield
-    if initialized and local_rank == 0:
-        dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
-
-
-def smart_inference_mode():
-    """Apply torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
-
-    def decorate(fn):
-        """Apply appropriate torch decorator for inference mode based on torch version."""
-        if TORCH_1_9 and torch.is_inference_mode_enabled():
-            return fn  # already in inference_mode, act as a pass-through
-        else:
-            return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
-
-    return decorate
-
-
-def autocast(enabled: bool, device: str = "cuda"):
+class BaseModel(torch.nn.Module):
     """
-    Get the appropriate autocast context manager based on PyTorch version and AMP setting.
+    Base class for all YOLO models in the Ultralytics family.
 
-    This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
-    older and newer versions of PyTorch. It handles the differences in the autocast API between PyTorch versions.
-
-    Args:
-        enabled (bool): Whether to enable automatic mixed precision.
-        device (str, optional): The device to use for autocast.
-
-    Returns:
-        (torch.amp.autocast): The appropriate autocast context manager.
-
-    Notes:
-        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
-        - For older versions, it uses `torch.cuda.autocast`.
-
-    Examples:
-        >>> with autocast(enabled=True):
-        ...     # Your mixed precision operations here
-        ...     pass
-    """
-    if TORCH_1_13:
-        return torch.amp.autocast(device, enabled=enabled)
-    else:
-        return torch.cuda.amp.autocast(enabled)
-
-
-@functools.lru_cache
-def get_cpu_info():
-    """Return a string with system CPU information, i.e. 'Apple M2'."""
-    from ultralytics.utils import PERSISTENT_CACHE  # avoid circular import error
-
-    if "cpu_info" not in PERSISTENT_CACHE:
-        try:
-            import cpuinfo  # pip install py-cpuinfo
-
-            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
-            info = cpuinfo.get_cpu_info()  # info dict
-            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
-        except Exception:
-            pass
-    return PERSISTENT_CACHE.get("cpu_info", "unknown")
-
-
-@functools.lru_cache
-def get_gpu_info(index):
-    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    properties = torch.cuda.get_device_properties(index)
-    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
-
-
-def select_device(device="", batch=0, newline=False, verbose=True):
-    """
-    Select the appropriate PyTorch device based on the provided arguments.
-
-    The function takes a string specifying the device or a torch.device object and returns a torch.device object
-    representing the selected device. The function also validates the number of available devices and raises an
-    exception if the requested device(s) are not available.
-
-    Args:
-        device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
-            'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model.
-        newline (bool, optional): If True, adds a newline at the end of the log string.
-        verbose (bool, optional): If True, logs the device information.
-
-    Returns:
-        (torch.device): Selected device.
-
-    Raises:
-        ValueError: If the specified device is not available or if the batch size is not a multiple of the number of
-            devices when using multiple GPUs.
-
-    Examples:
-        >>> select_device("cuda:0")
-        device(type='cuda', index=0)
-
-        >>> select_device("cpu")
-        device(type='cpu')
-
-    Notes:
-        Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
-    """
-    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
-        return device
-
-    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
-    device = str(device).lower()
-    for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
-        device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
-
-    # Auto-select GPUs
-    if "-1" in device:
-        from ultralytics.utils.autodevice import GPUInfo
-
-        # Replace each -1 with a selected GPU or remove it
-        parts = device.split(",")
-        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
-        for i in range(len(parts)):
-            if parts[i] == "-1":
-                parts[i] = str(selected.pop(0)) if selected else ""
-        device = ",".join(p for p in parts if p)
-
-    cpu = device == "cpu"
-    mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
-    elif device:  # non-cpu device requested
-        if device == "cuda":
-            device = "0"
-        if "," in device:
-            device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
-        visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
-        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
-            LOGGER.info(s)
-            install = (
-                "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no "
-                "CUDA devices are seen by torch.\n"
-                if torch.cuda.device_count() == 0
-                else ""
-            )
-            raise ValueError(
-                f"Invalid CUDA 'device={device}' requested."
-                f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
-                f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
-                f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
-                f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
-                f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
-                f"{install}"
-            )
-
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
-        devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
-        n = len(devices)  # device count
-        if n > 1:  # multi-GPU
-            if batch < 1:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
-                )
-            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
-                raise ValueError(
-                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-                )
-        space = " " * (len(s) + 1)
-        for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
-    elif mps and TORCH_2_0 and torch.backends.mps.is_available():
-        # Prefer MPS if available
-        s += f"MPS ({get_cpu_info()})\n"
-        arg = "mps"
-    else:  # revert to CPU
-        s += f"CPU ({get_cpu_info()})\n"
-        arg = "cpu"
-
-    if arg in {"cpu", "mps"}:
-        torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
-    if verbose:
-        LOGGER.info(s if newline else s.rstrip())
-    return torch.device(arg)
-
-
-def time_sync():
-    """Return PyTorch-accurate time."""
-    if torch.cuda.is_available():
-        torch.cuda.synchronize()
-    return time.time()
-
-
-def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers."""
-    fusedconv = nn.Conv2d(
-        conv.in_channels,
-        conv.out_channels,
-        kernel_size=conv.kernel_size,
-        stride=conv.stride,
-        padding=conv.padding,
-        dilation=conv.dilation,
-        groups=conv.groups,
-        bias=True,
-        device=conv.weight.device,
-    ).requires_grad_(False)
-
-    # Prepare filters
-    w_conv = conv.weight.view(conv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
-
-    # Prepare spatial bias
-    b_conv = (
-        torch.zeros(conv.weight.shape[0], dtype=conv.weight.dtype, device=conv.weight.device)
-        if conv.bias is None
-        else conv.bias
-    )
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
-
-    return fusedconv
-
-
-def fuse_deconv_and_bn(deconv, bn):
-    """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
-    fuseddconv = nn.ConvTranspose2d(
-        deconv.in_channels,
-        deconv.out_channels,
-        kernel_size=deconv.kernel_size,
-        stride=deconv.stride,
-        padding=deconv.padding,
-        output_padding=deconv.output_padding,
-        dilation=deconv.dilation,
-        groups=deconv.groups,
-        bias=True,
-        device=deconv.weight.device,
-    ).requires_grad_(False)
-
-    # Prepare filters
-    w_deconv = deconv.weight.view(deconv.out_channels, -1)
-    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
-
-    # Prepare spatial bias
-    b_conv = torch.zeros(deconv.weight.shape[1], device=deconv.weight.device) if deconv.bias is None else deconv.bias
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
-
-    return fuseddconv
-
-
-def model_info(model, detailed=False, verbose=True, imgsz=640):
-    """
-    Print and return detailed model information layer by layer.
-
-    Args:
-        model (nn.Module): Model to analyze.
-        detailed (bool, optional): Whether to print detailed layer information.
-        verbose (bool, optional): Whether to print model information.
-        imgsz (int | list, optional): Input image size.
-
-    Returns:
-        n_l (int): Number of layers.
-        n_p (int): Number of parameters.
-        n_g (int): Number of gradients.
-        flops (float): GFLOPs.
-    """
-    if not verbose:
-        return
-    n_p = get_num_params(model)  # number of parameters
-    n_g = get_num_gradients(model)  # number of gradients
-    layers = __import__("collections").OrderedDict((n, m) for n, m in model.named_modules() if len(m._modules) == 0)
-    n_l = len(layers)  # number of layers
-    if detailed:
-        h = f"{'layer':>5}{'name':>40}{'type':>20}{'gradient':>10}{'parameters':>12}{'shape':>20}{'mu':>10}{'sigma':>10}"
-        LOGGER.info(h)
-        for i, (mn, m) in enumerate(layers.items()):
-            mn = mn.replace("module_list.", "")
-            mt = m.__class__.__name__
-            if len(m._parameters):
-                for pn, p in m.named_parameters():
-                    LOGGER.info(
-                        f"{i:>5g}{f'{mn}.{pn}':>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}{str(list(p.shape)):>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
-                    )
-            else:  # layers with no learnable params
-                LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{str([]):>20}{'-':>10}{'-':>10}{'-':>15}")
-
-    flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
-    fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""
-    fs = f", {flops:.1f} GFLOPs" if flops else ""
-    yaml_file = getattr(model, "yaml_file", "") or getattr(model, "yaml", {}).get("yaml_file", "")
-    model_name = Path(yaml_file).stem.replace("yolo", "YOLO") or "Model"
-    LOGGER.info(f"{model_name} summary{fused}: {n_l:,} layers, {n_p:,} parameters, {n_g:,} gradients{fs}")
-    return n_l, n_p, n_g, flops
-
-
-def get_num_params(model):
-    """Return the total number of parameters in a YOLO model."""
-    return sum(x.numel() for x in model.parameters())
-
-
-def get_num_gradients(model):
-    """Return the total number of parameters with gradients in a YOLO model."""
-    return sum(x.numel() for x in model.parameters() if x.requires_grad)
-
-
-def model_info_for_loggers(trainer):
-    """
-    Return model info dict with useful model information.
-
-    Args:
-        trainer (ultralytics.engine.trainer.BaseTrainer): The trainer object containing model and validation data.
-
-    Returns:
-        (dict): Dictionary containing model parameters, GFLOPs, and inference speeds.
-
-    Examples:
-        YOLOv8n info for loggers
-        >>> results = {
-        ...    "model/parameters": 3151904,
-        ...    "model/GFLOPs": 8.746,
-        ...    "model/speed_ONNX(ms)": 41.244,
-        ...    "model/speed_TensorRT(ms)": 3.211,
-        ...    "model/speed_PyTorch(ms)": 18.755,
-        ...}
-    """
-    if trainer.args.profile:  # profile ONNX and TensorRT times
-        from ultralytics.utils.benchmarks import ProfileModels
-
-        results = ProfileModels([trainer.last], device=trainer.device).run()[0]
-        results.pop("model/name")
-    else:  # only return PyTorch times from most recent validation
-        results = {
-            "model/parameters": get_num_params(trainer.model),
-            "model/GFLOPs": round(get_flops(trainer.model), 3),
-        }
-    results["model/speed_PyTorch(ms)"] = round(trainer.validator.speed["inference"], 3)
-    return results
-
-
-def get_flops(model, imgsz=640):
-    """
-    Calculate FLOPs (floating point operations) for a model in billions.
-
-    Attempts two calculation methods: first with a stride-based tensor for efficiency,
-    then falls back to full image size if needed (e.g., for RTDETR models). Returns 0.0
-    if thop library is unavailable or calculation fails.
-
-    Args:
-        model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | list, optional): Input image size.
-
-    Returns:
-        (float): The model FLOPs in billions.
-    """
-    try:
-        import thop
-    except ImportError:
-        thop = None  # conda support without 'ultralytics-thop' installed
-
-    if not thop:
-        return 0.0  # if not installed return 0.0 GFLOPs
-
-    try:
-        model = de_parallel(model)
-        p = next(model.parameters())
-        if not isinstance(imgsz, list):
-            imgsz = [imgsz, imgsz]  # expand if int/float
-        try:
-            # Method 1: Use stride-based input tensor
-            stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32  # max stride
-            im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
-            flops = thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # stride GFLOPs
-            return flops * imgsz[0] / stride * imgsz[1] / stride  # imgsz GFLOPs
-        except Exception:
-            # Method 2: Use actual image size (required for RTDETR models)
-            im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
-            return thop.profile(deepcopy(model), inputs=[im], verbose=False)[0] / 1e9 * 2  # imgsz GFLOPs
-    except Exception:
-        return 0.0
-
-
-def get_flops_with_torch_profiler(model, imgsz=640):
-    """
-    Compute model FLOPs using torch profiler (alternative to thop package, but 2-10x slower).
-
-    Args:
-        model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | list, optional): Input image size.
-
-    Returns:
-        (float): The model's FLOPs in billions.
-    """
-    if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
-        return 0.0
-    model = de_parallel(model)
-    p = next(model.parameters())
-    if not isinstance(imgsz, list):
-        imgsz = [imgsz, imgsz]  # expand if int/float
-    try:
-        # Use stride size for input tensor
-        stride = (max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32) * 2  # max stride
-        im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
-        with torch.profiler.profile(with_flops=True) as prof:
-            model(im)
-        flops = sum(x.flops for x in prof.key_averages()) / 1e9
-        flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
-    except Exception:
-        # Use actual image size for input tensor (i.e. required for RTDETR models)
-        im = torch.empty((1, p.shape[1], *imgsz), device=p.device)  # input image in BCHW format
-        with torch.profiler.profile(with_flops=True) as prof:
-            model(im)
-        flops = sum(x.flops for x in prof.key_averages()) / 1e9
-    return flops
-
-
-def initialize_weights(model):
-    """Initialize model weights to random values."""
-    for m in model.modules():
-        t = type(m)
-        if t is nn.Conv2d:
-            pass  # nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-        elif t is nn.BatchNorm2d:
-            m.eps = 1e-3
-            m.momentum = 0.03
-        elif t in {nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU}:
-            m.inplace = True
-
-
-def scale_img(img, ratio=1.0, same_shape=False, gs=32):
-    """
-    Scale and pad an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
-
-    Args:
-        img (torch.Tensor): Input image tensor.
-        ratio (float, optional): Scaling ratio.
-        same_shape (bool, optional): Whether to maintain the same shape.
-        gs (int, optional): Grid size for padding.
-
-    Returns:
-        (torch.Tensor): Scaled and padded image tensor.
-    """
-    if ratio == 1.0:
-        return img
-    h, w = img.shape[2:]
-    s = (int(h * ratio), int(w * ratio))  # new size
-    img = F.interpolate(img, size=s, mode="bilinear", align_corners=False)  # resize
-    if not same_shape:  # pad/crop img
-        h, w = (math.ceil(x * ratio / gs) * gs for x in (h, w))
-    return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
-
-
-def copy_attr(a, b, include=(), exclude=()):
-    """
-    Copy attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
-
-    Args:
-        a (Any): Destination object to copy attributes to.
-        b (Any): Source object to copy attributes from.
-        include (tuple, optional): Attributes to include. If empty, all attributes are included.
-        exclude (tuple, optional): Attributes to exclude.
-    """
-    for k, v in b.__dict__.items():
-        if (len(include) and k not in include) or k.startswith("_") or k in exclude:
-            continue
-        else:
-            setattr(a, k, v)
-
-
-def get_latest_opset():
-    """
-    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
-
-    Returns:
-        (int): The ONNX opset version.
-    """
-    if TORCH_1_13:
-        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
-    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
-    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
-    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
-
-
-def intersect_dicts(da, db, exclude=()):
-    """
-    Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
-
-    Args:
-        da (dict): First dictionary.
-        db (dict): Second dictionary.
-        exclude (tuple, optional): Keys to exclude.
-
-    Returns:
-        (dict): Dictionary of intersecting keys with matching shapes.
-    """
-    return {k: v for k, v in da.items() if k in db and all(x not in k for x in exclude) and v.shape == db[k].shape}
-
-
-def is_parallel(model):
-    """
-    Return True if model is of type DP or DDP.
-
-    Args:
-        model (nn.Module): Model to check.
-
-    Returns:
-        (bool): True if model is DataParallel or DistributedDataParallel.
-    """
-    return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
-
-
-def de_parallel(model):
-    """
-    De-parallelize a model: return single-GPU model if model is of type DP or DDP.
-
-    Args:
-        model (nn.Module): Model to de-parallelize.
-
-    Returns:
-        (nn.Module): De-parallelized model.
-    """
-    return model.module if is_parallel(model) else model
-
-
-def one_cycle(y1=0.0, y2=1.0, steps=100):
-    """
-    Return a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
-
-    Args:
-        y1 (float, optional): Initial value.
-        y2 (float, optional): Final value.
-        steps (int, optional): Number of steps.
-
-    Returns:
-        (function): Lambda function for computing the sinusoidal ramp.
-    """
-    return lambda x: max((1 - math.cos(x * math.pi / steps)) / 2, 0) * (y2 - y1) + y1
-
-
-def init_seeds(seed=0, deterministic=False):
-    """
-    Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html.
-
-    Args:
-        seed (int, optional): Random seed.
-        deterministic (bool, optional): Whether to set deterministic algorithms.
-    """
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
-    # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
-    if deterministic:
-        if TORCH_2_0:
-            torch.use_deterministic_algorithms(True, warn_only=True)  # warn if deterministic is not possible
-            torch.backends.cudnn.deterministic = True
-            os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
-            os.environ["PYTHONHASHSEED"] = str(seed)
-        else:
-            LOGGER.warning("Upgrade to torch>=2.0.0 for deterministic training.")
-    else:
-        unset_deterministic()
-
-
-def unset_deterministic():
-    """Unset all the configurations applied for deterministic training."""
-    torch.use_deterministic_algorithms(False)
-    torch.backends.cudnn.deterministic = False
-    os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
-    os.environ.pop("PYTHONHASHSEED", None)
-
-
-class ModelEMA:
-    """
-    Updated Exponential Moving Average (EMA) implementation.
-
-    Keeps a moving average of everything in the model state_dict (parameters and buffers).
-    For EMA details see References.
-
-    To disable EMA set the `enabled` attribute to `False`.
+    This class provides common functionality for YOLO models including forward pass handling, model fusion,
+    information display, and weight loading capabilities.
 
     Attributes:
-        ema (nn.Module): Copy of the model in evaluation mode.
-        updates (int): Number of EMA updates.
-        decay (function): Decay function that determines the EMA weight.
-        enabled (bool): Whether EMA is enabled.
+        model (torch.nn.Module): The neural network model.
+        save (list): List of layer indices to save outputs from.
+        stride (torch.Tensor): Model stride values.
 
-    References:
-        - https://github.com/rwightman/pytorch-image-models
-        - https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
-    """
-
-    def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        """
-        Initialize EMA for 'model' with given arguments.
-
-        Args:
-            model (nn.Module): Model to create EMA for.
-            decay (float, optional): Maximum EMA decay rate.
-            tau (int, optional): EMA decay time constant.
-            updates (int, optional): Initial number of updates.
-        """
-        self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
-        self.updates = updates  # number of EMA updates
-        self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
-        for p in self.ema.parameters():
-            p.requires_grad_(False)
-        self.enabled = True
-
-    def update(self, model):
-        """
-        Update EMA parameters.
-
-        Args:
-            model (nn.Module): Model to update EMA from.
-        """
-        if self.enabled:
-            self.updates += 1
-            d = self.decay(self.updates)
-
-            msd = de_parallel(model).state_dict()  # model state_dict
-            for k, v in self.ema.state_dict().items():
-                if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    v *= d
-                    v += (1 - d) * msd[k].detach()
-                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
-
-    def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
-        """
-        Update attributes and save stripped model with optimizer removed.
-
-        Args:
-            model (nn.Module): Model to update attributes from.
-            include (tuple, optional): Attributes to include.
-            exclude (tuple, optional): Attributes to exclude.
-        """
-        if self.enabled:
-            copy_attr(self.ema, model, include, exclude)
-
-
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: Dict[str, Any] = None) -> Dict[str, Any]:
-    """
-    Strip optimizer from 'f' to finalize training, optionally save as 's'.
-
-    Args:
-        f (str | Path): File path to model to strip the optimizer from.
-        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be
-            overwritten.
-        updates (dict, optional): A dictionary of updates to overlay onto the checkpoint before saving.
-
-    Returns:
-        (dict): The combined checkpoint dictionary.
+    Methods:
+        forward: Perform forward pass for training or inference.
+        predict: Perform inference on input tensor.
+        fuse: Fuse Conv2d and BatchNorm2d layers for optimization.
+        info: Print model information.
+        load: Load weights into the model.
+        loss: Compute loss for training.
 
     Examples:
-        >>> from pathlib import Path
-        >>> from ultralytics.utils.torch_utils import strip_optimizer
-        >>> for f in Path("path/to/model/checkpoints").rglob("*.pt"):
-        >>>    strip_optimizer(f)
-    """
-    try:
-        x = torch_load(f, map_location=torch.device("cpu"))
-        assert isinstance(x, dict), "checkpoint is not a Python dictionary"
-        assert "model" in x, "'model' missing from checkpoint"
-    except Exception as e:
-        LOGGER.warning(f"Skipping {f}, not a valid Ultralytics model: {e}")
-        return {}
-
-    metadata = {
-        "date": datetime.now().isoformat(),
-        "version": __version__,
-        "license": "AGPL-3.0 License (https://ultralytics.com/license)",
-        "docs": "https://docs.ultralytics.com",
-    }
-
-    # Update model
-    if x.get("ema"):
-        x["model"] = x["ema"]  # replace model with EMA
-    if hasattr(x["model"], "args"):
-        x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
-    if hasattr(x["model"], "criterion"):
-        x["model"].criterion = None  # strip loss criterion
-    x["model"].half()  # to FP16
-    for p in x["model"].parameters():
-        p.requires_grad = False
-
-    # Update other keys
-    args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
-    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
-        x[k] = None
-    x["epoch"] = -1
-    x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
-    # x['model'].args = x['train_args']
-
-    # Save
-    combined = {**metadata, **x, **(updates or {})}
-    torch.save(combined, s or f)  # combine dicts (prefer to the right)
-    mb = os.path.getsize(s or f) / 1e6  # file size
-    LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
-    return combined
-
-
-def convert_optimizer_state_dict_to_fp16(state_dict):
-    """
-    Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
-
-    Args:
-        state_dict (dict): Optimizer state dictionary.
-
-    Returns:
-        (dict): Converted optimizer state dictionary with FP16 tensors.
-    """
-    for state in state_dict["state"].values():
-        for k, v in state.items():
-            if k != "step" and isinstance(v, torch.Tensor) and v.dtype is torch.float32:
-                state[k] = v.half()
-
-    return state_dict
-
-
-@contextmanager
-def cuda_memory_usage(device=None):
-    """
-    Monitor and manage CUDA memory usage.
-
-    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory.
-    It then yields a dictionary containing memory usage information, which can be updated by the caller.
-    Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
-
-    Args:
-        device (torch.device, optional): The CUDA device to query memory usage for.
-
-    Yields:
-        (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
-    """
-    cuda_info = dict(memory=0)
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        try:
-            yield cuda_info
-        finally:
-            cuda_info["memory"] = torch.cuda.memory_reserved(device)
-    else:
-        yield cuda_info
-
-
-def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
-    """
-    Ultralytics speed, memory and FLOPs profiler.
-
-    Args:
-        input (torch.Tensor | list): Input tensor(s) to profile.
-        ops (nn.Module | list): Model or list of operations to profile.
-        n (int, optional): Number of iterations to average.
-        device (str | torch.device, optional): Device to profile on.
-        max_num_obj (int, optional): Maximum number of objects for simulation.
-
-    Returns:
-        (list): Profile results for each operation.
-
-    Examples:
-        >>> from ultralytics.utils.torch_utils import profile_ops
-        >>> input = torch.randn(16, 3, 640, 640)
-        >>> m1 = lambda x: x * torch.sigmoid(x)
-        >>> m2 = nn.SiLU()
-        >>> profile_ops(input, [m1, m2], n=100)  # profile over 100 iterations
-    """
-    try:
-        import thop
-    except ImportError:
-        thop = None  # conda support without 'ultralytics-thop' installed
-
-    results = []
-    if not isinstance(device, torch.device):
-        device = select_device(device)
-    LOGGER.info(
-        f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
-        f"{'input':>24s}{'output':>24s}"
-    )
-    gc.collect()  # attempt to free unused memory
-    torch.cuda.empty_cache()
-    for x in input if isinstance(input, list) else [input]:
-        x = x.to(device)
-        x.requires_grad = True
-        for m in ops if isinstance(ops, list) else [ops]:
-            m = m.to(device) if hasattr(m, "to") else m  # device
-            m = m.half() if hasattr(m, "half") and isinstance(x, torch.Tensor) and x.dtype is torch.float16 else m
-            tf, tb, t = 0, 0, [0, 0, 0]  # dt forward, backward
-            try:
-                flops = thop.profile(deepcopy(m), inputs=[x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
-            except Exception:
-                flops = 0
-
-            try:
-                mem = 0
-                for _ in range(n):
-                    with cuda_memory_usage(device) as cuda_info:
-                        t[0] = time_sync()
-                        y = m(x)
-                        t[1] = time_sync()
-                        try:
-                            (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
-                            t[2] = time_sync()
-                        except Exception:  # no backward method
-                            # print(e)  # for debug
-                            t[2] = float("nan")
-                    mem += cuda_info["memory"] / 1e9  # (GB)
-                    tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
-                    tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
-                    if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        with cuda_memory_usage(device) as cuda_info:
-                            torch.randn(
-                                x.shape[0],
-                                max_num_obj,
-                                int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist())),
-                                device=device,
-                                dtype=torch.float32,
-                            )
-                        mem += cuda_info["memory"] / 1e9  # (GB)
-                s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
-                p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
-                LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")
-                results.append([p, flops, mem, tf, tb, s_in, s_out])
-            except Exception as e:
-                LOGGER.info(e)
-                results.append(None)
-            finally:
-                gc.collect()  # attempt to free unused memory
-                torch.cuda.empty_cache()
-    return results
-
-
-class EarlyStopping:
-    """
-    Early stopping class that stops training when a specified number of epochs have passed without improvement.
-
-    Attributes:
-        best_fitness (float): Best fitness value observed.
-        best_epoch (int): Epoch where best fitness was observed.
-        patience (int): Number of epochs to wait after fitness stops improving before stopping.
-        possible_stop (bool): Flag indicating if stopping may occur next epoch.
+        Create a BaseModel instance
+        >>> model = BaseModel()
+        >>> model.info()  # Display model information
     """
 
-    def __init__(self, patience=50):
+    def forward(self, x, *args, **kwargs):
         """
-        Initialize early stopping object.
+        Perform forward pass of the model for either training or inference.
+
+        If x is a dict, calculates and returns the loss for training. Otherwise, returns predictions for inference.
 
         Args:
-            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
-        """
-        self.best_fitness = 0.0  # i.e. mAP
-        self.best_epoch = 0
-        self.patience = patience or float("inf")  # epochs to wait after fitness stops improving to stop
-        self.possible_stop = False  # possible stop may occur next epoch
-
-    def __call__(self, epoch, fitness):
-        """
-        Check whether to stop training.
-
-        Args:
-            epoch (int): Current epoch of training
-            fitness (float): Fitness value of current epoch
+            x (torch.Tensor | dict): Input tensor for inference, or dict with image tensor and labels for training.
+            *args (Any): Variable length argument list.
+            **kwargs (Any): Arbitrary keyword arguments.
 
         Returns:
-            (bool): True if training should stop, False otherwise
+            (torch.Tensor): Loss if x is a dict (training), or network predictions (inference).
         """
-        if fitness is None:  # check if fitness=None (happens when val=False)
-            return False
+        if isinstance(x, dict):  # for cases of training and validating while training.
+            return self.loss(x, *args, **kwargs)
+        return self.predict(x, *args, **kwargs)
 
-        if fitness > self.best_fitness or self.best_fitness == 0:  # allow for early zero-fitness stage of training
-            self.best_epoch = epoch
-            self.best_fitness = fitness
-        delta = epoch - self.best_epoch  # epochs without improvement
-        self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
-        stop = delta >= self.patience  # stop training if patience exceeded
-        if stop:
-            prefix = colorstr("EarlyStopping: ")
-            LOGGER.info(
-                f"{prefix}Training stopped early as no improvement observed in last {self.patience} epochs. "
-                f"Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n"
-                f"To update EarlyStopping(patience={self.patience}) pass a new patience value, "
-                f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
-            )
-        return stop
-
-
-class FXModel(nn.Module):
-    """
-    A custom model class for torch.fx compatibility.
-
-    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
-    manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
-    copying.
-
-    Attributes:
-        model (nn.Module): The original model's layers.
-    """
-
-    def __init__(self, model):
+    def predict(self, x, profile=False, visualize=False, augment=False, embed=None):
         """
-        Initialize the FXModel.
-
-        Args:
-            model (nn.Module): The original model to wrap for torch.fx compatibility.
-        """
-        super().__init__()
-        copy_attr(self, model)
-        # Explicitly set `model` since `copy_attr` somehow does not copy it.
-        self.model = model.model
-
-    def forward(self, x):
-        """
-        Forward pass through the model.
-
-        This method performs the forward pass through the model, handling the dependencies between layers and saving
-        intermediate outputs.
+        Perform a forward pass through the network.
 
         Args:
             x (torch.Tensor): The input tensor to the model.
+            profile (bool): Print the computation time of each layer if True.
+            visualize (bool): Save the feature maps of the model if True.
+            augment (bool): Augment image during prediction.
+            embed (list, optional): A list of feature vectors/embeddings to return.
 
         Returns:
-            (torch.Tensor): The output tensor from the model.
+            (torch.Tensor): The last output of the model.
         """
-        y = []  # outputs
+        if augment:
+            return self._predict_augment(x)
+        return self._predict_once(x, profile, visualize, embed)
+
+    def _predict_once(self, x, profile=False, visualize=False, embed=None):
+        """
+        Perform a forward pass through the network.
+
+        Args:
+            x (torch.Tensor): The input tensor to the model.
+            profile (bool): Print the computation time of each layer if True.
+            visualize (bool): Save the feature maps of the model if True.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+
+        Returns:
+            (torch.Tensor): The last output of the model.
+        """
+        y, dt, embeddings = [], [], []  # outputs
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
         for m in self.model:
             if m.f != -1:  # if not from previous layer
-                # from earlier layers
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
             x = m(x)  # run
-            y.append(x)  # save output
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
         return x
+
+    def _predict_augment(self, x):
+        """Perform augmentations on input image x and return augmented inference."""
+        LOGGER.warning(
+            f"{self.__class__.__name__} does not support 'augment=True' prediction. "
+            f"Reverting to single-scale prediction."
+        )
+        return self._predict_once(x)
+
+    def _profile_one_layer(self, m, x, dt):
+        """
+        Profile the computation time and FLOPs of a single layer of the model on a given input.
+
+        Args:
+            m (torch.nn.Module): The layer to be profiled.
+            x (torch.Tensor): The input data to the layer.
+            dt (list): A list to store the computation time of the layer.
+        """
+        try:
+            import thop
+        except ImportError:
+            thop = None  # conda support without 'ultralytics-thop' installed
+
+        c = m == self.model[-1] and isinstance(x, list)  # is final layer list, copy input as inplace fix
+        flops = thop.profile(m, inputs=[x.copy() if c else x], verbose=False)[0] / 1e9 * 2 if thop else 0  # GFLOPs
+        t = time_sync()
+        for _ in range(10):
+            m(x.copy() if c else x)
+        dt.append((time_sync() - t) * 100)
+        if m == self.model[0]:
+            LOGGER.info(f"{'time (ms)':>10s} {'GFLOPs':>10s} {'params':>10s}  module")
+        LOGGER.info(f"{dt[-1]:10.2f} {flops:10.2f} {m.np:10.0f}  {m.type}")
+        if c:
+            LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
+
+    def fuse(self, verbose=True):
+        """
+        Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer for improved computation
+        efficiency.
+
+        Returns:
+            (torch.nn.Module): The fused model is returned.
+        """
+        if not self.is_fused():
+            for m in self.model.modules():
+                if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
+                    if isinstance(m, Conv2):
+                        m.fuse_convs()
+                    m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
+                    delattr(m, "bn")  # remove batchnorm
+                    m.forward = m.forward_fuse  # update forward
+                if isinstance(m, ConvTranspose) and hasattr(m, "bn"):
+                    m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
+                    delattr(m, "bn")  # remove batchnorm
+                    m.forward = m.forward_fuse  # update forward
+                if isinstance(m, RepConv):
+                    m.fuse_convs()
+                    m.forward = m.forward_fuse  # update forward
+                if isinstance(m, RepVGGDW):
+                    m.fuse()
+                    m.forward = m.forward_fuse
+                if isinstance(m, v10Detect):
+                    m.fuse()  # remove one2many head
+            self.info(verbose=verbose)
+
+        return self
+
+    def is_fused(self, thresh=10):
+        """
+        Check if the model has less than a certain threshold of BatchNorm layers.
+
+        Args:
+            thresh (int, optional): The threshold number of BatchNorm layers.
+
+        Returns:
+            (bool): True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
+        """
+        bn = tuple(v for k, v in torch.nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
+        return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
+
+    def info(self, detailed=False, verbose=True, imgsz=640):
+        """
+        Print model information.
+
+        Args:
+            detailed (bool): If True, prints out detailed information about the model.
+            verbose (bool): If True, prints out the model information.
+            imgsz (int): The size of the image that the model will be trained on.
+        """
+        return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
+
+    def _apply(self, fn):
+        """
+        Apply a function to all tensors in the model that are not parameters or registered buffers.
+
+        Args:
+            fn (function): The function to apply to the model.
+
+        Returns:
+            (BaseModel): An updated BaseModel object.
+        """
+        self = super()._apply(fn)
+        m = self.model[-1]  # Detect()
+        if isinstance(
+            m, Detect
+        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
+            m.stride = fn(m.stride)
+            m.anchors = fn(m.anchors)
+            m.strides = fn(m.strides)
+        return self
+
+    def load(self, weights, verbose=True):
+        """
+        Load weights into the model.
+
+        Args:
+            weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
+            verbose (bool, optional): Whether to log the transfer progress.
+        """
+        model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
+        csd = model.float().state_dict()  # checkpoint state_dict as FP32
+        updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
+        self.load_state_dict(updated_csd, strict=False)  # load
+        len_updated_csd = len(updated_csd)
+        first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
+        # mostly used to boost multi-channel training
+        state_dict = self.state_dict()
+        if first_conv not in updated_csd and first_conv in state_dict:
+            c1, c2, h, w = state_dict[first_conv].shape
+            cc1, cc2, ch, cw = csd[first_conv].shape
+            if ch == h and cw == w:
+                c1, c2 = min(c1, cc1), min(c2, cc2)
+                state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
+                len_updated_csd += 1
+        if verbose:
+            LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if getattr(self, "criterion", None) is None:
+            self.criterion = self.init_criterion()
+
+        preds = self.forward(batch["img"]) if preds is None else preds
+        return self.criterion(preds, batch)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the BaseModel."""
+        raise NotImplementedError("compute_loss() needs to be implemented by task heads")
+
+
+class DetectionModel(BaseModel):
+    """
+    YOLO detection model.
+
+    This class implements the YOLO detection architecture, handling model initialization, forward pass,
+    augmented inference, and loss computation for object detection tasks.
+
+    Attributes:
+        yaml (dict): Model configuration dictionary.
+        model (torch.nn.Sequential): The neural network model.
+        save (list): List of layer indices to save outputs from.
+        names (dict): Class names dictionary.
+        inplace (bool): Whether to use inplace operations.
+        end2end (bool): Whether the model uses end-to-end detection.
+        stride (torch.Tensor): Model stride values.
+
+    Methods:
+        __init__: Initialize the YOLO detection model.
+        _predict_augment: Perform augmented inference.
+        _descale_pred: De-scale predictions following augmented inference.
+        _clip_augmented: Clip YOLO augmented inference tails.
+        init_criterion: Initialize the loss criterion.
+
+    Examples:
+        Initialize a detection model
+        >>> model = DetectionModel("yolo11n.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11n.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize the YOLO detection model with the given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__()
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+        if self.yaml["backbone"][0][2] == "Silence":
+            LOGGER.warning(
+                "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
+                "Please delete local *.pt file and re-download the latest model checkpoint."
+            )
+            self.yaml["backbone"][0][2] = "nn.Identity"
+
+        # Define model
+        self.yaml["channels"] = ch  # save channels
+        if nc and nc != self.yaml["nc"]:
+            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
+            self.yaml["nc"] = nc  # override YAML value
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
+        self.inplace = self.yaml.get("inplace", True)
+        self.end2end = getattr(self.model[-1], "end2end", False)
+
+        # Build strides
+        m = self.model[-1]  # Detect()
+        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, YOLOEDetect, YOLOESegment
+            s = 256  # 2x min stride
+            m.inplace = self.inplace
+
+            def _forward(x):
+                """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
+                if self.end2end:
+                    return self.forward(x)["one2many"]
+                return self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
+
+            self.model.eval()  # Avoid changing batch statistics until training begins
+            m.training = True  # Setting it to True to properly return strides
+            m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
+            self.stride = m.stride
+            self.model.train()  # Set model back to training(default) mode
+            m.bias_init()  # only run once
+        else:
+            self.stride = torch.Tensor([32])  # default stride for i.e. RTDETR
+
+        # Init weights, biases
+        initialize_weights(self)
+        if verbose:
+            self.info()
+            LOGGER.info("")
+
+    def _predict_augment(self, x):
+        """
+        Perform augmentations on input image x and return augmented inference and train outputs.
+
+        Args:
+            x (torch.Tensor): Input image tensor.
+
+        Returns:
+            (torch.Tensor): Augmented inference output.
+        """
+        if getattr(self, "end2end", False) or self.__class__.__name__ != "DetectionModel":
+            LOGGER.warning("Model does not support 'augment=True', reverting to single-scale prediction.")
+            return self._predict_once(x)
+        img_size = x.shape[-2:]  # height, width
+        s = [1, 0.83, 0.67]  # scales
+        f = [None, 3, None]  # flips (2-ud, 3-lr)
+        y = []  # outputs
+        for si, fi in zip(s, f):
+            xi = scale_img(x.flip(fi) if fi else x, si, gs=int(self.stride.max()))
+            yi = super().predict(xi)[0]  # forward
+            yi = self._descale_pred(yi, fi, si, img_size)
+            y.append(yi)
+        y = self._clip_augmented(y)  # clip augmented tails
+        return torch.cat(y, -1), None  # augmented inference, train
+
+    @staticmethod
+    def _descale_pred(p, flips, scale, img_size, dim=1):
+        """
+        De-scale predictions following augmented inference (inverse operation).
+
+        Args:
+            p (torch.Tensor): Predictions tensor.
+            flips (int): Flip type (0=none, 2=ud, 3=lr).
+            scale (float): Scale factor.
+            img_size (tuple): Original image size (height, width).
+            dim (int): Dimension to split at.
+
+        Returns:
+            (torch.Tensor): De-scaled predictions.
+        """
+        p[:, :4] /= scale  # de-scale
+        x, y, wh, cls = p.split((1, 1, 2, p.shape[dim] - 4), dim)
+        if flips == 2:
+            y = img_size[0] - y  # de-flip ud
+        elif flips == 3:
+            x = img_size[1] - x  # de-flip lr
+        return torch.cat((x, y, wh, cls), dim)
+
+    def _clip_augmented(self, y):
+        """
+        Clip YOLO augmented inference tails.
+
+        Args:
+            y (List[torch.Tensor]): List of detection tensors.
+
+        Returns:
+            (List[torch.Tensor]): Clipped detection tensors.
+        """
+        nl = self.model[-1].nl  # number of detection layers (P3-P5)
+        g = sum(4**x for x in range(nl))  # grid points
+        e = 1  # exclude layer count
+        i = (y[0].shape[-1] // g) * sum(4**x for x in range(e))  # indices
+        y[0] = y[0][..., :-i]  # large
+        i = (y[-1].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
+        y[-1] = y[-1][..., i:]  # small
+        return y
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the DetectionModel."""
+        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+
+
+class OBBModel(DetectionModel):
+    """
+    YOLO Oriented Bounding Box (OBB) model.
+
+    This class extends DetectionModel to handle oriented bounding box detection tasks, providing specialized
+    loss computation for rotated object detection.
+
+    Methods:
+        __init__: Initialize YOLO OBB model.
+        init_criterion: Initialize the loss criterion for OBB detection.
+
+    Examples:
+        Initialize an OBB model
+        >>> model = OBBModel("yolo11n-obb.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11n-obb.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLO OBB model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the model."""
+        return v8OBBLoss(self)
+
+
+class SegmentationModel(DetectionModel):
+    """
+    YOLO segmentation model.
+
+    This class extends DetectionModel to handle instance segmentation tasks, providing specialized
+    loss computation for pixel-level object detection and segmentation.
+
+    Methods:
+        __init__: Initialize YOLO segmentation model.
+        init_criterion: Initialize the loss criterion for segmentation.
+
+    Examples:
+        Initialize a segmentation model
+        >>> model = SegmentationModel("yolo11n-seg.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11n-seg.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize Ultralytics YOLO segmentation model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the SegmentationModel."""
+        return v8SegmentationLoss(self)
+
+
+class PoseModel(DetectionModel):
+    """
+    YOLO pose model.
+
+    This class extends DetectionModel to handle human pose estimation tasks, providing specialized
+    loss computation for keypoint detection and pose estimation.
+
+    Attributes:
+        kpt_shape (tuple): Shape of keypoints data (num_keypoints, num_dimensions).
+
+    Methods:
+        __init__: Initialize YOLO pose model.
+        init_criterion: Initialize the loss criterion for pose estimation.
+
+    Examples:
+        Initialize a pose model
+        >>> model = PoseModel("yolo11n-pose.yaml", ch=3, nc=1, data_kpt_shape=(17, 3))
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11n-pose.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        """
+        Initialize Ultralytics YOLO Pose model.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            data_kpt_shape (tuple): Shape of keypoints data.
+            verbose (bool): Whether to display model information.
+        """
+        if not isinstance(cfg, dict):
+            cfg = yaml_model_load(cfg)  # load model YAML
+        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg["kpt_shape"]):
+            LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
+            cfg["kpt_shape"] = data_kpt_shape
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the PoseModel."""
+        return v8PoseLoss(self)
+
+
+class ClassificationModel(BaseModel):
+    """
+    YOLO classification model.
+
+    This class implements the YOLO classification architecture for image classification tasks,
+    providing model initialization, configuration, and output reshaping capabilities.
+
+    Attributes:
+        yaml (dict): Model configuration dictionary.
+        model (torch.nn.Sequential): The neural network model.
+        stride (torch.Tensor): Model stride values.
+        names (dict): Class names dictionary.
+
+    Methods:
+        __init__: Initialize ClassificationModel.
+        _from_yaml: Set model configurations and define architecture.
+        reshape_outputs: Update model to specified class count.
+        init_criterion: Initialize the loss criterion.
+
+    Examples:
+        Initialize a classification model
+        >>> model = ClassificationModel("yolo11n-cls.yaml", ch=3, nc=1000)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11n-cls.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize ClassificationModel with YAML, channels, number of classes, verbose flag.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__()
+        self._from_yaml(cfg, ch, nc, verbose)
+
+    def _from_yaml(self, cfg, ch, nc, verbose):
+        """
+        Set Ultralytics YOLO model configurations and define the model architecture.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+
+        # Define model
+        ch = self.yaml["channels"] = self.yaml.get("channels", ch)  # input channels
+        if nc and nc != self.yaml["nc"]:
+            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
+            self.yaml["nc"] = nc  # override YAML value
+        elif not nc and not self.yaml.get("nc", None):
+            raise ValueError("nc not specified. Must specify nc in model.yaml or function arguments.")
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.stride = torch.Tensor([1])  # no stride constraints
+        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
+        self.info()
+
+    @staticmethod
+    def reshape_outputs(model, nc):
+        """
+        Update a TorchVision classification model to class count 'n' if required.
+
+        Args:
+            model (torch.nn.Module): Model to update.
+            nc (int): New number of classes.
+        """
+        name, m = list((model.model if hasattr(model, "model") else model).named_children())[-1]  # last module
+        if isinstance(m, Classify):  # YOLO Classify() head
+            if m.linear.out_features != nc:
+                m.linear = torch.nn.Linear(m.linear.in_features, nc)
+        elif isinstance(m, torch.nn.Linear):  # ResNet, EfficientNet
+            if m.out_features != nc:
+                setattr(model, name, torch.nn.Linear(m.in_features, nc))
+        elif isinstance(m, torch.nn.Sequential):
+            types = [type(x) for x in m]
+            if torch.nn.Linear in types:
+                i = len(types) - 1 - types[::-1].index(torch.nn.Linear)  # last torch.nn.Linear index
+                if m[i].out_features != nc:
+                    m[i] = torch.nn.Linear(m[i].in_features, nc)
+            elif torch.nn.Conv2d in types:
+                i = len(types) - 1 - types[::-1].index(torch.nn.Conv2d)  # last torch.nn.Conv2d index
+                if m[i].out_channels != nc:
+                    m[i] = torch.nn.Conv2d(
+                        m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None
+                    )
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the ClassificationModel."""
+        return v8ClassificationLoss()
+
+
+class RTDETRDetectionModel(DetectionModel):
+    """
+    RTDETR (Real-time DEtection and Tracking using Transformers) Detection Model class.
+
+    This class is responsible for constructing the RTDETR architecture, defining loss functions, and facilitating both
+    the training and inference processes. RTDETR is an object detection and tracking model that extends from the
+    DetectionModel base class.
+
+    Attributes:
+        nc (int): Number of classes for detection.
+        criterion (RTDETRDetectionLoss): Loss function for training.
+
+    Methods:
+        __init__: Initialize the RTDETRDetectionModel.
+        init_criterion: Initialize the loss criterion.
+        loss: Compute loss for training.
+        predict: Perform forward pass through the model.
+
+    Examples:
+        Initialize an RTDETR model
+        >>> model = RTDETRDetectionModel("rtdetr-l.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="rtdetr-l.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize the RTDETRDetectionModel.
+
+        Args:
+            cfg (str | dict): Configuration file name or path.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Print additional information during initialization.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the RTDETRDetectionModel."""
+        from ultralytics.models.utils.loss import RTDETRDetectionLoss
+
+        return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
+
+    def loss(self, batch, preds=None):
+        """
+        Compute the loss for the given batch of data.
+
+        Args:
+            batch (dict): Dictionary containing image and label data.
+            preds (torch.Tensor, optional): Precomputed model predictions.
+
+        Returns:
+            loss_sum (torch.Tensor): Total loss value.
+            loss_items (torch.Tensor): Main three losses in a tensor.
+        """
+        if not hasattr(self, "criterion"):
+            self.criterion = self.init_criterion()
+
+        img = batch["img"]
+        # NOTE: preprocess gt_bbox and gt_labels to list.
+        bs = len(img)
+        batch_idx = batch["batch_idx"]
+        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
+        targets = {
+            "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
+            "bboxes": batch["bboxes"].to(device=img.device),
+            "batch_idx": batch_idx.to(img.device, dtype=torch.long).view(-1),
+            "gt_groups": gt_groups,
+        }
+
+        preds = self.predict(img, batch=targets) if preds is None else preds
+        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
+        if dn_meta is None:
+            dn_bboxes, dn_scores = None, None
+        else:
+            dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
+            dn_scores, dec_scores = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
+
+        dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
+        dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
+
+        loss = self.criterion(
+            (dec_bboxes, dec_scores), targets, dn_bboxes=dn_bboxes, dn_scores=dn_scores, dn_meta=dn_meta
+        )
+        # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
+        return sum(loss.values()), torch.as_tensor(
+            [loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]], device=img.device
+        )
+
+    def predict(self, x, profile=False, visualize=False, batch=None, augment=False, embed=None):
+        """
+        Perform a forward pass through the model.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+            profile (bool): If True, profile the computation time for each layer.
+            visualize (bool): If True, save feature maps for visualization.
+            batch (dict, optional): Ground truth data for evaluation.
+            augment (bool): If True, perform data augmentation during inference.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+
+        Returns:
+            (torch.Tensor): Model's output tensor.
+        """
+        y, dt, embeddings = [], [], []  # outputs
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        for m in self.model[:-1]:  # except the head part
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            x = m(x)  # run
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        head = self.model[-1]
+        x = head([y[j] for j in head.f], batch)  # head inference
+        return x
+
+
+class WorldModel(DetectionModel):
+    """
+    YOLOv8 World Model.
+
+    This class implements the YOLOv8 World model for open-vocabulary object detection, supporting text-based
+    class specification and CLIP model integration for zero-shot detection capabilities.
+
+    Attributes:
+        txt_feats (torch.Tensor): Text feature embeddings for classes.
+        clip_model (torch.nn.Module): CLIP model for text encoding.
+
+    Methods:
+        __init__: Initialize YOLOv8 world model.
+        set_classes: Set classes for offline inference.
+        get_text_pe: Get text positional embeddings.
+        predict: Perform forward pass with text features.
+        loss: Compute loss with text features.
+
+    Examples:
+        Initialize a world model
+        >>> model = WorldModel("yolov8s-world.yaml", ch=3, nc=80)
+        >>> model.set_classes(["person", "car", "bicycle"])
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolov8s-world.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLOv8 world model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        self.txt_feats = torch.randn(1, nc or 80, 512)  # features placeholder
+        self.clip_model = None  # CLIP model placeholder
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def set_classes(self, text, batch=80, cache_clip_model=True):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            text (List[str]): List of class names.
+            batch (int): Batch size for processing text tokens.
+            cache_clip_model (bool): Whether to cache the CLIP model.
+        """
+        self.txt_feats = self.get_text_pe(text, batch=batch, cache_clip_model=cache_clip_model)
+        self.model[-1].nc = len(text)
+
+    def get_text_pe(self, text, batch=80, cache_clip_model=True):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            text (List[str]): List of class names.
+            batch (int): Batch size for processing text tokens.
+            cache_clip_model (bool): Whether to cache the CLIP model.
+
+        Returns:
+            (torch.Tensor): Text positional embeddings.
+        """
+        from ultralytics.nn.text_model import build_text_model
+
+        device = next(self.model.parameters()).device
+        if not getattr(self, "clip_model", None) and cache_clip_model:
+            # For backwards compatibility of models lacking clip_model attribute
+            self.clip_model = build_text_model("clip:ViT-B/32", device=device)
+        model = self.clip_model if cache_clip_model else build_text_model("clip:ViT-B/32", device=device)
+        text_token = model.tokenize(text)
+        txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
+        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
+        return txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+
+    def predict(self, x, profile=False, visualize=False, txt_feats=None, augment=False, embed=None):
+        """
+        Perform a forward pass through the model.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+            profile (bool): If True, profile the computation time for each layer.
+            visualize (bool): If True, save feature maps for visualization.
+            txt_feats (torch.Tensor, optional): The text features, use it if it's given.
+            augment (bool): If True, perform data augmentation during inference.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+
+        Returns:
+            (torch.Tensor): Model's output tensor.
+        """
+        txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
+        if len(txt_feats) != len(x) or self.model[-1].export:
+            txt_feats = txt_feats.expand(x.shape[0], -1, -1)
+        ori_txt_feats = txt_feats.clone()
+        y, dt, embeddings = [], [], []  # outputs
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        for m in self.model:  # except the head part
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            if isinstance(m, C2fAttn):
+                x = m(x, txt_feats)
+            elif isinstance(m, WorldDetect):
+                x = m(x, ori_txt_feats)
+            elif isinstance(m, ImagePoolingAttn):
+                txt_feats = m(x, txt_feats)
+            else:
+                x = m(x)  # run
+
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        return x
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            self.criterion = self.init_criterion()
+
+        if preds is None:
+            preds = self.forward(batch["img"], txt_feats=batch["txt_feats"])
+        return self.criterion(preds, batch)
+
+
+class YOLOEModel(DetectionModel):
+    """
+    YOLOE detection model.
+
+    This class implements the YOLOE architecture for efficient object detection with text and visual prompts,
+    supporting both prompt-based and prompt-free inference modes.
+
+    Attributes:
+        pe (torch.Tensor): Prompt embeddings for classes.
+        clip_model (torch.nn.Module): CLIP model for text encoding.
+
+    Methods:
+        __init__: Initialize YOLOE model.
+        get_text_pe: Get text positional embeddings.
+        get_visual_pe: Get visual embeddings.
+        set_vocab: Set vocabulary for prompt-free model.
+        get_vocab: Get fused vocabulary layer.
+        set_classes: Set classes for offline inference.
+        get_cls_pe: Get class positional embeddings.
+        predict: Perform forward pass with prompts.
+        loss: Compute loss with prompts.
+
+    Examples:
+        Initialize a YOLOE model
+        >>> model = YOLOEModel("yoloe-v8s.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor, tpe=text_embeddings)
+    """
+
+    def __init__(self, cfg="yoloe-v8s.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLOE model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    @smart_inference_mode()
+    def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            text (List[str]): List of class names.
+            batch (int): Batch size for processing text tokens.
+            cache_clip_model (bool): Whether to cache the CLIP model.
+            without_reprta (bool): Whether to return text embeddings cooperated with reprta module.
+
+        Returns:
+            (torch.Tensor): Text positional embeddings.
+        """
+        from ultralytics.nn.text_model import build_text_model
+
+        device = next(self.model.parameters()).device
+        if not getattr(self, "clip_model", None) and cache_clip_model:
+            # For backwards compatibility of models lacking clip_model attribute
+            self.clip_model = build_text_model("mobileclip:blt", device=device)
+
+        model = self.clip_model if cache_clip_model else build_text_model("mobileclip:blt", device=device)
+        text_token = model.tokenize(text)
+        txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
+        txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)
+        txt_feats = txt_feats.reshape(-1, len(text), txt_feats.shape[-1])
+        if without_reprta:
+            return txt_feats
+
+        assert not self.training
+        head = self.model[-1]
+        assert isinstance(head, YOLOEDetect)
+        return head.get_tpe(txt_feats)  # run auxiliary text head
+
+    @smart_inference_mode()
+    def get_visual_pe(self, img, visual):
+        """
+        Get visual embeddings.
+
+        Args:
+            img (torch.Tensor): Input image tensor.
+            visual (torch.Tensor): Visual features.
+
+        Returns:
+            (torch.Tensor): Visual positional embeddings.
+        """
+        return self(img, vpe=visual, return_vpe=True)
+
+    def set_vocab(self, vocab, names):
+        """
+        Set vocabulary for the prompt-free model.
+
+        Args:
+            vocab (nn.ModuleList): List of vocabulary items.
+            names (List[str]): List of class names.
+        """
+        assert not self.training
+        head = self.model[-1]
+        assert isinstance(head, YOLOEDetect)
+
+        # Cache anchors for head
+        device = next(self.parameters()).device
+        self(torch.empty(1, 3, self.args["imgsz"], self.args["imgsz"]).to(device))  # warmup
+
+        # re-parameterization for prompt-free model
+        self.model[-1].lrpc = nn.ModuleList(
+            LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
+            for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2))
+        )
+        for loc_head, cls_head in zip(head.cv2, head.cv3):
+            assert isinstance(loc_head, nn.Sequential)
+            assert isinstance(cls_head, nn.Sequential)
+            del loc_head[-1]
+            del cls_head[-1]
+        self.model[-1].nc = len(names)
+        self.names = check_class_names(names)
+
+    def get_vocab(self, names):
+        """
+        Get fused vocabulary layer from the model.
+
+        Args:
+            names (list): List of class names.
+
+        Returns:
+            (nn.ModuleList): List of vocabulary modules.
+        """
+        assert not self.training
+        head = self.model[-1]
+        assert isinstance(head, YOLOEDetect)
+        assert not head.is_fused
+
+        tpe = self.get_text_pe(names)
+        self.set_classes(names, tpe)
+        device = next(self.model.parameters()).device
+        head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
+
+        vocab = nn.ModuleList()
+        for cls_head in head.cv3:
+            assert isinstance(cls_head, nn.Sequential)
+            vocab.append(cls_head[-1])
+        return vocab
+
+    def set_classes(self, names, embeddings):
+        """
+        Set classes in advance so that model could do offline-inference without clip model.
+
+        Args:
+            names (List[str]): List of class names.
+            embeddings (torch.Tensor): Embeddings tensor.
+        """
+        assert not hasattr(self.model[-1], "lrpc"), (
+            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
+        )
+        assert embeddings.ndim == 3
+        self.pe = embeddings
+        self.model[-1].nc = len(names)
+        self.names = check_class_names(names)
+
+    def get_cls_pe(self, tpe, vpe):
+        """
+        Get class positional embeddings.
+
+        Args:
+            tpe (torch.Tensor, optional): Text positional embeddings.
+            vpe (torch.Tensor, optional): Visual positional embeddings.
+
+        Returns:
+            (torch.Tensor): Class positional embeddings.
+        """
+        all_pe = []
+        if tpe is not None:
+            assert tpe.ndim == 3
+            all_pe.append(tpe)
+        if vpe is not None:
+            assert vpe.ndim == 3
+            all_pe.append(vpe)
+        if not all_pe:
+            all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
+        return torch.cat(all_pe, dim=1)
+
+    def predict(
+        self, x, profile=False, visualize=False, tpe=None, augment=False, embed=None, vpe=None, return_vpe=False
+    ):
+        """
+        Perform a forward pass through the model.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+            profile (bool): If True, profile the computation time for each layer.
+            visualize (bool): If True, save feature maps for visualization.
+            tpe (torch.Tensor, optional): Text positional embeddings.
+            augment (bool): If True, perform data augmentation during inference.
+            embed (list, optional): A list of feature vectors/embeddings to return.
+            vpe (torch.Tensor, optional): Visual positional embeddings.
+            return_vpe (bool): If True, return visual positional embeddings.
+
+        Returns:
+            (torch.Tensor): Model's output tensor.
+        """
+        y, dt, embeddings = [], [], []  # outputs
+        b = x.shape[0]
+        embed = frozenset(embed) if embed is not None else {-1}
+        max_idx = max(embed)
+        for m in self.model:  # except the head part
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            if isinstance(m, YOLOEDetect):
+                vpe = m.get_vpe(x, vpe) if vpe is not None else None
+                if return_vpe:
+                    assert vpe is not None
+                    assert not self.training
+                    return vpe
+                cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
+                if cls_pe.shape[0] != b or m.export:
+                    cls_pe = cls_pe.expand(b, -1, -1)
+                x = m(x, cls_pe)
+            else:
+                x = m(x)  # run
+
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+            if m.i in embed:
+                embeddings.append(torch.nn.functional.adaptive_avg_pool2d(x, (1, 1)).squeeze(-1).squeeze(-1))  # flatten
+                if m.i == max_idx:
+                    return torch.unbind(torch.cat(embeddings, 1), dim=0)
+        return x
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            from ultralytics.utils.loss import TVPDetectLoss
+
+            visual_prompt = batch.get("visuals", None) is not None  # TODO
+            self.criterion = TVPDetectLoss(self) if visual_prompt else self.init_criterion()
+
+        if preds is None:
+            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
+        return self.criterion(preds, batch)
+
+
+class YOLOESegModel(YOLOEModel, SegmentationModel):
+    """
+    YOLOE segmentation model.
+
+    This class extends YOLOEModel to handle instance segmentation tasks with text and visual prompts,
+    providing specialized loss computation for pixel-level object detection and segmentation.
+
+    Methods:
+        __init__: Initialize YOLOE segmentation model.
+        loss: Compute loss with prompts for segmentation.
+
+    Examples:
+        Initialize a YOLOE segmentation model
+        >>> model = YOLOESegModel("yoloe-v8s-seg.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor, tpe=text_embeddings)
+    """
+
+    def __init__(self, cfg="yoloe-v8s-seg.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLOE segmentation model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def loss(self, batch, preds=None):
+        """
+        Compute loss.
+
+        Args:
+            batch (dict): Batch to compute loss on.
+            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+        """
+        if not hasattr(self, "criterion"):
+            from ultralytics.utils.loss import TVPSegmentLoss
+
+            visual_prompt = batch.get("visuals", None) is not None  # TODO
+            self.criterion = TVPSegmentLoss(self) if visual_prompt else self.init_criterion()
+
+        if preds is None:
+            preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
+        return self.criterion(preds, batch)
+
+
+class Ensemble(torch.nn.ModuleList):
+    """
+    Ensemble of models.
+
+    This class allows combining multiple YOLO models into an ensemble for improved performance through
+    model averaging or other ensemble techniques.
+
+    Methods:
+        __init__: Initialize an ensemble of models.
+        forward: Generate predictions from all models in the ensemble.
+
+    Examples:
+        Create an ensemble of models
+        >>> ensemble = Ensemble()
+        >>> ensemble.append(model1)
+        >>> ensemble.append(model2)
+        >>> results = ensemble(image_tensor)
+    """
+
+    def __init__(self):
+        """Initialize an ensemble of models."""
+        super().__init__()
+
+    def forward(self, x, augment=False, profile=False, visualize=False):
+        """
+        Generate the YOLO network's final layer.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+            augment (bool): Whether to augment the input.
+            profile (bool): Whether to profile the model.
+            visualize (bool): Whether to visualize the features.
+
+        Returns:
+            y (torch.Tensor): Concatenated predictions from all models.
+            train_out (None): Always None for ensemble inference.
+        """
+        y = [module(x, augment, profile, visualize)[0] for module in self]
+        # y = torch.stack(y).max(0)[0]  # max ensemble
+        # y = torch.stack(y).mean(0)  # mean ensemble
+        y = torch.cat(y, 2)  # nms ensemble, y shape(B, HW, C)
+        return y, None  # inference, train output
+
+
+# Functions ------------------------------------------------------------------------------------------------------------
+
+
+@contextlib.contextmanager
+def temporary_modules(modules=None, attributes=None):
+    """
+    Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+
+    This function can be used to change the module paths during runtime. It's useful when refactoring code,
+    where you've moved a module from one location to another, but you still want to support the old import
+    paths for backwards compatibility.
+
+    Args:
+        modules (dict, optional): A dictionary mapping old module paths to new module paths.
+        attributes (dict, optional): A dictionary mapping old module attributes to new module attributes.
+
+    Examples:
+        >>> with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
+        >>> import old.module  # this will now import new.module
+        >>> from old.module import attribute  # this will now import new.module.attribute
+
+    Note:
+        The changes are only in effect inside the context manager and are undone once the context manager exits.
+        Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
+        applications or libraries. Use this function with caution.
+    """
+    if modules is None:
+        modules = {}
+    if attributes is None:
+        attributes = {}
+    import sys
+    from importlib import import_module
+
+    try:
+        # Set attributes in sys.modules under their old name
+        for old, new in attributes.items():
+            old_module, old_attr = old.rsplit(".", 1)
+            new_module, new_attr = new.rsplit(".", 1)
+            setattr(import_module(old_module), old_attr, getattr(import_module(new_module), new_attr))
+
+        # Set modules in sys.modules under their old name
+        for old, new in modules.items():
+            sys.modules[old] = import_module(new)
+
+        yield
+    finally:
+        # Remove the temporary module paths
+        for old in modules:
+            if old in sys.modules:
+                del sys.modules[old]
+
+
+class SafeClass:
+    """A placeholder class to replace unknown classes during unpickling."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize SafeClass instance, ignoring all arguments."""
+        pass
+
+    def __call__(self, *args, **kwargs):
+        """Run SafeClass instance, ignoring all arguments."""
+        pass
+
+
+class SafeUnpickler(pickle.Unpickler):
+    """Custom Unpickler that replaces unknown classes with SafeClass."""
+
+    def find_class(self, module, name):
+        """
+        Attempt to find a class, returning SafeClass if not among safe modules.
+
+        Args:
+            module (str): Module name.
+            name (str): Class name.
+
+        Returns:
+            (type): Found class or SafeClass.
+        """
+        safe_modules = (
+            "torch",
+            "collections",
+            "collections.abc",
+            "builtins",
+            "math",
+            "numpy",
+            # Add other modules considered safe
+        )
+        if module in safe_modules:
+            return super().find_class(module, name)
+        else:
+            return SafeClass
+
+
+def torch_safe_load(weight, safe_only=False):
+    """
+    Attempt to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it catches the
+    error, logs a warning message, and attempts to install the missing module via the check_requirements() function.
+    After installation, the function again attempts to load the model using torch.load().
+
+    Args:
+        weight (str): The file path of the PyTorch model.
+        safe_only (bool): If True, replace unknown classes with SafeClass during loading.
+
+    Returns:
+        ckpt (dict): The loaded model checkpoint.
+        file (str): The loaded filename.
+
+    Examples:
+        >>> from ultralytics.nn.tasks import torch_safe_load
+        >>> ckpt, file = torch_safe_load("path/to/best.pt", safe_only=True)
+    """
+    from ultralytics.utils.downloads import attempt_download_asset
+
+    check_suffix(file=weight, suffix=".pt")
+    file = attempt_download_asset(weight)  # search online if missing locally
+    try:
+        with temporary_modules(
+            modules={
+                "ultralytics.yolo.utils": "ultralytics.utils",
+                "ultralytics.yolo.v8": "ultralytics.models.yolo",
+                "ultralytics.yolo.data": "ultralytics.data",
+            },
+            attributes={
+                "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
+                "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
+                "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
+            },
+        ):
+            if safe_only:
+                # Load via custom pickle module
+                safe_pickle = types.ModuleType("safe_pickle")
+                safe_pickle.Unpickler = SafeUnpickler
+                safe_pickle.load = lambda file_obj: SafeUnpickler(file_obj).load()
+                with open(file, "rb") as f:
+                    ckpt = torch_load(f, pickle_module=safe_pickle)
+            else:
+                ckpt = torch_load(file, map_location="cpu")
+
+    except ModuleNotFoundError as e:  # e.name is missing module name
+        if e.name == "models":
+            raise TypeError(
+                emojis(
+                    f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
+                    f"with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with "
+                    f"YOLOv8 at https://github.com/ultralytics/ultralytics."
+                    f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                    f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
+                )
+            ) from e
+        elif e.name == "numpy._core":
+            raise ModuleNotFoundError(
+                emojis(
+                    f"ERROR ❌️ {weight} requires numpy>=1.26.1, however numpy=={__import__('numpy').__version__} is installed."
+                )
+            ) from e
+        LOGGER.warning(
+            f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
+            f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
+            f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+            f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo11n.pt'"
+        )
+        check_requirements(e.name)  # install missing module
+        ckpt = torch_load(file, map_location="cpu")
+
+    if not isinstance(ckpt, dict):
+        # File is likely a YOLO instance saved with i.e. torch.save(model, "saved_model.pt")
+        LOGGER.warning(
+            f"The file '{weight}' appears to be improperly saved or formatted. "
+            f"For optimal results, use model.save('filename.pt') to correctly save YOLO models."
+        )
+        ckpt = {"model": ckpt.model}
+
+    return ckpt, file
+
+
+def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
+    """
+    Load an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a.
+
+    Args:
+        weights (str | List[str]): Model weights path(s).
+        device (torch.device, optional): Device to load model to.
+        inplace (bool): Whether to do inplace operations.
+        fuse (bool): Whether to fuse model.
+
+    Returns:
+        (torch.nn.Module): Loaded model.
+    """
+    ensemble = Ensemble()
+    for w in weights if isinstance(weights, list) else [weights]:
+        ckpt, w = torch_safe_load(w)  # load ckpt
+        args = {**DEFAULT_CFG_DICT, **ckpt["train_args"]} if "train_args" in ckpt else None  # combined args
+        model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+
+        # Model compatibility updates
+        model.args = args  # attach args to model
+        model.pt_path = w  # attach *.pt file path to model
+        model.task = getattr(model, "task", guess_model_task(model))
+        if not hasattr(model, "stride"):
+            model.stride = torch.tensor([32.0])
+
+        # Append
+        ensemble.append((model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()).to(device))
+
+    # Module updates
+    for m in ensemble.modules():
+        if hasattr(m, "inplace"):
+            m.inplace = inplace
+        elif isinstance(m, torch.nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
+            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
+
+    # Return model
+    if len(ensemble) == 1:
+        return ensemble[-1]
+
+    # Return ensemble
+    LOGGER.info(f"Ensemble created with {weights}\n")
+    for k in "names", "nc", "yaml":
+        setattr(ensemble, k, getattr(ensemble[0], k))
+    ensemble.stride = ensemble[int(torch.argmax(torch.tensor([m.stride.max() for m in ensemble])))].stride
+    assert all(ensemble[0].nc == m.nc for m in ensemble), f"Models differ in class counts {[m.nc for m in ensemble]}"
+    return ensemble
+
+
+def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
+    """
+    Load a single model weights.
+
+    Args:
+        weight (str): Model weight path.
+        device (torch.device, optional): Device to load model to.
+        inplace (bool): Whether to do inplace operations.
+        fuse (bool): Whether to fuse model.
+
+    Returns:
+        model (torch.nn.Module): Loaded model.
+        ckpt (dict): Model checkpoint dictionary.
+    """
+    ckpt, weight = torch_safe_load(weight)  # load ckpt
+    args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
+    model = (ckpt.get("ema") or ckpt["model"]).to(device).float()  # FP32 model
+
+    # Model compatibility updates
+    model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
+    model.pt_path = weight  # attach *.pt file path to model
+    model.task = getattr(model, "task", guess_model_task(model))
+    if not hasattr(model, "stride"):
+        model.stride = torch.tensor([32.0])
+
+    model = model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()  # model in eval mode
+
+    # Module updates
+    for m in model.modules():
+        if hasattr(m, "inplace"):
+            m.inplace = inplace
+        elif isinstance(m, torch.nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
+            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
+
+    # Return model and ckpt
+    return model, ckpt
+
+
+def parse_model(d, ch, verbose=True):
+    """
+    Parse a YOLO model.yaml dictionary into a PyTorch model.
+
+    Args:
+        d (dict): Model dictionary.
+        ch (int): Input channels.
+        verbose (bool): Whether to print model details.
+
+    Returns:
+        model (torch.nn.Sequential): PyTorch model.
+        save (list): Sorted list of output layers.
+    """
+    import ast
+
+    # Args
+    legacy = True  # backward compatibility for v3/v5/v8/v9 models
+    max_channels = float("inf")
+    nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
+    depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
+    if scales:
+        scale = d.get("scale")
+        if not scale:
+            scale = tuple(scales.keys())[0]
+            LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
+        depth, width, max_channels = scales[scale]
+
+    if act:
+        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+        if verbose:
+            LOGGER.info(f"{colorstr('activation:')} {act}")  # print
+
+    if verbose:
+        LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
+    ch = [ch]
+    layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
+    base_modules = frozenset(
+        {
+            Classify,
+            Conv,
+            ConvTranspose,
+            GhostConv,
+            Bottleneck,
+            GhostBottleneck,
+            SPP,
+            SPPF,
+            C2fPSA,
+            C2PSA,
+            DWConv,
+            Focus,
+            BottleneckCSP,
+            C1,
+            C2,
+            C2f,
+            C3k2,
+            RepNCSPELAN4,
+            ELAN1,
+            ADown,
+            AConv,
+            SPPELAN,
+            C2fAttn,
+            C3,
+            C3TR,
+            C3Ghost,
+            torch.nn.ConvTranspose2d,
+            DWConvTranspose2d,
+            C3x,
+            RepC3,
+            PSA,
+            SCDown,
+            C2fCIB,
+            A2C2f,
+        }
+    )
+    repeat_modules = frozenset(  # modules with 'repeat' arguments
+        {
+            BottleneckCSP,
+            C1,
+            C2,
+            C2f,
+            C3k2,
+            C2fAttn,
+            C3,
+            C3TR,
+            C3Ghost,
+            C3x,
+            RepC3,
+            C2fPSA,
+            C2fCIB,
+            C2PSA,
+            A2C2f,
+        }
+    )
+    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+        m = (
+            getattr(torch.nn, m[3:])
+            if "nn." in m
+            else getattr(__import__("torchvision").ops, m[16:])
+            if "torchvision.ops." in m
+            else globals()[m]
+        )  # get module
+        for j, a in enumerate(args):
+            if isinstance(a, str):
+                with contextlib.suppress(ValueError):
+                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+        n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
+        if m in base_modules:
+            c1, c2 = ch[f], args[0]
+            if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            if m is C2fAttn:  # set 1) embed channels and 2) num heads
+                args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
+                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
+
+            args = [c1, c2, *args[1:]]
+            if m in repeat_modules:
+                args.insert(2, n)  # number of repeats
+                n = 1
+            if m is C3k2:  # for M/L/X sizes
+                legacy = False
+                if scale in "mlx":
+                    args[3] = True
+            if m is A2C2f:
+                legacy = False
+                if scale in "lx":  # for L/X sizes
+                    args.extend((True, 1.2))
+            if m is C2fCIB:
+                legacy = False
+        elif m is AIFI:
+            args = [ch[f], *args]
+        elif m in frozenset({HGStem, HGBlock}):
+            c1, cm, c2 = ch[f], args[0], args[1]
+            args = [c1, cm, c2, *args[2:]]
+            if m is HGBlock:
+                args.insert(4, n)  # number of repeats
+                n = 1
+        elif m is ResNetLayer:
+            c2 = args[1] if args[3] else args[1] * 4
+        elif m is torch.nn.BatchNorm2d:
+            args = [ch[f]]
+        elif m is Concat:
+            c2 = sum(ch[x] for x in f)
+        elif m in frozenset(
+            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
+        ):
+            args.append([ch[x] for x in f])
+            if m is Segment or m is YOLOESegment:
+                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+            if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
+                m.legacy = legacy
+        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
+            args.insert(1, [ch[x] for x in f])
+        elif m is CBLinear:
+            c2 = args[0]
+            c1 = ch[f]
+            args = [c1, c2, *args[1:]]
+        elif m is CBFuse:
+            c2 = ch[f[-1]]
+        elif m in frozenset({TorchVision, Index}):
+            c2 = args[0]
+            c1 = ch[f]
+            args = [*args[1:]]
+        else:
+            c2 = ch[f]
+
+        m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        t = str(m)[8:-2].replace("__main__.", "")  # module type
+        m_.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
+        if verbose:
+            LOGGER.info(f"{i:>3}{str(f):>20}{n_:>3}{m_.np:10.0f}  {t:<45}{str(args):<30}")  # print
+        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+        layers.append(m_)
+        if i == 0:
+            ch = []
+        ch.append(c2)
+    return torch.nn.Sequential(*layers), sorted(save)
+
+
+def yaml_model_load(path):
+    """
+    Load a YOLOv8 model from a YAML file.
+
+    Args:
+        path (str | Path): Path to the YAML file.
+
+    Returns:
+        (dict): Model dictionary.
+    """
+    path = Path(path)
+    if path.stem in (f"yolov{d}{x}6" for x in "nsmlx" for d in (5, 8)):
+        new_stem = re.sub(r"(\d+)([nslmx])6(.+)?$", r"\1\2-p6\3", path.stem)
+        LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
+        path = path.with_name(new_stem + path.suffix)
+
+    unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
+    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
+    d = YAML.load(yaml_file)  # model dict
+    d["scale"] = guess_model_scale(path)
+    d["yaml_file"] = str(path)
+    return d
+
+
+def guess_model_scale(model_path):
+    """
+    Extract the size character n, s, m, l, or x of the model's scale from the model path.
+
+    Args:
+        model_path (str | Path): The path to the YOLO model's YAML file.
+
+    Returns:
+        (str): The size character of the model's scale (n, s, m, l, or x).
+    """
+    try:
+        return re.search(r"yolo(e-)?[v]?\d+([nslmx])", Path(model_path).stem).group(2)  # noqa
+    except AttributeError:
+        return ""
+
+
+def guess_model_task(model):
+    """
+    Guess the task of a PyTorch model from its architecture or configuration.
+
+    Args:
+        model (torch.nn.Module | dict): PyTorch model or model configuration in YAML format.
+
+    Returns:
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb').
+    """
+
+    def cfg2task(cfg):
+        """Guess from YAML dictionary."""
+        m = cfg["head"][-1][-2].lower()  # output module name
+        if m in {"classify", "classifier", "cls", "fc"}:
+            return "classify"
+        if "detect" in m:
+            return "detect"
+        if "segment" in m:
+            return "segment"
+        if m == "pose":
+            return "pose"
+        if m == "obb":
+            return "obb"
+
+    # Guess from model cfg
+    if isinstance(model, dict):
+        with contextlib.suppress(Exception):
+            return cfg2task(model)
+    # Guess from PyTorch model
+    if isinstance(model, torch.nn.Module):  # PyTorch model
+        for x in "model.args", "model.model.args", "model.model.model.args":
+            with contextlib.suppress(Exception):
+                return eval(x)["task"]
+        for x in "model.yaml", "model.model.yaml", "model.model.model.yaml":
+            with contextlib.suppress(Exception):
+                return cfg2task(eval(x))
+        for m in model.modules():
+            if isinstance(m, (Segment, YOLOESegment)):
+                return "segment"
+            elif isinstance(m, Classify):
+                return "classify"
+            elif isinstance(m, Pose):
+                return "pose"
+            elif isinstance(m, OBB):
+                return "obb"
+            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
+                return "detect"
+
+    # Guess from model filename
+    if isinstance(model, (str, Path)):
+        model = Path(model)
+        if "-seg" in model.stem or "segment" in model.parts:
+            return "segment"
+        elif "-cls" in model.stem or "classify" in model.parts:
+            return "classify"
+        elif "-pose" in model.stem or "pose" in model.parts:
+            return "pose"
+        elif "-obb" in model.stem or "obb" in model.parts:
+            return "obb"
+        elif "detect" in model.parts:
+            return "detect"
+
+    # Unable to determine task from model
+    LOGGER.warning(
+        "Unable to automatically guess model task, assuming 'task=detect'. "
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'."
+    )
+    return "detect"  # assume detect

@@ -28,6 +28,7 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
+from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.tqdm import TQDM
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # fix DeprecationWarning: Jupyter is migrating to use standard platformdirs
@@ -38,7 +39,7 @@ LINK_PATTERN = re.compile(r"(https?://[^\s()<>]*[^\s()<>.,:;!?\'\"])")
 
 def prepare_docs_markdown(clone_repos: bool = True):
     """Build docs using mkdocs."""
-    print("Removing existing build artifacts")
+    LOGGER.info("Removing existing build artifacts")
     shutil.rmtree(SITE, ignore_errors=True)
     shutil.rmtree(DOCS / "repos", ignore_errors=True)
 
@@ -51,7 +52,7 @@ def prepare_docs_markdown(clone_repos: bool = True):
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
         shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "hub_sdk", DOCS.parent / "hub_sdk")  # for mkdocstrings
-        print(f"Cloned/Updated {repo} in {local_dir}")
+        LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")
 
         # Get docs repo
         repo = "https://github.com/ultralytics/docs"
@@ -59,7 +60,7 @@ def prepare_docs_markdown(clone_repos: bool = True):
         os.system(f"git clone {repo} {local_dir} --depth 1 --single-branch --branch main")
         shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
-        print(f"Cloned/Updated {repo} in {local_dir}")
+        LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")
 
     # Add frontmatter
     for file in TQDM((DOCS / "en").rglob("*.md"), desc="Adding frontmatter"):
@@ -175,7 +176,7 @@ def update_docs_html():
             with open(html_file, "w", encoding="utf-8") as file:
                 file.write(updated_content)
             files_modified += 1
-    print(f"Modified bs4 soup in {files_modified} files.")
+    LOGGER.info(f"Modified bs4 soup in {files_modified} files.")
 
     # Update HTML file head section
     script = ""
@@ -185,7 +186,7 @@ def update_docs_html():
     # Delete the /macros directory from the built site
     macros_dir = SITE / "macros"
     if macros_dir.exists():
-        print(f"Removing /macros directory from site: {macros_dir}")
+        LOGGER.info(f"Removing /macros directory from site: {macros_dir}")
         shutil.rmtree(macros_dir)
 
 
@@ -251,7 +252,7 @@ def remove_macros():
     # Write the cleaned content back to the file
     sitemap.write_text("".join(new_lines), encoding="utf-8")
 
-    print(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
+    LOGGER.info(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
 def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
@@ -324,7 +325,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
         if js:
             import jsmin
     except ImportError as e:
-        print(f"Missing required package: {str(e)}")
+        LOGGER.info(f"Missing required package: {str(e)}")
         return
 
     stats = {}
@@ -345,7 +346,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
     for ext, data in stats.items():
         if data["original"]:
             r = data["original"] - data["minified"]  # reduction
-            print(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
+            LOGGER.info(f"Total {ext.upper()} reduction: {(r / data['original']) * 100:.2f}% ({r / 1024:.2f} KB saved)")
 
 
 def main():
@@ -353,10 +354,10 @@ def main():
     prepare_docs_markdown()
 
     # Build the main documentation
-    print(f"Building docs from {DOCS}")
+    LOGGER.info(f"Building docs from {DOCS}")
     subprocess.run(f"mkdocs build -f {DOCS.parent}/mkdocs.yml --strict", check=True, shell=True)
     remove_macros()
-    print(f"Site built at {SITE}")
+    LOGGER.info(f"Site built at {SITE}")
 
     # Update docs HTML pages
     update_docs_html()
@@ -370,20 +371,18 @@ def main():
 
     # Print results and auto-serve on macOS
     size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file()) >> 20
-    print(f"Docs built correctly ✅ ({size:.1f} MB)")
+    LOGGER.info(f"Docs built correctly ✅ ({size:.1f} MB)")
 
-    import platform
-
-    if platform.system() == "Darwin" and not os.getenv("GITHUB_ACTIONS"):
+    if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
         import webbrowser
 
         webbrowser.open("http://localhost:8000")
         try:
             subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"])
         except KeyboardInterrupt:
-            print("\nServer stopped.")
+            LOGGER.info("\nServer stopped.")
     else:
-        print('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
+        LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
 
 
 if __name__ == "__main__":

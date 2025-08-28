@@ -1,12 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import re
 import shutil
 import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import List, Tuple
 from urllib import parse, request
 
 from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
@@ -41,7 +42,7 @@ GITHUB_ASSETS_NAMES = frozenset(
 GITHUB_ASSETS_STEMS = frozenset(k.rpartition(".")[0] for k in GITHUB_ASSETS_NAMES)
 
 
-def is_url(url, check: bool = False) -> bool:
+def is_url(url: str | Path, check: bool = False) -> bool:
     """
     Validate if the given string is a URL and optionally check if the URL exists online.
 
@@ -68,7 +69,7 @@ def is_url(url, check: bool = False) -> bool:
         return False
 
 
-def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
+def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_Store", "__MACOSX")) -> None:
     """
     Delete all specified system files in a directory.
 
@@ -91,7 +92,12 @@ def delete_dsstore(path, files_to_delete=(".DS_Store", "__MACOSX")):
             f.unlink()
 
 
-def zip_directory(directory, compress: bool = True, exclude=(".DS_Store", "__MACOSX"), progress: bool = True) -> Path:
+def zip_directory(
+    directory: str | Path,
+    compress: bool = True,
+    exclude: tuple[str, ...] = (".DS_Store", "__MACOSX"),
+    progress: bool = True,
+) -> Path:
     """
     Zip the contents of a directory, excluding specified files.
 
@@ -129,9 +135,9 @@ def zip_directory(directory, compress: bool = True, exclude=(".DS_Store", "__MAC
 
 
 def unzip_file(
-    file,
-    path=None,
-    exclude=(".DS_Store", "__MACOSX"),
+    file: str | Path,
+    path: str | Path | None = None,
+    exclude: tuple[str, ...] = (".DS_Store", "__MACOSX"),
     exist_ok: bool = False,
     progress: bool = True,
 ) -> Path:
@@ -198,8 +204,8 @@ def unzip_file(
 
 
 def check_disk_space(
-    url: str = "https://ultralytics.com/assets/coco8.zip",
-    path=Path.cwd(),
+    file_bytes: int,
+    path: str | Path = Path.cwd(),
     sf: float = 1.5,
     hard: bool = True,
 ) -> bool:
@@ -207,7 +213,7 @@ def check_disk_space(
     Check if there is sufficient disk space to download and store a file.
 
     Args:
-        url (str, optional): The URL to the file.
+        file_bytes (int): The file size in bytes.
         path (str | Path, optional): The path or drive to check the available free space on.
         sf (float, optional): Safety factor, the multiplier for the required free space.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space.
@@ -215,26 +221,14 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    import requests  # slow import
-
-    try:
-        r = requests.head(url)  # response
-        assert r.status_code < 400, f"URL error for {url}: {r.status_code} {r.reason}"  # check response
-    except Exception:
-        return True  # requests issue, default to True
-
-    # Check file size
-    gib = 1 << 30  # bytes per GiB
-    data = int(r.headers.get("Content-Length", 0)) / gib  # file size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage(path))  # bytes
-
-    if data * sf < free:
+    total, used, free = shutil.disk_usage(path)  # bytes
+    if file_bytes * sf < free:
         return True  # sufficient space
 
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
-        f"Please free {data * sf - free:.1f} GB additional disk space and try again."
+        f"Insufficient free disk space {free >> 30:.3f} GB < {int(file_bytes * sf) >> 30:.3f} GB required, "
+        f"Please free {int(file_bytes * sf - free) >> 30:.3f} GB additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)
@@ -242,7 +236,7 @@ def check_disk_space(
     return False
 
 
-def get_google_drive_file_info(link: str) -> Tuple[str, str]:
+def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
     """
     Retrieve the direct download link and filename for a shareable Google Drive file link.
 
@@ -283,9 +277,9 @@ def get_google_drive_file_info(link: str) -> Tuple[str, str]:
 
 
 def safe_download(
-    url,
-    file=None,
-    dir=None,
+    url: str | Path,
+    file: str | Path | None = None,
+    dir: str | Path | None = None,
     unzip: bool = True,
     delete: bool = False,
     curl: bool = False,
@@ -293,7 +287,7 @@ def safe_download(
     min_bytes: float = 1e0,
     exist_ok: bool = False,
     progress: bool = True,
-):
+) -> Path | str:
     """
     Download files from a URL with options for retrying, unzipping, and deleting the downloaded file. Enhanced with
     robust partial download detection using Content-Length validation.
@@ -335,7 +329,6 @@ def safe_download(
         )
         desc = f"Downloading {uri} to '{f}'"
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        check_disk_space(url, path=f.parent)
         curl_installed = shutil.which("curl")
         for i in range(retry + 1):
             try:
@@ -347,6 +340,8 @@ def safe_download(
                 else:  # urllib download
                     with request.urlopen(url) as response:
                         expected_size = int(response.getheader("Content-Length", 0))
+                        if i == 0 and expected_size > 1048576:
+                            check_disk_space(expected_size, path=f.parent)
                         buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
                         with TQDM(
                             total=expected_size,
@@ -375,6 +370,8 @@ def safe_download(
                         else:
                             break  # success
                     f.unlink()  # remove partial downloads
+            except MemoryError:
+                raise  # Re-raise immediately - no point retrying if insufficient disk space
             except Exception as e:
                 if i == 0 and not is_online():
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
@@ -401,7 +398,7 @@ def get_github_assets(
     repo: str = "ultralytics/assets",
     version: str = "latest",
     retry: bool = False,
-) -> Tuple[str, List[str]]:
+) -> tuple[str, list[str]]:
     """
     Retrieve the specified version's tag and assets from a GitHub repository.
 
@@ -434,7 +431,12 @@ def get_github_assets(
     return data["tag_name"], [x["name"] for x in data["assets"]]  # tag, assets i.e. ['yolo11n.pt', 'yolov8s.pt', ...]
 
 
-def attempt_download_asset(file, repo: str = "ultralytics/assets", release: str = "v8.3.0", **kwargs) -> str:
+def attempt_download_asset(
+    file: str | Path,
+    repo: str = "ultralytics/assets",
+    release: str = "v8.3.0",
+    **kwargs,
+) -> str:
     """
     Attempt to download a file from GitHub release assets if it is not found locally.
 
@@ -486,15 +488,15 @@ def attempt_download_asset(file, repo: str = "ultralytics/assets", release: str 
 
 
 def download(
-    url,
-    dir=Path.cwd(),
+    url: str | list[str] | Path,
+    dir: Path = Path.cwd(),
     unzip: bool = True,
     delete: bool = False,
     curl: bool = False,
     threads: int = 1,
     retry: int = 3,
     exist_ok: bool = False,
-):
+) -> None:
     """
     Download files from specified URLs to a given directory.
 

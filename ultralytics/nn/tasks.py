@@ -1510,9 +1510,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
             model.stride = torch.tensor([32.0])
 
         # Append
-        ensemble.append(
-            (model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()).to(device)
-        )  # model in eval mode
+        ensemble.append((model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()).to(device))
 
     # Module updates
     for m in ensemble.modules():

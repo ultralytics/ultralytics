@@ -740,11 +740,11 @@ def is_jetson(jetpack=None) -> bool:
     if jetson := ("tegra" in DEVICE_MODEL):
         if jetpack == 5:
             try:
-                return any(x in open("/etc/nv_tegra_release").read() for x in ("R35", "R36"))
+                content = open("/etc/nv_tegra_release").read()
+                return "R35" in content or "R36" in content  # JetPack 5.x uses L4T R35/R36
             except Exception:
                 return False
     return jetson
-
 
 def is_online() -> bool:
     """

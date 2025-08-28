@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -727,6 +728,7 @@ def is_raspberrypi() -> bool:
     return "rpi" in DEVICE_MODEL
 
 
+@lru_cache(maxsize=3)
 def is_jetson(jetpack=None) -> bool:
     """
     Determine if the Python environment is running on an NVIDIA Jetson device.

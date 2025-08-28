@@ -262,7 +262,7 @@ def fuse_conv_and_bn(conv, bn):
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
     if conv.bias is None:
-        conv.register_parameter('bias', nn.Parameter(fused_bias))
+        conv.register_parameter("bias", nn.Parameter(fused_bias))
     else:
         conv.bias.data = fused_bias
 

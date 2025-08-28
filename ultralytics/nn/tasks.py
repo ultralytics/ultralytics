@@ -250,6 +250,7 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, v10Detect):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose)
+
         return self
 
     def is_fused(self, thresh=10):

@@ -198,7 +198,7 @@ def unzip_file(
 
 
 def check_disk_space(
-    file_size_bytes: int,
+    file_bytes: int,
     path=Path.cwd(),
     sf: float = 1.5,
     hard: bool = True,
@@ -207,7 +207,7 @@ def check_disk_space(
     Check if there is sufficient disk space to download and store a file.
 
     Args:
-        url (str, optional): The URL to the file.
+        file_bytes (int): The file size in bytes.
         path (str | Path, optional): The path or drive to check the available free space on.
         sf (float, optional): Safety factor, the multiplier for the required free space.
         hard (bool, optional): Whether to throw an error or not on insufficient disk space.
@@ -215,17 +215,14 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    gib = 1 << 30  # bytes per GiB
-    data = file_size_bytes / gib  # file size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage(path))  # bytes
-
-    if data * sf < free:
+    total, used, free = shutil.disk_usage(path)  # bytes
+    if file_bytes * sf < free:
         return True  # sufficient space
 
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
-        f"Please free {data * sf - free:.1f} GB additional disk space and try again."
+        f"Insufficient free disk space {free >> 30:.1f} GB < {int(file_bytes * sf) >> 30:.3f} GB required, "
+        f"Please free {int(file_bytes * sf - free) >> 30:.1f} GB additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)

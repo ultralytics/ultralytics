@@ -740,3 +740,61 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+@pytest.mark.parametrize("cache", ["ram"])
+def test_deterministic_ram_caching(cache):
+    """Test that deterministic=True with cache='ram' produces identical results across runs."""
+    
+    model1 = YOLO("yolo11n.pt")  
+    model2 = YOLO("yolo11n.pt")
+    
+    # first training run
+    results1 = model1.train(
+        data="coco8.yaml",
+        epochs=1,
+        cache=cache,
+        seed=42,
+        deterministic=True,
+        imgsz=32,
+        batch=2,
+        verbose=False
+    )
+    
+    # second training run with same parameters
+    results2 = model2.train(
+        data="coco8.yaml",
+        epochs=1,
+        cache=cache,
+        seed=42,  # same seed
+        deterministic=True,
+        imgsz=32,
+        batch=2,
+        verbose=False
+    )
+    
+    assert abs(results1.box.map - results2.box.map) < 1e-6, "mAP should be identical with deterministic=True"
+    assert abs(results1.box.map50 - results2.box.map50) < 1e-6, "mAP50 should be identical with deterministic=True"
+
+def test_ram_cache_buffer_cleared_when_deterministic():
+    """Test that dataset.buffer is empty after caching when deterministic=True and cache='ram'."""
+    from ultralytics.models.yolo.detect import DetectionTrainer
+    from ultralytics.cfg import get_cfg
+
+    overrides = dict(
+        model="yolo11n.pt",
+        data="coco8.yaml",
+        cache="ram",
+        deterministic=True,
+        epochs=1,
+        batch=2,
+        seed=42,
+    )
+
+    cfg = get_cfg(overrides=overrides)
+
+    trainer = DetectionTrainer(cfg)
+    trainer._setup_train(world_size=1) 
+
+    dataset = trainer.train_loader.dataset
+    assert hasattr(dataset, "buffer")
+    assert dataset.buffer == [], "Expected RAM buffer to be empty with deterministic=True."

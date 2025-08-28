@@ -120,7 +120,8 @@ class BaseDataset(Dataset):
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
-        self.deterministic = hyp.deterministic
+        self.deterministic = bool(getattr(hyp, "deterministic", False))
+        
         if self.rect:
             assert self.batch_size is not None
             self.set_rectangle()

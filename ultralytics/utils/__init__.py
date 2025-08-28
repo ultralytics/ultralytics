@@ -727,15 +727,23 @@ def is_raspberrypi() -> bool:
     return "rpi" in DEVICE_MODEL
 
 
-def is_jetson() -> bool:
+def is_jetson(jetpack=None) -> bool:
     """
     Determine if the Python environment is running on an NVIDIA Jetson device.
+
+    Args:
+        jetpack (int | None): If 5, check specifically for JetPack 5.x.
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    return "tegra" in DEVICE_MODEL
-
+    if jetson:= ("tegra" in DEVICE_MODEL):
+        if jetpack == 5:
+            try:
+                return any(x in open("/etc/nv_tegra_release").read() for x in ("R35", "R36"))
+            except Exception:
+                return False
+    return jetson
 
 def is_online() -> bool:
     """
@@ -928,6 +936,7 @@ IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
 IS_DOCKER = is_docker()
 IS_JETSON = is_jetson()
+IS_JETSON_JETPACK5 = is_jetson(jetpack=5)
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()

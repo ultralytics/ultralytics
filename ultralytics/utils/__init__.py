@@ -732,16 +732,17 @@ def is_jetson(jetpack=None) -> bool:
     Determine if the Python environment is running on an NVIDIA Jetson device.
 
     Args:
-        jetpack (int | None): If 5, check specifically for JetPack 5.x.
+        jetpack (int | None): If specified, check for specific JetPack version (4, 5, 6).
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
     if jetson := ("tegra" in DEVICE_MODEL):
-        if jetpack == 5:
+        if jetpack:
             try:
                 content = open("/etc/nv_tegra_release").read()
-                return "R35" in content or "R36" in content  # JetPack 5.x uses L4T R35/R36
+                version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+                return jetpack in version_map and version_map[jetpack] in content
             except Exception:
                 return False
     return jetson

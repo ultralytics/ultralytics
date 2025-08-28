@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -727,14 +728,26 @@ def is_raspberrypi() -> bool:
     return "rpi" in DEVICE_MODEL
 
 
-def is_jetson() -> bool:
+@lru_cache(maxsize=3)
+def is_jetson(jetpack=None) -> bool:
     """
     Determine if the Python environment is running on an NVIDIA Jetson device.
+
+    Args:
+        jetpack (int | None): If specified, check for specific JetPack version (4, 5, 6).
 
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    return "tegra" in DEVICE_MODEL
+    if jetson := ("tegra" in DEVICE_MODEL):
+        if jetpack:
+            try:
+                content = open("/etc/nv_tegra_release").read()
+                version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+                return jetpack in version_map and version_map[jetpack] in content
+            except Exception:
+                return False
+    return jetson
 
 
 def is_online() -> bool:

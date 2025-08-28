@@ -235,11 +235,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
     class CustomBlock(nn.Module):
         def __init__(self, c1, c2):
             super().__init__()
-            self.layers = nn.Sequential(
-                nn.Conv2d(c1, c2, 3, 1, 1),
-                nn.BatchNorm2d(c2),
-                nn.ReLU()
-            )
+            self.layers = nn.Sequential(nn.Conv2d(c1, c2, 3, 1, 1), nn.BatchNorm2d(c2), nn.ReLU())
 
         def forward(self, x):
             return self.layers(x)
@@ -248,7 +244,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
 2. **Expose your module at the package level** in [`ultralytics/nn/modules/__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
 
     ```python
-    from .block import CustomBlock  # makes CustomBlock available as ultralytics.nn.modules.CustomBlock
+
     ```
 
 3. **Add to imports** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):

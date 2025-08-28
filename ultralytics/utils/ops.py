@@ -284,7 +284,7 @@ def non_max_suppression(
             filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
             x, xk = x[filt], xk[filt]
 
-        # Batched NMS
+        # Adaptive NMS: torchvision for validation (fast), FastNMS for prediction (low latency)
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
         if rotated:
@@ -292,7 +292,12 @@ def non_max_suppression(
             i = nms_rotated(boxes, scores, iou_thres)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            i = FastNMS.nms(boxes, scores, iou_thres)  # Custom NMS
+            # Use torchvision for low conf_thres (validation), FastNMS for high conf_thres (prediction)
+            if conf_thres <= 0.25:  # Validation scenario - use faster torchvision
+                import torchvision
+                i = torchvision.ops.nms(boxes, scores, iou_thres)
+            else:  # Prediction scenario - use custom FastNMS
+                i = FastNMS.nms(boxes, scores, iou_thres)
         i = i[:max_det]  # limit detections
 
         output[xi], keepi[xi] = x[i], xk[i].reshape(-1)

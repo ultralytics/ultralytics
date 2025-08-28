@@ -22,7 +22,7 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
-from ultralytics.data.utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
+from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
 
@@ -206,7 +206,7 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        pin_memory=PIN_MEMORY,
+        pin_memory=nd > 0,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,

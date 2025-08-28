@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import asyncio
 import json
 import random
 import shutil
@@ -12,7 +13,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -611,7 +613,7 @@ def yolo_bbox2segment(
     from ultralytics.utils.ops import xywh2xyxy
 
     # NOTE: add placeholder to pass class index check
-    dataset = YOLODataset(im_dir, data=dict(names=list(range(1000))))
+    dataset = YOLODataset(im_dir, data=dict(names=list(range(1000)), channels=3))
     if len(dataset.labels[0]["segments"]) > 0:  # if it's segment data
         LOGGER.info("Segmentation labels detected, no need to generate new ones!")
         return
@@ -754,3 +756,113 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
         multispectral = f(target_wavelengths)
         cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
         LOGGER.info(f"Converted {output_path}")
+
+
+async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
+    """
+    Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
+
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO
+    format with separate directories for images and labels. It supports parallel processing for efficient
+    conversion of large datasets and can download images from URLs if they don't exist locally.
+
+    The NDJSON format consists of:
+    - First line: Dataset metadata with class names and configuration
+    - Subsequent lines: Individual image records with annotations and optional URLs
+
+    Args:
+        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
+        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset
+            will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
+
+    Returns:
+        (Path): Path to the generated data.yaml file that can be used for YOLO training.
+
+    Examples:
+        Convert a local NDJSON file:
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson")
+        >>> print(f"Dataset converted to: {yaml_path}")
+
+        Convert with custom output directory:
+        >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
+
+        Use with YOLO training
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")
+        >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
+    """
+    check_requirements("aiohttp")
+    import aiohttp
+
+    ndjson_path = Path(check_file(ndjson_path))
+    output_path = Path(output_path or DATASETS_DIR)
+    with open(ndjson_path) as f:
+        lines = [json.loads(line.strip()) for line in f if line.strip()]
+
+    dataset_record, image_records = lines[0], lines[1:]
+    dataset_dir = output_path / ndjson_path.stem
+    splits = {record["split"] for record in image_records}
+
+    # Create directories and prepare YAML structure
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    data_yaml = dict(dataset_record)
+    data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    data_yaml.pop("class_names")
+
+    for split in sorted(splits):
+        (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
+        (dataset_dir / "labels" / split).mkdir(parents=True, exist_ok=True)
+        data_yaml[split] = f"images/{split}"
+
+    async def process_record(session, semaphore, record):
+        """Process single image record with async session."""
+        async with semaphore:
+            split, original_name = record["split"], record["file"]
+            label_path = dataset_dir / "labels" / split / f"{Path(original_name).stem}.txt"
+            image_path = dataset_dir / "images" / split / original_name
+
+            annotations = record.get("annotations", {})
+            lines_to_write = []
+            for key in annotations.keys():
+                lines_to_write = [" ".join(map(str, item)) for item in annotations[key]]
+                break
+            if "classification" in annotations:
+                lines_to_write = [str(cls) for cls in annotations["classification"]]
+
+            label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
+
+            if http_url := record.get("url"):
+                if not image_path.exists():
+                    try:
+                        async with session.get(http_url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                            response.raise_for_status()
+                            with open(image_path, "wb") as f:
+                                async for chunk in response.content.iter_chunked(8192):
+                                    f.write(chunk)
+                        return True
+                    except Exception as e:
+                        LOGGER.warning(f"Failed to download {http_url}: {e}")
+                        return False
+            return True
+
+    # Process all images with async downloads
+    semaphore = asyncio.Semaphore(64)
+    async with aiohttp.ClientSession() as session:
+        pbar = TQDM(
+            total=len(image_records),
+            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
+        )
+
+        async def tracked_process(record):
+            result = await process_record(session, semaphore, record)
+            pbar.update(1)
+            return result
+
+        await asyncio.gather(*[tracked_process(record) for record in image_records])
+        pbar.close()
+
+    # Write data.yaml
+    yaml_path = dataset_dir / "data.yaml"
+    YAML.save(yaml_path, data_yaml)
+
+    return yaml_path

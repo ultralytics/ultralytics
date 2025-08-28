@@ -250,68 +250,71 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers."""
-    fusedconv = (
-        nn.Conv2d(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            dilation=conv.dilation,
-            groups=conv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(conv.weight.device)
-    )
+    """
+    Fuse Conv2d and BatchNorm2d layers for inference optimization.
 
-    # Prepare filters
+    Args:
+        conv (nn.Conv2d): Convolutional layer to fuse.
+        bn (nn.BatchNorm2d): Batch normalization layer to fuse.
+
+    Returns:
+        (nn.Conv2d): The fused convolutional layer with gradients disabled.
+
+    Example:
+        >>> conv = nn.Conv2d(3, 16, 3)
+        >>> bn = nn.BatchNorm2d(16)
+        >>> fused_conv = fuse_conv_and_bn(conv, bn)
+    """
+    # Compute fused weights
     w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
+    conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 
-    # Prepare spatial bias
-    b_conv = (
-        torch.zeros(conv.weight.shape[0], dtype=conv.weight.dtype, device=conv.weight.device)
-        if conv.bias is None
-        else conv.bias
-    )
+    # Compute fused bias
+    b_conv = torch.zeros(conv.out_channels, device=conv.weight.device) if conv.bias is None else conv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
-    return fusedconv
+    if conv.bias is None:
+        conv.register_parameter("bias", nn.Parameter(fused_bias))
+    else:
+        conv.bias.data = fused_bias
+
+    return conv.requires_grad_(False)
 
 
 def fuse_deconv_and_bn(deconv, bn):
-    """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
-    fuseddconv = (
-        nn.ConvTranspose2d(
-            deconv.in_channels,
-            deconv.out_channels,
-            kernel_size=deconv.kernel_size,
-            stride=deconv.stride,
-            padding=deconv.padding,
-            output_padding=deconv.output_padding,
-            dilation=deconv.dilation,
-            groups=deconv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(deconv.weight.device)
-    )
+    """
+    Fuse ConvTranspose2d and BatchNorm2d layers for inference optimization.
 
-    # Prepare filters
+    Args:
+        deconv (nn.ConvTranspose2d): Transposed convolutional layer to fuse.
+        bn (nn.BatchNorm2d): Batch normalization layer to fuse.
+
+    Returns:
+        (nn.ConvTranspose2d): The fused transposed convolutional layer with gradients disabled.
+
+    Example:
+        >>> deconv = nn.ConvTranspose2d(16, 3, 3)
+        >>> bn = nn.BatchNorm2d(3)
+        >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
+    """
+    # Compute fused weights
     w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
+    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
 
-    # Prepare spatial bias
-    b_conv = torch.zeros(deconv.weight.shape[1], device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    # Compute fused bias
+    b_conv = torch.zeros(deconv.out_channels, device=deconv.weight.device) if deconv.bias is None else deconv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
-    return fuseddconv
+    if deconv.bias is None:
+        deconv.register_parameter("bias", nn.Parameter(fused_bias))
+    else:
+        deconv.bias.data = fused_bias
+
+    return deconv.requires_grad_(False)
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):

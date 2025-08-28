@@ -195,10 +195,10 @@ class AutoBackend(nn.Module):
         # In-memory PyTorch model
         if nn_module:
             if fuse:
-                # Handle Jetson Jetpack5 fuse bug https://github.com/ultralytics/ultralytics/pull/21028
-                weights = (
-                    weights.to(device).fuse(verbose=verbose) if is_jetson(jetpack=5) else weights.fuse(verbose=verbose)
-                )
+                if IS_JETSON and is_jetson(jetpack=5):
+                    # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
+                    weights = weights.to(device)
+                weights = weights.fuse(verbose=verbose)
             model = weights.to(device)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only

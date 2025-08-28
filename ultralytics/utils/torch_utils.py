@@ -250,18 +250,19 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d and BatchNorm2d layers for inference optimization.
-    
+    """
+    Fuse Conv2d and BatchNorm2d layers for inference optimization.
+
     Args:
         conv (nn.Conv2d): Convolutional layer to fuse.
         bn (nn.BatchNorm2d): Batch normalization layer to fuse.
-        
+
     Returns:
         nn.Conv2d: The fused convolutional layer with gradients disabled.
-        
+
     Example:
         >>> conv = nn.Conv2d(3, 16, 3)
-        >>> bn = nn.BatchNorm2d(16) 
+        >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
     # Compute fused weights
@@ -275,7 +276,7 @@ def fuse_conv_and_bn(conv, bn):
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
     if conv.bias is None:
-        conv.register_parameter('bias', nn.Parameter(fused_bias))
+        conv.register_parameter("bias", nn.Parameter(fused_bias))
     else:
         conv.bias.data = fused_bias
 
@@ -283,15 +284,16 @@ def fuse_conv_and_bn(conv, bn):
 
 
 def fuse_deconv_and_bn(deconv, bn):
-    """Fuse ConvTranspose2d and BatchNorm2d layers for inference optimization.
-    
+    """
+    Fuse ConvTranspose2d and BatchNorm2d layers for inference optimization.
+
     Args:
         deconv (nn.ConvTranspose2d): Transposed convolutional layer to fuse.
         bn (nn.BatchNorm2d): Batch normalization layer to fuse.
-        
+
     Returns:
         nn.ConvTranspose2d: The fused transposed convolutional layer with gradients disabled.
-        
+
     Example:
         >>> deconv = nn.ConvTranspose2d(16, 3, 3)
         >>> bn = nn.BatchNorm2d(3)
@@ -308,7 +310,7 @@ def fuse_deconv_and_bn(deconv, bn):
     fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
     if deconv.bias is None:
-        deconv.register_parameter('bias', nn.Parameter(fused_bias))
+        deconv.register_parameter("bias", nn.Parameter(fused_bias))
     else:
         deconv.bias.data = fused_bias
 

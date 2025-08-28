@@ -19,7 +19,6 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
-    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,
@@ -37,7 +36,6 @@ from ultralytics.utils.ops import segments2boxes
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
-PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 

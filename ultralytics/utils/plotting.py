@@ -560,7 +560,7 @@ class Annotator:
         return width, height, width * height
 
 
-@TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
+@TryExcept()
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """
@@ -574,7 +574,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot (Callable, optional): Function to call after plot is saved.
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas
+    import polars
     from matplotlib.colors import LinearSegmentedColormap
 
     # Filter matplotlib>=3.7.2 warning
@@ -585,16 +585,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
-
-    try:  # Seaborn correlogram
-        import seaborn
-
-        seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-        plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-        plt.close()
-    except ImportError:
-        pass  # Skip if seaborn is not installed
+    x = polars.DataFrame(boxes, schema=["x", "y", "width", "height"])
 
     # Matplotlib labels
     subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
@@ -606,12 +597,13 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     if 0 < len(names) < 30:
         ax[0].set_xticks(range(len(names)))
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
+        ax[0].bar_label(y[2])
     else:
         ax[0].set_xlabel("classes")
     boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+        ImageDraw.Draw(img).rectangle(box.tolist(), width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 
@@ -881,7 +873,7 @@ def plot_results(
         >>> plot_results("path/to/results.csv", segment=True)
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas as pd
+    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
@@ -902,11 +894,11 @@ def plot_results(
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
     for f in files:
         try:
-            data = pd.read_csv(f)
+            data = pl.read_csv(f)
             s = [x.strip() for x in data.columns]
-            x = data.values[:, 0]
+            x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(index):
-                y = data.values[:, j].astype("float")
+                y = data.select(data.columns[j]).to_numpy().flatten().astype("float")
                 # y[y == 0] = np.nan  # don't show zero values
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
@@ -956,6 +948,7 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
 
 
+@plt_settings()
 def plot_tune_results(csv_file: str = "tune_results.csv"):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
@@ -968,7 +961,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
         >>> plot_tune_results("path/to/tune_results.csv")
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas as pd
+    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -979,10 +972,10 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
 
     # Scatter plots for each hyperparameter
     csv_file = Path(csv_file)
-    data = pd.read_csv(csv_file)
+    data = pl.read_csv(csv_file)
     num_metrics_columns = 1
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
-    x = data.values
+    x = data.to_numpy()
     fitness = x[:, 0]  # fitness
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot

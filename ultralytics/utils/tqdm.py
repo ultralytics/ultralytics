@@ -128,7 +128,9 @@ class TQDM:
 
         self.iterable = iterable
         self.desc = desc or ""
-        self.total = total if total is not None else (len(iterable) if hasattr(iterable, "__len__") else None)
+        self.total = (
+            total if total is not None and total != 0 else (len(iterable) if hasattr(iterable, "__len__") else None)
+        )
         self.disable = disable
         self.unit = unit
         self.unit_scale = unit_scale

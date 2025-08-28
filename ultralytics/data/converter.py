@@ -613,7 +613,7 @@ def yolo_bbox2segment(
     from ultralytics.utils.ops import xywh2xyxy
 
     # NOTE: add placeholder to pass class index check
-    dataset = YOLODataset(im_dir, data=dict(names=list(range(1000))))
+    dataset = YOLODataset(im_dir, data=dict(names=list(range(1000)), channels=3))
     if len(dataset.labels[0]["segments"]) > 0:  # if it's segment data
         LOGGER.info("Segmentation labels detected, no need to generate new ones!")
         return
@@ -786,7 +786,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
         Convert with custom output directory:
         >>> yaml_path = convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
 
-        # Use with YOLO training
+        Use with YOLO training
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
@@ -807,6 +807,7 @@ async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Opt
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = dict(dataset_record)
     data_yaml["names"] = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
+    data_yaml.pop("class_names")
 
     for split in sorted(splits):
         (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)

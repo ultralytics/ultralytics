@@ -737,13 +737,14 @@ def is_jetson(jetpack=None) -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    if jetson:= ("tegra" in DEVICE_MODEL):
+    if jetson := ("tegra" in DEVICE_MODEL):
         if jetpack == 5:
             try:
                 return any(x in open("/etc/nv_tegra_release").read() for x in ("R35", "R36"))
             except Exception:
                 return False
     return jetson
+
 
 def is_online() -> bool:
     """

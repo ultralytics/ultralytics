@@ -198,7 +198,6 @@ class RTDETRValidator(DetectionValidator):
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
-        filename = path.name
         image_id = int(stem) if stem.isnumeric() else stem
         box = predn["bboxes"].clone()
         box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
@@ -209,7 +208,7 @@ class RTDETRValidator(DetectionValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "filename": filename,
+                    "filename": path.name,
                     "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
                     "score": round(s, 5),

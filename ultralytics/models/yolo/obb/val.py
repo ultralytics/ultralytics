@@ -178,7 +178,6 @@ class OBBValidator(DetectionValidator):
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
-        filename = path.name
         image_id = int(stem) if stem.isnumeric() else stem
         rbox = predn["bboxes"]
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
@@ -186,7 +185,7 @@ class OBBValidator(DetectionValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "filename": filename,
+                    "filename": path.name,
                     "category_id": self.class_map[int(c)],
                     "score": round(s, 5),
                     "rbox": [round(x, 3) for x in r],

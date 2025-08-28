@@ -10,7 +10,7 @@ from typing import IO, Any
 
 
 @lru_cache(maxsize=1)
-def is_noninteractive_console():
+def is_noninteractive_console() -> bool:
     """Check for known non-interactive console environments."""
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
@@ -158,7 +158,7 @@ class TQDM:
         if not self.disable and self.total is not None and not self.noninteractive:
             self._display()
 
-    def _format_rate(self, rate):
+    def _format_rate(self, rate: float) -> str:
         """Format rate with proper units and reasonable precision."""
         if rate <= 0:
             return ""
@@ -180,7 +180,7 @@ class TQDM:
         precision = ".1f" if rate >= 1 else ".2f"
         return f"{rate:{precision}}{self.unit}/s"
 
-    def _format_num(self, num):
+    def _format_num(self, num: int) -> str:
         """Format number with optional unit scaling."""
         if not self.unit_scale or self.unit not in ("B", "bytes"):
             return str(num)
@@ -191,7 +191,7 @@ class TQDM:
             num /= self.unit_divisor
         return f"{num:.1f}PB"
 
-    def _format_time(self, seconds):
+    def _format_time(self, seconds: float) -> str:
         """Format time duration."""
         if seconds < 60:
             return f"{seconds:.1f}s"
@@ -201,7 +201,7 @@ class TQDM:
             h, m = int(seconds // 3600), int((seconds % 3600) // 60)
             return f"{h}:{m:02d}:{seconds % 60:02.0f}"
 
-    def _generate_bar(self, width=12):
+    def _generate_bar(self, width: int = 12) -> str:
         """Generate progress bar."""
         if self.total is None:
             return "━" * width if self.closed else "─" * width
@@ -213,7 +213,7 @@ class TQDM:
             bar = bar[:filled] + "╸" + bar[filled + 1 :]
         return bar
 
-    def _should_update(self, dt, dn):
+    def _should_update(self, dt: float, dn: int) -> bool:
         """Check if display should update."""
         if self.noninteractive:
             return False
@@ -223,7 +223,7 @@ class TQDM:
 
         return dt >= self.mininterval
 
-    def _display(self, final=False):
+    def _display(self, final: bool = False) -> None:
         """Display progress bar."""
         if self.disable or (self.closed and not final):
             return
@@ -296,26 +296,26 @@ class TQDM:
         except Exception:
             pass
 
-    def update(self, n=1):
+    def update(self, n: int = 1) -> None:
         """Update progress by n steps."""
         if not self.disable and not self.closed:
             self.n += n
             self._display()
 
-    def set_description(self, desc):
+    def set_description(self, desc: str | None) -> None:
         """Set description."""
         self.desc = desc or ""
         if not self.disable:
             self._display()
 
-    def set_postfix(self, **kwargs):
+    def set_postfix(self, **kwargs: Any) -> None:
         """Set postfix (appends to description)."""
         if kwargs:
             postfix = ", ".join(f"{k}={v}" for k, v in kwargs.items())
             base_desc = self.desc.split(" | ")[0] if " | " in self.desc else self.desc
             self.set_description(f"{base_desc} | {postfix}")
 
-    def close(self):
+    def close(self) -> None:
         """Close progress bar."""
         if self.closed:
             return
@@ -339,15 +339,15 @@ class TQDM:
             except Exception:
                 pass
 
-    def __enter__(self):
+    def __enter__(self) -> TQDM:
         """Enter context manager."""
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: Any) -> None:
         """Exit context manager and close progress bar."""
         self.close()
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         """Iterate over the wrapped iterable with progress updates."""
         if self.iterable is None:
             raise TypeError("'NoneType' object is not iterable")
@@ -359,19 +359,19 @@ class TQDM:
         finally:
             self.close()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Destructor to ensure cleanup."""
         try:
             self.close()
         except Exception:
             pass
 
-    def refresh(self):
+    def refresh(self) -> None:
         """Refresh display."""
         if not self.disable:
             self._display()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear progress bar."""
         if not self.disable:
             try:
@@ -381,7 +381,7 @@ class TQDM:
                 pass
 
     @staticmethod
-    def write(s, file=None, end="\n"):
+    def write(s: str, file: IO[str] | None = None, end: str = "\n") -> None:
         """Static method to write without breaking progress bar."""
         file = file or sys.stdout
         try:

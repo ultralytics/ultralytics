@@ -196,7 +196,8 @@ class RTDETRValidator(DetectionValidator):
                 with bounding box coordinates, confidence scores, and class predictions.
             pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        stem = Path(pbatch["im_file"]).stem
+        path = Path(pbatch["im_file"])
+        stem = path.stem
         image_id = int(stem) if stem.isnumeric() else stem
         box = predn["bboxes"].clone()
         box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
@@ -207,6 +208,7 @@ class RTDETRValidator(DetectionValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
+                    "file_name": path.name,
                     "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
                     "score": round(s, 5),

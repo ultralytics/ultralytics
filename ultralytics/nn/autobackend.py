@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML
+from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
@@ -194,9 +194,12 @@ class AutoBackend(nn.Module):
 
         # In-memory PyTorch model
         if nn_module:
-            model = weights.to(device)
             if fuse:
-                model = model.fuse(verbose=verbose)
+                if IS_JETSON and is_jetson(jetpack=5):
+                    # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
+                    weights = weights.to(device)
+                weights = weights.fuse(verbose=verbose)
+            model = weights.to(device)
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride

@@ -423,6 +423,7 @@ if __name__ == "__main__":
             pbar.update(1024 * 1024 * i)  # Simulate processing MB of data
 
     print("\n5. Iterator with unknown length:")
+
     def data_stream():
         """Simulate a data stream of unknown length."""
         import random
@@ -434,6 +435,7 @@ if __name__ == "__main__":
         time.sleep(0.1)
 
     print("\n6. File processing simulation (unknown size):")
+
     def process_files():
         """Simulate processing files of unknown count."""
         files = [f"file_{i}.txt" for i in range(18)]

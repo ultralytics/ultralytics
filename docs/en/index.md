@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 ---
 
 <div align="center">
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/events/yolovision?utm_source=github&utm_medium=org&utm_campaign=yv25_event" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolovision-2025-banner.avif" alt="Ultralytics YOLO banner"></a>
 <a href="https://docs.ultralytics.com/zh/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/">日本語</a> |
@@ -20,7 +20,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 <br>
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
-    <a href="https://pepy.tech/projects/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
+    <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>

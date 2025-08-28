@@ -15,12 +15,13 @@ from ultralytics.utils import (
     ARGV,
     ASSETS,
     DEFAULT_CFG_DICT,
+    HUB_WEB_ROOT,
     LOGGER,
     RANK,
     SETTINGS,
     YAML,
     callbacks,
-    checks, HUB_WEB_ROOT,
+    checks,
 )
 
 
@@ -229,7 +230,6 @@ class Model(torch.nn.Module):
             >>> Model.is_hub_model("yolo11n.pt")
             False
         """
-
         return model.startswith(f"{HUB_WEB_ROOT}/models/")
 
     def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:

@@ -10,45 +10,47 @@ class FastNMS:
 
     @staticmethod
     def nms(boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float) -> torch.Tensor:
-        """Fast NMS implementation that matches torchvision behavior exactly."""
+        """Optimized NMS implementation that matches torchvision behavior exactly."""
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
 
+        # Pre-allocate and extract coordinates once
+        x1, y1, x2, y2 = boxes.unbind(1)
+        areas = (x2 - x1) * (y2 - y1)
+        
         # Sort by scores descending
         _, order = scores.sort(0, descending=True)
         
-        x1 = boxes[:, 0]
-        y1 = boxes[:, 1]
-        x2 = boxes[:, 2]
-        y2 = boxes[:, 3]
-        areas = (x2 - x1) * (y2 - y1)
-
-        keep = []
+        # Pre-allocate keep list with maximum possible size
+        keep = torch.zeros(order.numel(), dtype=torch.int64, device=boxes.device)
+        keep_idx = 0
+        
         while order.numel() > 0:
+            i = order[0]
+            keep[keep_idx] = i
+            keep_idx += 1
+
             if order.numel() == 1:
-                keep.append(order.item())
                 break
                 
-            i = order[0].item()
-            keep.append(i)
+            # Vectorized IoU calculation for remaining boxes
+            rest = order[1:]
+            xx1 = torch.maximum(x1[i], x1[rest])
+            yy1 = torch.maximum(y1[i], y1[rest])
+            xx2 = torch.minimum(x2[i], x2[rest])
+            yy2 = torch.minimum(y2[i], y2[rest])
 
-            # IoU calculation for current box vs remaining boxes
-            xx1 = torch.max(x1[i], x1[order[1:]])
-            yy1 = torch.max(y1[i], y1[order[1:]])
-            xx2 = torch.min(x2[i], x2[order[1:]])
-            yy2 = torch.min(y2[i], y2[order[1:]])
-
-            w = torch.clamp(xx2 - xx1, min=0.0)
-            h = torch.clamp(yy2 - yy1, min=0.0)
+            # Fast intersection and IoU
+            w = (xx2 - xx1).clamp_(min=0)
+            h = (yy2 - yy1).clamp_(min=0)
             inter = w * h
-            
-            iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-7)
+            iou = inter / (areas[i] + areas[rest] - inter)
             
             # Keep boxes with IoU <= threshold
-            inds = torch.where(iou <= iou_threshold)[0]
-            order = order[inds + 1]
+            mask = iou <= iou_threshold
+            order = rest[mask]
 
-        return torch.tensor(keep, dtype=torch.int64, device=boxes.device)
+        return keep[:keep_idx]
 
     @staticmethod
     def batched_nms(boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float) -> torch.Tensor:

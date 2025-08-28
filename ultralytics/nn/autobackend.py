@@ -194,9 +194,10 @@ class AutoBackend(nn.Module):
 
         # In-memory PyTorch model
         if nn_module:
-            model = weights.to(device)
             if fuse:
-                model = model.fuse(verbose=verbose)
+                model = (
+                    weights.to(device).fuse(verbose=verbose) if IS_JETSON else weights.fuse(verbose=verbose).to(device)
+                )
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride

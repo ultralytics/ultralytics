@@ -251,20 +251,17 @@ def time_sync():
 
 def fuse_conv_and_bn(conv, bn):
     """Fuse Conv2d() and BatchNorm2d() layers."""
-    fusedconv = (
-        nn.Conv2d(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            dilation=conv.dilation,
-            groups=conv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(conv.weight.device)
-    )
+    fusedconv = nn.Conv2d(
+        conv.in_channels,
+        conv.out_channels,
+        kernel_size=conv.kernel_size,
+        stride=conv.stride,
+        padding=conv.padding,
+        dilation=conv.dilation,
+        groups=conv.groups,
+        bias=True,
+        device=conv.weight.device,
+    ).requires_grad_(False)
 
     # Prepare filters
     w_conv = conv.weight.view(conv.out_channels, -1)
@@ -285,21 +282,18 @@ def fuse_conv_and_bn(conv, bn):
 
 def fuse_deconv_and_bn(deconv, bn):
     """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
-    fuseddconv = (
-        nn.ConvTranspose2d(
-            deconv.in_channels,
-            deconv.out_channels,
-            kernel_size=deconv.kernel_size,
-            stride=deconv.stride,
-            padding=deconv.padding,
-            output_padding=deconv.output_padding,
-            dilation=deconv.dilation,
-            groups=deconv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(deconv.weight.device)
-    )
+    fuseddconv = nn.ConvTranspose2d(
+        deconv.in_channels,
+        deconv.out_channels,
+        kernel_size=deconv.kernel_size,
+        stride=deconv.stride,
+        padding=deconv.padding,
+        output_padding=deconv.output_padding,
+        dilation=deconv.dilation,
+        groups=deconv.groups,
+        bias=True,
+        device=deconv.weight.device,
+    ).requires_grad_(False)
 
     # Prepare filters
     w_deconv = deconv.weight.view(deconv.out_channels, -1)

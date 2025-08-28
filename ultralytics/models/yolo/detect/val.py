@@ -376,7 +376,7 @@ class DetectionValidator(BaseValidator):
         Examples:
              >>> result = {
              ...     "image_id": 42,
-             ...     "filename": "42.jpg",
+             ...     "file_name": "42.jpg",
              ...     "category_id": 18,
              ...     "bbox": [258.15, 41.29, 348.26, 243.78],
              ...     "score": 0.236,
@@ -391,7 +391,7 @@ class DetectionValidator(BaseValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "filename": path.name,
+                    "file_name": path.name,
                     "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
                     "score": round(s, 5),

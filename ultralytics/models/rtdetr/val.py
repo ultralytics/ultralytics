@@ -208,7 +208,7 @@ class RTDETRValidator(DetectionValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "filename": path.name,
+                    "file_name": path.name,
                     "category_id": self.class_map[int(c)],
                     "bbox": [round(x, 3) for x in b],
                     "score": round(s, 5),

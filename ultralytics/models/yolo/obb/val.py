@@ -185,7 +185,7 @@ class OBBValidator(DetectionValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
-                    "filename": path.name,
+                    "file_name": path.name,
                     "category_id": self.class_map[int(c)],
                     "score": round(s, 5),
                     "rbox": [round(x, 3) for x in r],

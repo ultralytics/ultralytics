@@ -233,8 +233,8 @@ def check_disk_space(
 
     # Insufficient space
     text = (
-        f"Insufficient free disk space {free:.3f} GB < {data * sf:.3f} GB required, "
-        f"Please free {data * sf - free:.3f} GB additional disk space and try again."
+        f"Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, "
+        f"Please free {data * sf - free:.1f} GB additional disk space and try again."
     )
     if hard:
         raise MemoryError(text)

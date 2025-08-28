@@ -251,7 +251,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
     from .block import CustomBlock  # makes CustomBlock available as ultralytics.nn.modules.CustomBlock
     ```
 
-3. **Import it where needed** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
+3. **Add to imports** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
     ```python
     from ultralytics.nn.modules import CustomBlock  # noqa

@@ -229,7 +229,6 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        t = time_sync()
         if not self.is_fused():
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
@@ -251,7 +250,6 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, v10Detect):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose)
-        print(f"FUSE TIME: {time_sync() - t}s")
         return self
 
     def is_fused(self, thresh=10):

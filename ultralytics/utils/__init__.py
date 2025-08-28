@@ -359,8 +359,10 @@ def plt_settings(rcparams=None, backend="Agg"):
             """Set rc parameters and backend, call the original function, and restore the settings."""
             import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
-            original_backend = plt.get_backend()
-            switch = backend.lower() != original_backend.lower()
+            switch = False
+            if plt.rcParams._get('backend') is not plt.rcsetup._auto_backend_sentinel:
+                original_backend = plt.get_backend()
+                switch = backend.lower() != original_backend.lower()
             if switch:
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)

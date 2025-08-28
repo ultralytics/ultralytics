@@ -246,6 +246,7 @@ def non_max_suppression(
         prediction = prediction[0]  # select only inference output
     if classes is not None:
         classes = torch.tensor(classes, device=prediction.device, dtype=torch.long)
+
     if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
         output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
         if classes is not None:

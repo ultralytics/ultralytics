@@ -47,7 +47,7 @@ class FastNMS:
             
             # Early termination: skip IoU calculation if no intersection
             if inter.sum() == 0:
-                # No overlaps, keep all remaining boxes
+                # No overlaps with current box, keep all remaining boxes
                 remaining_count = rest.numel()
                 keep[keep_idx:keep_idx + remaining_count] = rest
                 keep_idx += remaining_count

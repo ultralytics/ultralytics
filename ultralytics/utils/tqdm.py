@@ -128,8 +128,7 @@ class TQDM:
 
         self.iterable = iterable
         self.desc = desc or ""
-        self.total = total if total is not None else (len(iterable) if hasattr(iterable, "__len__") else None)
-        self.total = None if self.total == 0 else self.total  # Handle zero-length iterables
+        self.total = total or (len(iterable) if hasattr(iterable, "__len__") else None) or None  # prevent total=0
         self.disable = disable
         self.unit = unit
         self.unit_scale = unit_scale
@@ -397,7 +396,7 @@ if __name__ == "__main__":
 
     # Example 1: Basic usage with known total
     print("1. Basic progress bar with known total:")
-    for i in TQDM(range(20), desc="Known total"):
+    for i in TQDM(range(0), desc="Known total"):
         time.sleep(0.05)
     print()
 

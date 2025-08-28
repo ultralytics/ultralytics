@@ -10,59 +10,48 @@ class FastNMS:
 
     @staticmethod
     def nms(boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float) -> torch.Tensor:
-        """Fast vectorized NMS implementation using pure PyTorch."""
+        """Fast NMS implementation that matches torchvision behavior exactly."""
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
 
-        # Sort by scores in descending order
-        sorted_indices = torch.argsort(scores, descending=True)
-        boxes = boxes[sorted_indices]
-        scores = scores[sorted_indices]
-
-        # Compute all IoUs at once using vectorized operations
+        # Sort by scores descending
+        _, order = scores.sort(0, descending=True)
+        
         x1 = boxes[:, 0]
         y1 = boxes[:, 1]
         x2 = boxes[:, 2]
         y2 = boxes[:, 3]
-
         areas = (x2 - x1) * (y2 - y1)
 
-        # Expand dimensions for broadcasting
-        x1_exp = x1.unsqueeze(1)
-        y1_exp = y1.unsqueeze(1)
-        x2_exp = x2.unsqueeze(1)
-        y2_exp = y2.unsqueeze(1)
-        areas_exp = areas.unsqueeze(1)
+        keep = []
+        while order.numel() > 0:
+            if order.numel() == 1:
+                keep.append(order.item())
+                break
+                
+            i = order[0].item()
+            keep.append(i)
 
-        # Compute intersection coordinates
-        xx1 = torch.maximum(x1_exp, x1)
-        yy1 = torch.maximum(y1_exp, y1)
-        xx2 = torch.minimum(x2_exp, x2)
-        yy2 = torch.minimum(y2_exp, y2)
+            # IoU calculation for current box vs remaining boxes
+            xx1 = torch.max(x1[i], x1[order[1:]])
+            yy1 = torch.max(y1[i], y1[order[1:]])
+            xx2 = torch.min(x2[i], x2[order[1:]])
+            yy2 = torch.min(y2[i], y2[order[1:]])
 
-        # Compute intersection area
-        w = torch.clamp(xx2 - xx1, min=0)
-        h = torch.clamp(yy2 - yy1, min=0)
-        intersection = w * h
+            w = torch.clamp(xx2 - xx1, min=0.0)
+            h = torch.clamp(yy2 - yy1, min=0.0)
+            inter = w * h
+            
+            iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-7)
+            
+            # Keep boxes with IoU <= threshold
+            inds = torch.where(iou <= iou_threshold)[0]
+            order = order[inds + 1]
 
-        # Compute IoU
-        union = areas_exp + areas - intersection
-        iou = intersection / (union + 1e-7)
-
-        # Use upper triangular matrix to avoid self-comparison
-        triu_mask = torch.triu(torch.ones_like(iou, dtype=torch.bool), diagonal=1)
-        iou = iou * triu_mask
-
-        # Find boxes to suppress
-        suppress_mask = (iou > iou_threshold).any(dim=1)
-        keep_indices = torch.nonzero(~suppress_mask, as_tuple=False).squeeze(1)
-
-        return sorted_indices[keep_indices]
+        return torch.tensor(keep, dtype=torch.int64, device=boxes.device)
 
     @staticmethod
-    def batched_nms(
-        boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float
-    ) -> torch.Tensor:
+    def batched_nms(boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float) -> torch.Tensor:
         """Batched NMS for class-aware suppression."""
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)

@@ -374,7 +374,7 @@ def plt_settings(rcparams=None, backend="Agg"):
                     plt.close("all")
                     try:
                         plt.switch_backend(original_backend)  # get_backend() doesn't guarantee valid backend
-                    except:
+            except Exception:
                         pass
             return result
 

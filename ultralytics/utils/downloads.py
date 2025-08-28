@@ -198,7 +198,7 @@ def unzip_file(
 
 
 def check_disk_space(
-    url: str = "https://ultralytics.com/assets/coco8.zip",
+    file_size_bytes: int,
     path=Path.cwd(),
     sf: float = 1.5,
     hard: bool = True,
@@ -215,17 +215,8 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    import requests  # slow import
-
-    try:
-        r = requests.head(url)  # response
-        assert r.status_code < 400, f"URL error for {url}: {r.status_code} {r.reason}"  # check response
-    except Exception:
-        return True  # requests issue, default to True
-
-    # Check file size
     gib = 1 << 30  # bytes per GiB
-    data = int(r.headers.get("Content-Length", 0)) / gib  # file size (GB)
+    data = file_size_bytes / gib  # file size (GB)
     total, used, free = (x / gib for x in shutil.disk_usage(path))  # bytes
 
     if data * sf < free:
@@ -335,7 +326,6 @@ def safe_download(
         )
         desc = f"Downloading {uri} to '{f}'"
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
-        check_disk_space(url, path=f.parent)
         curl_installed = shutil.which("curl")
         for i in range(retry + 1):
             try:
@@ -347,6 +337,10 @@ def safe_download(
                 else:  # urllib download
                     with request.urlopen(url) as response:
                         expected_size = int(response.getheader("Content-Length", 0))
+                        # Check disk space only on first attempt
+                        if i == 0 and expected_size > 0:
+                            check_disk_space(expected_size, path=f.parent)  # Will raise MemoryError if insufficient
+                        
                         buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
                         with TQDM(
                             total=expected_size,
@@ -375,6 +369,8 @@ def safe_download(
                         else:
                             break  # success
                     f.unlink()  # remove partial downloads
+            except MemoryError:
+                raise  # Re-raise immediately - no point retrying if insufficient disk space
             except Exception as e:
                 if i == 0 and not is_online():
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e

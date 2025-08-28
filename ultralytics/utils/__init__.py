@@ -746,6 +746,7 @@ def is_jetson(jetpack=None) -> bool:
                 return False
     return jetson
 
+
 def is_online() -> bool:
     """
     Check internet connectivity by attempting to connect to a known online host.

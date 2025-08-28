@@ -334,7 +334,7 @@ def safe_download(
                 else:  # urllib download
                     with request.urlopen(url) as response:
                         expected_size = int(response.getheader("Content-Length", 0))
-                        if i == 0 and expected_size > 0:
+                        if i == 0 and expected_size > 1048576:
                             check_disk_space(expected_size, path=f.parent)
                         buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
                         with TQDM(

@@ -140,7 +140,7 @@ class TQDM:
 
         # Set bar format based on whether we have a total
         if self.total is not None:
-            self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
+            self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
         else:
             self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {rate_fmt} {elapsed}"
 
@@ -262,14 +262,17 @@ class TQDM:
             # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
             n_fmt = self._format_num(self.n)
             total_fmt = self._format_num(self.total)
+            remaining = (self.total - self.n) / rate if rate > 0 else 0
             if self.unit_scale and self.unit in ("B", "bytes"):
                 n_fmt = n_fmt.rstrip("KMGTPB")  # Remove unit suffix from current
         else:
             percentage = 0
             n_fmt = self._format_num(self.n)
             total_fmt = "?"
+            remaining = 0
 
         elapsed_str = self._format_time(elapsed)
+        remaining_str = self._format_time(remaining)
         rate_fmt = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
         # Format progress string
@@ -280,6 +283,7 @@ class TQDM:
             n_fmt=n_fmt,
             total_fmt=total_fmt,
             rate_fmt=rate_fmt,
+            remaining=remaining_str,
             elapsed=elapsed_str,
             unit=self.unit,
         )

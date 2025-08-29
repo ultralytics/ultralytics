@@ -1,0 +1,62 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# COCO8-seg dataset (first 8 images from COCO train2017) by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/segment/coco8-seg/
+# Example usage: yolo train data=coco8-seg.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── coco8-seg  ← downloads here (1 MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: /media/yanggang/847C02507C023D84/CityEscape # dataset root dir
+train: train/images # train images (relative to 'path') 4 images
+val: val/images # val images (relative to 'path') 4 images
+test: # test images (optional)
+nc: 19
+
+# Class Names
+names:
+    0: road
+    1: sidewalk
+    2: building
+    3: wall
+    4: fence
+    5: pole
+    6: traffic light
+    7: traffic sign
+    8: vegetation
+    9: terrain
+    10: sky
+    11: person
+    12: rider
+    13: car
+    14: truck
+    15: bus
+    16: train
+    17: motorcycle
+    18: bicycle
+
+#Colors:[r, g, b]
+colors:
+  0: [128, 64,128]
+  1: [244, 35,232]
+  2: [ 70, 70, 70]
+  3: [102,102,156]
+  4: [190,153,153]
+  5: [153,153,153]
+  6: [250,170, 30]
+  7: [220,220,  0]
+  8: [107,142, 35]
+  9: [152,251,152]
+  10: [70,130,180 ]
+  11: [220, 20, 60]
+  12: [255,  0,  0]
+  13: [  0,  0,142]
+  14: [  0,  0, 70]
+  15: [  0, 60,100]
+  16: [  0, 80,100]
+  17: [  0,  0,230]
+  18: [119, 11, 32]
+
+# Download script/URL (optional)
+#download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-seg.zip

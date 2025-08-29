@@ -260,8 +260,7 @@ class TQDM:
         remaining_str = ""
         if self.total is not None and self.n > 0 and self.n < self.total:
             if rate > 0:
-                remaining = (self.total - self.n) / rate
-                remaining_str = self._format_time(remaining)
+                remaining_str = self._format_time((self.total - self.n) / rate)
 
         # Build progress components
         if self.total is not None:

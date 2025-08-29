@@ -1500,7 +1500,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt, w = torch_safe_load(w)  # load ckpt
         args = {**DEFAULT_CFG_DICT, **ckpt["train_args"]} if "train_args" in ckpt else None  # combined args
-        model = (ckpt.get("ema") or ckpt["model"]).to(device).float()  # FP32 model
+        model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
 
         # Model compatibility updates
         model.args = args  # attach args to model
@@ -1510,7 +1510,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
             model.stride = torch.tensor([32.0])
 
         # Append
-        ensemble.append(model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval())  # model in eval mode
+        ensemble.append((model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()).to(device))
 
     # Module updates
     for m in ensemble.modules():

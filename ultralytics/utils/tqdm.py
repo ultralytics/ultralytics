@@ -10,7 +10,7 @@ from typing import IO, Any
 
 
 @lru_cache(maxsize=1)
-def is_noninteractive_console():
+def is_noninteractive_console() -> bool:
     """Check for known non-interactive console environments."""
     return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
 
@@ -128,7 +128,7 @@ class TQDM:
 
         self.iterable = iterable
         self.desc = desc or ""
-        self.total = total if total is not None else (len(iterable) if hasattr(iterable, "__len__") else None)
+        self.total = total or (len(iterable) if hasattr(iterable, "__len__") else None) or None  # prevent total=0
         self.disable = disable
         self.unit = unit
         self.unit_scale = unit_scale
@@ -139,10 +139,10 @@ class TQDM:
         self.initial = initial
 
         # Set bar format based on whether we have a total
-        if self.total is not None:
-            self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
+        if self.total:
+            self.bar_format = bar_format or "{desc}: {percent:.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
         else:
-            self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {rate_fmt} {elapsed}"
+            self.bar_format = bar_format or "{desc}: {bar} {n} {rate} {elapsed}"
 
         self.file = file or sys.stdout
 
@@ -155,10 +155,10 @@ class TQDM:
         self.closed = False
 
         # Display initial bar if we have total and not disabled
-        if not self.disable and self.total is not None and not self.noninteractive:
+        if not self.disable and self.total and not self.noninteractive:
             self._display()
 
-    def _format_rate(self, rate):
+    def _format_rate(self, rate: float) -> str:
         """Format rate with proper units and reasonable precision."""
         if rate <= 0:
             return ""
@@ -180,7 +180,7 @@ class TQDM:
         precision = ".1f" if rate >= 1 else ".2f"
         return f"{rate:{precision}}{self.unit}/s"
 
-    def _format_num(self, num):
+    def _format_num(self, num: int) -> str:
         """Format number with optional unit scaling."""
         if not self.unit_scale or self.unit not in ("B", "bytes"):
             return str(num)
@@ -191,7 +191,7 @@ class TQDM:
             num /= self.unit_divisor
         return f"{num:.1f}PB"
 
-    def _format_time(self, seconds):
+    def _format_time(self, seconds: float) -> str:
         """Format time duration."""
         if seconds < 60:
             return f"{seconds:.1f}s"
@@ -201,7 +201,7 @@ class TQDM:
             h, m = int(seconds // 3600), int((seconds % 3600) // 60)
             return f"{h}:{m:02d}:{seconds % 60:02.0f}"
 
-    def _generate_bar(self, width=12):
+    def _generate_bar(self, width: int = 12) -> str:
         """Generate progress bar."""
         if self.total is None:
             return "━" * width if self.closed else "─" * width
@@ -213,17 +213,17 @@ class TQDM:
             bar = bar[:filled] + "╸" + bar[filled + 1 :]
         return bar
 
-    def _should_update(self, dt, dn):
+    def _should_update(self, dt: float, dn: int) -> bool:
         """Check if display should update."""
         if self.noninteractive:
             return False
 
-        if self.total is not None and self.n >= self.total:
+        if self.total and self.n >= self.total:
             return True
 
         return dt >= self.mininterval
 
-    def _display(self, final=False):
+    def _display(self, final: bool = False) -> None:
         """Display progress bar."""
         if self.disable or (self.closed and not final):
             return
@@ -256,30 +256,41 @@ class TQDM:
         self.last_print_t = current_time
         elapsed = current_time - self.start_t
 
+        # Calculate remaining time
+        remaining_str = ""
+        if self.total and 0 < self.n < self.total and rate > 0:
+            remaining_str = self._format_time((self.total - self.n) / rate)
+
         # Build progress components
-        if self.total is not None:
-            percentage = (self.n / self.total) * 100
+        if self.total:
+            percent = (self.n / self.total) * 100
             # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
-            n_fmt = self._format_num(self.n)
-            total_fmt = self._format_num(self.total)
+            n = self._format_num(self.n)
+            total = self._format_num(self.total)
             if self.unit_scale and self.unit in ("B", "bytes"):
-                n_fmt = n_fmt.rstrip("KMGTPB")  # Remove unit suffix from current
+                n = n.rstrip("KMGTPB")  # Remove unit suffix from current
         else:
-            percentage = 0
-            n_fmt = self._format_num(self.n)
-            total_fmt = "?"
+            percent = 0
+            n = self._format_num(self.n)
+            total = "?"
 
         elapsed_str = self._format_time(elapsed)
-        rate_fmt = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
+
+        # Use different format for completion
+        if self.total and self.n >= self.total:
+            format_str = self.bar_format.replace("<{remaining}", "")
+        else:
+            format_str = self.bar_format
 
         # Format progress string
-        progress_str = self.bar_format.format(
+        progress_str = format_str.format(
             desc=self.desc,
-            percentage=percentage,
+            percent=percent,
             bar=self._generate_bar(),
-            n_fmt=n_fmt,
-            total_fmt=total_fmt,
-            rate_fmt=rate_fmt,
+            n=n,
+            total=total,
+            rate=self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else ""),
+            remaining=remaining_str,
             elapsed=elapsed_str,
             unit=self.unit,
         )
@@ -296,26 +307,26 @@ class TQDM:
         except Exception:
             pass
 
-    def update(self, n=1):
+    def update(self, n: int = 1) -> None:
         """Update progress by n steps."""
         if not self.disable and not self.closed:
             self.n += n
             self._display()
 
-    def set_description(self, desc):
+    def set_description(self, desc: str | None) -> None:
         """Set description."""
         self.desc = desc or ""
         if not self.disable:
             self._display()
 
-    def set_postfix(self, **kwargs):
+    def set_postfix(self, **kwargs: Any) -> None:
         """Set postfix (appends to description)."""
         if kwargs:
             postfix = ", ".join(f"{k}={v}" for k, v in kwargs.items())
             base_desc = self.desc.split(" | ")[0] if " | " in self.desc else self.desc
             self.set_description(f"{base_desc} | {postfix}")
 
-    def close(self):
+    def close(self) -> None:
         """Close progress bar."""
         if self.closed:
             return
@@ -339,15 +350,15 @@ class TQDM:
             except Exception:
                 pass
 
-    def __enter__(self):
+    def __enter__(self) -> TQDM:
         """Enter context manager."""
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: Any) -> None:
         """Exit context manager and close progress bar."""
         self.close()
 
-    def __iter__(self):
+    def __iter__(self) -> Any:
         """Iterate over the wrapped iterable with progress updates."""
         if self.iterable is None:
             raise TypeError("'NoneType' object is not iterable")
@@ -359,19 +370,19 @@ class TQDM:
         finally:
             self.close()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Destructor to ensure cleanup."""
         try:
             self.close()
         except Exception:
             pass
 
-    def refresh(self):
+    def refresh(self) -> None:
         """Refresh display."""
         if not self.disable:
             self._display()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear progress bar."""
         if not self.disable:
             try:
@@ -381,7 +392,7 @@ class TQDM:
                 pass
 
     @staticmethod
-    def write(s, file=None, end="\n"):
+    def write(s: str, file: IO[str] | None = None, end: str = "\n") -> None:
         """Static method to write without breaking progress bar."""
         file = file or sys.stdout
         try:
@@ -394,25 +405,20 @@ class TQDM:
 if __name__ == "__main__":
     import time
 
-    # Example 1: Basic usage with known total
     print("1. Basic progress bar with known total:")
-    for i in TQDM(range(20), desc="Known total"):
+    for i in TQDM(range(3), desc="Known total"):
         time.sleep(0.05)
-    print()
 
-    # Example 2: Manual updates with known total
-    print("2. Manual updates with known total:")
-    pbar = TQDM(total=30, desc="Manual updates", unit="files")
-    for i in range(30):
+    print("\n2. Manual updates with known total:")
+    pbar = TQDM(total=300, desc="Manual updates", unit="files")
+    for i in range(300):
         time.sleep(0.03)
         pbar.update(1)
         if i % 10 == 9:
             pbar.set_description(f"Processing batch {i // 10 + 1}")
     pbar.close()
-    print()
 
-    # Example 3: Unknown total - this was the problematic case
-    print("3. Progress bar with unknown total:")
+    print("\n3. Progress bar with unknown total:")
     pbar = TQDM(desc="Unknown total", unit="items")
     for i in range(25):
         time.sleep(0.08)
@@ -420,18 +426,14 @@ if __name__ == "__main__":
         if i % 5 == 4:
             pbar.set_postfix(processed=i + 1, status="OK")
     pbar.close()
-    print()
 
-    # Example 4: Context manager with unknown total
-    print("4. Context manager with unknown total:")
+    print("\n4. Context manager with unknown total:")
     with TQDM(desc="Processing stream", unit="B", unit_scale=True, unit_divisor=1024) as pbar:
         for i in range(30):
             time.sleep(0.1)
             pbar.update(1024 * 1024 * i)  # Simulate processing MB of data
-    print()
 
-    # Example 5: Generator with unknown length
-    print("5. Iterator with unknown length:")
+    print("\n5. Iterator with unknown length:")
 
     def data_stream():
         """Simulate a data stream of unknown length."""
@@ -442,10 +444,8 @@ if __name__ == "__main__":
 
     for chunk in TQDM(data_stream(), desc="Stream processing", unit="chunks"):
         time.sleep(0.1)
-    print()
 
-    # Example 6: File-like processing simulation
-    print("6. File processing simulation (unknown size):")
+    print("\n6. File processing simulation (unknown size):")
 
     def process_files():
         """Simulate processing files of unknown count."""
@@ -459,4 +459,3 @@ if __name__ == "__main__":
         pbar.update(1)
         pbar.set_description(f"Processing {filename}")
     pbar.close()
-    print()

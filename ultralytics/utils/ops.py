@@ -12,7 +12,8 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.nms import TorchNMS, nms_rotated
+from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils.nms import TorchNMS
 
 
 class Profile(contextlib.ContextDecorator):
@@ -289,7 +290,7 @@ def non_max_suppression(
         scores = x[:, 4]  # scores
         if rotated:
             boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
-            i = nms_rotated(boxes, scores, iou_thres)
+            i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
             # Use torchvision for low conf_thres (validation), TorchNMS for high conf_thres (prediction)

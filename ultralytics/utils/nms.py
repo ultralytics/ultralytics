@@ -25,7 +25,11 @@ class TorchNMS:
 
     @staticmethod
     def fast_nms(
-        boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float, use_triu: bool = True
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+        iou_threshold: float,
+        use_triu: bool = True,
+        iou_func=box_iou,
     ) -> torch.Tensor:
         """
         Fast-NMS implementation from https://arxiv.org/pdf/1904.02689 using upper triangular matrix operations.
@@ -35,6 +39,7 @@ class TorchNMS:
             scores (torch.Tensor): Confidence scores with shape (N,).
             iou_threshold (float): IoU threshold for suppression.
             use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
+            iou_func (callable): Function to compute IoU between boxes.
 
         Returns:
             (torch.Tensor): Indices of boxes to keep after NMS.
@@ -50,7 +55,7 @@ class TorchNMS:
 
         sorted_idx = torch.argsort(scores, descending=True)
         boxes = boxes[sorted_idx]
-        ious = box_iou(boxes, boxes)
+        ious = iou_func(boxes, boxes)
         if use_triu:
             ious = ious.triu_(diagonal=1)
             # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
@@ -177,42 +182,3 @@ class TorchNMS:
             if use_fast_nms
             else TorchNMS.nms(boxes_for_nms, scores, iou_threshold)
         )
-
-
-def nms_rotated(boxes, scores, threshold: float = 0.45, use_triu: bool = True):
-    """
-    Perform NMS on oriented bounding boxes using probiou and fast-nms.
-
-    Args:
-        boxes (torch.Tensor): Rotated bounding boxes with shape (N, 5) in xywhr format.
-        scores (torch.Tensor): Confidence scores with shape (N,).
-        threshold (float): IoU threshold for NMS.
-        use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
-
-    Returns:
-        (torch.Tensor): Indices of boxes to keep after NMS.
-
-    Examples:
-        Apply rotated NMS to oriented boxes
-        >>> boxes = torch.tensor([[100, 100, 50, 30, 0.5], [120, 120, 40, 25, 0.3]])
-        >>> scores = torch.tensor([0.9, 0.8])
-        >>> keep = nms_rotated(boxes, scores, 0.45)
-    """
-    sorted_idx = torch.argsort(scores, descending=True)
-    boxes = boxes[sorted_idx]
-    ious = batch_probiou(boxes, boxes)
-    if use_triu:
-        ious = ious.triu_(diagonal=1)
-        # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
-        pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
-    else:
-        n = boxes.shape[0]
-        row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
-        col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
-        upper_mask = row_idx < col_idx
-        ious = ious * upper_mask
-        # Zeroing these scores ensures the additional indices would not affect the final results
-        scores[~((ious >= threshold).sum(0) <= 0)] = 0
-        # NOTE: return indices with fixed length to avoid TFLite reshape error
-        pick = torch.topk(scores, scores.shape[0]).indices
-    return sorted_idx[pick]

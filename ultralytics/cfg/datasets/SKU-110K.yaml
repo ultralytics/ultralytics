@@ -24,9 +24,9 @@ download: |
   from pathlib import Path
 
   import numpy as np
-  import pandas as pd
-  from tqdm import tqdm
+  import polars as pl
 
+  from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywh
 
@@ -45,11 +45,11 @@ download: |
   # Convert labels
   names = "image", "x1", "y1", "x2", "y2", "class", "image_width", "image_height"  # column names
   for d in "annotations_train.csv", "annotations_val.csv", "annotations_test.csv":
-      x = pd.read_csv(dir / "annotations" / d, names=names).values  # annotations
+      x = pl.read_csv(dir / "annotations" / d, names=names).to_numpy()  # annotations
       images, unique_images = x[:, 0], np.unique(x[:, 0])
       with open((dir / d).with_suffix(".txt").__str__().replace("annotations_", ""), "w", encoding="utf-8") as f:
           f.writelines(f"./images/{s}\n" for s in unique_images)
-      for im in tqdm(unique_images, desc=f"Converting {dir / d}"):
+      for im in TQDM(unique_images, desc=f"Converting {dir / d}"):
           cls = 0  # single-class dataset
           with open((dir / "labels" / im).with_suffix(".txt"), "a", encoding="utf-8") as f:
               for r in x[images == im]:

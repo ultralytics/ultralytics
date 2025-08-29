@@ -34,12 +34,12 @@ download: |
   import shutil
 
   from ultralytics.utils.downloads import download
+  from ultralytics.utils import TQDM
 
 
   def visdrone2yolo(dir, split, source_name=None):
       """Convert VisDrone annotations to YOLO format with images/{split} and labels/{split} structure."""
       from PIL import Image
-      from tqdm import tqdm
 
       source_dir = dir / (source_name or f"VisDrone2019-DET-{split}")
       images_dir = dir / "images" / split
@@ -52,7 +52,7 @@ download: |
           for img in source_images_dir.glob("*.jpg"):
               img.rename(images_dir / img.name)
       
-      for f in tqdm((source_dir / "annotations").glob("*.txt"), desc=f"Converting {split}"):
+      for f in TQDM((source_dir / "annotations").glob("*.txt"), desc=f"Converting {split}"):
           img_size = Image.open(images_dir / f.with_suffix(".jpg").name).size
           dw, dh = 1.0 / img_size[0], 1.0 / img_size[1]
           lines = []

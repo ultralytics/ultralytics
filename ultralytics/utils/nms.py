@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.utils.metrics import batch_probiou, box_iou
+from ultralytics.utils.metrics import box_iou
 
 
 class TorchNMS:

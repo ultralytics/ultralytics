@@ -13,4 +13,4 @@ keywords: NMS, non-maximum suppression, TorchNMS, YOLO, torchvision-free, rotate
 
 ## ::: ultralytics.utils.nms.TorchNMS
 
-<br><br><hr><br>
+<br><br>

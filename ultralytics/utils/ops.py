@@ -13,6 +13,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils.nms import TorchNMS
 
 
 class Profile(contextlib.ContextDecorator):
@@ -156,39 +157,6 @@ def make_divisible(x: int, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def nms_rotated(boxes, scores, threshold: float = 0.45, use_triu: bool = True):
-    """
-    Perform NMS on oriented bounding boxes using probiou and fast-nms.
-
-    Args:
-        boxes (torch.Tensor): Rotated bounding boxes with shape (N, 5) in xywhr format.
-        scores (torch.Tensor): Confidence scores with shape (N,).
-        threshold (float): IoU threshold for NMS.
-        use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
-
-    Returns:
-        (torch.Tensor): Indices of boxes to keep after NMS.
-    """
-    sorted_idx = torch.argsort(scores, descending=True)
-    boxes = boxes[sorted_idx]
-    ious = batch_probiou(boxes, boxes)
-    if use_triu:
-        ious = ious.triu_(diagonal=1)
-        # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
-        pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
-    else:
-        n = boxes.shape[0]
-        row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
-        col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
-        upper_mask = row_idx < col_idx
-        ious = ious * upper_mask
-        # Zeroing these scores ensures the additional indices would not affect the final results
-        scores[~((ious >= threshold).sum(0) <= 0)] = 0
-        # NOTE: return indices with fixed length to avoid TFLite reshape error
-        pick = torch.topk(scores, scores.shape[0]).indices
-    return sorted_idx[pick]
-
-
 def non_max_suppression(
     prediction,
     conf_thres: float = 0.25,
@@ -225,7 +193,7 @@ def non_max_suppression(
         max_det (int): Maximum number of detections to keep per image.
         nc (int): Number of classes. Indices after this are considered masks.
         max_time_img (float): Maximum time in seconds for processing one image.
-        max_nms (int): Maximum number of boxes for torchvision.ops.nms().
+        max_nms (int): Maximum number of boxes for custom NMS.
         max_wh (int): Maximum box width and height in pixels.
         in_place (bool): Whether to modify the input prediction tensor in place.
         rotated (bool): Whether to handle Oriented Bounding Boxes (OBB).
@@ -237,8 +205,6 @@ def non_max_suppression(
             containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
         keepi (List[torch.Tensor]): Indices of kept detections if return_idxs=True.
     """
-    import torchvision  # scope for faster 'import ultralytics'
-
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
     assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
@@ -319,15 +285,21 @@ def non_max_suppression(
             filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
             x, xk = x[filt], xk[filt]
 
-        # Batched NMS
+        # Adaptive NMS: torchvision for validation (fast), TorchNMS for prediction (low latency)
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
         if rotated:
             boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
-            i = nms_rotated(boxes, scores, iou_thres)
+            i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
+            # Use torchvision for low conf_thres (validation), TorchNMS for high conf_thres (prediction)
+            if conf_thres <= 0.01:  # Validation scenario - use faster torchvision
+                import torchvision
+
+                i = torchvision.ops.nms(boxes, scores, iou_thres)
+            else:  # Prediction scenario - use custom TorchNMS
+                i = TorchNMS.nms(boxes, scores, iou_thres)
         i = i[:max_det]  # limit detections
 
         output[xi], keepi[xi] = x[i], xk[i].reshape(-1)

@@ -8,7 +8,7 @@ keywords: Ultralytics, YOLO11, custom dataset, object detection, segmentation, p
 
 ## Introduction
 
-A well-structured [dataset](https://docs.ultralytics.com/datasets/) is the cornerstone of effective object detection with YOLO. In this guide, we’ll walk you through every step to create, annotate, and prepare your custom dataset for YOLO11 training. By the end, you’ll know how to structure your dataset, annotate your images, apply augmentations, and train your model confidently.
+A well-structured [dataset](/datasets/) is the cornerstone of effective object detection with YOLO. In this guide, we’ll walk you through every step to create, annotate, and prepare your custom dataset for YOLO11 training. By the end, you’ll know how to structure your dataset, annotate your images, apply augmentations, and train your model confidently.
 
 <p align="center">
   <br>

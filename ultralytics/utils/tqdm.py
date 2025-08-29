@@ -140,7 +140,9 @@ class TQDM:
 
         # Set bar format based on whether we have a total
         if self.total is not None:
-            self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
+            self.bar_format = (
+                bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
+            )
         else:
             self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {rate_fmt} {elapsed}"
 

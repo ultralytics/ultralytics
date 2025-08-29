@@ -119,7 +119,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     [:octicons-arrow-right-24: YOLO License](https://www.ultralytics.com/license)
 
-- :fontawesome-solid-database:{ .lg .middle } &nbsp; **Create Custom Data for YOLO**
+- :fontawesome-solid-database:{ .lg .middle } &nbsp; **Create Custom Dataset for YOLO**
 
     ***
 

@@ -261,6 +261,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (Dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            single_cls (bool): Whether to treat all detections as a single class for visualization purposes.
 
         Examples:
             >>> results = model("path/to/image.jpg")

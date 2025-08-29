@@ -140,11 +140,9 @@ class TQDM:
 
         # Set bar format based on whether we have a total
         if self.total is not None:
-            self.bar_format = (
-                bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]"
-            )
+            self.bar_format = bar_format or "{desc}: {percent:3.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
         else:
-            self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {rate_fmt} {elapsed}"
+            self.bar_format = bar_format or "{desc}: {bar} {n} {rate} {elapsed}"
 
         self.file = file or sys.stdout
 
@@ -258,33 +256,42 @@ class TQDM:
         self.last_print_t = current_time
         elapsed = current_time - self.start_t
 
+        # Calculate remaining time
+        remaining_str = ""
+        if self.total is not None and self.n > 0 and self.n < self.total:
+            if rate > 0:
+                remaining = (self.total - self.n) / rate
+                remaining_str = self._format_time(remaining)
+
         # Build progress components
         if self.total is not None:
-            percentage = (self.n / self.total) * 100
+            percent = (self.n / self.total) * 100
             # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
-            n_fmt = self._format_num(self.n)
-            total_fmt = self._format_num(self.total)
-            remaining = (self.total - self.n) / rate if rate > 0 else 0
+            n = self._format_num(self.n)
+            total = self._format_num(self.total)
             if self.unit_scale and self.unit in ("B", "bytes"):
-                n_fmt = n_fmt.rstrip("KMGTPB")  # Remove unit suffix from current
+                n = n.rstrip("KMGTPB")  # Remove unit suffix from current
         else:
-            percentage = 0
-            n_fmt = self._format_num(self.n)
-            total_fmt = "?"
-            remaining = 0
+            percent = 0
+            n = self._format_num(self.n)
+            total = "?"
 
         elapsed_str = self._format_time(elapsed)
-        remaining_str = self._format_time(remaining)
-        rate_fmt = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
+
+        # Use different format for completion
+        if self.total is not None and self.n >= self.total:
+            format_str = self.bar_format.replace("<{remaining}", "")
+        else:
+            format_str = self.bar_format
 
         # Format progress string
-        progress_str = self.bar_format.format(
+        progress_str = format_str.format(
             desc=self.desc,
-            percentage=percentage,
+            percent=percent,
             bar=self._generate_bar(),
-            n_fmt=n_fmt,
-            total_fmt=total_fmt,
-            rate_fmt=rate_fmt,
+            n=n,
+            total=total,
+            rate=self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else ""),
             remaining=remaining_str,
             elapsed=elapsed_str,
             unit=self.unit,
@@ -405,8 +412,8 @@ if __name__ == "__main__":
         time.sleep(0.05)
 
     print("\n2. Manual updates with known total:")
-    pbar = TQDM(total=30, desc="Manual updates", unit="files")
-    for i in range(30):
+    pbar = TQDM(total=300, desc="Manual updates", unit="files")
+    for i in range(300):
         time.sleep(0.03)
         pbar.update(1)
         if i % 10 == 9:

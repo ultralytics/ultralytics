@@ -139,10 +139,10 @@ class TQDM:
         self.initial = initial
 
         # Set bar format based on whether we have a total
-        if self.total is not None:
-            self.bar_format = bar_format or "{desc}: {percentage:3.0f}% {bar} {n_fmt}/{total_fmt} {rate_fmt} {elapsed}"
+        if self.total:
+            self.bar_format = bar_format or "{desc}: {percent:.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
         else:
-            self.bar_format = bar_format or "{desc}: {bar} {n_fmt} {rate_fmt} {elapsed}"
+            self.bar_format = bar_format or "{desc}: {bar} {n} {rate} {elapsed}"
 
         self.file = file or sys.stdout
 
@@ -155,7 +155,7 @@ class TQDM:
         self.closed = False
 
         # Display initial bar if we have total and not disabled
-        if not self.disable and self.total is not None and not self.noninteractive:
+        if not self.disable and self.total and not self.noninteractive:
             self._display()
 
     def _format_rate(self, rate: float) -> str:
@@ -218,7 +218,7 @@ class TQDM:
         if self.noninteractive:
             return False
 
-        if self.total is not None and self.n >= self.total:
+        if self.total and self.n >= self.total:
             return True
 
         return dt >= self.mininterval
@@ -256,30 +256,41 @@ class TQDM:
         self.last_print_t = current_time
         elapsed = current_time - self.start_t
 
+        # Calculate remaining time
+        remaining_str = ""
+        if self.total and 0 < self.n < self.total and rate > 0:
+            remaining_str = self._format_time((self.total - self.n) / rate)
+
         # Build progress components
-        if self.total is not None:
-            percentage = (self.n / self.total) * 100
+        if self.total:
+            percent = (self.n / self.total) * 100
             # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
-            n_fmt = self._format_num(self.n)
-            total_fmt = self._format_num(self.total)
+            n = self._format_num(self.n)
+            total = self._format_num(self.total)
             if self.unit_scale and self.unit in ("B", "bytes"):
-                n_fmt = n_fmt.rstrip("KMGTPB")  # Remove unit suffix from current
+                n = n.rstrip("KMGTPB")  # Remove unit suffix from current
         else:
-            percentage = 0
-            n_fmt = self._format_num(self.n)
-            total_fmt = "?"
+            percent = 0
+            n = self._format_num(self.n)
+            total = "?"
 
         elapsed_str = self._format_time(elapsed)
-        rate_fmt = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
+
+        # Use different format for completion
+        if self.total and self.n >= self.total:
+            format_str = self.bar_format.replace("<{remaining}", "")
+        else:
+            format_str = self.bar_format
 
         # Format progress string
-        progress_str = self.bar_format.format(
+        progress_str = format_str.format(
             desc=self.desc,
-            percentage=percentage,
+            percent=percent,
             bar=self._generate_bar(),
-            n_fmt=n_fmt,
-            total_fmt=total_fmt,
-            rate_fmt=rate_fmt,
+            n=n,
+            total=total,
+            rate=self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else ""),
+            remaining=remaining_str,
             elapsed=elapsed_str,
             unit=self.unit,
         )
@@ -395,12 +406,12 @@ if __name__ == "__main__":
     import time
 
     print("1. Basic progress bar with known total:")
-    for i in TQDM(range(0), desc="Known total"):
+    for i in TQDM(range(3), desc="Known total"):
         time.sleep(0.05)
 
     print("\n2. Manual updates with known total:")
-    pbar = TQDM(total=30, desc="Manual updates", unit="files")
-    for i in range(30):
+    pbar = TQDM(total=300, desc="Manual updates", unit="files")
+    for i in range(300):
         time.sleep(0.03)
         pbar.update(1)
         if i % 10 == 9:

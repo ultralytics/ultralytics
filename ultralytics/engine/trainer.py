@@ -380,9 +380,6 @@ class BaseTrainer:
                         )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
-                if epoch >= 150:
-                    for x in self.optimizer.param_groups:
-                        x["use_muon"] = False
 
                 # Forward
                 with autocast(self.amp):

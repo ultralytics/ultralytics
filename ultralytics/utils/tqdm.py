@@ -139,7 +139,7 @@ class TQDM:
         self.initial = initial
 
         # Set bar format based on whether we have a total
-        if self.total is not None:
+        if self.total:
             self.bar_format = bar_format or "{desc}: {percent:3.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
         else:
             self.bar_format = bar_format or "{desc}: {bar} {n} {rate} {elapsed}"
@@ -155,7 +155,7 @@ class TQDM:
         self.closed = False
 
         # Display initial bar if we have total and not disabled
-        if not self.disable and self.total is not None and not self.noninteractive:
+        if not self.disable and self.total and not self.noninteractive:
             self._display()
 
     def _format_rate(self, rate: float) -> str:
@@ -218,7 +218,7 @@ class TQDM:
         if self.noninteractive:
             return False
 
-        if self.total is not None and self.n >= self.total:
+        if self.total and self.n >= self.total:
             return True
 
         return dt >= self.mininterval
@@ -258,12 +258,12 @@ class TQDM:
 
         # Calculate remaining time
         remaining_str = ""
-        if self.total is not None and self.n > 0 and self.n < self.total:
+        if self.total and self.n > 0 and self.n < self.total:
             if rate > 0:
                 remaining_str = self._format_time((self.total - self.n) / rate)
 
         # Build progress components
-        if self.total is not None:
+        if self.total:
             percent = (self.n / self.total) * 100
             # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
             n = self._format_num(self.n)
@@ -278,7 +278,7 @@ class TQDM:
         elapsed_str = self._format_time(elapsed)
 
         # Use different format for completion
-        if self.total is not None and self.n >= self.total:
+        if self.total and self.n >= self.total:
             format_str = self.bar_format.replace("<{remaining}", "")
         else:
             format_str = self.bar_format
@@ -407,7 +407,7 @@ if __name__ == "__main__":
     import time
 
     print("1. Basic progress bar with known total:")
-    for i in TQDM(range(0), desc="Known total"):
+    for i in TQDM(range(3), desc="Known total"):
         time.sleep(0.05)
 
     print("\n2. Manual updates with known total:")

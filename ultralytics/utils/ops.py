@@ -193,7 +193,7 @@ def non_max_suppression(
         max_det (int): Maximum number of detections to keep per image.
         nc (int): Number of classes. Indices after this are considered masks.
         max_time_img (float): Maximum time in seconds for processing one image.
-        max_nms (int): Maximum number of boxes for custom NMS.
+        max_nms (int): Maximum number of boxes for NMS.
         max_wh (int): Maximum box width and height in pixels.
         in_place (bool): Whether to modify the input prediction tensor in place.
         rotated (bool): Whether to handle Oriented Bounding Boxes (OBB).
@@ -285,7 +285,6 @@ def non_max_suppression(
             filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
             x, xk = x[filt], xk[filt]
 
-        # Adaptive NMS: torchvision for validation (fast), TorchNMS for prediction (low latency)
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
         if rotated:
@@ -293,12 +292,12 @@ def non_max_suppression(
             i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Use torchvision for low conf_thres (validation), TorchNMS for high conf_thres (prediction)
-            if conf_thres <= 0.01:  # Validation scenario - use faster torchvision
+            # Speed strategy: torchvision for validation (fast), TorchNMS for prediction (low latency)
+            if conf_thres <= 0.01:
                 import torchvision
 
                 i = torchvision.ops.nms(boxes, scores, iou_thres)
-            else:  # Prediction scenario - use custom TorchNMS
+            else:
                 i = TorchNMS.nms(boxes, scores, iou_thres)
         i = i[:max_det]  # limit detections
 

@@ -138,7 +138,11 @@ class TorchNMS:
 
     @staticmethod
     def batched_nms(
-        boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+        idxs: torch.Tensor,
+        iou_threshold: float,
+        use_fast_nms: bool = False,
     ) -> torch.Tensor:
         """
         Batched NMS for class-aware suppression.
@@ -148,6 +152,7 @@ class TorchNMS:
             scores (torch.Tensor): Confidence scores with shape (N,).
             idxs (torch.Tensor): Class indices with shape (N,).
             iou_threshold (float): IoU threshold for suppression.
+            use_fast_nms (bool): Whether to use the Fast-NMS implementation.
 
         Returns:
             (torch.Tensor): Indices of boxes to keep after NMS.
@@ -167,7 +172,11 @@ class TorchNMS:
         offsets = idxs.to(boxes) * (max_coordinate + 1)
         boxes_for_nms = boxes + offsets[:, None]
 
-        return TorchNMS.nms(boxes_for_nms, scores, iou_threshold)
+        return (
+            TorchNMS.fast_nms(boxes_for_nms, scores, iou_threshold)
+            if use_fast_nms
+            else TorchNMS.nms(boxes_for_nms, scores, iou_threshold)
+        )
 
 
 def nms_rotated(boxes, scores, threshold: float = 0.45, use_triu: bool = True):

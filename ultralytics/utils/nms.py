@@ -24,14 +24,17 @@ class FastNMS:
     """
 
     @staticmethod
-    def nms(boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float, use_triu: bool = True) -> torch.Tensor:
+    def fast_nms(
+        boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float, use_triu: bool = True
+    ) -> torch.Tensor:
         """
-        Optimized NMS with early termination that matches torchvision behavior exactly.
+        Fast-NMS implementation from https://arxiv.org/pdf/1904.02689 using upper triangular matrix operations.
 
         Args:
             boxes (torch.Tensor): Bounding boxes with shape (N, 4) in xyxy format.
             scores (torch.Tensor): Confidence scores with shape (N,).
             iou_threshold (float): IoU threshold for suppression.
+            use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
 
         Returns:
             (torch.Tensor): Indices of boxes to keep after NMS.
@@ -63,6 +66,75 @@ class FastNMS:
             # NOTE: return indices with fixed length to avoid TFLite reshape error
             pick = torch.topk(scores, scores.shape[0]).indices
         return sorted_idx[pick]
+
+    @staticmethod
+    def nms(boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float) -> torch.Tensor:
+        """
+        Optimized NMS with early termination that matches torchvision behavior exactly.
+
+        Args:
+            boxes (torch.Tensor): Bounding boxes with shape (N, 4) in xyxy format.
+            scores (torch.Tensor): Confidence scores with shape (N,).
+            iou_threshold (float): IoU threshold for suppression.
+
+        Returns:
+            (torch.Tensor): Indices of boxes to keep after NMS.
+
+        Examples:
+            Apply NMS to a set of boxes
+            >>> boxes = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]])
+            >>> scores = torch.tensor([0.9, 0.8])
+            >>> keep = FastNMS.nms(boxes, scores, 0.5)
+        """
+        if boxes.numel() == 0:
+            return torch.empty((0,), dtype=torch.int64, device=boxes.device)
+
+        # Pre-allocate and extract coordinates once
+        x1, y1, x2, y2 = boxes.unbind(1)
+        areas = (x2 - x1) * (y2 - y1)
+
+        # Sort by scores descending
+        _, order = scores.sort(0, descending=True)
+
+        # Pre-allocate keep list with maximum possible size
+        keep = torch.zeros(order.numel(), dtype=torch.int64, device=boxes.device)
+        keep_idx = 0
+
+        while order.numel() > 0:
+            i = order[0]
+            keep[keep_idx] = i
+            keep_idx += 1
+
+            if order.numel() == 1:
+                break
+
+            # Vectorized IoU calculation for remaining boxes
+            rest = order[1:]
+            xx1 = torch.maximum(x1[i], x1[rest])
+            yy1 = torch.maximum(y1[i], y1[rest])
+            xx2 = torch.minimum(x2[i], x2[rest])
+            yy2 = torch.minimum(y2[i], y2[rest])
+
+            # Fast intersection and IoU
+            w = (xx2 - xx1).clamp_(min=0)
+            h = (yy2 - yy1).clamp_(min=0)
+            inter = w * h
+
+            # Early termination: skip IoU calculation if no intersection
+            if inter.sum() == 0:
+                # No overlaps with current box, keep all remaining boxes
+                remaining_count = rest.numel()
+                keep[keep_idx : keep_idx + remaining_count] = rest
+                keep_idx += remaining_count
+                break
+
+            iou = inter / (areas[i] + areas[rest] - inter)
+
+            # Keep boxes with IoU <= threshold
+            mask = iou <= iou_threshold
+            order = rest[mask]
+
+        return keep[:keep_idx]
 
     @staticmethod
     def batched_nms(

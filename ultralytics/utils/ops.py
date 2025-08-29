@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.utils import LOGGER
-from ultralytics.utils.nms import FastNMS, nms_rotated
+from ultralytics.utils.nms import TorchNMS, nms_rotated
 
 
 class Profile(contextlib.ContextDecorator):
@@ -284,7 +284,7 @@ def non_max_suppression(
             filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
             x, xk = x[filt], xk[filt]
 
-        # Adaptive NMS: torchvision for validation (fast), FastNMS for prediction (low latency)
+        # Adaptive NMS: torchvision for validation (fast), TorchNMS for prediction (low latency)
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
         if rotated:
@@ -292,13 +292,13 @@ def non_max_suppression(
             i = nms_rotated(boxes, scores, iou_thres)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Use torchvision for low conf_thres (validation), FastNMS for high conf_thres (prediction)
+            # Use torchvision for low conf_thres (validation), TorchNMS for high conf_thres (prediction)
             if conf_thres <= 0.01:  # Validation scenario - use faster torchvision
                 import torchvision
 
                 i = torchvision.ops.nms(boxes, scores, iou_thres)
-            else:  # Prediction scenario - use custom FastNMS
-                i = FastNMS.nms(boxes, scores, iou_thres)
+            else:  # Prediction scenario - use custom TorchNMS
+                i = TorchNMS.nms(boxes, scores, iou_thres)
         i = i[:max_det]  # limit detections
 
         output[xi], keepi[xi] = x[i], xk[i].reshape(-1)

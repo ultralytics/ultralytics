@@ -1,6 +1,6 @@
 ---
-description: Custom NMS implementation for Ultralytics YOLO with FastNMS class for torchvision-free inference and nms_rotated for oriented bounding boxes. Optimized for speed and accuracy.
-keywords: NMS, non-maximum suppression, FastNMS, YOLO, torchvision-free, rotated NMS, object detection, bounding boxes, IoU threshold, custom implementation
+description: Custom NMS implementation for Ultralytics YOLO with TorchNMS class for torchvision-free inference and nms_rotated for oriented bounding boxes. Optimized for speed and accuracy.
+keywords: NMS, non-maximum suppression, TorchNMS, YOLO, torchvision-free, rotated NMS, object detection, bounding boxes, IoU threshold, custom implementation
 ---
 
 # Reference for `ultralytics/utils/nms.py`
@@ -11,7 +11,7 @@ keywords: NMS, non-maximum suppression, FastNMS, YOLO, torchvision-free, rotated
 
 <br>
 
-## ::: ultralytics.utils.nms.FastNMS
+## ::: ultralytics.utils.nms.TorchNMS
 
 <br><br><hr><br>
 

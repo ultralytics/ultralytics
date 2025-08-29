@@ -5,7 +5,7 @@ import torch
 from ultralytics.utils.metrics import batch_probiou, box_iou
 
 
-class FastNMS:
+class TorchNMS:
     """
     Ultralytics custom NMS implementation optimized for YOLO.
 
@@ -20,7 +20,7 @@ class FastNMS:
         Perform standard NMS on boxes and scores
         >>> boxes = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]])
         >>> scores = torch.tensor([0.9, 0.8])
-        >>> keep = FastNMS.nms(boxes, scores, 0.5)
+        >>> keep = TorchNMS.nms(boxes, scores, 0.5)
     """
 
     @staticmethod
@@ -43,7 +43,7 @@ class FastNMS:
             Apply NMS to a set of boxes
             >>> boxes = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]])
             >>> scores = torch.tensor([0.9, 0.8])
-            >>> keep = FastNMS.nms(boxes, scores, 0.5)
+            >>> keep = TorchNMS.nms(boxes, scores, 0.5)
         """
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
@@ -84,7 +84,7 @@ class FastNMS:
             Apply NMS to a set of boxes
             >>> boxes = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]])
             >>> scores = torch.tensor([0.9, 0.8])
-            >>> keep = FastNMS.nms(boxes, scores, 0.5)
+            >>> keep = TorchNMS.nms(boxes, scores, 0.5)
         """
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
@@ -157,7 +157,7 @@ class FastNMS:
             >>> boxes = torch.tensor([[0, 0, 10, 10], [5, 5, 15, 15]])
             >>> scores = torch.tensor([0.9, 0.8])
             >>> idxs = torch.tensor([0, 1])
-            >>> keep = FastNMS.batched_nms(boxes, scores, idxs, 0.5)
+            >>> keep = TorchNMS.batched_nms(boxes, scores, idxs, 0.5)
         """
         if boxes.numel() == 0:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
@@ -167,7 +167,7 @@ class FastNMS:
         offsets = idxs.to(boxes) * (max_coordinate + 1)
         boxes_for_nms = boxes + offsets[:, None]
 
-        return FastNMS.nms(boxes_for_nms, scores, iou_threshold)
+        return TorchNMS.nms(boxes_for_nms, scores, iou_threshold)
 
 
 def nms_rotated(boxes, scores, threshold: float = 0.45, use_triu: bool = True):

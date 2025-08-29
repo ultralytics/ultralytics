@@ -140,7 +140,7 @@ class TQDM:
 
         # Set bar format based on whether we have a total
         if self.total:
-            self.bar_format = bar_format or "{desc}: {percent:3.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
+            self.bar_format = bar_format or "{desc}: {percent:.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
         else:
             self.bar_format = bar_format or "{desc}: {bar} {n} {rate} {elapsed}"
 

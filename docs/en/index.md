@@ -133,7 +133,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    A no-code platform to upload datasets, train YOLO models, and manage experiments directly in the cloud 
+    A no-code platform to upload datasets, train YOLO models, and manage experiments directly in the cloud
 
     ***
 

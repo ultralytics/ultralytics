@@ -597,8 +597,13 @@ class AutoBackend(nn.Module):
             end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
+            self.architecture = metadata.get("architecture", "")
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"Metadata not found for 'model={w}'")
+
+        # Initialize architecture if not set
+        if not hasattr(self, "architecture"):
+            self.architecture = ""
 
         # Check names
         if "names" not in locals():  # names missing

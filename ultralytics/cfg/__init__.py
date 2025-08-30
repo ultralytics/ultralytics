@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import shutil
 import subprocess
 import sys
@@ -938,15 +939,117 @@ def entrypoint(debug: str = "") -> None:
         LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
-    if "rtdetr" in stem:  # guess architecture
+
+    # Function to get architecture from model metadata across different formats
+    def get_model_architecture(model_path):
+        """Extract architecture from model metadata across different formats."""
+        model_path = Path(model_path)
+        model_str = str(model_path).lower()
+
+        # ONNX format
+        if model_str.endswith(".onnx"):
+            try:
+                import onnxruntime
+
+                session = onnxruntime.InferenceSession(str(model_path), providers=["CPUExecutionProvider"])
+                metadata = session.get_modelmeta().custom_metadata_map
+                return metadata.get("architecture", None)
+            except Exception:
+                pass
+
+        # CoreML format
+        elif model_str.endswith(".mlpackage") or model_str.endswith(".mlmodel"):
+            try:
+                import coremltools as ct
+
+                model = ct.models.MLModel(str(model_path))
+                metadata = model.user_defined_metadata
+                return metadata.get("architecture", None)
+            except Exception:
+                pass
+
+        # TensorRT engine format
+        elif model_str.endswith(".engine"):
+            try:
+                with open(model_path, "rb") as f:
+                    # Check for embedded Ultralytics metadata
+                    f.seek(-4, 2)  # seek to 4 bytes before end
+                    meta_len = int.from_bytes(f.read(4), byteorder="little")
+                    f.seek(-4 - meta_len, 2)
+                    metadata = json.loads(f.read(meta_len).decode("utf-8"))
+                    return metadata.get("architecture", None)
+            except Exception:
+                pass
+
+        # Directory-based formats (OpenVINO, PaddlePaddle, NCNN, RKNN, etc.)
+        elif model_path.is_dir() or any(
+            suffix in model_str
+            for suffix in [
+                "_saved_model",
+                "_paddle_model",
+                "_ncnn_model",
+                "_rknn_model",
+                "openvino_model",
+                "_imx_model",
+            ]
+        ):
+            # Look for metadata.yaml in the directory
+            if model_path.is_dir():
+                metadata_file = model_path / "metadata.yaml"
+            else:
+                # Handle naming patterns like "model_saved_model" -> "model_saved_model/"
+                if model_path.exists() and model_path.is_file():
+                    # File exists, try parent directory
+                    metadata_file = model_path.parent / "metadata.yaml"
+                else:
+                    # Assume it's a directory path even if it doesn't exist yet
+                    metadata_file = model_path / "metadata.yaml"
+
+            if metadata_file.exists():
+                try:
+                    metadata = YAML.load(metadata_file)
+                    return metadata.get("architecture", None)
+                except Exception:
+                    pass
+
+        # TFLite format
+        elif model_str.endswith(".tflite"):
+            try:
+                import zipfile
+
+                with zipfile.ZipFile(model_path, "r") as zf:
+                    for name in zf.namelist():
+                        if name == "metadata.json":
+                            contents = zf.read(name).decode("utf-8")
+                            metadata = json.loads(contents)
+                            return metadata.get("architecture", None)
+            except Exception:
+                pass
+
+        return None
+
+    # Try to get architecture from model metadata first, then fall back to filename inference
+    architecture = get_model_architecture(model)
+
+    # Normalize architecture naming for consistent routing
+    if architecture:
+        # Handle both original and previous naming conventions for backward compatibility
+        if architecture in ("RT-DETR", "rt-detr"):
+            architecture = "RTDETR"
+        elif architecture in ("YOLO-World", "yolo-world"):
+            architecture = "YOLOWorld"
+        else:
+            architecture = architecture.upper()
+
+    if architecture == "RTDETR" or (architecture is None and "rtdetr" in stem):  # use metadata or guess from filename
         from ultralytics import RTDETR
 
         model = RTDETR(model)  # no task argument
-    elif "fastsam" in stem:
+    elif architecture is None and "fastsam" in stem:
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam_" in stem or "sam2_" in stem or "sam2.1_" in stem:
+    elif architecture is None and ("sam_" in stem or "sam2_" in stem or "sam2.1_" in stem):
         from ultralytics import SAM
 
         model = SAM(model)
@@ -954,7 +1057,7 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import YOLO
 
         model = YOLO(model, task=task)
-        if "yoloe" in stem or "world" in stem:
+        if architecture in ("YOLOWORLD", "YOLOE") or (architecture is None and ("yoloe" in stem or "world" in stem)):
             cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
             if cls_list is not None and isinstance(cls_list, str):
                 model.set_classes(cls_list.split(","))  # convert "person, bus" -> ['person', ' bus'].

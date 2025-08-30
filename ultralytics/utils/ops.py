@@ -370,7 +370,7 @@ def clip_coords(coords, shape):
     Returns:
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
-    h, w, _ = shape
+    h, w = shape
     if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
         coords[..., 0] = coords[..., 0].clamp(0, w)  # x
         coords[..., 1] = coords[..., 1].clamp(0, h)  # y
@@ -397,7 +397,7 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
     im0_h, im0_w = im0_shape
-    im1_h, im1_w = masks.shape[:2]
+    im1_h, im1_w, _ = masks.shape
     if (im1_h, im1_w) == im0_shape:
         return masks
 
@@ -778,9 +778,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Rescale segment coordinates from img1_shape to img0_shape.
 
     Args:
-        img1_shape (tuple): Shape of the source image.
+        img1_shape (tuple): Source image shape as (height, width).
         coords (torch.Tensor): Coordinates to scale with shape (N, 2).
-        img0_shape (tuple): Shape of the target image.
+        img0_shape (tuple): Image 0 shape as (height, width).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
         normalize (bool): Whether to normalize coordinates to range [0, 1].
         padding (bool): Whether coordinates are based on YOLO-style augmented images with padding.

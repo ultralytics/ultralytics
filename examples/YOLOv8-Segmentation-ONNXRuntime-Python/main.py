@@ -8,9 +8,8 @@ import numpy as np
 import onnxruntime as ort
 import torch
 
-import ultralytics.utils.ops as ops
 from ultralytics.engine.results import Results
-from ultralytics.utils import ASSETS, YAML
+from ultralytics.utils import ASSETS, YAML, nms, ops
 from ultralytics.utils.checks import check_yaml
 
 
@@ -139,7 +138,7 @@ class YOLOv8Seg:
             (List[Results]): Processed detection results containing bounding boxes and segmentation masks.
         """
         preds, protos = [torch.from_numpy(p) for p in outs]
-        preds = ops.non_max_suppression(preds, self.conf, self.iou, nc=len(self.classes))
+        preds = nms.non_max_suppression(preds, self.conf, self.iou, nc=len(self.classes))
 
         results = []
         for i, pred in enumerate(preds):

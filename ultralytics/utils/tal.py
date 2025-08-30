@@ -387,7 +387,7 @@ def dist2bbox(distance, anchor_points, xywh=True, dim=-1):
     if xywh:
         c_xy = (x1y1 + x2y2) / 2
         wh = x2y2 - x1y1
-        return torch.cat((c_xy, wh), dim)  # xywh bbox
+        return torch.cat([c_xy, wh], dim)  # xywh bbox
     return torch.cat((x1y1, x2y2), dim)  # xyxy bbox
 
 

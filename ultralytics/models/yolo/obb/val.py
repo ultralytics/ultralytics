@@ -9,6 +9,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
+from ultralytics.utils.nms import TorchNMS
 
 
 class OBBValidator(DetectionValidator):
@@ -281,7 +282,7 @@ class OBBValidator(DetectionValidator):
                 b = bbox[:, :5].clone()
                 b[:, :2] += c
                 # 0.3 could get results close to the ones from official merging script, even slightly better.
-                i = ops.nms_rotated(b, scores, 0.3)
+                i = TorchNMS.fast_nms(b, scores, 0.3, iou_func=batch_probiou)
                 bbox = bbox[i]
 
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)

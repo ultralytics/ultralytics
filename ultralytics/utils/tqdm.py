@@ -165,7 +165,7 @@ class TQDM:
 
         # For bytes with scaling, use binary units
         if self.unit in ("B", "bytes") and self.unit_scale:
-            for threshold, unit in [(1024**3, "GB/s"), (1024**2, "MB/s"), (1024, "KB/s")]:
+            for threshold, unit in [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]:  # 1 << 30, << 20, << 10
                 if rate >= threshold:
                     return f"{rate / threshold:.1f}{unit}"
             return f"{rate:.1f}B/s"

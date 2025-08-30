@@ -101,6 +101,8 @@ class BaseValidator:
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
         """
+        import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
+
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
         self.stride = None

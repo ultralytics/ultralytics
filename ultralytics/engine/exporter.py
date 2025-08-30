@@ -107,7 +107,9 @@ from ultralytics.utils.checks import (
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated
+from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils.nms import TorchNMS
+from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
@@ -1562,12 +1564,13 @@ class NMSModel(torch.nn.Module):
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (
                 partial(
-                    nms_rotated,
+                    TorchNMS.fast_nms,
                     use_triu=not (
                         self.is_tf
                         or (self.args.opset or 14) < 14
                         or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
                     ),
+                    iou_func=batch_probiou,
                 )
                 if self.obb
                 else nms

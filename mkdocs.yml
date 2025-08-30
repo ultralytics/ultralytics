@@ -686,6 +686,7 @@ nav:
           - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
+          - nms: reference/utils/nms.md
           - ops: reference/utils/ops.md
           - patches: reference/utils/patches.md
           - plotting: reference/utils/plotting.md

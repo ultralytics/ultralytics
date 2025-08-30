@@ -67,14 +67,47 @@ void Inference::RunInference(cv::Mat &frame) {
 	PostProcessing(frame); // Postprocess the inference results
 }
 
+cv::Mat Inference::Letterbox(const cv::Mat& image, const cv::Size& new_shape,
+                             cv::Scalar color, bool auto_pad, bool scale_fill,
+                             float* scale, int* pad_w, int* pad_h)
+{
+    int in_w = image.cols, in_h = image.rows;
+    float r = std::min((float)new_shape.width / in_w, (float)new_shape.height / in_h);
+    int new_unpad_w = std::round(in_w * r);
+    int new_unpad_h = std::round(in_h * r);
+    int dw = new_shape.width - new_unpad_w;
+    int dh = new_shape.height - new_unpad_h;
+
+    dw /= 2;  // divide padding into 2 sides
+    dh /= 2;
+
+    cv::Mat resized;
+    cv::resize(image, resized, cv::Size(new_unpad_w, new_unpad_h));
+
+    cv::Mat padded;
+    cv::copyMakeBorder(resized, padded, dh, new_shape.height - new_unpad_h - dh,
+                       dw, new_shape.width - new_unpad_w - dw,
+                       cv::BORDER_CONSTANT, color);
+
+    if (scale) *scale = r;
+    if (pad_w) *pad_w = dw;
+    if (pad_h) *pad_h = dh;
+
+    return padded;
+}
+
+
 // Method to preprocess the input frame
 void Inference::Preprocessing(const cv::Mat &frame) {
-	cv::Mat resized_frame;
-	cv::resize(frame, resized_frame, model_input_shape_, 0, 0, cv::INTER_AREA); // Resize the frame to match the model input shape
+	float r;
+    int pad_w, pad_h;
 
-	// Calculate scaling factor
-	scale_factor_.x = static_cast<float>(frame.cols / model_input_shape_.width);
-	scale_factor_.y = static_cast<float>(frame.rows / model_input_shape_.height);
+    cv::Mat resized_frame = Letterbox(frame, model_input_shape_, cv::Scalar(114, 114, 114),
+                               true, false, &r, &pad_w, &pad_h);
+	scale_factor_.x = r;
+    scale_factor_.y = r;
+    padding_.x = pad_w;
+    padding_.y = pad_h;
 
     ov::Tensor input_tensor = inference_request_.get_input_tensor();
     uint8_t* input_data = input_tensor.data<uint8_t>();
@@ -141,10 +174,10 @@ void Inference::PostProcessing(cv::Mat &frame) {
 // Method to get the bounding box in the correct scale
 cv::Rect Inference::GetBoundingBox(const cv::Rect &src) const {
 	cv::Rect box = src;
-	box.x = (box.x - box.width / 2) * scale_factor_.x;
-	box.y = (box.y - box.height / 2) * scale_factor_.y;
-	box.width *= scale_factor_.x;
-	box.height *= scale_factor_.y;
+	box.x = (box.x - padding_.x - box.width / 2) / scale_factor_.x ;
+	box.y = (box.y - padding_.y - box.height / 2) / scale_factor_.y;
+	box.width /= scale_factor_.x;
+	box.height /= scale_factor_.y;
 	return box;
 }
 
@@ -163,7 +196,7 @@ void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) c
 	cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);
 	
 	// Prepare the class label and confidence text
-	std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
+	std::string classString = classes_[class_id] + " " + std::to_string(confidence).substr(0, 4);
 	
 	// Get the size of the text box
 	cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);

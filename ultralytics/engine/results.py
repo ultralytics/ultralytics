@@ -681,12 +681,12 @@ class Results(SimpleClass, DataExportMixin):
             - For classification tasks, it returns the top 5 class probabilities and their corresponding class names.
             - The returned string is comma-separated and ends with a comma and a space.
         """
-        probs = self.probs
+        boxes = self.obb if self.obb is not None else self.boxes
         if len(self) == 0:
-            return "" if probs is not None else "(no detections), "
-        if probs is not None:
-            return f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
-        if boxes := self.boxes:
+            return "" if self.probs is not None else "(no detections), "
+        if self.probs is not None:
+            return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
+        if boxes:
             counts = boxes.cls.int().bincount()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
 

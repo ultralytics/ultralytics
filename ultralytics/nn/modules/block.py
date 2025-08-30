@@ -1143,7 +1143,8 @@ class C3k2(C2f):
             for _ in range(n)
         )
         self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
-        self.chattn = ChannelAttention(c1) if chattn else None
+        # self.chattn = ChannelAttention(c1) if chattn else None
+        self.chattn = CHAttention(c1) if chattn else None
         # self.add = c1 == c2
 
     def forward(self, x):

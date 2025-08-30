@@ -23,7 +23,6 @@ def non_max_suppression(
     max_time_img: float = 0.05,
     max_nms: int = 30000,
     max_wh: int = 7680,
-    in_place: bool = True,
     rotated: bool = False,
     end2end: bool = False,
     return_idxs: bool = False,
@@ -48,7 +47,6 @@ def non_max_suppression(
         max_time_img (float): Maximum time in seconds for processing one image.
         max_nms (int): Maximum number of boxes for NMS.
         max_wh (int): Maximum box width and height in pixels.
-        in_place (bool): Whether to modify the input prediction tensor in place.
         rotated (bool): Whether to handle Oriented Bounding Boxes (OBB).
         end2end (bool): Whether the model is end-to-end and doesn't require NMS.
         return_idxs (bool): Whether to return the indices of kept detections.
@@ -86,10 +84,7 @@ def non_max_suppression(
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
     if not rotated:
-        if in_place:
-            prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
-        else:
-            prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
+        prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
     t = time.time()
     output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs

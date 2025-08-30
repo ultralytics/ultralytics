@@ -512,7 +512,7 @@ class Results(SimpleClass, DataExportMixin):
             save (bool): Whether to save the annotated image.
             filename (str | None): Filename to save image if save is True.
             color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
-            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task.
+            txt_color (Tuple[int, int, int]): Specify the RGB text color for classification task.
 
         Returns:
             (np.ndarray): Annotated image as a numpy array.

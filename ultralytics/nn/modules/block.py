@@ -1421,8 +1421,8 @@ class CHAttention(nn.Module):
             attn_ratio (float): Attention ratio for key dimension.
         """
         super().__init__()
-        self.qk = nn.Conv2d(dim, 2 * dim, 1)
-        self.v = Conv(dim, dim, 1, act=False)
+        # self.qk = nn.Conv2d(dim, 2 * dim, 1)
+        # self.v = Conv(dim, dim, 1, act=False)
         self.proj = Conv(dim, dim, 1, act=False)
         self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
         self.pool = nn.AdaptiveAvgPool2d(1)
@@ -1439,11 +1439,11 @@ class CHAttention(nn.Module):
         """
         y = self.pool(x)
         B, C, H, W = x.shape
-        qk = self.qk(y)
-        q, k = qk.view(B, C, 2).split([1, 1], dim=2)
-        v = self.v(x)
-        # q, k = y.reshape(B, C, 1), y.reshape(B, C, 1)
-        # v = x
+        # qk = self.qk(y)
+        # q, k = qk.view(B, C, 2).split([1, 1], dim=2)
+        # v = self.v(x)
+        q, k = y.reshape(B, C, 1), y.reshape(B, C, 1)
+        v = x
         attn = q @ k.transpose(-2, -1)
         attn = attn.softmax(dim=-1).view(B, 1, C, C)
         x = (v.permute(0, 2, 3, 1) @ attn.transpose(-2, -1)).permute(0, 3, 1, 2) + self.pe(v.reshape(B, C, H, W))

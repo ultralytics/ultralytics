@@ -389,16 +389,16 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     Args:
         masks (np.ndarray): Resized and padded masks with shape [H, W, N] or [H, W, 3].
-        im0_shape (tuple): Original image shape as (height, width, channels).
+        im0_shape (tuple): Original image shape as HWC or HW (supports both).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
 
     Returns:
         (np.ndarray): Rescaled masks with shape [H, W, N] matching original image dimensions.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
-    im0_h, im0_w, _ = im0_shape
+    im0_h, im0_w = im0_shape[:2]  # supports both HWC or HW shapes
     im1_h, im1_w, _ = masks.shape
-    if (im1_h, im1_w) == im0_shape:
+    if im1_h == im0_h and im1_w == im0_w:
         return masks
 
     if ratio_pad is None:  # calculate from im0_shape
@@ -790,7 +790,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     """
     img0_h, img0_w = img0_shape[:2]  # supports both HWC or HW shapes
     if ratio_pad is None:  # calculate from img0_shape
-        img1_h, img1_w = img1_shape[:2]  # # supports both HWC or HW shapes
+        img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
         pad = (img1_w - img0_w * gain) / 2, (img1_h - img0_h * gain) / 2  # wh padding
     else:

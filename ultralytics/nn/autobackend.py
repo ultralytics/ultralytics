@@ -597,7 +597,7 @@ class AutoBackend(nn.Module):
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
-            LOGGER.warning(f"Metadata not found for 'model={model}'")
+            LOGGER.warning(f"Metadata not found for 'model={w}'")
 
         # Check names
         if "names" not in locals():  # names missing

@@ -1574,7 +1574,7 @@ class SimAttention(nn.Module):
         )
         q = q.softmax(dim=-1)  # (B, num_heads, 1, N)
         k = k * q  # (B, num_heads, head_dim, N)
-        k = k.sum(dim=-1, keepdim=True)  # (B, num_heads, head_dim, 1)
+        # k = k.sum(dim=-1, keepdim=True)  # (B, num_heads, head_dim, 1)
         # (B, num_heads, head_dim, 1) * (B, num_heads, head_dim, N)
         x = (F.silu(v) * k).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         return self.proj(x)

@@ -94,9 +94,20 @@ class MuonWithSGD(optim.Optimizer):
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
-                    update = muon_update(
-                        p.grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    state["momentum_buffer"].mul_(group["momentum"]).add_(p.grad)
+
+                    update = (
+                        p.grad.add(state["momentum_buffer"], alpha=group["momentum"])
+                        if group["nesterov"]
+                        else state["momentum_buffer"]
                     )
+                    if update.ndim == 4:  # for the case of conv filters
+                        update = update.view(len(update), -1)
+                    update = zeropower_via_newtonschulz5(update)
+                    update *= max(1, p.grad.size(-2) / p.grad.size(-1)) ** 0.5
+                    # update = muon_update(
+                    #     p.grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    # )
                     p.mul_(1 - group["lr"] * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-group["lr"])
 
@@ -107,13 +118,11 @@ class MuonWithSGD(optim.Optimizer):
                         p.grad = torch.zeros_like(p)  # Force synchronization
                     state = self.state[p]
                     if len(state) == 0:
-                        state["momentum_buffer"] = torch.clone(p.grad).detach()
-                    else:
-                        state["momentum_buffer"].mul_(group["momentum"]).add_(p.grad)
+                        state["momentum_buffer"] = torch.zeros_like(p)
+                    state["momentum_buffer"].mul_(group["momentum"]).add_(p.grad)
                     p.mul_(1 - group["lr"] * group["weight_decay"])
                     update = (
-                        # p.grad.lerp_(state["momentum_buffer"], group["momentum"])
-                        p.grad.add_(state["momentum_buffer"], alpha=group["momentum"])
+                        p.grad.add(state["momentum_buffer"], alpha=group["momentum"])
                         if group["nesterov"]
                         else state["momentum_buffer"]
                     )

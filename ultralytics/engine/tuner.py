@@ -96,6 +96,10 @@ class Tuner:
             "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
+        mongodb_uri = args.pop("mongodb_uri")
+        mongodb_db = args.pop("mongodb_db", "ultralytics")
+        mongodb_collection = args.pop("mongodb_collection", "tuner_results")
+
         self.args = get_cfg(overrides=args)
         self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
@@ -107,8 +111,8 @@ class Tuner:
         
         # MongoDB Atlas support (optional)
         self.mongodb = None
-        if hasattr(args, 'mongodb_uri') and args.mongodb_uri:
-            self._init_mongodb(args)
+        if mongodb_uri:
+            self._init_mongodb(args, mongodb_uri, mongodb_db, mongodb_collection)
         
         LOGGER.info(
             f"{self.prefix}Initialized Tuner instance with 'tune_dir={self.tune_dir}'\n"
@@ -143,7 +147,7 @@ class Tuner:
                 LOGGER.warning(f"{self.prefix}MongoDB connection failed (attempt {attempt + 1}), retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 
-    def _init_mongodb(self, args):
+    def _init_mongodb(self, args, mongodb_uri, mongodb_db, mongodb_collection):
         """
         Initialize MongoDB connection for distributed tuning.
         
@@ -152,21 +156,17 @@ class Tuner:
         from all workers for evolution.
         
         Args:
-            args (dict): Configuration object with MongoDB settings:
-                - mongodb_uri (str): MongoDB connection string, e.g.
-                  'mongodb+srv://username:password@cluster.mongodb.net/'
-                - mongodb_db (str, optional): Database name. Defaults to 'ultralytics'
-                - mongodb_collection (str, optional): Collection name. Defaults to 'tune_results'
+            - mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'
+            - mongodb_db (str, optional): Database name. Defaults to 'ultralytics'
+            - mongodb_collection (str, optional): Collection name. Defaults to 'tune_results'
                   
         Notes:
             - Creates a fitness index for fast queries of top results
             - Falls back to CSV-only mode if connection fails
             - Uses connection pooling and retry logic for production reliability
         """
-        self.mongodb = self._connect(args.mongodb_uri)
-        db_name = getattr(args, 'mongodb_db', 'ultralytics')
-        collection_name = getattr(args, 'mongodb_collection', 'tune_results')
-        self.collection = self.mongodb[db_name][collection_name]
+        self.mongodb = self._connect(mongodb_uri)
+        self.collection = self.mongodb[mongodb_db][mongodb_collection]
         self.collection.create_index([('fitness', -1)], background=True)
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
             

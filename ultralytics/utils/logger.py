@@ -263,7 +263,6 @@ class SystemLogger:
 
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
-        self.process = psutil.Process()
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
 
@@ -316,6 +315,8 @@ class SystemLogger:
         Returns:
             metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
         """
+        import psutil  # scoped as slow import
+
         net = psutil.net_io_counters()
         disk = psutil.disk_io_counters()
         memory = psutil.virtual_memory()

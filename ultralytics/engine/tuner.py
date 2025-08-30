@@ -23,12 +23,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-try:
-    from pymongo import MongoClient
-    from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
-    MONGODB_AVAILABLE = True
-except ImportError:
-    MONGODB_AVAILABLE = False
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
@@ -113,7 +107,7 @@ class Tuner:
         
         # MongoDB Atlas support (optional)
         self.mongodb = None
-        if hasattr(args, 'mongodb_uri') and args.mongodb_uri and MONGODB_AVAILABLE:
+        if hasattr(args, 'mongodb_uri') and args.mongodb_uri:
             self._init_mongodb(args)
         
         LOGGER.info(
@@ -121,8 +115,11 @@ class Tuner:
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
         )
 
-    def _connect_with_retry(self, uri: str, max_retries: int = 3) -> MongoClient:
+    def _connect_with_retry(self, uri: str, max_retries: int = 3):
         """Create MongoDB client with exponential backoff retry on connection failures."""
+        from pymongo import MongoClient
+        from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+
         for attempt in range(max_retries):
             try:
                 client = MongoClient(
@@ -148,16 +145,12 @@ class Tuner:
                 
     def _init_mongodb(self, args):
         """Initialize MongoDB connection for distributed tuning."""
-        try:
-            self.mongodb = self._connect_with_retry(args.mongodb_uri)
-            db_name = getattr(args, 'mongodb_db', 'ultralytics')
-            collection_name = getattr(args, 'mongodb_collection', 'tune_results')
-            self.collection = self.mongodb[db_name][collection_name]
-            self.collection.create_index([('fitness', -1)], background=True)
-            LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
-        except Exception as e:
-            LOGGER.warning(f"{self.prefix}MongoDB connection failed, using CSV: {e}")
-            self.mongodb = None
+        self.mongodb = self._connect_with_retry(args.mongodb_uri)
+        db_name = getattr(args, 'mongodb_db', 'ultralytics')
+        collection_name = getattr(args, 'mongodb_collection', 'tune_results')
+        self.collection = self.mongodb[db_name][collection_name]
+        self.collection.create_index([('fitness', -1)], background=True)
+        LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
             
     def _get_mongodb_results(self, n: int = 5) -> List:
         """Get top N results from MongoDB."""
@@ -203,7 +196,11 @@ class Tuner:
             LOGGER.warning(f"{self.prefix}MongoDB to CSV sync failed: {e}")
 
     def _mutate(
-        self, parent: str = "single", n: int = 5, mutation: float = 0.8, sigma: float = 0.2
+        self,
+        parent: str = "single",
+        n: int = 5,
+        mutation: float = 0.8,
+        sigma: float = 0.2
     ) -> Dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.

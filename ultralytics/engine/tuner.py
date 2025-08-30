@@ -34,7 +34,8 @@ class Tuner:
     A class for hyperparameter tuning of YOLO models.
 
     The class evolves YOLO model hyperparameters over a given number of iterations by mutating them according to the
-    search space and retraining the model to evaluate their performance.
+    search space and retraining the model to evaluate their performance. Supports both local CSV storage and
+    distributed MongoDB Atlas coordination for multi-machine hyperparameter optimization.
 
     Attributes:
         space (Dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
@@ -43,6 +44,8 @@ class Tuner:
         args (dict): Configuration arguments for the tuning process.
         callbacks (list): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
+        mongodb (MongoClient): Optional MongoDB client for distributed tuning.
+        collection (Collection): MongoDB collection for storing tuning results.
 
     Methods:
         _mutate: Mutate hyperparameters based on bounds and scaling factors.
@@ -52,10 +55,27 @@ class Tuner:
         Tune hyperparameters for YOLO11n on COCO8 at imgsz=640 and epochs=30 for 300 tuning iterations.
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, plots=False, save=False, val=False)
+        >>> model.tune(
+        >>>     data="coco8.yaml",
+        >>>     epochs=10,
+        >>>     iterations=300,
+        >>>     plots=False,
+        >>>     save=False,
+        >>>     val=False
+        >>> )
 
-        Tune with custom search space.
-        >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
+        Tune with distributed MongoDB Atlas coordination across multiple machines:
+        >>> model.tune(
+        >>>     data="coco8.yaml",
+        >>>     epochs=10,
+        >>>     iterations=300,
+        >>>     mongodb_uri="mongodb+srv://user:pass@cluster.mongodb.net/",
+        >>>     mongodb_db="ultralytics",
+        >>>     mongodb_collection="tune_results"
+        >>> )
+
+        Tune with custom search space:
+        >>> model.tune(space={"lr0": (1e-5, 1e-1), "momentum": (0.6, 0.98)})
     """
 
     def __init__(self, args=DEFAULT_CFG, _callbacks: Optional[List] = None):
@@ -117,7 +137,16 @@ class Tuner:
         )
 
     def _connect(self, uri: str = "mongodb+srv://username:password@cluster.mongodb.net/", max_retries: int = 3):
-        """Create MongoDB client with exponential backoff retry on connection failures."""
+        """
+        Create MongoDB client with exponential backoff retry on connection failures.
+        
+        Args:
+            uri (str): MongoDB connection string with credentials and cluster information.
+            max_retries (int): Maximum number of connection attempts before giving up.
+            
+        Returns:
+            (MongoClient): Connected MongoDB client instance.
+        """
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
@@ -170,14 +199,29 @@ class Tuner:
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
     def _get_mongodb_results(self, n: int = 5) -> List:
-        """Get top N results from MongoDB."""
+        """
+        Get top N results from MongoDB sorted by fitness.
+        
+        Args:
+            n (int): Number of top results to retrieve.
+            
+        Returns:
+            (List[Dict]): List of result documents with fitness scores and hyperparameters.
+        """
         try:
             return list(self.collection.find().sort("fitness", -1).limit(n))
         except Exception:
             return []
 
     def _save_to_mongodb(self, fitness: float, hyperparameters: Dict[str, float], iteration: int):
-        """Save results to MongoDB with proper type conversion."""
+        """
+        Save results to MongoDB with proper type conversion.
+        
+        Args:
+            fitness (float): Fitness score achieved with these hyperparameters.
+            hyperparameters (Dict[str, float]): Dictionary of hyperparameter values.
+            iteration (int): Current iteration number.
+        """
         try:
             self.collection.insert_one(
                 {
@@ -191,7 +235,12 @@ class Tuner:
             LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
 
     def _sync_mongodb_to_csv(self):
-        """Sync MongoDB results to CSV for plotting compatibility."""
+        """
+        Sync MongoDB results to CSV for plotting compatibility.
+        
+        Downloads all results from MongoDB and writes them to the local CSV file in chronological order.
+        This enables the existing plotting functions to work seamlessly with distributed MongoDB data.
+        """
         try:
             # Get all results from MongoDB
             all_results = list(self.collection.find().sort("iteration", 1))
@@ -276,21 +325,17 @@ class Tuner:
         """
         Execute the hyperparameter evolution process when the Tuner instance is called.
 
-        This method iterates through the number of iterations, performing the following steps in each iteration:
-
-        1. Load the existing hyperparameters or initialize new ones.
-        2. Mutate the hyperparameters using the `_mutate` method.
-        3. Train a YOLO model with the mutated hyperparameters.
-        4. Log the fitness score and mutated hyperparameters to a CSV file.
+        This method iterates through the specified number of iterations, performing the following steps:
+        1. Sync MongoDB results to CSV (if using distributed mode)
+        2. Mutate hyperparameters using the best previous results or defaults
+        3. Train a YOLO model with the mutated hyperparameters
+        4. Log fitness scores and hyperparameters to MongoDB and/or CSV
+        5. Track the best performing configuration across all iterations
 
         Args:
-            model (Model): A pre-initialized YOLO model to be used for training.
+            model (Model, optional): A pre-initialized YOLO model to be used for training.
             iterations (int): The number of generations to run the evolution for.
-            cleanup (bool): Whether to delete iteration weights to reduce storage space used during tuning.
-
-        Note:
-            The method utilizes the `self.tune_csv` Path object to read and log hyperparameters and fitness scores.
-            Ensure this path is set correctly in the Tuner instance.
+            cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """
         t0 = time.time()
         best_save_dir, best_metrics = None, None

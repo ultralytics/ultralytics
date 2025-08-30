@@ -115,7 +115,7 @@ class Tuner:
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
         )
 
-    def _connect_with_retry(self, uri: str, max_retries: int = 3):
+    def _connect(self, uri: str = "mongodb+srv://username:password@cluster.mongodb.net/", max_retries: int = 3):
         """Create MongoDB client with exponential backoff retry on connection failures."""
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
@@ -144,8 +144,26 @@ class Tuner:
                 time.sleep(wait_time)
                 
     def _init_mongodb(self, args):
-        """Initialize MongoDB connection for distributed tuning."""
-        self.mongodb = self._connect_with_retry(args.mongodb_uri)
+        """
+        Initialize MongoDB connection for distributed tuning.
+        
+        Connects to MongoDB Atlas for distributed hyperparameter optimization across multiple machines.
+        Each worker saves results to a shared collection and reads the latest best hyperparameters
+        from all workers for evolution.
+        
+        Args:
+            args (dict): Configuration object with MongoDB settings:
+                - mongodb_uri (str): MongoDB connection string, e.g.
+                  'mongodb+srv://username:password@cluster.mongodb.net/'
+                - mongodb_db (str, optional): Database name. Defaults to 'ultralytics'
+                - mongodb_collection (str, optional): Collection name. Defaults to 'tune_results'
+                  
+        Notes:
+            - Creates a fitness index for fast queries of top results
+            - Falls back to CSV-only mode if connection fails
+            - Uses connection pooling and retry logic for production reliability
+        """
+        self.mongodb = self._connect(args.mongodb_uri)
         db_name = getattr(args, 'mongodb_db', 'ultralytics')
         collection_name = getattr(args, 'mongodb_collection', 'tune_results')
         self.collection = self.mongodb[db_name][collection_name]

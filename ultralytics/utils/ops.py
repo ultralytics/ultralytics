@@ -3,6 +3,7 @@
 import contextlib
 import math
 import re
+import sys
 import time
 from typing import Optional
 
@@ -292,9 +293,9 @@ def non_max_suppression(
             i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Speed strategy: torchvision for validation (fast), TorchNMS for prediction (low latency)
-            if conf_thres <= 0.01:
-                import torchvision
+            # Speed strategy: torchvision for val or already loaded (faster), TorchNMS for predict (lower latency)
+            if "torchvision" in sys.modules:
+                import torchvision  # scope as slow import
 
                 i = torchvision.ops.nms(boxes, scores, iou_thres)
             else:

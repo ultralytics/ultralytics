@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
-from ultralytics.utils import MACOS14
+from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
@@ -409,7 +409,7 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                if not MACOS14:
+                if NOT_MACOS14:
                     y[:, 2::ndim].sigmoid_()
                 else: # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
                     y[:, 2::ndim] = y[:, 2::ndim].sigmoid()

@@ -23,7 +23,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.patches import torch_load

@@ -9,8 +9,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import psutil
-
 from ultralytics.utils import MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
@@ -261,6 +259,8 @@ class SystemLogger:
 
     def __init__(self):
         """Initialize the system logger."""
+        import psutil  # scoped as slow import
+
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
         self.process = psutil.Process()

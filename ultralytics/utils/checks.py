@@ -637,7 +637,7 @@ def check_yolo(verbose=True, device=""):
         verbose (bool): Whether to print verbose information.
         device (str | torch.device): Device to use for YOLO.
     """
-    import psutil
+    import psutil  # scoped as slow import
 
     from ultralytics.utils.torch_utils import select_device
 
@@ -670,7 +670,7 @@ def collect_system_info():
     Returns:
         (dict): Dictionary containing system information.
     """
-    import psutil
+    import psutil  # scoped as slow import
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info

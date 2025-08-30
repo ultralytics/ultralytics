@@ -255,7 +255,7 @@ def non_max_suppression(
     extra = prediction.shape[1] - nc - 4  # number of extra info
     mi = 4 + nc  # mask start index
     xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
-    xinds = torch.stack([torch.arange(len(i), device=prediction.device) for i in xc])[..., None]  # to track idxs
+    xinds = torch.arange(prediction.shape[-1], device=prediction.device).expand(bs, -1)[..., None]  # to track idxs
 
     # Settings
     # min_wh = 2  # (pixels) minimum box width and height
@@ -276,7 +276,9 @@ def non_max_suppression(
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
         filt = xc[xi]  # confidence
-        x, xk = x[filt], xk[filt]
+        x = x[filt]
+        if return_idxs:
+            xk = xk[filt]
 
         # Cat apriori labels if autolabelling
         if labels and len(labels[xi]) and not rotated:
@@ -296,17 +298,21 @@ def non_max_suppression(
         if multi_label:
             i, j = torch.where(cls > conf_thres)
             x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
-            xk = xk[i]
+            if return_idxs:
+                xk = xk[i]
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)
             filt = conf.view(-1) > conf_thres
             x = torch.cat((box, conf, j.float(), mask), 1)[filt]
-            xk = xk[filt]
+            if return_idxs:
+                xk = xk[filt]
 
         # Filter by class
         if classes is not None:
             filt = (x[:, 5:6] == classes).any(1)
-            x, xk = x[filt], xk[filt]
+            x = x[filt]
+            if return_idxs:
+                xk = xk[filt]
 
         # Check shape
         n = x.shape[0]  # number of boxes
@@ -314,7 +320,9 @@ def non_max_suppression(
             continue
         if n > max_nms:  # excess boxes
             filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
-            x, xk = x[filt], xk[filt]
+            x = x[filt]
+            if return_idxs:
+                xk = xk[filt]
 
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
         scores = x[:, 4]  # scores
@@ -332,7 +340,9 @@ def non_max_suppression(
                 i = TorchNMS.nms(boxes, scores, iou_thres)
         i = i[:max_det]  # limit detections
 
-        output[xi], keepi[xi] = x[i], xk[i].reshape(-1)
+        output[xi] = x[i]
+        if return_idxs:
+            keepi[xi] = xk[i].view(-1)
         if (time.time() - t) > time_limit:
             LOGGER.warning(f"NMS time limit {time_limit:.3f}s exceeded")
             break  # time limit exceeded

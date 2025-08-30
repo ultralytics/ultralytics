@@ -141,6 +141,9 @@ class Colors:
             ],
             dtype=np.uint8,
         )
+        self.RED_COLOR = (0, 0, 255)
+        self.GREEN_COLOR = (0, 255, 0)
+        self.BLUE_COLOR = (255, 0, 0)
 
     def __call__(self, i: int, bgr: bool = False) -> tuple:
         """

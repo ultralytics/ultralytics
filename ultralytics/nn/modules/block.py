@@ -1442,6 +1442,8 @@ class CHAttention(nn.Module):
         qk = self.qk(y)
         q, k = qk.view(B, C, 2).split([1, 1], dim=2)
         v = self.v(x)
+        # q, k = y.reshape(B, C, 1), y.reshape(B, C, 1)
+        # v = x
         attn = q @ k.transpose(-2, -1)
         attn = attn.softmax(dim=-1).view(B, 1, C, C)
         x = (v.permute(0, 2, 3, 1) @ attn.transpose(-2, -1)).permute(0, 3, 1, 2) + self.pe(v.reshape(B, C, H, W))

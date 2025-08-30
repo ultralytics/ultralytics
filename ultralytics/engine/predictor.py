@@ -389,7 +389,7 @@ class BasePredictor:
             verbose (bool): Whether to print verbose output.
         """
         self.model = AutoBackend(
-            weights=model or self.args.model,
+            model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,

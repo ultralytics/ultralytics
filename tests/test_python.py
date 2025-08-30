@@ -17,6 +17,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.engine.model import Model
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -740,3 +741,16 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+@pytest.mark.parametrize(
+    "model_url",
+    [
+        "http://localhost:8000/v2/models/yolo/versions/1/infer",
+        "https://localhost:8000/v2/models/yolo/versions/1/infer",
+        "https://localhost:8000/yolo/2",
+    ],
+)
+def test_triton_url_check(model_url):
+    """Test validation of triton url."""
+    assert Model.is_triton_model(model_url)

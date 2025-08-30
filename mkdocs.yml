@@ -691,6 +691,7 @@ nav:
           - plotting: reference/utils/plotting.md
           - tal: reference/utils/tal.md
           - torch_utils: reference/utils/torch_utils.md
+          - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
 

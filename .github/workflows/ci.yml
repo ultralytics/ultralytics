@@ -11,7 +11,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   schedule:
     - cron: "0 8 * * *" # runs at 08:00 UTC every day
   workflow_dispatch:
@@ -225,7 +224,7 @@ jobs:
           activate-environment: true
       - name: Install requirements
         run: |
-          uv pip install -e . pytest-cov
+          uv pip install -e . pytest-cov nvidia-ml-py
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

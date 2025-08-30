@@ -39,9 +39,19 @@ VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: List[str]) -> List[str]:
-    """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
-    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
+def img2label_paths(img_paths: List[str], labels_dirname: str = "labels") -> List[str]:
+    """
+    Convert image paths to label paths by replacing 'images' with the given labels directory and the extension with
+    '.txt'.
+
+    Args:
+        img_paths (List[str]): List of image file paths.
+        labels_dirname (str): Name of the labels directory. Defaults to "labels".
+
+    Returns:
+        List[str]: List of label file paths.
+    """
+    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}{labels_dirname}{os.sep}"  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 

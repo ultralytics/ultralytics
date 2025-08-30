@@ -110,4 +110,11 @@ class SegmentationPredictor(DetectionPredictor):
         if masks is not None:
             keep = masks.sum((-2, -1)) > 0  # only keep predictions with masks
             pred, masks = pred[keep], masks[keep]
-        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)
+        return Results(
+            orig_img,
+            path=img_path,
+            names=self.model.names,
+            boxes=pred[:, :6],
+            masks=masks,
+            single_cls=getattr(self.args, "single_cls", False),
+        )

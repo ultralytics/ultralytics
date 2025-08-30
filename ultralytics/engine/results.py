@@ -246,6 +246,7 @@ class Results(SimpleClass, DataExportMixin):
         keypoints: Optional[torch.Tensor] = None,
         obb: Optional[torch.Tensor] = None,
         speed: Optional[Dict[str, float]] = None,
+        single_cls: bool = False,
     ) -> None:
         """
         Initialize the Results class for storing and manipulating inference results.
@@ -260,6 +261,7 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             speed (Dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            single_cls (bool): Whether to treat all detections as a single class for visualization purposes.
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -285,6 +287,7 @@ class Results(SimpleClass, DataExportMixin):
         self.names = names
         self.path = path
         self.save_dir = None
+        self.single_cls = single_cls
         self._keys = "boxes", "masks", "probs", "keypoints", "obb"
 
     def __getitem__(self, idx):
@@ -527,7 +530,11 @@ class Results(SimpleClass, DataExportMixin):
         if img is None and isinstance(self.orig_img, torch.Tensor):
             img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
 
-        names = self.names
+        # Use "Object" for all classes when single_cls is True
+        if self.single_cls:
+            names = {i: "Object" for i in range(len(self.names))}
+        else:
+            names = self.names
         is_obb = self.obb is not None
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks

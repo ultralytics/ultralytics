@@ -103,12 +103,12 @@ class Tuner:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.prefix = colorstr("Tuner: ")
         callbacks.add_integration_callbacks(self)
-        
+
         # MongoDB Atlas support (optional)
         self.mongodb = None
-        if hasattr(args, 'mongodb_uri') and args.mongodb_uri:
+        if hasattr(args, "mongodb_uri") and args.mongodb_uri:
             self._init_mongodb(args)
-        
+
         LOGGER.info(
             f"{self.prefix}Initialized Tuner instance with 'tune_dir={self.tune_dir}'\n"
             f"{self.prefix}💡 Learn about tuning at https://docs.ultralytics.com/guides/hyperparameter-tuning"
@@ -139,64 +139,64 @@ class Tuner:
                 if attempt == max_retries - 1:
                     raise
                 wait_time = 2**attempt
-                LOGGER.warning(f"{self.prefix}MongoDB connection failed (attempt {attempt + 1}), retrying in {wait_time}s...")
+                LOGGER.warning(
+                    f"{self.prefix}MongoDB connection failed (attempt {attempt + 1}), retrying in {wait_time}s..."
+                )
                 time.sleep(wait_time)
-                
+
     def _init_mongodb(self, args):
         """Initialize MongoDB connection for distributed tuning."""
         self.mongodb = self._connect_with_retry(args.mongodb_uri)
-        db_name = getattr(args, 'mongodb_db', 'ultralytics')
-        collection_name = getattr(args, 'mongodb_collection', 'tune_results')
+        db_name = getattr(args, "mongodb_db", "ultralytics")
+        collection_name = getattr(args, "mongodb_collection", "tune_results")
         self.collection = self.mongodb[db_name][collection_name]
-        self.collection.create_index([('fitness', -1)], background=True)
+        self.collection.create_index([("fitness", -1)], background=True)
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
-            
+
     def _get_mongodb_results(self, n: int = 5) -> List:
         """Get top N results from MongoDB."""
         try:
-            return list(self.collection.find().sort('fitness', -1).limit(n))
+            return list(self.collection.find().sort("fitness", -1).limit(n))
         except Exception:
             return []
-            
+
     def _save_to_mongodb(self, fitness: float, hyperparameters: Dict[str, float], iteration: int):
         """Save results to MongoDB with proper type conversion."""
         try:
-            self.collection.insert_one({
-                'fitness': float(fitness),
-                'hyperparameters': {k: (v.item() if hasattr(v, 'item') else v) for k, v in hyperparameters.items()},
-                'timestamp': datetime.utcnow(),
-                'iteration': iteration
-            })
+            self.collection.insert_one(
+                {
+                    "fitness": float(fitness),
+                    "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
+                    "timestamp": datetime.utcnow(),
+                    "iteration": iteration,
+                }
+            )
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
-            
+
     def _sync_mongodb_to_csv(self):
         """Sync MongoDB results to CSV for plotting compatibility."""
         try:
             # Get all results from MongoDB
-            all_results = list(self.collection.find().sort('iteration', 1))
+            all_results = list(self.collection.find().sort("iteration", 1))
             if not all_results:
                 return
-                
+
             # Write to CSV
             headers = ",".join(["fitness"] + list(self.space.keys())) + "\n"
             with open(self.tune_csv, "w", encoding="utf-8") as f:
                 f.write(headers)
                 for result in all_results:
-                    fitness = result['fitness']
-                    hyp_values = [result['hyperparameters'][k] for k in self.space.keys()]
+                    fitness = result["fitness"]
+                    hyp_values = [result["hyperparameters"][k] for k in self.space.keys()]
                     log_row = [round(fitness, 5)] + hyp_values
                     f.write(",".join(map(str, log_row)) + "\n")
-                    
+
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB to CSV sync failed: {e}")
 
     def _mutate(
-        self,
-        parent: str = "single",
-        n: int = 5,
-        mutation: float = 0.8,
-        sigma: float = 0.2
+        self, parent: str = "single", n: int = 5, mutation: float = 0.8, sigma: float = 0.2
     ) -> Dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
@@ -214,19 +214,19 @@ class Tuner:
         if self.mongodb:
             results = self._get_mongodb_results(n)
             if results:
-                fitness = np.array([r['fitness'] for r in results])
-                x = np.array([[r['fitness']] + [r['hyperparameters'][k] for k in self.space.keys()] for r in results])
+                fitness = np.array([r["fitness"] for r in results])
+                x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
                 n = min(n, len(x))
         else:
             results = []
-            
+
         # Fall back to CSV if MongoDB unavailable or empty
         if not results and self.tune_csv.exists():
             x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
             fitness = x[:, 0]  # first column
             n = min(n, len(x))  # number of previous results to consider
             x = x[np.argsort(-fitness)][:n]  # top n mutations
-            
+
         # Mutate if we have data, otherwise use defaults
         if results or self.tune_csv.exists():
             w = x[:, 0] - x[:, 0].min() + 1e-6  # weights (sum > 0)

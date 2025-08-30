@@ -184,9 +184,9 @@ class Tuner:
         from all workers for evolution.
 
         Args:
-            - mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'
-            - mongodb_db (str, optional): Database name. Defaults to 'ultralytics'
-            - mongodb_collection (str, optional): Collection name. Defaults to 'tune_results'
+            mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'.
+            mongodb_db (str, optional): Database name.
+            mongodb_collection (str, optional): Collection name.
 
         Notes:
             - Creates a fitness index for fast queries of top results

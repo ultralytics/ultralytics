@@ -204,10 +204,11 @@ class AutoBackend(nn.Module):
                 model = model.to(device)
             else:  # pt file
                 from ultralytics.nn.tasks import attempt_load_weights
+
                 model = attempt_load_weights(
                     model if isinstance(model, list) else w, device=device, inplace=True, fuse=fuse
                 )
-            
+
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only

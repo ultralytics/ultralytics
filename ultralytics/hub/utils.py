@@ -5,9 +5,7 @@ import random
 import threading
 import time
 from pathlib import Path
-from typing import Any, Optional
-
-import requests
+from typing import Any
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -78,7 +76,7 @@ def request_with_credentials(url: str) -> Any:
     return output.eval_js("_hub_tmp")
 
 
-def requests_with_progress(method: str, url: str, **kwargs) -> requests.Response:
+def requests_with_progress(method: str, url: str, **kwargs):
     """
     Make an HTTP request using the specified method and URL, with an optional progress bar.
 
@@ -95,6 +93,8 @@ def requests_with_progress(method: str, url: str, **kwargs) -> requests.Response
           content length.
         - If 'progress' is a number then progress bar will display assuming content length = progress.
     """
+    import requests  # scoped as slow import
+
     progress = kwargs.pop("progress", False)
     if not progress:
         return requests.request(method, url, **kwargs)
@@ -120,7 +120,7 @@ def smart_request(
     verbose: bool = True,
     progress: bool = False,
     **kwargs,
-) -> Optional[requests.Response]:
+):
     """
     Make an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 

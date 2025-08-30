@@ -5,7 +5,7 @@ import random
 import threading
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from ultralytics import __version__
 from ultralytics.utils import (

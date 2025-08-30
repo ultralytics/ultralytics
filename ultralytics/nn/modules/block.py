@@ -1391,6 +1391,63 @@ class Attention(nn.Module):
         return x
 
 
+class CHAttention(nn.Module):
+    """
+    Attention module that performs self-attention on the input tensor.
+
+    Args:
+        dim (int): The input tensor dimension.
+        num_heads (int): The number of attention heads.
+        attn_ratio (float): The ratio of the attention key dimension to the head dimension.
+
+    Attributes:
+        num_heads (int): The number of attention heads.
+        head_dim (int): The dimension of each attention head.
+        key_dim (int): The dimension of the attention key.
+        scale (float): The scaling factor for the attention scores.
+        qkv (Conv): Convolutional layer for computing the query, key, and value.
+        proj (Conv): Convolutional layer for projecting the attended values.
+        pe (Conv): Convolutional layer for positional encoding.
+    """
+
+    def __init__(self, dim):
+        """
+        Initialize multi-head attention module.
+
+        Args:
+            dim (int): Input dimension.
+            num_heads (int): Number of attention heads.
+            attn_ratio (float): Attention ratio for key dimension.
+        """
+        super().__init__()
+        self.qk = nn.Conv2d(dim, 2 * dim, 1)
+        self.v = Conv(dim, dim, 1, act=False)
+        self.proj = Conv(dim, dim, 1, act=False)
+        self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
+        self.pool = nn.AdaptiveAvgPool2d(1)
+
+    def forward(self, x):
+        """
+        Forward pass of the Attention module.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            (torch.Tensor): The output tensor after self-attention.
+        """
+        y = self.pool(x)
+        B, C, H, W = x.shape
+        qk = self.qk(y)
+        q, k = qk.view(B, C, 2).split([1, 1], dim=2)
+        v = self.v(x)
+        attn = q @ k.transpose(-2, -1)
+        attn = attn.softmax(dim=-1)
+        x = (v.permute(0, 2, 3, 1) @ attn.transpose(-2, -1)).permute(0, 3, 1, 2) + self.pe(v.reshape(B, C, H, W))
+        x = self.proj(x)
+        return x
+
+
 class DSAttention(nn.Module):
     """
     Attention module that performs self-attention on the input tensor.

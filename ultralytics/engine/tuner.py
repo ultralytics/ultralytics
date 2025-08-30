@@ -297,11 +297,11 @@ class Tuner:
         t0 = time.time()
         best_save_dir, best_metrics = None, None
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
-        
+
         # Sync MongoDB to CSV at startup for proper resume logic
         if self.mongodb:
             self._sync_mongodb_to_csv()
-            
+
         start = 0
         if self.tune_csv.exists():
             x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)

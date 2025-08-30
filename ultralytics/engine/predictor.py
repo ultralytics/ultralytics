@@ -492,6 +492,13 @@ class BasePredictor:
     def show(self, p: str = ""):
         """Display an image in a window."""
         im = self.plotted_img
+
+        # Close all previous windows in image mode to avoid multiple popups
+        if self.dataset.mode == "image":
+            for w in self.windows:
+                cv2.destroyWindow(w)
+            self.windows.clear()
+
         if platform.system() == "Linux" and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(p, cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)

@@ -342,12 +342,12 @@ def clip_boxes(boxes, shape):
 
     Args:
         boxes (torch.Tensor | np.ndarray): Bounding boxes to clip.
-        shape (tuple): Image shape as (height, width, channels).
+        shape (tuple): Image shape as (height, width, channels) or (height, width).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
-    h, w, _ = shape
+    h, w = shape[:2]  # note can be HWC or HW
     if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
         boxes[..., 0] = boxes[..., 0].clamp(0, w)  # x1
         boxes[..., 1] = boxes[..., 1].clamp(0, h)  # y1

@@ -5,8 +5,6 @@ import statistics
 import time
 from typing import List, Optional, Tuple
 
-import requests
-
 
 class GCPRegions:
     """
@@ -101,6 +99,8 @@ class GCPRegions:
             >>> region, mean, std, min_lat, max_lat = GCPRegions._ping_region("us-central1", attempts=3)
             >>> print(f"Region {region} has mean latency: {mean:.2f}ms")
         """
+        import requests  # scoped as slow import
+
         url = f"https://{region}-docker.pkg.dev"
         latencies = []
         for _ in range(attempts):

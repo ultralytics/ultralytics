@@ -274,7 +274,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
-    import requests  # slow import
+    import requests  # scoped as slow import
 
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning

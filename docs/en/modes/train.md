@@ -246,7 +246,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 !!! info
 
-    For more information about training augmentation operations, see the [reference section](../reference/data/augment.md).
+    If you’re unsure what an augmentation does, the [YOLO Data Augmentation Guide](/guides/yolo-data-augmentation.md) shows how each one transforms training images.
 
 ## Logging
 

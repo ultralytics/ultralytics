@@ -155,7 +155,7 @@ class BaseValidator:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
-                weights=model or self.args.model,
+                model=model or self.args.model,
                 device=select_device(self.args.device, self.args.batch),
                 dnn=self.args.dnn,
                 data=self.args.data,

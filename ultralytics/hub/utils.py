@@ -76,7 +76,7 @@ def request_with_credentials(url: str) -> Any:
     return output.eval_js("_hub_tmp")
 
 
-def requests_with_progress(method: str, url: str, **kwargs) -> "requests.Response":
+def requests_with_progress(method: str, url: str, **kwargs):
     """
     Make an HTTP request using the specified method and URL, with an optional progress bar.
 
@@ -120,7 +120,7 @@ def smart_request(
     verbose: bool = True,
     progress: bool = False,
     **kwargs,
-) -> "Optional[requests.Response]":
+):
     """
     Make an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 

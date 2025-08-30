@@ -348,11 +348,11 @@ def clip_boxes(boxes, shape):
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
     h, w, _ = shape
-    if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        boxes[..., 0] = boxes[..., 0].clamp(0, w)  # x1
-        boxes[..., 1] = boxes[..., 1].clamp(0, h)  # y1
-        boxes[..., 2] = boxes[..., 2].clamp(0, w)  # x2
-        boxes[..., 3] = boxes[..., 3].clamp(0, h)  # y2
+    if isinstance(boxes, torch.Tensor):  # faster individually
+        boxes[..., 0].clamp_(0, w)  # x1
+        boxes[..., 1].clamp_(0, h)  # y1
+        boxes[..., 2].clamp_(0, w)  # x2
+        boxes[..., 3].clamp_(0, h)  # y2
     else:  # np.array (faster grouped)
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, w)  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, h)  # y1, y2
@@ -371,9 +371,9 @@ def clip_coords(coords, shape):
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
     h, w, _ = shape
-    if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        coords[..., 0] = coords[..., 0].clamp(0, w)  # x
-        coords[..., 1] = coords[..., 1].clamp(0, h)  # y
+    if isinstance(coords, torch.Tensor):  # faster individually
+        coords[..., 0].clamp_(0, w)  # x
+        coords[..., 1].clamp_(0, h)  # y
     else:  # np.array (faster grouped)
         coords[..., 0] = coords[..., 0].clip(0, w)  # x
         coords[..., 1] = coords[..., 1].clip(0, h)  # y

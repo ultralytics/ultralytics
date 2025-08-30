@@ -139,11 +139,11 @@ class Tuner:
     def _connect(self, uri: str = "mongodb+srv://username:password@cluster.mongodb.net/", max_retries: int = 3):
         """
         Create MongoDB client with exponential backoff retry on connection failures.
-        
+
         Args:
             uri (str): MongoDB connection string with credentials and cluster information.
             max_retries (int): Maximum number of connection attempts before giving up.
-            
+
         Returns:
             (MongoClient): Connected MongoDB client instance.
         """
@@ -201,10 +201,10 @@ class Tuner:
     def _get_mongodb_results(self, n: int = 5) -> List:
         """
         Get top N results from MongoDB sorted by fitness.
-        
+
         Args:
             n (int): Number of top results to retrieve.
-            
+
         Returns:
             (List[Dict]): List of result documents with fitness scores and hyperparameters.
         """
@@ -216,7 +216,7 @@ class Tuner:
     def _save_to_mongodb(self, fitness: float, hyperparameters: Dict[str, float], iteration: int):
         """
         Save results to MongoDB with proper type conversion.
-        
+
         Args:
             fitness (float): Fitness score achieved with these hyperparameters.
             hyperparameters (Dict[str, float]): Dictionary of hyperparameter values.
@@ -237,7 +237,7 @@ class Tuner:
     def _sync_mongodb_to_csv(self):
         """
         Sync MongoDB results to CSV for plotting compatibility.
-        
+
         Downloads all results from MongoDB and writes them to the local CSV file in chronological order.
         This enables the existing plotting functions to work seamlessly with distributed MongoDB data.
         """

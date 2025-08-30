@@ -1,8 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import ops
+from ultralytics.utils import ops, nms
 
 
 class DetectionPredictor(BasePredictor):
@@ -53,7 +52,7 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
-        preds = ops.non_max_suppression(
+        preds = nms.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,

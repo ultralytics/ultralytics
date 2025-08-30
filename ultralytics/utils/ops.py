@@ -365,12 +365,12 @@ def clip_coords(coords, shape):
 
     Args:
         coords (torch.Tensor | np.ndarray): Line coordinates to clip.
-        shape (tuple): Image shape as (height, width).
+        shape (tuple): Image shape as (height, width, channels).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
-    h, w = shape
+    h, w, _ = shape
     if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
         coords[..., 0] = coords[..., 0].clamp(0, w)  # x
         coords[..., 1] = coords[..., 1].clamp(0, h)  # y
@@ -389,14 +389,14 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     Args:
         masks (np.ndarray): Resized and padded masks with shape [H, W, N] or [H, W, 3].
-        im0_shape (tuple): Original image shape as (height, width).
+        im0_shape (tuple): Original image shape as (height, width, channels).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
 
     Returns:
         (np.ndarray): Rescaled masks with shape [H, W, N] matching original image dimensions.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
-    im0_h, im0_w = im0_shape
+    im0_h, im0_w, _ = im0_shape
     im1_h, im1_w, _ = masks.shape
     if (im1_h, im1_w) == im0_shape:
         return masks
@@ -780,7 +780,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Args:
         img1_shape (tuple): Source image shape as (height, width).
         coords (torch.Tensor): Coordinates to scale with shape (N, 2).
-        img0_shape (tuple): Image 0 shape as (height, width).
+        img0_shape (tuple): Image 0 shape as (height, width, channels).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
         normalize (bool): Whether to normalize coordinates to range [0, 1].
         padding (bool): Whether coordinates are based on YOLO-style augmented images with padding.
@@ -788,7 +788,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Returns:
         (torch.Tensor): Scaled coordinates.
     """
-    img0_h, img0_w = img0_shape
+    img0_h, img0_w, _ = img0_shape
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new

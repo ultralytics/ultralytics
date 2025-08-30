@@ -173,9 +173,6 @@ class Tuner:
             
     def _sync_mongodb_to_csv(self):
         """Sync MongoDB results to CSV for plotting compatibility."""
-        if not self.mongodb:
-            return
-            
         try:
             # Get all results from MongoDB
             all_results = list(self.collection.find().sort('iteration', 1))
@@ -313,7 +310,6 @@ class Tuner:
             fitness = metrics.get("fitness", 0.0)
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, i + 1)
-                # Sync MongoDB to CSV for plotting
                 self._sync_mongodb_to_csv()
             else:
                 # Save to CSV only if no MongoDB
@@ -336,7 +332,7 @@ class Tuner:
                 shutil.rmtree(weights_dir, ignore_errors=True)  # remove iteration weights/ dir to reduce storage space
 
             # Plot tune results
-            plot_tune_results(self.tune_csv)
+            plot_tune_results(str(self.tune_csv))
 
             # Save and print tune results
             header = (

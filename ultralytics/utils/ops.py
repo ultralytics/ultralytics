@@ -122,20 +122,18 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (
-            round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1),
-            round((img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1),
-        )  # wh padding
+        pad_x = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1)
+        pad_y = round((img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
-        pad = ratio_pad[1]
+        pad_x, pad_y = ratio_pad[1]
 
     if padding:
-        boxes[..., 0] -= pad[0]  # x padding
-        boxes[..., 1] -= pad[1]  # y padding
+        boxes[..., 0] -= pad_x  # x padding
+        boxes[..., 1] -= pad_y  # y padding
         if not xywh:
-            boxes[..., 2] -= pad[0]  # x padding
-            boxes[..., 3] -= pad[1]  # y padding
+            boxes[..., 2] -= pad_x  # x padding
+            boxes[..., 3] -= pad_y  # y padding
     boxes[..., :4] /= gain
     return clip_boxes(boxes, img0_shape)
 
@@ -344,19 +342,20 @@ def clip_boxes(boxes, shape):
 
     Args:
         boxes (torch.Tensor | np.ndarray): Bounding boxes to clip.
-        shape (tuple): Image shape as (height, width).
+        shape (tuple): Image shape as (height, width, channels).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
+    h, w, _ = shape
     if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        boxes[..., 0] = boxes[..., 0].clamp(0, shape[1])  # x1
-        boxes[..., 1] = boxes[..., 1].clamp(0, shape[0])  # y1
-        boxes[..., 2] = boxes[..., 2].clamp(0, shape[1])  # x2
-        boxes[..., 3] = boxes[..., 3].clamp(0, shape[0])  # y2
+        boxes[..., 0] = boxes[..., 0].clamp(0, w)  # x1
+        boxes[..., 1] = boxes[..., 1].clamp(0, h)  # y1
+        boxes[..., 2] = boxes[..., 2].clamp(0, w)  # x2
+        boxes[..., 3] = boxes[..., 3].clamp(0, h)  # y2
     else:  # np.array (faster grouped)
-        boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
-        boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
+        boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, w)  # x1, x2
+        boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, h)  # y1, y2
     return boxes
 
 
@@ -371,12 +370,13 @@ def clip_coords(coords, shape):
     Returns:
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
+    h, w, _ = shape
     if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        coords[..., 0] = coords[..., 0].clamp(0, shape[1])  # x
-        coords[..., 1] = coords[..., 1].clamp(0, shape[0])  # y
+        coords[..., 0] = coords[..., 0].clamp(0, w)  # x
+        coords[..., 1] = coords[..., 1].clamp(0, h)  # y
     else:  # np.array (faster grouped)
-        coords[..., 0] = coords[..., 0].clip(0, shape[1])  # x
-        coords[..., 1] = coords[..., 1].clip(0, shape[0])  # y
+        coords[..., 0] = coords[..., 0].clip(0, w)  # x
+        coords[..., 1] = coords[..., 1].clip(0, h)  # y
     return coords
 
 
@@ -396,25 +396,27 @@ def scale_image(masks, im0_shape, ratio_pad=None):
         (np.ndarray): Rescaled masks with shape [H, W, N] matching original image dimensions.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
-    im1_shape = masks.shape
-    if im1_shape[:2] == im0_shape[:2]:
+    im0_h, im0_w = im0_shape
+    im1_h, im1_w = masks.shape[:2]
+    if (im1_h, im1_w) == im0_shape:
         return masks
+
     if ratio_pad is None:  # calculate from im0_shape
-        gain = min(im1_shape[0] / im0_shape[0], im1_shape[1] / im0_shape[1])  # gain  = old / new
-        pad = (im1_shape[1] - im0_shape[1] * gain) / 2, (im1_shape[0] - im0_shape[0] * gain) / 2  # wh padding
+        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad = (im1_w - im0_w * gain) / 2, (im1_h - im0_h * gain) / 2  # wh padding
     else:
         pad = ratio_pad[1]
 
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))
-    bottom, right = (
-        im1_shape[0] - int(round(pad[1] + 0.1)),
-        im1_shape[1] - int(round(pad[0] + 0.1)),
-    )
+    pad_w, pad_h = pad
+    top = int(round(pad_h - 0.1))
+    left = int(round(pad_w - 0.1))
+    bottom = im1_h - int(round(pad_h + 0.1))
+    right = im1_w - int(round(pad_w + 0.1))
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
     masks = masks[top:bottom, left:right]
-    masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))
+    masks = cv2.resize(masks, (im0_w, im0_h))
     if len(masks.shape) == 2:
         masks = masks[:, :, None]
 
@@ -434,10 +436,11 @@ def xyxy2xywh(x):
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
-    y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
-    y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
-    y[..., 2] = x[..., 2] - x[..., 0]  # width
-    y[..., 3] = x[..., 3] - x[..., 1]  # height
+    x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = (x1 + x2) / 2  # x center
+    y[..., 1] = (y1 + y2) / 2  # y center
+    y[..., 2] = x2 - x1  # width
+    y[..., 3] = y2 - y1  # height
     return y
 
 
@@ -478,10 +481,12 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, padw: int = 0, padh: int = 0):
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
-    y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
-    y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
-    y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
-    y[..., 3] = h * (x[..., 1] + x[..., 3] / 2) + padh  # bottom right y
+    xc, yc, xw, xh = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    half_w, half_h = xw / 2, xh / 2
+    y[..., 0] = w * (xc - half_w) + padw  # top left x
+    y[..., 1] = h * (yc - half_h) + padh  # top left y
+    y[..., 2] = w * (xc + half_w) + padw  # bottom right x
+    y[..., 3] = h * (yc + half_h) + padh  # bottom right y
     return y
 
 
@@ -504,10 +509,11 @@ def xyxy2xywhn(x, w: int = 640, h: int = 640, clip: bool = False, eps: float = 0
         x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
-    y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
-    y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
-    y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
-    y[..., 3] = (x[..., 3] - x[..., 1]) / h  # height
+    x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = ((x1 + x2) / 2) / w  # x center
+    y[..., 1] = ((y1 + y2) / 2) / h  # y center
+    y[..., 2] = (x2 - x1) / w  # width
+    y[..., 3] = (y2 - y1) / h  # height
     return y
 
 
@@ -756,19 +762,15 @@ def scale_masks(masks, shape, padding: bool = True):
     """
     mh, mw = masks.shape[2:]
     gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
-    pad = [mw - shape[1] * gain, mh - shape[0] * gain]  # wh padding
+    pad_w = mw - shape[1] * gain
+    pad_h = mh - shape[0] * gain
     if padding:
-        pad[0] /= 2
-        pad[1] /= 2
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
-    bottom, right = (
-        mh - int(round(pad[1] + 0.1)),
-        mw - int(round(pad[0] + 0.1)),
-    )
-    masks = masks[..., top:bottom, left:right]
-
-    masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW
-    return masks
+        pad_w /= 2
+        pad_h /= 2
+    top, left = (int(round(pad_h - 0.1)), int(round(pad_w - 0.1))) if padding else (0, 0)
+    bottom = mh - int(round(pad_h + 0.1))
+    right = mw - int(round(pad_w + 0.1))
+    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear", align_corners=False)  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):
@@ -786,9 +788,11 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Returns:
         (torch.Tensor): Scaled coordinates.
     """
+    img0_h, img0_w = img0_shape
     if ratio_pad is None:  # calculate from img0_shape
-        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+        img1_h, img1_w = img1_shape
+        gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
+        pad = (img1_w - img0_w * gain) / 2, (img1_h - img0_h * gain) / 2  # wh padding
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
@@ -800,8 +804,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     coords[..., 1] /= gain
     coords = clip_coords(coords, img0_shape)
     if normalize:
-        coords[..., 0] /= img0_shape[1]  # width
-        coords[..., 1] /= img0_shape[0]  # height
+        coords[..., 0] /= img0_w  # width
+        coords[..., 1] /= img0_h  # height
     return coords
 
 

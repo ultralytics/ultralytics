@@ -238,8 +238,8 @@ class Tuner:
         """
         Sync MongoDB results to CSV for plotting compatibility.
 
-        Downloads all results from MongoDB and writes them to the local CSV file in chronological order.
-        This enables the existing plotting functions to work seamlessly with distributed MongoDB data.
+        Downloads all results from MongoDB and writes them to the local CSV file in chronological order. This enables
+        the existing plotting functions to work seamlessly with distributed MongoDB data.
         """
         try:
             # Get all results from MongoDB

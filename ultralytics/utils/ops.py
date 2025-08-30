@@ -354,7 +354,7 @@ def clip_boxes(boxes, shape):
             boxes[..., 1].clamp_(0, h)  # y1
             boxes[..., 2].clamp_(0, w)  # x2
             boxes[..., 3].clamp_(0, h)  # y2
-        else: # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
             boxes[..., 0] = boxes[..., 0].clamp(0, w)
             boxes[..., 1] = boxes[..., 1].clamp(0, h)
             boxes[..., 2] = boxes[..., 2].clamp(0, w)

@@ -371,10 +371,10 @@ def clip_coords(coords, shape):
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
-    if isinstance(coords, torch.Tensor):  # faster individually
+    if isinstance(coords, torch.Tensor):
         coords[..., 0].clamp_(0, w)  # x
         coords[..., 1].clamp_(0, h)  # y
-    else:  # np.array (faster grouped)
+    else:  # np.array
         coords[..., 0] = coords[..., 0].clip(0, w)  # x
         coords[..., 1] = coords[..., 1].clip(0, h)  # y
     return coords

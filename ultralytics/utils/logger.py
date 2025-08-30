@@ -10,7 +10,6 @@ from datetime import datetime
 from pathlib import Path
 
 import psutil
-import requests
 
 from ultralytics.utils import MACOS, RANK
 from ultralytics.utils.checks import check_requirements
@@ -189,6 +188,8 @@ class ConsoleLogger:
         """Write log to API endpoint or local file destination."""
         try:
             if self.is_api:
+                import requests  # scoped as slow import
+
                 payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
                 requests.post(self.destination, json=payload, timeout=5)
             else:

@@ -342,12 +342,12 @@ def clip_boxes(boxes, shape):
 
     Args:
         boxes (torch.Tensor | np.ndarray): Bounding boxes to clip.
-        shape (tuple): Image shape as (height, width, channels) or (height, width).
+        shape (tuple): Image shape as HWC or HW (supports both).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
-    h, w = shape[:2]  # note can be HWC or HW
+    h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(boxes, torch.Tensor):  # faster individually
         boxes[..., 0].clamp_(0, w)  # x1
         boxes[..., 1].clamp_(0, h)  # y1
@@ -365,12 +365,12 @@ def clip_coords(coords, shape):
 
     Args:
         coords (torch.Tensor | np.ndarray): Line coordinates to clip.
-        shape (tuple): Image shape as (height, width, channels).
+        shape (tuple): Image shape as HWC or HW (supports both).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
-    h, w, _ = shape
+    h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(coords, torch.Tensor):  # faster individually
         coords[..., 0].clamp_(0, w)  # x
         coords[..., 1].clamp_(0, h)  # y
@@ -389,16 +389,16 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     Args:
         masks (np.ndarray): Resized and padded masks with shape [H, W, N] or [H, W, 3].
-        im0_shape (tuple): Original image shape as (height, width, channels).
+        im0_shape (tuple): Original image shape as HWC or HW (supports both).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
 
     Returns:
         (np.ndarray): Rescaled masks with shape [H, W, N] matching original image dimensions.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
-    im0_h, im0_w, _ = im0_shape
+    im0_h, im0_w = im0_shape[:2]  # supports both HWC or HW shapes
     im1_h, im1_w, _ = masks.shape
-    if (im1_h, im1_w) == im0_shape:
+    if im1_h == im0_h and im1_w == im0_w:
         return masks
 
     if ratio_pad is None:  # calculate from im0_shape
@@ -778,9 +778,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Rescale segment coordinates from img1_shape to img0_shape.
 
     Args:
-        img1_shape (tuple): Source image shape as (height, width).
+        img1_shape (tuple): Source image shape as HWC or HW (supports both).
         coords (torch.Tensor): Coordinates to scale with shape (N, 2).
-        img0_shape (tuple): Image 0 shape as (height, width, channels).
+        img0_shape (tuple): Image 0 shape as HWC or HW (supports both).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
         normalize (bool): Whether to normalize coordinates to range [0, 1].
         padding (bool): Whether coordinates are based on YOLO-style augmented images with padding.
@@ -788,9 +788,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Returns:
         (torch.Tensor): Scaled coordinates.
     """
-    img0_h, img0_w, _ = img0_shape
+    img0_h, img0_w = img0_shape[:2]  # supports both HWC or HW shapes
     if ratio_pad is None:  # calculate from img0_shape
-        img1_h, img1_w = img1_shape
+        img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
         pad = (img1_w - img0_w * gain) / 2, (img1_h - img0_h * gain) / 2  # wh padding
     else:

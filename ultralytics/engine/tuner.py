@@ -129,7 +129,7 @@ class Tuner:
         # MongoDB Atlas support (optional)
         self.mongodb = None
         if mongodb_uri:
-            self._init_mongodb(args, mongodb_uri, mongodb_db, mongodb_collection)
+            self._init_mongodb(mongodb_uri, mongodb_db, mongodb_collection)
 
         LOGGER.info(
             f"{self.prefix}Initialized Tuner instance with 'tune_dir={self.tune_dir}'\n"
@@ -175,7 +175,7 @@ class Tuner:
                 )
                 time.sleep(wait_time)
 
-    def _init_mongodb(self, args, mongodb_uri, mongodb_db, mongodb_collection):
+    def _init_mongodb(self, mongodb_uri="", mongodb_db="", mongodb_collection=""):
         """
         Initialize MongoDB connection for distributed tuning.
 
@@ -261,7 +261,11 @@ class Tuner:
             LOGGER.warning(f"{self.prefix}MongoDB to CSV sync failed: {e}")
 
     def _mutate(
-        self, parent: str = "single", n: int = 5, mutation: float = 0.8, sigma: float = 0.2
+        self,
+        parent: str = "single",
+        n: int = 5,
+        mutation: float = 0.8,
+        sigma: float = 0.2,
     ) -> Dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.

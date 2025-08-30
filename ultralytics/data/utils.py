@@ -174,6 +174,8 @@ def verify_image(args: Tuple) -> Tuple:
         msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
     return (im_file, cls), nf, nc, msg
 
+def verify_image_and_mask(args: Tuple) -> List:
+    return
 
 def verify_image_label(args: Tuple) -> List:
     """Verify one image-label pair."""

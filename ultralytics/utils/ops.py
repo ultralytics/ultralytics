@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, NOT_MACOS14
 from ultralytics.utils.metrics import batch_probiou
 
 
@@ -348,11 +348,17 @@ def clip_boxes(boxes, shape):
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
-    if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        boxes[..., 0] = boxes[..., 0].clamp(0, w)  # x1
-        boxes[..., 1] = boxes[..., 1].clamp(0, h)  # y1
-        boxes[..., 2] = boxes[..., 2].clamp(0, w)  # x2
-        boxes[..., 3] = boxes[..., 3].clamp(0, h)  # y2
+    if isinstance(boxes, torch.Tensor):  # faster individually
+        if NOT_MACOS14:
+            boxes[..., 0].clamp_(0, w)  # x1
+            boxes[..., 1].clamp_(0, h)  # y1
+            boxes[..., 2].clamp_(0, w)  # x2
+            boxes[..., 3].clamp_(0, h)  # y2
+        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+            boxes[..., 0] = boxes[..., 0].clamp(0, w)
+            boxes[..., 1] = boxes[..., 1].clamp(0, h)
+            boxes[..., 2] = boxes[..., 2].clamp(0, w)
+            boxes[..., 3] = boxes[..., 3].clamp(0, h)
     else:  # np.array (faster grouped)
         boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, w)  # x1, x2
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, h)  # y1, y2
@@ -371,10 +377,14 @@ def clip_coords(coords, shape):
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
     h, w = shape[:2]  # supports both HWC or HW shapes
-    if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        coords[..., 0] = coords[..., 0].clamp(0, w)  # x
-        coords[..., 1] = coords[..., 1].clamp(0, h)  # y
-    else:  # np.array (faster grouped)
+    if isinstance(coords, torch.Tensor):
+        if NOT_MACOS14:
+            coords[..., 0].clamp_(0, w)  # x
+            coords[..., 1].clamp_(0, h)  # y
+        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+            coords[..., 0] = coords[..., 0].clamp(0, w)
+            coords[..., 1] = coords[..., 1].clamp(0, h)
+    else:  # np.array
         coords[..., 0] = coords[..., 0].clip(0, w)  # x
         coords[..., 1] = coords[..., 1].clip(0, h)  # y
     return coords

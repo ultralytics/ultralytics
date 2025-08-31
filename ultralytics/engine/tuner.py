@@ -113,7 +113,7 @@ class Tuner:
             "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
         }
-        mongodb_uri = args.pop("mongodb_uri")
+        mongodb_uri = args.pop("mongodb_uri", None)
         mongodb_db = args.pop("mongodb_db", "ultralytics")
         mongodb_collection = args.pop("mongodb_collection", "tuner_results")
 
@@ -302,7 +302,7 @@ class Tuner:
         # Mutate if we have data, otherwise use defaults
         if x is not None:
             w = x[:, 0] - x[:, 0].min() + 1e-6  # weights (sum > 0)
-            if parent == "single" or len(x) == 1:
+            if parent == "single" or len(x) <= 1:
                 x = x[random.choices(range(n), weights=w)[0]]  # weighted selection
             elif parent == "weighted":
                 x = (x * w.reshape(n, 1)).sum(0) / w.sum()  # weighted combination

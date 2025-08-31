@@ -36,7 +36,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
-    get_git_commit,
+    GIT_REPO,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -573,7 +573,12 @@ class BaseTrainer:
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
-                "git_commit": get_git_commit(),
+                "git": {
+                    "root": str(GIT_REPO.root),
+                    "branch": GIT_REPO.branch,
+                    "commit": GIT_REPO.commit,
+                    "origin": GIT_REPO.origin,
+                },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
             },

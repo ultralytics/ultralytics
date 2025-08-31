@@ -23,7 +23,7 @@ from ultralytics.utils import (
     TQDM,
     TryExcept,
     colorstr,
-    get_git_origin_url,
+    GIT_REPO,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info
@@ -219,7 +219,7 @@ class Events:
             and RANK in {-1, 0}
             and not TESTS_RUNNING
             and ONLINE
-            and (IS_PIP_PACKAGE or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+            and (IS_PIP_PACKAGE or GIT_REPO.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
     def __call__(self, cfg, device=None):

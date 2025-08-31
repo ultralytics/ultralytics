@@ -770,7 +770,7 @@ def is_online() -> bool:
             pass
 
     # Minimal TCP fallback (quick, robust)
-    #for target in (("1.1.1.1", 80), ("8.8.8.8", 53)):
+    # for target in (("1.1.1.1", 80), ("8.8.8.8", 53)):
     #    try:
     #        socket.create_connection(target, timeout=0.3).close()
     #        return True

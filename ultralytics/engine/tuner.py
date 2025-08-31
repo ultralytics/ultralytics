@@ -21,7 +21,6 @@ import shutil
 import subprocess
 import time
 from datetime import datetime
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -80,7 +79,7 @@ class Tuner:
         >>> model.tune(space={"lr0": (1e-5, 1e-1), "momentum": (0.6, 0.98)})
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks: Optional[List] = None):
+    def __init__(self, args=DEFAULT_CFG, _callbacks: list | None = None):
         """
         Initialize the Tuner with configurations.
 
@@ -200,7 +199,7 @@ class Tuner:
         self.collection.create_index([("fitness", -1)], background=True)
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
-    def _get_mongodb_results(self, n: int = 5) -> List:
+    def _get_mongodb_results(self, n: int = 5) -> list:
         """
         Get top N results from MongoDB sorted by fitness.
 
@@ -215,7 +214,7 @@ class Tuner:
         except Exception:
             return []
 
-    def _save_to_mongodb(self, fitness: float, hyperparameters: Dict[str, float], metrics: Dict, iteration: int):
+    def _save_to_mongodb(self, fitness: float, hyperparameters: dict[str, float], metrics: dict, iteration: int):
         """
         Save results to MongoDB with proper type conversion.
 
@@ -270,7 +269,7 @@ class Tuner:
         n: int = 5,
         mutation: float = 0.8,
         sigma: float = 0.2,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 

@@ -733,7 +733,7 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
     path = Path(path)
     if path.is_dir():
         # Process directory
-        im_files = sum([list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})], [])
+        im_files = sum((list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})), [])
         for im_path in im_files:
             try:
                 convert_to_multispectral(im_path, n_channels)

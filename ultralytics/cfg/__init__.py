@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import shutil
@@ -6,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from ultralytics import __version__
 from ultralytics.utils import (

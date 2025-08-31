@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 import contextlib
@@ -18,7 +19,6 @@ from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
-from typing import Union
 from urllib.parse import unquote
 
 import cv2

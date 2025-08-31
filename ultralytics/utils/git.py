@@ -132,6 +132,12 @@ class GitRepo:
 
 
 if __name__ == "__main__":
+    import time
+
     g = GitRepo()
     if g.is_repo:
+        t0 = time.perf_counter()
         print(f"repo={g.root}\nbranch={g.branch}\ncommit={g.commit}\norigin={g.origin}")
+        dt = (time.perf_counter() - t0) * 1000
+        print(f"\n⏱️ Profiling: total {dt:.3f} ms")
+

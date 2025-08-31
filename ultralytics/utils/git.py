@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from functools import cached_property
 from pathlib import Path
 
@@ -19,10 +21,12 @@ class GitRepo:
     def _gitdir(root: Path) -> Path | None:
         """Resolve actual .git directory (handles worktrees)."""
         g = root / ".git"
-        if g.is_dir(): return g
+        if g.is_dir():
+            return g
         if g.is_file():
             t = g.read_text(errors="ignore").strip()
-            if t.startswith("gitdir:"): return (root / t.split(":", 1)[1].strip()).resolve()
+            if t.startswith("gitdir:"):
+                return (root / t.split(":", 1)[1].strip()).resolve()
         return None
 
     def _read(self, p: Path | None) -> str | None:
@@ -38,14 +42,17 @@ class GitRepo:
         """Commit for ref (handles packed-refs)."""
         rf = self.gitdir / ref
         s = self._read(rf)
-        if s: return s
+        if s:
+            return s
         pf = self.gitdir / "packed-refs"
         b = pf.read_bytes().splitlines() if pf.exists() else []
         tgt = ref.encode()
         for line in b:
-            if line[:1] in (b"#", b"^") or b" " not in line: continue
+            if line[:1] in (b"#", b"^") or b" " not in line:
+                continue
             sha, name = line.split(b" ", 1)
-            if name.strip() == tgt: return sha.decode()
+            if name.strip() == tgt:
+                return sha.decode()
         return None
 
     @property
@@ -56,27 +63,32 @@ class GitRepo:
     @cached_property
     def branch(self) -> str | None:
         """Current branch or None."""
-        if not self.is_repo or not self.head or not self.head.startswith("ref: "): return None
+        if not self.is_repo or not self.head or not self.head.startswith("ref: "):
+            return None
         ref = self.head[5:].strip()
-        return ref[len("refs/heads/"):] if ref.startswith("refs/heads/") else ref
+        return ref[len("refs/heads/") :] if ref.startswith("refs/heads/") else ref
 
     @cached_property
     def commit(self) -> str | None:
         """Current commit SHA or None."""
-        if not self.is_repo or not self.head: return None
+        if not self.is_repo or not self.head:
+            return None
         return self._ref_commit(self.head[5:].strip()) if self.head.startswith("ref: ") else self.head
 
     @cached_property
     def origin(self) -> str | None:
         """Origin URL or None."""
-        if not self.is_repo: return None
+        if not self.is_repo:
+            return None
         cfg = self.gitdir / "config"
         remote, url = None, None
         for s in (self._read(cfg) or "").splitlines():
             t = s.strip()
-            if t.startswith("[") and t.endswith("]"): remote = t.lower()
+            if t.startswith("[") and t.endswith("]"):
+                remote = t.lower()
             elif t.lower().startswith("url =") and remote == '[remote "origin"]':
-                url = t.split("=", 1)[1].strip(); break
+                url = t.split("=", 1)[1].strip()
+                break
         return url
 
 

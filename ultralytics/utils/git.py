@@ -140,4 +140,3 @@ if __name__ == "__main__":
         print(f"repo={g.root}\nbranch={g.branch}\ncommit={g.commit}\norigin={g.origin}")
         dt = (time.perf_counter() - t0) * 1000
         print(f"\n⏱️ Profiling: total {dt:.3f} ms")
-

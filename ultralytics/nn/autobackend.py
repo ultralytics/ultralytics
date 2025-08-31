@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import ast
 import json
 import platform
@@ -134,7 +136,7 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        model: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        model: Union[str, torch.nn.Module] = "yolo11n.pt",
         device: torch.device = torch.device("cpu"),
         dnn: bool = False,
         data: Optional[Union[str, Path]] = None,
@@ -146,7 +148,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            model (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
+            model (str | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device): Device to run the model on.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
@@ -155,7 +157,6 @@ class AutoBackend(nn.Module):
             verbose (bool): Enable verbose logging.
         """
         super().__init__()
-        w = str(model[0] if isinstance(model, list) else model)
         nn_module = isinstance(model, torch.nn.Module)
         (
             pt,
@@ -175,7 +176,7 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             triton,
-        ) = self._model_type(w)
+        ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride, ch = 32, 3  # default stride and channels
@@ -189,8 +190,7 @@ class AutoBackend(nn.Module):
             cuda = False
 
         # Download if not local
-        if not (pt or triton or nn_module):
-            w = attempt_download_asset(w)
+        w = attempt_download_asset(model) if pt else model  # weights path
 
         # PyTorch (in-memory or file)
         if nn_module or pt:
@@ -203,11 +203,9 @@ class AutoBackend(nn.Module):
                     model = model.fuse(verbose=verbose)
                 model = model.to(device)
             else:  # pt file
-                from ultralytics.nn.tasks import attempt_load_weights
+                from ultralytics.nn.tasks import attempt_load_one_weight
 
-                model = attempt_load_weights(
-                    model if isinstance(model, list) else w, device=device, inplace=True, fuse=fuse
-                )
+                model = attempt_load_one_weight(model, device=device, fuse=fuse)
 
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):

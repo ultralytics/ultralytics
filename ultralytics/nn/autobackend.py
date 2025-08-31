@@ -188,8 +188,7 @@ class AutoBackend(nn.Module):
             cuda = False
 
         # Download if not local
-        if not (pt or triton or nn_module):
-            w = attempt_download_asset(model)  # weights path
+        w = attempt_download_asset(model) if pt else model  # weights path
 
         # PyTorch (in-memory or file)
         if nn_module or pt:

@@ -9,6 +9,7 @@ import os
 import platform
 import re
 import subprocess
+import socket
 import sys
 import threading
 import time

@@ -44,7 +44,7 @@ VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbo
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
-MACOS14 = MACOS and MACOS_VERSION.startswith("14.")
+NOT_MACOS14 = not (MACOS and MACOS_VERSION.startswith("14."))
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
@@ -843,6 +843,7 @@ def is_git_dir():
     return GIT_DIR is not None
 
 
+@lru_cache(maxsize=1)
 def get_git_origin_url():
     """
     Retrieve the origin URL of a git repository.
@@ -852,12 +853,14 @@ def get_git_origin_url():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
-            return origin.decode().strip()
+            return subprocess.check_output(
+                ["git", "config", "--get", "remote.origin.url"], stderr=subprocess.DEVNULL, text=True
+            ).strip()
         except subprocess.CalledProcessError:
             return None
 
 
+@lru_cache(maxsize=1)
 def get_git_branch():
     """
     Return the current git branch name. If not in a git repository, return None.
@@ -867,8 +870,24 @@ def get_git_branch():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-            return origin.decode().strip()
+            return subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, text=True
+            ).strip()
+        except subprocess.CalledProcessError:
+            return None
+
+
+@lru_cache(maxsize=1)
+def get_git_commit():
+    """
+    Return the current git commit hash. If not in a git repository, return None.
+
+    Returns:
+        (str | None): The current git commit hash or None if not a git directory.
+    """
+    if IS_GIT_DIR:
+        try:
+            return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
         except subprocess.CalledProcessError:
             return None
 

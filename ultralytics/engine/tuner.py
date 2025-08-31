@@ -213,13 +213,14 @@ class Tuner:
         except Exception:
             return []
 
-    def _save_to_mongodb(self, fitness: float, hyperparameters: Dict[str, float], iteration: int):
+    def _save_to_mongodb(self, fitness: float, hyperparameters: Dict[str, float], metrics: Dict, iteration: int):
         """
         Save results to MongoDB with proper type conversion.
 
         Args:
             fitness (float): Fitness score achieved with these hyperparameters.
             hyperparameters (Dict[str, float]): Dictionary of hyperparameter values.
+            metrics (Dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             iteration (int): Current iteration number.
         """
         try:
@@ -227,7 +228,8 @@ class Tuner:
                 {
                     "fitness": float(fitness),
                     "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
-                    "timestamp": datetime.utcnow(),
+                    "metrics": metrics,
+                    "timestamp": datetime.now(),
                     "iteration": iteration,
                 }
             )
@@ -378,7 +380,7 @@ class Tuner:
             # Save results - MongoDB takes precedence
             fitness = metrics.get("fitness", 0.0)
             if self.mongodb:
-                self._save_to_mongodb(fitness, mutated_hyp, i + 1)
+                self._save_to_mongodb(fitness, mutated_hyp, metrics, i + 1)
                 self._sync_mongodb_to_csv()
             else:
                 # Save to CSV only if no MongoDB

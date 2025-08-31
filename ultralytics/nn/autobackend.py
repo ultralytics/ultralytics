@@ -205,7 +205,7 @@ class AutoBackend(nn.Module):
             else:  # pt file
                 from ultralytics.nn.tasks import attempt_load_one_weight
 
-                model = attempt_load_one_weight(model, device=device, fuse=fuse)
+                model, _ = attempt_load_one_weight(model, device=device, fuse=fuse)  # load model, ckpt
 
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):

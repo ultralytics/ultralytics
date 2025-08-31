@@ -153,7 +153,7 @@ class Colors:
         Returns:
             (tuple): RGB or BGR color tuple.
         """
-        c = self.palette[int(i) % self.n]
+        c = self.palette[i % self.n]
         return (c[2], c[1], c[0]) if bgr else c
 
     @staticmethod

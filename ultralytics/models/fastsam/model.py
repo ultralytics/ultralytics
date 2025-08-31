@@ -36,7 +36,7 @@ class FastSAM(Model):
 
     def __init__(self, model: str = "FastSAM-x.pt"):
         """Initialize the FastSAM model with the specified pre-trained weights."""
-        if str(model) == "FastSAM.pt":
+        if model == "FastSAM.pt":
             model = "FastSAM-x.pt"
         assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM models only support pre-trained models."
         super().__init__(model=model, task="segment")

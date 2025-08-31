@@ -1,5 +1,6 @@
-from pathlib import Path
 from functools import cached_property
+from pathlib import Path
+
 
 class GitRepo:
     """Fast git info via pathlib (no subprocess)."""

@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Utilities for retrieving Git repository metadata such as branch, commit, and origin URL, used in Ultralytics projects.
+keywords: Ultralytics, Git, GitRepo, branch, commit, origin, repository, utils, metadata, version control
 ---
 
 # Reference for `ultralytics/utils/git.py`

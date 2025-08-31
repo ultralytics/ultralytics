@@ -821,7 +821,6 @@ def is_github_action_running() -> bool:
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
 
 
-
 def get_default_args(func):
     """
     Return a dictionary of default arguments for a function.

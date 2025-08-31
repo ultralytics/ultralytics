@@ -281,34 +281,34 @@ class Tuner:
         Returns:
             (Dict[str, float]): A dictionary containing mutated hyperparameters.
         """
-        # Use MongoDB if available, otherwise CSV
+        x = None
+        
+        # Try MongoDB first if available
         if self.mongodb:
             results = self._get_mongodb_results(n)
             if results:
-                fitness = np.array([r["fitness"] for r in results])
+                # MongoDB already sorted by fitness DESC, so results[0] is best
                 x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
                 n = min(n, len(x))
-        else:
-            results = []
 
         # Fall back to CSV if MongoDB unavailable or empty
-        if not results and self.tune_csv.exists():
-            x = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
-            fitness = x[:, 0]  # first column
-            n = min(n, len(x))  # number of previous results to consider
-            x = x[np.argsort(-fitness)][:n]  # top n mutations
+        if x is None and self.tune_csv.exists():
+            csv_data = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
+            if len(csv_data) > 0:
+                fitness = csv_data[:, 0]  # first column
+                n = min(n, len(csv_data))
+                x = csv_data[np.argsort(-fitness)][:n]  # top n sorted by fitness DESC
 
         # Mutate if we have data, otherwise use defaults
-        if results or self.tune_csv.exists():
+        if x is not None:
             w = x[:, 0] - x[:, 0].min() + 1e-6  # weights (sum > 0)
             if parent == "single" or len(x) == 1:
-                # x = x[random.randint(0, n - 1)]  # random selection
                 x = x[random.choices(range(n), weights=w)[0]]  # weighted selection
             elif parent == "weighted":
                 x = (x * w.reshape(n, 1)).sum(0) / w.sum()  # weighted combination
 
             # Mutate
-            r = np.random  # method
+            r = np.random
             r.seed(int(time.time()))
             g = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
             ng = len(self.space)
@@ -320,9 +320,9 @@ class Tuner:
             hyp = {k: getattr(self.args, k) for k in self.space.keys()}
 
         # Constrain to limits
-        for k, v in self.space.items():
-            hyp[k] = max(hyp[k], v[0])  # lower limit
-            hyp[k] = min(hyp[k], v[1])  # upper limit
+        for k, bounds in self.space.items():
+            hyp[k] = max(hyp[k], bounds[0])  # lower limit
+            hyp[k] = min(hyp[k], bounds[1])  # upper limit
             hyp[k] = round(hyp[k], 5)  # significant digits
 
         return hyp

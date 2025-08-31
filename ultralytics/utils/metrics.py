@@ -404,7 +404,7 @@ class ConfusionMatrix(DataExportMixin):
         no_pred = len(detections["cls"]) == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
-                detections = {k: detections[k][detections["conf"] > conf] for k in detections.keys()}
+                detections = {k: detections[k][detections["conf"] > conf] for k in detections}
                 detection_classes = detections["cls"].int().tolist()
                 for i, dc in enumerate(detection_classes):
                     self.matrix[dc, self.nc] += 1  # FP
@@ -417,7 +417,7 @@ class ConfusionMatrix(DataExportMixin):
                 self._append_matches("FN", batch, i)
             return
 
-        detections = {k: detections[k][detections["conf"] > conf] for k in detections.keys()}
+        detections = {k: detections[k][detections["conf"] > conf] for k in detections}
         gt_classes = gt_cls.int().tolist()
         detection_classes = detections["cls"].int().tolist()
         bboxes = detections["bboxes"]
@@ -497,7 +497,7 @@ class ConfusionMatrix(DataExportMixin):
                 labels[k] += mbatch[k]
 
         labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
-        if not self.task == "obb" and len(labels["bboxes"]):
+        if self.task != "obb" and len(labels["bboxes"]):
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         (save_dir / "visualizations").mkdir(parents=True, exist_ok=True)
         plot_images(
@@ -1097,7 +1097,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
             (Dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = {k: np.concatenate(v, 0) for k, v in self.stats.items()}  # to numpy
-        if len(stats) == 0:
+        if not stats:
             return stats
         results = ap_per_class(
             stats["tp"],

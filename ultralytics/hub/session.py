@@ -204,7 +204,7 @@ class HUBTrainingSession:
             HUBModelError: If the identifier format is not recognized.
         """
         api_key, model_id, filename = None, None, None
-        if str(identifier).endswith((".pt", ".yaml")):
+        if identifier.endswith((".pt", ".yaml")):
             filename = identifier
         elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
             parsed_url = urlparse(identifier)

@@ -2010,7 +2010,6 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
                 Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
-        current_out = {}
         if mask is not None and self.model.use_mask_input_as_output_without_sam:
             # When use_mask_input_as_output_without_sam=True, we directly output the mask input
             # (see it as a GT mask) without using a SAM prompt encoder + mask decoder.
@@ -2021,7 +2020,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             # fused the visual feature with previous memory features in the memory bank
             pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
             # calculate the first feature if adding obj_idx exists(means adding prompts)
-            pix_feat_with_mem = pix_feat_with_mem[0:1] if obj_idx is not None else pix_feat_with_mem
+            pix_feat_with_mem = pix_feat_with_mem[:1] if obj_idx is not None else pix_feat_with_mem
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._forward_sam_heads(
                 backbone_features=pix_feat_with_mem,
                 point_inputs={"point_coords": point, "point_labels": label} if obj_idx is not None else None,
@@ -2029,9 +2028,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 multimask_output=False,
                 high_res_features=[feat[: pix_feat_with_mem.size(0)] for feat in self.high_res_features],
             )
-        current_out["pred_masks"] = low_res_masks
-        current_out["pred_masks_high_res"] = high_res_masks
-        current_out["obj_ptr"] = obj_ptr
-        current_out["object_score_logits"] = object_score_logits
-
-        return current_out
+        return {
+            "pred_masks": low_res_masks,
+            "pred_masks_high_res": high_res_masks,
+            "obj_ptr": obj_ptr,
+            "object_score_logits": object_score_logits,
+        }

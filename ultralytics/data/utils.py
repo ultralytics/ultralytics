@@ -66,7 +66,7 @@ def check_file_speeds(
         >>> image_files = list(Path("dataset/images").glob("*.jpg"))
         >>> check_file_speeds(image_files, threshold_ms=15)
     """
-    if not files or len(files) == 0:
+    if not files:
         LOGGER.warning(f"{prefix}Image speed checks: No files to check")
         return
 
@@ -345,8 +345,13 @@ def polygons2masks_overlap(
     )
     areas = []
     ms = []
-    for si in range(len(segments)):
-        mask = polygon2mask(imgsz, [segments[si].reshape(-1)], downsample_ratio=downsample_ratio, color=1)
+    for segment in segments:
+        mask = polygon2mask(
+            imgsz,
+            [segment.reshape(-1)],
+            downsample_ratio=downsample_ratio,
+            color=1,
+        )
         ms.append(mask.astype(masks.dtype))
         areas.append(mask.sum())
     areas = np.asarray(areas)
@@ -517,8 +522,7 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, A
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
-        if image_files:
+        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
             from ultralytics.data.split import split_classify_dataset
 
             LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")

@@ -202,9 +202,9 @@ class AutoBackend(nn.Module):
                     model = model.fuse(verbose=verbose)
                 model = model.to(device)
             else:  # pt file
-                from ultralytics.nn.tasks import attempt_load_weights
+                from ultralytics.nn.tasks import attempt_load_one_weight
 
-                model = attempt_load_weights(model, device=device, inplace=True, fuse=fuse)
+                model = attempt_load_one_weight(model, device=device, fuse=fuse)
 
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):

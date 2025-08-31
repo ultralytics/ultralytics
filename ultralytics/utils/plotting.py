@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import math
 import warnings
 from pathlib import Path
@@ -142,12 +144,12 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i: int, bgr: bool = False) -> tuple:
+    def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
         """
         Convert hex color codes to RGB values.
 
         Args:
-            i (int): Color index.
+            i (int | torch.Tensor): Color index.
             bgr (bool, optional): Whether to return BGR format instead of RGB.
 
         Returns:

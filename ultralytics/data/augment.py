@@ -587,7 +587,7 @@ class Mosaic(BaseMixTransform):
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
             >>> augmented_data = mosaic._mix_transform(labels)
         """
-        assert labels.get("rect_shape", None) is None, "rect and mosaic are mutually exclusive."
+        assert labels.get("rect_shape") is None, "rect and mosaic are mutually exclusive."
         assert len(labels.get("mix_labels", [])), "There are no other images for mosaic augment."
         return (
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
@@ -836,7 +836,7 @@ class Mosaic(BaseMixTransform):
             >>> print(result.keys())
             dict_keys(['im_file', 'ori_shape', 'resized_shape', 'cls', 'instances', 'mosaic_border'])
         """
-        if len(mosaic_labels) == 0:
+        if not mosaic_labels:
             return {}
         cls = []
         instances = []

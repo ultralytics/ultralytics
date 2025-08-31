@@ -165,11 +165,18 @@ class TQDM:
 
         # For bytes with scaling, use binary units
         if self.unit in ("B", "bytes") and self.unit_scale:
-            for threshold, unit in [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]:  # 1 << 30, << 20, << 10
-                if rate >= threshold:
-                    return f"{rate / threshold:.1f}{unit}"
-            return f"{rate:.1f}B/s"
-
+            return next(
+                (
+                    f"{rate / threshold:.1f}{unit}"
+                    for threshold, unit in [
+                        (1073741824, "GB/s"),
+                        (1048576, "MB/s"),
+                        (1024, "KB/s"),
+                    ]
+                    if rate >= threshold
+                ),
+                f"{rate:.1f}B/s",
+            )
         # For other scalable units, use decimal units
         if self.unit_scale and self.unit in ("it", "items", ""):
             for threshold, prefix in [(1000000, "M"), (1000, "K")]:
@@ -210,7 +217,7 @@ class TQDM:
         filled = int(frac * width)
         bar = "━" * filled + "─" * (width - filled)
         if filled < width and frac * width - filled > 0.5:
-            bar = bar[:filled] + "╸" + bar[filled + 1 :]
+            bar = f"{bar[:filled]}╸{bar[filled + 1 :]}"
         return bar
 
     def _should_update(self, dt: float, dn: int) -> bool:
@@ -218,10 +225,7 @@ class TQDM:
         if self.noninteractive:
             return False
 
-        if self.total and self.n >= self.total:
-            return True
-
-        return dt >= self.mininterval
+        return True if self.total and self.n >= self.total else dt >= self.mininterval
 
     def _display(self, final: bool = False) -> None:
         """Display progress bar."""
@@ -449,8 +453,7 @@ if __name__ == "__main__":
 
     def process_files():
         """Simulate processing files of unknown count."""
-        files = [f"file_{i}.txt" for i in range(18)]
-        return files
+        return [f"file_{i}.txt" for i in range(18)]
 
     pbar = TQDM(desc="Scanning files", unit="files")
     files = process_files()

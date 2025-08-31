@@ -843,6 +843,7 @@ def is_git_dir():
     return GIT_DIR is not None
 
 
+@lru_cache(maxsize=1)
 def get_git_origin_url():
     """
     Retrieve the origin URL of a git repository.
@@ -852,12 +853,13 @@ def get_git_origin_url():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
-            return origin.decode().strip()
+            cmd = ["git", "config", "--get", "remote.origin.url"]
+            return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
         except subprocess.CalledProcessError:
             return None
 
 
+@lru_cache(maxsize=1)
 def get_git_branch():
     """
     Return the current git branch name. If not in a git repository, return None.
@@ -867,12 +869,13 @@ def get_git_branch():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-            return origin.decode().strip()
+            cmd = ["git", "rev-parse", "--abbrev-ref", "HEAD"]
+            return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
         except subprocess.CalledProcessError:
             return None
 
 
+@lru_cache(maxsize=1)
 def get_git_commit():
     """
     Return the current git commit hash. If not in a git repository, return None.

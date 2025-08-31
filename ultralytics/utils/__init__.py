@@ -191,9 +191,10 @@ class DataExportMixin:
             def _to_str_simple(v):
                 if v is None:
                     return ""
-                if isinstance(v, (dict, list, tuple, set)):
+                elif isinstance(v, (dict, list, tuple, set)):
                     return repr(v)
-                return str(v)
+                else:
+                    return str(v)
 
             df_str = df.select(
                 [pl.col(c).map_elements(_to_str_simple, return_dtype=pl.String).alias(c) for c in df.columns]
@@ -429,7 +430,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
     # Handle Windows UTF-8 encoding issues
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
-        try:
+        with contextlib.suppress(Exception):
             # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
                 sys.stdout.reconfigure(encoding="utf-8")
@@ -438,8 +439,6 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-        except Exception:
-            pass
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)

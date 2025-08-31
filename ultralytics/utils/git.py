@@ -9,12 +9,12 @@ from pathlib import Path
 class GitRepo:
     """
     Represent a local Git repository and expose branch, commit, and remote metadata.
-    
+
     This class discovers the repository root by searching for a .git entry from the given path upward, resolves the
     actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not
     invoke the git binary and therefore works in restricted environments. All metadata properties are resolved
     lazily and cached; construct a new instance to refresh state.
-    
+
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.
         gitdir (Path | None): Resolved .git directory path; handles worktrees; None if unresolved.
@@ -23,10 +23,10 @@ class GitRepo:
         branch (str | None): Current branch name when HEAD points to a branch; None for detached HEAD or non-repo.
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
         origin (str | None): URL of the "origin" remote as read from gitdir/config; None if unset or unavailable.
-    
+
     Args:
         path (Path, optional): File or directory to start discovery; search parents for a .git entry and resolve it.
-    
+
     Examples:
         Initialize from the current working directory and read metadata
         >>> from pathlib import Path
@@ -35,7 +35,7 @@ class GitRepo:
         True
         >>> repo.branch, repo.commit[:7], repo.origin
         ('main', '1a2b3c4', 'https://example.com/owner/repo.git')
-    
+
     Notes:
         - Resolves metadata by reading files: HEAD, packed-refs, and config; no subprocess calls are used.
         - Caches properties on first access using cached_property; recreate the object to reflect repository changes.
@@ -44,7 +44,7 @@ class GitRepo:
     def __init__(self, path: Path = Path(__file__).resolve()):
         """
         Initialize a Git repository context by discovering the repository root from a starting path.
-        
+
         Args:
             path (Path, optional): File or directory path used as the starting point to locate the repository root.
         """

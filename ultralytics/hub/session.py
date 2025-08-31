@@ -8,8 +8,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from urllib.parse import parse_qs, urlparse
 
-import requests
-
 from ultralytics import __version__
 from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX
 from ultralytics.utils import IS_COLAB, LOGGER, SETTINGS, TQDM, checks, emojis
@@ -341,7 +339,7 @@ class HUBTrainingSession:
         }
         return status_code in retry_codes
 
-    def _get_failure_message(self, response: requests.Response, retry: int, timeout: int) -> str:
+    def _get_failure_message(self, response, retry: int, timeout: int) -> str:
         """
         Generate a retry message based on the response status code.
 
@@ -419,14 +417,14 @@ class HUBTrainingSession:
         )
 
     @staticmethod
-    def _show_upload_progress(content_length: int, response: requests.Response) -> None:
+    def _show_upload_progress(content_length: int, response) -> None:
         """Display a progress bar to track the upload progress of a file download."""
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
 
     @staticmethod
-    def _iterate_content(response: requests.Response) -> None:
+    def _iterate_content(response) -> None:
         """Process the streamed HTTP response data."""
         for _ in response.iter_content(chunk_size=1024):
             pass  # Do nothing with data chunks

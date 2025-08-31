@@ -27,6 +27,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
+    GIT_REPO,
     LOCAL_RANK,
     LOGGER,
     RANK,
@@ -36,7 +37,6 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
-    get_git_commit,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -573,7 +573,12 @@ class BaseTrainer:
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
-                "git_commit": get_git_commit(),
+                "git": {
+                    "root": str(GIT_REPO.root),
+                    "branch": GIT_REPO.branch,
+                    "commit": GIT_REPO.commit,
+                    "origin": GIT_REPO.origin,
+                },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
             },

@@ -522,9 +522,7 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, A
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        if image_files := list(data_dir.rglob("*.jpg")) + list(
-            data_dir.rglob("*.png")
-        ):
+        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
             from ultralytics.data.split import split_classify_dataset
 
             LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")

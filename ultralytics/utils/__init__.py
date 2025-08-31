@@ -853,8 +853,9 @@ def get_git_origin_url():
     """
     if IS_GIT_DIR:
         try:
-            cmd = ["git", "config", "--get", "remote.origin.url"]
-            return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
+            return subprocess.check_output(
+                ["git", "config", "--get", "remote.origin.url"], stderr=subprocess.DEVNULL, text=True
+            ).strip()
         except subprocess.CalledProcessError:
             return None
 
@@ -869,8 +870,9 @@ def get_git_branch():
     """
     if IS_GIT_DIR:
         try:
-            cmd = ["git", "rev-parse", "--abbrev-ref", "HEAD"]
-            return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, text=True).strip()
+            return subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, text=True
+            ).strip()
         except subprocess.CalledProcessError:
             return None
 

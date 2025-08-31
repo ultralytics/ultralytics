@@ -754,7 +754,7 @@ def is_jetson(jetpack=None) -> bool:
 
 def is_online() -> bool:
     """
-    Fast online check using DNS (v4/v6) resolution with tiny TCP fallback (Cloudflare + Google).
+    Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
 
     Returns:
         (bool): True if connection is successful, False otherwise.
@@ -762,23 +762,12 @@ def is_online() -> bool:
     if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
         return False
 
-    # DNS fast path (handles A/AAAA)
     for host in ("one.one.one.one", "dns.google"):
         try:
-            # socket.getaddrinfo(host, None)  # no connect; v4/v6-capable
-            socket.gethostbyname(host)
+            socket.getaddrinfo(host, 0, socket.AF_UNSPEC, 0, 0, socket.AI_ADDRCONFIG)
             return True
-        except Exception:
-            pass
-
-    # Minimal TCP fallback (quick, robust)
-    # for target in (("1.1.1.1", 80), ("8.8.8.8", 53)):
-    #    try:
-    #        socket.create_connection(target, timeout=1.0).close()
-    #        return True
-    #    except Exception:
-    #        pass
-
+        except OSError:
+            continue
     return False
 
 

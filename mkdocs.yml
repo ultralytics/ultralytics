@@ -682,6 +682,7 @@ nav:
           - errors: reference/utils/errors.md
           - export: reference/utils/export.md
           - files: reference/utils/files.md
+          - git: reference/utils/git.md
           - instance: reference/utils/instance.md
           - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md

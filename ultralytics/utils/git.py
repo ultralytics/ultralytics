@@ -24,9 +24,6 @@ class GitRepo:
         commit (str | None): Current commit SHA for HEAD; None if not determinable.
         origin (str | None): URL of the "origin" remote as read from gitdir/config; None if unset or unavailable.
 
-    Args:
-        path (Path, optional): File or directory to start discovery; search parents for a .git entry and resolve it.
-
     Examples:
         Initialize from the current working directory and read metadata
         >>> from pathlib import Path

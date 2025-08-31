@@ -753,20 +753,20 @@ def is_jetson(jetpack=None) -> bool:
 
 def is_online() -> bool:
     """
-    Check internet connectivity by attempting to connect to a known online host.
+    Fast online check using DNS resolution (Cloudflare + Google).
 
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    try:
-        assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
-        import socket
-
-        for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=2.0).close()
-            return True
-    except Exception:
+    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
         return False
+    for host in ("one.one.one.one", "dns.google"):  # Cloudflare + Google
+        try:
+            socket.gethostbyname(host)
+            return True
+        except Exception:
+            continue
+    return False
 
 
 def is_pip_package(filepath: str = __name__) -> bool:

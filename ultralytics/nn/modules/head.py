@@ -200,7 +200,12 @@ class Detect(nn.Module):
 
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
         """Decode bounding boxes from predictions."""
-        return dist2bbox(bboxes, anchors, xywh=xywh and not (self.end2end or self.xyxy), dim=1)
+        return dist2bbox(
+            bboxes,
+            anchors,
+            xywh=xywh and not self.end2end and not self.xyxy,
+            dim=1,
+        )
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -642,7 +647,7 @@ class YOLOEDetect(Detect):
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
         assert c3 <= embed
-        assert with_bn is True
+        assert with_bn
         self.cv3 = (
             nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
             if self.legacy

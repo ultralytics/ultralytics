@@ -23,9 +23,9 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
+from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
-from ultralytics.utils.git import GitRepo
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))

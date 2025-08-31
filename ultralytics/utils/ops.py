@@ -11,8 +11,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import LOGGER, NOT_MACOS14
-from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils import NOT_MACOS14
 
 
 class Profile(contextlib.ContextDecorator):

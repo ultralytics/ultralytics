@@ -415,10 +415,10 @@ def set_logging(name="LOGGING_NAME", verbose=True):
             """Format log records with prefixes based on level."""
             # Apply prefixes based on log level
             if record.levelno == logging.WARNING:
-                prefix = "WARNING ⚠️" if not WINDOWS else "WARNING"
+                prefix = "WARNING" if WINDOWS else "WARNING ⚠️"
                 record.msg = f"{prefix} {record.msg}"
             elif record.levelno == logging.ERROR:
-                prefix = "ERROR ❌" if not WINDOWS else "ERROR"
+                prefix = "ERROR" if WINDOWS else "ERROR ❌"
                 record.msg = f"{prefix} {record.msg}"
 
             # Handle emojis in message based on platform

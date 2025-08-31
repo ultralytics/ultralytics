@@ -27,6 +27,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
+    GIT_REPO,
     LOCAL_RANK,
     LOGGER,
     RANK,
@@ -36,7 +37,6 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
-    GIT_REPO,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args

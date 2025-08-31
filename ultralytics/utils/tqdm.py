@@ -217,7 +217,7 @@ class TQDM:
         filled = int(frac * width)
         bar = "━" * filled + "─" * (width - filled)
         if filled < width and frac * width - filled > 0.5:
-            bar = f"{bar[:filled]}╸{bar[filled + 1:]}"
+            bar = f"{bar[:filled]}╸{bar[filled + 1 :]}"
         return bar
 
     def _should_update(self, dt: float, dn: int) -> bool:

@@ -2020,9 +2020,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             # fused the visual feature with previous memory features in the memory bank
             pix_feat_with_mem = self._prepare_memory_conditioned_features(obj_idx)
             # calculate the first feature if adding obj_idx exists(means adding prompts)
-            pix_feat_with_mem = (
-                pix_feat_with_mem[:1] if obj_idx is not None else pix_feat_with_mem
-            )
+            pix_feat_with_mem = pix_feat_with_mem[:1] if obj_idx is not None else pix_feat_with_mem
             _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = self.model._forward_sam_heads(
                 backbone_features=pix_feat_with_mem,
                 point_inputs={"point_coords": point, "point_labels": label} if obj_idx is not None else None,

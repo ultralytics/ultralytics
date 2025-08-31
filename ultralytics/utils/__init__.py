@@ -771,12 +771,12 @@ def is_online() -> bool:
             pass
 
     # Minimal TCP fallback (quick, robust)
-    for target in (("1.1.1.1", 80), ("8.8.8.8", 53)):
-        try:
-            socket.create_connection(target, timeout=1.0).close()
-            return True
-        except Exception:
-            pass
+    #for target in (("1.1.1.1", 80), ("8.8.8.8", 53)):
+    #    try:
+    #        socket.create_connection(target, timeout=1.0).close()
+    #        return True
+    #    except Exception:
+    #        pass
 
     return False
 

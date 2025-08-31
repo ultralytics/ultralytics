@@ -8,7 +8,6 @@ import logging
 import os
 import platform
 import re
-import subprocess
 import sys
 import threading
 import time
@@ -26,6 +25,7 @@ import torch
 from ultralytics import __version__
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
+from ultralytics.utils.git import GitRepo
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
@@ -964,8 +964,9 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
-GIT_DIR = get_git_dir()
-IS_GIT_DIR = is_git_dir()
+GIT_REPO = GitRepo()
+GIT_DIR = GIT_REPO.root
+IS_GIT_DIR = GIT_REPO.is_repo
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 

@@ -143,10 +143,11 @@ def update_mkdocs_file(reference_yaml: str) -> None:
 
     # Build new section with proper indentation
     new_section_lines = ["\n  - Reference:"]
-    for line in reference_yaml.splitlines():
-        if line.strip() == "- reference:":  # Skip redundant header
-            continue
-        new_section_lines.append(f"    {line}")
+    new_section_lines.extend(
+        f"    {line}"
+        for line in reference_yaml.splitlines()
+        if line.strip() != "- reference:"  # Skip redundant header
+    )
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
     if ref_match:
@@ -170,17 +171,15 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         MKDOCS_YAML.write_text(new_content)
         subprocess.run(["npx", "prettier", "--write", str(MKDOCS_YAML)], check=False, cwd=PACKAGE_DIR.parent)
         print(f"Updated Reference section in {MKDOCS_YAML}")
-    else:
+    elif help_match := re.search(r"(\n  - Help:)", mkdocs_content):
         # No existing Reference section, we need to add it
-        help_match = re.search(r"(\n  - Help:)", mkdocs_content)
-        if help_match:
-            help_section = help_match.group(1)
-            # Insert before Help section
-            new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
-            MKDOCS_YAML.write_text(new_content)
-            print(f"Added new Reference section before Help in {MKDOCS_YAML}")
-        else:
-            print("Could not find a suitable location to add Reference section")
+        help_section = help_match.group(1)
+        # Insert before Help section
+        new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
+        MKDOCS_YAML.write_text(new_content)
+        print(f"Added new Reference section before Help in {MKDOCS_YAML}")
+    else:
+        print("Could not find a suitable location to add Reference section")
 
 
 def main():

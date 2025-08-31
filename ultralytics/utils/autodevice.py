@@ -78,8 +78,7 @@ class GPUInfo:
 
         try:
             device_count = self.pynvml.nvmlDeviceGetCount()
-            for i in range(device_count):
-                self.gpu_stats.append(self._get_device_stats(i))
+            self.gpu_stats.extend(self._get_device_stats(i) for i in range(device_count))
         except Exception as e:
             LOGGER.warning(f"Error during device query: {e}")
             self.gpu_stats = []
@@ -195,12 +194,11 @@ if __name__ == "__main__":
     gpu_info = GPUInfo()
     gpu_info.print_status()
 
-    selected = gpu_info.select_idle_gpu(
+    if selected := gpu_info.select_idle_gpu(
         count=num_gpus_to_select,
         min_memory_fraction=required_free_mem_fraction,
         min_util_fraction=required_free_util_fraction,
-    )
-    if selected:
+    ):
         print(f"\n==> Using selected GPU indices: {selected}")
         devices = [f"cuda:{idx}" for idx in selected]
         print(f"    Target devices: {devices}")

@@ -106,7 +106,7 @@ class STrack(BaseTrack):
     @staticmethod
     def multi_gmc(stracks: List["STrack"], H: np.ndarray = np.eye(2, 3)):
         """Update state tracks positions and covariances using a homography matrix for multiple tracks."""
-        if len(stracks) > 0:
+        if stracks:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
             multi_covariance = np.asarray([st.covariance for st in stracks])
 

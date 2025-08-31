@@ -959,7 +959,6 @@ class SAM2Model(torch.nn.Module):
         prev_sam_mask_logits=None,
     ):
         """Perform a single tracking step, updating object masks and memory features based on current frame inputs."""
-        current_out = {}
         sam_outputs, _, _ = self._track_step(
             frame_idx,
             is_init_cond_frame,
@@ -975,9 +974,11 @@ class SAM2Model(torch.nn.Module):
         )
         _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = sam_outputs
 
-        current_out["pred_masks"] = low_res_masks
-        current_out["pred_masks_high_res"] = high_res_masks
-        current_out["obj_ptr"] = obj_ptr
+        current_out = {
+            "pred_masks": low_res_masks,
+            "pred_masks_high_res": high_res_masks,
+            "obj_ptr": obj_ptr,
+        }
         if not self.training:
             # Only add this in inference (to avoid unused param in activation checkpointing;
             # it's mainly used in the demo to encode spatial memories w/ consolidated masks)

@@ -204,7 +204,7 @@ class Analytics(BaseSolution):
                         markersize=self.line_width * 5,
                         label=f"{key} Data Points",
                     )
-            if plot == "bar":
+            elif plot == "bar":
                 self.ax.clear()  # clear bar data
                 for label in labels:  # Map labels to colors
                     if label not in self.color_mapping:
@@ -224,12 +224,12 @@ class Analytics(BaseSolution):
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
                 self.ax.legend(loc="upper left", fontsize=13, facecolor=self.fg_color, edgecolor=self.fg_color)
-            if plot == "pie":
+            elif plot == "pie":
                 total = sum(counts)
                 percentages = [size / total * 100 for size in counts]
-                start_angle = 90
                 self.ax.clear()
 
+                start_angle = 90
                 # Create pie chart and create legend labels with percentages
                 wedges, _ = self.ax.pie(
                     counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None

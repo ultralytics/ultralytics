@@ -406,7 +406,6 @@ def test_utils_init():
 def test_utils_checks():
     """Test various utility checks for filenames, git status, requirements, image sizes, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")
-    checks.git_describe(ROOT)
     checks.check_requirements()  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow(warn=True)

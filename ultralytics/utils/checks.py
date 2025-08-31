@@ -401,16 +401,18 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            base = (f"uv pip install --no-cache-dir {packages} {commands} "
+                    f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow")
             try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE).decode()
+                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE, text=True)
             except subprocess.CalledProcessError as e:
-                if e.stderr and "No virtual environment found" in e.stderr.decode():
+                if e.stderr and "No virtual environment found" in e.stderr:
                     return subprocess.check_output(
-                        base.replace("uv pip install", "uv pip install --system"), shell=True
-                    ).decode()
+                        base.replace("uv pip install", "uv pip install --system"),
+                        shell=True, stderr=subprocess.PIPE, text=True
+                    )
                 raise
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True, text=True)
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
@@ -795,22 +797,6 @@ def check_amp(model):
         )
         return False
     return True
-
-
-def git_describe(path=ROOT):  # path must be a directory
-    """
-    Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe.
-
-    Args:
-        path (Path): Path to git repository.
-
-    Returns:
-        (str): Human-readable git description.
-    """
-    try:
-        return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    except Exception:
-        return ""
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):

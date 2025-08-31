@@ -282,7 +282,7 @@ class Tuner:
             (Dict[str, float]): A dictionary containing mutated hyperparameters.
         """
         x = None
-        
+
         # Try MongoDB first if available
         if self.mongodb:
             results = self._get_mongodb_results(n)

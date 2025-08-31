@@ -13,6 +13,7 @@ Examples:
     >>> model = YOLO("yolo11n.pt")
     >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
+
 from __future__ import annotations
 
 import random

@@ -7,6 +7,7 @@ This module contains the implementation of the prediction logic and auxiliary ut
 using SAM. It forms an integral part of the Ultralytics framework and is designed for high-performance, real-time image
 segmentation tasks.
 """
+
 from __future__ import annotations
 
 from collections import OrderedDict

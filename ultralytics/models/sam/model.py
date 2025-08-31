@@ -13,6 +13,7 @@ Key Features:
     - Zero-shot transfer capabilities
     - Trained on SA-1B dataset
 """
+
 from __future__ import annotations
 
 from pathlib import Path

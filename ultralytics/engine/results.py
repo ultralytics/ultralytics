@@ -4,6 +4,7 @@ Ultralytics Results, Boxes and Masks classes for handling inference results.
 
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
+
 from __future__ import annotations
 
 from copy import deepcopy

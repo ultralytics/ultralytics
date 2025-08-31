@@ -308,9 +308,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
     return None
 
 
-def _fetch_annotations(
-    img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map
-) -> list | None:
+def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map) -> list | None:
     """
     Join the ground truth and prediction annotations if they exist.
 

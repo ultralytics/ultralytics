@@ -7,6 +7,7 @@ composed of classes and functions, and also creates a navigation menu for use in
 
 Note: Must be run from repository root directory. Do not run from docs directory.
 """
+
 from __future__ import annotations
 
 import re

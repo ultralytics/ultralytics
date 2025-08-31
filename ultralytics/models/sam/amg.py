@@ -40,7 +40,7 @@ def is_box_near_crop_edge(
     return torch.any(near_crop_edge, dim=1)
 
 
-def batch_iterator(batch_size: int, *args) -> Generator[list[Any], None, None]:
+def batch_iterator(batch_size: int, *args) -> Generator[list[Any]]:
     """
     Yield batches of data from input arguments with specified batch size for efficient processing.
 

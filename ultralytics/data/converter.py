@@ -582,9 +582,7 @@ def merge_multi_segment(segments: list[list]):
     return s
 
 
-def yolo_bbox2segment(
-    im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None
-):
+def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
     """
     Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB) in
     YOLO format. Generate segmentation data using SAM auto-annotator as needed.

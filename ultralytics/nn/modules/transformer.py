@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Transformer modules."""
 
+from __future__ import annotations
+
 import math
-from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -88,16 +89,16 @@ class TransformerEncoderLayer(nn.Module):
         self.normalize_before = normalize_before
 
     @staticmethod
-    def with_pos_embed(tensor: torch.Tensor, pos: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def with_pos_embed(tensor: torch.Tensor, pos: torch.Tensor | None = None) -> torch.Tensor:
         """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
     def forward_post(
         self,
         src: torch.Tensor,
-        src_mask: Optional[torch.Tensor] = None,
-        src_key_padding_mask: Optional[torch.Tensor] = None,
-        pos: Optional[torch.Tensor] = None,
+        src_mask: torch.Tensor | None = None,
+        src_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Perform forward pass with post-normalization.
@@ -122,9 +123,9 @@ class TransformerEncoderLayer(nn.Module):
     def forward_pre(
         self,
         src: torch.Tensor,
-        src_mask: Optional[torch.Tensor] = None,
-        src_key_padding_mask: Optional[torch.Tensor] = None,
-        pos: Optional[torch.Tensor] = None,
+        src_mask: torch.Tensor | None = None,
+        src_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Perform forward pass with pre-normalization.
@@ -149,9 +150,9 @@ class TransformerEncoderLayer(nn.Module):
     def forward(
         self,
         src: torch.Tensor,
-        src_mask: Optional[torch.Tensor] = None,
-        src_key_padding_mask: Optional[torch.Tensor] = None,
-        pos: Optional[torch.Tensor] = None,
+        src_mask: torch.Tensor | None = None,
+        src_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Forward propagate the input through the encoder module.
@@ -534,7 +535,7 @@ class MSDeformAttn(nn.Module):
         refer_bbox: torch.Tensor,
         value: torch.Tensor,
         value_shapes: list,
-        value_mask: Optional[torch.Tensor] = None,
+        value_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Perform forward pass for multiscale deformable attention.
@@ -649,7 +650,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         self.norm3 = nn.LayerNorm(d_model)
 
     @staticmethod
-    def with_pos_embed(tensor: torch.Tensor, pos: Optional[torch.Tensor]) -> torch.Tensor:
+    def with_pos_embed(tensor: torch.Tensor, pos: torch.Tensor | None) -> torch.Tensor:
         """Add positional embeddings to the input tensor, if provided."""
         return tensor if pos is None else tensor + pos
 
@@ -673,9 +674,9 @@ class DeformableTransformerDecoderLayer(nn.Module):
         refer_bbox: torch.Tensor,
         feats: torch.Tensor,
         shapes: list,
-        padding_mask: Optional[torch.Tensor] = None,
-        attn_mask: Optional[torch.Tensor] = None,
-        query_pos: Optional[torch.Tensor] = None,
+        padding_mask: torch.Tensor | None = None,
+        attn_mask: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Perform the forward pass through the entire decoder layer.
@@ -753,8 +754,8 @@ class DeformableTransformerDecoder(nn.Module):
         bbox_head: nn.Module,
         score_head: nn.Module,
         pos_mlp: nn.Module,
-        attn_mask: Optional[torch.Tensor] = None,
-        padding_mask: Optional[torch.Tensor] = None,
+        attn_mask: torch.Tensor | None = None,
+        padding_mask: torch.Tensor | None = None,
     ):
         """
         Perform the forward pass through the entire decoder.

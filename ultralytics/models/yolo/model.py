@@ -233,9 +233,7 @@ class YOLOE(Model):
         >>> results = model.predict("image.jpg", visual_prompts=prompts)
     """
 
-    def __init__(
-        self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False
-    ) -> None:
+    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
         """
         Initialize YOLOE model with a pre-trained model file.
 

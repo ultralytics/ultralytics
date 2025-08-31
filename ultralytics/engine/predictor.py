@@ -31,6 +31,7 @@ Usage - formats:
                               yolo11n_imx_model          # Sony IMX
                               yolo11n_rknn_model         # Rockchip RKNN
 """
+
 from __future__ import annotations
 
 import platform

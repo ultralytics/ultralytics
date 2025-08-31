@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Model head modules."""
+
 from __future__ import annotations
 
 import copy
@@ -765,9 +766,7 @@ class YOLOEDetect(Detect):
         else:
             return y if self.export else (y, x)
 
-    def forward(
-        self, x: list[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False
-    ) -> torch.Tensor | tuple:
+    def forward(self, x: list[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False) -> torch.Tensor | tuple:
         """Process features with class prompt embeddings to generate detections."""
         if hasattr(self, "lrpc"):  # for prompt-free inference
             return self.forward_lrpc(x, return_mask)

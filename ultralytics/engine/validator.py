@@ -213,6 +213,11 @@ class BaseValidator:
                     self.loss += model.loss(batch, preds)[1]
 
             # Postprocess
+            if self.device.type == "mps":
+                # post-processing much faster on CPU
+                batch = {k: (v.cpu() if isinstance(v, torch.Tensor) else v) for k, v in batch.items()}
+                preds = [p.cpu() if isinstance(p, torch.Tensor) else p for p in preds]
+
             with dt[3]:
                 preds = self.postprocess(preds)
 

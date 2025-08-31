@@ -8,6 +8,8 @@ import logging
 import os
 import platform
 import re
+import socket
+import subprocess
 import sys
 import threading
 import time
@@ -753,20 +755,21 @@ def is_jetson(jetpack=None) -> bool:
 
 def is_online() -> bool:
     """
-    Check internet connectivity by attempting to connect to a known online host.
+    Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
 
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    try:
-        assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
-        import socket
-
-        for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=2.0).close()
-            return True
-    except Exception:
+    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
         return False
+
+    for host in ("one.one.one.one", "dns.google"):
+        try:
+            socket.getaddrinfo(host, 0, socket.AF_UNSPEC, 0, 0, socket.AI_ADDRCONFIG)
+            return True
+        except OSError:
+            continue
+    return False
 
 
 def is_pip_package(filepath: str = __name__) -> bool:

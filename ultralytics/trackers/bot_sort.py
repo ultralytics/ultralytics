@@ -108,11 +108,11 @@ class BOTrack(STrack):
             self.update_features(new_track.curr_feat)
         super().re_activate(new_track, frame_id, new_id)
 
-    def update(self, new_track: "BOTrack", frame_id: int) -> None:
+    def update(self, new_track: "BOTrack", frame_id: int, new_id: bool = False) -> None:
         """Update the track with new detection information and the current frame ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
-        super().update(new_track, frame_id)
+        super().update(new_track, frame_id, new_id)
 
     @property
     def tlwh(self) -> np.ndarray:

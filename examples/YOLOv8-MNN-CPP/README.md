@@ -73,6 +73,7 @@ Follow these steps to build the project:
     ```
 
     **Note:**
+
     - The library file extensions (`.a` for static) and paths might vary based on your operating system (e.g., use `.lib` on Windows) and build configuration. Adjust the commands accordingly.
     - This example uses static linking (`.a` files). If you built shared libraries (`.so`, `.dylib`, `.dll`), ensure they are correctly placed or accessible in your system's library path.
 

@@ -50,6 +50,7 @@ class BaseTrack:
     Methods:
         end_frame: Returns the ID of the last frame where the object was tracked.
         next_id: Increments and returns the next global track ID.
+        next_tentative_id: Increments and returns the next tentative ID.
         activate: Abstract method to activate the track.
         predict: Abstract method to predict the next state of the track.
         update: Abstract method to update the track with new data.
@@ -65,6 +66,7 @@ class BaseTrack:
     """
 
     _count = 0
+    _internal_count = 100  # Start with an offset to avoid conflict
 
     def __init__(self):
         """Initialize a new track with a unique ID and foundational tracking attributes."""
@@ -91,8 +93,14 @@ class BaseTrack:
         BaseTrack._count += 1
         return BaseTrack._count
 
+    @staticmethod
+    def next_tentative_id() -> int:
+        """Increment and return the next unique ID used for unconfirmed tracks."""
+        BaseTrack._internal_count += 1
+        return BaseTrack._internal_count
+
     def activate(self, *args: Any) -> None:
-        """Activate the track with provided arguments, initializing necessary attributes for tracking."""
+        """Activates the track with provided arguments, initializing necessary attributes for tracking."""
         raise NotImplementedError
 
     def predict(self) -> None:

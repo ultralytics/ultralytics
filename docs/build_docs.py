@@ -47,7 +47,9 @@ def prepare_docs_markdown(clone_repos: bool = True):
         # Get hub-sdk repo
         repo = "https://github.com/ultralytics/hub-sdk"
         local_dir = DOCS / "repos" / Path(repo).name
-        subprocess.run(["git", "clone", repo, str(local_dir), "--depth", "1", "--single-branch", "--branch", "main"], check=True)
+        subprocess.run(
+            ["git", "clone", repo, str(local_dir), "--depth", "1", "--single-branch", "--branch", "main"], check=True
+        )
         shutil.rmtree(DOCS / "en/hub/sdk", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs", DOCS / "en/hub/sdk")  # for docs
         shutil.rmtree(DOCS.parent / "hub_sdk", ignore_errors=True)  # delete if exists
@@ -57,7 +59,9 @@ def prepare_docs_markdown(clone_repos: bool = True):
         # Get docs repo
         repo = "https://github.com/ultralytics/docs"
         local_dir = DOCS / "repos" / Path(repo).name
-        subprocess.run(["git", "clone", repo, str(local_dir), "--depth", "1", "--single-branch", "--branch", "main"], check=True)
+        subprocess.run(
+            ["git", "clone", repo, str(local_dir), "--depth", "1", "--single-branch", "--branch", "main"], check=True
+        )
         shutil.rmtree(DOCS / "en/compare", ignore_errors=True)  # delete if exists
         shutil.copytree(local_dir / "docs/en/compare", DOCS / "en/compare")  # for docs
         LOGGER.info(f"Cloned/Updated {repo} in {local_dir}")

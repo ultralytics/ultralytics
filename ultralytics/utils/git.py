@@ -1,0 +1,85 @@
+from pathlib import Path
+from functools import cached_property
+
+class GitRepo:
+    """Fast git info via pathlib (no subprocess)."""
+
+    def __init__(self, path: Path = Path(__file__).resolve()):
+        """Init with repo root and resolved .git dir."""
+        self.root = self._find_root(path)
+        self.gitdir = self._gitdir(self.root) if self.root else None
+
+    @staticmethod
+    def _find_root(p: Path) -> Path | None:
+        """Return repo root or None."""
+        return next((d for d in [p] + list(p.parents) if (d / ".git").exists()), None)
+
+    @staticmethod
+    def _gitdir(root: Path) -> Path | None:
+        """Resolve actual .git directory (handles worktrees)."""
+        g = root / ".git"
+        if g.is_dir(): return g
+        if g.is_file():
+            t = g.read_text(errors="ignore").strip()
+            if t.startswith("gitdir:"): return (root / t.split(":", 1)[1].strip()).resolve()
+        return None
+
+    def _read(self, p: Path | None) -> str | None:
+        """Read and strip file if exists."""
+        return p.read_text(errors="ignore").strip() if p and p.exists() else None
+
+    @cached_property
+    def head(self) -> str | None:
+        """HEAD file contents."""
+        return self._read(self.gitdir / "HEAD" if self.gitdir else None)
+
+    def _ref_commit(self, ref: str) -> str | None:
+        """Commit for ref (handles packed-refs)."""
+        rf = self.gitdir / ref
+        s = self._read(rf)
+        if s: return s
+        pf = self.gitdir / "packed-refs"
+        b = pf.read_bytes().splitlines() if pf.exists() else []
+        tgt = ref.encode()
+        for line in b:
+            if line[:1] in (b"#", b"^") or b" " not in line: continue
+            sha, name = line.split(b" ", 1)
+            if name.strip() == tgt: return sha.decode()
+        return None
+
+    @property
+    def is_repo(self) -> bool:
+        """True if inside a git repo."""
+        return self.gitdir is not None
+
+    @cached_property
+    def branch(self) -> str | None:
+        """Current branch or None."""
+        if not self.is_repo or not self.head or not self.head.startswith("ref: "): return None
+        ref = self.head[5:].strip()
+        return ref[len("refs/heads/"):] if ref.startswith("refs/heads/") else ref
+
+    @cached_property
+    def commit(self) -> str | None:
+        """Current commit SHA or None."""
+        if not self.is_repo or not self.head: return None
+        return self._ref_commit(self.head[5:].strip()) if self.head.startswith("ref: ") else self.head
+
+    @cached_property
+    def origin(self) -> str | None:
+        """Origin URL or None."""
+        if not self.is_repo: return None
+        cfg = self.gitdir / "config"
+        remote, url = None, None
+        for s in (self._read(cfg) or "").splitlines():
+            t = s.strip()
+            if t.startswith("[") and t.endswith("]"): remote = t.lower()
+            elif t.lower().startswith("url =") and remote == '[remote "origin"]':
+                url = t.split("=", 1)[1].strip(); break
+        return url
+
+
+if __name__ == "__main__":
+    g = GitRepo()
+    if g.is_repo:
+        print(f"repo={g.root}\nbranch={g.branch}\ncommit={g.commit}\norigin={g.origin}")

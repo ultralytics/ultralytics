@@ -893,9 +893,7 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
-GIT_REPO = GitRepo()
-GIT_DIR = GIT_REPO.root
-IS_GIT_DIR = GIT_REPO.is_repo
+GIT = GitRepo()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
@@ -1118,7 +1116,7 @@ def set_sentry():
         or TESTS_RUNNING
         or not ONLINE
         or not IS_PIP_PACKAGE
-        or IS_GIT_DIR
+        or GIT.is_repo
     ):
         return
     # If sentry_sdk package is not installed then return and do not use Sentry
@@ -1146,7 +1144,7 @@ def set_sentry():
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+            "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
             "os": ENVIRONMENT,
         }
         return event
@@ -1291,8 +1289,8 @@ class SettingsManager(JSONDict):
 
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
-        root = GIT_DIR or Path()
-        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
+        root = GIT.root or Path()
+        datasets_root = (root.parent if GIT.root and is_dir_writeable(root.parent) else root).resolve()
 
         self.file = Path(file)
         self.version = version

@@ -27,7 +27,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.utils import (
     DEFAULT_CFG,
-    GIT_REPO,
+    GIT,
     LOCAL_RANK,
     LOGGER,
     RANK,
@@ -574,10 +574,10 @@ class BaseTrainer:
                 "date": datetime.now().isoformat(),
                 "version": __version__,
                 "git": {
-                    "root": str(GIT_REPO.root),
-                    "branch": GIT_REPO.branch,
-                    "commit": GIT_REPO.commit,
-                    "origin": GIT_REPO.origin,
+                    "root": str(GIT.root),
+                    "branch": GIT.branch,
+                    "commit": GIT.commit,
+                    "origin": GIT.origin,
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",

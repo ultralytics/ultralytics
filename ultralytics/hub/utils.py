@@ -11,9 +11,8 @@ from ultralytics import __version__
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
-    GIT_REPO,
+    GIT,
     IS_COLAB,
-    IS_GIT_DIR,
     IS_PIP_PACKAGE,
     LOGGER,
     ONLINE,
@@ -205,7 +204,7 @@ class Events:
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+            "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
             "python": PYTHON_VERSION.rsplit(".", 1)[0],  # i.e. 3.13
             "CPU": get_cpu_info(),
             # "GPU": get_gpu_info(index=0) if cuda else None,
@@ -219,7 +218,7 @@ class Events:
             and RANK in {-1, 0}
             and not TESTS_RUNNING
             and ONLINE
-            and (IS_PIP_PACKAGE or GIT_REPO.origin == "https://github.com/ultralytics/ultralytics.git")
+            and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
     def __call__(self, cfg, device=None):

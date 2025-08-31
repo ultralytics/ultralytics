@@ -765,7 +765,8 @@ def is_online() -> bool:
     # DNS fast path (handles A/AAAA)
     for host in ("one.one.one.one", "dns.google"):
         try:
-            socket.getaddrinfo(host, None)  # no connect; v4/v6-capable
+            # socket.getaddrinfo(host, None)  # no connect; v4/v6-capable
+            socket.gethostbyname(host)
             return True
         except Exception:
             pass

@@ -7,7 +7,7 @@ blocks, attention mechanisms, transformer components, and detection/segmentation
 
 Examples:
     Visualize a module with Netron
-    >>> from ultralytics.nn.modules import *
+    >>> from ultralytics.nn.modules import Conv
     >>> import torch
     >>> import subprocess
     >>> x = torch.ones(1, 128, 40, 40)

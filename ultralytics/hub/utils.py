@@ -11,6 +11,7 @@ from ultralytics import __version__
 from ultralytics.utils import (
     ARGV,
     ENVIRONMENT,
+    GIT_REPO,
     IS_COLAB,
     IS_GIT_DIR,
     IS_PIP_PACKAGE,
@@ -23,7 +24,6 @@ from ultralytics.utils import (
     TQDM,
     TryExcept,
     colorstr,
-    GIT_REPO,
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info

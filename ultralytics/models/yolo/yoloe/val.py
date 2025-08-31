@@ -186,7 +186,7 @@ class YOLOEDetectValidator(DetectionValidator):
             if isinstance(model, (str, Path)):
                 from ultralytics.nn.tasks import attempt_load_weights
 
-                model = attempt_load_weights(model, device=self.device, inplace=True)
+                model = attempt_load_weights(model, device=self.device)
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]

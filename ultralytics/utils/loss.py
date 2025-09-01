@@ -796,6 +796,9 @@ class E2EDetectLoss:
         self.updates = 0
         self.o2o = 0
         self.o2m = 1.0
+        if self.one2one.hyp.o2m == 1.0:
+            self.o2o = 1.0
+            self.o2m = 1.0
 
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""

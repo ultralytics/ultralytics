@@ -5,6 +5,7 @@ import csv
 import urllib
 from copy import copy
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import cv2
 import numpy as np
@@ -36,6 +37,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.triton import TritonRemoteModel
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
@@ -754,11 +756,31 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize(
     "model_url",
     [
-        "http://localhost:8000/v2/models/yolo/versions/1/infer",
-        "https://localhost:8000/v2/models/yolo/versions/1/infer",
+        "http://localhost:8000/v2/models/yolo/versions/1",
+        "https://localhost:8000/v2/models/yolo/versions/1",
         "https://localhost:8000/yolo/2",
+        "https://localhost:8000/yolo",
+        "https://localhost:8000/v2/models/yolo",
+        "https://localhost:8000/v2/models/yolo/versions/54",
     ],
 )
-def test_triton_url_check(model_url):
+def test_correct_triton_url_check(model_url):
     """Test validation of triton url."""
     assert Model.is_triton_model(model_url)
+
+
+@pytest.mark.parametrize(
+    "model_url",
+    [
+        "http://localhost:8000/v2/models/yolo/versions/1?query=infer",
+        "https://localhost:8000/v2/models/yolo/versions/x?data=f",
+        "https://localhost:8000/yolo.pth",
+        "https://localhost:8000/yolo.x",
+        "https://localhost:8000/v2/models/yolo.pt",
+        "https://localhost:8000/v2/models/yolo/x",
+    ],
+)
+def test_incorrect_triton_url_check(model_url):
+    """Test validation of triton url."""
+    assert Model.is_triton_model(model_url) == False
+

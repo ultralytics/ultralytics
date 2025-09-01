@@ -1,8 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import inspect
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any, Dict, List, Union
 
 import numpy as np

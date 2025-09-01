@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import json
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import cv2
 import numpy as np
@@ -70,7 +72,7 @@ class YOLODataset(BaseDataset):
         >>> dataset.get_labels()
     """
 
-    def __init__(self, *args, data: Optional[Dict] = None, task: str = "detect", **kwargs):
+    def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
         """
         Initialize the YOLODataset.
 
@@ -87,7 +89,7 @@ class YOLODataset(BaseDataset):
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
-    def cache_labels(self, path: Path = Path("./labels.cache")) -> Dict:
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
         """
         Cache dataset labels, check images and read shapes.
 
@@ -155,7 +157,7 @@ class YOLODataset(BaseDataset):
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
-    def get_labels(self) -> List[Dict]:
+    def get_labels(self) -> list[dict]:
         """
         Return dictionary of labels for YOLO training.
 
@@ -205,7 +207,7 @@ class YOLODataset(BaseDataset):
             LOGGER.warning(f"Labels are missing or empty in {cache_path}, training may not work correctly. {HELP_URL}")
         return labels
 
-    def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
+    def build_transforms(self, hyp: dict | None = None) -> Compose:
         """
         Build and append transforms to the list.
 
@@ -237,7 +239,7 @@ class YOLODataset(BaseDataset):
         )
         return transforms
 
-    def close_mosaic(self, hyp: Dict) -> None:
+    def close_mosaic(self, hyp: dict) -> None:
         """
         Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
 
@@ -250,7 +252,7 @@ class YOLODataset(BaseDataset):
         hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
-    def update_labels_info(self, label: Dict) -> Dict:
+    def update_labels_info(self, label: dict) -> dict:
         """
         Update label format for different tasks.
 
@@ -284,7 +286,7 @@ class YOLODataset(BaseDataset):
         return label
 
     @staticmethod
-    def collate_fn(batch: List[Dict]) -> Dict:
+    def collate_fn(batch: list[dict]) -> dict:
         """
         Collate data samples into batches.
 
@@ -331,7 +333,7 @@ class YOLOMultiModalDataset(YOLODataset):
         >>> print(batch.keys())  # Should include 'texts'
     """
 
-    def __init__(self, *args, data: Optional[Dict] = None, task: str = "detect", **kwargs):
+    def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
         """
         Initialize a YOLOMultiModalDataset.
 
@@ -343,7 +345,7 @@ class YOLOMultiModalDataset(YOLODataset):
         """
         super().__init__(*args, data=data, task=task, **kwargs)
 
-    def update_labels_info(self, label: Dict) -> Dict:
+    def update_labels_info(self, label: dict) -> dict:
         """
         Add text information for multi-modal model training.
 
@@ -360,7 +362,7 @@ class YOLOMultiModalDataset(YOLODataset):
 
         return labels
 
-    def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
+    def build_transforms(self, hyp: dict | None = None) -> Compose:
         """
         Enhance data transformations with optional text augmentation for multi-modal training.
 
@@ -409,7 +411,7 @@ class YOLOMultiModalDataset(YOLODataset):
         return category_freq
 
     @staticmethod
-    def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
+    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
         """Get negative text samples based on frequency threshold."""
         threshold = min(max(category_freq.values()), 100)
         return [k for k, v in category_freq.items() if v >= threshold]
@@ -451,7 +453,7 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-    def get_img_files(self, img_path: str) -> List:
+    def get_img_files(self, img_path: str) -> list:
         """
         The image files would be read in `get_labels` function, return empty list here.
 
@@ -463,7 +465,7 @@ class GroundingDataset(YOLODataset):
         """
         return []
 
-    def verify_labels(self, labels: List[Dict[str, Any]]) -> None:
+    def verify_labels(self, labels: list[dict[str, Any]]) -> None:
         """
         Verify the number of instances in the dataset matches expected counts.
 
@@ -498,7 +500,7 @@ class GroundingDataset(YOLODataset):
                 return
         LOGGER.warning(f"Skipping instance count verification for unrecognized dataset '{self.json_file}'")
 
-    def cache_labels(self, path: Path = Path("./labels.cache")) -> Dict[str, Any]:
+    def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
         """
         Load annotations from a JSON file, filter, and normalize bounding boxes for each image.
 
@@ -589,7 +591,7 @@ class GroundingDataset(YOLODataset):
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
-    def get_labels(self) -> List[Dict]:
+    def get_labels(self) -> list[dict]:
         """
         Load labels from cache or generate them from JSON file.
 
@@ -611,7 +613,7 @@ class GroundingDataset(YOLODataset):
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
         return labels
 
-    def build_transforms(self, hyp: Optional[Dict] = None) -> Compose:
+    def build_transforms(self, hyp: dict | None = None) -> Compose:
         """
         Configure augmentations for training with optional text loading.
 
@@ -652,7 +654,7 @@ class GroundingDataset(YOLODataset):
         return category_freq
 
     @staticmethod
-    def _get_neg_texts(category_freq: Dict, threshold: int = 100) -> List[str]:
+    def _get_neg_texts(category_freq: dict, threshold: int = 100) -> list[str]:
         """Get negative text samples based on frequency threshold."""
         threshold = min(max(category_freq.values()), 100)
         return [k for k, v in category_freq.items() if v >= threshold]
@@ -675,7 +677,7 @@ class YOLOConcatDataset(ConcatDataset):
     """
 
     @staticmethod
-    def collate_fn(batch: List[Dict]) -> Dict:
+    def collate_fn(batch: list[dict]) -> dict:
         """
         Collate data samples into batches.
 
@@ -687,7 +689,7 @@ class YOLOConcatDataset(ConcatDataset):
         """
         return YOLODataset.collate_fn(batch)
 
-    def close_mosaic(self, hyp: Dict) -> None:
+    def close_mosaic(self, hyp: dict) -> None:
         """
         Set mosaic, copy_paste and mixup options to 0.0 and build transformations.
 
@@ -784,7 +786,7 @@ class ClassificationDataset:
             else classify_transforms(size=args.imgsz)
         )
 
-    def __getitem__(self, i: int) -> Dict:
+    def __getitem__(self, i: int) -> dict:
         """
         Return subset of data and targets corresponding to given indices.
 
@@ -813,7 +815,7 @@ class ClassificationDataset:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
 
-    def verify_images(self) -> List[Tuple]:
+    def verify_images(self) -> list[tuple]:
         """
         Verify all images in dataset.
 

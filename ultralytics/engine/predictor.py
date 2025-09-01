@@ -32,11 +32,13 @@ Usage - formats:
                               yolo11n_rknn_model         # Rockchip RKNN
 """
 
+from __future__ import annotations
+
 import platform
 import re
 import threading
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -109,8 +111,8 @@ class BasePredictor:
     def __init__(
         self,
         cfg=DEFAULT_CFG,
-        overrides: Optional[Dict[str, Any]] = None,
-        _callbacks: Optional[Dict[str, List[callable]]] = None,
+        overrides: dict[str, Any] | None = None,
+        _callbacks: dict[str, list[callable]] | None = None,
     ):
         """
         Initialize the BasePredictor class.
@@ -147,7 +149,7 @@ class BasePredictor:
         self._lock = threading.Lock()  # for automatic thread-safe inference
         callbacks.add_integration_callbacks(self)
 
-    def preprocess(self, im: Union[torch.Tensor, List[np.ndarray]]) -> torch.Tensor:
+    def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
         """
         Prepare input image before inference.
 
@@ -181,7 +183,7 @@ class BasePredictor:
         )
         return self.model(im, augment=self.args.augment, visualize=visualize, embed=self.args.embed, *args, **kwargs)
 
-    def pre_transform(self, im: List[np.ndarray]) -> List[np.ndarray]:
+    def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """
         Pre-transform input image before inference.
 
@@ -404,7 +406,7 @@ class BasePredictor:
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
 
-    def write_results(self, i: int, p: Path, im: torch.Tensor, s: List[str]) -> str:
+    def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
         """
         Write inference results to a file or directory.
 

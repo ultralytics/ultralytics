@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import importlib.metadata
 import inspect
@@ -8,7 +10,7 @@ import logging
 import os
 import platform
 import re
-import subprocess
+import socket
 import sys
 import threading
 import time
@@ -16,7 +18,6 @@ from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
-from typing import Union
 from urllib.parse import unquote
 
 import cv2
@@ -24,6 +25,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
+from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
@@ -44,7 +46,7 @@ VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbo
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
-MACOS14 = MACOS and MACOS_VERSION.startswith("14.")
+NOT_MACOS14 = not (MACOS and MACOS_VERSION.startswith("14."))
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
@@ -190,9 +192,10 @@ class DataExportMixin:
             def _to_str_simple(v):
                 if v is None:
                     return ""
-                if isinstance(v, (dict, list, tuple, set)):
+                elif isinstance(v, (dict, list, tuple, set)):
                     return repr(v)
-                return str(v)
+                else:
+                    return str(v)
 
             df_str = df.select(
                 [pl.col(c).map_elements(_to_str_simple, return_dtype=pl.String).alias(c) for c in df.columns]
@@ -414,10 +417,10 @@ def set_logging(name="LOGGING_NAME", verbose=True):
             """Format log records with prefixes based on level."""
             # Apply prefixes based on log level
             if record.levelno == logging.WARNING:
-                prefix = "WARNING ⚠️" if not WINDOWS else "WARNING"
+                prefix = "WARNING" if WINDOWS else "WARNING ⚠️"
                 record.msg = f"{prefix} {record.msg}"
             elif record.levelno == logging.ERROR:
-                prefix = "ERROR ❌" if not WINDOWS else "ERROR"
+                prefix = "ERROR" if WINDOWS else "ERROR ❌"
                 record.msg = f"{prefix} {record.msg}"
 
             # Handle emojis in message based on platform
@@ -428,7 +431,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
     # Handle Windows UTF-8 encoding issues
     if WINDOWS and hasattr(sys.stdout, "encoding") and sys.stdout.encoding != "utf-8":
-        try:
+        with contextlib.suppress(Exception):
             # Attempt to reconfigure stdout to use UTF-8 encoding if possible
             if hasattr(sys.stdout, "reconfigure"):
                 sys.stdout.reconfigure(encoding="utf-8")
@@ -437,8 +440,6 @@ def set_logging(name="LOGGING_NAME", verbose=True):
                 import io
 
                 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-        except Exception:
-            pass
 
     # Create and configure the StreamHandler with the appropriate formatter and level
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -753,20 +754,21 @@ def is_jetson(jetpack=None) -> bool:
 
 def is_online() -> bool:
     """
-    Check internet connectivity by attempting to connect to a known online host.
+    Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
 
     Returns:
         (bool): True if connection is successful, False otherwise.
     """
-    try:
-        assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
-        import socket
-
-        for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
-            socket.create_connection(address=(dns, 80), timeout=2.0).close()
-            return True
-    except Exception:
+    if str(os.getenv("YOLO_OFFLINE", "")).lower() == "true":
         return False
+
+    for host in ("one.one.one.one", "dns.google"):
+        try:
+            socket.getaddrinfo(host, 0, socket.AF_UNSPEC, 0, 0, socket.AI_ADDRCONFIG)
+            return True
+        except OSError:
+            continue
+    return False
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
@@ -788,7 +790,7 @@ def is_pip_package(filepath: str = __name__) -> bool:
     return spec is not None and spec.origin is not None
 
 
-def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
+def is_dir_writeable(dir_path: str | Path) -> bool:
     """
     Check if a directory is writeable.
 
@@ -819,58 +821,6 @@ def is_github_action_running() -> bool:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
-
-
-def get_git_dir():
-    """
-    Determine whether the current file is part of a git repository and if so, return the repository root directory.
-
-    Returns:
-        (Path | None): Git root directory if found or None if not found.
-    """
-    for d in Path(__file__).parents:
-        if (d / ".git").is_dir():
-            return d
-
-
-def is_git_dir():
-    """
-    Determine whether the current file is part of a git repository.
-
-    Returns:
-        (bool): True if current file is part of a git repository.
-    """
-    return GIT_DIR is not None
-
-
-def get_git_origin_url():
-    """
-    Retrieve the origin URL of a git repository.
-
-    Returns:
-        (str | None): The origin URL of the git repository or None if not git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
-            return origin.decode().strip()
-        except subprocess.CalledProcessError:
-            return None
-
-
-def get_git_branch():
-    """
-    Return the current git branch name. If not in a git repository, return None.
-
-    Returns:
-        (str | None): The current git branch name or None if not a git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-            return origin.decode().strip()
-        except subprocess.CalledProcessError:
-            return None
 
 
 def get_default_args(func):
@@ -945,8 +895,7 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
-GIT_DIR = get_git_dir()
-IS_GIT_DIR = is_git_dir()
+GIT = GitRepo()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
@@ -1169,7 +1118,7 @@ def set_sentry():
         or TESTS_RUNNING
         or not ONLINE
         or not IS_PIP_PACKAGE
-        or IS_GIT_DIR
+        or GIT.is_repo
     ):
         return
     # If sentry_sdk package is not installed then return and do not use Sentry
@@ -1197,7 +1146,7 @@ def set_sentry():
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+            "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
             "os": ENVIRONMENT,
         }
         return event
@@ -1244,7 +1193,7 @@ class JSONDict(dict):
         >>> json_dict.clear()
     """
 
-    def __init__(self, file_path: Union[str, Path] = "data.json"):
+    def __init__(self, file_path: str | Path = "data.json"):
         """Initialize a JSONDict object with a specified file path for JSON persistence."""
         super().__init__()
         self.file_path = Path(file_path)
@@ -1342,8 +1291,8 @@ class SettingsManager(JSONDict):
 
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
-        root = GIT_DIR or Path()
-        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
+        root = GIT.root or Path()
+        datasets_root = (root.parent if GIT.root and is_dir_writeable(root.parent) else root).resolve()
 
         self.file = Path(file)
         self.version = version

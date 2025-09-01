@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import List
+from __future__ import annotations
+
 from urllib.parse import urlsplit
 
 import numpy as np
@@ -86,7 +87,7 @@ class TritonRemoteModel:
         self.output_names = [x["name"] for x in config["output"]]
         self.metadata = eval(config.get("parameters", {}).get("metadata", {}).get("string_value", "None"))
 
-    def __call__(self, *inputs: np.ndarray) -> List[np.ndarray]:
+    def __call__(self, *inputs: np.ndarray) -> list[np.ndarray]:
         """
         Call the model with the given inputs and return inference results.
 

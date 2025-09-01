@@ -14,11 +14,12 @@ Examples:
     >>> model.tune(data="coco8.yaml", epochs=10, iterations=300, optimizer="AdamW", plots=False, save=False, val=False)
 """
 
+from __future__ import annotations
+
 import random
 import shutil
 import subprocess
 import time
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -59,7 +60,7 @@ class Tuner:
         >>> model.tune(space={key1: val1, key2: val2})  # custom search space dictionary
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks: Optional[List] = None):
+    def __init__(self, args=DEFAULT_CFG, _callbacks: list | None = None):
         """
         Initialize the Tuner with configurations.
 
@@ -109,7 +110,7 @@ class Tuner:
 
     def _mutate(
         self, parent: str = "single", n: int = 5, mutation: float = 0.8, sigma: float = 0.2
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 

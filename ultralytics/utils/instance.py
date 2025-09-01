@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections import abc
 from itertools import repeat
 from numbers import Number
-from typing import List, Union
 
 import numpy as np
 
@@ -101,7 +102,7 @@ class Bboxes:
             else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
         )
 
-    def mul(self, scale: Union[int, tuple, list]) -> None:
+    def mul(self, scale: int | tuple | list) -> None:
         """
         Multiply bounding box coordinates by scale factor(s).
 
@@ -118,7 +119,7 @@ class Bboxes:
         self.bboxes[:, 2] *= scale[2]
         self.bboxes[:, 3] *= scale[3]
 
-    def add(self, offset: Union[int, tuple, list]) -> None:
+    def add(self, offset: int | tuple | list) -> None:
         """
         Add offset to bounding box coordinates.
 
@@ -140,7 +141,7 @@ class Bboxes:
         return len(self.bboxes)
 
     @classmethod
-    def concatenate(cls, boxes_list: List["Bboxes"], axis: int = 0) -> "Bboxes":
+    def concatenate(cls, boxes_list: list[Bboxes], axis: int = 0) -> Bboxes:
         """
         Concatenate a list of Bboxes objects into a single Bboxes object.
 
@@ -163,7 +164,7 @@ class Bboxes:
             return boxes_list[0]
         return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
 
-    def __getitem__(self, index: Union[int, np.ndarray, slice]) -> "Bboxes":
+    def __getitem__(self, index: int | np.ndarray | slice) -> Bboxes:
         """
         Retrieve a specific bounding box or a set of bounding boxes using indexing.
 
@@ -327,7 +328,7 @@ class Instances:
             self.keypoints[..., 0] += padw
             self.keypoints[..., 1] += padh
 
-    def __getitem__(self, index: Union[int, np.ndarray, slice]) -> "Instances":
+    def __getitem__(self, index: int | np.ndarray | slice) -> Instances:
         """
         Retrieve a specific instance or a set of instances using indexing.
 
@@ -452,7 +453,7 @@ class Instances:
         return len(self.bboxes)
 
     @classmethod
-    def concatenate(cls, instances_list: List["Instances"], axis=0) -> "Instances":
+    def concatenate(cls, instances_list: list[Instances], axis=0) -> Instances:
         """
         Concatenate a list of Instances objects into a single Instances object.
 

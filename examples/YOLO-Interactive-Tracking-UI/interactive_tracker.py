@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import time
-from typing import Tuple
 
 import cv2
 
@@ -53,7 +54,7 @@ selected_bbox = None
 selected_center = None
 
 
-def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
+def get_center(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int]:
     """
     Calculate the center point of a bounding box.
 
@@ -70,7 +71,7 @@ def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tuple[int, int, int]) -> Tuple[int, int]:
+def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tuple[int, int, int]) -> tuple[int, int]:
     """
     Calculate the endpoint to extend a line from the center toward an image edge.
 
@@ -87,13 +88,14 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tup
     h, w = img_shape[:2]
     if direction == "left":
         return 0, mid_y
-    if direction == "right":
+    elif direction == "right":
         return w - 1, mid_y
-    if direction == "up":
+    elif direction == "up":
         return mid_x, 0
-    if direction == "down":
+    elif direction == "down":
         return mid_x, h - 1
-    return mid_x, mid_y
+    else:
+        return mid_x, mid_y
 
 
 def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:

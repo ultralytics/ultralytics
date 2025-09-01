@@ -793,6 +793,9 @@ class E2EDetectLoss:
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = v8DetectionLoss(model, tal_topk=12)
         self.one2one = v8DetectionLoss(model, tal_topk=12, tal_topk2=1)
+        self.updates = 0
+        self.o2o = 0
+        self.o2m = 1.0
 
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -801,7 +804,17 @@ class E2EDetectLoss:
         loss_one2many = self.one2many(one2many, batch)
         one2one = preds["one2one"]
         loss_one2one = self.one2one(one2one, batch)
-        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
+            1
+        ] * self.o2o
+
+    def update(self):
+        self.updates += 1
+        self.o2m = self.decay(self.updates)
+        self.o2o = max(1.0 - self.o2m, 0)
+
+    def decay(self, x):
+        return max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (1.0 - self.one2one.hyp.o2m) + self.one2one.hyp.o2m
 
 
 class TVPDetectLoss:

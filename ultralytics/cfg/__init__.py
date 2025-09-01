@@ -404,14 +404,51 @@ def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
         >>> print(save_dir)
         my_project/detect/train
     """
+    # Return existing save_dir if provided
     if getattr(args, "save_dir", None):
-        save_dir = args.save_dir
-    else:
-        from ultralytics.utils.files import increment_path
+        return Path(args.save_dir)
 
-        project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
-        name = name or args.name or f"{args.mode}"
-        save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
+    from ultralytics.utils import is_dir_writeable
+    from ultralytics.utils.files import increment_path
+
+    def try_mkdir(path: Path) -> bool:
+        """Try to create directory, return True if successful or already exists."""
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+            return True
+        except (PermissionError, OSError, FileNotFoundError):
+            return False
+
+    # Determine base project directory
+    project = args.project or (ROOT.parent / "tests/tmp/runs" if TESTS_RUNNING else RUNS_DIR) / args.task
+    project_parent = Path(project).parent
+
+    # Create parent directory if it doesn't exist
+    if not project_parent.exists():
+        try_mkdir(project_parent)
+
+    # Handle non-writable directories with fallback chain
+    if not is_dir_writeable(project_parent):
+        LOGGER.warning(f"Directory {project_parent} is not writeable. Using fallback directory for training outputs.")
+
+        # Try current working directory
+        if is_dir_writeable(Path.cwd()):
+            project = Path.cwd() / "runs" / args.task
+            if not try_mkdir(project):
+                project = None  # Mark for temp fallback
+        else:
+            project = None  # Mark for temp fallback
+
+        # Final fallback to temp directory if needed
+        if project is None:
+            import tempfile
+
+            project = Path(tempfile.gettempdir()) / "ultralytics_runs" / args.task
+            LOGGER.warning(f"Using temp directory: {project}")
+
+    # Build final save directory path
+    name = name or args.name or f"{args.mode}"
+    save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
     return Path(save_dir)
 

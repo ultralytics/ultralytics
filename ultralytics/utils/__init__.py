@@ -11,7 +11,6 @@ import os
 import platform
 import re
 import socket
-import subprocess
 import sys
 import threading
 import time
@@ -26,6 +25,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
+from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
@@ -823,77 +823,6 @@ def is_github_action_running() -> bool:
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
 
 
-def get_git_dir():
-    """
-    Determine whether the current file is part of a git repository and if so, return the repository root directory.
-
-    Returns:
-        (Path | None): Git root directory if found or None if not found.
-    """
-    for d in Path(__file__).parents:
-        if (d / ".git").is_dir():
-            return d
-
-
-def is_git_dir():
-    """
-    Determine whether the current file is part of a git repository.
-
-    Returns:
-        (bool): True if current file is part of a git repository.
-    """
-    return GIT_DIR is not None
-
-
-@lru_cache(maxsize=1)
-def get_git_origin_url():
-    """
-    Retrieve the origin URL of a git repository.
-
-    Returns:
-        (str | None): The origin URL of the git repository or None if not git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            return subprocess.check_output(
-                ["git", "config", "--get", "remote.origin.url"], stderr=subprocess.DEVNULL, text=True
-            ).strip()
-        except subprocess.CalledProcessError:
-            return None
-
-
-@lru_cache(maxsize=1)
-def get_git_branch():
-    """
-    Return the current git branch name. If not in a git repository, return None.
-
-    Returns:
-        (str | None): The current git branch name or None if not a git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            return subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, text=True
-            ).strip()
-        except subprocess.CalledProcessError:
-            return None
-
-
-@lru_cache(maxsize=1)
-def get_git_commit():
-    """
-    Return the current git commit hash. If not in a git repository, return None.
-
-    Returns:
-        (str | None): The current git commit hash or None if not a git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
-        except subprocess.CalledProcessError:
-            return None
-
-
 def get_default_args(func):
     """
     Return a dictionary of default arguments for a function.
@@ -966,8 +895,7 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
-GIT_DIR = get_git_dir()
-IS_GIT_DIR = is_git_dir()
+GIT = GitRepo()
 USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
@@ -1190,7 +1118,7 @@ def set_sentry():
         or TESTS_RUNNING
         or not ONLINE
         or not IS_PIP_PACKAGE
-        or IS_GIT_DIR
+        or GIT.is_repo
     ):
         return
     # If sentry_sdk package is not installed then return and do not use Sentry
@@ -1218,7 +1146,7 @@ def set_sentry():
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+            "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
             "os": ENVIRONMENT,
         }
         return event
@@ -1363,8 +1291,8 @@ class SettingsManager(JSONDict):
 
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
-        root = GIT_DIR or Path()
-        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
+        root = GIT.root or Path()
+        datasets_root = (root.parent if GIT.root and is_dir_writeable(root.parent) else root).resolve()
 
         self.file = Path(file)
         self.version = version

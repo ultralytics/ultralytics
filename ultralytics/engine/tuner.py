@@ -383,6 +383,10 @@ class Tuner:
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, i + 1)
                 self._sync_mongodb_to_csv()
+                total_mongo_iterations = self.collection.count_documents({})
+                if total_mongo_iterations >= iterations:
+                    LOGGER.info(f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping.")
+                    break
             else:
                 # Save to CSV only if no MongoDB
                 log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]

@@ -241,12 +241,7 @@ def test_export_ncnn():
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "task, half, batch",
-    [  # generate all combinations except for exclusion cases
-        (task, half, batch) for task, half, batch in product(TASKS, [True, False], [1])
-    ],
-)
+@pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)

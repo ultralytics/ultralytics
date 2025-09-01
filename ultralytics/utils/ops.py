@@ -1,10 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import math
 import re
 import time
-from typing import Optional
 
 import cv2
 import numpy as np
@@ -38,7 +39,7 @@ class Profile(contextlib.ContextDecorator):
         ...     time.sleep(0.1)
     """
 
-    def __init__(self, t: float = 0.0, device: Optional[torch.device] = None):
+    def __init__(self, t: float = 0.0, device: torch.device | None = None):
         """
         Initialize the Profile class.
 

@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import torch
 
@@ -80,7 +82,7 @@ class NAS(Model):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
 
-    def info(self, detailed: bool = False, verbose: bool = True) -> Dict[str, Any]:
+    def info(self, detailed: bool = False, verbose: bool = True) -> dict[str, Any]:
         """
         Log model information.
 
@@ -94,6 +96,6 @@ class NAS(Model):
         return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Any]]:
+    def task_map(self) -> dict[str, dict[str, Any]]:
         """Return a dictionary mapping tasks to respective predictor and validator classes."""
         return {"detect": {"predictor": NASPredictor, "validator": NASValidator}}

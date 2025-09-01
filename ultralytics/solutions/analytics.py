@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from itertools import cycle
-from typing import Any, Dict, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -135,7 +137,7 @@ class Analytics(BaseSolution):
         return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), classwise_count=self.clswise_count)
 
     def update_graph(
-        self, frame_number: int, count_dict: Optional[Dict[str, int]] = None, plot: str = "line"
+        self, frame_number: int, count_dict: dict[str, int] | None = None, plot: str = "line"
     ) -> np.ndarray:
         """
         Update the graph with new data for single or multiple classes.

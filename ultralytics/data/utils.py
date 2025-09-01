@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import json
 import os
 import random
@@ -9,7 +11,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -39,14 +41,14 @@ VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: List[str]) -> List[str]:
+def img2label_paths(img_paths: list[str]) -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
 def check_file_speeds(
-    files: List[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
+    files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
     """
     Check dataset file access speed and provide performance feedback.
@@ -123,7 +125,7 @@ def check_file_speeds(
         )
 
 
-def get_hash(paths: List[str]) -> str:
+def get_hash(paths: list[str]) -> str:
     """Return a single hash value of a list of paths (files or dirs)."""
     size = 0
     for p in paths:
@@ -136,7 +138,7 @@ def get_hash(paths: List[str]) -> str:
     return h.hexdigest()  # return hash
 
 
-def exif_size(img: Image.Image) -> Tuple[int, int]:
+def exif_size(img: Image.Image) -> tuple[int, int]:
     """Return exif-corrected PIL size."""
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
@@ -150,7 +152,7 @@ def exif_size(img: Image.Image) -> Tuple[int, int]:
     return s
 
 
-def verify_image(args: Tuple) -> Tuple:
+def verify_image(args: tuple) -> tuple:
     """Verify one image."""
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
@@ -175,7 +177,7 @@ def verify_image(args: Tuple) -> Tuple:
     return (im_file, cls), nf, nc, msg
 
 
-def verify_image_label(args: Tuple) -> List:
+def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
@@ -247,7 +249,7 @@ def verify_image_label(args: Tuple) -> List:
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
-def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[int, str]):
+def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
     """
     Visualize YOLO annotations (bounding boxes and class labels) on an image.
 
@@ -292,7 +294,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[
 
 
 def polygon2mask(
-    imgsz: Tuple[int, int], polygons: List[np.ndarray], color: int = 1, downsample_ratio: int = 1
+    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int = 1, downsample_ratio: int = 1
 ) -> np.ndarray:
     """
     Convert a list of polygons to a binary mask of the specified image size.
@@ -317,7 +319,7 @@ def polygon2mask(
 
 
 def polygons2masks(
-    imgsz: Tuple[int, int], polygons: List[np.ndarray], color: int, downsample_ratio: int = 1
+    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int, downsample_ratio: int = 1
 ) -> np.ndarray:
     """
     Convert a list of polygons to a set of binary masks of the specified image size.
@@ -336,8 +338,8 @@ def polygons2masks(
 
 
 def polygons2masks_overlap(
-    imgsz: Tuple[int, int], segments: List[np.ndarray], downsample_ratio: int = 1
-) -> Tuple[np.ndarray, np.ndarray]:
+    imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
+) -> tuple[np.ndarray, np.ndarray]:
     """Return a (640, 640) overlap mask."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
@@ -385,7 +387,7 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]:
+def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
     """
     Download, verify, and/or unzip a dataset if not found locally.
 
@@ -480,7 +482,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, Any]:
+def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     """
     Check a classification dataset such as Imagenet.
 
@@ -636,7 +638,7 @@ class HUBDatasetStats:
         self.data = data
 
     @staticmethod
-    def _unzip(path: Path) -> Tuple[bool, str, Path]:
+    def _unzip(path: Path) -> tuple[bool, str, Path]:
         """Unzip data.zip."""
         if not str(path).endswith(".zip"):  # path is data.yaml
             return False, None, path
@@ -650,7 +652,7 @@ class HUBDatasetStats:
         """Save a compressed image for HUB previews."""
         compress_one_image(f, self.im_dir / Path(f).name)  # save to dataset-hub
 
-    def get_json(self, save: bool = False, verbose: bool = False) -> Dict:
+    def get_json(self, save: bool = False, verbose: bool = False) -> dict:
         """Return dataset JSON for Ultralytics HUB."""
 
         def _round(labels):
@@ -777,7 +779,7 @@ def compress_one_image(f: str, f_new: str = None, max_dim: int = 1920, quality: 
         cv2.imwrite(str(f_new or f), im)
 
 
-def load_dataset_cache_file(path: Path) -> Dict:
+def load_dataset_cache_file(path: Path) -> dict:
     """Load an Ultralytics *.cache dictionary from path."""
     import gc
 
@@ -787,7 +789,7 @@ def load_dataset_cache_file(path: Path) -> Dict:
     return cache
 
 
-def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
+def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
     """Save an Ultralytics dataset *.cache dictionary x to path."""
     x["version"] = version  # add cache version
     if is_dir_writeable(path.parent):

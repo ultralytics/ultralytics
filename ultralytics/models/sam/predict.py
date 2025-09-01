@@ -8,8 +8,10 @@ using SAM. It forms an integral part of the Ultralytics framework and is designe
 segmentation tasks.
 """
 
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -1717,9 +1719,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     def __init__(
         self,
         cfg: Any = DEFAULT_CFG,
-        overrides: Optional[Dict[str, Any]] = None,
+        overrides: dict[str, Any] | None = None,
         max_obj_num: int = 3,
-        _callbacks: Optional[Dict[str, Any]] = None,
+        _callbacks: dict[str, Any] | None = None,
     ) -> None:
         """
         Initialize the predictor with configuration and optional overrides.
@@ -1759,14 +1761,14 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def inference(
         self,
-        img: Union[torch.Tensor, np.ndarray],
-        bboxes: Optional[List[List[float]]] = None,
-        masks: Optional[Union[torch.Tensor, np.ndarray]] = None,
-        points: Optional[List[List[float]]] = None,
-        labels: Optional[List[int]] = None,
-        obj_ids: Optional[List[int]] = None,
+        img: torch.Tensor | np.ndarray,
+        bboxes: list[list[float]] | None = None,
+        masks: torch.Tensor | np.ndarray | None = None,
+        points: list[list[float]] | None = None,
+        labels: list[int] | None = None,
+        obj_ids: list[int] | None = None,
         update_memory: bool = False,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Perform inference on a single image with optional bounding boxes, masks, points and object IDs.
         It has two modes: one is to run inference on a single image without updating the memory,
@@ -1824,7 +1826,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         pred_scores = torch.clamp_(pred_scores / 32, min=0)
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def get_im_features(self, img: Union[torch.Tensor, np.ndarray]) -> None:
+    def get_im_features(self, img: torch.Tensor | np.ndarray) -> None:
         """
         Initialize the image state by processing the input image and extracting features.
 
@@ -1844,10 +1846,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def update_memory(
         self,
-        obj_ids: List[int] = None,
-        points: Optional[torch.Tensor] = None,
-        labels: Optional[torch.Tensor] = None,
-        masks: Optional[torch.Tensor] = None,
+        obj_ids: list[int] = None,
+        points: torch.Tensor | None = None,
+        labels: torch.Tensor | None = None,
+        masks: torch.Tensor | None = None,
     ) -> None:
         """
         Append the imgState to the memory_bank and update the memory for the model.
@@ -1923,7 +1925,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         consolidated_out["maskmem_pos_enc"] = maskmem_pos_enc
         self.memory_bank.append(consolidated_out)
 
-    def _prepare_memory_conditioned_features(self, obj_idx: Optional[int]) -> torch.Tensor:
+    def _prepare_memory_conditioned_features(self, obj_idx: int | None) -> torch.Tensor:
         """
         Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
         prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features for all
@@ -1958,7 +1960,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             *self.feat_sizes[-1],
         )
 
-    def get_maskmem_enc(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_maskmem_enc(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Get the memory and positional encoding from the memory, which is used to condition the current image
         features.
         """
@@ -1973,7 +1975,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         memory_pos_embed = torch.cat(to_cat_memory_pos_embed, dim=0)
         return memory, memory_pos_embed
 
-    def _obj_id_to_idx(self, obj_id: int) -> Optional[int]:
+    def _obj_id_to_idx(self, obj_id: int) -> int | None:
         """
         Map client-side object id to model-side object index.
 
@@ -1987,11 +1989,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
     def track_step(
         self,
-        obj_idx: Optional[int] = None,
-        point: Optional[torch.Tensor] = None,
-        label: Optional[torch.Tensor] = None,
-        mask: Optional[torch.Tensor] = None,
-    ) -> Dict[str, Any]:
+        obj_idx: int | None = None,
+        point: torch.Tensor | None = None,
+        label: torch.Tensor | None = None,
+        mask: torch.Tensor | None = None,
+    ) -> dict[str, Any]:
         """
         Tracking step for the current image state to predict masks.
 

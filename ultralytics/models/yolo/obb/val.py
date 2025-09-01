@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import torch
@@ -70,7 +72,7 @@ class OBBValidator(DetectionValidator):
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
         self.confusion_matrix.task = "obb"  # set confusion matrix task to 'obb'
 
-    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, np.ndarray]:
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> dict[str, np.ndarray]:
         """
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
@@ -96,7 +98,7 @@ class OBBValidator(DetectionValidator):
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
-    def postprocess(self, preds: torch.Tensor) -> List[Dict[str, torch.Tensor]]:
+    def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """
         Args:
             preds (torch.Tensor): Raw predictions from the model.
@@ -109,7 +111,7 @@ class OBBValidator(DetectionValidator):
             pred["bboxes"] = torch.cat([pred["bboxes"], pred.pop("extra")], dim=-1)  # concatenate angle
         return preds
 
-    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
         """
         Prepare batch data for OBB validation with proper scaling and formatting.
 
@@ -143,7 +145,7 @@ class OBBValidator(DetectionValidator):
             "im_file": batch["im_file"][si],
         }
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
+    def plot_predictions(self, batch: dict[str, Any], preds: list[torch.Tensor], ni: int) -> None:
         """
         Plot predicted bounding boxes on input images and save the result.
 
@@ -163,7 +165,7 @@ class OBBValidator(DetectionValidator):
             p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format for plotting
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
@@ -194,7 +196,7 @@ class OBBValidator(DetectionValidator):
                 }
             )
 
-    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """
         Save YOLO OBB detections to a text file in normalized coordinates.
 
@@ -221,7 +223,7 @@ class OBBValidator(DetectionValidator):
             obb=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
-    def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scales predictions to the original image size."""
         return {
             **predn,
@@ -230,7 +232,7 @@ class OBBValidator(DetectionValidator):
             ),
         }
 
-    def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
+    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
         """
         Evaluate YOLO output in JSON format and save predictions in DOTA format.
 

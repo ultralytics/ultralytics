@@ -425,10 +425,15 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
         "kpt_shape": list,
         "flip_idx": list,
     }
-    for key, expected_types in types_dict.items():
-        if key in data and not isinstance(data[key], expected_types):
+
+    for key, types in types_dict.items():
+        if data.get(key) is not None and not isinstance(data[key], types):
+            valid_types = ", ".join(t.__name__ for t in types) if isinstance(types, tuple) else types.__name__
+            task = "pose" if key in {"kpt_shape", "flip_idx"} else "detect"
             raise TypeError(
-                f"'{key}' is of invalid type {type(data[key]).__name__}. Valid types are [{', '.join([t.__name__ for t in expected_types])}]. Refer to https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format"
+                f"'{key}' has invalid type {type(data[key]).__name__}. "
+                f"Valid types: {valid_types}. "
+                f"See https://docs.ultralytics.com/datasets/{task}/"
             )
 
     for k in "train", "val":

@@ -415,6 +415,21 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
+    types_dict = {
+        "path": str,
+        "train": str,
+        "val": str,
+        "nc": int,
+        "names": (list, dict),
+        "kpt_shape": list,
+        "flip_idx": list,
+    }
+    for key, expected_types in types_dict.items():
+        if key in data and not isinstance(data[key], expected_types):
+            raise TypeError(
+                f"'{key}' is of invalid type {type(data[key]).__name__}. Valid types are [{', '.join([t.__name__ for t in expected_types])}]. Refer to https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format"
+            )
+
     for k in "train", "val":
         if k not in data:
             if k != "val" or "validation" not in data:

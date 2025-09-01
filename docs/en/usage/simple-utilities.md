@@ -197,7 +197,7 @@ for f in Path("path/to/dataset").rglob("*.jpg"):
 Automatically split a dataset into `train`/`val`/`test` splits and save the resulting splits into `autosplit_*.txt` files. This function uses random sampling, which is excluded when using the [`fraction` argument for training](../modes/train.md#train-settings).
 
 ```python
-from ultralytics.data.utils import autosplit
+from ultralytics.data.split import autosplit
 
 autosplit(
     path="path/to/images",

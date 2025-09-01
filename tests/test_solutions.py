@@ -227,7 +227,7 @@ def test_right_click_reset():
     dc = solutions.DistanceCalculation()
     dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
-    assert dc.selected_boxes == {}
+    assert not dc.selected_boxes
     assert dc.left_mouse_count == 0
 
 

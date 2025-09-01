@@ -417,9 +417,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     # Checks
     types_dict = {
         "path": str,
-        "train": str,
-        "val": str,
-        "test": str,
+        "train": (str, list),
+        "val": (str, list),
+        "test": (str, list),
         "nc": int,
         "names": (list, dict),
         "kpt_shape": list,

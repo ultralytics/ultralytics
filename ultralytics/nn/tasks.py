@@ -1548,7 +1548,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     """
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).to(device).float()  # FP32 model
+    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
 
     # Model compatibility updates
     model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
@@ -1557,7 +1557,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     if not hasattr(model, "stride"):
         model.stride = torch.tensor([32.0])
 
-    model = model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()  # model in eval mode
+    model = (model.fuse() if fuse and hasattr(model, "fuse") else model).eval().to(device)  # model in eval mode
 
     # Module updates
     for m in model.modules():

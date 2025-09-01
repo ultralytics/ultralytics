@@ -68,7 +68,7 @@ jobs:
           git config --global user.email "web@ultralytics.com"
           npm install --global prettier prettier-plugin-sh
           python docs/build_reference.py
-          git pull origin "$GITHUB_REF"          
+          git pull origin "$GITHUB_REF"
           git add .
           git reset HEAD -- .github/workflows/  # workflow changes are not permitted with default token
           if [[ "${{ github.event_name }}" == "pull_request" ]] && ! git diff --staged --quiet; then
@@ -108,8 +108,8 @@ jobs:
           cd docs-repo
           if [ -f "vercel.json" ]; then
             cp vercel.json /tmp/vercel.json
-          fi          
-          rm -rf *          
+          fi
+          rm -rf *
           cp -R ../site/* .
           if [ -f "/tmp/vercel.json" ]; then
             cp /tmp/vercel.json .

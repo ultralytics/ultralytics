@@ -1,12 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import ast
 import json
 import platform
 import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -19,7 +21,7 @@ from ultralytics.utils.checks import check_requirements, check_suffix, check_ver
 from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
-def check_class_names(names: Union[List, Dict]) -> Dict[int, str]:
+def check_class_names(names: list | dict) -> dict[int, str]:
     """
     Check class names and convert to dict format if needed.
 
@@ -49,7 +51,7 @@ def check_class_names(names: Union[List, Dict]) -> Dict[int, str]:
     return names
 
 
-def default_class_names(data: Optional[Union[str, Path]] = None) -> Dict[int, str]:
+def default_class_names(data: str | Path | None = None) -> dict[int, str]:
     """
     Apply default class names to an input YAML file or return numerical class names.
 
@@ -134,10 +136,10 @@ class AutoBackend(nn.Module):
     @torch.no_grad()
     def __init__(
         self,
-        model: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        model: str | torch.nn.Module = "yolo11n.pt",
         device: torch.device = torch.device("cpu"),
         dnn: bool = False,
-        data: Optional[Union[str, Path]] = None,
+        data: str | Path | None = None,
         fp16: bool = False,
         fuse: bool = True,
         verbose: bool = True,
@@ -146,7 +148,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            model (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
+            model (str | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device): Device to run the model on.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
@@ -155,7 +157,6 @@ class AutoBackend(nn.Module):
             verbose (bool): Enable verbose logging.
         """
         super().__init__()
-        w = str(model[0] if isinstance(model, list) else model)
         nn_module = isinstance(model, torch.nn.Module)
         (
             pt,
@@ -175,7 +176,7 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             triton,
-        ) = self._model_type(w)
+        ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride, ch = 32, 3  # default stride and channels
@@ -189,8 +190,7 @@ class AutoBackend(nn.Module):
             cuda = False
 
         # Download if not local
-        if not (pt or triton or nn_module):
-            w = attempt_download_asset(w)
+        w = attempt_download_asset(model) if pt else model  # weights path
 
         # PyTorch (in-memory or file)
         if nn_module or pt:
@@ -203,11 +203,9 @@ class AutoBackend(nn.Module):
                     model = model.fuse(verbose=verbose)
                 model = model.to(device)
             else:  # pt file
-                from ultralytics.nn.tasks import attempt_load_weights
+                from ultralytics.nn.tasks import attempt_load_one_weight
 
-                model = attempt_load_weights(
-                    model if isinstance(model, list) else w, device=device, inplace=True, fuse=fuse
-                )
+                model, _ = attempt_load_one_weight(model, device=device, fuse=fuse)  # load model, ckpt
 
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):
@@ -480,7 +478,7 @@ class AutoBackend(nn.Module):
 
         # TF.js
         elif tfjs:
-            raise NotImplementedError("YOLOv8 TF.js inference is not currently supported.")
+            raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
 
         # PaddlePaddle
         elif paddle:
@@ -612,9 +610,9 @@ class AutoBackend(nn.Module):
         im: torch.Tensor,
         augment: bool = False,
         visualize: bool = False,
-        embed: Optional[List] = None,
+        embed: list | None = None,
         **kwargs: Any,
-    ) -> Union[torch.Tensor, List[torch.Tensor]]:
+    ) -> torch.Tensor | list[torch.Tensor]:
         """
         Run inference on an AutoBackend model.
 
@@ -843,7 +841,7 @@ class AutoBackend(nn.Module):
         """
         return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
-    def warmup(self, imgsz: Tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
+    def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640)) -> None:
         """
         Warm up the model by running one forward pass with a dummy input.
 
@@ -857,7 +855,7 @@ class AutoBackend(nn.Module):
                 self.forward(im)  # warmup
 
     @staticmethod
-    def _model_type(p: str = "path/to/model.pt") -> List[bool]:
+    def _model_type(p: str = "path/to/model.pt") -> list[bool]:
         """
         Take a path to a model file and return the model type.
 

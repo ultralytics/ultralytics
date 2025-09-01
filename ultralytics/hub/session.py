@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import shutil
 import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from ultralytics import __version__
@@ -90,7 +92,7 @@ class HUBTrainingSession:
                 )
 
     @classmethod
-    def create_session(cls, identifier: str, args: Optional[Dict[str, Any]] = None):
+    def create_session(cls, identifier: str, args: dict[str, Any] | None = None):
         """
         Create an authenticated HUBTrainingSession or return None.
 
@@ -137,7 +139,7 @@ class HUBTrainingSession:
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def create_model(self, model_args: Dict[str, Any]):
+    def create_model(self, model_args: dict[str, Any]):
         """
         Initialize a HUB training session with the specified model arguments.
 
@@ -254,8 +256,8 @@ class HUBTrainingSession:
         timeout: int = 30,
         thread: bool = True,
         verbose: bool = True,
-        progress_total: Optional[int] = None,
-        stream_response: Optional[bool] = None,
+        progress_total: int | None = None,
+        stream_response: bool | None = None,
         *args,
         **kwargs,
     ):

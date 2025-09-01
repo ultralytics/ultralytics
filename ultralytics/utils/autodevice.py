@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
@@ -44,9 +46,9 @@ class GPUInfo:
 
     def __init__(self):
         """Initialize GPUInfo, attempting to import and initialize pynvml."""
-        self.pynvml: Optional[Any] = None
+        self.pynvml: Any | None = None
         self.nvml_available: bool = False
-        self.gpu_stats: List[Dict[str, Any]] = []
+        self.gpu_stats: list[dict[str, Any]] = []
 
         try:
             check_requirements("nvidia-ml-py>=12.0.0")
@@ -83,7 +85,7 @@ class GPUInfo:
             LOGGER.warning(f"Error during device query: {e}")
             self.gpu_stats = []
 
-    def _get_device_stats(self, index: int) -> Dict[str, Any]:
+    def _get_device_stats(self, index: int) -> dict[str, Any]:
         """Get stats for a single GPU device."""
         handle = self.pynvml.nvmlDeviceGetHandleByIndex(index)
         memory = self.pynvml.nvmlDeviceGetMemoryInfo(handle)
@@ -134,7 +136,7 @@ class GPUInfo:
 
     def select_idle_gpu(
         self, count: int = 1, min_memory_fraction: float = 0, min_util_fraction: float = 0
-    ) -> List[int]:
+    ) -> list[int]:
         """
         Select the most idle GPUs based on utilization and free memory.
 

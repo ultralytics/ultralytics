@@ -1,9 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import math
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -142,12 +144,12 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i: int, bgr: bool = False) -> tuple:
+    def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
         """
         Convert hex color codes to RGB values.
 
         Args:
-            i (int): Color index.
+            i (int | torch.Tensor): Color index.
             bgr (bool, optional): Whether to return BGR format instead of RGB.
 
         Returns:
@@ -190,8 +192,8 @@ class Annotator:
     def __init__(
         self,
         im,
-        line_width: Optional[int] = None,
-        font_size: Optional[int] = None,
+        line_width: int | None = None,
+        font_size: int | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
         example: str = "abc",
@@ -409,10 +411,10 @@ class Annotator:
         self,
         kpts,
         shape: tuple = (640, 640),
-        radius: Optional[int] = None,
+        radius: int | None = None,
         kpt_line: bool = True,
         conf_thres: float = 0.25,
-        kpt_color: Optional[tuple] = None,
+        kpt_color: tuple | None = None,
     ):
         """
         Plot keypoints on the image.
@@ -517,7 +519,7 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    def show(self, title: Optional[str] = None):
+    def show(self, title: str | None = None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
@@ -533,7 +535,7 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox: Optional[tuple] = None):
+    def get_bbox_dimension(bbox: tuple | None = None):
         """
         Calculate the dimensions and area of a bounding box.
 
@@ -678,17 +680,17 @@ def save_one_box(
 
 @threaded
 def plot_images(
-    labels: Dict[str, Any],
-    images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
-    paths: Optional[List[str]] = None,
+    labels: dict[str, Any],
+    images: torch.Tensor | np.ndarray = np.zeros((0, 3, 640, 640), dtype=np.float32),
+    paths: list[str] | None = None,
     fname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
-    on_plot: Optional[Callable] = None,
+    names: dict[int, str] | None = None,
+    on_plot: Callable | None = None,
     max_size: int = 1920,
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
@@ -851,7 +853,7 @@ def plot_results(
     segment: bool = False,
     pose: bool = False,
     classify: bool = False,
-    on_plot: Optional[Callable] = None,
+    on_plot: Callable | None = None,
 ):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,

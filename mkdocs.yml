@@ -683,10 +683,12 @@ nav:
           - errors: reference/utils/errors.md
           - export: reference/utils/export.md
           - files: reference/utils/files.md
+          - git: reference/utils/git.md
           - instance: reference/utils/instance.md
           - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
+          - nms: reference/utils/nms.md
           - ops: reference/utils/ops.md
           - patches: reference/utils/patches.md
           - plotting: reference/utils/plotting.md
@@ -724,6 +726,7 @@ plugins:
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
+            ignore_init_summary: true
             docstring_style: google
             show_root_heading: true
             show_source: true

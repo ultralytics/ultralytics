@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import List, Optional, Tuple, Type
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
@@ -56,13 +56,13 @@ class ImageEncoderViT(nn.Module):
         mlp_ratio: float = 4.0,
         out_chans: int = 256,
         qkv_bias: bool = True,
-        norm_layer: Type[nn.Module] = nn.LayerNorm,
-        act_layer: Type[nn.Module] = nn.GELU,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
+        act_layer: type[nn.Module] = nn.GELU,
         use_abs_pos: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         window_size: int = 0,
-        global_attn_indexes: Tuple[int, ...] = (),
+        global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
         """
         Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
@@ -101,7 +101,7 @@ class ImageEncoderViT(nn.Module):
             embed_dim=embed_dim,
         )
 
-        self.pos_embed: Optional[nn.Parameter] = None
+        self.pos_embed: nn.Parameter | None = None
         if use_abs_pos:
             # Initialize absolute positional embedding with pretrain image size
             self.pos_embed = nn.Parameter(torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim))
@@ -188,10 +188,10 @@ class PromptEncoder(nn.Module):
     def __init__(
         self,
         embed_dim: int,
-        image_embedding_size: Tuple[int, int],
-        input_image_size: Tuple[int, int],
+        image_embedding_size: tuple[int, int],
+        input_image_size: tuple[int, int],
         mask_in_chans: int,
-        activation: Type[nn.Module] = nn.GELU,
+        activation: type[nn.Module] = nn.GELU,
     ) -> None:
         """
         Initialize the PromptEncoder module for encoding various types of prompts.
@@ -286,9 +286,9 @@ class PromptEncoder(nn.Module):
 
     @staticmethod
     def _get_batch_size(
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
-        boxes: Optional[torch.Tensor],
-        masks: Optional[torch.Tensor],
+        points: tuple[torch.Tensor, torch.Tensor] | None,
+        boxes: torch.Tensor | None,
+        masks: torch.Tensor | None,
     ) -> int:
         """Get the batch size of the output given the batch size of the input prompts."""
         if points is not None:
@@ -302,10 +302,10 @@ class PromptEncoder(nn.Module):
 
     def forward(
         self,
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
-        boxes: Optional[torch.Tensor],
-        masks: Optional[torch.Tensor],
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        points: tuple[torch.Tensor, torch.Tensor] | None,
+        boxes: torch.Tensor | None,
+        masks: torch.Tensor | None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Embed different types of prompts, returning both sparse and dense embeddings.
 
@@ -542,13 +542,13 @@ class FpnNeck(nn.Module):
     def __init__(
         self,
         d_model: int,
-        backbone_channel_list: List[int],
+        backbone_channel_list: list[int],
         kernel_size: int = 1,
         stride: int = 1,
         padding: int = 0,
         fpn_interp_model: str = "bilinear",
         fuse_type: str = "sum",
-        fpn_top_down_levels: Optional[List[int]] = None,
+        fpn_top_down_levels: list[int] | None = None,
     ):
         """
         Initialize a modified Feature Pyramid Network (FPN) neck.
@@ -602,7 +602,7 @@ class FpnNeck(nn.Module):
             fpn_top_down_levels = range(len(self.convs))
         self.fpn_top_down_levels = list(fpn_top_down_levels)
 
-    def forward(self, xs: List[torch.Tensor]):
+    def forward(self, xs: list[torch.Tensor]):
         """
         Perform forward pass through the Feature Pyramid Network (FPN) neck.
 
@@ -695,20 +695,20 @@ class Hiera(nn.Module):
         num_heads: int = 1,  # initial number of heads
         drop_path_rate: float = 0.0,  # stochastic depth
         q_pool: int = 3,  # number of q_pool stages
-        q_stride: Tuple[int, int] = (2, 2),  # downsample stride bet. stages
-        stages: Tuple[int, ...] = (2, 3, 16, 3),  # blocks per stage
+        q_stride: tuple[int, int] = (2, 2),  # downsample stride bet. stages
+        stages: tuple[int, ...] = (2, 3, 16, 3),  # blocks per stage
         dim_mul: float = 2.0,  # dim_mul factor at stage shift
         head_mul: float = 2.0,  # head_mul factor at stage shift
-        window_pos_embed_bkg_spatial_size: Tuple[int, int] = (14, 14),
+        window_pos_embed_bkg_spatial_size: tuple[int, int] = (14, 14),
         # window size per stage, when not using global att.
-        window_spec: Tuple[int, ...] = (
+        window_spec: tuple[int, ...] = (
             8,
             4,
             14,
             7,
         ),
         # global attn in these blocks
-        global_att_blocks: Tuple[int, ...] = (
+        global_att_blocks: tuple[int, ...] = (
             12,
             16,
             20,
@@ -806,7 +806,7 @@ class Hiera(nn.Module):
             else [self.blocks[-1].dim_out]
         )
 
-    def _get_pos_embed(self, hw: Tuple[int, int]) -> torch.Tensor:
+    def _get_pos_embed(self, hw: tuple[int, int]) -> torch.Tensor:
         """Generate positional embeddings by interpolating and combining window and background embeddings."""
         h, w = hw
         window_embed = self.pos_embed_window
@@ -815,7 +815,7 @@ class Hiera(nn.Module):
         pos_embed = pos_embed.permute(0, 2, 3, 1)
         return pos_embed
 
-    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         """
         Perform forward pass through Hiera model, extracting multiscale features from input images.
 

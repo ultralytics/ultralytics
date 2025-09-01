@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -54,7 +55,7 @@ class YOLOv8TFLite:
         >>> cv2.imshow("Result", result)
     """
 
-    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):
+    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: str | None = None):
         """
         Initialize the YOLOv8TFLite detector.
 
@@ -91,8 +92,8 @@ class YOLOv8TFLite:
         self.out_scale, self.out_zero_point = output_details["quantization"]
 
     def letterbox(
-        self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)
-    ) -> Tuple[np.ndarray, Tuple[float, float]]:
+        self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)
+    ) -> tuple[np.ndarray, tuple[float, float]]:
         """
         Resize and pad image while maintaining aspect ratio.
 
@@ -159,7 +160,7 @@ class YOLOv8TFLite:
         # Draw text
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def preprocess(self, img: np.ndarray) -> Tuple[np.ndarray, Tuple[float, float]]:
+    def preprocess(self, img: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
         """
         Preprocess the input image before performing inference.
 
@@ -176,7 +177,7 @@ class YOLOv8TFLite:
         img = img.astype(np.float32)
         return img / 255, pad  # Normalize to [0, 1]
 
-    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> np.ndarray:
+    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: tuple[float, float]) -> np.ndarray:
         """
         Process model outputs to extract and visualize detections.
 

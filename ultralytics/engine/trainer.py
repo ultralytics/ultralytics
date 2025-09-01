@@ -36,6 +36,7 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
+    get_git_commit,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -540,10 +541,10 @@ class BaseTrainer:
             torch.cuda.empty_cache()
 
     def read_results_csv(self):
-        """Read results.csv into a dictionary using pandas."""
-        import pandas as pd  # scope for faster 'import ultralytics'
+        """Read results.csv into a dictionary using polars."""
+        import polars as pl  # scope for faster 'import ultralytics'
 
-        return pd.read_csv(self.csv).to_dict(orient="list")
+        return pl.read_csv(self.csv).to_dict(as_series=False)
 
     def _model_train(self):
         """Set model in training mode."""
@@ -572,6 +573,7 @@ class BaseTrainer:
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
+                "git_commit": get_git_commit(),
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
             },

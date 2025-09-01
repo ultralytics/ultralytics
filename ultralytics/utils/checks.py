@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import functools
 import glob
 import inspect
@@ -13,7 +15,6 @@ import time
 from importlib import metadata
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Optional
 
 import cv2
 import numpy as np
@@ -274,7 +275,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
-    import requests  # slow import
+    import requests  # scoped as slow import
 
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
@@ -637,7 +638,7 @@ def check_yolo(verbose=True, device=""):
         verbose (bool): Whether to print verbose information.
         device (str | torch.device): Device to use for YOLO.
     """
-    import psutil
+    import psutil  # scoped as slow import
 
     from ultralytics.utils.torch_utils import select_device
 
@@ -670,7 +671,7 @@ def collect_system_info():
     Returns:
         (dict): Dictionary containing system information.
     """
-    import psutil
+    import psutil  # scoped as slow import
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
@@ -813,7 +814,7 @@ def git_describe(path=ROOT):  # path must be a directory
         return ""
 
 
-def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
+def print_args(args: dict | None = None, show_file=True, show_func=False):
     """
     Print function arguments (optional args dict).
 

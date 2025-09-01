@@ -2,7 +2,7 @@
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import ops
+from ultralytics.utils import nms, ops
 
 
 class DetectionPredictor(BasePredictor):
@@ -53,7 +53,7 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
-        preds = ops.non_max_suppression(
+        preds = nms.non_max_suppression(
             preds,
             self.args.conf,
             self.args.iou,
@@ -85,7 +85,7 @@ class DetectionPredictor(BasePredictor):
         """Extract object features from the feature maps."""
         import torch
 
-        s = min([x.shape[1] for x in feat_maps])  # find smallest vector length
+        s = min(x.shape[1] for x in feat_maps)  # find shortest vector length
         obj_feats = torch.cat(
             [x.permute(0, 2, 3, 1).reshape(x.shape[0], -1, s, x.shape[1] // s).mean(dim=-1) for x in feat_maps], dim=1
         )  # mean reduce all vectors to same length

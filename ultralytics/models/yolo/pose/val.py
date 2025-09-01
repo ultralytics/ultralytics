@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
 import torch
@@ -81,7 +83,7 @@ class PoseValidator(DetectionValidator):
                 "See https://github.com/ultralytics/ultralytics/issues/4031."
             )
 
-    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch by converting keypoints data to float and moving it to the device."""
         batch = super().preprocess(batch)
         batch["keypoints"] = batch["keypoints"].to(self.device).float()
@@ -116,7 +118,7 @@ class PoseValidator(DetectionValidator):
         nkpt = self.kpt_shape[0]
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
-    def postprocess(self, preds: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def postprocess(self, preds: torch.Tensor) -> dict[str, torch.Tensor]:
         """
         Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
 
@@ -146,7 +148,7 @@ class PoseValidator(DetectionValidator):
             pred["keypoints"] = pred.pop("extra").view(-1, *self.kpt_shape)  # remove extra if exists
         return preds
 
-    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
         """
         Prepare a batch for processing by converting keypoints to float and scaling to original dimensions.
 
@@ -170,7 +172,7 @@ class PoseValidator(DetectionValidator):
         pbatch["keypoints"] = kpts
         return pbatch
 
-    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, Any]) -> Dict[str, np.ndarray]:
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
         """
         Return correct prediction matrix by computing Intersection over Union (IoU) between detections and ground truth.
 
@@ -200,7 +202,7 @@ class PoseValidator(DetectionValidator):
         tp.update({"tp_p": tp_p})  # update tp with kpts IoU
         return tp
 
-    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """
         Save YOLO pose detections to a text file in normalized coordinates.
 
@@ -224,7 +226,7 @@ class PoseValidator(DetectionValidator):
             keypoints=predn["keypoints"],
         ).save_txt(file, save_conf=save_conf)
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """
         Convert YOLO predictions to COCO JSON format.
 
@@ -246,7 +248,7 @@ class PoseValidator(DetectionValidator):
         for i, k in enumerate(kpts.flatten(1, 2).tolist()):
             self.jdict[-len(kpts) + i]["keypoints"] = k  # keypoints
 
-    def scale_preds(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
@@ -258,7 +260,7 @@ class PoseValidator(DetectionValidator):
             ),
         }
 
-    def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
+    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
         """Evaluate object detection model using COCO JSON format."""
         anno_json = self.data["path"] / "annotations/person_keypoints_val2017.json"  # annotations
         pred_json = self.save_dir / "predictions.json"  # predictions

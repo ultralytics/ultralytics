@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -78,9 +80,9 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions SOLUTION ARGS
 
         Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
-              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
+              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults
                   at https://docs.ultralytics.com/usage/cfg
-                
+
     1. Call object counting solution
         yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
@@ -95,10 +97,10 @@ SOLUTIONS_HELP_MSG = f"""
 
     5. Generate analytical graphs
         yolo solutions analytics analytics_type="pie"
-    
+
     6. Track objects within specific zones
         yolo solutions trackzone source="path/to/video.mp4" region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
-        
+
     7. Streamlit real-time webcam inference GUI
         yolo streamlit-predict
     """
@@ -237,7 +239,7 @@ CFG_BOOL_KEYS = frozenset(
 )
 
 
-def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
+def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     """
     Convert a configuration object to a dictionary.
 
@@ -272,7 +274,7 @@ def cfg2dict(cfg: Union[str, Path, Dict, SimpleNamespace]) -> Dict:
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None) -> SimpleNamespace:
+def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrides: dict = None) -> SimpleNamespace:
     """
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
@@ -320,7 +322,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
-def check_cfg(cfg: Dict, hard: bool = True) -> None:
+def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     Check configuration argument types and values for the Ultralytics library.
 
@@ -414,7 +416,7 @@ def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
     return Path(save_dir)
 
 
-def _handle_deprecation(custom: Dict) -> Dict:
+def _handle_deprecation(custom: dict) -> dict:
     """
     Handle deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
@@ -458,7 +460,7 @@ def _handle_deprecation(custom: Dict) -> Dict:
     return custom
 
 
-def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
+def check_dict_alignment(base: dict, custom: dict, e: Exception = None) -> None:
     """
     Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
@@ -498,7 +500,7 @@ def check_dict_alignment(base: Dict, custom: Dict, e: Exception = None) -> None:
         raise SyntaxError(string + CLI_HELP_MSG) from e
 
 
-def merge_equals_args(args: List[str]) -> List[str]:
+def merge_equals_args(args: list[str]) -> list[str]:
     """
     Merge arguments around isolated '=' in a list of strings and join fragments with brackets.
 
@@ -557,7 +559,7 @@ def merge_equals_args(args: List[str]) -> List[str]:
     return new_args
 
 
-def handle_yolo_hub(args: List[str]) -> None:
+def handle_yolo_hub(args: list[str]) -> None:
     """
     Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
 
@@ -587,7 +589,7 @@ def handle_yolo_hub(args: List[str]) -> None:
         hub.logout()
 
 
-def handle_yolo_settings(args: List[str]) -> None:
+def handle_yolo_settings(args: list[str]) -> None:
     """
     Handle YOLO settings command-line interface (CLI) commands.
 
@@ -630,7 +632,7 @@ def handle_yolo_settings(args: List[str]) -> None:
         LOGGER.warning(f"settings error: '{e}'. Please see {url} for help.")
 
 
-def handle_yolo_solutions(args: List[str]) -> None:
+def handle_yolo_solutions(args: list[str]) -> None:
     """
     Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
 

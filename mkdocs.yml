@@ -686,11 +686,13 @@ nav:
           - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
+          - nms: reference/utils/nms.md
           - ops: reference/utils/ops.md
           - patches: reference/utils/patches.md
           - plotting: reference/utils/plotting.md
           - tal: reference/utils/tal.md
           - torch_utils: reference/utils/torch_utils.md
+          - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
 
@@ -722,6 +724,7 @@ plugins:
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
+            ignore_init_summary: true
             docstring_style: google
             show_root_heading: true
             show_source: true

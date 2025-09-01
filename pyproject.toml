@@ -93,6 +93,8 @@ export-onnx = [
     "onnxslim>=0.1.53",
 ]
 export-openvino = [
+    "packaging>=23.2",
+    "nncf>=2.14.0; python_version >= '3.9'", # only supported on python >=3.9
     "openvino>=2024.0.0",  # OpenVINO export
 ]
 export-tensorflow = [# tensorflow export on Windows and darwin is pretty broken, only use this on linux

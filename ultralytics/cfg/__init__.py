@@ -384,7 +384,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 cfg[k] = bool(v)
 
 
-def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
+def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
     """
     Return the directory path for saving outputs, derived from arguments or default settings.
 

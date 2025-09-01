@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import torch
 
@@ -155,8 +157,8 @@ class RTDETRValidator(DetectionValidator):
         )
 
     def postprocess(
-        self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]
-    ) -> List[Dict[str, torch.Tensor]]:
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
+    ) -> list[dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 
@@ -187,7 +189,7 @@ class RTDETRValidator(DetectionValidator):
 
         return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """
         Serialize YOLO predictions to COCO json format.
 

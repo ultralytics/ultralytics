@@ -252,7 +252,7 @@ def get_google_drive_file_info(link: str) -> tuple[str, str | None]:
         >>> link = "https://drive.google.com/file/d/1cqT-cJgANNrhIHCrEufUYhQ4RqiWG_lJ/view?usp=drive_link"
         >>> url, filename = get_google_drive_file_info(link)
     """
-    import requests  # slow import
+    import requests  # scoped as slow import
 
     file_id = link.split("/d/")[1].split("/view", 1)[0]
     drive_url = f"https://drive.google.com/uc?export=download&id={file_id}"
@@ -416,7 +416,7 @@ def get_github_assets(
     Examples:
         >>> tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
     """
-    import requests  # slow import
+    import requests  # scoped as slow import
 
     if version != "latest":
         version = f"tags/{version}"  # i.e. tags/v6.2

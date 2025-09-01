@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
@@ -38,7 +40,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict[str, Any]] = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
         """
         Initialize a PoseTrainer object for training YOLO pose estimation models.
 
@@ -73,8 +75,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_model(
         self,
-        cfg: Optional[Union[str, Path, Dict[str, Any]]] = None,
-        weights: Optional[Union[str, Path]] = None,
+        cfg: str | Path | dict[str, Any] | None = None,
+        weights: str | Path | None = None,
         verbose: bool = True,
     ) -> PoseModel:
         """
@@ -112,7 +114,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """Plot training/validation metrics."""
         plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
 
-    def get_dataset(self) -> Dict[str, Any]:
+    def get_dataset(self) -> dict[str, Any]:
         """
         Retrieve the dataset and ensure it contains the required `kpt_shape` key.
 

@@ -1,14 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import shutil
 import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import parse_qs, urlparse
-
-import requests
 
 from ultralytics import __version__
 from ultralytics.hub.utils import HELP_MSG, HUB_WEB_ROOT, PREFIX
@@ -92,7 +92,7 @@ class HUBTrainingSession:
                 )
 
     @classmethod
-    def create_session(cls, identifier: str, args: Optional[Dict[str, Any]] = None):
+    def create_session(cls, identifier: str, args: dict[str, Any] | None = None):
         """
         Create an authenticated HUBTrainingSession or return None.
 
@@ -139,7 +139,7 @@ class HUBTrainingSession:
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def create_model(self, model_args: Dict[str, Any]):
+    def create_model(self, model_args: dict[str, Any]):
         """
         Initialize a HUB training session with the specified model arguments.
 
@@ -206,7 +206,7 @@ class HUBTrainingSession:
             HUBModelError: If the identifier format is not recognized.
         """
         api_key, model_id, filename = None, None, None
-        if str(identifier).endswith((".pt", ".yaml")):
+        if identifier.endswith((".pt", ".yaml")):
             filename = identifier
         elif identifier.startswith(f"{HUB_WEB_ROOT}/models/"):
             parsed_url = urlparse(identifier)
@@ -256,8 +256,8 @@ class HUBTrainingSession:
         timeout: int = 30,
         thread: bool = True,
         verbose: bool = True,
-        progress_total: Optional[int] = None,
-        stream_response: Optional[bool] = None,
+        progress_total: int | None = None,
+        stream_response: bool | None = None,
         *args,
         **kwargs,
     ):
@@ -341,7 +341,7 @@ class HUBTrainingSession:
         }
         return status_code in retry_codes
 
-    def _get_failure_message(self, response: requests.Response, retry: int, timeout: int) -> str:
+    def _get_failure_message(self, response, retry: int, timeout: int) -> str:
         """
         Generate a retry message based on the response status code.
 
@@ -419,14 +419,14 @@ class HUBTrainingSession:
         )
 
     @staticmethod
-    def _show_upload_progress(content_length: int, response: requests.Response) -> None:
+    def _show_upload_progress(content_length: int, response) -> None:
         """Display a progress bar to track the upload progress of a file download."""
         with TQDM(total=content_length, unit="B", unit_scale=True, unit_divisor=1024) as pbar:
             for data in response.iter_content(chunk_size=1024):
                 pbar.update(len(data))
 
     @staticmethod
-    def _iterate_content(response: requests.Response) -> None:
+    def _iterate_content(response) -> None:
         """Process the streamed HTTP response data."""
         for _ in response.iter_content(chunk_size=1024):
             pass  # Do nothing with data chunks

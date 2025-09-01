@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import time
-from typing import Tuple
 
 import cv2
 
@@ -53,7 +54,7 @@ selected_bbox = None
 selected_center = None
 
 
-def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
+def get_center(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int]:
     """
     Calculate the center point of a bounding box.
 
@@ -70,7 +71,7 @@ def get_center(x1: int, y1: int, x2: int, y2: int) -> Tuple[int, int]:
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tuple[int, int, int]) -> Tuple[int, int]:
+def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tuple[int, int, int]) -> tuple[int, int]:
     """
     Calculate the endpoint to extend a line from the center toward an image edge.
 

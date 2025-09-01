@@ -478,7 +478,7 @@ class AutoBackend(nn.Module):
 
         # TF.js
         elif tfjs:
-            raise NotImplementedError("YOLOv8 TF.js inference is not currently supported.")
+            raise NotImplementedError("Ultralytics TF.js inference is not currently supported.")
 
         # PaddlePaddle
         elif paddle:

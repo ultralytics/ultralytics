@@ -1,5 +1,5 @@
 ---
-description: Learn how to export PyTorch models to ONNX and TensorRT formats using Ultralytics utilities. Comprehensive guide for configurations, dynamic shapes, and precision optimizations.  
+description: Learn how to export PyTorch models to ONNX and TensorRT formats using Ultralytics utilities. Comprehensive guide for configurations, dynamic shapes, and precision optimizations.
 keywords: Ultralytics, YOLO, export, ONNX, TensorRT, PyTorch, model conversion, dynamic shapes, FP16, INT8, machine learning
 ---
 

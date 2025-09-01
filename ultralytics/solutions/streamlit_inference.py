@@ -91,8 +91,8 @@ class Inference:
         font-family: 'Archivo', sans-serif; margin-bottom:20px;">Ultralytics YOLO Streamlit Application</h1></div>"""
 
         # Subtitle of streamlit application
-        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
-        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images 
+        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif;
+        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images
         with the power of Ultralytics YOLO! 🚀</h5></div>"""
 
         # Set html page configuration and append custom HTML

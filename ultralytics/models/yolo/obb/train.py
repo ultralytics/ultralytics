@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from copy import copy
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -31,7 +33,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks: Optional[List[Any]] = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: list[Any] | None = None):
         """
         Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
@@ -57,7 +59,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(
-        self, cfg: Optional[Union[str, dict]] = None, weights: Optional[Union[str, Path]] = None, verbose: bool = True
+        self, cfg: str | dict | None = None, weights: str | Path | None = None, verbose: bool = True
     ) -> OBBModel:
         """
         Return OBBModel initialized with specified config and weights.

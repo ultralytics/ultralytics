@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ultralytics.engine.model import Model
 
@@ -45,10 +47,10 @@ class FastSAM(Model):
         self,
         source,
         stream: bool = False,
-        bboxes: Optional[List] = None,
-        points: Optional[List] = None,
-        labels: Optional[List] = None,
-        texts: Optional[List] = None,
+        bboxes: list | None = None,
+        points: list | None = None,
+        labels: list | None = None,
+        texts: list | None = None,
         **kwargs: Any,
     ):
         """
@@ -74,6 +76,6 @@ class FastSAM(Model):
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Any]]:
+    def task_map(self) -> dict[str, dict[str, Any]]:
         """Returns a dictionary mapping segment task to corresponding predictor and validator classes."""
         return {"segment": {"predictor": FastSAMPredictor, "validator": FastSAMValidator}}

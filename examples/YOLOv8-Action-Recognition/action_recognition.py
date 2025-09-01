@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
 import time
 from collections import defaultdict
-from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 import cv2
@@ -85,7 +86,7 @@ class TorchVisionVideoClassifier:
         self.model = model(weights=self.weights).to(self.device).eval()
 
     @staticmethod
-    def available_model_names() -> List[str]:
+    def available_model_names() -> list[str]:
         """
         Get the list of available model names.
 
@@ -94,7 +95,7 @@ class TorchVisionVideoClassifier:
         """
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
-    def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: List[int] = None) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
@@ -134,7 +135,7 @@ class TorchVisionVideoClassifier:
         with torch.inference_mode():
             return self.model(sequences)
 
-    def postprocess(self, outputs: torch.Tensor) -> Tuple[List[str], List[float]]:
+    def postprocess(self, outputs: torch.Tensor) -> tuple[list[str], list[float]]:
         """
         Postprocess the model's batch output.
 
@@ -187,7 +188,7 @@ class HuggingFaceVideoClassifier:
 
     def __init__(
         self,
-        labels: List[str],
+        labels: list[str],
         model_name: str = "microsoft/xclip-base-patch16-zero-shot",
         device: str | torch.device = "",
         fp16: bool = False,
@@ -210,7 +211,7 @@ class HuggingFaceVideoClassifier:
             model = model.half()
         self.model = model.eval()
 
-    def preprocess_crops_for_video_cls(self, crops: List[np.ndarray], input_size: List[int] = None) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
@@ -260,7 +261,7 @@ class HuggingFaceVideoClassifier:
 
         return outputs.logits_per_video
 
-    def postprocess(self, outputs: torch.Tensor) -> Tuple[List[List[str]], List[List[float]]]:
+    def postprocess(self, outputs: torch.Tensor) -> tuple[list[list[str]], list[list[float]]]:
         """
         Postprocess the model's batch output.
 
@@ -288,7 +289,7 @@ class HuggingFaceVideoClassifier:
         return pred_labels, pred_confs
 
 
-def crop_and_pad(frame: np.ndarray, box: List[float], margin_percent: int) -> np.ndarray:
+def crop_and_pad(frame: np.ndarray, box: list[float], margin_percent: int) -> np.ndarray:
     """
     Crop box with margin and take square crop from frame.
 
@@ -324,14 +325,14 @@ def run(
     weights: str = "yolo11n.pt",
     device: str = "",
     source: str = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
     crop_margin_percentage: int = 10,
     num_video_sequence_samples: int = 8,
     skip_frame: int = 2,
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    labels: List[str] = None,
+    labels: list[str] = None,
 ) -> None:
     """
     Run action recognition on a video source using YOLO for object detection and a video classifier.

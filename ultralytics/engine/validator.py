@@ -101,6 +101,8 @@ class BaseValidator:
             args (SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
         """
+        import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
+
         self.args = get_cfg(overrides=args)
         self.dataloader = dataloader
         self.stride = None
@@ -155,7 +157,7 @@ class BaseValidator:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
-                weights=model or self.args.model,
+                model=model or self.args.model,
                 device=select_device(self.args.device, self.args.batch),
                 dnn=self.args.dnn,
                 data=self.args.data,

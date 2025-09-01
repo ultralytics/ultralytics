@@ -174,8 +174,97 @@ def verify_image(args: Tuple) -> Tuple:
         msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
     return (im_file, cls), nf, nc, msg
 
+def mask2polygon(mask, downsample_ratio=1):
+    mask_gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) if len(mask.shape) == 3 and mask.shape[2] == 3 else mask
+    _,mask_gray = cv2.threshold(mask_gray, 125, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(mask_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    polygons = []
+    for c in contours:
+        area = cv2.contourArea(c)
+        if area > 10:
+            polygons.append(c[:, 0, :].astype(np.float_))
+
+    if downsample_ratio != 1:
+        polygons = polygons / downsample_ratio
+
+    return polygons
+
+
+def get_boundingbox_from_polygons(polygons, format='xyxy'):
+    bboxes = []
+    for polygon in polygons:
+        x_min, y_min, x_max, y_max = polygon[:, 0].min(), polygon[:, 1].min(),polygon[:,0].max(), polygon[:, 1].max()
+        w, h = x_max - x_min, y_max - y_min
+        if format == "xywh":
+            bboxes.append([x_min+0.5*w, y_min+0.5*h, w, h])
+        elif format == "xyxy":
+            bboxes.append([
+                x_min,
+                y_min,
+                x_min + w,
+                y_min + h,
+            ])
+        elif format == 'ltwh':
+            bboxes.append([x_min, y_min, w, h])
+    return np.array(bboxes).astype(np.float32)
+
 def verify_image_and_mask(args: Tuple) -> List:
-    return
+    im_file, lb_file, colors, prefix, keypoint, num_cls, nkpt, ndim = args
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
+    try:
+        image = cv2.imread(im_file)
+        img_shape = image.shape
+
+        # verify mask
+        mask = cv2.imread(lb_file)
+        msk_shape = mask.shape
+        assert msk_shape == img_shape
+
+        mask_b = mask[:, :, 0]
+        mask_g = mask[:, :, 1]
+        mask_r = mask[:, :, 2]
+
+        segments, masks, categoris = [], [], []
+
+        for i in range(num_cls):
+            r, g, b = colors[i]
+            mb = mask_b == b
+            mg = mask_g == g
+            mr = mask_r == r
+            mask_i = (mb * mg * mr).astype(np.uint8) * 255
+
+            segment = mask2polygon(mask_i)
+            category = [i] * len(segment)
+            for j in range(len(segment)):
+                segments.append(segment[j])
+                categoris.append(category[j])
+            masks.append(mask_i)
+        nl = len(segments)
+
+        assert nl > 0
+
+        h, w, _ = img_shape
+        lb = np.zeros((nl, 5), dtype=np.float32)
+        lb[:, 0] = np.array(categoris)
+        lb[:, 1:] = get_boundingbox_from_polygons(segments, format='xyxy')
+
+        for segment in segments:
+            segment[:, 0] = segment[:, 0] / w
+            segment[:, 1] = segment[:, 1] / h
+        lb[:, 1] = lb[:, 1] / w
+        lb[:, 2] = lb[:, 2] / h
+        lb[:, 3] = lb[:, 3] / w
+        lb[:, 4] = lb[:, 4] / h
+
+        lb[:, 3] = lb[:, 3] - lb[:, 1]  # to [xmin, ymin, w, h] (normalized => 1.0)
+        lb[:, 4] = lb[:, 4] - lb[:, 2]
+
+        return im_file, lb_file, lb, img_shape, segments, keypoints, nm, nf, ne, nc, msg
+
+    except Exception as e:
+        nc = 1
+        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        return [None, None, None, None, None, None, nm, nf, ne, nc, msg]
 
 def verify_image_label(args: Tuple) -> List:
     """Verify one image-label pair."""
@@ -315,7 +404,7 @@ def polygon2mask(
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
     # Note: fillPoly first then resize is trying to keep the same loss calculation method when mask-ratio=1
-    return cv2.resize(mask, (nw, nh))
+    return cv2.resize(mask, (nw, nh), interpolation=cv2.INTER_NEAREST)
 
 
 def polygons2masks(

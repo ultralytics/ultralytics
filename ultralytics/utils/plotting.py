@@ -676,7 +676,6 @@ def save_one_box(
     return crop
 
 
-@threaded
 def plot_images(
     labels: Dict[str, Any],
     images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
@@ -843,6 +842,116 @@ def plot_images(
     if on_plot:
         on_plot(fname)
 
+
+def plot_masks(
+    images: Union[torch.Tensor, np.ndarray],
+    masks: Union[torch.Tensor, np.ndarray],
+    batch_idx: Union[torch.Tensor, np.ndarray],
+    cls: Union[torch.Tensor, np.ndarray],
+    bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
+    confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
+    kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),
+    paths: Optional[List[str]] = None,
+    nc: int = -1,
+    fname: str = "images.jpg",
+    mname: str = "images.jpg",
+    names: Optional[Dict[int, str]] = None,
+    colors: Optional[Dict[int, list]] = None,
+    on_plot: Optional[Callable] = None,
+    max_size: int = 1920,
+    max_subplots: int = 16,
+    save: bool = True,
+    conf_thres: float = 0.25,
+) -> Optional[np.ndarray]:
+    """
+    Plot image grid with labels, bounding boxes, masks, and keypoints.
+
+    Args:
+        images: Batch of images to plot. Shape: (batch_size, channels, height, width).
+        batch_idx: Batch indices for each detection. Shape: (num_detections,).
+        cls: Class labels for each detection. Shape: (num_detections,).
+        bboxes: Bounding boxes for each detection. Shape: (num_detections, 4) or (num_detections, 5) for rotated boxes.
+        confs: Confidence scores for each detection. Shape: (num_detections,).
+        masks: Instance segmentation masks. Shape: (num_detections, height, width) or (1, height, width).
+        kpts: Keypoints for each detection. Shape: (num_detections, 51).
+        paths: List of file paths for each image in the batch.
+        fname: Output image filename for the plotted image grid.
+        mname: Output mask filename for the plotted image grid.
+        names: Dictionary mapping class indices to class names.
+        on_plot: Optional callback function to be called after saving the plot.
+        max_size: Maximum size of the output image grid.
+        max_subplots: Maximum number of subplots in the image grid.
+        save: Whether to save the plotted image grid to a file.
+        conf_thres: Confidence threshold for displaying detections.
+
+    Returns:
+        np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
+
+    Note:
+        This function supports both tensor and numpy array inputs. It will automatically
+        convert tensor inputs to numpy arrays for processing.
+    """
+    if isinstance(images, torch.Tensor):
+        images = images.cpu().float().numpy()
+    if isinstance(cls, torch.Tensor):
+        cls = cls.cpu().numpy()
+    if isinstance(bboxes, torch.Tensor):
+        bboxes = bboxes.cpu().numpy()
+    if isinstance(masks, torch.Tensor):
+        masks = masks.cpu().numpy().astype(int)
+    if isinstance(kpts, torch.Tensor):
+        kpts = kpts.cpu().numpy()
+    if isinstance(batch_idx, torch.Tensor):
+        batch_idx = batch_idx.cpu().numpy()
+
+    bs, _, h, w = images.shape  # batch size, _, height, width
+    bs = min(bs, max_subplots)  # limit plot images
+    ns = np.ceil(bs**0.5)  # number of subplots (square)
+    if np.max(images[0]) <= 1:
+        images *= 255  # de-normalise (optional)
+
+    if np.max(masks[0]) <= 1:
+        masks *= 255
+
+    # Build Image
+    mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
+    mask_mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)
+    for i in range(bs):
+        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+        mask = masks[i].copy().transpose(1, 2, 0)
+        mask_bgr = np.zeros((h, w, 3), dtype=np.uint8)
+        for j in range(nc):
+            r, g, b = colors[j]
+            mask_bgr[mask[:,:, j] > 125, :] = np.array([b,g,r]).astype(np.uint8)
+        mask_mosaic[y : y + h, x : x + w, :] = mask_bgr
+
+    # Resize (optional)
+    scale = max_size / ns / max(h, w)
+    if scale < 1:
+        h = math.ceil(scale * h)
+        w = math.ceil(scale * w)
+        mosaic = cv2.resize(mosaic, tuple(int(x * ns) for x in (w, h)))
+        mask_mosaic = cv2.resize(mask_mosaic, tuple(int(x * ns) for x in (w, h)), interpolation=cv2.INTER_NEAREST)
+
+    # Annotate
+    fs = int((h + w) * ns * 0.01)  # font size
+    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    mask_annotator = Annotator(mask_mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    for i in range(bs):
+        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+        annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
+        mask_annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
+        if paths:
+            annotator.text([x + 5, y + 5], text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+            mask_annotator.text([x + 5, y + 5], text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))
+
+    if not save:
+        return np.asarray(annotator.im), np.asarray(mask_annotator.im)
+    annotator.im.save(fname)  # save
+    mask_annotator.im.save(mname)
+    if on_plot:
+        on_plot(fname)
 
 @plt_settings()
 def plot_results(

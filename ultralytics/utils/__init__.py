@@ -38,6 +38,7 @@ ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
+SEMSEG_CFG_PATH = ROOT / "cfg/semseg.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
@@ -636,6 +637,13 @@ DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
+# semantic segment configuration
+SEMSEG_CFG_DICT = YAML.load(SEMSEG_CFG_PATH)
+for k, v in SEMSEG_CFG_DICT.items():
+    if isinstance(v, str) and v.lower() == "none":
+        SEMSEG_CFG_DICT[k] = None
+SEMSEG_CFG_DICT_KEYS = SEMSEG_CFG_DICT.keys()
+SEMSEG_CFG = IterableSimpleNamespace(**SEMSEG_CFG_DICT)
 
 def read_device_model() -> str:
     """

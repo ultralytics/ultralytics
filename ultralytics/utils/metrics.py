@@ -1235,7 +1235,7 @@ class SegmentMetrics(DetMetrics):
             names (Dict[int, str], optional): Dictionary of class names.
         """
         DetMetrics.__init__(self, names)
-        self.seg = Metric()
+        self.seg = SemSegMetric()
         self.task = "segment"
         self.stats["tp_m"] = []  # add additional stats for masks
 
@@ -1590,3 +1590,178 @@ class OBBMetrics(DetMetrics):
         DetMetrics.__init__(self, names)
         # TODO: probably remove task as well
         self.task = "obb"
+
+#----------------------------------------------Semantic Segment Metrics----------------------------------------------------------------#
+def mask_precision(mask1, mask2, eps=1e-7):
+    tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
+    fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
+    precision = tp / (tp + fp + eps)
+    return precision
+
+def mask_accuracy(mask1, mask2, eps=1e-7):
+    tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
+    fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
+    fn = torch.matmul(mask1, 1 - mask2.T).clamp_(0).sum()
+    tn = torch.matmul(1-mask1, (1- mask2).T).clamp_(0).sum()
+
+    return (tp + tn) / (fp + fn + tp + tn + eps)
+
+def mask_recall(mask1, mask2, eps=1e-7):
+    tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
+    fn = torch.matmul(mask1, 1-mask2.T).clamp_(0).sum()
+    recall = tp / (tp + fn + eps)
+    return recall
+
+def mask_mcr(mask1, mask2, eps=1e-7):
+    fp = torch.matmul(mask1, 1-mask2.T).clamp_(0)
+    fn = torch.matmul(1-mask1, mask2.T).clamp_(0)
+    N = mask1.shape[1]
+    return (fp + fn) / (N + eps)
+
+def dice_score(mask1, mask2, eps=1e-7):
+    tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
+    fp = torch.matmul(1-mask1, mask2.T).clamp_(0).sum()
+    fn = torch.matmul(mask1, 1-mask2.T).clamp_(0).sum()
+    precision = tp / (tp + fp + eps)
+    recall = tp / (tp + fn + eps)
+
+    return 2 * precision * recall / (precision + recall + eps)
+
+class SemSegMetric(Metric):
+    def __init__(self):
+        super().__init__()
+        self.dice_score=[]
+        self.precision=[]
+        self.recall=[]
+        self.iou = []
+        self.mcr = []
+
+    def mean_results(self):
+        """Mean of results, return mp, mr, map50, map."""
+        return [self.Precision, self.Recall, self.mIoU, self.Dice_Score, self.MCR]
+
+    @property
+    def mIoU(self):
+        return np.array(self.iou).mean() if len(self.iou) else 0.0
+
+    @property
+    def Precision(self):
+        return np.array(self.precision).mean() if len(self.precision) else 0.0
+
+    @property
+    def Recall(self):
+        return np.array(self.recall).mean() if len(self.recall) else 0.0
+
+    @property
+    def Dice_Score(self):
+        return np.array(self.dice_score).mean() if len(self.dice_score) else 0.0
+
+    @property
+    def MCR(self):
+        return np.array(self.mcr).mean() if len(self.mcr) else 0.0
+
+    def fitness(self):
+        """Model fitness as a weighted combination of metrics."""
+        w = [0.0, 0.0, 0.1, 0.9, 0.0, 0.0,0.0,0.0,0.0,0.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        return (np.array(self.mean_results()) * w).sum()
+
+    def update(self, results):
+        """
+        Updates the evaluation metrics of the model with a new set of results.
+
+        Args:
+            results (tuple): A tuple containing the following evaluation metrics:
+                - precision (list): Precision for each class. Shape: (nc,).
+                - recall (list): Recall for each class. Shape: (nc,).
+                - iou (list):IoU for each class. Shape: (nc,).
+                - dice_score (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
+                - mcr (list): Index of class for each AP score. Shape: (nc,).
+
+        Side Effects:
+            Updates the class attributes `self.p`, `self.r`, `self.f1`, `self.all_ap`, and `self.ap_class_index` based
+            on the values provided in the `results` tuple.
+        """
+        (
+            self.precision,
+            self.recall,
+            self.iou,
+            self.dice_score,
+            self.mcr
+        ) = results
+
+class SemSegMetrics(SimpleClass):
+    def __init__(self,save_dir=Path("."), plot=False, on_plot=None, names=()):
+        self.save_dir = save_dir
+        self.plot = plot
+        self.on_plot = on_plot
+        self.names = names
+        self.seg = SemSegMetric()
+        self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
+        self.task = "semseg"
+
+    def process(self, precision, recall, mIoU, dice_score, mcr):
+        """
+        Processes the detection and segmentation metrics over the given set of predictions.
+
+        Args:
+            tp (list): List of True Positive boxes.
+            tp_m (list): List of True Positive masks.
+            conf (list): List of confidence scores.
+            pred_cls (list): List of predicted classes.
+            target_cls (list): List of target classes.
+        """
+
+        results_mask = (precision.mean()[None],
+                        recall.mean()[None],
+                        mIoU.mean()[None],
+                        dice_score.mean()[None],
+                        mcr.mean()[None])
+        self.seg.nc = len(self.names)
+        self.seg.update(results_mask)
+
+    @property
+    def keys(self):
+        """Returns a list of keys for accessing metrics."""
+        return [
+            "metrics/precision",
+            "metrics/recall",
+            "metrics/mIoU",
+            "metrics/Dice-Score",
+            "metrics/MCR(M)",
+        ]
+
+    def mean_results(self):
+        """Return the mean metrics for bounding box and segmentation results."""
+        return self.seg.mean_results()
+
+    def class_result(self, i):
+        """Returns classification results for a specified class index."""
+        return self.seg.class_result(i)
+
+    @property
+    def fitness(self):
+        """Get the fitness score for both segmentation and bounding box models."""
+        return self.seg.fitness()
+
+
+    @property
+    def results_dict(self):
+        """Returns results of object detection model for evaluation."""
+        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+
+    @property
+    def curves(self):
+        """Returns a list of curves for accessing specific metrics curves."""
+        return [
+            "Precision-Recall(M)",
+            "F1-Confidence(M)",
+            "Precision-Confidence(M)",
+            "Recall-Confidence(M)",
+        ]
+
+    @property
+    def curves_results(self):
+        """Returns dictionary of computed performance metrics and statistics."""
+        return self.seg.curves_results
+
+

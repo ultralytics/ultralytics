@@ -27,6 +27,8 @@ from .augment import (
     classify_augmentations,
     classify_transforms,
     v8_transforms,
+    SemSegFormat,
+    semseg_transforms
 )
 from .base import BaseDataset
 from .converter import merge_multi_segment
@@ -797,6 +799,7 @@ class SemanticDataset(BaseDataset):
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
 
         return x
+
     def get_labels(self):
         self.label_files = self.img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
@@ -843,13 +846,13 @@ class SemanticDataset(BaseDataset):
         if self.augment:
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
-            transforms = semantic_transforms(self, self.imgsz, hyp)
+            transforms = semseg_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
-        format = SemanticFormat(
+        format = SemSegFormat(
             bbox_format="xywh",
             normalize=True,
-            return_mask=self.use_segments,
+            return_mask=self.use_segment,
             return_keypoint=self.use_keypoints,
             return_obb=False,
             batch_idx=True,

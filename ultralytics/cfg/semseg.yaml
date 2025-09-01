@@ -7,20 +7,20 @@ task: semseg # (str) YOLO task, i.e. detect, segment, classify, pose, obb,semseg
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
-data: # (str, optional) path to data file, i.e. coco8.yaml
+model: /media/yanggang/847C02507C023D84/python_workspace/ultralytics-semantic-segment/ultralytics/cfg/models/11/yolo11-semseg.yaml # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
+data: /media/yanggang/847C02507C023D84/python_workspace/ultralytics-semantic-segment/ultralytics/cfg/datasets/CityEscapeYOLO.yaml # (str, optional) path to data file, i.e. coco8.yaml
 epochs: 100 # (int) number of epochs to train for
 time: # (float, optional) number of hours to train for, overrides epochs if supplied
 patience: 100 # (int) epochs to wait for no observable improvement for early stopping of training
-batch: 16 # (int) number of images per batch (-1 for AutoBatch)
+batch: 1 # (int) number of images per batch (-1 for AutoBatch)
 imgsz: 1024 # (int | list) input images size as int for train and val modes, or list[h,w] for predict and export modes
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) Save checkpoint every x epochs (disabled if < 1)
 cache: False # (bool) True/ram, disk or False. Use cache for data loading
 device: # (int | str | list) device: CUDA device=0 or [0,1,2,3] or "cpu/mps" or -1 or [-1,-1] to auto-select idle GPUs
-workers: 8 # (int) number of worker threads for data loading (per RANK if DDP)
+workers: 1 # (int) number of worker threads for data loading (per RANK if DDP)
 project: # (str, optional) project name
-name: # (str, optional) experiment name, results saved to 'project/name' directory
+name: /media/yanggang/847C02507C023D84/python_workspace/ultralytics-semantic-segment/exp # (str, optional) experiment name, results saved to 'project/name' directory
 exist_ok: False # (bool) whether to overwrite existing experiment
 pretrained: True # (bool | str) whether to use a pretrained model (bool) or a model to load weights from (str)
 optimizer: auto # (str) optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
@@ -38,8 +38,8 @@ profile: False # (bool) profile ONNX and TensorRT speeds during training for log
 freeze: # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
 # Segmentation
-overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
-mask_ratio: 4 # (int) mask downsample ratio (segment train only)
+overlap_mask: False # (bool) merge object masks into a single image mask during training (segment train only)
+mask_ratio: 1 # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0 # (float) use dropout regularization (classify train only)
 

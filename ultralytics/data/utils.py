@@ -39,9 +39,11 @@ VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: List[str]) -> List[str]:
-    """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
-    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
+def img2label_paths(img_paths: List[str], labels_dir: str = "labels") -> List[str]:
+    """Convert image paths to label paths by replacing 'images' with custom labels directory and extension with
+    '.txt'.
+    """
+    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}{labels_dir}{os.sep}"  # /images/, /labels_dir/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
@@ -432,6 +434,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
 
     data["names"] = check_class_names(data["names"])
     data["channels"] = data.get("channels", 3)  # get image channels, default to 3
+    data["labels_path"] = data.get("labels_path", "labels")  # get custom labels directory, default to 'labels'
 
     # Resolve paths
     path = Path(extract_dir or data.get("path") or Path(data.get("yaml_file", "")).parent)  # dataset root

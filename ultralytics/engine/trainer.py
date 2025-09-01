@@ -491,6 +491,7 @@ class BaseTrainer:
             # print("total assignment:", self.model.criterion.total_assignments)
             # exit()
 
+            self.model.criterion.update()
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:

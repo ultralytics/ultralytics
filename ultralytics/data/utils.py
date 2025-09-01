@@ -419,6 +419,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
         "path": str,
         "train": str,
         "val": str,
+        "test": str,
         "nc": int,
         "names": (list, dict),
         "kpt_shape": list,

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import asyncio
 import json
 import random
@@ -7,7 +9,6 @@ import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Optional, Union
 
 import cv2
 import numpy as np
@@ -19,7 +20,7 @@ from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
-def coco91_to_coco80_class() -> List[int]:
+def coco91_to_coco80_class() -> list[int]:
     """
     Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
@@ -122,7 +123,7 @@ def coco91_to_coco80_class() -> List[int]:
     ]
 
 
-def coco80_to_coco91_class() -> List[int]:
+def coco80_to_coco91_class() -> list[int]:
     r"""
     Convert 80-index (val2014) to 91-index (paper).
 
@@ -531,7 +532,7 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
 
 
-def merge_multi_segment(segments: List[List]):
+def merge_multi_segment(segments: list[list]):
     """
     Merge multiple segments into one list by connecting the coordinates with the minimum distance between each segment.
 
@@ -582,9 +583,7 @@ def merge_multi_segment(segments: List[List]):
     return s
 
 
-def yolo_bbox2segment(
-    im_dir: Union[str, Path], save_dir: Optional[Union[str, Path]] = None, sam_model: str = "sam_b.pt", device=None
-):
+def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
     """
     Convert existing object detection dataset (bounding boxes) to segmentation dataset or oriented bounding box (OBB) in
     YOLO format. Generate segmentation data using SAM auto-annotator as needed.
@@ -706,7 +705,7 @@ def create_synthetic_coco_dataset():
     LOGGER.info("Synthetic COCO dataset created successfully.")
 
 
-def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, replace: bool = False, zip: bool = False):
+def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bool = False, zip: bool = False):
     """
     Convert RGB images to multispectral images by interpolating across wavelength bands.
 
@@ -758,7 +757,7 @@ def convert_to_multispectral(path: Union[str, Path], n_channels: int = 10, repla
         LOGGER.info(f"Converted {output_path}")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: Union[str, Path], output_path: Optional[Union[str, Path]] = None) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
     """
     Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
 

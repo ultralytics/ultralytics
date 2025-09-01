@@ -14,8 +14,9 @@ Key Features:
     - Trained on SA-1B dataset
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, Type
 
 from ultralytics.engine.model import Model
 from ultralytics.utils.torch_utils import model_info
@@ -154,7 +155,7 @@ class SAM(Model):
         return model_info(self.model, detailed=detailed, verbose=verbose)
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Type[Predictor]]]:
+    def task_map(self) -> dict[str, dict[str, type[Predictor]]]:
         """
         Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 

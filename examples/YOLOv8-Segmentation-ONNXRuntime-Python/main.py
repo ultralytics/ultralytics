@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
-from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -41,7 +42,7 @@ class YOLOv8Seg:
         >>> cv2.imshow("Segmentation", results[0].plot())
     """
 
-    def __init__(self, onnx_model: str, conf: float = 0.25, iou: float = 0.7, imgsz: Union[int, Tuple[int, int]] = 640):
+    def __init__(self, onnx_model: str, conf: float = 0.25, iou: float = 0.7, imgsz: int | tuple[int, int] = 640):
         """
         Initialize the instance segmentation model using an ONNX model.
 
@@ -64,7 +65,7 @@ class YOLOv8Seg:
         self.conf = conf
         self.iou = iou
 
-    def __call__(self, img: np.ndarray) -> List[Results]:
+    def __call__(self, img: np.ndarray) -> list[Results]:
         """
         Run inference on the input image using the ONNX model.
 
@@ -79,7 +80,7 @@ class YOLOv8Seg:
         outs = self.session.run(None, {self.session.get_inputs()[0].name: prep_img})
         return self.postprocess(img, prep_img, outs)
 
-    def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> np.ndarray:
+    def letterbox(self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)) -> np.ndarray:
         """
         Resize and pad image while maintaining aspect ratio.
 
@@ -107,7 +108,7 @@ class YOLOv8Seg:
 
         return img
 
-    def preprocess(self, img: np.ndarray, new_shape: Tuple[int, int]) -> np.ndarray:
+    def preprocess(self, img: np.ndarray, new_shape: tuple[int, int]) -> np.ndarray:
         """
         Preprocess the input image before feeding it into the model.
 
@@ -125,7 +126,7 @@ class YOLOv8Seg:
         img = img.astype(np.float32) / 255  # Normalize to [0, 1]
         return img
 
-    def postprocess(self, img: np.ndarray, prep_img: np.ndarray, outs: List) -> List[Results]:
+    def postprocess(self, img: np.ndarray, prep_img: np.ndarray, outs: list) -> list[Results]:
         """
         Post-process model predictions to extract meaningful results.
 
@@ -137,7 +138,7 @@ class YOLOv8Seg:
         Returns:
             (List[Results]): Processed detection results containing bounding boxes and segmentation masks.
         """
-        preds, protos = [torch.from_numpy(p) for p in outs]
+        preds, protos = (torch.from_numpy(p) for p in outs)
         preds = nms.non_max_suppression(preds, self.conf, self.iou, nc=len(self.classes))
 
         results = []
@@ -149,7 +150,7 @@ class YOLOv8Seg:
         return results
 
     def process_mask(
-        self, protos: torch.Tensor, masks_in: torch.Tensor, bboxes: torch.Tensor, shape: Tuple[int, int]
+        self, protos: torch.Tensor, masks_in: torch.Tensor, bboxes: torch.Tensor, shape: tuple[int, int]
     ) -> torch.Tensor:
         """
         Process prototype masks with predicted mask coefficients to generate instance segmentation masks.

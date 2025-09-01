@@ -4,6 +4,10 @@
 
 name: Ultralytics CI
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true  # on new commit, cancel previous runs for same branch
+
 permissions:
   contents: read
 

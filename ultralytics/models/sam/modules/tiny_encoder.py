@@ -8,6 +8,7 @@
 #   Swin: (https://github.com/microsoft/swin-transformer)
 # Build the TinyViT Model
 # --------------------------------------------------------
+
 from __future__ import annotations
 
 import itertools

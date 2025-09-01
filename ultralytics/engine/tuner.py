@@ -385,7 +385,9 @@ class Tuner:
                 self._sync_mongodb_to_csv()
                 total_mongo_iterations = self.collection.count_documents({})
                 if total_mongo_iterations >= iterations:
-                    LOGGER.info(f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping.")
+                    LOGGER.info(
+                        f"{self.prefix}Target iterations ({iterations}) reached in MongoDB ({total_mongo_iterations}). Stopping."
+                    )
                     break
             else:
                 # Save to CSV only if no MongoDB

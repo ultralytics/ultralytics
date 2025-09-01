@@ -23,10 +23,11 @@ if CUDA_IS_AVAILABLE:
         gpu_info = GPUInfo()
         gpu_info.print_status()
         autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
-        idle_gpus = gpu_info.select_idle_gpu(
-            count=2, min_memory_fraction=autodevice_fraction, min_util_fraction=autodevice_fraction
-        )
-        if idle_gpus:
+        if idle_gpus := gpu_info.select_idle_gpu(
+            count=2,
+            min_memory_fraction=autodevice_fraction,
+            min_util_fraction=autodevice_fraction,
+        ):
             DEVICES = idle_gpus
 
 
@@ -112,9 +113,9 @@ def test_train():
     import os
 
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
-    results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
+        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
         assert (

@@ -2042,10 +2042,12 @@ class SemanticProto(nn.Module):
         """
         super().__init__()
         self.dims = c2
-        self.models = nn.ModuleList([nn.Sequential(Conv(c1, c_, k=3),Conv(c_, c_, k=3), Conv(c_, 1)) for _ in range(c2)])
+        self.models = nn.Sequential(Conv(c1, c_, k=3), Conv(c_, c_, k=3), Conv(c_, c2))
+        #self.models = nn.ModuleList([nn.Sequential(Conv(c1, c_, k=3), nn.Sequential(Conv(c_, c_, k=3)， Conv(c_, 1)) for _ in range(c2)])
 
     def forward(self, x):
         """Performs a forward pass through layers using an upsampled input image."""
-        xs = [self.models[i](x) for i in range(self.dims)]
-        out = torch.cat(xs, dim=1)
+        #xs = [self.models[i](x) for i in range(self.dims)]
+        #out = torch.cat(xs, dim=1)
+        out = self.models(x)
         return out

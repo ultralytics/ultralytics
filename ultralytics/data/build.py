@@ -203,7 +203,8 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
     return InfiniteDataLoader(
         dataset=dataset,
         batch_size=batch,
-        shuffle=shuffle and sampler is None,
+        shuffle=False,
+        #shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
         pin_memory=nd > 0,

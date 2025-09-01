@@ -888,9 +888,9 @@ class SemanticDataset(BaseDataset):
         nc, colors = self.data['nc'], self.data['colors']
         h, w, c = mask.shape
         results = np.zeros((h, w, nc), dtype=np.float32)
-        _, mask_b = cv2.threshold(mask[:, :, 0], 125, 255, cv2.THRESH_BINARY)
-        _, mask_g = cv2.threshold(mask[:, :, 1], 125, 255, cv2.THRESH_BINARY)
-        _, mask_r = cv2.threshold(mask[:, :, 2], 125, 255, cv2.THRESH_BINARY)
+        mask_b = mask[:, :, 0]
+        mask_g = mask[:, :, 1]
+        mask_r = mask[:, :, 2]
         for i in range(nc):
             r, g, b = colors[i]
             mb = mask_b == b

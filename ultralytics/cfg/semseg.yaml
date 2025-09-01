@@ -12,13 +12,13 @@ data: /media/yanggang/847C02507C023D84/python_workspace/ultralytics-semantic-seg
 epochs: 100 # (int) number of epochs to train for
 time: # (float, optional) number of hours to train for, overrides epochs if supplied
 patience: 100 # (int) epochs to wait for no observable improvement for early stopping of training
-batch: 1 # (int) number of images per batch (-1 for AutoBatch)
+batch: 8 # (int) number of images per batch (-1 for AutoBatch)
 imgsz: 1024 # (int | list) input images size as int for train and val modes, or list[h,w] for predict and export modes
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) Save checkpoint every x epochs (disabled if < 1)
 cache: False # (bool) True/ram, disk or False. Use cache for data loading
 device: # (int | str | list) device: CUDA device=0 or [0,1,2,3] or "cpu/mps" or -1 or [-1,-1] to auto-select idle GPUs
-workers: 1 # (int) number of worker threads for data loading (per RANK if DDP)
+workers: 4 # (int) number of worker threads for data loading (per RANK if DDP)
 project: # (str, optional) project name
 name: /media/yanggang/847C02507C023D84/python_workspace/ultralytics-semantic-segment/exp # (str, optional) experiment name, results saved to 'project/name' directory
 exist_ok: False # (bool) whether to overwrite existing experiment
@@ -112,7 +112,7 @@ perspective: 0.0 # (float) image perspective (+/- fraction), range 0-0.001
 flipud: 0.0 # (float) image flip up-down (probability)
 fliplr: 0.5 # (float) image flip left-right (probability)
 bgr: 0.0 # (float) image channel BGR (probability)
-mosaic: 1.0 # (float) image mosaic (probability)
+mosaic: 0.0 # (float) image mosaic (probability)
 mixup: 0.0 # (float) image mixup (probability)
 cutmix: 0.0 # (float) image cutmix (probability)
 copy_paste: 0.0 # (float) segment copy-paste (probability)

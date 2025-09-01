@@ -431,9 +431,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
             valid_types = ", ".join(t.__name__ for t in types) if isinstance(types, tuple) else types.__name__
             task = "pose" if key in {"kpt_shape", "flip_idx"} else "detect"
             raise TypeError(
-                f"'{key}' has invalid type {type(data[key]).__name__}. "
-                f"Valid types: {valid_types}. "
-                f"See https://docs.ultralytics.com/datasets/{task}/"
+                f"'{key}' has invalid type {type(data[key]).__name__}. Valid types: {valid_types}. See https://docs.ultralytics.com/datasets/{task}/"
             )
 
     for k in "train", "val":

@@ -11,8 +11,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils import NOT_MACOS14
 
 
 class Profile(contextlib.ContextDecorator):
@@ -122,20 +121,18 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (
-            round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1),
-            round((img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1),
-        )  # wh padding
+        pad_x = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1)
+        pad_y = round((img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)
     else:
         gain = ratio_pad[0][0]
-        pad = ratio_pad[1]
+        pad_x, pad_y = ratio_pad[1]
 
     if padding:
-        boxes[..., 0] -= pad[0]  # x padding
-        boxes[..., 1] -= pad[1]  # y padding
+        boxes[..., 0] -= pad_x  # x padding
+        boxes[..., 1] -= pad_y  # y padding
         if not xywh:
-            boxes[..., 2] -= pad[0]  # x padding
-            boxes[..., 3] -= pad[1]  # y padding
+            boxes[..., 2] -= pad_x  # x padding
+            boxes[..., 3] -= pad_y  # y padding
     boxes[..., :4] /= gain
     return clip_boxes(boxes, img0_shape)
 
@@ -156,207 +153,32 @@ def make_divisible(x: int, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def nms_rotated(boxes, scores, threshold: float = 0.45, use_triu: bool = True):
-    """
-    Perform NMS on oriented bounding boxes using probiou and fast-nms.
-
-    Args:
-        boxes (torch.Tensor): Rotated bounding boxes with shape (N, 5) in xywhr format.
-        scores (torch.Tensor): Confidence scores with shape (N,).
-        threshold (float): IoU threshold for NMS.
-        use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
-
-    Returns:
-        (torch.Tensor): Indices of boxes to keep after NMS.
-    """
-    sorted_idx = torch.argsort(scores, descending=True)
-    boxes = boxes[sorted_idx]
-    ious = batch_probiou(boxes, boxes)
-    if use_triu:
-        ious = ious.triu_(diagonal=1)
-        # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
-        pick = torch.nonzero((ious >= threshold).sum(0) <= 0).squeeze_(-1)
-    else:
-        n = boxes.shape[0]
-        row_idx = torch.arange(n, device=boxes.device).view(-1, 1).expand(-1, n)
-        col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
-        upper_mask = row_idx < col_idx
-        ious = ious * upper_mask
-        # Zeroing these scores ensures the additional indices would not affect the final results
-        scores[~((ious >= threshold).sum(0) <= 0)] = 0
-        # NOTE: return indices with fixed length to avoid TFLite reshape error
-        pick = torch.topk(scores, scores.shape[0]).indices
-    return sorted_idx[pick]
-
-
-def non_max_suppression(
-    prediction,
-    conf_thres: float = 0.25,
-    iou_thres: float = 0.45,
-    classes=None,
-    agnostic: bool = False,
-    multi_label: bool = False,
-    labels=(),
-    max_det: int = 300,
-    nc: int = 0,  # number of classes (optional)
-    max_time_img: float = 0.05,
-    max_nms: int = 30000,
-    max_wh: int = 7680,
-    in_place: bool = True,
-    rotated: bool = False,
-    end2end: bool = False,
-    return_idxs: bool = False,
-):
-    """
-    Perform non-maximum suppression (NMS) on prediction results.
-
-    Applies NMS to filter overlapping bounding boxes based on confidence and IoU thresholds. Supports multiple
-    detection formats including standard boxes, rotated boxes, and masks.
-
-    Args:
-        prediction (torch.Tensor): Predictions with shape (batch_size, num_classes + 4 + num_masks, num_boxes)
-            containing boxes, classes, and optional masks.
-        conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
-        iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
-        classes (List[int], optional): List of class indices to consider. If None, all classes are considered.
-        agnostic (bool): Whether to perform class-agnostic NMS.
-        multi_label (bool): Whether each box can have multiple labels.
-        labels (List[List[Union[int, float, torch.Tensor]]]): A priori labels for each image.
-        max_det (int): Maximum number of detections to keep per image.
-        nc (int): Number of classes. Indices after this are considered masks.
-        max_time_img (float): Maximum time in seconds for processing one image.
-        max_nms (int): Maximum number of boxes for torchvision.ops.nms().
-        max_wh (int): Maximum box width and height in pixels.
-        in_place (bool): Whether to modify the input prediction tensor in place.
-        rotated (bool): Whether to handle Oriented Bounding Boxes (OBB).
-        end2end (bool): Whether the model is end-to-end and doesn't require NMS.
-        return_idxs (bool): Whether to return the indices of kept detections.
-
-    Returns:
-        output (List[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks)
-            containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
-        keepi (List[torch.Tensor]): Indices of kept detections if return_idxs=True.
-    """
-    import torchvision  # scope for faster 'import ultralytics'
-
-    # Checks
-    assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
-    assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
-    if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
-        prediction = prediction[0]  # select only inference output
-    if classes is not None:
-        classes = torch.tensor(classes, device=prediction.device)
-
-    if prediction.shape[-1] == 6 or end2end:  # end-to-end model (BNC, i.e. 1,300,6)
-        output = [pred[pred[:, 4] > conf_thres][:max_det] for pred in prediction]
-        if classes is not None:
-            output = [pred[(pred[:, 5:6] == classes).any(1)] for pred in output]
-        return output
-
-    bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
-    nc = nc or (prediction.shape[1] - 4)  # number of classes
-    extra = prediction.shape[1] - nc - 4  # number of extra info
-    mi = 4 + nc  # mask start index
-    xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
-    xinds = torch.stack([torch.arange(len(i), device=prediction.device) for i in xc])[..., None]  # to track idxs
-
-    # Settings
-    # min_wh = 2  # (pixels) minimum box width and height
-    time_limit = 2.0 + max_time_img * bs  # seconds to quit after
-    multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
-
-    prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
-    if not rotated:
-        if in_place:
-            prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
-        else:
-            prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
-
-    t = time.time()
-    output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
-    keepi = [torch.zeros((0, 1), device=prediction.device)] * bs  # to store the kept idxs
-    for xi, (x, xk) in enumerate(zip(prediction, xinds)):  # image index, (preds, preds indices)
-        # Apply constraints
-        # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
-        filt = xc[xi]  # confidence
-        x, xk = x[filt], xk[filt]
-
-        # Cat apriori labels if autolabelling
-        if labels and len(labels[xi]) and not rotated:
-            lb = labels[xi]
-            v = torch.zeros((len(lb), nc + extra + 4), device=x.device)
-            v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
-            v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
-            x = torch.cat((x, v), 0)
-
-        # If none remain process next image
-        if not x.shape[0]:
-            continue
-
-        # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, extra), 1)
-
-        if multi_label:
-            i, j = torch.where(cls > conf_thres)
-            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
-            xk = xk[i]
-        else:  # best class only
-            conf, j = cls.max(1, keepdim=True)
-            filt = conf.view(-1) > conf_thres
-            x = torch.cat((box, conf, j.float(), mask), 1)[filt]
-            xk = xk[filt]
-
-        # Filter by class
-        if classes is not None:
-            filt = (x[:, 5:6] == classes).any(1)
-            x, xk = x[filt], xk[filt]
-
-        # Check shape
-        n = x.shape[0]  # number of boxes
-        if not n:  # no boxes
-            continue
-        if n > max_nms:  # excess boxes
-            filt = x[:, 4].argsort(descending=True)[:max_nms]  # sort by confidence and remove excess boxes
-            x, xk = x[filt], xk[filt]
-
-        # Batched NMS
-        c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
-        scores = x[:, 4]  # scores
-        if rotated:
-            boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
-            i = nms_rotated(boxes, scores, iou_thres)
-        else:
-            boxes = x[:, :4] + c  # boxes (offset by class)
-            i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
-        i = i[:max_det]  # limit detections
-
-        output[xi], keepi[xi] = x[i], xk[i].reshape(-1)
-        if (time.time() - t) > time_limit:
-            LOGGER.warning(f"NMS time limit {time_limit:.3f}s exceeded")
-            break  # time limit exceeded
-
-    return (output, keepi) if return_idxs else output
-
-
 def clip_boxes(boxes, shape):
     """
     Clip bounding boxes to image boundaries.
 
     Args:
         boxes (torch.Tensor | np.ndarray): Bounding boxes to clip.
-        shape (tuple): Image shape as (height, width).
+        shape (tuple): Image shape as HWC or HW (supports both).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
-    if isinstance(boxes, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        boxes[..., 0] = boxes[..., 0].clamp(0, shape[1])  # x1
-        boxes[..., 1] = boxes[..., 1].clamp(0, shape[0])  # y1
-        boxes[..., 2] = boxes[..., 2].clamp(0, shape[1])  # x2
-        boxes[..., 3] = boxes[..., 3].clamp(0, shape[0])  # y2
+    h, w = shape[:2]  # supports both HWC or HW shapes
+    if isinstance(boxes, torch.Tensor):  # faster individually
+        if NOT_MACOS14:
+            boxes[..., 0].clamp_(0, w)  # x1
+            boxes[..., 1].clamp_(0, h)  # y1
+            boxes[..., 2].clamp_(0, w)  # x2
+            boxes[..., 3].clamp_(0, h)  # y2
+        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+            boxes[..., 0] = boxes[..., 0].clamp(0, w)
+            boxes[..., 1] = boxes[..., 1].clamp(0, h)
+            boxes[..., 2] = boxes[..., 2].clamp(0, w)
+            boxes[..., 3] = boxes[..., 3].clamp(0, h)
     else:  # np.array (faster grouped)
-        boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, shape[1])  # x1, x2
-        boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
+        boxes[..., [0, 2]] = boxes[..., [0, 2]].clip(0, w)  # x1, x2
+        boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, h)  # y1, y2
     return boxes
 
 
@@ -366,17 +188,22 @@ def clip_coords(coords, shape):
 
     Args:
         coords (torch.Tensor | np.ndarray): Line coordinates to clip.
-        shape (tuple): Image shape as (height, width).
+        shape (tuple): Image shape as HWC or HW (supports both).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
-    if isinstance(coords, torch.Tensor):  # faster individually (WARNING: inplace .clamp_() Apple MPS bug)
-        coords[..., 0] = coords[..., 0].clamp(0, shape[1])  # x
-        coords[..., 1] = coords[..., 1].clamp(0, shape[0])  # y
-    else:  # np.array (faster grouped)
-        coords[..., 0] = coords[..., 0].clip(0, shape[1])  # x
-        coords[..., 1] = coords[..., 1].clip(0, shape[0])  # y
+    h, w = shape[:2]  # supports both HWC or HW shapes
+    if isinstance(coords, torch.Tensor):
+        if NOT_MACOS14:
+            coords[..., 0].clamp_(0, w)  # x
+            coords[..., 1].clamp_(0, h)  # y
+        else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+            coords[..., 0] = coords[..., 0].clamp(0, w)
+            coords[..., 1] = coords[..., 1].clamp(0, h)
+    else:  # np.array
+        coords[..., 0] = coords[..., 0].clip(0, w)  # x
+        coords[..., 1] = coords[..., 1].clip(0, h)  # y
     return coords
 
 
@@ -389,32 +216,34 @@ def scale_image(masks, im0_shape, ratio_pad=None):
 
     Args:
         masks (np.ndarray): Resized and padded masks with shape [H, W, N] or [H, W, 3].
-        im0_shape (tuple): Original image shape as (height, width).
+        im0_shape (tuple): Original image shape as HWC or HW (supports both).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
 
     Returns:
         (np.ndarray): Rescaled masks with shape [H, W, N] matching original image dimensions.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
-    im1_shape = masks.shape
-    if im1_shape[:2] == im0_shape[:2]:
+    im0_h, im0_w = im0_shape[:2]  # supports both HWC or HW shapes
+    im1_h, im1_w, _ = masks.shape
+    if im1_h == im0_h and im1_w == im0_w:
         return masks
+
     if ratio_pad is None:  # calculate from im0_shape
-        gain = min(im1_shape[0] / im0_shape[0], im1_shape[1] / im0_shape[1])  # gain  = old / new
-        pad = (im1_shape[1] - im0_shape[1] * gain) / 2, (im1_shape[0] - im0_shape[0] * gain) / 2  # wh padding
+        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad = (im1_w - im0_w * gain) / 2, (im1_h - im0_h * gain) / 2  # wh padding
     else:
         pad = ratio_pad[1]
 
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1)))
-    bottom, right = (
-        im1_shape[0] - int(round(pad[1] + 0.1)),
-        im1_shape[1] - int(round(pad[0] + 0.1)),
-    )
+    pad_w, pad_h = pad
+    top = int(round(pad_h - 0.1))
+    left = int(round(pad_w - 0.1))
+    bottom = im1_h - int(round(pad_h + 0.1))
+    right = im1_w - int(round(pad_w + 0.1))
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
     masks = masks[top:bottom, left:right]
-    masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))
+    masks = cv2.resize(masks, (im0_w, im0_h))
     if len(masks.shape) == 2:
         masks = masks[:, :, None]
 
@@ -434,10 +263,11 @@ def xyxy2xywh(x):
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
-    y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
-    y[..., 1] = (x[..., 1] + x[..., 3]) / 2  # y center
-    y[..., 2] = x[..., 2] - x[..., 0]  # width
-    y[..., 3] = x[..., 3] - x[..., 1]  # height
+    x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = (x1 + x2) / 2  # x center
+    y[..., 1] = (y1 + y2) / 2  # y center
+    y[..., 2] = x2 - x1  # width
+    y[..., 3] = y2 - y1  # height
     return y
 
 
@@ -478,10 +308,12 @@ def xywhn2xyxy(x, w: int = 640, h: int = 640, padw: int = 0, padh: int = 0):
     """
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
-    y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x
-    y[..., 1] = h * (x[..., 1] - x[..., 3] / 2) + padh  # top left y
-    y[..., 2] = w * (x[..., 0] + x[..., 2] / 2) + padw  # bottom right x
-    y[..., 3] = h * (x[..., 1] + x[..., 3] / 2) + padh  # bottom right y
+    xc, yc, xw, xh = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    half_w, half_h = xw / 2, xh / 2
+    y[..., 0] = w * (xc - half_w) + padw  # top left x
+    y[..., 1] = h * (yc - half_h) + padh  # top left y
+    y[..., 2] = w * (xc + half_w) + padw  # bottom right x
+    y[..., 3] = h * (yc + half_h) + padh  # bottom right y
     return y
 
 
@@ -504,10 +336,11 @@ def xyxy2xywhn(x, w: int = 640, h: int = 640, clip: bool = False, eps: float = 0
         x = clip_boxes(x, (h - eps, w - eps))
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
-    y[..., 0] = ((x[..., 0] + x[..., 2]) / 2) / w  # x center
-    y[..., 1] = ((x[..., 1] + x[..., 3]) / 2) / h  # y center
-    y[..., 2] = (x[..., 2] - x[..., 0]) / w  # width
-    y[..., 3] = (x[..., 3] - x[..., 1]) / h  # height
+    x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
+    y[..., 0] = ((x1 + x2) / 2) / w  # x center
+    y[..., 1] = ((y1 + y2) / 2) / h  # y center
+    y[..., 2] = (x2 - x1) / w  # width
+    y[..., 3] = (y2 - y1) / h  # height
     return y
 
 
@@ -756,19 +589,15 @@ def scale_masks(masks, shape, padding: bool = True):
     """
     mh, mw = masks.shape[2:]
     gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
-    pad = [mw - shape[1] * gain, mh - shape[0] * gain]  # wh padding
+    pad_w = mw - shape[1] * gain
+    pad_h = mh - shape[0] * gain
     if padding:
-        pad[0] /= 2
-        pad[1] /= 2
-    top, left = (int(round(pad[1] - 0.1)), int(round(pad[0] - 0.1))) if padding else (0, 0)  # y, x
-    bottom, right = (
-        mh - int(round(pad[1] + 0.1)),
-        mw - int(round(pad[0] + 0.1)),
-    )
-    masks = masks[..., top:bottom, left:right]
-
-    masks = F.interpolate(masks, shape, mode="bilinear", align_corners=False)  # NCHW
-    return masks
+        pad_w /= 2
+        pad_h /= 2
+    top, left = (int(round(pad_h - 0.1)), int(round(pad_w - 0.1))) if padding else (0, 0)
+    bottom = mh - int(round(pad_h + 0.1))
+    right = mw - int(round(pad_w + 0.1))
+    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear", align_corners=False)  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):
@@ -776,9 +605,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Rescale segment coordinates from img1_shape to img0_shape.
 
     Args:
-        img1_shape (tuple): Shape of the source image.
+        img1_shape (tuple): Source image shape as HWC or HW (supports both).
         coords (torch.Tensor): Coordinates to scale with shape (N, 2).
-        img0_shape (tuple): Shape of the target image.
+        img0_shape (tuple): Image 0 shape as HWC or HW (supports both).
         ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
         normalize (bool): Whether to normalize coordinates to range [0, 1].
         padding (bool): Whether coordinates are based on YOLO-style augmented images with padding.
@@ -786,9 +615,11 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     Returns:
         (torch.Tensor): Scaled coordinates.
     """
+    img0_h, img0_w = img0_shape[:2]  # supports both HWC or HW shapes
     if ratio_pad is None:  # calculate from img0_shape
-        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+        img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
+        gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
+        pad = (img1_w - img0_w * gain) / 2, (img1_h - img0_h * gain) / 2  # wh padding
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
@@ -800,8 +631,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     coords[..., 1] /= gain
     coords = clip_coords(coords, img0_shape)
     if normalize:
-        coords[..., 0] /= img0_shape[1]  # width
-        coords[..., 1] /= img0_shape[0]  # height
+        coords[..., 0] /= img0_w  # width
+        coords[..., 1] /= img0_h  # height
     return coords
 
 

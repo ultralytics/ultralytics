@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
+from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
@@ -199,7 +200,12 @@ class Detect(nn.Module):
 
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
         """Decode bounding boxes from predictions."""
-        return dist2bbox(bboxes, anchors, xywh=xywh and not (self.end2end or self.xyxy), dim=1)
+        return dist2bbox(
+            bboxes,
+            anchors,
+            xywh=xywh and not self.end2end and not self.xyxy,
+            dim=1,
+        )
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -408,7 +414,10 @@ class Pose(Detect):
         else:
             y = kpts.clone()
             if ndim == 3:
-                y[:, 2::ndim] = y[:, 2::ndim].sigmoid()  # sigmoid (WARNING: inplace .sigmoid_() Apple MPS bug)
+                if NOT_MACOS14:
+                    y[:, 2::ndim].sigmoid_()
+                else:  # Apple macOS14 MPS bug https://github.com/ultralytics/ultralytics/pull/21878
+                    y[:, 2::ndim] = y[:, 2::ndim].sigmoid()
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
@@ -638,7 +647,7 @@ class YOLOEDetect(Detect):
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
         assert c3 <= embed
-        assert with_bn is True
+        assert with_bn
         self.cv3 = (
             nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
             if self.legacy

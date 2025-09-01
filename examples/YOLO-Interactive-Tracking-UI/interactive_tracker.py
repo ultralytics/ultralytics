@@ -87,13 +87,14 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: Tup
     h, w = img_shape[:2]
     if direction == "left":
         return 0, mid_y
-    if direction == "right":
+    elif direction == "right":
         return w - 1, mid_y
-    if direction == "up":
+    elif direction == "up":
         return mid_x, 0
-    if direction == "down":
+    elif direction == "down":
         return mid_x, h - 1
-    return mid_x, mid_y
+    else:
+        return mid_x, mid_y
 
 
 def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:

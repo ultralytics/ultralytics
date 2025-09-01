@@ -127,14 +127,14 @@ class AutoBackend(nn.Module):
         _model_type: Determine the model type from file path.
 
     Examples:
-        >>> model = AutoBackend(weights="yolo11n.pt", device="cuda")
+        >>> model = AutoBackend(model="yolo11n.pt", device="cuda")
         >>> results = model(img)
     """
 
     @torch.no_grad()
     def __init__(
         self,
-        weights: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
+        model: Union[str, List[str], torch.nn.Module] = "yolo11n.pt",
         device: torch.device = torch.device("cpu"),
         dnn: bool = False,
         data: Optional[Union[str, Path]] = None,
@@ -146,7 +146,7 @@ class AutoBackend(nn.Module):
         Initialize the AutoBackend for inference.
 
         Args:
-            weights (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
+            model (str | List[str] | torch.nn.Module): Path to the model weights file or a module instance.
             device (torch.device): Device to run the model on.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
@@ -155,8 +155,8 @@ class AutoBackend(nn.Module):
             verbose (bool): Enable verbose logging.
         """
         super().__init__()
-        w = str(weights[0] if isinstance(weights, list) else weights)
-        nn_module = isinstance(weights, torch.nn.Module)
+        w = str(model[0] if isinstance(model, list) else model)
+        nn_module = isinstance(model, torch.nn.Module)
         (
             pt,
             jit,
@@ -180,7 +180,7 @@ class AutoBackend(nn.Module):
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
         stride, ch = 32, 3  # default stride and channels
         end2end, dynamic = False, False
-        model, metadata, task = None, None, None
+        metadata, task = None, None
 
         # Set device
         cuda = isinstance(device, torch.device) and torch.cuda.is_available() and device.type != "cpu"  # use CUDA
@@ -192,36 +192,32 @@ class AutoBackend(nn.Module):
         if not (pt or triton or nn_module):
             w = attempt_download_asset(w)
 
-        # In-memory PyTorch model
-        if nn_module:
-            if fuse:
-                if IS_JETSON and is_jetson(jetpack=5):
-                    # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
-                    weights = weights.to(device)
-                weights = weights.fuse(verbose=verbose)
-            model = weights.to(device)
+        # PyTorch (in-memory or file)
+        if nn_module or pt:
+            if nn_module:
+                pt = True
+                if fuse:
+                    if IS_JETSON and is_jetson(jetpack=5):
+                        # Jetson Jetpack5 requires device before fuse https://github.com/ultralytics/ultralytics/pull/21028
+                        model = model.to(device)
+                    model = model.fuse(verbose=verbose)
+                model = model.to(device)
+            else:  # pt file
+                from ultralytics.nn.tasks import attempt_load_weights
+
+                model = attempt_load_weights(
+                    model if isinstance(model, list) else w, device=device, inplace=True, fuse=fuse
+                )
+
+            # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
             ch = model.yaml.get("channels", 3)
-            self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
-            pt = True
-
-        # PyTorch
-        elif pt:
-            from ultralytics.nn.tasks import attempt_load_weights
-
-            model = attempt_load_weights(
-                weights if isinstance(weights, list) else w, device=device, inplace=True, fuse=fuse
-            )
-            if hasattr(model, "kpt_shape"):
-                kpt_shape = model.kpt_shape  # pose-only
-            stride = max(int(model.stride.max()), 32)  # model stride
-            names = model.module.names if hasattr(model, "module") else model.names  # get class names
-            model.half() if fp16 else model.float()
-            ch = model.yaml.get("channels", 3)
+            for p in model.parameters():
+                p.requires_grad = False
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
 
         # TorchScript
@@ -602,17 +598,12 @@ class AutoBackend(nn.Module):
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
-            LOGGER.warning(f"Metadata not found for 'model={weights}'")
+            LOGGER.warning(f"Metadata not found for 'model={w}'")
 
         # Check names
         if "names" not in locals():  # names missing
             names = default_class_names(data)
         names = check_class_names(names)
-
-        # Disable gradients
-        if pt:
-            for p in model.parameters():
-                p.requires_grad = False
 
         self.__dict__.update(locals())  # assign all variables to self
 
@@ -859,8 +850,6 @@ class AutoBackend(nn.Module):
         Args:
             imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
         """
-        import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
-
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
@@ -879,7 +868,7 @@ class AutoBackend(nn.Module):
             (List[bool]): List of booleans indicating the model type.
 
         Examples:
-            >>> model = AutoBackend(weights="path/to/model.onnx")
+            >>> model = AutoBackend(model="path/to/model.onnx")
             >>> model_type = model._model_type()  # returns "onnx"
         """
         from ultralytics.engine.exporter import export_formats

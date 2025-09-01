@@ -2,7 +2,7 @@
 
 import io
 import os
-from typing import Any, List
+from typing import Any
 
 import cv2
 import torch
@@ -72,7 +72,7 @@ class Inference:
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
-        self.selected_ind: List[int] = []  # List of selected class indices for detection
+        self.selected_ind: list[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
 
         self.temp_dict = {"model": None, **kwargs}
@@ -91,8 +91,8 @@ class Inference:
         font-family: 'Archivo', sans-serif; margin-bottom:20px;">Ultralytics YOLO Streamlit Application</h1></div>"""
 
         # Subtitle of streamlit application
-        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
-        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images 
+        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif;
+        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images
         with the power of Ultralytics YOLO! 🚀</h5></div>"""
 
         # Set html page configuration and append custom HTML
@@ -141,8 +141,9 @@ class Inference:
         elif self.source == "image":
             import tempfile  # scope import
 
-            imgfiles = self.st.sidebar.file_uploader("Upload Image Files", type=IMG_FORMATS, accept_multiple_files=True)
-            if imgfiles:
+            if imgfiles := self.st.sidebar.file_uploader(
+                "Upload Image Files", type=IMG_FORMATS, accept_multiple_files=True
+            ):
                 for imgfile in imgfiles:  # Save each uploaded image to a temporary file
                     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{imgfile.name.split('.')[-1]}") as tf:
                         tf.write(imgfile.read())
@@ -185,7 +186,7 @@ class Inference:
 
     def image_inference(self) -> None:
         """Perform inference on uploaded images."""
-        for idx, img_info in enumerate(self.img_file_names):
+        for img_info in self.img_file_names:
             img_path = img_info["path"]
             image = cv2.imread(img_path)  # Load and display the original image
             if image is not None:

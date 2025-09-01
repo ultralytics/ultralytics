@@ -1,15 +1,16 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import random
 import shutil
 from pathlib import Path
-from typing import Tuple, Union
 
 from ultralytics.data.utils import IMG_FORMATS, img2label_paths
 from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM
 
 
-def split_classify_dataset(source_dir: Union[str, Path], train_ratio: float = 0.8) -> Path:
+def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> Path:
     """
     Split classification dataset into train and val directories in a new directory.
 
@@ -97,7 +98,7 @@ def split_classify_dataset(source_dir: Union[str, Path], train_ratio: float = 0.
 
 def autosplit(
     path: Path = DATASETS_DIR / "coco8/images",
-    weights: Tuple[float, float, float] = (0.9, 0.1, 0.0),
+    weights: tuple[float, float, float] = (0.9, 0.1, 0.0),
     annotated_only: bool = False,
 ) -> None:
     """

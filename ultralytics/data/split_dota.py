@@ -1,10 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import itertools
 from glob import glob
 from math import ceil
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import cv2
 import numpy as np
@@ -62,7 +64,7 @@ def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.n
     return outputs
 
 
-def load_yolo_dota(data_root: str, split: str = "train") -> List[Dict[str, Any]]:
+def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]:
     """
     Load DOTA dataset annotations and image information.
 
@@ -99,9 +101,9 @@ def load_yolo_dota(data_root: str, split: str = "train") -> List[Dict[str, Any]]
 
 
 def get_windows(
-    im_size: Tuple[int, int],
-    crop_sizes: Tuple[int, ...] = (1024,),
-    gaps: Tuple[int, ...] = (200,),
+    im_size: tuple[int, int],
+    crop_sizes: tuple[int, ...] = (1024,),
+    gaps: tuple[int, ...] = (200,),
     im_rate_thr: float = 0.6,
     eps: float = 0.01,
 ) -> np.ndarray:
@@ -151,7 +153,7 @@ def get_windows(
     return windows[im_rates > im_rate_thr]
 
 
-def get_window_obj(anno: Dict[str, Any], windows: np.ndarray, iof_thr: float = 0.7) -> List[np.ndarray]:
+def get_window_obj(anno: dict[str, Any], windows: np.ndarray, iof_thr: float = 0.7) -> list[np.ndarray]:
     """Get objects for each window based on IoF threshold."""
     h, w = anno["ori_size"]
     label = anno["label"]
@@ -166,9 +168,9 @@ def get_window_obj(anno: Dict[str, Any], windows: np.ndarray, iof_thr: float = 0
 
 
 def crop_and_save(
-    anno: Dict[str, Any],
+    anno: dict[str, Any],
     windows: np.ndarray,
-    window_objs: List[np.ndarray],
+    window_objs: list[np.ndarray],
     im_dir: str,
     lb_dir: str,
     allow_background_images: bool = True,
@@ -221,8 +223,8 @@ def split_images_and_labels(
     data_root: str,
     save_dir: str,
     split: str = "train",
-    crop_sizes: Tuple[int, ...] = (1024,),
-    gaps: Tuple[int, ...] = (200,),
+    crop_sizes: tuple[int, ...] = (1024,),
+    gaps: tuple[int, ...] = (200,),
 ) -> None:
     """
     Split both images and labels for a given dataset split.
@@ -261,7 +263,7 @@ def split_images_and_labels(
 
 
 def split_trainval(
-    data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: Tuple[float, ...] = (1.0,)
+    data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: tuple[float, ...] = (1.0,)
 ) -> None:
     """
     Split train and val sets of DOTA dataset with multiple scaling rates.
@@ -300,7 +302,7 @@ def split_trainval(
 
 
 def split_test(
-    data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: Tuple[float, ...] = (1.0,)
+    data_root: str, save_dir: str, crop_size: int = 1024, gap: int = 200, rates: tuple[float, ...] = (1.0,)
 ) -> None:
     """
     Split test set of DOTA dataset, labels are not included within this set.

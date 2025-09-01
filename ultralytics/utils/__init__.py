@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import importlib.metadata
 import inspect
@@ -17,7 +19,6 @@ from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
-from typing import Union
 from urllib.parse import unquote
 
 import cv2
@@ -789,7 +790,7 @@ def is_pip_package(filepath: str = __name__) -> bool:
     return spec is not None and spec.origin is not None
 
 
-def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
+def is_dir_writeable(dir_path: str | Path) -> bool:
     """
     Check if a directory is writeable.
 
@@ -1264,7 +1265,7 @@ class JSONDict(dict):
         >>> json_dict.clear()
     """
 
-    def __init__(self, file_path: Union[str, Path] = "data.json"):
+    def __init__(self, file_path: str | Path = "data.json"):
         """Initialize a JSONDict object with a specified file path for JSON persistence."""
         super().__init__()
         self.file_path = Path(file_path)

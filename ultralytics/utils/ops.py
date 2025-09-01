@@ -113,7 +113,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
         img1_shape (tuple): Shape of the source image (height, width).
         boxes (torch.Tensor): Bounding boxes to rescale in format (N, 4).
         img0_shape (tuple): Shape of the target image (height, width).
-        ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
+        ratio_pad (tuple, optional): tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
 
@@ -468,7 +468,7 @@ def segments2boxes(segments):
     Convert segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh).
 
     Args:
-        segments (list): List of segments where each segment is a list of points, each point is [x, y] coordinates.
+        segments (list): list of segments where each segment is a list of points, each point is [x, y] coordinates.
 
     Returns:
         (np.ndarray): Bounding box coordinates in xywh format.
@@ -485,7 +485,7 @@ def resample_segments(segments, n: int = 1000):
     Resample segments to n points each using linear interpolation.
 
     Args:
-        segments (list): List of (N, 2) arrays where N is the number of points in each segment.
+        segments (list): list of (N, 2) arrays where N is the number of points in each segment.
         n (int): Number of points to resample each segment to.
 
     Returns:
@@ -665,7 +665,7 @@ def masks2segments(masks, strategy: str = "all"):
         strategy (str): Segmentation strategy, either 'all' or 'largest'.
 
     Returns:
-        (list): List of segment masks as float32 arrays.
+        (list): list of segment masks as float32 arrays.
     """
     from ultralytics.data.converter import merge_multi_segment
 

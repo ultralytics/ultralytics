@@ -19,7 +19,7 @@ class WorldTrainerFromScratch(WorldTrainer):
     Attributes:
         cfg (dict): Configuration dictionary with default parameters for model training.
         overrides (dict): Dictionary of parameter overrides to customize the configuration.
-        _callbacks (list): List of callback functions to be executed during different stages of training.
+        _callbacks (list): list of callback functions to be executed during different stages of training.
         data (dict): Final processed data configuration containing train/val paths and metadata.
         training_data (dict): Dictionary mapping training dataset paths to their configurations.
 
@@ -62,7 +62,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         Args:
             cfg (dict): Configuration dictionary with default parameters for model training.
             overrides (dict, optional): Dictionary of parameter overrides to customize the configuration.
-            _callbacks (list, optional): List of callback functions to be executed during different stages of training.
+            _callbacks (list, optional): list of callback functions to be executed during different stages of training.
 
         Examples:
             >>> from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
@@ -94,7 +94,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         standard YOLO datasets and grounding datasets with different formats.
 
         Args:
-            img_path (List[str] | str): Path to the folder containing images or list of paths.
+            img_path (list[str] | str): Path to the folder containing images or list of paths.
             mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
             batch (int, optional): Size of batches, used for rectangular training/validation.
 

@@ -37,7 +37,7 @@ class Tuner:
     search space and retraining the model to evaluate their performance.
 
     Attributes:
-        space (Dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
+        space (dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
         args (dict): Configuration arguments for the tuning process.
@@ -66,7 +66,7 @@ class Tuner:
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (List, optional): Callback functions to be executed during tuning.
+            _callbacks (list, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -121,7 +121,7 @@ class Tuner:
             sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
-            (Dict[str, float]): A dictionary containing mutated hyperparameters.
+            (dict[str, float]): A dictionary containing mutated hyperparameters.
         """
         if self.tune_csv.exists():  # if CSV file exists: select best hyps and mutate
             # Select parent(s)

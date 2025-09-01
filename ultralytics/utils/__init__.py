@@ -556,7 +556,7 @@ class YAML:
 
         Args:
             file (str | Path): Path to save YAML file.
-            data (dict | None): Dict or compatible object to save.
+            data (dict | None): dict or compatible object to save.
             header (str): Optional string to add at file beginning.
         """
         instance = cls._get_instance()

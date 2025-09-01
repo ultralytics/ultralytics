@@ -89,7 +89,7 @@ class BaseTrainer:
         fitness (float): Current fitness value.
         loss (float): Current loss value.
         tloss (float): Total loss value.
-        loss_names (list): List of loss names.
+        loss_names (list): list of loss names.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.
@@ -115,7 +115,7 @@ class BaseTrainer:
         Args:
             cfg (str, optional): Path to a configuration file.
             overrides (dict, optional): Configuration overrides.
-            _callbacks (list, optional): List of callback functions.
+            _callbacks (list, optional): list of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)

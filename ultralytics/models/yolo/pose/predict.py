@@ -36,7 +36,7 @@ class PosePredictor(DetectionPredictor):
         Args:
             cfg (Any): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (list, optional): list of callback functions to be invoked during prediction.
 
         Examples:
             >>> from ultralytics.utils import ASSETS

@@ -274,7 +274,7 @@ It returns a pandas dataframe with the following columns:
 - `idx`: Index of the image in the dataset
 - `im_file`: Path to the image file
 - `count`: Number of images in the dataset that are closer than `max_dist` to the current image
-- `sim_im_files`: List of paths to the `count` similar images
+- `sim_im_files`: list of paths to the `count` similar images
 
 !!! tip
 

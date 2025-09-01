@@ -41,13 +41,13 @@ class RTDETRPredictor(BasePredictor):
         model predictions to Results objects containing properly scaled bounding boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions contain
+            preds (list | tuple): list of [predictions, extra] from the model, where predictions contain
                 bounding boxes and scores.
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
         Returns:
-            results (List[Results]): A list of Results objects containing the post-processed bounding boxes,
+            results (list[Results]): A list of Results objects containing the post-processed bounding boxes,
                 confidence scores, and class labels.
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
@@ -82,11 +82,11 @@ class RTDETRPredictor(BasePredictor):
         (640) and scale_filled.
 
         Args:
-            im (List[np.ndarray]  | torch.Tensor): Input images of shape (N, 3, H, W) for tensor,
+            im (list[np.ndarray]  | torch.Tensor): Input images of shape (N, 3, H, W) for tensor,
                 [(H, W, 3) x N] for list.
 
         Returns:
-            (list): List of pre-transformed images ready for model inference.
+            (list): list of pre-transformed images ready for model inference.
         """
         letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
         return [letterbox(image=x) for x in im]

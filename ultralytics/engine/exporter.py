@@ -158,7 +158,7 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
-        valid_args (list): List of valid arguments for the format.
+        valid_args (list): list of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
@@ -1517,7 +1517,7 @@ class NMSModel(torch.nn.Module):
             x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
-            (torch.Tensor): List of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the
+            (torch.Tensor): list of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the
                 number of detections after NMS.
         """
         from functools import partial

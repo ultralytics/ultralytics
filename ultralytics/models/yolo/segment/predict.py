@@ -40,7 +40,7 @@ class SegmentationPredictor(DetectionPredictor):
         Args:
             cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over cfg.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (list, optional): list of callback functions to be invoked during prediction.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "segment"
@@ -55,7 +55,7 @@ class SegmentationPredictor(DetectionPredictor):
             orig_imgs (list | torch.Tensor | np.ndarray): Original image or batch of images.
 
         Returns:
-            (list): List of Results objects containing the segmentation predictions for each image in the batch.
+            (list): list of Results objects containing the segmentation predictions for each image in the batch.
                 Each Results object includes both bounding boxes and segmentation masks.
 
         Examples:
@@ -71,13 +71,13 @@ class SegmentationPredictor(DetectionPredictor):
         Construct a list of result objects from the predictions.
 
         Args:
-            preds (List[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
+            preds (list[torch.Tensor]): list of predicted bounding boxes, scores, and masks.
             img (torch.Tensor): The image after preprocessing.
-            orig_imgs (List[np.ndarray]): List of original images before preprocessing.
-            protos (List[torch.Tensor]): List of prototype masks.
+            orig_imgs (list[np.ndarray]): list of original images before preprocessing.
+            protos (list[torch.Tensor]): list of prototype masks.
 
         Returns:
-            (List[Results]): List of result objects containing the original images, image paths, class names,
+            (list[Results]): list of result objects containing the original images, image paths, class names,
                 bounding boxes, and masks.
         """
         return [

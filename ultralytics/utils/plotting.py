@@ -26,7 +26,7 @@ class Colors:
     RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (List[tuple]): List of RGB color tuples for general use.
+        palette (list[tuple]): list of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
@@ -176,9 +176,9 @@ class Annotator:
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
-        skeleton (List[List[int]]): Skeleton structure for keypoints.
-        limb_color (List[int]): Color palette for limbs.
-        kpt_color (List[int]): Color palette for keypoints.
+        skeleton (list[list[int]]): Skeleton structure for keypoints.
+        limb_color (list[int]): Color palette for limbs.
+        kpt_color (list[int]): Color palette for keypoints.
         dark_colors (set): Set of colors considered dark for text contrast.
         light_colors (set): Set of colors considered light for text contrast.
 
@@ -369,7 +369,7 @@ class Annotator:
 
         Args:
             masks (torch.Tensor | np.ndarray): Predicted masks with shape: [n, h, w]
-            colors (List[List[int]]): Colors for predicted masks, [[r, g, b] * n]
+            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n]
             im_gpu (torch.Tensor | None): Image is in cuda, shape: [3, h, w], range: [0, 1]
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
@@ -484,7 +484,7 @@ class Annotator:
         Add text to an image using PIL or cv2.
 
         Args:
-            xy (List[int]): Top-left coordinates for text placement.
+            xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color (R, G, B).
             anchor (str, optional): Text anchor position ('top' or 'bottom').
@@ -695,12 +695,12 @@ def plot_images(
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
-        labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
-        images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (Optional[List[str]]): List of file paths for each image in the batch.
+        labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
+        images (torch.Tensor | np.ndarray): Batch of images to plot. Shape: (batch_size, channels, height, width).
+        paths (list[str] | None): list of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
-        names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.
-        on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
+        names (dict[int, str] | None): Dictionary mapping class indices to class names.
+        on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
         save (bool): Whether to save the plotted image grid to a file.

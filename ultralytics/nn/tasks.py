@@ -103,7 +103,7 @@ class BaseModel(torch.nn.Module):
 
     Attributes:
         model (torch.nn.Module): The neural network model.
-        save (list): List of layer indices to save outputs from.
+        save (list): list of layer indices to save outputs from.
         stride (torch.Tensor): Model stride values.
 
     Methods:
@@ -329,7 +329,7 @@ class BaseModel(torch.nn.Module):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
@@ -352,7 +352,7 @@ class DetectionModel(BaseModel):
     Attributes:
         yaml (dict): Model configuration dictionary.
         model (torch.nn.Sequential): The neural network model.
-        save (list): List of layer indices to save outputs from.
+        save (list): list of layer indices to save outputs from.
         names (dict): Class names dictionary.
         inplace (bool): Whether to use inplace operations.
         end2end (bool): Whether the model uses end-to-end detection.
@@ -480,10 +480,10 @@ class DetectionModel(BaseModel):
         Clip YOLO augmented inference tails.
 
         Args:
-            y (List[torch.Tensor]): List of detection tensors.
+            y (list[torch.Tensor]): list of detection tensors.
 
         Returns:
-            (List[torch.Tensor]): Clipped detection tensors.
+            (list[torch.Tensor]): Clipped detection tensors.
         """
         nl = self.model[-1].nl  # number of detection layers (P3-P5)
         g = sum(4**x for x in range(nl))  # grid points
@@ -874,7 +874,7 @@ class WorldModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            text (List[str]): List of class names.
+            text (list[str]): list of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
         """
@@ -886,7 +886,7 @@ class WorldModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            text (List[str]): List of class names.
+            text (list[str]): list of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
 
@@ -956,7 +956,7 @@ class WorldModel(DetectionModel):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -1012,7 +1012,7 @@ class YOLOEModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            text (List[str]): List of class names.
+            text (list[str]): list of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
             without_reprta (bool): Whether to return text embeddings cooperated with reprta module.
@@ -1059,8 +1059,8 @@ class YOLOEModel(DetectionModel):
         Set vocabulary for the prompt-free model.
 
         Args:
-            vocab (nn.ModuleList): List of vocabulary items.
-            names (List[str]): List of class names.
+            vocab (nn.ModuleList): list of vocabulary items.
+            names (list[str]): list of class names.
         """
         assert not self.training
         head = self.model[-1]
@@ -1088,10 +1088,10 @@ class YOLOEModel(DetectionModel):
         Get fused vocabulary layer from the model.
 
         Args:
-            names (list): List of class names.
+            names (list): list of class names.
 
         Returns:
-            (nn.ModuleList): List of vocabulary modules.
+            (nn.ModuleList): list of vocabulary modules.
         """
         assert not self.training
         head = self.model[-1]
@@ -1114,7 +1114,7 @@ class YOLOEModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            names (List[str]): List of class names.
+            names (list[str]): list of class names.
             embeddings (torch.Tensor): Embeddings tensor.
         """
         assert not hasattr(self.model[-1], "lrpc"), (
@@ -1203,7 +1203,7 @@ class YOLOEModel(DetectionModel):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
             from ultralytics.utils.loss import TVPDetectLoss
@@ -1251,7 +1251,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
             from ultralytics.utils.loss import TVPSegmentLoss
@@ -1488,7 +1488,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     Load an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a.
 
     Args:
-        weights (str | List[str]): Model weights path(s).
+        weights (str | list[str]): Model weights path(s).
         device (torch.device, optional): Device to load model to.
         inplace (bool): Whether to do inplace operations.
         fuse (bool): Whether to fuse model.

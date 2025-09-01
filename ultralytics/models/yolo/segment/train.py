@@ -19,7 +19,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
     functionality including model initialization, validation, and visualization.
 
     Attributes:
-        loss_names (Tuple[str]): Names of the loss components used during training.
+        loss_names (tuple[str]): Names of the loss components used during training.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationTrainer
@@ -38,7 +38,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         Args:
             cfg (dict): Configuration dictionary with default training settings.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (list, optional): list of callback functions to be executed during training.
 
         Examples:
             >>> from ultralytics.models.yolo.segment import SegmentationTrainer

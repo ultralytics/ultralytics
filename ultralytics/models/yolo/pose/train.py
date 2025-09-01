@@ -50,7 +50,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): List of callback functions to be executed during training.
+            _callbacks (list, optional): list of callback functions to be executed during training.
 
         Notes:
             This trainer will automatically set the task to 'pose' regardless of what is provided in overrides.

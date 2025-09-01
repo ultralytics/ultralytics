@@ -188,7 +188,7 @@ class Events:
 
     Attributes:
         url (str): The URL to send anonymous events.
-        events (list): List of collected events to be sent.
+        events (list): list of collected events to be sent.
         rate_limit (float): The rate limit in seconds for sending events.
         t (float): Rate limit timer in seconds.
         metadata (dict): A dictionary containing metadata about the environment.

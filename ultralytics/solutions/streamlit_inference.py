@@ -34,7 +34,7 @@ class Inference:
         org_frame (Any): Container for the original frame to be displayed.
         ann_frame (Any): Container for the annotated frame to be displayed.
         vid_file_name (str | int): Name of the uploaded video file or webcam index.
-        selected_ind (List[int]): List of selected class indices for detection.
+        selected_ind (list[int]): list of selected class indices for detection.
 
     Methods:
         web_ui: Set up the Streamlit web interface with custom HTML elements.
@@ -65,14 +65,14 @@ class Inference:
 
         self.st = st  # Reference to the Streamlit module
         self.source = None  # Video source selection (webcam or video file)
-        self.img_file_names = []  # List of image file names
+        self.img_file_names = []  # list of image file names
         self.enable_trk = False  # Flag to toggle object tracking
         self.conf = 0.25  # Confidence threshold for detection
         self.iou = 0.45  # Intersection-over-Union (IoU) threshold for non-maximum suppression
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
-        self.selected_ind: list[int] = []  # List of selected class indices for detection
+        self.selected_ind: list[int] = []  # list of selected class indices for detection
         self.model = None  # YOLO model instance
 
         self.temp_dict = {"model": None, **kwargs}

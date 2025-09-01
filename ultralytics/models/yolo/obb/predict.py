@@ -33,7 +33,7 @@ class OBBPredictor(DetectionPredictor):
         Args:
             cfg (dict, optional): Default configuration for the predictor.
             overrides (dict, optional): Configuration overrides that take precedence over the default config.
-            _callbacks (list, optional): List of callback functions to be invoked during prediction.
+            _callbacks (list, optional): list of callback functions to be invoked during prediction.
 
         Examples:
             >>> from ultralytics.utils import ASSETS

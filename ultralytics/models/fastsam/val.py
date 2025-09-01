@@ -15,7 +15,7 @@ class FastSAMValidator(SegmentationValidator):
         dataloader (torch.utils.data.DataLoader): The data loader object used for validation.
         save_dir (Path): The directory where validation results will be saved.
         args (SimpleNamespace): Additional arguments for customization of the validation process.
-        _callbacks (list): List of callback functions to be invoked during validation.
+        _callbacks (list): list of callback functions to be invoked during validation.
         metrics (SegmentMetrics): Segmentation metrics calculator for evaluation.
 
     Methods:
@@ -30,7 +30,7 @@ class FastSAMValidator(SegmentationValidator):
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path, optional): Directory to save results.
             args (SimpleNamespace, optional): Configuration for the validator.
-            _callbacks (list, optional): List of callback functions to be invoked during validation.
+            _callbacks (list, optional): list of callback functions to be invoked during validation.
 
         Notes:
             Plots for ConfusionMatrix and other related metrics are disabled in this class to avoid errors.

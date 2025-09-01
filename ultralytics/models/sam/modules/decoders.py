@@ -192,7 +192,7 @@ class SAM2MaskDecoder(nn.Module):
         use_high_res_features (bool): Whether to use high-resolution features.
         conv_s0 (nn.Conv2d): Convolutional layer for high-resolution features (s0).
         conv_s1 (nn.Conv2d): Convolutional layer for high-resolution features (s1).
-        output_hypernetworks_mlps (nn.ModuleList): List of MLPs for output hypernetworks.
+        output_hypernetworks_mlps (nn.ModuleList): list of MLPs for output hypernetworks.
         iou_prediction_head (MLP): MLP for IOU prediction.
         pred_obj_score_head (nn.Linear | MLP): Linear layer or MLP for object score prediction.
         dynamic_multimask_via_stability (bool): Whether to use dynamic multimask via stability.
@@ -329,7 +329,7 @@ class SAM2MaskDecoder(nn.Module):
             dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs with shape (B, C, H, W).
             multimask_output (bool): Whether to return multiple masks or a single mask.
             repeat_image (bool): Flag to repeat the image embeddings.
-            high_res_features (List[torch.Tensor] | None, optional): Optional high-resolution features.
+            high_res_features (list[torch.Tensor] | None, optional): Optional high-resolution features.
 
         Returns:
             masks (torch.Tensor): Batched predicted masks with shape (B, N, H, W).

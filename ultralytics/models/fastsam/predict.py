@@ -86,12 +86,12 @@ class FastSAMPredictor(SegmentationPredictor):
 
     def prompt(
         self,
-        results: 'Results | list[Results]',
-        bboxes: 'np.ndarray | list | None' = None,
-        points: 'np.ndarray | list | None' = None,
-        labels: 'np.ndarray | list | None' = None,
-        texts: 'str | list[str] | None' = None,
-    ) -> list['Results']:
+        results: Results | list[Results],
+        bboxes: np.ndarray | list | None = None,
+        points: np.ndarray | list | None = None,
+        labels: np.ndarray | list | None = None,
+        texts: str | list[str] | None = None,
+    ) -> list[Results]:
         """
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 

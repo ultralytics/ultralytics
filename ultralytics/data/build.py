@@ -240,7 +240,7 @@ def check_source(source):
         >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source(0)
     """
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
-    if isinstance(source, str | int | Path):  # int for local usb camera
+    if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)

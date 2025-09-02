@@ -192,7 +192,7 @@ class DataExportMixin:
             def _to_str_simple(v):
                 if v is None:
                     return ""
-                elif isinstance(v, dict | list | tuple | set):
+                elif isinstance(v, (dict, list, tuple, set)):
                     return repr(v)
                 else:
                     return str(v)

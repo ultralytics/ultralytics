@@ -26,6 +26,7 @@ import numpy as np
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import plot_tune_results
 
@@ -148,6 +149,8 @@ class Tuner:
         Returns:
             (MongoClient): Connected MongoDB client instance.
         """
+        check_requirements("pymongo")
+
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 

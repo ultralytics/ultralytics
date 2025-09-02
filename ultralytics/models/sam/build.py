@@ -8,7 +8,6 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING
 
 import torch
 
@@ -21,8 +20,7 @@ from .modules.sam import SAM2Model, SAMModel
 from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
 
-if TYPE_CHECKING:
-    from pathlib import Path
+
 
 
 def build_sam_vit_h(checkpoint=None):
@@ -329,7 +327,7 @@ sam_model_map = {
 }
 
 
-def build_sam(ckpt: str | Path = "sam_b.pt"):
+def build_sam(ckpt = "sam_b.pt"):
     """
     Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
 

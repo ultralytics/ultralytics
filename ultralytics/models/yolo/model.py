@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 import torch
 
@@ -22,9 +22,6 @@ from ultralytics.nn.tasks import (
 )
 from ultralytics.utils import ROOT, YAML
 
-if TYPE_CHECKING:
-    import numpy as np
-    from PIL import Image
 
 
 class YOLO(Model):
@@ -370,10 +367,10 @@ class YOLOE(Model):
 
     def predict(
         self,
-        source: str | int | Image.Image | np.ndarray | None = None,
+        source = None,
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
-        refer_image: str | Image.Image | np.ndarray | None = None,
+        refer_image = None,
         predictor: Callable | None = yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs: Any,
     ) -> list | Any:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 import torch
@@ -25,10 +25,7 @@ from ultralytics.utils import (
     checks,
 )
 
-if TYPE_CHECKING:
-    from ultralytics.engine.predictor import BasePredictor
-    from ultralytics.engine.trainer import BaseTrainer
-    from ultralytics.engine.validator import BaseValidator
+
 
 
 class Model(torch.nn.Module):
@@ -504,7 +501,7 @@ class Model(torch.nn.Module):
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
-        predictor: BasePredictor | None = None,
+        predictor = None,
         **kwargs: Any,
     ) -> list[Results]:
         """
@@ -607,7 +604,7 @@ class Model(torch.nn.Module):
 
     def val(
         self,
-        validator: BaseValidator | None = None,
+        validator = None,
         **kwargs: Any,
     ):
         """
@@ -742,7 +739,7 @@ class Model(torch.nn.Module):
 
     def train(
         self,
-        trainer: BaseTrainer | None = None,
+        trainer = None,
         **kwargs: Any,
     ):
         """

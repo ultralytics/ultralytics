@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import torch
 from PIL import Image
@@ -13,12 +12,6 @@ from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import scale_masks
 
 from .utils import adjust_bboxes_to_image_border
-
-if TYPE_CHECKING:
-    import numpy as np
-
-    from ultralytics.engine.results import Results
-
 
 class FastSAMPredictor(SegmentationPredictor):
     """
@@ -86,12 +79,12 @@ class FastSAMPredictor(SegmentationPredictor):
 
     def prompt(
         self,
-        results: Results | list[Results],
-        bboxes: np.ndarray | list | None = None,
-        points: np.ndarray | list | None = None,
-        labels: np.ndarray | list | None = None,
+        results,
+        bboxes = None,
+        points = None,
+        labels = None,
         texts: str | list[str] | None = None,
-    ) -> list[Results]:
+    ):
         """
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 

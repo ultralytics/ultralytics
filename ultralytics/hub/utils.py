@@ -7,7 +7,7 @@ import random
 import threading
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -28,11 +28,6 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info
-
-if TYPE_CHECKING:
-    import torch
-
-    from ultralytics.utils import IterableSimpleNamespace
 
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
@@ -229,7 +224,7 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg: IterableSimpleNamespace, device: torch.device | str | None = None):
+    def __call__(self, cfg, device = None):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 

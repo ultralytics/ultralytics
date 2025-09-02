@@ -954,7 +954,14 @@ class SAM2VideoPredictor(SAM2Predictor):
         model.set_binarize(True)
         return model
 
-    def inference(self, im, bboxes: np.ndarray | list | None = None, points: np.ndarray | list | None = None, labels: np.ndarray | list | None = None, masks: np.ndarray | None = None):
+    def inference(
+        self,
+        im,
+        bboxes: np.ndarray | list | None = None,
+        points: np.ndarray | list | None = None,
+        labels: np.ndarray | list | None = None,
+        masks: np.ndarray | None = None,
+    ):
         """
         Perform image segmentation inference based on the given input cues, using the currently loaded image. This
         method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt encoder, and

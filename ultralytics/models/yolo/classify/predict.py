@@ -35,12 +35,7 @@ class ClassificationPredictor(BasePredictor):
         >>> predictor.predict_cli()
     """
 
-    def __init__(
-        self,
-        cfg: dict = DEFAULT_CFG,
-        overrides: dict | None = None,
-        _callbacks: list | None = None
-    ) -> None:
+    def __init__(self, cfg: dict = DEFAULT_CFG, overrides: dict | None = None, _callbacks: list | None = None) -> None:
         """
         Initialize the ClassificationPredictor with the specified configuration and set task to 'classify'.
 

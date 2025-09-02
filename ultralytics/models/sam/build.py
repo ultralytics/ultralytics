@@ -23,6 +23,7 @@ from .modules.transformer import TwoWayTransformer
 if TYPE_CHECKING:
     from pathlib import Path
 
+
 def build_sam_vit_h(checkpoint=None):
     """Build and return a Segment Anything Model (SAM) h-size model with specified encoder parameters."""
     return _build_sam(
@@ -327,7 +328,7 @@ sam_model_map = {
 }
 
 
-def build_sam(ckpt: str | Path ="sam_b.pt"):
+def build_sam(ckpt: str | Path = "sam_b.pt"):
     """
     Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
 

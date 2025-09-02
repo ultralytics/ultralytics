@@ -360,7 +360,7 @@ def _log_images(
     experiment: comet_ml.CometExperiment,
     image_paths: list[Path],
     curr_step: int | None,
-    annotations: list[list[dict]] | None = None
+    annotations: list[list[dict]] | None = None,
 ) -> None:
     """
     Log images to the experiment with optional annotations.

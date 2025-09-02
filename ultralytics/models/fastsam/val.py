@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-
 import types
 from pathlib import Path
 
@@ -33,7 +32,7 @@ class FastSAMValidator(SegmentationValidator):
         dataloader: torch.utils.data.DataLoader | None = None,
         save_dir: Path | None = None,
         args: types.SimpleNamespace | None = None,
-        _callbacks: list | None = None
+        _callbacks: list | None = None,
     ) -> None:
         """
         Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.

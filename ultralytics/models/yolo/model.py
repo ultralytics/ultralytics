@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     import numpy as np
     from PIL import Image
 
+
 class YOLO(Model):
     """
     YOLO (You Only Look Once) object detection model.

@@ -58,7 +58,7 @@ class ClassificationValidator(BaseValidator):
         dataloader: torch.utils.data.DataLoader | None = None,
         save_dir: str | Path | None = None,
         args: dict | None = None,
-        _callbacks: list | None = None
+        _callbacks: list | None = None,
     ) -> None:
         """
         Initialize ClassificationValidator with dataloader, save directory, and other parameters.

@@ -190,7 +190,7 @@ class BaseDataset(Dataset):
         Update labels to include only specified classes.
 
         Args:
-            include_class (list[int] | None ): List of classes to include. If None, all classes are included.
+            include_class (list[int] | None): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):

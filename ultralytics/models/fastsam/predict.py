@@ -84,7 +84,7 @@ class FastSAMPredictor(SegmentationPredictor):
         points=None,
         labels=None,
         texts: str | list[str] | None = None,
-    ):
+    ) -> list:
         """
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 

@@ -44,7 +44,7 @@ class ObjectCounter(BaseSolution):
 
         self.in_count = 0  # Counter for objects moving inward
         self.out_count = 0  # Counter for objects moving outward
-        self.counted_ids = []  # list of IDs of objects that have been counted
+        self.counted_ids = []  # List of IDs of objects that have been counted
         self.classwise_count = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 

@@ -108,7 +108,7 @@ class MuonWithSGD(optim.Optimizer):
                         if group["nesterov"]
                         else state["momentum_buffer"]
                     )
-                    # sgd_update = update.clone()
+                    sgd_update = update.clone()
                     if update.ndim == 4:  # for the case of conv filters
                         update = update.view(len(update), -1)
                     update = zeropower_via_newtonschulz5(update)
@@ -117,7 +117,7 @@ class MuonWithSGD(optim.Optimizer):
                     #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     # )
                     p.add_(update.reshape(p.shape), alpha=-group["lr"])
-                    # p.add_(sgd_update, alpha=-group["lr"])
+                    p.add_(sgd_update, alpha=-group["lr"])
             else:  # SGD
                 for p in group["params"]:
                     if p.grad is None:

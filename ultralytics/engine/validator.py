@@ -146,7 +146,7 @@ class BaseValidator:
             model (torch.nn.Module | None): Model to validate if not using a trainer.
 
         Returns:
-            dict: Dictionary containing validation statistics.
+            (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)

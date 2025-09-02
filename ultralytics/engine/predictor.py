@@ -226,7 +226,7 @@ class BasePredictor:
             **kwargs (Any): Additional keyword arguments for the inference method.
 
         Returns:
-            list[ultralytics.engine.results.Results] | generator: Results objects or generator of Results objects.
+            (list[ultralytics.engine.results.Results] | generator): Results objects or generator of Results objects.
         """
         self.stream = stream
         if stream:

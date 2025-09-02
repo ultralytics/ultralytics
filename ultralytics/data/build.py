@@ -210,6 +210,7 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         num_workers=nw,
         sampler=sampler,
         pin_memory=nd > 0,
+        persistent_workers=nd > 0,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,

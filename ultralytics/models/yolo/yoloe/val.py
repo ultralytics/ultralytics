@@ -102,7 +102,7 @@ class YOLOEDetectValidator(DetectionValidator):
         """Preprocess batch data, ensuring visuals are on the same device as images."""
         batch = super().preprocess(batch)
         if "visuals" in batch:
-            batch["visuals"] = batch["visuals"].to(batch["img"].device)
+            batch["visuals"] = batch["visuals"].to(batch["img"].device, non_blocking=True)
         return batch
 
     def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:

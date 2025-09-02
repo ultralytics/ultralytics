@@ -260,7 +260,7 @@ Add two Pydantic models for validating your requests and responses:
 # Pydantic models for request/response
 class PredictionRequest(BaseModel):
     instances: list
-        parameters: dict[str, Any] | None = None
+    parameters: dict[str, Any] | None = None
 
 
 class PredictionResponse(BaseModel):

@@ -499,7 +499,7 @@ class Model(torch.nn.Module):
         self,
         source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
-        predictor = None,
+        predictor=None,
         **kwargs: Any,
     ) -> list[Results]:
         """
@@ -602,7 +602,7 @@ class Model(torch.nn.Module):
 
     def val(
         self,
-        validator = None,
+        validator=None,
         **kwargs: Any,
     ):
         """
@@ -737,7 +737,7 @@ class Model(torch.nn.Module):
 
     def train(
         self,
-        trainer = None,
+        trainer=None,
         **kwargs: Any,
     ):
         """

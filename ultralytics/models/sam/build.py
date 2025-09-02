@@ -325,7 +325,7 @@ sam_model_map = {
 }
 
 
-def build_sam(ckpt = "sam_b.pt"):
+def build_sam(ckpt="sam_b.pt"):
     """
     Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
 

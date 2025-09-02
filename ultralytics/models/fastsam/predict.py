@@ -80,9 +80,9 @@ class FastSAMPredictor(SegmentationPredictor):
     def prompt(
         self,
         results,
-        bboxes = None,
-        points = None,
-        labels = None,
+        bboxes=None,
+        points=None,
+        labels=None,
         texts: str | list[str] | None = None,
     ):
         """

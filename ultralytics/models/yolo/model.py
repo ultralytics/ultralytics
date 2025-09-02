@@ -366,10 +366,10 @@ class YOLOE(Model):
 
     def predict(
         self,
-        source = None,
+        source=None,
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
-        refer_image = None,
+        refer_image=None,
         predictor: Callable | None = yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs: Any,
     ) -> list | Any:

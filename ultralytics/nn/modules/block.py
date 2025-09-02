@@ -228,6 +228,19 @@ class SPPF(nn.Module):
         return y + x if getattr(self, "add", False) else y
 
 
+class Shuffle(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        if self.training:
+            B, H, W, C = x.shape
+            r = torch.randperm(H * W)
+            x = x.reshape(B, -1, C)
+            x = x[:, r, :].reshape(B, H, W, -1)
+        return x
+
+
 class SimSPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any
@@ -19,7 +20,6 @@ try:
 
     assert hasattr(comet_ml, "__version__")  # verify package is not directory
 
-    import os
     from pathlib import Path
 
     # Ensures certain logging functions only run for supported tasks
@@ -297,7 +297,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
         decode (Callable): Function to decode the compressed segmentation data.
 
     Returns:
-        (list[list[Any]] | None): list of polygon points or None if extraction fails.
+        (list[list[Any]] | None): List of polygon points or None if extraction fails.
     """
     try:
         mask = decode(segmentation_raw)
@@ -322,7 +322,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
         class_map (dict): Additional class mapping for label conversion.
 
     Returns:
-        (list | None): list of annotation dictionaries or None if no annotations exist.
+        (list | None): List of annotation dictionaries or None if no annotations exist.
     """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
@@ -365,7 +365,7 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
-        image_paths (list[Path]): list of paths to images that will be logged.
+        image_paths (list[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
         annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each
             annotation contains visualization data like bounding boxes, labels, and confidence scores.

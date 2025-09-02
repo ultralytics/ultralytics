@@ -49,7 +49,7 @@ class RTDETR:
         model_input (list): Model input metadata.
         input_width (int): Width dimension required by the model.
         input_height (int): Height dimension required by the model.
-        classes (list[str]): list of class names from COCO dataset.
+        classes (list[str]): List of class names from COCO dataset.
         color_palette (np.ndarray): Random color palette for visualization.
         img (np.ndarray): Loaded input image.
         img_height (int): Height of the input image.
@@ -73,8 +73,8 @@ class RTDETR:
         self,
         model_path: str,
         img_path: str,
-        conf_thres: float = 0.5,
-        iou_thres: float = 0.5,
+        conf_thres: float | None = 0.5,
+        iou_thres: float | None = 0.5,
         class_names: str | None = None,
     ):
         """
@@ -83,9 +83,9 @@ class RTDETR:
         Args:
             model_path (str): Path to the ONNX model file.
             img_path (str): Path to the input image.
-            conf_thres (float, optional): Confidence threshold for filtering detections.
-            iou_thres (float, optional): IoU threshold for non-maximum suppression.
-            class_names (str | None, optional): Path to a YAML file containing class names.
+            conf_thres (float | None): Confidence threshold for filtering detections.
+            iou_thres (float | None): IoU threshold for non-maximum suppression.
+            class_names (str | None): Path to a YAML file containing class names.
                 If None, uses COCO dataset classes.
         """
         self.model_path = model_path

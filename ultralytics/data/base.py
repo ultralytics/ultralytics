@@ -36,8 +36,8 @@ class BaseDataset(Dataset):
         fraction (float): Fraction of dataset to utilize.
         channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         cv2_flag (int): OpenCV flag for reading images.
-        im_files (list[str]): list of image file paths.
-        labels (list[dict]): list of label data dictionaries.
+        im_files (list[str]): List of image file paths.
+        labels (list[dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
         rect (bool): Whether to use rectangular training.
         batch_size (int): Size of batches.
@@ -45,10 +45,10 @@ class BaseDataset(Dataset):
         pad (float): Padding value.
         buffer (list): Buffer for mosaic images.
         max_buffer_length (int): Maximum buffer size.
-        ims (list): list of loaded images.
-        im_hw0 (list): list of original image dimensions (h, w).
-        im_hw (list): list of resized image dimensions (h, w).
-        npy_files (list[Path]): list of numpy file paths.
+        ims (list): List of loaded images.
+        im_hw0 (list): List of original image dimensions (h, w).
+        im_hw (list): List of resized image dimensions (h, w).
+        npy_files (list[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
@@ -101,7 +101,7 @@ class BaseDataset(Dataset):
             stride (int): Stride used in the model.
             pad (float): Padding value.
             single_cls (bool): If True, single class training is used.
-            classes (list[int], optional): list of included classes.
+            classes (list[int], None): List of included classes.
             fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
@@ -155,7 +155,7 @@ class BaseDataset(Dataset):
             img_path (str | list[str]): Path or list of paths to image directories or files.
 
         Returns:
-            (list[str]): list of image file paths.
+            (list[str]): List of image file paths.
 
         Raises:
             FileNotFoundError: If no images are found or the path doesn't exist.
@@ -190,7 +190,7 @@ class BaseDataset(Dataset):
         Update labels to include only specified classes.
 
         Args:
-            include_class (list[int], optional): list of classes to include. If None, all classes are included.
+            include_class (list[int] | None ): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):

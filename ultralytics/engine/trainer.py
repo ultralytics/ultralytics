@@ -6,6 +6,8 @@ Usage:
     $ yolo mode=train model=yolo11n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
+from __future__ import annotations
+
 import gc
 import math
 import os
@@ -89,7 +91,7 @@ class BaseTrainer:
         fitness (float): Current fitness value.
         loss (float): Current loss value.
         tloss (float): Total loss value.
-        loss_names (list): list of loss names.
+        loss_names (list): List of loss names.
         csv (Path): Path to results CSV file.
         metrics (dict): Dictionary of metrics.
         plots (dict): Dictionary of plots.
@@ -108,14 +110,14 @@ class BaseTrainer:
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg: str | dict = DEFAULT_CFG, overrides: dict | None = None, _callbacks: list | None = None):
         """
         Initialize the BaseTrainer class.
 
         Args:
-            cfg (str, optional): Path to a configuration file.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (list, optional): list of callback functions.
+            cfg (str | dict): Path to a configuration file or configuration dictionary.
+            overrides (dict | None): Configuration overrides.
+            _callbacks (list | None): List of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
@@ -826,19 +828,25 @@ class BaseTrainer:
             LOGGER.info("Closing dataloader mosaic")
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
-    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+    def build_optimizer(
+        self,
+        model: torch.nn.Module,
+        name: str = "auto",
+        lr: float = 0.001,
+        momentum: float = 0.9,
+        decay: float = 1e-5,
+        iterations: float = 1e5,
+    ):
         """
         Construct an optimizer for the given model.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.
-            name (str, optional): The name of the optimizer to use. If 'auto', the optimizer is selected
-                based on the number of iterations.
-            lr (float, optional): The learning rate for the optimizer.
-            momentum (float, optional): The momentum factor for the optimizer.
-            decay (float, optional): The weight decay for the optimizer.
-            iterations (float, optional): The number of iterations, which determines the optimizer if
-                name is 'auto'.
+            name (str): The name of the optimizer to use. If 'auto', the optimizer is selected based on the number of iterations.
+            lr (float): The learning rate for the optimizer.
+            momentum (float): The momentum factor for the optimizer.
+            decay (float): The weight decay for the optimizer.
+            iterations (float): The number of iterations, which determines the optimizer if name is 'auto'.
 
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.

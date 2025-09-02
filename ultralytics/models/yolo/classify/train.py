@@ -61,7 +61,7 @@ class ClassificationTrainer(BaseTrainer):
         Args:
             cfg (dict[str, Any], optional): Default configuration dictionary containing training parameters.
             overrides (dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list[Any], optional): list of callback functions to be executed during training.
+            _callbacks (list[Any], optional): List of callback functions to be executed during training.
 
         Examples:
             Create a trainer with custom configuration
@@ -196,7 +196,7 @@ class ClassificationTrainer(BaseTrainer):
             prefix (str, optional): Prefix to prepend to loss names.
 
         Returns:
-            keys (list[str]): list of loss keys if loss_items is None.
+            keys (list[str]): List of loss keys if loss_items is None.
             loss_dict (dict[str, float]): Dictionary of loss items if loss_items is provided.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]

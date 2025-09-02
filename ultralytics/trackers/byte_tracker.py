@@ -246,9 +246,9 @@ class BYTETracker:
     predicting the new object locations, and performs data association.
 
     Attributes:
-        tracked_stracks (list[STrack]): list of successfully activated tracks.
-        lost_stracks (list[STrack]): list of lost tracks.
-        removed_stracks (list[STrack]): list of removed tracks.
+        tracked_stracks (list[STrack]): List of successfully activated tracks.
+        lost_stracks (list[STrack]): List of lost tracks.
+        removed_stracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (Namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.

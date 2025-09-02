@@ -134,7 +134,7 @@ def _build_sam(
         encoder_depth (int | list[int]): Depth of the encoder.
         encoder_num_heads (int | list[int]): Number of attention heads in the encoder.
         encoder_global_attn_indexes (list[int] | None): Indexes for global attention in the encoder.
-        checkpoint (str | None, optional): Path to the model checkpoint file.
+        checkpoint (str | None): Path to the model checkpoint file.
         mobile_sam (bool, optional): Whether to build a Mobile-SAM model.
 
     Returns:
@@ -234,7 +234,7 @@ def _build_sam2(
         encoder_backbone_channel_list (list[int], optional): Channel dimensions for each level of the encoder backbone.
         encoder_window_spatial_size (list[int], optional): Spatial size of the window for position embeddings.
         encoder_window_spec (list[int], optional): Window specifications for each stage of the encoder.
-        checkpoint (str | None, optional): Path to the checkpoint file for loading pre-trained weights.
+        checkpoint (str | None): Path to the checkpoint file for loading pre-trained weights.
 
     Returns:
         (SAM2Model): A configured and initialized SAM2 model.

@@ -66,7 +66,7 @@ class Tuner:
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (list, optional): Callback functions to be executed during tuning.
+            _callbacks (list | None): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),

@@ -149,10 +149,10 @@ class Predictor(BasePredictor):
         Currently, batched inference is not supported; hence the list length should be 1.
 
         Args:
-            im (list[np.ndarray]): list containing a single image in HWC numpy array format.
+            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
 
         Returns:
-            (list[np.ndarray]): list containing the transformed image.
+            (list[np.ndarray]): List containing the transformed image.
 
         Raises:
             AssertionError: If the input list contains more than one image.
@@ -493,7 +493,7 @@ class Predictor(BasePredictor):
             orig_imgs (list[np.ndarray] | torch.Tensor): The original, unprocessed images.
 
         Returns:
-            (list[Results]): list of Results objects containing detection masks, bounding boxes, and other
+            (list[Results]): List of Results objects containing detection masks, bounding boxes, and other
                 metadata for each processed image.
 
         Examples:
@@ -845,7 +845,7 @@ class SAM2Predictor(Predictor):
             features (torch.Tensor | dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
                 could also be a dictionary including:
                 - image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
-                - high_res_feats (list[torch.Tensor]): list of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
+                - high_res_feats (list[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
             points (np.ndarray | list[list[float]] | None): Object location points with shape (N, 2), in pixels.
             labels (np.ndarray | list[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
             masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
@@ -1855,7 +1855,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Append the imgState to the memory_bank and update the memory for the model.
 
         Args:
-            obj_ids (list[int]): list of object IDs corresponding to the prompts.
+            obj_ids (list[int]): List of object IDs corresponding to the prompts.
             points (torch.Tensor | None): Tensor of shape (B, N, 2) representing the input points for N objects.
             labels (torch.Tensor | None): Tensor of shape (B, N) representing the labels for the input points.
             masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.

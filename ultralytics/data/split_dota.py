@@ -24,7 +24,7 @@ def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.n
     Args:
         polygon1 (np.ndarray): Polygon coordinates with shape (N, 8).
         bbox2 (np.ndarray): Bounding boxes with shape (N, 4).
-        eps (float, optional): Small value to prevent division by zero.
+        eps (float): Small value to prevent division by zero.
 
     Returns:
         (np.ndarray): IoF scores with shape (N, 1) or (N, M) if bbox2 is (M, 4).
@@ -70,10 +70,10 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
 
     Args:
         data_root (str): Data root directory.
-        split (str, optional): The split data set, could be 'train' or 'val'.
+        split (str): The split data set, could be 'train' or 'val'.
 
     Returns:
-        (list[dict[str, Any]]): list of annotation dictionaries containing image information.
+        (list[dict[str, Any]]): List of annotation dictionaries containing image information.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -112,10 +112,10 @@ def get_windows(
 
     Args:
         im_size (tuple[int, int]): Original image size, (H, W).
-        crop_sizes (tuple[int, ...], optional): Crop size of windows.
-        gaps (tuple[int, ...], optional): Gap between crops.
-        im_rate_thr (float, optional): Threshold of windows areas divided by image areas.
-        eps (float, optional): Epsilon value for math operations.
+        crop_sizes (tuple[int, ...]): Crop size of windows.
+        gaps (tuple[int, ...]): Gap between crops.
+        im_rate_thr (float): Threshold of windows areas divided by image areas.
+        eps (float): Epsilon value for math operations.
 
     Returns:
         (np.ndarray): Array of window coordinates with shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
@@ -184,7 +184,7 @@ def crop_and_save(
         window_objs (list[np.ndarray]): A list of labels inside each window.
         im_dir (str): The output directory path of images.
         lb_dir (str): The output directory path of labels.
-        allow_background_images (bool, optional): Whether to include background images without labels.
+        allow_background_images (bool): Whether to include background images without labels.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -232,9 +232,9 @@ def split_images_and_labels(
     Args:
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
-        split (str, optional): The split data set, could be 'train' or 'val'.
-        crop_sizes (tuple[int, ...], optional): tuple of crop sizes.
-        gaps (tuple[int, ...], optional): tuple of gaps between crops.
+        split (str): The split data set, could be 'train' or 'val'.
+        crop_sizes (tuple[int, ...]): Tuple of crop sizes.
+        gaps (tuple[int, ...]): Tuple of gaps between crops.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -271,9 +271,9 @@ def split_trainval(
     Args:
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
-        crop_size (int, optional): Base crop size.
-        gap (int, optional): Base gap between crops.
-        rates (tuple[float, ...], optional): Scaling rates for crop_size and gap.
+        crop_size (int): Base crop size.
+        gap (int): Base gap between crops.
+        rates (tuple[float, ...]): Scaling rates for crop_size and gap.
 
     Notes:
         The directory structure assumed for the DOTA dataset:
@@ -310,9 +310,9 @@ def split_test(
     Args:
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
-        crop_size (int, optional): Base crop size.
-        gap (int, optional): Base gap between crops.
-        rates (tuple[float, ...], optional): Scaling rates for crop_size and gap.
+        crop_size (int): Base crop size.
+        gap (int): Base gap between crops.
+        rates (tuple[float, ...]): Scaling rates for crop_size and gap.
 
     Notes:
         The directory structure assumed for the DOTA dataset:

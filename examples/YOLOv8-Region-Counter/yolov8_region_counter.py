@@ -92,7 +92,7 @@ def run(
     view_img: bool = False,
     save_img: bool = False,
     exist_ok: bool = False,
-    classes: list[int] = None,
+    classes: list[int] | None = None,
     line_thickness: int = 2,
     track_thickness: int = 2,
     region_thickness: int = 2,
@@ -111,7 +111,7 @@ def run(
         view_img (bool): Display results in a live window.
         save_img (bool): Save processed video to file.
         exist_ok (bool): Overwrite existing output files without incrementing.
-        classes (list[int], optional): Specific class IDs to detect and track.
+        classes (list[int] | None): Specific class IDs to detect and track.
         line_thickness (int): Thickness of bounding box lines.
         track_thickness (int): Thickness of object tracking lines.
         region_thickness (int): Thickness of counting region boundaries.

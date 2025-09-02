@@ -126,8 +126,8 @@ def generate_crop_boxes(
         overlap_ratio (float): Ratio of overlap between adjacent crop boxes.
 
     Returns:
-        crop_boxes (list[list[int]]): list of crop boxes in [x0, y0, x1, y1] format.
-        layer_idxs (list[int]): list of layer indices corresponding to each crop box.
+        crop_boxes (list[list[int]]): List of crop boxes in [x0, y0, x1, y1] format.
+        layer_idxs (list[int]): List of layer indices corresponding to each crop box.
 
     Examples:
         >>> im_size = (800, 1200)  # Height, width

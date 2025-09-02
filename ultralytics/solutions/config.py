@@ -20,7 +20,7 @@ class SolutionConfig:
     Attributes:
         source (str, optional): Path to the input source (video, RTSP, etc.). Only usable with Solutions CLI.
         model (str, optional): Path to the Ultralytics YOLO model to be used for inference.
-        classes (list[int], optional): list of class indices to filter detections.
+        classes (list[int], optional): List of class indices to filter detections.
         show_conf (bool): Whether to show confidence scores on the visual output.
         show_labels (bool): Whether to display class labels on visual output.
         region (list[tuple[int, int]], optional): Polygonal region or line for object counting.

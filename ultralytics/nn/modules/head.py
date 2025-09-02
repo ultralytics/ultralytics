@@ -83,7 +83,7 @@ class Detect(nn.Module):
 
         Args:
             nc (int): Number of classes.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__()
         self.nc = nc  # number of classes
@@ -154,7 +154,7 @@ class Detect(nn.Module):
         Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
         Args:
-            x (list[torch.Tensor]): list of feature maps from different detection layers.
+            x (list[torch.Tensor]): List of feature maps from different detection layers.
 
         Returns:
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
@@ -263,7 +263,7 @@ class Segment(Detect):
             nc (int): Number of classes.
             nm (int): Number of masks.
             npr (int): Number of protos.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, ch)
         self.nm = nm  # number of masks
@@ -314,7 +314,7 @@ class OBB(Detect):
         Args:
             nc (int): Number of classes.
             ne (int): Number of extra parameters.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, ch)
         self.ne = ne  # number of extra parameters
@@ -370,7 +370,7 @@ class Pose(Detect):
         Args:
             nc (int): Number of classes.
             kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, ch)
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
@@ -510,7 +510,7 @@ class WorldDetect(Detect):
             nc (int): Number of classes.
             embed (int): Embedding dimension.
             with_bn (bool): Whether to use batch normalization in contrastive head.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
@@ -643,7 +643,7 @@ class YOLOEDetect(Detect):
             nc (int): Number of classes.
             embed (int): Embedding dimension.
             with_bn (bool): Whether to use batch normalization in contrastive head.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))
@@ -826,7 +826,7 @@ class YOLOESegment(YOLOEDetect):
             npr (int): Number of protos.
             embed (int): Embedding dimension.
             with_bn (bool): Whether to use batch normalization in contrastive head.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, embed, with_bn, ch)
         self.nm = nm
@@ -985,7 +985,7 @@ class RTDETRDecoder(nn.Module):
         Run the forward pass of the module, returning bounding box and classification scores for the input.
 
         Args:
-            x (list[torch.Tensor]): list of feature maps from the backbone.
+            x (list[torch.Tensor]): List of feature maps from the backbone.
             batch (dict, optional): Batch information for training.
 
         Returns:
@@ -1042,7 +1042,7 @@ class RTDETRDecoder(nn.Module):
         Generate anchor bounding boxes for given shapes with specific grid size and validate them.
 
         Args:
-            shapes (list): list of feature map shapes.
+            shapes (list): List of feature map shapes.
             grid_size (float, optional): Base size of grid cells.
             dtype (torch.dtype, optional): Data type for tensors.
             device (str, optional): Device to create tensors on.
@@ -1075,11 +1075,11 @@ class RTDETRDecoder(nn.Module):
         Process and return encoder inputs by getting projection features from input and concatenating them.
 
         Args:
-            x (list[torch.Tensor]): list of feature maps from the backbone.
+            x (list[torch.Tensor]): List of feature maps from the backbone.
 
         Returns:
             feats (torch.Tensor): Processed features.
-            shapes (list): list of feature map shapes.
+            shapes (list): List of feature map shapes.
         """
         # Get projection features
         x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
@@ -1109,7 +1109,7 @@ class RTDETRDecoder(nn.Module):
 
         Args:
             feats (torch.Tensor): Processed features from encoder.
-            shapes (list): list of feature map shapes.
+            shapes (list): List of feature map shapes.
             dn_embed (torch.Tensor, optional): Denoising embeddings.
             dn_bbox (torch.Tensor, optional): Denoising bounding boxes.
 
@@ -1214,7 +1214,7 @@ class v10Detect(Detect):
 
         Args:
             nc (int): Number of classes.
-            ch (tuple): tuple of channel sizes from backbone feature maps.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
         super().__init__(nc, ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels

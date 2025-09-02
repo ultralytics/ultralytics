@@ -829,7 +829,7 @@ class Mosaic(BaseMixTransform):
                 - cls (np.ndarray): Concatenated class labels.
                 - instances (Instances): Concatenated instance annotations.
                 - mosaic_border (tuple[int, int]): Mosaic border size.
-                - texts (list[str], optional): Text labels if present in the original labels.
+                - texts (list[str] | None): Text labels if present in the original labels.
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640)
@@ -1103,7 +1103,7 @@ class RandomPerspective:
             scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
-            border (tuple[int, int]): tuple specifying mosaic border (top/bottom, left/right).
+            border (tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
             pre_transform (Callable | None): Function/transform to apply to the image before starting the random
                 transformation.
 
@@ -2344,8 +2344,8 @@ class LoadVisualPrompt:
         self,
         category: int | np.ndarray | torch.Tensor,
         shape: tuple[int, int],
-        bboxes: np.ndarray | torch.Tensor = None,
-        masks: np.ndarray | torch.Tensor = None,
+        bboxes: np.ndarray | torch.Tensor | None = None,
+        masks: np.ndarray | torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         Generate visual masks based on bounding boxes or masks.
@@ -2353,8 +2353,8 @@ class LoadVisualPrompt:
         Args:
             category (int | np.ndarray | torch.Tensor): The category labels for the objects.
             shape (tuple[int, int]): The shape of the image (height, width).
-            bboxes (np.ndarray | torch.Tensor, optional): Bounding boxes for the objects, xyxy format.
-            masks (np.ndarray | torch.Tensor, optional): Masks for the objects.
+            bboxes (np.ndarray | torch.Tensor | None): Bounding boxes for the objects, xyxy format.
+            masks (np.ndarray | torch.Tensor | None): Masks for the objects.
 
         Returns:
             (torch.Tensor): A tensor containing the visual masks for each category.

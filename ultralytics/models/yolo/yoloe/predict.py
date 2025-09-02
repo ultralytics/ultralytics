@@ -57,7 +57,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         (bounding boxes or masks) accordingly.
 
         Args:
-            im (list): list containing a single input image.
+            im (list): List containing a single input image.
 
         Returns:
             (list): Preprocessed image ready for model inference.

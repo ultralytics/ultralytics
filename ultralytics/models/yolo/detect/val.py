@@ -31,8 +31,8 @@ class DetectionValidator(BaseValidator):
         metrics (DetMetrics): Object detection metrics calculator.
         iouv (torch.Tensor): IoU thresholds for mAP calculation.
         niou (int): Number of IoU thresholds.
-        lb (list[Any]): list for storing ground truth labels for hybrid saving.
-        jdict (list[dict[str, Any]]): list for storing JSON detection results.
+        lb (list[Any]): List for storing ground truth labels for hybrid saving.
+        jdict (list[dict[str, Any]]): List for storing JSON detection results.
         stats (dict[str, list[torch.Tensor]]): Dictionary for storing statistics during validation.
 
     Examples:
@@ -50,7 +50,7 @@ class DetectionValidator(BaseValidator):
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (dict[str, Any], optional): Arguments for the validator.
-            _callbacks (list[Any], optional): list of callback functions.
+            _callbacks (list[Any], optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.is_coco = False
@@ -177,7 +177,7 @@ class DetectionValidator(BaseValidator):
         Update metrics with new predictions and ground truth.
 
         Args:
-            preds (list[dict[str, torch.Tensor]]): list of predictions from the model.
+            preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
         for si, pred in enumerate(preds):
@@ -326,7 +326,7 @@ class DetectionValidator(BaseValidator):
 
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
-            preds (list[dict[str, torch.Tensor]]): list of predictions from the model.
+            preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
             max_det (int | None): Maximum number of detections to plot.
         """

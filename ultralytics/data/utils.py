@@ -57,11 +57,11 @@ def check_file_speeds(
     It samples up to 5 files from the provided list and warns if access times exceed the threshold.
 
     Args:
-        files (list[str]): list of file paths to check for access speed.
-        threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
-        threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
-        max_files (int, optional): The maximum number of files to check.
-        prefix (str, optional): Prefix string to add to log messages.
+        files (list[str]): List of file paths to check for access speed.
+        threshold_ms (float): Threshold in milliseconds for ping time warnings.
+        threshold_mb (float): Threshold in megabytes per second for read speed warnings.
+        max_files (int): The maximum number of files to check.
+        prefix (str): Prefix string to add to log messages.
 
     Examples:
         >>> from pathlib import Path
@@ -303,8 +303,8 @@ def polygon2mask(
         imgsz (tuple[int, int]): The size of the image as (height, width).
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
-        color (int, optional): The color value to fill in the polygons on the mask.
-        downsample_ratio (int, optional): Factor by which to downsample the mask.
+        color (int): The color value to fill in the polygons on the mask.
+        downsample_ratio (int): Factor by which to downsample the mask.
 
     Returns:
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
@@ -329,7 +329,7 @@ def polygons2masks(
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
-        downsample_ratio (int, optional): Factor by which to downsample each mask.
+        downsample_ratio (int): Factor by which to downsample each mask.
 
     Returns:
         (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
@@ -397,7 +397,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
 
     Args:
         dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
-        autodownload (bool, optional): Whether to automatically download the dataset if not found.
+        autodownload (bool): Whether to automatically download the dataset if not found.
 
     Returns:
         (dict[str, Any]): Parsed dataset information and paths.
@@ -491,7 +491,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
 
     Args:
         dataset (str | Path): The name of the dataset.
-        split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
+        split (str): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
         (dict[str, Any]): A dictionary containing the following keys:
@@ -750,9 +750,9 @@ def compress_one_image(f: str, f_new: str = None, max_dim: int = 1920, quality: 
 
     Args:
         f (str): The path to the input image file.
-        f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
-        max_dim (int, optional): The maximum dimension (width or height) of the output image.
-        quality (int, optional): The image compression quality as a percentage.
+        f_new (str): The path to the output image file. If not specified, the input file will be overwritten.
+        max_dim (int): The maximum dimension (width or height) of the output image.
+        quality (int): The image compression quality as a percentage.
 
     Examples:
         >>> from pathlib import Path

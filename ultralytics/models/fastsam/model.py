@@ -70,7 +70,7 @@ class FastSAM(Model):
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (list): list of Results objects containing the prediction results.
+            (list): List of Results objects containing the prediction results.
         """
         prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)

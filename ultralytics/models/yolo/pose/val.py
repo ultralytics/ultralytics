@@ -59,7 +59,7 @@ class PoseValidator(DetectionValidator):
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (Path | str, optional): Directory to save results.
             args (dict, optional): Arguments for the validator including task set to "pose".
-            _callbacks (list, optional): list of callback functions to be executed during validation.
+            _callbacks (list, optional): List of callback functions to be executed during validation.
 
         Examples:
             >>> from ultralytics.models.yolo.pose import PoseValidator
@@ -132,7 +132,7 @@ class PoseValidator(DetectionValidator):
                 bounding boxes, confidence scores, class predictions, and keypoint data.
 
         Returns:
-            (dict[torch.Tensor]): dict of processed prediction dictionaries, each containing:
+            (dict[torch.Tensor]): Dict of processed prediction dictionaries, each containing:
                 - 'bboxes': Bounding box coordinates
                 - 'conf': Confidence scores
                 - 'cls': Class predictions

@@ -167,7 +167,7 @@ class RTDETRValidator(DetectionValidator):
                 (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
 
         Returns:
-            (list[dict[str, torch.Tensor]]): list of dictionaries for each image, each containing:
+            (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
                 - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates
                 - 'conf': Tensor of shape (N,) with confidence scores
                 - 'cls': Tensor of shape (N,) with class indices

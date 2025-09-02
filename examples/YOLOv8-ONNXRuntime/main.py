@@ -25,7 +25,7 @@ class YOLOv8:
         input_image (str): Path to the input image file.
         confidence_thres (float): Confidence threshold for filtering detections.
         iou_thres (float): IoU threshold for non-maximum suppression.
-        classes (list[str]): list of class names from the COCO dataset.
+        classes (list[str]): List of class names from the COCO dataset.
         color_palette (np.ndarray): Random color palette for visualizing different classes.
         input_width (int): Width dimension of the model input.
         input_height (int): Height dimension of the model input.

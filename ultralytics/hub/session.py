@@ -98,7 +98,7 @@ class HUBTrainingSession:
 
         Args:
             identifier (str): Model identifier used to initialize the HUB training session.
-            args (dict[str, Any], optional): Arguments for creating a new model if identifier is not a HUB model URL.
+            args (dict[str, Any] | None): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
             session (HUBTrainingSession | None): An authenticated session or None if creation fails.
@@ -270,8 +270,8 @@ class HUBTrainingSession:
             timeout (int): Maximum time to wait for the request to complete.
             thread (bool): Whether to run the request in a separate thread.
             verbose (bool): Whether to log detailed messages.
-            progress_total (int, optional): Total size for progress tracking.
-            stream_response (bool, optional): Whether to stream the response.
+            progress_total (int | None): Total size for progress tracking.
+            stream_response (bool | None): Whether to stream the response.
             *args (Any): Additional positional arguments for request_func.
             **kwargs (Any): Additional keyword arguments for request_func.
 

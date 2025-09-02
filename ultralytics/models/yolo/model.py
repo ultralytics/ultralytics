@@ -300,7 +300,7 @@ class YOLOE(Model):
 
         Args:
             vocab (list[str]): Vocabulary list containing tokens or words used by the model for text processing.
-            names (list[str]): list of class names that the model can detect or classify.
+            names (list[str]): List of class names that the model can detect or classify.
 
         Raises:
             AssertionError: If the model is not an instance of YOLOEModel.
@@ -389,7 +389,7 @@ class YOLOE(Model):
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (list | generator): list of Results objects or generator of Results objects if stream=True.
+            (list | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")

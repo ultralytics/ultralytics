@@ -59,7 +59,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        requirements (list[SimpleNamespace]): list of parsed requirements as SimpleNamespace objects with `name` and
+        requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
             `specifier` attributes.
 
     Examples:
@@ -91,7 +91,7 @@ def parse_version(version="0.0.0") -> tuple:
         version (str): Version string, i.e. '2.0.1+cpu'
 
     Returns:
-        (tuple): tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
         return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
@@ -364,7 +364,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     Args:
         requirements (Path | str | list[str]): Path to a requirements.txt file, a single package requirement as a
             string, or a list of package requirements as strings.
-        exclude (tuple): tuple of package names to exclude from checking.
+        exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
 
@@ -584,7 +584,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
 
     Args:
         file (str | Path): File name or path.
-        suffix (tuple): tuple of acceptable YAML file suffixes.
+        suffix (tuple): Tuple of acceptable YAML file suffixes.
         hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:

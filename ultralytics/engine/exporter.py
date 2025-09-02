@@ -56,6 +56,8 @@ TensorFlow.js:
     $ npm start
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
@@ -158,7 +160,7 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (Namespace): The arguments used during export.
-        valid_args (list): list of valid arguments for the format.
+        valid_args (list): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
@@ -254,14 +256,14 @@ class Exporter:
         >>> exporter(model="yolov8n.pt")
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """
         Initialize the Exporter class.
 
         Args:
-            cfg (str, optional): Path to a configuration file.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (dict, optional): Dictionary of callback functions.
+            cfg (str): Path to a configuration file.
+            overrides (dict | None): Configuration overrides.
+            _callbacks (dict | None): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -1517,7 +1519,7 @@ class NMSModel(torch.nn.Module):
             x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
-            (torch.Tensor): list of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the
+            (torch.Tensor): List of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the
                 number of detections after NMS.
         """
         from functools import partial

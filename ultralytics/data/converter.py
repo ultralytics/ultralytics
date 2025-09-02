@@ -240,12 +240,12 @@ def convert_coco(
     Convert COCO dataset annotations to a YOLO annotation format suitable for training YOLO models.
 
     Args:
-        labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
-        save_dir (str, optional): Path to directory to save results to.
-        use_segments (bool, optional): Whether to include segmentation masks in the output.
-        use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
-        cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
-        lvis (bool, optional): Whether to convert data in lvis dataset way.
+        labels_dir (str): Path to directory containing COCO dataset annotation files.
+        save_dir (str): Path to directory to save results to.
+        use_segments (bool): Whether to include segmentation masks in the output.
+        use_keypoints (bool): Whether to include keypoint annotations in the output.
+        cls91to80 (bool): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
+        lvis (bool): Whether to convert data in lvis dataset way.
 
     Examples:
         >>> from ultralytics.data.converter import convert_coco
@@ -590,10 +590,10 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
-        save_dir (str | Path, optional): Path to save the generated labels, labels will be saved
+        save_dir (str | Path | None): Path to save the generated labels, labels will be saved
             into `labels-segment` in the same directory level of `im_dir` if save_dir is None.
         sam_model (str): Segmentation model to use for intermediate segmentation data.
-        device (int | str, optional): The specific device to run SAM models.
+        device (int | str | None): The specific device to run SAM models.
 
     Notes:
         The input directory structure assumed for dataset:
@@ -770,8 +770,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     - Subsequent lines: Individual image records with annotations and optional URLs
 
     Args:
-        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Union[str, Path | None], optional): Directory where the converted YOLO dataset
+        ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
+        output_path (str | Path | None): Directory where the converted YOLO dataset
             will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
 
     Returns:

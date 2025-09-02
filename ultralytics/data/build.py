@@ -185,9 +185,9 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
         workers (int): Number of worker threads for loading data.
-        shuffle (bool, optional): Whether to shuffle the dataset.
-        rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
-        drop_last (bool, optional): Whether to drop the last incomplete batch.
+        shuffle (bool): Whether to shuffle the dataset.
+        rank (int): Process rank in distributed training. -1 for single-GPU training.
+        drop_last (bool): Whether to drop the last incomplete batch.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -240,7 +240,7 @@ def check_source(source):
         >>> source, webcam, screenshot, from_img, in_memory, tensor = check_source(0)
     """
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
-    if isinstance(source, (str, int, Path)):  # int for local usb camera
+    if isinstance(source, str | int | Path):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
         is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
@@ -269,11 +269,11 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
     Load an inference source for object detection and apply necessary transformations.
 
     Args:
-        source (str | Path | torch.Tensor | PIL.Image | np.ndarray, optional): The input source for inference.
-        batch (int, optional): Batch size for dataloaders.
-        vid_stride (int, optional): The frame interval for video sources.
-        buffer (bool, optional): Whether stream frames will be buffered.
-        channels (int, optional): The number of input channels for the model.
+        source (str | Path | torch.Tensor | PIL.Image | np.ndarray | None): The input source for inference.
+        batch (int): Batch size for dataloaders.
+        vid_stride (int): The frame interval for video sources.
+        buffer (bool): Whether stream frames will be buffered.
+        channels (int): The number of input channels for the model.
 
     Returns:
         (Dataset): A dataset object for the specified input source with attached source_type attribute.

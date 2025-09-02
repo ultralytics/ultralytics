@@ -43,11 +43,11 @@ class BaseSolution:
         masks: Segmentation masks from tracking results.
         r_s: Region or line geometry object for spatial operations.
         frame_no (int): Current frame number for logging purposes.
-        region (list[tuple[int, int]]): list of coordinate tuples defining region of interest.
+        region (list[tuple[int, int]]): List of coordinate tuples defining region of interest.
         line_width (int): Width of lines used in visualizations.
         model (YOLO): Loaded YOLO model instance.
         names (dict[int, str]): Dictionary mapping class indices to class names.
-        classes (list[int]): list of class indices to track.
+        classes (list[int]): List of class indices to track.
         show_conf (bool): Flag to show confidence scores in annotations.
         show_labels (bool): Flag to show class labels in annotations.
         device (str): Device for model inference.

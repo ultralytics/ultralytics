@@ -54,7 +54,7 @@ class OBBValidator(DetectionValidator):
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
             save_dir (str | Path, optional): Directory to save results.
             args (dict | SimpleNamespace, optional): Arguments containing validation parameters.
-            _callbacks (list, optional): list of callback functions to be called during validation.
+            _callbacks (list, optional): List of callback functions to be called during validation.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.args.task = "obb"
@@ -151,7 +151,7 @@ class OBBValidator(DetectionValidator):
 
         Args:
             batch (dict[str, Any]): Batch data containing images, file paths, and other metadata.
-            preds (list[torch.Tensor]): list of prediction tensors for each image in the batch.
+            preds (list[torch.Tensor]): List of prediction tensors for each image in the batch.
             ni (int): Batch index used for naming the output file.
 
         Examples:

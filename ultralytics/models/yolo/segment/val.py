@@ -24,7 +24,7 @@ class SegmentationValidator(DetectionValidator):
     to compute metrics such as mAP for both detection and segmentation tasks.
 
     Attributes:
-        plot_masks (list): list to store masks for plotting.
+        plot_masks (list): List to store masks for plotting.
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (namespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
@@ -45,7 +45,7 @@ class SegmentationValidator(DetectionValidator):
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (Path, optional): Directory to save results.
             args (namespace, optional): Arguments for the validator.
-            _callbacks (list, optional): list of callback functions.
+            _callbacks (list, optional): List of callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
         self.process = None
@@ -182,7 +182,7 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
-            preds (list[dict[str, torch.Tensor]]): list of predictions from the model.
+            preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
         """
         for p in preds:

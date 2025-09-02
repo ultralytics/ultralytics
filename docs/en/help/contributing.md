@@ -135,7 +135,7 @@ When adding new functions or classes, include [Google-style docstrings](https://
         ❌ Bad - Don't document as a tuple with nested elements:
         ```
         Returns:
-           (tuple): tuple containing:
+           (tuple): Tuple containing:
                - (np.ndarray): Predicted masks with shape HxWxN.
                - (list): Confidence scores for each instance.
         ```

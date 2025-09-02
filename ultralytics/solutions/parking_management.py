@@ -28,7 +28,7 @@ class ParkingPtsSelection:
         canvas (tk.Canvas): The canvas widget for displaying the image and drawing bounding boxes.
         image (PIL.Image.Image): The uploaded image.
         canvas_image (ImageTk.PhotoImage): The image displayed on the canvas.
-        rg_data (list[list[tuple[int, int]]]): list of bounding boxes, each defined by 4 points.
+        rg_data (list[list[tuple[int, int]]]): List of bounding boxes, each defined by 4 points.
         current_box (list[tuple[int, int]]): Temporary storage for the points of the current bounding box.
         imgw (int): Original width of the uploaded image.
         imgh (int): Original height of the uploaded image.

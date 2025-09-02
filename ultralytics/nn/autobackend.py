@@ -863,7 +863,7 @@ class AutoBackend(nn.Module):
             p (str): Path to the model file.
 
         Returns:
-            (list[bool]): list of booleans indicating the model type.
+            (list[bool]): List of booleans indicating the model type.
 
         Examples:
             >>> model = AutoBackend(model="path/to/model.onnx")

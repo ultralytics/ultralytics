@@ -368,7 +368,7 @@ class MLP(nn.Module):
 
     Attributes:
         num_layers (int): Number of layers in the MLP.
-        layers (nn.ModuleList): list of linear layers.
+        layers (nn.ModuleList): List of linear layers.
         sigmoid (bool): Whether to apply sigmoid to the output.
         act (nn.Module): Activation function.
     """
@@ -545,7 +545,7 @@ class MSDeformAttn(nn.Module):
             refer_bbox (torch.Tensor): Reference bounding boxes with shape [bs, query_length, n_levels, 2],
                 range in [0, 1], top-left (0,0), bottom-right (1, 1), including padding area.
             value (torch.Tensor): Value tensor with shape [bs, value_length, C].
-            value_shapes (list): list with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
+            value_shapes (list): List with shape [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})].
             value_mask (torch.Tensor, optional): Mask tensor with shape [bs, value_length], True for non-padding
                 elements, False for padding elements.
 
@@ -720,7 +720,7 @@ class DeformableTransformerDecoder(nn.Module):
     heads for bounding box regression and classification.
 
     Attributes:
-        layers (nn.ModuleList): list of decoder layers.
+        layers (nn.ModuleList): List of decoder layers.
         num_layers (int): Number of decoder layers.
         hidden_dim (int): Hidden dimension.
         eval_idx (int): Index of the layer to use during evaluation.

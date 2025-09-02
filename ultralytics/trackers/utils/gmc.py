@@ -96,7 +96,7 @@ class GMC:
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): list of detections to be used in the processing.
+            detections (list, optional): List of detections to be used in the processing.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).
@@ -163,7 +163,7 @@ class GMC:
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): list of detections to be used in the processing.
+            detections (list, optional): List of detections to be used in the processing.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).

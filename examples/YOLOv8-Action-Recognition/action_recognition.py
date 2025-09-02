@@ -91,7 +91,7 @@ class TorchVisionVideoClassifier:
         Get the list of available model names.
 
         Returns:
-            (list[str]): list of available model names that can be used with this classifier.
+            (list[str]): List of available model names that can be used with this classifier.
         """
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
@@ -100,8 +100,8 @@ class TorchVisionVideoClassifier:
         Preprocess a list of crops for video classification.
 
         Args:
-            crops (list[np.ndarray]): list of crops to preprocess. Each crop should have dimensions (H, W, C).
-            input_size (list[int], optional): The target input size for the model.
+            crops (list[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
+            input_size (list[int] | None): The target input size for the model.
 
         Returns:
             (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
@@ -167,7 +167,7 @@ class HuggingFaceVideoClassifier:
 
     Attributes:
         fp16 (bool): Whether to use FP16 for inference.
-        labels (list[str]): list of labels for zero-shot classification.
+        labels (list[str]): List of labels for zero-shot classification.
         device (torch.device): The device on which the model is loaded.
         processor (transformers.AutoProcessor): The processor for the model.
         model (transformers.AutoModel): The loaded Hugging Face model.
@@ -197,7 +197,7 @@ class HuggingFaceVideoClassifier:
         Initialize the HuggingFaceVideoClassifier with the specified model name.
 
         Args:
-            labels (list[str]): list of labels for zero-shot classification.
+            labels (list[str]): List of labels for zero-shot classification.
             model_name (str): The name of the model to use.
             device (str | torch.device): The device to run the model on.
             fp16 (bool): Whether to use FP16 for inference.
@@ -211,13 +211,15 @@ class HuggingFaceVideoClassifier:
             model = model.half()
         self.model = model.eval()
 
-    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(
+        self, crops: list[np.ndarray], input_size: list[int] | None = None
+    ) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
         Args:
-            crops (list[np.ndarray]): list of crops to preprocess. Each crop should have dimensions (H, W, C).
-            input_size (list[int], optional): The target input size for the model.
+            crops (list[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
+            input_size (list[int] | None): The target input size for the model.
 
         Returns:
             (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
@@ -332,7 +334,7 @@ def run(
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    labels: list[str] = None,
+    labels: list[str] | None = None,
 ) -> None:
     """
     Run action recognition on a video source using YOLO for object detection and a video classifier.
@@ -341,25 +343,17 @@ def run(
         weights (str): Path to the YOLO model weights.
         device (str): Device to run the model on. Use 'cuda' for NVIDIA GPU, 'mps' for Apple Silicon, or 'cpu'.
         source (str): Path to mp4 video file or YouTube URL.
-        output_path (str, optional): Path to save the output video.
+        output_path (str | None): Path to save the output video.
         crop_margin_percentage (int): Percentage of margin to add around detected objects.
         num_video_sequence_samples (int): Number of video frames to use for classification.
         skip_frame (int): Number of frames to skip between detections.
         video_cls_overlap_ratio (float): Overlap ratio between video sequences.
         fp16 (bool): Whether to use half-precision floating point.
         video_classifier_model (str): Name or path of the video classifier model.
-        labels (list[str], optional): list of labels for zero-shot classification.
+        labels (list[str] | None): List of labels for zero-shot classification.
     """
     if labels is None:
-        labels = [
-            "walking",
-            "running",
-            "brushing teeth",
-            "looking into phone",
-            "weight lifting",
-            "cooking",
-            "sitting",
-        ]
+        labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
     # Initialize models and device
     device = select_device(device)
     yolo_model = YOLO(weights).to(device)

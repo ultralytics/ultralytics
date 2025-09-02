@@ -270,7 +270,7 @@ class ConvLayer(nn.Module):
         input_resolution (tuple[int, int]): Resolution of the input image.
         depth (int): Number of MBConv layers in the block.
         use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
-        blocks (nn.ModuleList): list of MBConv layers.
+        blocks (nn.ModuleList): List of MBConv layers.
         downsample (nn.Module | None): Function for downsampling the output.
 
     Examples:
@@ -305,9 +305,9 @@ class ConvLayer(nn.Module):
             depth (int): The number of MBConv layers in the block.
             activation (nn.Module): Activation function applied after each convolution.
             drop_path (float | list[float], optional): Drop path rate. Single float or a list of floats for each MBConv.
-            downsample (nn.Module | None, optional): Function for downsampling the output. None to skip downsampling.
+            downsample (nn.Module | None): Function for downsampling the output. None to skip downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
-            out_dim (int | None, optional): The dimensionality of the output. None means it will be the same as `dim`.
+            out_dim (int | None): The dimensionality of the output. None means it will be the same as `dim`.
             conv_expand_ratio (float, optional): Expansion ratio for the MBConv layers.
         """
         super().__init__()
@@ -381,8 +381,8 @@ class MLP(nn.Module):
 
         Args:
             in_features (int): Number of input features.
-            hidden_features (int | None, optional): Number of hidden features.
-            out_features (int | None, optional): Number of output features.
+            hidden_features (int | None): Number of hidden features.
+            out_features (int | None): Number of output features.
             activation (nn.Module): Activation function applied after the first fully-connected layer.
             drop (float, optional): Dropout probability.
         """
@@ -677,7 +677,7 @@ class BasicLayer(nn.Module):
         input_resolution (tuple[int, int]): Spatial resolution of the input feature map.
         depth (int): Number of TinyViT blocks in this layer.
         use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
-        blocks (nn.ModuleList): list of TinyViT blocks that make up this layer.
+        blocks (nn.ModuleList): List of TinyViT blocks that make up this layer.
         downsample (nn.Module | None): Downsample layer at the end of the layer, if specified.
 
     Examples:
@@ -719,11 +719,11 @@ class BasicLayer(nn.Module):
             mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension.
             drop (float, optional): Dropout rate.
             drop_path (float | list[float], optional): Stochastic depth rate. Can be a float or a list of floats for each block.
-            downsample (nn.Module | None, optional): Downsampling layer at the end of the layer. None to skip downsampling.
+            downsample (nn.Module | None): Downsampling layer at the end of the layer. None to skip downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
             local_conv_size (int, optional): Kernel size for the local convolution in each TinyViT block.
             activation (nn.Module): Activation function used in the MLP.
-            out_dim (int | None, optional): Output dimension after downsampling. None means it will be the same as `dim`.
+            out_dim (int | None): Output dimension after downsampling. None means it will be the same as `dim`.
         """
         super().__init__()
         self.dim = dim
@@ -783,7 +783,7 @@ class TinyViT(nn.Module):
         mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
         patch_embed (PatchEmbed): Module for patch embedding.
         patches_resolution (tuple[int, int]): Resolution of embedded patches.
-        layers (nn.ModuleList): list of network layers.
+        layers (nn.ModuleList): List of network layers.
         norm_head (nn.LayerNorm): Layer normalization for the classifier head.
         head (nn.Linear): Linear layer for final classification.
         neck (nn.Sequential): Neck module for feature refinement.

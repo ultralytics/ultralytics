@@ -77,7 +77,7 @@ class YOLODataset(BaseDataset):
         Initialize the YOLODataset.
 
         Args:
-            data (dict, optional): Dataset configuration dictionary.
+            data (dict | None): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
@@ -164,7 +164,7 @@ class YOLODataset(BaseDataset):
         This method loads labels from disk or cache, verifies their integrity, and prepares them for training.
 
         Returns:
-            (list[dict]): list of label dictionaries, each containing information about an image and its annotations.
+            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         self.label_files = img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
@@ -212,7 +212,7 @@ class YOLODataset(BaseDataset):
         Build and append transforms to the list.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transforms.
+            hyp (dict | None): Hyperparameters for transforms.
 
         Returns:
             (Compose): Composed transforms.
@@ -291,7 +291,7 @@ class YOLODataset(BaseDataset):
         Collate data samples into batches.
 
         Args:
-            batch (list[dict]): list of dictionaries containing sample data.
+            batch (list[dict]): List of dictionaries containing sample data.
 
         Returns:
             (dict): Collated batch with stacked tensors.
@@ -338,7 +338,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Initialize a YOLOMultiModalDataset.
 
         Args:
-            data (dict, optional): Dataset configuration dictionary.
+            data (dict | None): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
@@ -367,7 +367,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Enhance data transformations with optional text augmentation for multi-modal training.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transforms.
+            hyp (dict | None): Hyperparameters for transforms.
 
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
@@ -392,7 +392,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Return category names for the dataset.
 
         Returns:
-            (Set[str]): list of class names.
+            (Set[str]): List of class names.
         """
         names = self.data["names"].values()
         return {n.strip() for name in names for n in name.split("/")}  # category names
@@ -474,7 +474,7 @@ class GroundingDataset(YOLODataset):
         against a predefined set of datasets with known instance counts.
 
         Args:
-            labels (list[dict[str, Any]]): list of label dictionaries, where each dictionary
+            labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary
                 contains dataset annotations. Each label dict must have a 'bboxes' key with
                 a numpy array or tensor containing bounding box coordinates.
 
@@ -596,7 +596,7 @@ class GroundingDataset(YOLODataset):
         Load labels from cache or generate them from JSON file.
 
         Returns:
-            (list[dict]): list of label dictionaries, each containing information about an image and its annotations.
+            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         cache_path = Path(self.json_file).with_suffix(".cache")
         try:
@@ -618,7 +618,7 @@ class GroundingDataset(YOLODataset):
         Configure augmentations for training with optional text loading.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transforms.
+            hyp (dict | None): Hyperparameters for transforms.
 
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
@@ -682,7 +682,7 @@ class YOLOConcatDataset(ConcatDataset):
         Collate data samples into batches.
 
         Args:
-            batch (list[dict]): list of dictionaries containing sample data.
+            batch (list[dict]): List of dictionaries containing sample data.
 
         Returns:
             (dict): Collated batch with stacked tensors.
@@ -742,8 +742,8 @@ class ClassificationDataset:
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
             args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
                 parameters, and cache settings.
-            augment (bool, optional): Whether to apply augmentations to the dataset.
-            prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
+            augment (bool): Whether to apply augmentations to the dataset.
+            prefix (str): Prefix for logging and cache filenames, aiding in dataset identification.
         """
         import torchvision  # scope for faster 'import ultralytics'
 
@@ -820,7 +820,7 @@ class ClassificationDataset:
         Verify all images in dataset.
 
         Returns:
-            (list): list of valid samples after verification.
+            (list): List of valid samples after verification.
         """
         desc = f"{self.prefix}Scanning {self.root}..."
         path = Path(self.root).with_suffix(".cache")  # *.cache file path

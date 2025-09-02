@@ -192,7 +192,7 @@ class DataExportMixin:
             def _to_str_simple(v):
                 if v is None:
                     return ""
-                elif isinstance(v, (dict, list, tuple, set)):
+                elif isinstance(v, dict | list | tuple | set):
                     return repr(v)
                 else:
                     return str(v)
@@ -556,7 +556,7 @@ class YAML:
 
         Args:
             file (str | Path): Path to save YAML file.
-            data (dict | None): dict or compatible object to save.
+            data (dict | None): Dict or compatible object to save.
             header (str): Optional string to add at file beginning.
         """
         instance = cls._get_instance()

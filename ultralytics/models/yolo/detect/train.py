@@ -158,7 +158,7 @@ class DetectionTrainer(BaseTrainer):
         Return a loss dict with labeled training loss items tensor.
 
         Args:
-            loss_items (list[float], optional): list of loss values.
+            loss_items (list[float], optional): List of loss values.
             prefix (str): Prefix for keys in the returned dictionary.
 
         Returns:

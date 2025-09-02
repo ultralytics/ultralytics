@@ -265,10 +265,10 @@ class DETRLoss(nn.Module):
         Extract batch indices, source indices, and destination indices from match indices.
 
         Args:
-            match_indices (list[tuple]): list of tuples containing matched indices.
+            match_indices (list[tuple]): List of tuples containing matched indices.
 
         Returns:
-            batch_idx (tuple[torch.Tensor, torch.Tensor]): tuple containing (batch_idx, src_idx).
+            batch_idx (tuple[torch.Tensor, torch.Tensor]): Tuple containing (batch_idx, src_idx).
             dst_idx (torch.Tensor): Destination indices.
         """
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
@@ -285,7 +285,7 @@ class DETRLoss(nn.Module):
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes.
             gt_bboxes (torch.Tensor): Ground truth bounding boxes.
-            match_indices (list[tuple]): list of tuples containing matched indices.
+            match_indices (list[tuple]): List of tuples containing matched indices.
 
         Returns:
             pred_assigned (torch.Tensor): Assigned predicted bounding boxes.
@@ -419,7 +419,7 @@ class RTDETRDetectionLoss(DETRLoss):
         Forward pass to compute detection loss with optional denoising loss.
 
         Args:
-            preds (tuple[torch.Tensor, torch.Tensor]): tuple containing predicted bounding boxes and scores.
+            preds (tuple[torch.Tensor, torch.Tensor]): Tuple containing predicted bounding boxes and scores.
             batch (dict[str, Any]): Batch data containing ground truth information.
             dn_bboxes (torch.Tensor, optional): Denoising bounding boxes.
             dn_scores (torch.Tensor, optional): Denoising scores.
@@ -456,12 +456,12 @@ class RTDETRDetectionLoss(DETRLoss):
         Get match indices for denoising.
 
         Args:
-            dn_pos_idx (list[torch.Tensor]): list of tensors containing positive indices for denoising.
+            dn_pos_idx (list[torch.Tensor]): List of tensors containing positive indices for denoising.
             dn_num_group (int): Number of denoising groups.
-            gt_groups (list[int]): list of integers representing number of ground truths per image.
+            gt_groups (list[int]): List of integers representing number of ground truths per image.
 
         Returns:
-            (list[tuple[torch.Tensor, torch.Tensor]]): list of tuples containing matched indices for denoising.
+            (list[tuple[torch.Tensor, torch.Tensor]]): List of tuples containing matched indices for denoising.
         """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)

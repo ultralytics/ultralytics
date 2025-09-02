@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
@@ -21,7 +22,7 @@ __all__ = (
 )
 
 
-def login(api_key: str = None, save: bool = True) -> bool:
+def login(api_key: str | None = None, save: bool | None = True) -> bool:
     """
     Log in to the Ultralytics HUB API using the provided API key.
 
@@ -29,9 +30,9 @@ def login(api_key: str = None, save: bool = True) -> bool:
     environment variable if successfully authenticated.
 
     Args:
-        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from
+        api_key (str | None): API key to use for authentication. If not provided, it will be retrieved from
             SETTINGS or HUB_API_KEY environment variable.
-        save (bool, optional): Whether to save the API key to SETTINGS if authentication is successful.
+        save (bool | None): Whether to save the API key to SETTINGS if authentication is successful.
 
     Returns:
         (bool): True if authentication is successful, False otherwise.

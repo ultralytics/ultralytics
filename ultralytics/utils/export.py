@@ -27,8 +27,8 @@ def export_onnx(
         im (torch.Tensor): Example input tensor for the model.
         onnx_file (str): Path to save the exported ONNX file.
         opset (int): ONNX opset version to use for export.
-        input_names (list[str]): list of input tensor names.
-        output_names (list[str]): list of output tensor names.
+        input_names (list[str]): List of input tensor names.
+        output_names (list[str]): List of output tensor names.
         dynamic (bool | dict, optional): Whether to enable dynamic axes.
 
     Notes:

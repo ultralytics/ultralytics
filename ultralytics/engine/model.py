@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import torch
@@ -24,6 +24,11 @@ from ultralytics.utils import (
     callbacks,
     checks,
 )
+
+if TYPE_CHECKING:
+    from ultralytics.engine.predictor import BasePredictor
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.engine.validator import BaseValidator
 
 
 class Model(torch.nn.Module):
@@ -82,7 +87,7 @@ class Model(torch.nn.Module):
     def __init__(
         self,
         model: str | Path | Model = "yolo11n.pt",
-        task: str = None,
+        task: str | None = None,
         verbose: bool = False,
     ) -> None:
         """
@@ -96,7 +101,7 @@ class Model(torch.nn.Module):
         Args:
             model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a
                 model name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
-            task (str, optional): The specific task for the model. If None, it will be inferred from the config.
+            task (str | None): The specific task for the model. If None, it will be inferred from the config.
             verbose (bool): If True, enables verbose output during the model's initialization and subsequent
                 operations.
 
@@ -235,7 +240,7 @@ class Model(torch.nn.Module):
 
         return model.startswith(f"{HUB_WEB_ROOT}/models/")
 
-    def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
+    def _new(self, cfg: str, task: str | None = None, model: torch.nn.Module | None = None, verbose=False) -> None:
         """
         Initialize a new model and infer the task type from model definitions.
 
@@ -244,8 +249,8 @@ class Model(torch.nn.Module):
 
         Args:
             cfg (str): Path to the model configuration file in YAML format.
-            task (str, optional): The specific task for the model. If None, it will be inferred from the config.
-            model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of
+            task (str | None): The specific task for the model. If None, it will be inferred from the config.
+            model (torch.nn.Module | None): A custom model instance. If provided, it will be used instead of
                 creating a new one.
             verbose (bool): If True, displays model information during loading.
 
@@ -269,7 +274,7 @@ class Model(torch.nn.Module):
         self.model.task = self.task
         self.model_name = cfg
 
-    def _load(self, weights: str, task=None) -> None:
+    def _load(self, weights: str, task: str | None = None) -> None:
         """
         Load a model from a checkpoint file or initialize it from a weights file.
 
@@ -278,7 +283,7 @@ class Model(torch.nn.Module):
 
         Args:
             weights (str): Path to the model weights file to be loaded.
-            task (str, optional): The task associated with the model. If None, it will be inferred from the model.
+            task (str | None): The task associated with the model. If None, it will be inferred from the model.
 
         Raises:
             FileNotFoundError: If the specified weights file does not exist or is inaccessible.
@@ -497,9 +502,9 @@ class Model(torch.nn.Module):
 
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
-        predictor=None,
+        predictor: BasePredictor | None = None,
         **kwargs: Any,
     ) -> list[Results]:
         """
@@ -510,11 +515,11 @@ class Model(torch.nn.Module):
         types of image sources and can operate in a streaming mode.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple | None): The source
                 of the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL
                 images, numpy arrays, and torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
-            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
+            predictor (BasePredictor | None): An instance of a custom predictor class for making predictions.
                 If None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
@@ -558,7 +563,7 @@ class Model(torch.nn.Module):
 
     def track(
         self,
-        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
         persist: bool = False,
         **kwargs: Any,
@@ -571,7 +576,7 @@ class Model(torch.nn.Module):
         The method registers trackers if not already present and can persist them between calls.
 
         Args:
-            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor | None): Input source for object
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream.
             persist (bool): If True, persists trackers between different calls to this method.
@@ -602,7 +607,7 @@ class Model(torch.nn.Module):
 
     def val(
         self,
-        validator=None,
+        validator: BaseValidator | None = None,
         **kwargs: Any,
     ):
         """
@@ -613,7 +618,7 @@ class Model(torch.nn.Module):
         configurations, method-specific defaults, and user-provided arguments to configure the validation process.
 
         Args:
-            validator (ultralytics.engine.validator.BaseValidator, optional): An instance of a custom validator class
+            validator (BaseValidator | None): An instance of a custom validator class
                 for validating the model.
             **kwargs (Any): Arbitrary keyword arguments for customizing the validation process.
 
@@ -737,7 +742,7 @@ class Model(torch.nn.Module):
 
     def train(
         self,
-        trainer=None,
+        trainer: BaseTrainer | None = None,
         **kwargs: Any,
     ):
         """
@@ -752,7 +757,7 @@ class Model(torch.nn.Module):
         configurations, method-specific defaults, and user-provided arguments to configure the training process.
 
         Args:
-            trainer (BaseTrainer, optional): Custom trainer instance for model training. If None, uses default.
+            trainer (BaseTrainer | None): Custom trainer instance for model training. If None, uses default.
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
                 data (str): Path to dataset configuration file.
                 epochs (int): Number of training epochs.
@@ -779,7 +784,7 @@ class Model(torch.nn.Module):
 
         checks.check_pip_update_available()
 
-        if isinstance(kwargs.get("pretrained", None), (str, Path)):
+        if isinstance(kwargs.get("pretrained", None), str | Path):
             self.load(kwargs["pretrained"])  # load pretrained weights if provided
         overrides = YAML.load(checks.check_yaml(kwargs["cfg"])) if kwargs.get("cfg") else self.overrides
         custom = {

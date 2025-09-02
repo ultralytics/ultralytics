@@ -23,7 +23,7 @@ class TwoWayTransformer(nn.Module):
         embedding_dim (int): Channel dimension for input embeddings.
         num_heads (int): Number of heads for multihead attention.
         mlp_dim (int): Internal channel dimension for the MLP block.
-        layers (nn.ModuleList): list of TwoWayAttentionBlock layers composing the transformer.
+        layers (nn.ModuleList): List of TwoWayAttentionBlock layers composing the transformer.
         final_attn_token_to_image (Attention): Final attention layer from queries to image.
         norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
 
@@ -289,7 +289,7 @@ class Attention(nn.Module):
             embedding_dim (int): Dimensionality of input embeddings.
             num_heads (int): Number of attention heads.
             downsample_rate (int, optional): Factor by which internal dimensions are downsampled.
-            kv_in_dim (int | None, optional): Dimensionality of key and value inputs. If None, uses embedding_dim.
+            kv_in_dim (int | None): Dimensionality of key and value inputs. If None, uses embedding_dim.
 
         Raises:
             AssertionError: If num_heads does not evenly divide the internal dim (embedding_dim / downsample_rate).

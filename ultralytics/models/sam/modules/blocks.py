@@ -337,7 +337,7 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         embedding_dim (int): Channel dimension for input embeddings.
         num_heads (int): Number of heads for multihead attention.
         mlp_dim (int): Internal channel dimension for the MLP block.
-        layers (nn.ModuleList): list of SAM2TwoWayAttentionBlock layers comprising the transformer.
+        layers (nn.ModuleList): List of SAM2TwoWayAttentionBlock layers comprising the transformer.
         final_attn_token_to_image (Attention): Final attention layer from queries to image.
         norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
 

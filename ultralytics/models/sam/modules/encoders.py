@@ -31,7 +31,7 @@ class ImageEncoderViT(nn.Module):
         img_size (int): Dimension of input images, assumed to be square.
         patch_embed (PatchEmbed): Module for patch embedding.
         pos_embed (nn.Parameter | None): Absolute positional embedding for patches.
-        blocks (nn.ModuleList): list of transformer blocks for processing patch embeddings.
+        blocks (nn.ModuleList): List of transformer blocks for processing patch embeddings.
         neck (nn.Sequential): Neck module to further process the output.
 
     Methods:
@@ -165,7 +165,7 @@ class PromptEncoder(nn.Module):
         image_embedding_size (tuple[int, int]): Spatial size of the image embedding as (H, W).
         pe_layer (PositionEmbeddingRandom): Module for random position embedding.
         num_point_embeddings (int): Number of point embeddings for different types of points.
-        point_embeddings (nn.ModuleList): list of point embeddings.
+        point_embeddings (nn.ModuleList): List of point embeddings.
         not_a_point_embed (nn.Embedding): Embedding for points that are not part of any label.
         mask_input_size (tuple[int, int]): Size of the input mask.
         mask_downscaling (nn.Sequential): Neural network for downscaling the mask.
@@ -521,8 +521,8 @@ class FpnNeck(nn.Module):
 
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
-        convs (nn.ModuleList): list of convolutional layers for each backbone level.
-        backbone_channel_list (list[int]): list of channel dimensions from the backbone.
+        convs (nn.ModuleList): List of convolutional layers for each backbone level.
+        backbone_channel_list (list[int]): List of channel dimensions from the backbone.
         fpn_interp_model (str): Interpolation mode for FPN feature resizing.
         fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
         fpn_top_down_levels (list[int]): Levels to have top-down features in outputs.
@@ -558,7 +558,7 @@ class FpnNeck(nn.Module):
 
         Args:
             d_model (int): Dimension of the model.
-            backbone_channel_list (list[int]): list of channel dimensions from the backbone.
+            backbone_channel_list (list[int]): List of channel dimensions from the backbone.
             kernel_size (int): Kernel size for the convolutional layers.
             stride (int): Stride for the convolutional layers.
             padding (int): Padding for the convolutional layers.
@@ -610,12 +610,12 @@ class FpnNeck(nn.Module):
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
 
         Args:
-            xs (list[torch.Tensor]): list of input tensors from the backbone, each with shape (B, C, H, W).
+            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
 
         Returns:
-            out (list[torch.Tensor]): list of output feature maps after FPN processing, each with shape
+            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape
                 (B, d_model, H, W).
-            pos (list[torch.Tensor]): list of positional encodings corresponding to each output feature map.
+            pos (list[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:
             >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
@@ -674,8 +674,8 @@ class Hiera(nn.Module):
         window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
         pos_embed (nn.Parameter): Positional embedding for the background.
         pos_embed_window (nn.Parameter): Positional embedding for the window.
-        blocks (nn.ModuleList): list of MultiScaleBlock modules.
-        channel_list (list[int]): list of output channel dimensions for each stage.
+        blocks (nn.ModuleList): List of MultiScaleBlock modules.
+        channel_list (list[int]): List of output channel dimensions for each stage.
 
     Methods:
         _get_pos_embed: Generate positional embeddings by interpolating and combining window and background embeddings.
@@ -823,7 +823,7 @@ class Hiera(nn.Module):
             x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.
 
         Returns:
-            (list[torch.Tensor]): list of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
+            (list[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
                 C_i is the channel dimension and H_i, W_i are the spatial dimensions at scale i. The list is ordered
                 from highest resolution (fine features) to lowest resolution (coarse features) if return_interm_layers
                 is True, otherwise contains only the final output.

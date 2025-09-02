@@ -17,7 +17,7 @@ class QueueManager(BaseSolution):
         counts (int): The current count of objects in the queue.
         rect_color (tuple[int, int, int]): RGB color tuple for drawing the queue region rectangle.
         region_length (int): The number of points defining the queue region.
-        track_line (list[tuple[int, int]]): list of track line coordinates.
+        track_line (list[tuple[int, int]]): List of track line coordinates.
         track_history (dict[int, list[tuple[int, int]]]): Dictionary storing tracking history for each object.
 
     Methods:

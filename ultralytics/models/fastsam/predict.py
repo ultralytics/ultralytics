@@ -1,4 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import torch
 from PIL import Image
@@ -9,6 +12,11 @@ from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import scale_masks
 
 from .utils import adjust_bboxes_to_image_border
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from ultralytics.engine.results import Results
 
 
 class FastSAMPredictor(SegmentationPredictor):
@@ -31,7 +39,7 @@ class FastSAMPredictor(SegmentationPredictor):
         set_prompts: Set prompts to be used during inference.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg: dict = DEFAULT_CFG, overrides: dict | None = None, _callbacks: list | None = None):
         """
         Initialize the FastSAMPredictor with configuration and callbacks.
 
@@ -41,8 +49,8 @@ class FastSAMPredictor(SegmentationPredictor):
 
         Args:
             cfg (dict): Configuration for the predictor.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (list, optional): list of callback functions.
+            overrides (dict | None): Configuration overrides.
+            _callbacks (list | None): List of callback functions.
         """
         super().__init__(cfg, overrides, _callbacks)
         self.prompts = {}
@@ -75,19 +83,26 @@ class FastSAMPredictor(SegmentationPredictor):
 
         return self.prompt(results, bboxes=bboxes, points=points, labels=labels, texts=texts)
 
-    def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
+    def prompt(
+        self,
+        results: Results | list[Results],
+        bboxes: np.ndarray | list | None = None,
+        points: np.ndarray | list | None = None,
+        labels: np.ndarray | list | None = None,
+        texts: str | list[str] | None = None,
+    ) -> list[Results]:
         """
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 
         Args:
             results (Results | list[Results]): Original inference results from FastSAM models without any prompts.
-            bboxes (np.ndarray | list, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | list, optional): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | list, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
-            texts (str | list[str], optional): Textual prompts, a list containing string objects.
+            bboxes (np.ndarray | list | None): Bounding boxes with shape (N, 4), in XYXY format, or None.
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2), in pixels, or None.
+            labels (np.ndarray | list | None): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background, or None.
+            texts (str | list[str] | None): Textual prompts, a string or list of strings, or None.
 
         Returns:
-            (list[Results]): Output results filtered and determined by the provided prompts.
+            list[Results]: Output results filtered and determined by the provided prompts.
         """
         if bboxes is None and points is None and texts is None:
             return results
@@ -154,8 +169,8 @@ class FastSAMPredictor(SegmentationPredictor):
         Perform CLIP inference to calculate similarity between images and text prompts.
 
         Args:
-            images (list[PIL.Image]): list of source images, each should be PIL.Image with RGB channel order.
-            texts (list[str]): list of prompt texts, each should be a string object.
+            images (list[PIL.Image]): List of source images, each should be PIL.Image with RGB channel order.
+            texts (list[str]): List of prompt texts, each should be a string object.
 
         Returns:
             (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).

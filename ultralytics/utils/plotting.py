@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 import warnings
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import cv2
 import numpy as np
@@ -26,7 +27,7 @@ class Colors:
     RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (list[tuple]): list of RGB color tuples for general use.
+        palette (list[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
@@ -697,7 +698,7 @@ def plot_images(
     Args:
         labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
         images (torch.Tensor | np.ndarray): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (list[str] | None): list of file paths for each image in the batch.
+        paths (list[str] | None): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
         names (dict[int, str] | None): Dictionary mapping class indices to class names.
         on_plot (Callable | None): Callback function to be called after saving the plot.

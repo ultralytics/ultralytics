@@ -45,7 +45,7 @@ class YOLOETrainer(DetectionTrainer):
         Args:
             cfg (dict): Configuration dictionary with default training settings from DEFAULT_CFG.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list, optional): list of callback functions to be applied during training.
+            _callbacks (list, optional): List of callback functions to be applied during training.
         """
         if overrides is None:
             overrides = {}
@@ -207,7 +207,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Generate text embeddings for a list of text samples.
 
         Args:
-            texts (list[str]): list of text samples to encode.
+            texts (list[str]): List of text samples to encode.
             batch (int): Batch size for processing.
             cache_dir (Path): Directory to save/load cached embeddings.
 
@@ -263,7 +263,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         in the parent directory of the first dataset's image path.
 
         Args:
-            datasets (list[Dataset]): list of datasets containing category names to process.
+            datasets (list[Dataset]): List of datasets containing category names to process.
             batch (int): Batch size for processing text embeddings.
 
         Notes:

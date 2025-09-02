@@ -60,7 +60,7 @@ class WorldTrainer(DetectionTrainer):
         Args:
             cfg (dict[str, Any]): Configuration for the trainer.
             overrides (dict[str, Any], optional): Configuration overrides.
-            _callbacks (list[Any], optional): list of callback functions.
+            _callbacks (list[Any], optional): List of callback functions.
         """
         if overrides is None:
             overrides = {}
@@ -121,7 +121,7 @@ class WorldTrainer(DetectionTrainer):
         for these categories to improve training efficiency.
 
         Args:
-            datasets (list[Any]): list of datasets from which to extract category names.
+            datasets (list[Any]): List of datasets from which to extract category names.
             batch (int | None): Batch size used for processing.
 
         Notes:
@@ -144,7 +144,7 @@ class WorldTrainer(DetectionTrainer):
         Generate text embeddings for a list of text samples.
 
         Args:
-            texts (list[str]): list of text samples to encode.
+            texts (list[str]): List of text samples to encode.
             batch (int): Batch size for processing.
             cache_dir (Path): Directory to save/load cached embeddings.
 

@@ -20,7 +20,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
     Attributes:
         cfg (dict): Configuration dictionary with training parameters.
         overrides (dict): Dictionary with parameter overrides.
-        _callbacks (list): list of callback functions for training events.
+        _callbacks (list): List of callback functions for training events.
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):

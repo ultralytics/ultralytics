@@ -745,7 +745,7 @@ class ImagePoolingAttn(nn.Module):
         Forward pass of ImagePoolingAttn.
 
         Args:
-            x (list[torch.Tensor]): list of input feature maps.
+            x (list[torch.Tensor]): List of input feature maps.
             text (torch.Tensor): Text embeddings.
 
         Returns:
@@ -1032,7 +1032,7 @@ class CBLinear(nn.Module):
 
         Args:
             c1 (int): Input channels.
-            c2s (list[int]): list of output channel sizes.
+            c2s (list[int]): List of output channel sizes.
             k (int): Kernel size.
             s (int): Stride.
             p (int | None): Padding.
@@ -1065,7 +1065,7 @@ class CBFuse(nn.Module):
         Forward pass through CBFuse layer.
 
         Args:
-            xs (list[torch.Tensor]): list of input tensors.
+            xs (list[torch.Tensor]): List of input tensors.
 
         Returns:
             (torch.Tensor): Fused output tensor.
@@ -1540,7 +1540,7 @@ class C2fPSA(C2f):
         c (int): Number of hidden channels.
         cv1 (Conv): 1x1 convolution layer to reduce the number of input channels to 2*c.
         cv2 (Conv): 1x1 convolution layer to reduce the number of output channels to c.
-        m (nn.ModuleList): list of PSA blocks for feature extraction.
+        m (nn.ModuleList): List of PSA blocks for feature extraction.
 
     Methods:
         forward: Performs a forward pass through the C2fPSA module.
@@ -1851,7 +1851,7 @@ class A2C2f(nn.Module):
         cv1 (Conv): Initial 1x1 convolution layer that reduces input channels to hidden channels.
         cv2 (Conv): Final 1x1 convolution layer that processes concatenated features.
         gamma (nn.Parameter | None): Learnable parameter for residual scaling when using area attention.
-        m (nn.ModuleList): list of either ABlock or C3k modules for feature processing.
+        m (nn.ModuleList): List of either ABlock or C3k modules for feature processing.
 
     Methods:
         forward: Processes input through area-attention or standard convolution pathway.
@@ -1979,7 +1979,7 @@ class SAVPE(nn.Module):
         Initialize SAVPE module with channels, intermediate channels, and embedding dimension.
 
         Args:
-            ch (list[int]): list of input channel dimensions.
+            ch (list[int]): List of input channel dimensions.
             c3 (int): Intermediate channels.
             embed (int): Embedding dimension.
         """

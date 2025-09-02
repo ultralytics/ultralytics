@@ -47,7 +47,7 @@ class NASPredictor(DetectionPredictor):
                 coordinates back to original dimensions.
 
         Returns:
-            (list): list of Results objects containing the processed predictions for each image in the batch.
+            (list): List of Results objects containing the processed predictions for each image in the batch.
 
         Examples:
             >>> predictor = NAS("yolo_nas_s").predictor

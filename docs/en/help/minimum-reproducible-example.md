@@ -103,7 +103,7 @@ A comprehensive bug report for Ultralytics YOLO should include:
 
 - **Clear Description**: Explain the issue, expected behavior, and actual behavior.
 - **Error Messages**: Include any relevant error messages or logs.
-- **Dependencies**: list required dependencies and their versions.
+- **Dependencies**: List required dependencies and their versions.
 - **MRE**: Provide a Minimum Reproducible Example.
 - **Steps to Reproduce**: Outline the steps needed to reproduce the issue.
 

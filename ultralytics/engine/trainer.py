@@ -544,7 +544,7 @@ class BaseTrainer:
         """Read results.csv into a dictionary using polars."""
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.read_csv(self.csv).to_dict(as_series=False)
+        return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
 
     def _model_train(self):
         """Set model in training mode."""

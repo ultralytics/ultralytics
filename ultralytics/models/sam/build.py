@@ -7,6 +7,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from functools import partial
+from typing import TYPE_CHECKING
 
 import torch
 
@@ -18,7 +19,6 @@ from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.sam import SAM2Model, SAMModel
 from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path

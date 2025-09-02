@@ -1,10 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 
-from ultralytics.models.yolo.segment import SegmentationValidator
-import torch
-from pathlib import Path
 import types
+from pathlib import Path
+
+import torch
+
+from ultralytics.models.yolo.segment import SegmentationValidator
 
 
 class FastSAMValidator(SegmentationValidator):

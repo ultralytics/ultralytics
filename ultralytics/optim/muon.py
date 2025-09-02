@@ -90,18 +90,21 @@ class MuonWithSGD(optim.Optimizer):
                     if p.grad is None:
                         # continue
                         p.grad = torch.zeros_like(p)  # Force synchronization
+                    grad = p.grad
+                    if group["weight_decay"] != 0:
+                        grad = grad.add(p, alpha=group["weight_decay"])
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
-                    # state["momentum_buffer"].lerp_(p.grad, 1 - group["momentum"])
+                    # state["momentum_buffer"].lerp_(grad, 1 - group["momentum"])
                     # update = (
-                    #     p.grad.lerp_(state["momentum_buffer"], group["momentum"])
+                    #     grad.lerp_(state["momentum_buffer"], group["momentum"])
                     #     if group["nesterov"]
                     #     else group["momentum"]
                     # )
-                    state["momentum_buffer"].mul_(group["momentum"]).add_(p.grad)
+                    state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
                     update = (
-                        p.grad.add(state["momentum_buffer"], alpha=group["momentum"])
+                        grad.add(state["momentum_buffer"], alpha=group["momentum"])
                         if group["nesterov"]
                         else state["momentum_buffer"]
                     )
@@ -109,11 +112,10 @@ class MuonWithSGD(optim.Optimizer):
                     if update.ndim == 4:  # for the case of conv filters
                         update = update.view(len(update), -1)
                     update = zeropower_via_newtonschulz5(update)
-                    update *= max(1, p.grad.size(-2) / p.grad.size(-1)) ** 0.5
+                    update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
                     # update = muon_update(
-                    #     p.grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     # )
-                    p.mul_(1 - group["lr"] * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-group["lr"])
                     p.add_(sgd_update, alpha=-group["lr"])
             else:  # SGD
@@ -121,13 +123,15 @@ class MuonWithSGD(optim.Optimizer):
                     if p.grad is None:
                         # continue
                         p.grad = torch.zeros_like(p)  # Force synchronization
+                    grad = p.grad
+                    if group["weight_decay"] != 0:
+                        grad = grad.add(p, alpha=group["weight_decay"])
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
-                    state["momentum_buffer"].mul_(group["momentum"]).add_(p.grad)
-                    p.mul_(1 - group["lr"] * group["weight_decay"])
+                    state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
                     update = (
-                        p.grad.add(state["momentum_buffer"], alpha=group["momentum"])
+                        grad.add(state["momentum_buffer"], alpha=group["momentum"])
                         if group["nesterov"]
                         else state["momentum_buffer"]
                     )

@@ -47,8 +47,8 @@ class RTDETRTrainer(DetectionTrainer):
         Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
-            cfg (dict, optional): Model configuration.
-            weights (str, optional): Path to pre-trained model weights.
+            cfg (dict | None): Model configuration.
+            weights (str | None): Path to pre-trained model weights.
             verbose (bool): Verbose logging if True.
 
         Returns:
@@ -66,7 +66,7 @@ class RTDETRTrainer(DetectionTrainer):
         Args:
             img_path (str): Path to the folder containing images.
             mode (str): Dataset mode, either 'train' or 'val'.
-            batch (int, optional): Batch size for rectangle training.
+            batch (int | None): Batch size for rectangle training.
 
         Returns:
             (RTDETRDataset): Dataset object for the specific mode.

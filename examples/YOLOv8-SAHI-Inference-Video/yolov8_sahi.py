@@ -75,10 +75,10 @@ class SAHIInference:
             view_img (bool): Whether to display results in a window.
             save_img (bool): Whether to save results to a video file.
             exist_ok (bool): Whether to overwrite existing output files.
-            device (str, optional): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'.
-            hide_conf (bool, optional): Flag to show or hide confidences in the output.
-            slice_width (int, optional): Slice width for inference.
-            slice_height (int, optional): Slice height for inference.
+            device (str): CUDA device, i.e., '0' or '0,1,2,3' or 'cpu'.
+            hide_conf (bool): Flag to show or hide confidences in the output.
+            slice_width (int): Slice width for inference.
+            slice_height (int): Slice height for inference.
         """
         # Video setup
         cap = cv2.VideoCapture(source)

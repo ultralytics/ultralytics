@@ -1,5 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
+import types
+from pathlib import Path
+
+import torch
+
 from ultralytics.models.yolo.segment import SegmentationValidator
 
 
@@ -22,15 +29,21 @@ class FastSAMValidator(SegmentationValidator):
         __init__: Initialize the FastSAMValidator with custom settings for Fast SAM.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+    def __init__(
+        self,
+        dataloader: torch.utils.data.DataLoader | None = None,
+        save_dir: Path | None = None,
+        args: types.SimpleNamespace | None = None,
+        _callbacks: list | None = None,
+    ) -> None:
         """
         Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
-            save_dir (Path, optional): Directory to save results.
-            args (SimpleNamespace, optional): Configuration for the validator.
-            _callbacks (list, optional): List of callback functions to be invoked during validation.
+            dataloader (torch.utils.data.DataLoader | None): Dataloader to be used for validation.
+            save_dir (Path | None): Directory to save results.
+            args (types.SimpleNamespace | None): Configuration for the validator.
+            _callbacks (list | None): List of callback functions to be invoked during validation.
 
         Notes:
             Plots for ConfusionMatrix and other related metrics are disabled in this class to avoid errors.

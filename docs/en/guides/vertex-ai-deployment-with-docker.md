@@ -157,7 +157,7 @@ def get_bytes_from_image(image: Image.Image) -> bytes:
 Finally, implement the `run_inference` function that will handle the object detection. In this example, we will extract bounding boxes, class names, and confidence scores from the model predictions. The function will return a dictionary with detections and raw results for further processing or annotation.
 
 ```python
-def run_inference(input_image: Image.Image, confidence_threshold: float = 0.5) -> Dict[str, Any]:
+def run_inference(input_image: Image.Image, confidence_threshold: float = 0.5) -> dict[str, Any]:
     """Run inference on an image using YOLO11n model."""
     global model_yolo
 
@@ -260,7 +260,7 @@ Add two Pydantic models for validating your requests and responses:
 # Pydantic models for request/response
 class PredictionRequest(BaseModel):
     instances: list
-    parameters: Optional[Dict[str, Any]] = None
+    parameters: dict[str, Any] | None = None
 
 
 class PredictionResponse(BaseModel):

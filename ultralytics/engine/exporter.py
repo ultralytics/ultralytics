@@ -56,6 +56,8 @@ TensorFlow.js:
     $ npm start
 """
 
+from __future__ import annotations
+
 import json
 import os
 import re
@@ -254,14 +256,14 @@ class Exporter:
         >>> exporter(model="yolov8n.pt")
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: dict | None = None):
         """
         Initialize the Exporter class.
 
         Args:
-            cfg (str, optional): Path to a configuration file.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (dict, optional): Dictionary of callback functions.
+            cfg (str): Path to a configuration file.
+            overrides (dict | None): Configuration overrides.
+            _callbacks (dict | None): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

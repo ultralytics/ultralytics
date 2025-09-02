@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import os
 import random
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -26,6 +28,12 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info
+
+if TYPE_CHECKING:
+    import torch
+
+    from ultralytics.utils import IterableSimpleNamespace
+
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")
@@ -126,12 +134,12 @@ def smart_request(
     Args:
         method (str): The HTTP method to use for the request. Choices are 'post' and 'get'.
         url (str): The URL to make the request to.
-        retry (int, optional): Number of retries to attempt before giving up.
-        timeout (int, optional): Timeout in seconds after which the function will give up retrying.
-        thread (bool, optional): Whether to execute the request in a separate daemon thread.
-        code (int, optional): An identifier for the request, used for logging purposes.
-        verbose (bool, optional): A flag to determine whether to print out to console or not.
-        progress (bool, optional): Whether to show a progress bar during the request.
+        retry (int): Number of retries to attempt before giving up.
+        timeout (int): Timeout in seconds after which the function will give up retrying.
+        thread (bool): Whether to execute the request in a separate daemon thread.
+        code (int): An identifier for the request, used for logging purposes.
+        verbose (bool): A flag to determine whether to print out to console or not.
+        progress (bool): Whether to show a progress bar during the request.
         **kwargs (Any): Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
@@ -221,13 +229,13 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device=None):
+    def __call__(self, cfg: 'IterableSimpleNamespace', device: 'torch.device | str | None' = None):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
-            device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
+            device (torch.device | str | None): The device type (e.g., 'cpu', 'cuda').
         """
         if not self.enabled:
             # Events disabled, do nothing

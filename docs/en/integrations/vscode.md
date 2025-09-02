@@ -187,8 +187,8 @@ There are over 💯 keyword arguments for all the various Ultralytics [tasks](..
 
     ```python
     model.predict(
-        source=src,  # (str, optional) source directory for images or videos
-        imgsz=640,  # (int | list) input images size as int or list[w,h] for predict
+        source=src,  # (str | Path | None) source directory, file, or URL for images or videos
+        imgsz=640,  # (int | list[int]) input image size as int or list[w, h] for predict
         conf=0.25,  # (float) minimum confidence threshold
         iou=0.7,  # (float) intersection over union (IoU) threshold for NMS
         vid_stride=1,  # (int) video frame-rate stride
@@ -196,9 +196,9 @@ There are over 💯 keyword arguments for all the various Ultralytics [tasks](..
         visualize=False,  # (bool) visualize model features
         augment=False,  # (bool) apply image augmentation to prediction sources
         agnostic_nms=False,  # (bool) class-agnostic NMS
-        classes=None,  # (int | list[int], optional) filter results by class, i.e. classes=0, or classes=[0,2,3]
+        classes=None,  # (int | list[int] | None) filter results by class, i.e. classes=0, or classes=[0,2,3]
         retina_masks=False,  # (bool) use high-resolution segmentation masks
-        embed=None,  # (list[int], optional) return feature vectors/embeddings from given layers
+        embed=None,  # (list[int] | None) return feature vectors/embeddings from given layers
         show=False,  # (bool) show predicted images and videos if environment allows
         save=True,  # (bool) save prediction results
         save_frames=False,  # (bool) save predicted individual video frames

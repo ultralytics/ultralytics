@@ -197,7 +197,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch = DetectionTrainer.preprocess_batch(self, batch)
 
         texts = list(itertools.chain(*batch["texts"]))
-        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device)
+        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device, non_blocking=True)
         txt_feats = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         batch["txt_feats"] = txt_feats
         return batch
@@ -251,8 +251,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
-        batch = DetectionTrainer.preprocess_batch(self, batch)
-        return batch
+        return DetectionTrainer.preprocess_batch(self, batch)
 
     def set_text_embeddings(self, datasets, batch: int):
         """
@@ -318,5 +317,5 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
     def preprocess_batch(self, batch):
         """Preprocess a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
         batch = super().preprocess_batch(batch)
-        batch["visuals"] = batch["visuals"].to(self.device)
+        batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
         return batch

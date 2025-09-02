@@ -370,12 +370,12 @@ class YOLOE(Model):
 
     def predict(
         self,
-        source: str | int | Image.Image | np.ndarray | None = None,
+        source: 'str | int | Image.Image | np.ndarray | None' = None,
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
-        refer_image: str | Image.Image | np.ndarray | None = None,
-        predictor: Callable | None = yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs: Any,
+        refer_image: 'str | Image.Image | np.ndarray | None' = None,
+        predictor: 'Callable | None' = yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs: 'Any',
     ) -> list | Any:
         """
         Run prediction on images, videos, directories, streams, etc.

@@ -229,7 +229,7 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg: IterableSimpleNamespace, device: torch.device | str | None = None):
+    def __call__(self, cfg: 'IterableSimpleNamespace', device: 'torch.device | str | None' = None):
         """
         Attempt to add a new event to the events list and send events if the rate limit is reached.
 

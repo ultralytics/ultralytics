@@ -515,7 +515,7 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.      |
 | `save_txt()`  | `str`                  | Saves detection results to a text file and returns the path to the saved file.            |
 | `save_crop()` | `None`                 | Saves cropped detection images to specified directory.                                    |
-| `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.        |
+| `summary()`   | `list[dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.        |
 | `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                         |
 | `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                 |
 | `to_json()`   | `str`                  | Converts detection results to JSON format.                                                |

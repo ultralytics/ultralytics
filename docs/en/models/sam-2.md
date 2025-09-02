@@ -298,7 +298,7 @@ It offers three significant enhancements:
 | --------------- | ------------- | ----------- | ------------------------------------------- |
 | `max_obj_num`   | `3`           | `str`       | The preset maximum number of categories     |
 | `update_memory` | `False`       | `bool`      | Whether to update memory with new prompts   |
-| `obj_ids`       | `None`        | `List[int]` | List of object IDs corresponding to prompts |
+| `obj_ids`       | `None`        | `list[int]` | list of object IDs corresponding to prompts |
 
 ### Use Cases
 

@@ -25,7 +25,7 @@ def coco91_to_coco80_class() -> list[int]:
     Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (List[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
+        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
             is the corresponding 91-index class ID.
     """
     return [
@@ -128,7 +128,7 @@ def coco80_to_coco91_class() -> list[int]:
     Convert 80-index (val2014) to 91-index (paper).
 
     Returns:
-        (List[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
+        (list[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
 
     References:
         https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
@@ -240,12 +240,12 @@ def convert_coco(
     Convert COCO dataset annotations to a YOLO annotation format suitable for training YOLO models.
 
     Args:
-        labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
-        save_dir (str, optional): Path to directory to save results to.
-        use_segments (bool, optional): Whether to include segmentation masks in the output.
-        use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
-        cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
-        lvis (bool, optional): Whether to convert data in lvis dataset way.
+        labels_dir (str): Path to directory containing COCO dataset annotation files.
+        save_dir (str): Path to directory to save results to.
+        use_segments (bool): Whether to include segmentation masks in the output.
+        use_keypoints (bool): Whether to include keypoint annotations in the output.
+        cls91to80 (bool): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
+        lvis (bool): Whether to convert data in lvis dataset way.
 
     Examples:
         >>> from ultralytics.data.converter import convert_coco
@@ -539,11 +539,11 @@ def merge_multi_segment(segments: list[list]):
     This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments (List[List]): Original segmentations in COCO's JSON file.
+        segments (list[list]): Original segmentations in COCO's JSON file.
                                Each element is a list of coordinates, like [segmentation1, segmentation2,...].
 
     Returns:
-        s (List[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]
@@ -590,10 +590,10 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
-        save_dir (str | Path, optional): Path to save the generated labels, labels will be saved
+        save_dir (str | Path | None): Path to save the generated labels, labels will be saved
             into `labels-segment` in the same directory level of `im_dir` if save_dir is None.
         sam_model (str): Segmentation model to use for intermediate segmentation data.
-        device (int | str, optional): The specific device to run SAM models.
+        device (int | str | None): The specific device to run SAM models.
 
     Notes:
         The input directory structure assumed for dataset:
@@ -770,8 +770,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     - Subsequent lines: Individual image records with annotations and optional URLs
 
     Args:
-        ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset
+        ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
+        output_path (str | Path | None): Directory where the converted YOLO dataset
             will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
 
     Returns:

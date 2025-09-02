@@ -21,8 +21,6 @@ from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
 
 
-
-
 def build_sam_vit_h(checkpoint=None):
     """Build and return a Segment Anything Model (SAM) h-size model with specified encoder parameters."""
     return _build_sam(

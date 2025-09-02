@@ -59,7 +59,7 @@ class RTDETRDataset(YOLODataset):
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool, optional): Whether to use rectangular mode for batch inference.
+            rect_mode (bool): Whether to use rectangular mode for batch inference.
 
         Returns:
             im (torch.Tensor): The loaded image.
@@ -72,12 +72,12 @@ class RTDETRDataset(YOLODataset):
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
-    def build_transforms(self, hyp=None):
+    def build_transforms(self, hyp: dict | None = None):
         """
         Build transformation pipeline for the dataset.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transformations.
+            hyp (dict | None): Hyperparameters for transformations.
 
         Returns:
             (Compose): Composition of transformation functions.
@@ -137,9 +137,9 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             img_path (str): Path to the folder containing images.
-            mode (str, optional): `train` mode or `val` mode, users are able to customize different augmentations for
+            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for
                 each mode.
-            batch (int, optional): Size of batches, this is for `rect`.
+            batch (int | None): Size of batches, this is for `rect`.
 
         Returns:
             (RTDETRDataset): Dataset configured for RT-DETR validation.

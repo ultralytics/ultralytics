@@ -51,7 +51,7 @@ class ClassificationTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: list | None = None):
         """
         Initialize a ClassificationTrainer object.
 
@@ -59,9 +59,9 @@ class ClassificationTrainer(BaseTrainer):
         image size if not specified.
 
         Args:
-            cfg (dict[str, Any], optional): Default configuration dictionary containing training parameters.
-            overrides (dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (list[Any], optional): List of callback functions to be executed during training.
+            cfg (dict[str, Any]): Default configuration dictionary containing training parameters.
+            overrides (dict[str, Any] | None): Dictionary of parameter overrides for the default configuration.
+            _callbacks (list[Any] | None): List of callback functions to be executed during training.
 
         Examples:
             Create a trainer with custom configuration
@@ -81,14 +81,14 @@ class ClassificationTrainer(BaseTrainer):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: str | None = None, weights: Any | None = None, verbose: bool = True):
         """
         Return a modified PyTorch model configured for training YOLO classification.
 
         Args:
-            cfg (Any, optional): Model configuration.
-            weights (Any, optional): Pre-trained model weights.
-            verbose (bool, optional): Whether to display model information.
+            cfg (str | None): Model configuration.
+            weights (Any | None): Pre-trained model weights.
+            verbose (bool): Whether to display model information.
 
         Returns:
             (ClassificationModel): Configured PyTorch model for classification.
@@ -131,8 +131,8 @@ class ClassificationTrainer(BaseTrainer):
 
         Args:
             img_path (str): Path to the dataset images.
-            mode (str, optional): Dataset mode ('train', 'val', or 'test').
-            batch (Any, optional): Batch information (unused in this implementation).
+            mode (str): Dataset mode ('train', 'val', or 'test').
+            batch (Any | None): Batch information (unused in this implementation).
 
         Returns:
             (ClassificationDataset): Dataset for the specified mode.
@@ -145,9 +145,9 @@ class ClassificationTrainer(BaseTrainer):
 
         Args:
             dataset_path (str): Path to the dataset.
-            batch_size (int, optional): Number of images per batch.
-            rank (int, optional): Process rank for distributed training.
-            mode (str, optional): 'train', 'val', or 'test' mode.
+            batch_size (int): Number of images per batch.
+            rank (int): Process rank for distributed training.
+            mode (str): 'train', 'val', or 'test' mode.
 
         Returns:
             (torch.utils.data.DataLoader): DataLoader for the specified dataset and mode.
@@ -192,8 +192,8 @@ class ClassificationTrainer(BaseTrainer):
         Return a loss dict with labelled training loss items tensor.
 
         Args:
-            loss_items (torch.Tensor, optional): Loss tensor items.
-            prefix (str, optional): Prefix to prepend to loss names.
+            loss_items (torch.Tensor | None): Loss tensor items.
+            prefix (str): Prefix to prepend to loss names.
 
         Returns:
             keys (list[str]): List of loss keys if loss_items is None.

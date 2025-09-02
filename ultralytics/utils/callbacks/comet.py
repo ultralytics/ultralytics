@@ -356,7 +356,12 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     )
 
 
-def _log_images(experiment, image_paths, curr_step: int | None, annotations=None) -> None:
+def _log_images(
+    experiment: comet_ml.CometExperiment,
+    image_paths: list[Path],
+    curr_step: int | None,
+    annotations: list[list[dict]] | None = None
+) -> None:
     """
     Log images to the experiment with optional annotations.
 
@@ -366,8 +371,8 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
         image_paths (list[Path]): List of paths to images that will be logged.
-        curr_step (int): Current training step/iteration for tracking in the experiment timeline.
-        annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each
+        curr_step (int | None): Current training step/iteration for tracking in the experiment timeline.
+        annotations (list[list[dict]] | None): Nested list of annotation dictionaries for each image. Each
             annotation contains visualization data like bounding boxes, labels, and confidence scores.
     """
     if annotations:

@@ -58,12 +58,12 @@ class Conv2d_BN(torch.nn.Sequential):
         Args:
             a (int): Number of input channels.
             b (int): Number of output channels.
-            ks (int, optional): Kernel size for the convolution.
-            stride (int, optional): Stride for the convolution.
-            pad (int, optional): Padding for the convolution.
-            dilation (int, optional): Dilation factor for the convolution.
-            groups (int, optional): Number of groups for the convolution.
-            bn_weight_init (float, optional): Initial value for batch normalization weight.
+            ks (int): Kernel size for the convolution.
+            stride (int): Stride for the convolution.
+            pad (int): Padding for the convolution.
+            dilation (int): Dilation factor for the convolution.
+            groups (int): Number of groups for the convolution.
+            bn_weight_init (float): Initial value for batch normalization weight.
         """
         super().__init__()
         self.add_module("c", torch.nn.Conv2d(a, b, ks, stride, pad, dilation, groups, bias=False))
@@ -304,11 +304,11 @@ class ConvLayer(nn.Module):
             input_resolution (tuple[int, int]): The resolution of the input image.
             depth (int): The number of MBConv layers in the block.
             activation (nn.Module): Activation function applied after each convolution.
-            drop_path (float | list[float], optional): Drop path rate. Single float or a list of floats for each MBConv.
+            drop_path (float | list[float]): Drop path rate. Single float or a list of floats for each MBConv.
             downsample (nn.Module | None): Function for downsampling the output. None to skip downsampling.
-            use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
+            use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
             out_dim (int | None): The dimensionality of the output. None means it will be the same as `dim`.
-            conv_expand_ratio (float, optional): Expansion ratio for the MBConv layers.
+            conv_expand_ratio (float): Expansion ratio for the MBConv layers.
         """
         super().__init__()
         self.dim = dim
@@ -384,7 +384,7 @@ class MLP(nn.Module):
             hidden_features (int | None): Number of hidden features.
             out_features (int | None): Number of output features.
             activation (nn.Module): Activation function applied after the first fully-connected layer.
-            drop (float, optional): Dropout probability.
+            drop (float): Dropout probability.
         """
         super().__init__()
         out_features = out_features or in_features
@@ -454,9 +454,9 @@ class Attention(torch.nn.Module):
         Args:
             dim (int): The dimensionality of the input and output.
             key_dim (int): The dimensionality of the keys and queries.
-            num_heads (int, optional): Number of attention heads.
-            attn_ratio (float, optional): Attention ratio, affecting the dimensions of the value vectors.
-            resolution (tuple[int, int], optional): Spatial resolution of the input feature map.
+            num_heads (int): Number of attention heads.
+            attn_ratio (float): Attention ratio, affecting the dimensions of the value vectors.
+            resolution (tuple[int, int]): Spatial resolution of the input feature map.
         """
         super().__init__()
 
@@ -569,11 +569,11 @@ class TinyViTBlock(nn.Module):
             dim (int): Dimensionality of the input and output features.
             input_resolution (tuple[int, int]): Spatial resolution of the input feature map (height, width).
             num_heads (int): Number of attention heads.
-            window_size (int, optional): Size of the attention window. Must be greater than 0.
-            mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension.
-            drop (float, optional): Dropout rate.
-            drop_path (float, optional): Stochastic depth rate.
-            local_conv_size (int, optional): Kernel size of the local convolution.
+            window_size (int): Size of the attention window. Must be greater than 0.
+            mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
+            drop (float): Dropout rate.
+            drop_path (float): Stochastic depth rate.
+            local_conv_size (int): Kernel size of the local convolution.
             activation (nn.Module): Activation function for MLP.
         """
         super().__init__()
@@ -716,12 +716,12 @@ class BasicLayer(nn.Module):
             depth (int): Number of TinyViT blocks in this layer.
             num_heads (int): Number of attention heads in each TinyViT block.
             window_size (int): Size of the local window for attention computation.
-            mlp_ratio (float, optional): Ratio of MLP hidden dimension to embedding dimension.
-            drop (float, optional): Dropout rate.
-            drop_path (float | list[float], optional): Stochastic depth rate. Can be a float or a list of floats for each block.
+            mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
+            drop (float): Dropout rate.
+            drop_path (float | list[float]): Stochastic depth rate. Can be a float or a list of floats for each block.
             downsample (nn.Module | None): Downsampling layer at the end of the layer. None to skip downsampling.
-            use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
-            local_conv_size (int, optional): Kernel size for the local convolution in each TinyViT block.
+            use_checkpoint (bool): Whether to use gradient checkpointing to save memory.
+            local_conv_size (int): Kernel size for the local convolution in each TinyViT block.
             activation (nn.Module): Activation function used in the MLP.
             out_dim (int | None): Output dimension after downsampling. None means it will be the same as `dim`.
         """
@@ -820,20 +820,20 @@ class TinyViT(nn.Module):
         attention and convolution blocks, and a classification head.
 
         Args:
-            img_size (int, optional): Size of the input image.
-            in_chans (int, optional): Number of input channels.
-            num_classes (int, optional): Number of classes for classification.
-            embed_dims (tuple[int, int, int, int], optional): Embedding dimensions for each stage.
-            depths (tuple[int, int, int, int], optional): Number of blocks in each stage.
-            num_heads (tuple[int, int, int, int], optional): Number of attention heads in each stage.
-            window_sizes (tuple[int, int, int, int], optional): Window sizes for each stage.
-            mlp_ratio (float, optional): Ratio of MLP hidden dim to embedding dim.
-            drop_rate (float, optional): Dropout rate.
-            drop_path_rate (float, optional): Stochastic depth rate.
-            use_checkpoint (bool, optional): Whether to use checkpointing to save memory.
-            mbconv_expand_ratio (float, optional): Expansion ratio for MBConv layer.
-            local_conv_size (int, optional): Kernel size for local convolutions.
-            layer_lr_decay (float, optional): Layer-wise learning rate decay factor.
+            img_size (int): Size of the input image.
+            in_chans (int): Number of input channels.
+            num_classes (int): Number of classes for classification.
+            embed_dims (tuple[int, int, int, int]): Embedding dimensions for each stage.
+            depths (tuple[int, int, int, int]): Number of blocks in each stage.
+            num_heads (tuple[int, int, int, int]): Number of attention heads in each stage.
+            window_sizes (tuple[int, int, int, int]): Window sizes for each stage.
+            mlp_ratio (float): Ratio of MLP hidden dim to embedding dim.
+            drop_rate (float): Dropout rate.
+            drop_path_rate (float): Stochastic depth rate.
+            use_checkpoint (bool): Whether to use checkpointing to save memory.
+            mbconv_expand_ratio (float): Expansion ratio for MBConv layer.
+            local_conv_size (int): Kernel size for local convolutions.
+            layer_lr_decay (float): Layer-wise learning rate decay factor.
         """
         super().__init__()
         self.img_size = img_size

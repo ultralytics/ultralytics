@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable,TYPE_CHECKING
+
 
 import torch
 
@@ -22,6 +24,9 @@ from ultralytics.nn.tasks import (
 )
 from ultralytics.utils import ROOT, YAML
 
+if TYPE_CHECKING:
+    import numpy as np
+    from PIL import Image
 
 class YOLO(Model):
     """
@@ -60,7 +65,7 @@ class YOLO(Model):
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
-            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
+            task (str | None): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
 
@@ -240,7 +245,7 @@ class YOLOE(Model):
 
         Args:
             model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
-            task (str, optional): Task type for the model. Auto-detected if None.
+            task (str | None): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
         """
         super().__init__(model=model, task=task, verbose=verbose)
@@ -339,7 +344,7 @@ class YOLOE(Model):
 
     def val(
         self,
-        validator=None,
+        validator: Callable | None = None,
         load_vp: bool = False,
         refer_data: str | None = None,
         **kwargs,
@@ -348,9 +353,9 @@ class YOLOE(Model):
         Validate the model using text or visual prompts.
 
         Args:
-            validator (callable, optional): A callable validator function. If None, a default validator is loaded.
+            validator (callable | None): A callable validator function. If None, a default validator is loaded.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
-            refer_data (str, optional): Path to the reference data for visual prompts.
+            refer_data (str | None): Path to the reference data for visual prompts.
             **kwargs (Any): Additional keyword arguments to override default settings.
 
         Returns:
@@ -366,25 +371,25 @@ class YOLOE(Model):
 
     def predict(
         self,
-        source=None,
+        source: str | int | Image.Image | np.ndarray | None = None,
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
-        refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        **kwargs,
-    ):
+        refer_image: str | Image.Image | np.ndarray | None = None,
+        predictor: Callable | None = yolo.yoloe.YOLOEVPDetectPredictor,
+        **kwargs: Any,
+    ) -> list | Any:
         """
         Run prediction on images, videos, directories, streams, etc.
 
         Args:
-            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
+            source (str | int | PIL.Image.Image | np.ndarray | None): Source for prediction. Accepts image paths,
                 directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a
                 generator as they are computed.
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
-            refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
+            refer_image (str | PIL.Image.Image | np.ndarray | None): Reference image for visual prompts.
+            predictor (Callable | None): Custom predictor function. If None, a predictor is automatically
                 loaded based on the task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 

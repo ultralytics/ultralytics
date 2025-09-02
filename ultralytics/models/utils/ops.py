@@ -60,7 +60,7 @@ class HungarianMatcher(nn.Module):
         Initialize HungarianMatcher for optimal assignment of predicted and ground truth bounding boxes.
 
         Args:
-            cost_gain (dict[str, float], optional): Dictionary of cost coefficients for different matching cost
+            cost_gain (dict[str, float] | None): Dictionary of cost coefficients for different matching cost
                 components. Should contain keys 'class', 'bbox', 'giou', 'mask', and 'dice'.
             use_fl (bool): Whether to use Focal Loss for classification cost calculation.
             with_mask (bool): Whether the model makes mask predictions.
@@ -101,8 +101,8 @@ class HungarianMatcher(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (num_gts, 4).
             gt_cls (torch.Tensor): Ground truth class labels with shape (num_gts,).
             gt_groups (list[int]): Number of ground truth boxes for each image in the batch.
-            masks (torch.Tensor, optional): Predicted masks with shape (batch_size, num_queries, height, width).
-            gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
+            masks (torch.Tensor | None): Predicted masks with shape (batch_size, num_queries, height, width).
+            gt_mask (list[torch.Tensor] | None): Ground truth masks, each with shape (num_masks, Height, Width).
 
         Returns:
             (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple

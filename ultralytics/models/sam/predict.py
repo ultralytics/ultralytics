@@ -488,7 +488,7 @@ class Predictor(BasePredictor):
             preds (tuple): The output from SAM model inference, containing:
                 - pred_masks (torch.Tensor): Predicted masks with shape (N, 1, H, W).
                 - pred_scores (torch.Tensor): Confidence scores for each mask with shape (N, 1).
-                - pred_bboxes (torch.Tensor, optional): Predicted bounding boxes if segment_all is True.
+                - pred_bboxes (torch.Tensor | None): Predicted bounding boxes if segment_all is True.
             img (torch.Tensor): The processed input image tensor with shape (C, H, W).
             orig_imgs (list[np.ndarray] | torch.Tensor): The original, unprocessed images.
 
@@ -954,7 +954,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         model.set_binarize(True)
         return model
 
-    def inference(self, im, bboxes=None, points=None, labels=None, masks=None):
+    def inference(self, im, bboxes: np.ndarray | list | None = None, points: np.ndarray | list | None = None, labels: np.ndarray | list | None = None, masks: np.ndarray | None = None):
         """
         Perform image segmentation inference based on the given input cues, using the currently loaded image. This
         method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt encoder, and
@@ -962,10 +962,10 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
-            bboxes (np.ndarray | list, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | list, optional): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | list, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
-            masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
+            bboxes (np.ndarray | list | None): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list | None): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            masks (np.ndarray | None): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
 
         Returns:
             pred_masks (torch.Tensor): The output masks in shape CxHxW, where C is the number of generated masks.
@@ -1058,10 +1058,10 @@ class SAM2VideoPredictor(SAM2Predictor):
     def add_new_prompts(
         self,
         obj_id,
-        points=None,
-        labels=None,
-        masks=None,
-        frame_idx=0,
+        points: torch.Tensor | None = None,
+        labels: torch.Tensor | None = None,
+        masks: torch.Tensor | None = None,
+        frame_idx: int = 0,
     ):
         """
         Add new points or masks to a specific frame for a given object ID.
@@ -1073,10 +1073,10 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             obj_id (int): The ID of the object to which the prompts are associated.
-            points (torch.Tensor, optional): The coordinates of the points of interest.
-            labels (torch.Tensor, optional): The labels corresponding to the points.
-            masks (torch.Tensor, optional): Binary masks for the object.
-            frame_idx (int, optional): The index of the frame to which the prompts are applied.
+            points (torch.Tensor | None): The coordinates of the points of interest.
+            labels (torch.Tensor | None): The labels corresponding to the points.
+            masks (torch.Tensor | None): Binary masks for the object.
+            frame_idx (int): The index of the frame to which the prompts are applied.
 
         Returns:
             pred_masks (torch.Tensor): The flattened predicted masks.
@@ -1281,7 +1281,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             im (torch.Tensor): The input image tensor.
-            batch (int, optional): The batch size for expanding features if there are multiple prompts.
+            batch (int): The batch size for expanding features if there are multiple prompts.
 
         Returns:
             vis_feats (torch.Tensor): The visual features extracted from the image.
@@ -1486,8 +1486,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             frame_idx (int): The index of the frame for which to consolidate outputs.
-            is_cond (bool, optional): Indicates if the frame is considered a conditioning frame.
-            run_mem_encoder (bool, optional): Specifies whether to run the memory encoder after
+            is_cond (bool): Indicates if the frame is considered a conditioning frame.
+            run_mem_encoder (bool): Specifies whether to run the memory encoder after
                 consolidating the outputs.
 
         Returns:
@@ -1846,7 +1846,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def update_memory(
         self,
-        obj_ids: list[int] = None,
+        obj_ids: list[int] | None = None,
         points: torch.Tensor | None = None,
         labels: torch.Tensor | None = None,
         masks: torch.Tensor | None = None,
@@ -1855,7 +1855,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Append the imgState to the memory_bank and update the memory for the model.
 
         Args:
-            obj_ids (list[int]): List of object IDs corresponding to the prompts.
+            obj_ids (list[int] | None): List of object IDs corresponding to the prompts.
             points (torch.Tensor | None): Tensor of shape (B, N, 2) representing the input points for N objects.
             labels (torch.Tensor | None): Tensor of shape (B, N) representing the labels for the input points.
             masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.

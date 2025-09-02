@@ -68,7 +68,7 @@ def get_1d_sine_pe(pos_inds: torch.Tensor, dim: int, temperature: float = 10000)
     Args:
         pos_inds (torch.Tensor): Position indices for which to generate embeddings.
         dim (int): Dimension of the positional embeddings. Should be an even number.
-        temperature (float, optional): Scaling factor for the frequency of the sinusoidal functions.
+        temperature (float): Scaling factor for the frequency of the sinusoidal functions.
 
     Returns:
         (torch.Tensor): Sinusoidal positional embeddings with shape (pos_inds.shape, dim).
@@ -127,7 +127,7 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
         dim (int): Dimension of the positional encoding.
         end_x (int): Width of the 2D grid.
         end_y (int): Height of the 2D grid.
-        theta (float, optional): Scaling factor for frequency computation.
+        theta (float): Scaling factor for frequency computation.
 
     Returns:
         (torch.Tensor): Complex exponential positional encodings with shape (end_x*end_y, dim//2).
@@ -190,7 +190,7 @@ def apply_rotary_enc(
         xk (torch.Tensor): Key tensor to encode with positional information.
         freqs_cis (torch.Tensor): Complex-valued frequency components for rotary encoding with shape matching the
             last two dimensions of xq.
-        repeat_freqs_k (bool, optional): Whether to repeat frequency components along sequence length dimension
+        repeat_freqs_k (bool): Whether to repeat frequency components along sequence length dimension
             to match key sequence length.
 
     Returns:

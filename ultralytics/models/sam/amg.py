@@ -21,7 +21,7 @@ def is_box_near_crop_edge(
         boxes (torch.Tensor): Bounding boxes in XYXY format.
         crop_box (list[int]): Crop box coordinates in [x0, y0, x1, y1] format.
         orig_box (list[int]): Original image box coordinates in [x0, y0, x1, y1] format.
-        atol (float, optional): Absolute tolerance for edge proximity detection.
+        atol (float): Absolute tolerance for edge proximity detection.
 
     Returns:
         (torch.Tensor): Boolean tensor indicating which boxes are near crop edges.

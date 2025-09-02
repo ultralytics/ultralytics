@@ -133,7 +133,7 @@ class GCPRegions:
             top (int): Number of top regions to return.
             verbose (bool): If True, prints detailed latency information for all tested regions.
             tier (int | None): Filter regions by tier (1 or 2). If None, all regions are tested.
-            attempts (int, optional): Number of ping attempts per region.
+            attempts (int): Number of ping attempts per region.
 
         Returns:
             (list[tuple[str, float, float, float, float]]): List of tuples containing region information and

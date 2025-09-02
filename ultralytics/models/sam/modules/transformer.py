@@ -56,8 +56,8 @@ class TwoWayTransformer(nn.Module):
             embedding_dim (int): Channel dimension for input embeddings.
             num_heads (int): Number of heads for multihead attention. Must divide embedding_dim.
             mlp_dim (int): Internal channel dimension for the MLP block.
-            activation (Type[nn.Module], optional): Activation function to use in the MLP block.
-            attention_downsample_rate (int, optional): Downsampling rate for attention mechanism.
+            activation (Type[nn.Module]): Activation function to use in the MLP block.
+            attention_downsample_rate (int): Downsampling rate for attention mechanism.
         """
         super().__init__()
         self.depth = depth
@@ -177,10 +177,10 @@ class TwoWayAttentionBlock(nn.Module):
         Args:
             embedding_dim (int): Channel dimension of the embeddings.
             num_heads (int): Number of attention heads in the attention layers.
-            mlp_dim (int, optional): Hidden dimension of the MLP block.
-            activation (Type[nn.Module], optional): Activation function for the MLP block.
-            attention_downsample_rate (int, optional): Downsampling rate for the attention mechanism.
-            skip_first_layer_pe (bool, optional): Whether to skip positional encoding in the first layer.
+            mlp_dim (int): Hidden dimension of the MLP block.
+            activation (Type[nn.Module]): Activation function for the MLP block.
+            attention_downsample_rate (int): Downsampling rate for the attention mechanism.
+            skip_first_layer_pe (bool): Whether to skip positional encoding in the first layer.
         """
         super().__init__()
         self.self_attn = Attention(embedding_dim, num_heads)
@@ -288,7 +288,7 @@ class Attention(nn.Module):
         Args:
             embedding_dim (int): Dimensionality of input embeddings.
             num_heads (int): Number of attention heads.
-            downsample_rate (int, optional): Factor by which internal dimensions are downsampled.
+            downsample_rate (int): Factor by which internal dimensions are downsampled.
             kv_in_dim (int | None): Dimensionality of key and value inputs. If None, uses embedding_dim.
 
         Raises:

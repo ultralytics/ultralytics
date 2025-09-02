@@ -18,7 +18,10 @@ from .modules.memory_attention import MemoryAttention, MemoryAttentionLayer
 from .modules.sam import SAM2Model, SAMModel
 from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 def build_sam_vit_h(checkpoint=None):
     """Build and return a Segment Anything Model (SAM) h-size model with specified encoder parameters."""
@@ -135,7 +138,7 @@ def _build_sam(
         encoder_num_heads (int | list[int]): Number of attention heads in the encoder.
         encoder_global_attn_indexes (list[int] | None): Indexes for global attention in the encoder.
         checkpoint (str | None): Path to the model checkpoint file.
-        mobile_sam (bool, optional): Whether to build a Mobile-SAM model.
+        mobile_sam (bool): Whether to build a Mobile-SAM model.
 
     Returns:
         (SAMModel): A Segment Anything Model instance with the specified architecture.
@@ -227,13 +230,13 @@ def _build_sam2(
     Build and return a Segment Anything Model 2 (SAM2) with specified architecture parameters.
 
     Args:
-        encoder_embed_dim (int, optional): Embedding dimension for the encoder.
-        encoder_stages (list[int], optional): Number of blocks in each stage of the encoder.
-        encoder_num_heads (int, optional): Number of attention heads in the encoder.
-        encoder_global_att_blocks (list[int], optional): Indices of global attention blocks in the encoder.
-        encoder_backbone_channel_list (list[int], optional): Channel dimensions for each level of the encoder backbone.
-        encoder_window_spatial_size (list[int], optional): Spatial size of the window for position embeddings.
-        encoder_window_spec (list[int], optional): Window specifications for each stage of the encoder.
+        encoder_embed_dim (int): Embedding dimension for the encoder.
+        encoder_stages (list[int]): Number of blocks in each stage of the encoder.
+        encoder_num_heads (int): Number of attention heads in the encoder.
+        encoder_global_att_blocks (list[int]): Indices of global attention blocks in the encoder.
+        encoder_backbone_channel_list (list[int]): Channel dimensions for each level of the encoder backbone.
+        encoder_window_spatial_size (list[int]): Spatial size of the window for position embeddings.
+        encoder_window_spec (list[int]): Window specifications for each stage of the encoder.
         checkpoint (str | None): Path to the checkpoint file for loading pre-trained weights.
 
     Returns:
@@ -324,12 +327,12 @@ sam_model_map = {
 }
 
 
-def build_sam(ckpt="sam_b.pt"):
+def build_sam(ckpt: str | Path ="sam_b.pt"):
     """
     Build and return a Segment Anything Model (SAM) based on the provided checkpoint.
 
     Args:
-        ckpt (str | Path, optional): Path to the checkpoint file or name of a pre-defined SAM model.
+        ckpt (str | Path): Path to the checkpoint file or name of a pre-defined SAM model.
 
     Returns:
         (SAMModel | SAM2Model): A configured and initialized SAM or SAM2 model instance.

@@ -12,9 +12,9 @@ YOLOv5u represents an advancement in [object detection](https://www.ultralytics.
 
 ![Ultralytics YOLOv5](https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov5-splash.avif)
 
-!!! warning "YOLOv5 models trained with `ultralytics/yolov5` are not compatible with the Ultralytics library"
+!!! warning "YOLOv5 models trained by `ultralytics/yolov5` are not compatible with the Ultralytics library"
 
-    Ultralytics provides an anchor-free variant of YOLOv5 model. Models trained with the [original YOLOv5 repo](https://github.com/ultralytics/yolov5) cannot be used with the Ultralytics library.
+    Ultralytics provides an [anchor-free variant of YOLOv5 model](#performance-metrics). Models trained with the [original YOLOv5 repo](https://github.com/ultralytics/yolov5) cannot be used with the Ultralytics library.
 
 ## Key Features
 

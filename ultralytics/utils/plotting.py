@@ -893,7 +893,7 @@ def plot_results(
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
     for f in files:
         try:
-            data = pl.read_csv(f)
+            data = pl.read_csv(f, infer_schema_length=None)
             s = [x.strip() for x in data.columns]
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(index):
@@ -971,7 +971,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
 
     # Scatter plots for each hyperparameter
     csv_file = Path(csv_file)
-    data = pl.read_csv(csv_file)
+    data = pl.read_csv(csv_file, infer_schema_length=None)
     num_metrics_columns = 1
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
     x = data.to_numpy()

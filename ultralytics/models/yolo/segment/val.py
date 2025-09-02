@@ -63,7 +63,7 @@ class SegmentationValidator(DetectionValidator):
             (Dict[str, Any]): Preprocessed batch.
         """
         batch = super().preprocess(batch)
-        batch["masks"] = batch["masks"].to(self.device).float()
+        batch["masks"] = batch["masks"].to(self.device, non_blocking=True).float()
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:

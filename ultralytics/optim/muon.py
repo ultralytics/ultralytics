@@ -1,5 +1,4 @@
 from torch import optim
-from torch.optim.sgd import sgd
 import torch
 
 
@@ -94,8 +93,13 @@ class MuonWithSGD(optim.Optimizer):
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
+                    # state["momentum_buffer"].lerp_(p.grad, 1 - group["momentum"])
+                    # update = (
+                    #     p.grad.lerp_(state["momentum_buffer"], group["momentum"])
+                    #     if group["nesterov"]
+                    #     else group["momentum"]
+                    # )
                     state["momentum_buffer"].mul_(group["momentum"]).add_(p.grad)
-
                     update = (
                         p.grad.add(state["momentum_buffer"], alpha=group["momentum"])
                         if group["nesterov"]

@@ -38,7 +38,7 @@ def _log_images(path: Path, prefix: str = "") -> None:
 
     Args:
         path (Path): Path to the image file to be logged.
-        prefix (str, None): Optional prefix to add to the image name when logging.
+        prefix (str | None): Optional prefix to add to the image name when logging.
 
     Examples:
         >>> from pathlib import Path
@@ -62,7 +62,7 @@ def _log_plots(plots: dict, prefix: str | None = "") -> None:
 
     Args:
         plots (dict): Dictionary containing plot information with timestamps.
-        prefix (str, None): Optional prefix to add to the logged image paths.
+        prefix (str | None): Optional prefix to add to the logged image paths.
     """
     for name, params in plots.items():
         timestamp = params["timestamp"]

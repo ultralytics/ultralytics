@@ -86,7 +86,7 @@ class Tuner:
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            _callbacks (List, optional): Callback functions to be executed during tuning.
+            _callbacks (list | None, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -210,7 +210,7 @@ class Tuner:
             n (int): Number of top results to retrieve.
 
         Returns:
-            (List[Dict]): List of result documents with fitness scores and hyperparameters.
+            (list[dict]): List of result documents with fitness scores and hyperparameters.
         """
         try:
             return list(self.collection.find().sort("fitness", -1).limit(n))
@@ -223,8 +223,8 @@ class Tuner:
 
         Args:
             fitness (float): Fitness score achieved with these hyperparameters.
-            hyperparameters (Dict[str, float]): Dictionary of hyperparameter values.
-            metrics (Dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
+            hyperparameters (dict[str, float]): Dictionary of hyperparameter values.
+            metrics (dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             iteration (int): Current iteration number.
         """
         try:
@@ -283,7 +283,7 @@ class Tuner:
             sigma (float): Standard deviation for Gaussian random number generator.
 
         Returns:
-            (Dict[str, float]): A dictionary containing mutated hyperparameters.
+            (dict[str, float]): A dictionary containing mutated hyperparameters.
         """
         x = None
 
@@ -343,7 +343,7 @@ class Tuner:
         5. Track the best performing configuration across all iterations
 
         Args:
-            model (Model, optional): A pre-initialized YOLO model to be used for training.
+            model (Model | None, optional): A pre-initialized YOLO model to be used for training.
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """

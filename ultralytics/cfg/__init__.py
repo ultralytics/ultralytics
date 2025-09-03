@@ -274,7 +274,9 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     return cfg
 
 
-def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrides: dict | None = None) -> SimpleNamespace:
+def get_cfg(
+    cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrides: dict | None = None
+) -> SimpleNamespace:
     """
     Load and merge configuration data from a file or dictionary, with optional overrides.
 

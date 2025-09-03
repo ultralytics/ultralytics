@@ -273,7 +273,7 @@ class BasePredictor:
             or any(getattr(self.dataset, "video_flag", [False]))
         )
         if long_sequence:
-            import torchvision  # noqa
+            import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
 
             if not getattr(self, "stream", True):  # videos
                 LOGGER.warning(STREAM_WARNING)

@@ -1,6 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, Dict, List, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 import numpy as np
 
@@ -53,10 +55,10 @@ class RegionCounter(BaseSolution):
     def add_region(
         self,
         name: str,
-        polygon_points: List[Tuple],
-        region_color: Tuple[int, int, int],
-        text_color: Tuple[int, int, int],
-    ) -> Dict[str, Any]:
+        polygon_points: list[tuple],
+        region_color: tuple[int, int, int],
+        text_color: tuple[int, int, int],
+    ) -> dict[str, Any]:
         """
         Add a new region to the counting list based on the provided template with specific attributes.
 
@@ -115,8 +117,9 @@ class RegionCounter(BaseSolution):
 
         # Display region counts
         for region in self.counting_regions:
-            x1, y1, x2, y2 = map(int, region["polygon"].bounds)
-            pts = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
+            poly = region["polygon"]
+            pts = list(map(tuple, np.array(poly.exterior.coords, dtype=np.int32)))
+            (x1, y1), (x2, y2) = [(int(poly.centroid.x), int(poly.centroid.y))] * 2
             annotator.draw_region(pts, region["region_color"], self.line_width * 2)
             annotator.adaptive_label(
                 [x1, y1, x2, y2],

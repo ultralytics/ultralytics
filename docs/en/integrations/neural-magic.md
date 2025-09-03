@@ -58,8 +58,6 @@ Neural Magic's Deep Sparse technology is inspired by the human brain's efficienc
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/neural-magic-deepsparse-technology.avif" alt="How Neural Magic's DeepSparse Technology Works ">
 </p>
 
-For more details on how Neural Magic's DeepSparse technology works, check out [their blog post](https://neuralmagic.com/blog/how-neural-magics-deep-sparse-technology-works/).
-
 ## Creating A Sparse Version of YOLO11 Trained on a Custom Dataset
 
 [SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLO11 model checkpoints](https://github.com/neuralmagic/sparsezoo/blob/main/README.md). With [SparseML](https://github.com/neuralmagic/sparseml), seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.

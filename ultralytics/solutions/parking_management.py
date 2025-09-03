@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import json
-from typing import Any, List, Tuple
+from typing import Any
 
 import cv2
 import numpy as np
@@ -141,7 +143,7 @@ class ParkingPtsSelection:
             self.draw_box(self.current_box)
             self.current_box.clear()
 
-    def draw_box(self, box: List[Tuple[int, int]]) -> None:
+    def draw_box(self, box: list[tuple[int, int]]) -> None:
         """Draw a bounding box on the canvas using the provided coordinates."""
         for i in range(4):
             self.canvas.create_line(box[i], box[(i + 1) % 4], fill="blue", width=2)

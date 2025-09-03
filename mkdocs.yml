@@ -672,6 +672,7 @@ nav:
               - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
+              - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md
@@ -681,14 +682,18 @@ nav:
           - errors: reference/utils/errors.md
           - export: reference/utils/export.md
           - files: reference/utils/files.md
+          - git: reference/utils/git.md
           - instance: reference/utils/instance.md
+          - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
+          - nms: reference/utils/nms.md
           - ops: reference/utils/ops.md
           - patches: reference/utils/patches.md
           - plotting: reference/utils/plotting.md
           - tal: reference/utils/tal.md
           - torch_utils: reference/utils/torch_utils.md
+          - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
 
@@ -720,6 +725,7 @@ plugins:
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
+            ignore_init_summary: true
             docstring_style: google
             show_root_heading: true
             show_source: true

@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Monkey patches to update/extend functionality of existing functions."""
 
+from __future__ import annotations
+
 import time
 from contextlib import contextmanager
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -15,7 +17,7 @@ import torch
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]:
+def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """
     Read an image from a file with multilanguage filename support.
 
@@ -42,7 +44,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> Optional[np.ndarray]
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
-def imwrite(filename: str, img: np.ndarray, params: Optional[List[int]] = None) -> bool:
+def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
     """
     Write an image to a file with multilanguage filename support.
 
@@ -164,7 +166,7 @@ def arange_patch(args):
 
 
 @contextmanager
-def override_configs(args, overrides: Optional[Dict[str, Any]] = None):
+def override_configs(args, overrides: dict[str, Any] | None = None):
     """
     Context manager to temporarily override configurations in args.
 

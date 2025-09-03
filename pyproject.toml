@@ -71,10 +71,9 @@ dependencies = [
     "torch>=1.8.0",
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
-    "tqdm>=4.64.0", # progress bars
     "psutil", # system utilization
     "py-cpuinfo", # display CPU info
-    "pandas>=1.1.4",
+    "polars",
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]
 
@@ -88,16 +87,17 @@ dev = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
-    "mkdocs-ultralytics-plugin>=0.1.26", # for meta descriptions and images, dates and authors
+    "mkdocs-ultralytics-plugin>=0.1.29", # for meta descriptions and images, dates and authors
     "mkdocs-macros-plugin>=1.0.5", # duplicating content (i.e. export tables) in multiple places
-    "click==8.2.1", # fix MkDocs use_directory_urls bug in 8.2.2 https://github.com/ultralytics/ultralytics/issues/21568
 ]
 export = [
-    "onnx>=1.12.0,<1.18.0", # ONNX export
+    "numpy<2.0.0", # TF 2.20 compatibility
+    "onnx>=1.12.0; platform_system != 'Darwin'", # ONNX export
+    "onnx>=1.12.0,<1.18.0; platform_system == 'Darwin'",  # TF inference hanging on MacOS
     "coremltools>=8.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
     "openvino>=2024.0.0",  # OpenVINO export
-    "tensorflow>=2.0.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
+    "tensorflow>=2.0.0,<=2.19.0", # TF bug https://github.com/ultralytics/ultralytics/issues/5161
     "tensorflowjs>=2.0.0", # TF.js export, automatically installs tensorflow
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
@@ -119,7 +119,6 @@ extra = [
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
-    "pandas-stubs",
     "scipy-stubs",
     "types-pillow",
     "types-psutil",

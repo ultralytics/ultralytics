@@ -12,7 +12,7 @@ from typing import IO, Any
 @lru_cache(maxsize=1)
 def is_noninteractive_console() -> bool:
     """Check for known non-interactive console environments."""
-    return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
+    return "GITHUB_ACTIONS" in os.environ
 
 
 class TQDM:
@@ -77,6 +77,10 @@ class TQDM:
     RATE_SMOOTHING_FACTOR = 0.3  # Factor for exponential smoothing of rates
     MAX_SMOOTHED_RATE = 1000000  # Maximum rate to apply smoothing to
     NONINTERACTIVE_MIN_INTERVAL = 60.0  # Minimum interval for non-interactive environments
+    
+    # Class variables for managing concurrent instances
+    _instances = []  # Track active instances for positioning
+    _lock = None  # Thread lock for instance management
 
     def __init__(
         self,
@@ -153,10 +157,48 @@ class TQDM:
         self.start_t = time.time()
         self.last_rate = 0
         self.closed = False
+        self.pos = 0  # Position for multi-bar display
+        
+        # Initialize thread lock if needed
+        if TQDM._lock is None:
+            try:
+                import threading
+                TQDM._lock = threading.Lock()
+            except ImportError:
+                pass  # Single-threaded environment
+        
+        # Register this instance
+        if not self.disable and not self.noninteractive:
+            self._register()
 
         # Display initial bar if we have total and not disabled
         if not self.disable and self.total and not self.noninteractive:
             self._display()
+    
+    def _register(self) -> None:
+        """Register this instance for multi-bar positioning."""
+        if TQDM._lock:
+            with TQDM._lock:
+                TQDM._instances.append(self)
+                self.pos = len(TQDM._instances) - 1
+        else:
+            TQDM._instances.append(self)
+            self.pos = len(TQDM._instances) - 1
+    
+    def _unregister(self) -> None:
+        """Unregister this instance and update positions."""
+        if TQDM._lock:
+            with TQDM._lock:
+                if self in TQDM._instances:
+                    TQDM._instances.remove(self)
+                    # Update positions of remaining instances
+                    for i, instance in enumerate(TQDM._instances):
+                        instance.pos = i
+        else:
+            if self in TQDM._instances:
+                TQDM._instances.remove(self)
+                for i, instance in enumerate(TQDM._instances):
+                    instance.pos = i
 
     def _format_rate(self, rate: float) -> str:
         """Format rate with proper units and reasonable precision."""
@@ -302,14 +344,19 @@ class TQDM:
             unit=self.unit,
         )
 
-        # Write to output
+        # Write to output with multi-bar positioning
         try:
             if self.noninteractive:
                 # In non-interactive environments, avoid carriage return which creates empty lines
                 self.file.write(progress_str)
             else:
-                # In interactive terminals, use carriage return and clear line for updating display
-                self.file.write(f"\r\033[K{progress_str}")
+                # For multi-bar support, use cursor positioning
+                if self.pos > 0:
+                    # Move cursor up to correct position, clear line, write progress, then move cursor back
+                    self.file.write(f"\033[{self.pos}A\r\033[K{progress_str}\033[{self.pos}B")
+                else:
+                    # First/only bar uses simple carriage return
+                    self.file.write(f"\r\033[K{progress_str}")
             self.file.flush()
         except Exception:
             pass
@@ -339,6 +386,10 @@ class TQDM:
             return
 
         self.closed = True  # Set before final display
+        
+        # Unregister from multi-bar management
+        if not self.disable and not self.noninteractive:
+            self._unregister()
 
         if not self.disable:
             # Final display

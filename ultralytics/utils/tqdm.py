@@ -12,7 +12,7 @@ from typing import IO, Any
 @lru_cache(maxsize=1)
 def is_noninteractive_console() -> bool:
     """Check for known non-interactive console environments."""
-    return "GITHUB_ACTIONS" in os.environ or "RUNPOD_POD_ID" in os.environ
+    return "GITHUB_ACTIONS" in os.environ
 
 
 class TQDM:

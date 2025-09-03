@@ -598,7 +598,7 @@ def handle_yolo_dataset_validation(args: List[str]) -> None:
         LOGGER.info("❌ Unknown command")
 
 
-def handle_yolo_hub(args: List[str]) -> None:
+def handle_yolo_hub(args: list[str]) -> None:
     """
     Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
 

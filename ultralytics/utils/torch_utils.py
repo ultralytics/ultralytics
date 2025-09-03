@@ -34,7 +34,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.patches import torch_load
 
-# Normalize torch.__version__ for compatibility with older PyTorch (1.10–1.12 returns TorchVersion objects)
+# Normalize torch.__version__ for compatibility (PyTorch>1.9 returns TorchVersion objects)
 torch_version = str(torch.__version__)
 
 # Version checks (all default to version>=min_version)

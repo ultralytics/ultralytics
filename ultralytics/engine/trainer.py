@@ -768,7 +768,7 @@ class BaseTrainer:
                 last = Path(check_file(resume) if exists else get_latest_run())
 
                 # Check that resume data YAML exists, otherwise strip to force re-download of dataset
-                ckpt_args = attempt_load_one_weight(last)[1].args
+                ckpt_args = attempt_load_one_weight(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 

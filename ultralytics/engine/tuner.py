@@ -40,7 +40,7 @@ class Tuner:
     distributed MongoDB Atlas coordination for multi-machine hyperparameter optimization.
 
     Attributes:
-        space (Dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
+        space (dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_csv (Path): Path to the CSV file where evolution logs are saved.
         args (dict): Configuration arguments for the tuning process.

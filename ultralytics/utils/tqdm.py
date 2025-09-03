@@ -262,8 +262,9 @@ class TQDM:
 
         # Calculate remaining time
         remaining_str = ""
-        if self.total and 0 < self.n < self.total and rate > 0:
-            remaining_str = self._format_time((self.total - self.n) / rate)
+        if self.total and 0 < self.n < self.total and elapsed > 0:
+            est_rate = rate or self.n / elapsed
+            remaining_str = self._format_time((self.total - self.n) / est_rate)
 
         # Build progress components
         if self.total:
@@ -283,6 +284,9 @@ class TQDM:
         # Use different format for completion
         if self.total and self.n >= self.total:
             format_str = self.bar_format.replace("<{remaining}", "")
+            # For completed downloads, show only final size
+            if self.unit_scale and self.unit in ("B", "bytes"):
+                format_str = format_str.replace("{n}/{total}", "{total}")
         else:
             format_str = self.bar_format
 

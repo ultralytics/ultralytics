@@ -262,8 +262,9 @@ class TQDM:
 
         # Calculate remaining time
         remaining_str = ""
-        if self.total and 0 < self.n < self.total and rate > 0:
-            remaining_str = self._format_time((self.total - self.n) / rate)
+        if self.total and 0 < self.n < self.total and elapsed > 0:
+            est_rate = rate or self.n / elapsed
+            remaining_str = self._format_time((self.total - self.n) / est_rate)
 
         # Build progress components
         if self.total:

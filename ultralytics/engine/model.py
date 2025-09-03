@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -84,7 +84,7 @@ class Model(torch.nn.Module):
         model: str | Path | Model = "yolo11n.pt",
         task: str = None,
         verbose: bool = False,
-        scale: Optional[str] = None,
+        scale: str | None = None,
     ) -> None:
         """
         Initialize a new instance of the YOLO model class.

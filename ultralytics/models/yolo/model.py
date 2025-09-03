@@ -51,7 +51,13 @@ class YOLO(Model):
         >>> model = YOLO("yolo11n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo11n.pt", task: str | None = None, verbose: bool = False, scale: Optional[str] = None):
+    def __init__(
+        self,
+        model: str | Path = "yolo11n.pt",
+        task: str | None = None,
+        verbose: bool = False,
+        scale: Optional[str] = None,
+    ):
         """
         Initialize a YOLO model.
 

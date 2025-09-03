@@ -35,18 +35,18 @@ from ultralytics.utils.checks import check_version
 from ultralytics.utils.patches import torch_load
 
 # Normalize torch.__version__ for compatibility with older PyTorch (1.10–1.12 returns TorchVersion objects)
-_torch_version = str(torch.__version__)
+torch_version = str(torch.__version__)
 
 # Version checks (all default to version>=min_version)
-TORCH_1_9 = check_version(_torch_version, "1.9.0")
-TORCH_1_13 = check_version(_torch_version, "1.13.0")
-TORCH_2_0 = check_version(_torch_version, "2.0.0")
-TORCH_2_4 = check_version(_torch_version, "2.4.0")
+TORCH_1_9 = check_version(torch_version, "1.9.0")
+TORCH_1_13 = check_version(torch_version, "1.13.0")
+TORCH_2_0 = check_version(torch_version, "2.0.0")
+TORCH_2_4 = check_version(torch_version, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and check_version(_torch_version, "==2.4.0"):  # reject version 2.4.0 on Windows
+if WINDOWS and check_version(torch_version, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
         "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
@@ -168,7 +168,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
-    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch_version} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'

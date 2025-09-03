@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import json
 import os
 import random
@@ -9,7 +11,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -19,7 +21,6 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
     DATASETS_DIR,
     LOGGER,
-    MACOS,
     NUM_THREADS,
     ROOT,
     SETTINGS_FILE,
@@ -37,18 +38,17 @@ from ultralytics.utils.ops import segments2boxes
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {"bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm", "heic"}  # image suffixes
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # video suffixes
-PIN_MEMORY = str(os.getenv("PIN_MEMORY", not MACOS)).lower() == "true"  # global pin_memory for dataloaders
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
 
 
-def img2label_paths(img_paths: List[str]) -> List[str]:
+def img2label_paths(img_paths: list[str]) -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
 
 
 def check_file_speeds(
-    files: List[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
+    files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
     """
     Check dataset file access speed and provide performance feedback.
@@ -68,7 +68,7 @@ def check_file_speeds(
         >>> image_files = list(Path("dataset/images").glob("*.jpg"))
         >>> check_file_speeds(image_files, threshold_ms=15)
     """
-    if not files or len(files) == 0:
+    if not files:
         LOGGER.warning(f"{prefix}Image speed checks: No files to check")
         return
 
@@ -125,7 +125,7 @@ def check_file_speeds(
         )
 
 
-def get_hash(paths: List[str]) -> str:
+def get_hash(paths: list[str]) -> str:
     """Return a single hash value of a list of paths (files or dirs)."""
     size = 0
     for p in paths:
@@ -138,7 +138,7 @@ def get_hash(paths: List[str]) -> str:
     return h.hexdigest()  # return hash
 
 
-def exif_size(img: Image.Image) -> Tuple[int, int]:
+def exif_size(img: Image.Image) -> tuple[int, int]:
     """Return exif-corrected PIL size."""
     s = img.size  # (width, height)
     if img.format == "JPEG":  # only support JPEG images
@@ -152,7 +152,7 @@ def exif_size(img: Image.Image) -> Tuple[int, int]:
     return s
 
 
-def verify_image(args: Tuple) -> Tuple:
+def verify_image(args: tuple) -> tuple:
     """Verify one image."""
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
@@ -177,7 +177,7 @@ def verify_image(args: Tuple) -> Tuple:
     return (im_file, cls), nf, nc, msg
 
 
-def verify_image_label(args: Tuple) -> List:
+def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
@@ -219,9 +219,7 @@ def verify_image_label(args: Tuple) -> List:
                 assert lb.min() >= -0.01, f"negative class labels {lb[lb < -0.01]}"
 
                 # All labels
-                if single_cls:
-                    lb[:, 0] = 0
-                max_cls = lb[:, 0].max()  # max label count
+                max_cls = 0 if single_cls else lb[:, 0].max()  # max label count
                 assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
@@ -251,7 +249,7 @@ def verify_image_label(args: Tuple) -> List:
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
-def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[int, str]):
+def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
     """
     Visualize YOLO annotations (bounding boxes and class labels) on an image.
 
@@ -296,7 +294,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: Dict[
 
 
 def polygon2mask(
-    imgsz: Tuple[int, int], polygons: List[np.ndarray], color: int = 1, downsample_ratio: int = 1
+    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int = 1, downsample_ratio: int = 1
 ) -> np.ndarray:
     """
     Convert a list of polygons to a binary mask of the specified image size.
@@ -321,7 +319,7 @@ def polygon2mask(
 
 
 def polygons2masks(
-    imgsz: Tuple[int, int], polygons: List[np.ndarray], color: int, downsample_ratio: int = 1
+    imgsz: tuple[int, int], polygons: list[np.ndarray], color: int, downsample_ratio: int = 1
 ) -> np.ndarray:
     """
     Convert a list of polygons to a set of binary masks of the specified image size.
@@ -340,8 +338,8 @@ def polygons2masks(
 
 
 def polygons2masks_overlap(
-    imgsz: Tuple[int, int], segments: List[np.ndarray], downsample_ratio: int = 1
-) -> Tuple[np.ndarray, np.ndarray]:
+    imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
+) -> tuple[np.ndarray, np.ndarray]:
     """Return a (640, 640) overlap mask."""
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
@@ -349,8 +347,13 @@ def polygons2masks_overlap(
     )
     areas = []
     ms = []
-    for si in range(len(segments)):
-        mask = polygon2mask(imgsz, [segments[si].reshape(-1)], downsample_ratio=downsample_ratio, color=1)
+    for segment in segments:
+        mask = polygon2mask(
+            imgsz,
+            [segment.reshape(-1)],
+            downsample_ratio=downsample_ratio,
+            color=1,
+        )
         ms.append(mask.astype(masks.dtype))
         areas.append(mask.sum())
     areas = np.asarray(areas)
@@ -384,7 +387,7 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]:
+def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
     """
     Download, verify, and/or unzip a dataset if not found locally.
 
@@ -468,7 +471,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
             elif s.startswith("bash "):  # bash script
                 LOGGER.info(f"Running {s} ...")
-                r = os.system(s)
+                subprocess.run(s.split(), check=True)
             else:  # python script
                 exec(s, {"yaml": data})
             dt = f"({round(time.time() - t, 1)}s)"
@@ -479,7 +482,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> Dict[str, Any]
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, Any]:
+def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     """
     Check a classification dataset such as Imagenet.
 
@@ -513,7 +516,7 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, A
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()
         if str(dataset) == "imagenet":
-            subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
+            subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
         else:
             url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
             download(url, dir=data_dir.parent)
@@ -521,8 +524,7 @@ def check_cls_dataset(dataset: Union[str, Path], split: str = "") -> Dict[str, A
     train_set = data_dir / "train"
     if not train_set.is_dir():
         LOGGER.warning(f"Dataset 'split=train' not found at {train_set}")
-        image_files = list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png"))
-        if image_files:
+        if image_files := list(data_dir.rglob("*.jpg")) + list(data_dir.rglob("*.png")):
             from ultralytics.data.split import split_classify_dataset
 
             LOGGER.info(f"Found {len(image_files)} images in subdirectories. Attempting to split...")
@@ -636,7 +638,7 @@ class HUBDatasetStats:
         self.data = data
 
     @staticmethod
-    def _unzip(path: Path) -> Tuple[bool, str, Path]:
+    def _unzip(path: Path) -> tuple[bool, str, Path]:
         """Unzip data.zip."""
         if not str(path).endswith(".zip"):  # path is data.yaml
             return False, None, path
@@ -650,7 +652,7 @@ class HUBDatasetStats:
         """Save a compressed image for HUB previews."""
         compress_one_image(f, self.im_dir / Path(f).name)  # save to dataset-hub
 
-    def get_json(self, save: bool = False, verbose: bool = False) -> Dict:
+    def get_json(self, save: bool = False, verbose: bool = False) -> dict:
         """Return dataset JSON for Ultralytics HUB."""
 
         def _round(labels):
@@ -777,7 +779,7 @@ def compress_one_image(f: str, f_new: str = None, max_dim: int = 1920, quality: 
         cv2.imwrite(str(f_new or f), im)
 
 
-def load_dataset_cache_file(path: Path) -> Dict:
+def load_dataset_cache_file(path: Path) -> dict:
     """Load an Ultralytics *.cache dictionary from path."""
     import gc
 
@@ -787,7 +789,7 @@ def load_dataset_cache_file(path: Path) -> Dict:
     return cache
 
 
-def save_dataset_cache_file(prefix: str, path: Path, x: Dict, version: str):
+def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
     """Save an Ultralytics dataset *.cache dictionary x to path."""
     x["version"] = version  # add cache version
     if is_dir_writeable(path.parent):

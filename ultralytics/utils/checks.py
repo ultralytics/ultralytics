@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import functools
 import glob
 import inspect
@@ -13,7 +15,6 @@ import time
 from importlib import metadata
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Optional
 
 import cv2
 import numpy as np
@@ -23,8 +24,8 @@ from ultralytics.utils import (
     ARM64,
     ASSETS,
     AUTOINSTALL,
+    GIT,
     IS_COLAB,
-    IS_GIT_DIR,
     IS_JETSON,
     IS_KAGGLE,
     IS_PIP_PACKAGE,
@@ -274,7 +275,7 @@ def check_latest_pypi_version(package_name="ultralytics"):
     Returns:
         (str): The latest version of the package.
     """
-    import requests  # slow import
+    import requests  # scoped as slow import
 
     try:
         requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
@@ -401,16 +402,22 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     def attempt_install(packages, commands, use_uv):
         """Attempt package installation with uv if available, falling back to pip."""
         if use_uv:
-            base = f"uv pip install --no-cache-dir {packages} {commands} --index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            base = (
+                f"uv pip install --no-cache-dir {packages} {commands} "
+                f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
+            )
             try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE).decode()
+                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE, text=True)
             except subprocess.CalledProcessError as e:
-                if e.stderr and "No virtual environment found" in e.stderr.decode():
+                if e.stderr and "No virtual environment found" in e.stderr:
                     return subprocess.check_output(
-                        base.replace("uv pip install", "uv pip install --system"), shell=True
-                    ).decode()
+                        base.replace("uv pip install", "uv pip install --system"),
+                        shell=True,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    )
                 raise
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True).decode()
+        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True, text=True)
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:
@@ -637,7 +644,7 @@ def check_yolo(verbose=True, device=""):
         verbose (bool): Whether to print verbose information.
         device (str | torch.device): Device to use for YOLO.
     """
-    import psutil
+    import psutil  # scoped as slow import
 
     from ultralytics.utils.torch_utils import select_device
 
@@ -670,7 +677,7 @@ def collect_system_info():
     Returns:
         (dict): Dictionary containing system information.
     """
-    import psutil
+    import psutil  # scoped as slow import
 
     from ultralytics.utils import ENVIRONMENT  # scope to avoid circular import
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
@@ -684,7 +691,7 @@ def collect_system_info():
         "OS": platform.platform(),
         "Environment": ENVIRONMENT,
         "Python": PYTHON_VERSION,
-        "Install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+        "Install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
         "Path": str(ROOT),
         "RAM": f"{psutil.virtual_memory().total / gib:.2f} GB",
         "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
@@ -694,7 +701,7 @@ def collect_system_info():
         "GPU count": torch.cuda.device_count() if cuda else None,
         "CUDA": torch.version.cuda if cuda else None,
     }
-    LOGGER.info("\n" + "\n".join(f"{k:<20}{v}" for k, v in info_dict.items()) + "\n")
+    LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
     package_info = {}
     for r in parse_requirements(package="ultralytics"):
@@ -705,7 +712,7 @@ def collect_system_info():
             current = "(not installed)"
             is_met = "❌ "
         package_info[r.name] = f"{is_met}{current}{r.specifier}"
-        LOGGER.info(f"{r.name:<20}{package_info[r.name]}")
+        LOGGER.info(f"{r.name:<23}{package_info[r.name]}")
 
     info_dict["Package Info"] = package_info
 
@@ -797,23 +804,7 @@ def check_amp(model):
     return True
 
 
-def git_describe(path=ROOT):  # path must be a directory
-    """
-    Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe.
-
-    Args:
-        path (Path): Path to git repository.
-
-    Returns:
-        (str): Human-readable git description.
-    """
-    try:
-        return subprocess.check_output(f"git -C {path} describe --tags --long --always", shell=True).decode()[:-1]
-    except Exception:
-        return ""
-
-
-def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
+def print_args(args: dict | None = None, show_file=True, show_func=False):
     """
     Print function arguments (optional args dict).
 

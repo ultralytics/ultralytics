@@ -1,12 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Any, Dict, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 import torch
 import torch.nn.functional as F
 
 
-def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: Dict[int, Any], max_cond_frame_num: int):
+def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: dict[int, Any], max_cond_frame_num: int):
     """
     Select the closest conditioning frames to a given frame index.
 
@@ -78,7 +80,7 @@ def get_1d_sine_pe(pos_inds: torch.Tensor, dim: int, temperature: float = 10000)
         torch.Size([4, 128])
     """
     pe_dim = dim // 2
-    dim_t = torch.arange(pe_dim, dtype=torch.float32, device=pos_inds.device)
+    dim_t = torch.arange(pe_dim, dtype=pos_inds.dtype, device=pos_inds.device)
     dim_t = temperature ** (2 * (dim_t // 2) / pe_dim)
 
     pos_embed = pos_inds.unsqueeze(-1) / dim_t
@@ -248,7 +250,7 @@ def window_partition(x: torch.Tensor, window_size: int):
     return windows, (Hp, Wp)
 
 
-def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[int, int], hw: Tuple[int, int]):
+def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: tuple[int, int], hw: tuple[int, int]):
     """
     Unpartition windowed sequences into original sequences and remove padding.
 
@@ -333,8 +335,8 @@ def add_decomposed_rel_pos(
     q: torch.Tensor,
     rel_pos_h: torch.Tensor,
     rel_pos_w: torch.Tensor,
-    q_size: Tuple[int, int],
-    k_size: Tuple[int, int],
+    q_size: tuple[int, int],
+    k_size: tuple[int, int],
 ) -> torch.Tensor:
     """
     Add decomposed Relative Positional Embeddings to the attention map.

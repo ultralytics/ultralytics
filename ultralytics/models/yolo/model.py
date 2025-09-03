@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import torch
 
@@ -56,7 +56,7 @@ class YOLO(Model):
         model: str | Path = "yolo11n.pt",
         task: str | None = None,
         verbose: bool = False,
-        scale: Optional[str] = None,
+        scale: str | None = None,
     ):
         """
         Initialize a YOLO model.

@@ -136,6 +136,7 @@ os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output
 FLOAT_OR_INT = (float, int)
 STR_OR_PATH = (str, Path)
 
+
 class DataExportMixin:
     """
     Mixin class for exporting validation metrics or prediction results in various formats.

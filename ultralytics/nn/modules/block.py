@@ -1152,8 +1152,8 @@ class C3k2(C2f):
         #     C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
         # )
         self.m = nn.ModuleList(
-            PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample)
-            # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
+            # PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample)
+            C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
             if attn is not None
             else C3k(self.c, self.c, 2, shortcut, g)
             # else C3(self.c, self.c, 4, shortcut, g)

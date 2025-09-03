@@ -1,5 +1,6 @@
 from torch import optim
 import torch
+import math
 
 
 def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
@@ -69,6 +70,13 @@ class MuonWithSGD(optim.Optimizer):
     def __init__(self, param_groups):
         super().__init__(param_groups, dict())
 
+    def adjust_lr(self, lr, param_shape):
+        """ Adjust learning rate based on parameter shape."""
+        A, B = param_shape[:2]
+        adjusted_ratio = 0.2 * math.sqrt(max(A, B))
+        adjusted_lr = lr * adjusted_ratio
+        return adjusted_lr
+
     @torch.no_grad()
     def step(self, closure=None):
         """Perform a single optimization step.
@@ -108,7 +116,7 @@ class MuonWithSGD(optim.Optimizer):
                         if group["nesterov"]
                         else state["momentum_buffer"]
                     )
-                    sgd_update = update.clone()
+                    # sgd_update = update.clone()
                     if update.ndim == 4:  # for the case of conv filters
                         update = update.view(len(update), -1)
                     update = zeropower_via_newtonschulz5(update)
@@ -116,8 +124,9 @@ class MuonWithSGD(optim.Optimizer):
                     # update = muon_update(
                     #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     # )
-                    p.add_(update.reshape(p.shape), alpha=-group["lr"])
-                    p.add_(sgd_update, alpha=-group["lr"])
+                    lr = self.adjust_lr(group["lr"], p.shape)
+                    p.add_(update.reshape(p.shape), alpha=-lr)
+                    # p.add_(sgd_update, alpha=-group["lr"])
             else:  # SGD
                 for p in group["params"]:
                     if p.grad is None:

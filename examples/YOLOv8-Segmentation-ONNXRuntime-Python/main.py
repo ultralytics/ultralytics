@@ -49,7 +49,7 @@ class YOLOv8Seg:
         Args:
             onnx_model (str): Path to the ONNX model file.
             conf (float): Confidence threshold for filtering detections.
-            iou (float | None): IoU threshold for non-maximum suppression.
+            iou (float): IoU threshold for non-maximum suppression.
             imgsz (int | tuple[int, int]): Input image size of the model. Can be an integer for square
                 input or a tuple for rectangular input.
         """

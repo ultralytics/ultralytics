@@ -55,17 +55,19 @@ def test_invalid_scale_override_raises_error_on_yaml():
     with pytest.raises(ValueError, match="Invalid scale"):
         YOLO(model="yolov8n.yaml", scale="k")
 
+
 def test_valid_scale_override_on_dict_config():
     """Test that explicitly passing scale via overrides dict works correctly."""
     overrides = {
         "model": "yolov8.yaml",  # base model
-        "scale": "s",            # override scale
+        "scale": "s",  # override scale
     }
 
     # Initialize model using overrides dict
     model = YOLO(**overrides)
     model = YOLO(model="yolov8n.yaml", scale="s")
     print(f"{count_model_params(model)} million parameters")
+
 
 def test_yaml_with_invalid_scale_and_no_variants():
     """Test that YAML with invalid scale and no variants raises ValueError."""

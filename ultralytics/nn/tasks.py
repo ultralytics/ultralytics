@@ -1537,7 +1537,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     Load a single model weights.
 
     Args:
-        weight (str): Model weight path.
+        weight (str | Path): Model weight path.
         device (torch.device, optional): Device to load model to.
         inplace (bool): Whether to do inplace operations.
         fuse (bool): Whether to fuse model.

@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import copy
 import math
 from functools import partial
-from typing import Any, Optional, Tuple, Type, Union
 
 import numpy as np
 import torch
@@ -81,7 +81,7 @@ class MaskDownSampler(nn.Module):
         stride: int = 4,
         padding: int = 0,
         total_stride: int = 16,
-        activation: Type[nn.Module] = nn.GELU,
+        activation: type[nn.Module] = nn.GELU,
     ):
         """Initialize a mask downsampler module for progressive downsampling and channel expansion."""
         super().__init__()
@@ -227,7 +227,7 @@ class Fuser(nn.Module):
         torch.Size([1, 256, 32, 32])
     """
 
-    def __init__(self, layer: nn.Module, num_layers: int, dim: Optional[int] = None, input_projection: bool = False):
+    def __init__(self, layer: nn.Module, num_layers: int, dim: int | None = None, input_projection: bool = False):
         """
         Initialize the Fuser module for feature fusion through multiple layers.
 
@@ -295,7 +295,7 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int = 2048,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
         skip_first_layer_pe: bool = False,
     ) -> None:
@@ -359,7 +359,7 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
     ) -> None:
         """
@@ -432,7 +432,7 @@ class RoPEAttention(Attention):
         *args,
         rope_theta: float = 10000.0,
         rope_k_repeat: bool = False,
-        feat_sizes: Tuple[int, int] = (32, 32),  # [w, h] for stride 16 feats at 512 resolution
+        feat_sizes: tuple[int, int] = (32, 32),  # [w, h] for stride 16 feats at 512 resolution
         **kwargs,
     ):
         """Initialize RoPEAttention with rotary position encoding for enhanced positional awareness."""
@@ -618,9 +618,9 @@ class MultiScaleBlock(nn.Module):
         num_heads: int,
         mlp_ratio: float = 4.0,
         drop_path: float = 0.0,
-        norm_layer: Union[nn.Module, str] = "LayerNorm",
-        q_stride: Tuple[int, int] = None,
-        act_layer: Type[nn.Module] = nn.GELU,
+        norm_layer: nn.Module | str = "LayerNorm",
+        q_stride: tuple[int, int] = None,
+        act_layer: type[nn.Module] = nn.GELU,
         window_size: int = 0,
     ):
         """Initialize a multiscale attention block with window partitioning and optional query pooling."""
@@ -728,7 +728,7 @@ class PositionEmbeddingSine(nn.Module):
         num_pos_feats: int,
         temperature: int = 10000,
         normalize: bool = True,
-        scale: Optional[float] = None,
+        scale: float | None = None,
     ):
         """Initialize sinusoidal position embeddings for 2D image inputs."""
         super().__init__()
@@ -744,7 +744,7 @@ class PositionEmbeddingSine(nn.Module):
 
         self.cache = {}
 
-    def _encode_xy(self, x: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _encode_xy(self, x: torch.Tensor, y: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode 2D positions using sine/cosine functions for transformer positional embeddings."""
         assert len(x) == len(y) and x.ndim == y.ndim == 1
         x_embed = x * self.scale
@@ -833,7 +833,7 @@ class PositionEmbeddingRandom(nn.Module):
         torch.Size([128, 32, 32])
     """
 
-    def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
+    def __init__(self, num_pos_feats: int = 64, scale: float | None = None) -> None:
         """Initialize random spatial frequency position embedding for transformers."""
         super().__init__()
         if scale is None or scale <= 0.0:
@@ -853,11 +853,14 @@ class PositionEmbeddingRandom(nn.Module):
         # Outputs d_1 x ... x d_n x C shape
         return torch.cat([torch.sin(coords), torch.cos(coords)], dim=-1)
 
-    def forward(self, size: Tuple[int, int]) -> torch.Tensor:
+    def forward(self, size: tuple[int, int]) -> torch.Tensor:
         """Generate positional encoding for a grid using random spatial frequencies."""
         h, w = size
-        device: Any = self.positional_encoding_gaussian_matrix.device
-        grid = torch.ones((h, w), device=device, dtype=torch.float32)
+        grid = torch.ones(
+            (h, w),
+            device=self.positional_encoding_gaussian_matrix.device,
+            dtype=self.positional_encoding_gaussian_matrix.dtype,
+        )
         y_embed = grid.cumsum(dim=0) - 0.5
         x_embed = grid.cumsum(dim=1) - 0.5
         y_embed = y_embed / h
@@ -866,12 +869,12 @@ class PositionEmbeddingRandom(nn.Module):
         pe = self._pe_encoding(torch.stack([x_embed, y_embed], dim=-1))
         return pe.permute(2, 0, 1)  # C x H x W
 
-    def forward_with_coords(self, coords_input: torch.Tensor, image_size: Tuple[int, int]) -> torch.Tensor:
+    def forward_with_coords(self, coords_input: torch.Tensor, image_size: tuple[int, int]) -> torch.Tensor:
         """Positionally encode input coordinates, normalizing them to [0,1] based on the given image size."""
         coords = coords_input.clone()
         coords[:, :, 0] = coords[:, :, 0] / image_size[1]
         coords[:, :, 1] = coords[:, :, 1] / image_size[0]
-        return self._pe_encoding(coords.to(torch.float))  # B x N x C
+        return self._pe_encoding(coords)  # B x N x C
 
 
 class Block(nn.Module):
@@ -907,12 +910,12 @@ class Block(nn.Module):
         num_heads: int,
         mlp_ratio: float = 4.0,
         qkv_bias: bool = True,
-        norm_layer: Type[nn.Module] = nn.LayerNorm,
-        act_layer: Type[nn.Module] = nn.GELU,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
+        act_layer: type[nn.Module] = nn.GELU,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         window_size: int = 0,
-        input_size: Optional[Tuple[int, int]] = None,
+        input_size: tuple[int, int] | None = None,
     ) -> None:
         """
         Initialize a transformer block with optional window attention and relative positional embeddings.
@@ -1009,7 +1012,7 @@ class REAttention(nn.Module):
         qkv_bias: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
-        input_size: Optional[Tuple[int, int]] = None,
+        input_size: tuple[int, int] | None = None,
     ) -> None:
         """
         Initialize a Relative Position Attention module for transformer-based architectures.
@@ -1090,9 +1093,9 @@ class PatchEmbed(nn.Module):
 
     def __init__(
         self,
-        kernel_size: Tuple[int, int] = (16, 16),
-        stride: Tuple[int, int] = (16, 16),
-        padding: Tuple[int, int] = (0, 0),
+        kernel_size: tuple[int, int] = (16, 16),
+        stride: tuple[int, int] = (16, 16),
+        padding: tuple[int, int] = (0, 0),
         in_chans: int = 3,
         embed_dim: int = 768,
     ) -> None:

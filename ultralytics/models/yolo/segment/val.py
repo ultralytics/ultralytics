@@ -136,9 +136,8 @@ class SegmentationValidator(DetectionValidator):
         nl = len(prepared_batch["cls"])
         if self.args.overlap_mask:
             masks = batch["masks"][si]
-            index = torch.arange(nl, device=masks.device).view(nl, 1, 1) + 1
-            masks = masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
-            masks = torch.where(masks == index, 1.0, 0.0)
+            index = torch.arange(1, nl + 1, device=masks.device).view(nl, 1, 1)
+            masks = (masks == index).float()
         else:
             masks = batch["masks"][batch["batch_idx"] == si]
         if nl and self.process is ops.process_mask_native:

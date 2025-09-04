@@ -104,7 +104,7 @@ class MuonWithSGD(optim.Optimizer):
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
-                    # state["momentum_buffer"].lerp_(grad, 1 - group["momentum"])
+                    state["momentum_buffer"].lerp_(grad, 1 - group["momentum"])
                     # update = (
                     #     grad.lerp_(state["momentum_buffer"], group["momentum"])
                     #     if group["nesterov"]
@@ -127,7 +127,7 @@ class MuonWithSGD(optim.Optimizer):
                     # TODO
                     lr = group["lr"] / 10
                     lr = self.adjust_lr(lr, p.shape)
-                    p.mul_(1 - group["lr"] * group["weight_decay"])
+                    # p.mul_(1 - group["lr"] * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-lr)
                     p.add_(sgd_update, alpha=-group["lr"])
             else:  # SGD

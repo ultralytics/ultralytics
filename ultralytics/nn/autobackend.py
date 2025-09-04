@@ -726,9 +726,10 @@ class AutoBackend(nn.Module):
             y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
             if "confidence" in y:  # NMS included
                 from ultralytics.utils.ops import xywh2xyxy
-                box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
-                cls = y['confidence'].argmax(1, keepdims=True)
-                y = np.concatenate((box, np.take_along_axis(y['confidence'], cls), cls), 1)[None]
+
+                box = xywh2xyxy(y["coordinates"] * [[w, h, w, h]])  # xyxy pixels
+                cls = y["confidence"].argmax(1, keepdims=True)
+                y = np.concatenate((box, np.take_along_axis(y["confidence"], cls), cls), 1)[None]
             else:
                 y = list(y.values())
             if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model

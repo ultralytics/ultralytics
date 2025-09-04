@@ -842,7 +842,8 @@ class BaseTrainer:
                 elif (
                     param.ndim >= 2
                     and self.args.muon_head == "neck"
-                    and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
+                    # and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
+                    and int(module_name.split(".")[1]) in list(range(11, 23))
                 ):
                     g[3].append(param)
                 elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:

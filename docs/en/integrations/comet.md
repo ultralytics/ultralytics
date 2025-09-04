@@ -8,6 +8,17 @@ keywords: YOLO11, Comet ML, logging, machine learning, training, model checkpoin
 
 Logging key training details such as parameters, metrics, image predictions, and model checkpoints is essential in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml)—it keeps your project transparent, your progress measurable, and your results repeatable.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LPodYpvKkvI"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Use Comet ML for Ultralytics YOLO Model Training Logs and Metrics 🚀
+</p>
+
 [Ultralytics YOLO11](https://www.ultralytics.com/) seamlessly integrates with Comet ML, efficiently capturing and optimizing every aspect of your YOLO11 [object detection](https://www.ultralytics.com/glossary/object-detection) model's training process. In this guide, we'll cover the installation process, Comet ML setup, real-time insights, custom logging, and offline usage, ensuring that your YOLO11 training is thoroughly documented and fine-tuned for outstanding results.
 
 ## Comet ML
@@ -45,7 +56,7 @@ After installing the required packages, you'll need to sign up, get a [Comet API
 
         ```bash
         # Set your Comet Api Key
-        export COMET_API_KEY=<Your API Key>
+        export COMET_API_KEY=YOUR_API_KEY
         ```
 
 Then, you can initialize your Comet project. Comet will automatically detect the API key and proceed with the setup.
@@ -196,7 +207,7 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
 2. **Set up your Comet API Key**:
 
     ```bash
-    export COMET_API_KEY=<Your API Key>
+    export COMET_API_KEY=YOUR_API_KEY
     ```
 
 3. **Initialize your Comet project in your Python code**:

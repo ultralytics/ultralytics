@@ -367,7 +367,7 @@ Below are code examples for using each source type:
 
         Example `.streams` text file:
 
-        ```txt
+        ```text
         rtsp://example.com/media1.mp4
         rtsp://example.com/media2.mp4
         rtmp://example2.com/live
@@ -413,7 +413,8 @@ Inference arguments:
 
 Visualization arguments:
 
-{% include "macros/visualization-args.md" %}
+{% from "macros/visualization-args.md" import param_table %}
+{{ param_table() }}
 
 ## Image and Video Formats
 
@@ -473,17 +474,20 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
     model = YOLO("yolo11n.pt")
 
     # Run inference on an image
-    results = model("https://ultralytics.com/images/bus.jpg")  # list of 1 Results object
+    results = model("https://ultralytics.com/images/bus.jpg")
     results = model(
-        ["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/zidane.jpg"]
-    )  # list of 2 Results objects
+        [
+            "https://ultralytics.com/images/bus.jpg",
+            "https://ultralytics.com/images/zidane.jpg",
+        ]
+    )  # batch inference
     ```
 
 `Results` objects have the following attributes:
 
 | Attribute    | Type                  | Description                                                                              |
 | ------------ | --------------------- | ---------------------------------------------------------------------------------------- |
-| `orig_img`   | `numpy.ndarray`       | The original image as a numpy array.                                                     |
+| `orig_img`   | `np.ndarray`          | The original image as a numpy array.                                                     |
 | `orig_shape` | `tuple`               | The original image shape in (height, width) format.                                      |
 | `boxes`      | `Boxes, optional`     | A Boxes object containing the detection bounding boxes.                                  |
 | `masks`      | `Masks, optional`     | A Masks object containing the detection masks.                                           |
@@ -491,31 +495,30 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 | `keypoints`  | `Keypoints, optional` | A Keypoints object containing detected keypoints for each object.                        |
 | `obb`        | `OBB, optional`       | An OBB object containing oriented bounding boxes.                                        |
 | `speed`      | `dict`                | A dictionary of preprocess, inference, and postprocess speeds in milliseconds per image. |
-| `names`      | `dict`                | A dictionary of class names.                                                             |
+| `names`      | `dict`                | A dictionary mapping class indices to class names.                                       |
 | `path`       | `str`                 | The path to the image file.                                                              |
+| `save_dir`   | `str, optional`       | Directory to save results.                                                               |
 
 `Results` objects have the following methods:
 
-| Method        | Return Type     | Description                                                                         |
-| ------------- | --------------- | ----------------------------------------------------------------------------------- |
-| `update()`    | `None`          | Update the boxes, masks, and probs attributes of the Results object.                |
-| `cpu()`       | `Results`       | Return a copy of the Results object with all tensors on CPU memory.                 |
-| `numpy()`     | `Results`       | Return a copy of the Results object with all tensors as numpy arrays.               |
-| `cuda()`      | `Results`       | Return a copy of the Results object with all tensors on GPU memory.                 |
-| `to()`        | `Results`       | Return a copy of the Results object with tensors on the specified device and dtype. |
-| `new()`       | `Results`       | Return a new Results object with the same image, path, and names.                   |
-| `plot()`      | `numpy.ndarray` | Plots the detection results. Returns a numpy array of the annotated image.          |
-| `show()`      | `None`          | Show annotated results to screen.                                                   |
-| `save()`      | `None`          | Save annotated results to file.                                                     |
-| `verbose()`   | `str`           | Return log string for each task.                                                    |
-| `save_txt()`  | `None`          | Save predictions into a txt file.                                                   |
-| `save_crop()` | `None`          | Save cropped predictions to `save_dir/cls/file_name.jpg`.                           |
-| `summary()`   | `List[Dict]`    | A list of dictionaries, each containing summarized information for results          |
-| `to_df()`     | `DataFrame`     | Convert the results to Pandas Dataframe.                                            |
-| `to_csv()`    | `str`           | Convert the result to CSV (comma separated values) format.                          |
-| `to_xml()`    | `str`           | Convert the results to XML (Extensible Markup Language) format.                     |
-| `to_json()`   | `str`           | Convert the results to JSON format.                                                 |
-| `to_sql()`    | `None`          | Dump the results into the SQL database.                                             |
+| Method        | Return Type            | Description                                                                               |
+| ------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `update()`    | `None`                 | Updates the Results object with new detection data (boxes, masks, probs, obb, keypoints). |
+| `cpu()`       | `Results`              | Returns a copy of the Results object with all tensors moved to CPU memory.                |
+| `numpy()`     | `Results`              | Returns a copy of the Results object with all tensors converted to numpy arrays.          |
+| `cuda()`      | `Results`              | Returns a copy of the Results object with all tensors moved to GPU memory.                |
+| `to()`        | `Results`              | Returns a copy of the Results object with tensors moved to specified device and dtype.    |
+| `new()`       | `Results`              | Creates a new Results object with the same image, path, names, and speed attributes.      |
+| `plot()`      | `np.ndarray`           | Plots detection results on an input RGB image and returns the annotated image.            |
+| `show()`      | `None`                 | Displays the image with annotated inference results.                                      |
+| `save()`      | `str`                  | Saves annotated inference results image to file and returns the filename.                 |
+| `verbose()`   | `str`                  | Returns a log string for each task, detailing detection and classification outcomes.      |
+| `save_txt()`  | `str`                  | Saves detection results to a text file and returns the path to the saved file.            |
+| `save_crop()` | `None`                 | Saves cropped detection images to specified directory.                                    |
+| `summary()`   | `List[Dict[str, Any]]` | Converts inference results to a summarized dictionary with optional normalization.        |
+| `to_df()`     | `DataFrame`            | Converts detection results to a Polars DataFrame.                                         |
+| `to_csv()`    | `str`                  | Converts detection results to CSV format.                                                 |
+| `to_json()`   | `str`                  | Converts detection results to JSON format.                                                |
 
 For more details see the [`Results` class documentation](../reference/engine/results.md).
 
@@ -731,25 +734,26 @@ The `plot()` method in `Results` objects facilitates visualization of prediction
 
 The `plot()` method supports various arguments to customize the output:
 
-| Argument     | Type            | Description                                                                | Default       |
-| ------------ | --------------- | -------------------------------------------------------------------------- | ------------- |
-| `conf`       | `bool`          | Include detection confidence scores.                                       | `True`        |
-| `line_width` | `float`         | Line width of bounding boxes. Scales with image size if `None`.            | `None`        |
-| `font_size`  | `float`         | Text font size. Scales with image size if `None`.                          | `None`        |
-| `font`       | `str`           | Font name for text annotations.                                            | `'Arial.ttf'` |
-| `pil`        | `bool`          | Return image as a PIL Image object.                                        | `False`       |
-| `img`        | `numpy.ndarray` | Alternative image for plotting. Uses the original image if `None`.         | `None`        |
-| `im_gpu`     | `torch.Tensor`  | GPU-accelerated image for faster mask plotting. Shape: (1, 3, 640, 640).   | `None`        |
-| `kpt_radius` | `int`           | Radius for drawn keypoints.                                                | `5`           |
-| `kpt_line`   | `bool`          | Connect keypoints with lines.                                              | `True`        |
-| `labels`     | `bool`          | Include class labels in annotations.                                       | `True`        |
-| `boxes`      | `bool`          | Overlay bounding boxes on the image.                                       | `True`        |
-| `masks`      | `bool`          | Overlay masks on the image.                                                | `True`        |
-| `probs`      | `bool`          | Include classification probabilities.                                      | `True`        |
-| `show`       | `bool`          | Display the annotated image directly using the default image viewer.       | `False`       |
-| `save`       | `bool`          | Save the annotated image to a file specified by `filename`.                | `False`       |
-| `filename`   | `str`           | Path and name of the file to save the annotated image if `save` is `True`. | `None`        |
-| `color_mode` | `str`           | Specify the color mode, e.g., 'instance' or 'class'.                       | `'class'`     |
+| Argument     | Type                   | Description                                                                | Default           |
+| ------------ | ---------------------- | -------------------------------------------------------------------------- | ----------------- |
+| `conf`       | `bool`                 | Include detection confidence scores.                                       | `True`            |
+| `line_width` | `float`                | Line width of bounding boxes. Scales with image size if `None`.            | `None`            |
+| `font_size`  | `float`                | Text font size. Scales with image size if `None`.                          | `None`            |
+| `font`       | `str`                  | Font name for text annotations.                                            | `'Arial.ttf'`     |
+| `pil`        | `bool`                 | Return image as a PIL Image object.                                        | `False`           |
+| `img`        | `np.ndarray`           | Alternative image for plotting. Uses the original image if `None`.         | `None`            |
+| `im_gpu`     | `torch.Tensor`         | GPU-accelerated image for faster mask plotting. Shape: (1, 3, 640, 640).   | `None`            |
+| `kpt_radius` | `int`                  | Radius for drawn keypoints.                                                | `5`               |
+| `kpt_line`   | `bool`                 | Connect keypoints with lines.                                              | `True`            |
+| `labels`     | `bool`                 | Include class labels in annotations.                                       | `True`            |
+| `boxes`      | `bool`                 | Overlay bounding boxes on the image.                                       | `True`            |
+| `masks`      | `bool`                 | Overlay masks on the image.                                                | `True`            |
+| `probs`      | `bool`                 | Include classification probabilities.                                      | `True`            |
+| `show`       | `bool`                 | Display the annotated image directly using the default image viewer.       | `False`           |
+| `save`       | `bool`                 | Save the annotated image to a file specified by `filename`.                | `False`           |
+| `filename`   | `str`                  | Path and name of the file to save the annotated image if `save` is `True`. | `None`            |
+| `color_mode` | `str`                  | Specify the color mode, e.g., 'instance' or 'class'.                       | `'class'`         |
+| `txt_color`  | `tuple[int, int, int]` | RGB text color for bounding box and image classification label.            | `(255, 255, 255)` |
 
 ## Thread-Safe Inference
 

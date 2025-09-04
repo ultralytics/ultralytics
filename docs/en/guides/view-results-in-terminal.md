@@ -28,7 +28,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     ```yaml
     "terminal.integrated.gpuAcceleration": "auto" # "auto" is default, can also use "on"
-    "terminal.integrated.enableImages": false
+    "terminal.integrated.enableImages": true
     ```
 
     <p align="center">
@@ -58,7 +58,7 @@ The VSCode compatible protocols for viewing images using the integrated terminal
 
     1. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
-4. Now, use [OpenCV](https://www.ultralytics.com/glossary/opencv) to convert the `numpy.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
+4. Now, use [OpenCV](https://www.ultralytics.com/glossary/opencv) to convert the `np.ndarray` to `bytes` data. Then use `io.BytesIO` to make a "file-like" object.
 
     ```{ .py .annotate }
     import io

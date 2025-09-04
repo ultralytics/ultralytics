@@ -1,0 +1,38 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# DOTA8-Multispectral dataset (DOTA8 interpolated across 10 channels in the visual spectrum) by Ultralytics
+# Documentation: https://docs.ultralytics.com/datasets/obb/dota8/
+# Example usage: yolo train model=yolov8n-obb.pt data=dota8-multispectral.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── dota8-multispectral ← downloads here (37.3MB)
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: dota8-multispectral # dataset root dir
+train: images/train # train images (relative to 'path') 4 images
+val: images/val # val images (relative to 'path') 4 images
+
+# Number of multispectral image channels
+channels: 10
+
+# Classes for DOTA 1.0
+names:
+  0: plane
+  1: ship
+  2: storage tank
+  3: baseball diamond
+  4: tennis court
+  5: basketball court
+  6: ground track field
+  7: harbor
+  8: bridge
+  9: large vehicle
+  10: small vehicle
+  11: helicopter
+  12: roundabout
+  13: soccer ball field
+  14: swimming pool
+
+# Download script/URL (optional)
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/dota8-multispectral.zip

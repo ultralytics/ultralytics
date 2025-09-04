@@ -8,6 +8,17 @@ keywords: CoreML export, YOLO11 models, CoreML conversion, Ultralytics, iOS obje
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on Apple devices like iPhones and Macs requires a format that ensures seamless performance.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/hfSK3Mk5P0I"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to CoreML for 2x Fast Inference on Apple Devices 🚀
+</p>
+
 The CoreML export format allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for efficient [object detection](https://www.ultralytics.com/glossary/object-detection) in iOS and macOS applications. In this guide, we'll walk you through the steps for converting your models to the CoreML format, making it easier for your models to perform well on Apple devices.
 
 ## CoreML
@@ -45,7 +56,6 @@ Before we look at the code for exporting YOLO11 models to the CoreML format, let
 CoreML offers various deployment options for machine learning models, including:
 
 - **On-Device Deployment**: This method directly integrates CoreML models into your iOS app. It's particularly advantageous for ensuring low latency, enhanced privacy (since data remains on the device), and offline functionality. This approach, however, may be limited by the device's hardware capabilities, especially for larger and more complex models. On-device deployment can be executed in the following two ways.
-
     - **Embedded Models**: These models are included in the app bundle and are immediately accessible. They are ideal for small models that do not require frequent updates.
 
     - **Downloaded Models**: These models are fetched from a server as needed. This approach is suitable for larger models or those needing regular updates. It helps keep the app bundle size smaller.
@@ -99,7 +109,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         ```bash
         # Export a YOLO11n PyTorch model to CoreML format
-        yolo export model=yolo11n.pt format=coreml  # creates 'yolo11n.mlpackage''
+        yolo export model=yolo11n.pt format=coreml # creates 'yolo11n.mlpackage''
 
         # Run inference with the exported model
         yolo predict model=yolo11n.mlpackage source='https://ultralytics.com/images/bus.jpg'
@@ -107,14 +117,19 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
 ### Export Arguments
 
-| Argument | Type             | Default  | Description                                                                                                                                                                                   |
-| -------- | ---------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format` | `str`            | `coreml` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
-| `imgsz`  | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
-| `half`   | `bool`           | `False`  | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
-| `int8`   | `bool`           | `False`  | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
-| `nms`    | `bool`           | `False`  | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
-| `batch`  | `int`            | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
+| Argument | Type             | Default    | Description                                                                                                                                                                                   |
+| -------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format` | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                            |
+| `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                             |
+| `half`   | `bool`           | `False`    | Enables FP16 (half-precision) quantization, reducing model size and potentially speeding up inference on supported hardware.                                                                  |
+| `int8`   | `bool`           | `False`    | Activates INT8 quantization, further compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss, primarily for edge devices. |
+| `nms`    | `bool`           | `False`    | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                           |
+| `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                       |
+| `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                               |
+
+!!! tip
+
+    Please make sure to use a macOS or x86 Linux machine when exporting to CoreML.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -187,7 +202,6 @@ For more details on integrating your CoreML model into an iOS app, check out the
 Once you export your YOLO11 model to CoreML format, you have multiple deployment options:
 
 1. **On-Device Deployment**: Directly integrate CoreML models into your app for enhanced privacy and offline functionality. This can be done as:
-
     - **Embedded Models**: Included in the app bundle, accessible immediately.
     - **Downloaded Models**: Fetched from a server as needed, keeping the app bundle size smaller.
 

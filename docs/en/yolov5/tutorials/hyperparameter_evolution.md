@@ -1,21 +1,29 @@
 ---
 comments: true
 description: Learn how to optimize YOLOv5 hyperparameters using genetic algorithms for improved training performance. Step-by-step instructions included.
-keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning, optimization, Ultralytics
+keywords: YOLOv5, hyperparameter evolution, genetic algorithms, machine learning, optimization, Ultralytics, hyperparameter tuning
 ---
+
+# Hyperparameter Evolution for YOLOv5
 
 📚 This guide explains **hyperparameter evolution** for YOLOv5 🚀. Hyperparameter evolution is a method of [Hyperparameter Optimization](https://en.wikipedia.org/wiki/Hyperparameter_optimization) using a [Genetic Algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm) (GA) for optimization.
 
-Hyperparameters in ML control various aspects of training, and finding optimal values for them can be a challenge. Traditional methods like grid searches can quickly become intractable due to 1) the high dimensional search space 2) unknown correlations among the dimensions, and 3) expensive nature of evaluating the fitness at each point, making GA a suitable candidate for hyperparameter searches.
+Hyperparameters in [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) control various aspects of training, and finding optimal values for them can be a challenge. Traditional methods like grid searches can quickly become intractable due to:
+
+1. The high dimensional search space
+2. Unknown correlations among the dimensions
+3. Expensive nature of evaluating the fitness at each point
+
+This makes genetic algorithms a suitable candidate for hyperparameter searches.
 
 ## Before You Start
 
 Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 ## 1. Initialize Hyperparameters
@@ -72,7 +80,7 @@ def fitness(x):
 
 ## 3. Evolve
 
-Evolution is performed about a base scenario which we seek to improve upon. The base scenario in this example is [finetuning](https://www.ultralytics.com/glossary/fine-tuning) COCO128 for 10 [epochs](https://www.ultralytics.com/glossary/epoch) using pretrained YOLOv5s. The base scenario training command is:
+Evolution is performed about a base scenario which we seek to improve upon. The base scenario in this example is [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning) COCO128 for 10 [epochs](https://www.ultralytics.com/glossary/epoch) using pretrained YOLOv5s. The base scenario training command is:
 
 ```bash
 python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache
@@ -84,19 +92,23 @@ To evolve hyperparameters **specific to this scenario**, starting from our initi
 # Single-GPU
 python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --evolve
 
-# Multi-GPU
-for i in 0 1 2 3 4 5 6 7; do
-  sleep $(expr 30 \* $i) &&  # 30-second delay (optional)
-  echo 'Starting GPU '$i'...' &&
-  nohup python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > evolve_gpu_$i.log &
+# Multi-GPU with delay
+for i in {0..7}; do
+  sleep $((30 * i)) # 30-second delay (optional)
+  echo "Starting GPU $i..."
+  nohup python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > "evolve_gpu_$i.log" &
 done
 
-# Multi-GPU bash-while (not recommended)
-for i in 0 1 2 3 4 5 6 7; do
-  sleep $(expr 30 \* $i) &&  # 30-second delay (optional)
-  echo 'Starting GPU '$i'...' &&
-  "$(while true; do nohup python train.py... --device $i --evolve 1 > evolve_gpu_$i.log; done)" &
-done
+# Continuous training (use with caution)
+# for i in {0..7}; do
+#   sleep $((30 * i))  # 30-second delay (optional)
+#   echo "Starting continuous training on GPU $i..."
+#   (
+#     while true; do
+#       python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > "evolve_gpu_$i.log"
+#     done
+#   ) &
+# done
 ```
 
 The default evolution settings will run the base scenario 300 times, i.e. for 300 generations. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.

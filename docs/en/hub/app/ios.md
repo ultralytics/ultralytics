@@ -4,7 +4,7 @@ description: Discover the Ultralytics iOS App for running YOLO models on your iP
 keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple Neural Engine, Core ML, FP16 quantization, INT8 quantization, machine learning
 ---
 
-# Ultralytics iOS App: Real-time [Object Detection](https://www.ultralytics.com/glossary/object-detection) with YOLO Models
+# Ultralytics iOS App: Real-time Object Detection with YOLO Models
 
 <a href="https://www.ultralytics.com/hub" target="_blank">
   <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-android-app-detection.avif" alt="Ultralytics HUB preview image"></a>
@@ -25,7 +25,7 @@ keywords: Ultralytics, iOS App, YOLO models, real-time object detection, Apple N
   <a href="https://discord.com/invite/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-discord.png" width="3%" alt="Ultralytics Discord"></a>
   <br>
   <br>
-  <a href="https://apps.apple.com/xk/app/ultralytics/id1583935240" style="text-decoration:none;">
+  <a href="https://apps.apple.com/xk/app/ultralytics-hub/id1583935240" style="text-decoration:none;">
     <img src="https://raw.githubusercontent.com/ultralytics/assets/master/app/app-store.svg" width="15%" alt="Apple App store"></a>
 </div>
 
@@ -68,16 +68,27 @@ By combining quantized YOLO models with the Apple Neural Engine, the Ultralytics
 | 2020         | [iPhone 12](https://en.wikipedia.org/wiki/IPhone_12) | [A14 Bionic](https://en.wikipedia.org/wiki/Apple_A14) | 5 nm      | 11       |
 | 2021         | [iPhone 13](https://en.wikipedia.org/wiki/IPhone_13) | [A15 Bionic](https://en.wikipedia.org/wiki/Apple_A15) | 5 nm      | 15.8     |
 | 2022         | [iPhone 14](https://en.wikipedia.org/wiki/IPhone_14) | [A16 Bionic](https://en.wikipedia.org/wiki/Apple_A16) | 4 nm      | 17.0     |
+| 2023         | [iPhone 15](https://en.wikipedia.org/wiki/IPhone_15) | [A17 Pro](https://en.wikipedia.org/wiki/Apple_A17)    | 3 nm      | 35.0     |
 
-Please note that this list only includes iPhone models from 2017 onwards, and the ANE TOPs values are approximate.
+Please note that this list includes iPhone models from 2017 onwards, and the ANE TOPs values are approximate.
+
+## CoreML Integration
+
+The Ultralytics iOS App leverages [CoreML](https://docs.ultralytics.com/integrations/coreml/), Apple's foundational machine learning framework, to optimize YOLO models for iOS devices. CoreML provides several advantages:
+
+- **On-device processing**: All inference happens locally on your device, ensuring data privacy and eliminating the need for internet connectivity
+- **Hardware acceleration**: Automatically utilizes the Apple Neural Engine, CPU, and GPU for optimal performance
+- **Seamless integration**: Works natively with iOS camera and system frameworks
+
+CoreML converts YOLO models to a format that's optimized for Apple devices, allowing for efficient execution while maintaining detection accuracy.
 
 ## Getting Started with the Ultralytics iOS App
 
 To get started with the Ultralytics iOS App, follow these steps:
 
-1. Download the Ultralytics App from the [App Store](https://apps.apple.com/xk/app/ultralytics/id1583935240).
+1. Download the Ultralytics App from the [App Store](https://apps.apple.com/xk/app/ultralytics-hub/id1583935240).
 
-2. Launch the app on your iOS device and sign in with your Ultralytics account. If you don't have an account yet, create one [here](https://hub.ultralytics.com/).
+2. Launch the app on your iOS device and sign in with your Ultralytics account. If you don't have an account yet, create one at [Ultralytics HUB](https://hub.ultralytics.com/).
 
 3. Once signed in, you will see a list of your trained YOLO models. Select a model to use for object detection.
 

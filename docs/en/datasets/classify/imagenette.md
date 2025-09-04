@@ -6,7 +6,7 @@ keywords: ImageNette dataset, ImageNet subset, image classification, machine lea
 
 # ImageNette Dataset
 
-The [ImageNette](https://github.com/fastai/imagenette) dataset is a subset of the larger [Imagenet](https://www.image-net.org/) dataset, but it only includes 10 easily distinguishable classes. It was created to provide a quicker, easier-to-use version of Imagenet for software development and education.
+The [ImageNette](https://github.com/fastai/imagenette) dataset is a subset of the larger [ImageNet](https://www.image-net.org/) dataset, but it only includes 10 easily distinguishable classes. It was created to provide a quicker, easier-to-use version of ImageNet for software development and education.
 
 ## Key Features
 
@@ -23,7 +23,7 @@ The ImageNette dataset is split into two subsets:
 
 ## Applications
 
-The ImageNette dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), and various other machine learning algorithms. The dataset's straightforward format and well-chosen classes make it a handy resource for both beginner and experienced practitioners in the field of machine learning and computer vision.
+The ImageNette dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in image classification tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), and various other machine learning algorithms. The dataset's straightforward format and well-chosen classes make it a handy resource for both beginner and experienced practitioners in the field of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 
 ## Usage
 
@@ -60,7 +60,7 @@ The example showcases the variety and complexity of the images in the ImageNette
 
 ## ImageNette160 and ImageNette320
 
-For faster prototyping and training, the ImageNette dataset is also available in two reduced sizes: ImageNette160 and ImageNette320. These datasets maintain the same classes and structure as the full ImageNette dataset, but the images are resized to a smaller dimension. As such, these versions of the dataset are particularly useful for preliminary model testing, or when computational resources are limited.
+For faster prototyping and training, the ImageNette dataset is also available in two reduced sizes: [ImageNette160](https://github.com/fastai/imagenette) and [ImageNette320](https://github.com/fastai/imagenette). These datasets maintain the same classes and structure as the full ImageNette dataset, but the images are resized to a smaller dimension. As such, these versions of the dataset are particularly useful for preliminary model testing, or when computational resources are limited.
 
 To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imagenette320' in the training command. The following code snippets illustrate this:
 
@@ -177,7 +177,7 @@ Yes, the ImageNette dataset is also available in two resized versions: ImageNett
 
         ```bash
         # Start training from a pretrained *.pt model with ImageNette160
-        yolo detect train data=imagenette160 model=yolo11n-cls.pt epochs=100 imgsz=160
+        yolo classify train data=imagenette160 model=yolo11n-cls.pt epochs=100 imgsz=160
         ```
 
 For more information, refer to [Training with ImageNette160 and ImageNette320](#imagenette160-and-imagenette320).

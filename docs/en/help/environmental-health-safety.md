@@ -12,7 +12,7 @@ At Ultralytics, we recognize that the long-term success of our company relies no
 
 1. **Compliance**: We will comply with all applicable laws, regulations, and standards related to EHS, and we will strive to exceed these standards where possible.
 
-2. **Prevention**: We will work to prevent accidents, injuries, and environmental harm by implementing risk management measures and ensuring all our operations and procedures are safe.
+2. **Prevention**: We will work to prevent accidents, injuries, and environmental harm by implementing [risk management measures](https://docs.ultralytics.com/help/security/) and ensuring all our operations and procedures are safe.
 
 3. **Continuous Improvement**: We will continuously improve our EHS performance by setting measurable objectives, monitoring our performance, auditing our operations, and revising our policies and procedures as needed.
 
@@ -32,7 +32,7 @@ At Ultralytics, we recognize that the long-term success of our company relies no
 
 5. **Monitoring and Review**: We will monitor and review our EHS performance regularly to identify opportunities for improvement and ensure we are meeting our objectives.
 
-This policy reflects our commitment to minimizing our environmental footprint, ensuring the safety and well-being of our employees, and continuously improving our performance.
+This policy reflects our commitment to [minimizing our environmental footprint](https://www.ultralytics.com/blog/greener-future-through-vision-ai-and-ultralytics-yolo), ensuring the safety and well-being of our employees, and continuously improving our performance.
 
 Please remember that the implementation of an effective EHS policy requires the involvement and commitment of everyone working at or with Ultralytics. We encourage you to take personal responsibility for your safety and the safety of others, and to take care of the environment in which we live and work.
 

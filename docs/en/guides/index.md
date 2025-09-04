@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Master YOLO with Ultralytics tutorials covering training, deployment and optimization. Find solutions, improve metrics, and deploy with ease!.
+description: Master YOLO with Ultralytics tutorials covering training, deployment and optimization. Find solutions, improve metrics, and deploy with ease!
 keywords: Ultralytics, YOLO, tutorials, guides, object detection, deep learning, PyTorch, training, deployment, optimization, computer vision
 ---
 
@@ -28,6 +28,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [YOLO Common Issues](yolo-common-issues.md) ⭐ RECOMMENDED: Practical solutions and troubleshooting tips to the most frequently encountered issues when working with Ultralytics YOLO models.
 - [YOLO Performance Metrics](yolo-performance-metrics.md) ⭐ ESSENTIAL: Understand the key metrics like mAP, IoU, and [F1 score](https://www.ultralytics.com/glossary/f1-score) used to evaluate the performance of your YOLO models. Includes practical examples and tips on how to improve detection accuracy and speed.
 - [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md) 🚀 NEW: Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
+- [YOLO Data Augmentation](yolo-data-augmentation.md) 🚀 NEW: Master the complete range of data augmentation techniques in YOLO, from basic transformations to advanced strategies for improving model robustness and performance.
 - [Model Deployment Options](model-deployment-options.md): Overview of YOLO [model deployment](https://www.ultralytics.com/glossary/model-deployment) formats like ONNX, OpenVINO, and TensorRT, with pros and cons for each to inform your deployment strategy.
 - [K-Fold Cross Validation](kfold-cross-validation.md) 🚀 NEW: Learn how to improve model generalization using K-Fold cross-validation technique.
 - [Hyperparameter Tuning](hyperparameter-tuning.md) 🚀 NEW: Discover how to optimize your YOLO models by fine-tuning hyperparameters using the Tuner class and genetic evolution algorithms.
@@ -44,7 +45,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [View Inference Images in a Terminal](view-results-in-terminal.md): Use VSCode's integrated terminal to view inference results when using Remote Tunnel or SSH sessions.
 - [OpenVINO Latency vs Throughput Modes](optimizing-openvino-latency-vs-throughput-modes.md) - Learn latency and throughput optimization techniques for peak YOLO inference performance.
 - [ROS Quickstart](ros-quickstart.md) 🚀 NEW: Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
-- [Steps of a Computer Vision Project ](steps-of-a-cv-project.md) 🚀 NEW: Learn about the key steps involved in a computer vision project, including defining goals, selecting models, preparing data, and evaluating results.
+- [Steps of a Computer Vision Project](steps-of-a-cv-project.md) 🚀 NEW: Learn about the key steps involved in a computer vision project, including defining goals, selecting models, preparing data, and evaluating results.
 - [Defining A Computer Vision Project's Goals](defining-project-goals.md) 🚀 NEW: Walk through how to effectively define clear and measurable goals for your computer vision project. Learn the importance of a well-defined problem statement and how it creates a roadmap for your project.
 - [Data Collection and Annotation](data-collection-and-annotation.md) 🚀 NEW: Explore the tools, techniques, and best practices for collecting and annotating data to create high-quality inputs for your computer vision models.
 - [Preprocessing Annotated Data](preprocessing_annotated_data.md) 🚀 NEW: Learn about preprocessing and augmenting image data in computer vision projects using YOLO11, including normalization, dataset augmentation, splitting, and exploratory data analysis (EDA).
@@ -53,6 +54,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [A Guide on Model Testing](model-testing.md) 🚀 NEW: A thorough guide on testing your computer vision models in realistic settings. Learn how to verify accuracy, reliability, and performance in line with project goals.
 - [Best Practices for Model Deployment](model-deployment-practices.md) 🚀 NEW: Walk through tips and best practices for efficiently deploying models in computer vision projects, with a focus on optimization, troubleshooting, and security.
 - [Maintaining Your Computer Vision Model](model-monitoring-and-maintenance.md) 🚀 NEW: Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.
+- [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md) 🚀 NEW: Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
 
 ## Contribute to Our Guides
 

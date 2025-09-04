@@ -32,17 +32,13 @@ This guide serves as a comprehensive aid for troubleshooting common issues encou
 Installation errors can arise due to various reasons, such as incompatible versions, missing dependencies, or incorrect environment setups. First, check to make sure you are doing the following:
 
 - You're using Python 3.8 or later as recommended.
-
 - Ensure that you have the correct version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later) installed.
-
 - Consider using virtual environments to avoid conflicts.
-
 - Follow the [official installation guide](../quickstart.md) step by step.
 
 Additionally, here are some common installation issues users have encountered, along with their respective solutions:
 
 - Import Errors or Dependency Issues - If you're getting errors during the import of YOLO11, or you're having issues related to dependencies, consider the following troubleshooting steps:
-
     - **Fresh Installation**: Sometimes, starting with a fresh installation can resolve unexpected issues. Especially with libraries like Ultralytics, where updates might introduce changes to the file tree structure or functionalities.
 
     - **Update Regularly**: Ensure you're using the latest version of the library. Older versions might not be compatible with recent updates, leading to potential conflicts or issues.
@@ -54,7 +50,6 @@ Additionally, here are some common installation issues users have encountered, a
     - Remember, keeping your libraries and dependencies up-to-date is crucial for a smooth and error-free experience.
 
 - Running YOLO11 on GPU - If you're having trouble running YOLO11 on GPU, consider the following troubleshooting steps:
-
     - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
 
     - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
@@ -78,9 +73,9 @@ This section will address common issues faced while training and their respectiv
 - Confirm that the path to your `.yaml` configuration file is correct.
 - Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
 
-```python
-model.train(data="/path/to/your/data.yaml", batch=4)
-```
+    ```python
+    model.train(data="/path/to/your/data.yaml", batch=4)
+    ```
 
 #### Accelerating Training with Multiple GPUs
 
@@ -89,17 +84,14 @@ model.train(data="/path/to/your/data.yaml", batch=4)
 **Solution**: Increasing the [batch size](https://www.ultralytics.com/glossary/batch-size) can accelerate training, but it's essential to consider GPU memory capacity. To speed up training with multiple GPUs, follow these steps:
 
 - Ensure that you have multiple GPUs available.
-
 - Modify your .yaml configuration file to specify the number of GPUs to use, e.g., gpus: 4.
-
 - Increase the batch size accordingly to fully utilize the multiple GPUs without exceeding memory limits.
-
 - Modify your training command to utilize multiple GPUs:
 
-```python
-# Adjust the batch size and other settings as needed to optimize training speed
-model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
-```
+    ```python
+    # Adjust the batch size and other settings as needed to optimize training speed
+    model.train(data="/path/to/your/data.yaml", batch=32, multi_scale=True)
+    ```
 
 #### Continuous Monitoring Parameters
 
@@ -146,31 +138,26 @@ Here are some things to keep in mind, if you are facing issues related to model 
 **Dataset Format and Labels**
 
 - Importance: The foundation of any [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) model lies in the quality and format of the data it is trained on.
-
 - Recommendation: Ensure that your custom dataset and its associated labels adhere to the expected format. It's crucial to verify that annotations are accurate and of high quality. Incorrect or subpar annotations can derail the model's learning process, leading to unpredictable outcomes.
 
 **Model Convergence**
 
 - Importance: Achieving model convergence ensures that the model has sufficiently learned from the [training data](https://www.ultralytics.com/glossary/training-data).
-
 - Recommendation: When training a model 'from scratch', it's vital to ensure that the model reaches a satisfactory level of convergence. This might necessitate a longer training duration, with more [epochs](https://www.ultralytics.com/glossary/epoch), compared to when you're fine-tuning an existing model.
 
 **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) and Batch Size**
 
 - Importance: These hyperparameters play a pivotal role in determining how the model updates its weights during training.
-
 - Recommendation: Regularly evaluate if the chosen learning rate and batch size are optimal for your specific dataset. Parameters that are not in harmony with the dataset's characteristics can hinder the model's performance.
 
 **Class Distribution**
 
 - Importance: The distribution of classes in your dataset can influence the model's prediction tendencies.
-
 - Recommendation: Regularly assess the distribution of classes within your dataset. If there's a class imbalance, there's a risk that the model will develop a bias towards the more prevalent class. This bias can be evident in the confusion matrix, where the model might predominantly predict the majority class.
 
 **Cross-Check with Pretrained Weights**
 
 - Importance: Leveraging pretrained weights can provide a solid starting point for model training, especially when data is limited.
-
 - Recommendation: As a diagnostic step, consider training your model using the same data but initializing it with pretrained weights. If this approach yields a well-formed confusion matrix, it could suggest that the 'from scratch' model might require further training or adjustments.
 
 ### Issues Related to Model Predictions
@@ -185,13 +172,13 @@ This section will address common issues faced during model prediction.
 
 - Coordinate Format: YOLO11 provides bounding box coordinates in absolute pixel values. To convert these to relative coordinates (ranging from 0 to 1), you need to divide by the image dimensions. For example, let's say your image size is 640x640. Then you would do the following:
 
-```python
-# Convert absolute coordinates to relative coordinates
-x1 = x1 / 640  # Divide x-coordinates by image width
-x2 = x2 / 640
-y1 = y1 / 640  # Divide y-coordinates by image height
-y2 = y2 / 640
-```
+    ```python
+    # Convert absolute coordinates to relative coordinates
+    x1 = x1 / 640  # Divide x-coordinates by image width
+    x2 = x2 / 640
+    y1 = y1 / 640  # Divide y-coordinates by image height
+    y2 = y2 / 640
+    ```
 
 - File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
 
@@ -201,7 +188,7 @@ y2 = y2 / 640
 
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
-```shell
+```bash
 yolo task=detect mode=segment model=yolo11n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
@@ -251,15 +238,10 @@ for box in boxes:
 **Solution:**
 
 - Compatibility Check: Ensure that you are using versions of libraries and frameworks that are compatible with each other. Mismatched versions can lead to unexpected errors during conversion.
-
 - Environment Reset: If you're using an interactive environment like Jupyter or Colab, consider restarting your environment after making significant changes or installations. A fresh start can sometimes resolve underlying issues.
-
 - Official Documentation: Always refer to the official documentation of the tool or library you are using for conversion. It often contains specific guidelines and best practices for model exporting.
-
 - Community Support: Check the library or framework's official repository for similar issues reported by other users. The maintainers or community might have provided solutions or workarounds in discussion threads.
-
 - Update Regularly: Ensure that you are using the latest version of the tool or library. Developers frequently release updates that fix known bugs or improve functionality.
-
 - Test Incrementally: Before performing a full conversion, test the process with a smaller model or dataset to identify potential issues early on.
 
 ## Community and Support

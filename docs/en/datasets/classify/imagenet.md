@@ -29,7 +29,7 @@ The annual [ImageNet Large Scale Visual Recognition Challenge (ILSVRC)](https://
 
 ## Applications
 
-The ImageNet dataset is widely used for training and evaluating deep learning models in various computer vision tasks, such as image classification, object detection, and object localization. Some popular deep learning architectures, such as AlexNet, VGG, and ResNet, were developed and benchmarked using the ImageNet dataset.
+The ImageNet dataset is widely used for training and evaluating deep learning models in various computer vision tasks, such as image classification, object detection, and object localization. Some popular deep learning architectures, such as [AlexNet](https://en.wikipedia.org/wiki/AlexNet), [VGG](https://arxiv.org/abs/1409.1556), and [ResNet](https://arxiv.org/abs/1512.03385), were developed and benchmarked using the ImageNet dataset.
 
 ## Usage
 
@@ -121,7 +121,7 @@ For more in-depth training instruction, refer to our [Training page](../../modes
 
 ### Why should I use the Ultralytics YOLO11 pretrained models for my ImageNet dataset projects?
 
-Ultralytics YOLO11 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO11n-cls model, with a top-1 accuracy of 69.0% and a top-5 accuracy of 88.3%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO11 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
+Ultralytics YOLO11 pretrained models offer state-of-the-art performance in terms of speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) for various computer vision tasks. For example, the YOLO11n-cls model, with a top-1 accuracy of 70.0% and a top-5 accuracy of 89.4%, is optimized for real-time applications. Pretrained models reduce the computational resources required for training from scratch and accelerate development cycles. Learn more about the performance metrics of YOLO11 models in the [ImageNet Pretrained Models section](#imagenet-pretrained-models).
 
 ### How is the ImageNet dataset structured, and why is it important?
 

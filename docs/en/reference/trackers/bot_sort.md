@@ -17,4 +17,8 @@ keywords: Ultralytics, Bot SORT, BOTrack, BOTSORT, YOLOv8, object tracking, Kalm
 
 ## ::: ultralytics.trackers.bot_sort.BOTSORT
 
+<br><br><hr><br>
+
+## ::: ultralytics.trackers.bot_sort.ReID
+
 <br><br>

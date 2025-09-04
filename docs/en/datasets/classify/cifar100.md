@@ -36,7 +36,7 @@ The CIFAR-100 dataset is split into two subsets:
 
 ## Applications
 
-The CIFAR-100 dataset is extensively used for training and evaluating deep learning models in image classification tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), Support Vector Machines (SVMs), and various other machine learning algorithms. The diversity of the dataset in terms of classes and the presence of color images make it a more challenging and comprehensive dataset for research and development in the field of machine learning and computer vision.
+The CIFAR-100 dataset is extensively used for training and evaluating deep learning models in [image classification](https://www.ultralytics.com/glossary/image-classification) tasks, such as [Convolutional Neural Networks](https://www.ultralytics.com/glossary/convolutional-neural-network-cnn) (CNNs), [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs), and various other machine learning algorithms. The diversity of the dataset in terms of classes and the presence of color images make it a more challenging and comprehensive dataset for research and development in the field of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision.
 
 ## Usage
 
@@ -65,7 +65,7 @@ To train a YOLO model on the CIFAR-100 dataset for 100 [epochs](https://www.ultr
 
 ## Sample Images and Annotations
 
-The CIFAR-100 dataset contains color images of various objects, providing a well-structured dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
+The CIFAR-100 dataset contains color images of various objects, providing a well-structured dataset for image classification tasks. Here are some examples of images from the dataset:
 
 ![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/cifar100-sample-image.avif)
 
@@ -88,13 +88,13 @@ If you use the CIFAR-100 dataset in your research or development work, please ci
         }
         ```
 
-We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and computer vision research community. For more information about the CIFAR-100 dataset and its creator, visit the [CIFAR-100 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).
+We would like to acknowledge Alex Krizhevsky for creating and maintaining the CIFAR-100 dataset as a valuable resource for the machine learning and computer vision research community. For more information about the CIFAR-100 dataset and its creator, visit the [CIFAR-100 dataset website](https://www.cs.toronto.edu/~kriz/cifar.html).
 
 ## FAQ
 
 ### What is the CIFAR-100 dataset and why is it significant?
 
-The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large collection of 60,000 32x32 color images classified into 100 classes. Developed by the Canadian Institute For Advanced Research (CIFAR), it provides a challenging dataset ideal for complex machine learning and computer vision tasks. Its significance lies in the diversity of classes and the small size of the images, making it a valuable resource for training and testing deep learning models, like Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs), using frameworks such as Ultralytics YOLO.
+The [CIFAR-100 dataset](https://www.cs.toronto.edu/~kriz/cifar.html) is a large collection of 60,000 32x32 color images classified into 100 classes. Developed by the Canadian Institute For Advanced Research (CIFAR), it provides a challenging dataset ideal for complex machine learning and computer vision tasks. Its significance lies in the diversity of classes and the small size of the images, making it a valuable resource for training and testing [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models, like Convolutional [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn) (CNNs), using frameworks such as [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/).
 
 ### How do I train a YOLO model on the CIFAR-100 dataset?
 
@@ -125,7 +125,7 @@ For a comprehensive list of available arguments, please refer to the model [Trai
 
 ### What are the primary applications of the CIFAR-100 dataset?
 
-The CIFAR-100 dataset is extensively used in training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models for image classification. Its diverse set of 100 classes, grouped into 20 coarse categories, provides a challenging environment for testing algorithms such as Convolutional Neural Networks (CNNs), [Support Vector Machines](https://www.ultralytics.com/glossary/support-vector-machine-svm) (SVMs), and various other machine learning approaches. This dataset is a key resource in research and development within machine learning and computer vision fields.
+The CIFAR-100 dataset is extensively used in training and evaluating deep learning models for image classification. Its diverse set of 100 classes, grouped into 20 coarse categories, provides a challenging environment for testing algorithms such as Convolutional Neural Networks (CNNs), Support Vector Machines (SVMs), and various other machine learning approaches. This dataset is a key resource in research and development within machine learning and computer vision fields, particularly for [object recognition](https://docs.ultralytics.com/tasks/classify/) and classification tasks.
 
 ### How is the CIFAR-100 dataset structured?
 
@@ -138,4 +138,4 @@ Each of the 100 classes contains 600 images, with 500 images for training and 10
 
 ### Where can I find sample images and annotations from the CIFAR-100 dataset?
 
-The CIFAR-100 dataset includes a variety of color images of various objects, making it a structured dataset for image classification tasks. You can refer to the documentation page to see [sample images and annotations](#sample-images-and-annotations). These examples highlight the dataset's diversity and complexity, important for training robust image classification models.
+The CIFAR-100 dataset includes a variety of color images of various objects, making it a structured dataset for image classification tasks. You can refer to the documentation page to see [sample images and annotations](#sample-images-and-annotations). These examples highlight the dataset's diversity and complexity, important for training robust image classification models. For more datasets suitable for classification tasks, check out [Ultralytics' classification datasets overview](https://docs.ultralytics.com/datasets/classify/).

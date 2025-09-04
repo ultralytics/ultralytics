@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import math
-from typing import Tuple, Type
 
 import torch
 from torch import Tensor, nn
@@ -27,7 +28,7 @@ class TwoWayTransformer(nn.Module):
         norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
 
     Methods:
-        forward: Processes image and point embeddings through the transformer.
+        forward: Process image and point embeddings through the transformer.
 
     Examples:
         >>> transformer = TwoWayTransformer(depth=6, embedding_dim=256, num_heads=8, mlp_dim=2048)
@@ -44,7 +45,7 @@ class TwoWayTransformer(nn.Module):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
     ) -> None:
         """
@@ -55,25 +56,8 @@ class TwoWayTransformer(nn.Module):
             embedding_dim (int): Channel dimension for input embeddings.
             num_heads (int): Number of heads for multihead attention. Must divide embedding_dim.
             mlp_dim (int): Internal channel dimension for the MLP block.
-            activation (Type[nn.Module]): Activation function to use in the MLP block.
-            attention_downsample_rate (int): Downsampling rate for attention mechanism.
-
-        Attributes:
-            depth (int): Number of layers in the transformer.
-            embedding_dim (int): Channel dimension for input embeddings.
-            num_heads (int): Number of heads for multihead attention.
-            mlp_dim (int): Internal channel dimension for the MLP block.
-            layers (nn.ModuleList): List of TwoWayAttentionBlock layers.
-            final_attn_token_to_image (Attention): Final attention layer from queries to image.
-            norm_final_attn (nn.LayerNorm): Layer normalization applied to final queries.
-
-        Examples:
-            >>> transformer = TwoWayTransformer(depth=6, embedding_dim=256, num_heads=8, mlp_dim=2048)
-            >>> image_embedding = torch.randn(1, 256, 32, 32)
-            >>> image_pe = torch.randn(1, 256, 32, 32)
-            >>> point_embedding = torch.randn(1, 100, 256)
-            >>> output_queries, output_image = transformer(image_embedding, image_pe, point_embedding)
-            >>> print(output_queries.shape, output_image.shape)
+            activation (Type[nn.Module], optional): Activation function to use in the MLP block.
+            attention_downsample_rate (int, optional): Downsampling rate for attention mechanism.
         """
         super().__init__()
         self.depth = depth
@@ -99,12 +83,12 @@ class TwoWayTransformer(nn.Module):
 
     def forward(
         self,
-        image_embedding: Tensor,
-        image_pe: Tensor,
-        point_embedding: Tensor,
-    ) -> Tuple[Tensor, Tensor]:
+        image_embedding: torch.Tensor,
+        image_pe: torch.Tensor,
+        point_embedding: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Processes image and point embeddings through the Two-Way Transformer.
+        Process image and point embeddings through the Two-Way Transformer.
 
         Args:
             image_embedding (torch.Tensor): Image to attend to, with shape (B, embedding_dim, H, W).
@@ -112,15 +96,8 @@ class TwoWayTransformer(nn.Module):
             point_embedding (torch.Tensor): Embedding to add to query points, with shape (B, N_points, embedding_dim).
 
         Returns:
-            (Tuple[torch.Tensor, torch.Tensor]): Processed point_embedding and image_embedding.
-
-        Examples:
-            >>> transformer = TwoWayTransformer(depth=6, embedding_dim=256, num_heads=8, mlp_dim=2048)
-            >>> image_embedding = torch.randn(1, 256, 32, 32)
-            >>> image_pe = torch.randn(1, 256, 32, 32)
-            >>> point_embedding = torch.randn(1, 100, 256)
-            >>> output_queries, output_image = transformer(image_embedding, image_pe, point_embedding)
-            >>> print(output_queries.shape, output_image.shape)
+            queries (torch.Tensor): Processed point embeddings with shape (B, N_points, embedding_dim).
+            keys (torch.Tensor): Processed image embeddings with shape (B, H*W, embedding_dim).
         """
         # BxCxHxW -> BxHWxC == B x N_image_tokens x C
         image_embedding = image_embedding.flatten(2).permute(0, 2, 1)
@@ -169,7 +146,7 @@ class TwoWayAttentionBlock(nn.Module):
         skip_first_layer_pe (bool): Whether to skip positional encoding in the first layer.
 
     Methods:
-        forward: Applies self-attention and cross-attention to queries and keys.
+        forward: Apply self-attention and cross-attention to queries and keys.
 
     Examples:
         >>> embedding_dim, num_heads = 256, 8
@@ -186,12 +163,12 @@ class TwoWayAttentionBlock(nn.Module):
         embedding_dim: int,
         num_heads: int,
         mlp_dim: int = 2048,
-        activation: Type[nn.Module] = nn.ReLU,
+        activation: type[nn.Module] = nn.ReLU,
         attention_downsample_rate: int = 2,
         skip_first_layer_pe: bool = False,
     ) -> None:
         """
-        Initializes a TwoWayAttentionBlock for simultaneous attention to image and query points.
+        Initialize a TwoWayAttentionBlock for simultaneous attention to image and query points.
 
         This block implements a specialized transformer layer with four main components: self-attention on sparse
         inputs, cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention
@@ -200,19 +177,10 @@ class TwoWayAttentionBlock(nn.Module):
         Args:
             embedding_dim (int): Channel dimension of the embeddings.
             num_heads (int): Number of attention heads in the attention layers.
-            mlp_dim (int): Hidden dimension of the MLP block.
-            activation (Type[nn.Module]): Activation function for the MLP block.
-            attention_downsample_rate (int): Downsampling rate for the attention mechanism.
-            skip_first_layer_pe (bool): Whether to skip positional encoding in the first layer.
-
-        Examples:
-            >>> embedding_dim, num_heads = 256, 8
-            >>> block = TwoWayAttentionBlock(embedding_dim, num_heads)
-            >>> queries = torch.randn(1, 100, embedding_dim)
-            >>> keys = torch.randn(1, 1000, embedding_dim)
-            >>> query_pe = torch.randn(1, 100, embedding_dim)
-            >>> key_pe = torch.randn(1, 1000, embedding_dim)
-            >>> processed_queries, processed_keys = block(queries, keys, query_pe, key_pe)
+            mlp_dim (int, optional): Hidden dimension of the MLP block.
+            activation (Type[nn.Module], optional): Activation function for the MLP block.
+            attention_downsample_rate (int, optional): Downsampling rate for the attention mechanism.
+            skip_first_layer_pe (bool, optional): Whether to skip positional encoding in the first layer.
         """
         super().__init__()
         self.self_attn = Attention(embedding_dim, num_heads)
@@ -229,8 +197,22 @@ class TwoWayAttentionBlock(nn.Module):
 
         self.skip_first_layer_pe = skip_first_layer_pe
 
-    def forward(self, queries: Tensor, keys: Tensor, query_pe: Tensor, key_pe: Tensor) -> Tuple[Tensor, Tensor]:
-        """Applies two-way attention to process query and key embeddings in a transformer block."""
+    def forward(
+        self, queries: torch.Tensor, keys: torch.Tensor, query_pe: torch.Tensor, key_pe: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Apply two-way attention to process query and key embeddings in a transformer block.
+
+        Args:
+            queries (torch.Tensor): Query embeddings with shape (B, N_queries, embedding_dim).
+            keys (torch.Tensor): Key embeddings with shape (B, N_keys, embedding_dim).
+            query_pe (torch.Tensor): Positional encodings for queries with same shape as queries.
+            key_pe (torch.Tensor): Positional encodings for keys with same shape as keys.
+
+        Returns:
+            queries (torch.Tensor): Processed query embeddings with shape (B, N_queries, embedding_dim).
+            keys (torch.Tensor): Processed key embeddings with shape (B, N_keys, embedding_dim).
+        """
         # Self attention block
         if self.skip_first_layer_pe:
             queries = self.self_attn(q=queries, k=queries, v=queries)
@@ -280,9 +262,9 @@ class Attention(nn.Module):
         out_proj (nn.Linear): Linear projection for output.
 
     Methods:
-        _separate_heads: Separates input tensor into attention heads.
-        _recombine_heads: Recombines separated attention heads.
-        forward: Computes attention output for given query, key, and value tensors.
+        _separate_heads: Separate input tensor into attention heads.
+        _recombine_heads: Recombine separated attention heads.
+        forward: Compute attention output for given query, key, and value tensors.
 
     Examples:
         >>> attn = Attention(embedding_dim=256, num_heads=8, downsample_rate=2)
@@ -301,27 +283,16 @@ class Attention(nn.Module):
         kv_in_dim: int = None,
     ) -> None:
         """
-        Initializes the Attention module with specified dimensions and settings.
-
-        This class implements a multi-head attention mechanism with optional downsampling of the internal
-        dimension for queries, keys, and values.
+        Initialize the Attention module with specified dimensions and settings.
 
         Args:
             embedding_dim (int): Dimensionality of input embeddings.
             num_heads (int): Number of attention heads.
-            downsample_rate (int): Factor by which internal dimensions are downsampled. Defaults to 1.
-            kv_in_dim (int | None): Dimensionality of key and value inputs. If None, uses embedding_dim.
+            downsample_rate (int, optional): Factor by which internal dimensions are downsampled.
+            kv_in_dim (int | None, optional): Dimensionality of key and value inputs. If None, uses embedding_dim.
 
         Raises:
             AssertionError: If num_heads does not evenly divide the internal dim (embedding_dim / downsample_rate).
-
-        Examples:
-            >>> attn = Attention(embedding_dim=256, num_heads=8, downsample_rate=2)
-            >>> q = torch.randn(1, 100, 256)
-            >>> k = v = torch.randn(1, 50, 256)
-            >>> output = attn(q, k, v)
-            >>> print(output.shape)
-            torch.Size([1, 100, 256])
         """
         super().__init__()
         self.embedding_dim = embedding_dim
@@ -336,21 +307,31 @@ class Attention(nn.Module):
         self.out_proj = nn.Linear(self.internal_dim, embedding_dim)
 
     @staticmethod
-    def _separate_heads(x: Tensor, num_heads: int) -> Tensor:
-        """Separates the input tensor into the specified number of attention heads."""
+    def _separate_heads(x: torch.Tensor, num_heads: int) -> torch.Tensor:
+        """Separate the input tensor into the specified number of attention heads."""
         b, n, c = x.shape
         x = x.reshape(b, n, num_heads, c // num_heads)
         return x.transpose(1, 2)  # B x N_heads x N_tokens x C_per_head
 
     @staticmethod
     def _recombine_heads(x: Tensor) -> Tensor:
-        """Recombines separated attention heads into a single tensor."""
+        """Recombine separated attention heads into a single tensor."""
         b, n_heads, n_tokens, c_per_head = x.shape
         x = x.transpose(1, 2)
         return x.reshape(b, n_tokens, n_heads * c_per_head)  # B x N_tokens x C
 
-    def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
-        """Applies multi-head attention to query, key, and value tensors with optional downsampling."""
+    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+        """
+        Apply multi-head attention to query, key, and value tensors with optional downsampling.
+
+        Args:
+            q (torch.Tensor): Query tensor with shape (B, N_q, embedding_dim).
+            k (torch.Tensor): Key tensor with shape (B, N_k, embedding_dim).
+            v (torch.Tensor): Value tensor with shape (B, N_k, embedding_dim).
+
+        Returns:
+            (torch.Tensor): Output tensor after attention with shape (B, N_q, embedding_dim).
+        """
         # Input projections
         q = self.q_proj(q)
         k = self.k_proj(k)

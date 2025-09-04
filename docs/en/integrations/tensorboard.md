@@ -47,7 +47,7 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 
     === "Python"
 
-        ```ipython
+        ```bash
         %load_ext tensorboard
         %tensorboard --logdir path/to/runs
         ```
@@ -55,6 +55,20 @@ When using Google Colab, it's important to set up TensorBoard before starting yo
 ## Usage
 
 Before diving into the usage instructions, be sure to check out the range of [YOLO11 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
+
+!!! tip "Enable or Disable TensorBoard"
+
+    By default, TensorBoard logging is disabled. You can enable or disable the logging by using the `yolo settings` command.
+
+    === "CLI"
+
+        ```bash
+        # Enable TensorBoard logging
+        yolo settings tensorboard=True
+
+        # Disable TensorBoard logging
+        yolo settings tensorboard=False
+        ```
 
 !!! example "Usage"
 
@@ -76,7 +90,7 @@ Upon running the usage code snippet above, you can expect the following output:
 TensorBoard: Start with 'tensorboard --logdir path_to_your_tensorboard_logs', view at http://localhost:6006/
 ```
 
-This output indicates that TensorBoard is now actively monitoring your YOLO11 training session. You can access the TensorBoard dashboard by visiting the provided URL (http://localhost:6006/) to view real-time training metrics and model performance. For users working in Google Colab, the TensorBoard will be displayed in the same cell where you executed the TensorBoard configuration commands.
+This output indicates that TensorBoard is now actively monitoring your YOLO11 training session. You can access the TensorBoard dashboard by visiting the provided URL (http://localhost:6006/) to view real-time training metrics and model performance. For users working in [Google Colab](../integrations/google-colab.md), the TensorBoard will be displayed in the same cell where you executed the TensorBoard configuration commands.
 
 For more information related to the model training process, be sure to check our [YOLO11 Model Training guide](../modes/train.md). If you are interested in learning more about logging, checkpoints, plotting, and file management, read our [usage guide on configuration](../usage/cfg.md).
 
@@ -102,7 +116,7 @@ The Time Series feature in the TensorBoard offers a dynamic and detailed perspec
 
 #### Importance of Time Series in YOLO11 Training
 
-The Time Series section is essential for a thorough analysis of the YOLO11 model's training progress. It lets you track the metrics in real time to promptly identify and solve issues. It also offers a detailed view of each metrics progression, which is crucial for fine-tuning the model and enhancing its performance.
+The Time Series section is essential for a thorough analysis of the YOLO11 model's training progress. It lets you track the metrics in real time to promptly identify and solve issues. It also offers a detailed view of each metric's progression, which is crucial for fine-tuning the model and enhancing its performance.
 
 ### Scalars
 
@@ -115,7 +129,6 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 - **Learning Rate (lr) Tags**: These tags show the variations in the learning rate across different segments (e.g., `pg0`, `pg1`, `pg2`). This helps us understand the impact of learning rate adjustments on the training process.
 
 - **Metrics Tags**: Scalars include performance indicators such as:
-
     - `mAP50 (B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
 
     - `mAP50-95 (B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
@@ -134,7 +147,7 @@ Observing scalar metrics is crucial for fine-tuning the YOLO11 model. Variations
 
 ### Difference Between Scalars and Time Series
 
-While both Scalars and Time Series in TensorBoard are used for tracking metrics, they serve slightly different purposes. Scalars focus on plotting simple metrics such as loss and accuracy as scalar values. They provide a high-level overview of how these metrics change with each training epoch. While, the time-series section of the TensorBoard offers a more detailed timeline view of various metrics. It is particularly useful for monitoring the progression and trends of metrics over time, providing a deeper dive into the specifics of the training process.
+While both Scalars and Time Series in TensorBoard are used for tracking metrics, they serve slightly different purposes. Scalars focus on plotting simple metrics such as loss and accuracy as scalar values. They provide a high-level overview of how these metrics change with each training epoch. Meanwhile, the time-series section of the TensorBoard offers a more detailed timeline view of various metrics. It is particularly useful for monitoring the progression and trends of metrics over time, providing a deeper dive into the specifics of the training process.
 
 ### Graphs
 
@@ -193,7 +206,7 @@ Yes, you can use TensorBoard in a Google Colab environment to train YOLO11 model
 
     === "Python"
 
-        ```ipython
+        ```bash
         %load_ext tensorboard
         %tensorboard --logdir path/to/runs
         ```

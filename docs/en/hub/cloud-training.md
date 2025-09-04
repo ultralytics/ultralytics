@@ -22,7 +22,7 @@ We've listened to the high demand and widespread interest and are thrilled to un
 
 ## Train Model
 
-In order to train models using Ultralytics Cloud Training, you need to [upgrade](./pro.md#upgrade) to the [Pro Plan](./pro.md).
+In order to train models using Ultralytics Cloud Training, you need to [upgrade](./pro.md#how-to-upgrade) to the [Pro Plan](./pro.md).
 
 Follow the [Train Model](./models.md#train-model) instructions from the [Models](./models.md) page until you reach the third step ([Train](./models.md#3-train)) of the **Train Model** dialog. Once you are on this step, simply select the training duration (Epochs or Timed), the training instance, the payment method, and click the **Start Training** button. That's it!
 
@@ -34,29 +34,29 @@ Follow the [Train Model](./models.md#train-model) instructions from the [Models]
 
     ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Start Training card](https://github.com/ultralytics/docs/releases/download/0/hub-cloud-training-model-page-start-training.avif)
 
-Most of the time, you will use the Epochs training. The number of epochs can be adjusted on this step (if the training didn't start yet) and represents the number of times your dataset needs to go through the cycle of train, label, and test. The exact pricing based on the number of epochs is hard to determine, reason why we only allow the [Account Balance](./pro.md#account-balance) payment method.
+Most of the time, you will use the Epochs training. The number of epochs can be adjusted on this step (if the training didn't start yet) and represents the number of times your dataset needs to go through the cycle of train, label, and test. The exact pricing based on the number of epochs is hard to determine, reason why we only allow the [Account Balance](./pro.md#managing-your-account-balance) payment method.
 
 !!! note
 
-    When using the Epochs training, your [account balance](./pro.md#account-balance) needs to be at least US$5.00 to start training. In case you have a low balance, you can top-up directly from this step.
+    When using the Epochs training, your [account balance](./pro.md#managing-your-account-balance) needs to be at least US$5.00 to start training. In case you have a low balance, you can top-up directly from this step.
 
     ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Top-Up button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-dialog-top-up.avif)
 
 !!! note
 
-    When using the Epochs training, the [account balance](./pro.md#account-balance) is deducted after every [epoch](https://www.ultralytics.com/glossary/epoch).
+    When using the Epochs training, the [account balance](./pro.md#managing-your-account-balance) is deducted after every [epoch](https://www.ultralytics.com/glossary/epoch).
 
-    Also, after every epoch, we check if you have enough [account balance](./pro.md#account-balance) for the next epoch. In case you don't have enough [account balance](./pro.md#account-balance) for the next epoch, we will stop the training session, allowing you to resume training your model from the last checkpoint saved.
+    Also, after every epoch, we check if you have enough [account balance](./pro.md#managing-your-account-balance) for the next epoch. In case you don't have enough [account balance](./pro.md#managing-your-account-balance) for the next epoch, we will stop the training session, allowing you to resume training your model from the last checkpoint saved.
 
     ![Ultralytics HUB screenshot of the Model page with an arrow pointing to the Resume Training button](https://github.com/ultralytics/docs/releases/download/0/hub-cloud-training-resume-training-button.avif)
 
-Alternatively, you can use the Timed training. This option allows you to set the training duration. In this case, we can determine the exact pricing. You can pay upfront or using your [account balance](./pro.md#account-balance).
+Alternatively, you can use the Timed training. This option allows you to set the training duration. In this case, we can determine the exact pricing. You can pay upfront or using your [account balance](./pro.md#managing-your-account-balance).
 
-If you have enough [account balance](./pro.md#account-balance), you can use the [Account Balance](./pro.md#account-balance) payment method.
+If you have enough [account balance](./pro.md#managing-your-account-balance), you can use the [Account Balance](./pro.md#managing-your-account-balance) payment method.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Start Training button](https://github.com/ultralytics/docs/releases/download/0/ultralytics-hub-train-model-start-training.avif)
 
-If you don't have enough [account balance](./pro.md#account-balance), you won't be able to use the [Account Balance](./pro.md#account-balance) payment method. You can pay upfront or top-up directly from this step.
+If you don't have enough [account balance](./pro.md#managing-your-account-balance), you won't be able to use the [Account Balance](./pro.md#managing-your-account-balance) payment method. You can pay upfront or top-up directly from this step.
 
 ![Ultralytics HUB screenshot of the Train Model dialog with an arrow pointing to the Pay Now button](https://github.com/ultralytics/docs/releases/download/0/hub-cloud-training-train-model-pay-now-button.avif)
 

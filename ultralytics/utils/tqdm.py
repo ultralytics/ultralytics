@@ -252,7 +252,7 @@ class TQDM:
             t_str = self._format_num(self.total)
             if self.is_bytes:
                 # Collapse suffix only when identical (e.g. "5.4/5.4MB")
-                if n_str[-2] == n_str[-2]:
+                if n_str[-2] == t_str[-2]:
                     n_str = n_str.rstrip("KMGTPB")  # Remove unit suffix from current if different than total
         else:
             percent = 0.0

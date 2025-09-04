@@ -153,8 +153,12 @@ class TQDM:
         self.start_t = time.time()
         self.last_rate = 0
         self.closed = False
-        self.scales = [(1e9, f"G{self.unit}/s"), (1e6, f"M{self.unit}/s"), (1e3, f"K{self.unit}/s")]
-        self.byte_scales = [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]
+        self.is_bytes = unit_scale and unit in ("B", "bytes")
+        self.scales = (
+            [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]
+            if self.is_bytes
+            else [(1e9, f"G{self.unit}/s"), (1e6, f"M{self.unit}/s"), (1e3, f"K{self.unit}/s")]
+        )
 
         # Display initial bar if we have total and not disabled
         if not self.disable and self.total and not self.noninteractive:
@@ -164,17 +168,15 @@ class TQDM:
         """Format rate with units."""
         if rate <= 0:
             return ""
-        if self.unit in {"B", "bytes"} and self.unit_scale:
-            scales = self.byte_scales
+        if self.is_bytes:
             fallback = f"{rate:.1f}B/s"
         else:
-            scales = self.scales
             fallback = f"{rate:.1f}{self.unit}/s"
-        return next((f"{rate / threshold:.1f}{unit}" for threshold, unit in scales if rate >= threshold), fallback)
+        return next((f"{rate / thresh:.1f}{unit}" for thresh, unit in self.scales if rate >= thresh), fallback)
 
     def _format_num(self, num: int) -> str:
         """Format number with optional unit scaling."""
-        if not self.unit_scale or self.unit not in ("B", "bytes"):
+        if not self.unit_scale or not self.is_bytes:
             return str(num)
 
         for unit in ["", "K", "M", "G", "T"]:
@@ -257,7 +259,7 @@ class TQDM:
             # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
             n = self._format_num(self.n)
             total = self._format_num(self.total)
-            if self.unit_scale and self.unit in ("B", "bytes"):
+            if self.is_bytes:
                 if n[-2] == total[-2]:
                     n = n.rstrip("KMGTPB")  # Remove unit suffix from current if different than total
         else:
@@ -271,7 +273,7 @@ class TQDM:
         if self.total and self.n >= self.total:
             format_str = self.bar_format.replace("<{remaining}", "")
             # For completed downloads, show only final size
-            if self.unit_scale and self.unit in ("B", "bytes"):
+            if self.is_bytes:
                 format_str = format_str.replace("{n}/{total}", "{total}")
         else:
             format_str = self.bar_format

@@ -24,7 +24,7 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import (
     DEFAULT_CFG,
     GIT,
@@ -644,10 +644,10 @@ class BaseTrainer:
         cfg, weights = self.model, None
         ckpt = None
         if str(self.model).endswith(".pt"):
-            weights, ckpt = attempt_load_one_weight(self.model)
+            weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
-            weights, _ = attempt_load_one_weight(self.args.pretrained)
+            weights, _ = load_checkpoint(self.args.pretrained)
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 
@@ -768,7 +768,7 @@ class BaseTrainer:
                 last = Path(check_file(resume) if exists else get_latest_run())
 
                 # Check that resume data YAML exists, otherwise strip to force re-download of dataset
-                ckpt_args = attempt_load_weights(last).args
+                ckpt_args = load_checkpoint(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 

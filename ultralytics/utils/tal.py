@@ -3,12 +3,12 @@
 import torch
 import torch.nn as nn
 
-from . import LOGGER
+from . import LOGGER, TORCH_VERSION
 from .checks import check_version
 from .metrics import bbox_iou, probiou
 from .ops import xywhr2xyxyxyxy
 
-TORCH_1_10 = check_version(torch.__version__, "1.10.0")
+TORCH_1_10 = check_version(TORCH_VERSION, "1.10.0")
 
 
 class TaskAlignedAssigner(nn.Module):

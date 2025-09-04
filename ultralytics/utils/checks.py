@@ -36,6 +36,7 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     WINDOWS,
@@ -464,7 +465,7 @@ def check_torchvision():
     }
 
     # Check major and minor versions
-    v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
+    v_torch = ".".join(TORCH_VERSION.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
         v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])

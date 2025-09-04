@@ -133,8 +133,18 @@ class SegmentationValidator(DetectionValidator):
             (Dict[str, Any]): Prepared batch with processed annotations.
         """
         prepared_batch = super()._prepare_batch(si, batch)
-        midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si
-        prepared_batch["masks"] = batch["masks"][midx]
+        nl = len(prepared_batch["cls"])
+        if self.args.overlap_mask:
+            masks = batch["masks"][si]
+            index = torch.arange(nl, device=masks.device).view(nl, 1, 1) + 1
+            masks = masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
+            masks = torch.where(masks == index, 1.0, 0.0)
+        else:
+            masks = batch["masks"][batch["batch_idx"] == si]
+        if nl and self.process is ops.process_mask_native:
+            masks = F.interpolate(masks[None], prepared_batch["imgsz"], mode="bilinear", align_corners=False)[0]
+            masks = masks.gt_(0.5)
+        prepared_batch["masks"] = masks
         return prepared_batch
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
@@ -163,15 +173,6 @@ class SegmentationValidator(DetectionValidator):
             tp_m = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
             pred_masks = preds["masks"]
-            if self.args.overlap_mask:
-                nl = len(gt_cls)
-                index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
-                gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
-                gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
-            if gt_masks.shape[1:] != pred_masks.shape[1:]:
-                gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
-                gt_masks = gt_masks.gt_(0.5)
-                batch["masks"] = gt_masks
             iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU

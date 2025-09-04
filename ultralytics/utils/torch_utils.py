@@ -27,10 +27,10 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
-    TORCH_VERSION,
 )
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.patches import torch_load

@@ -243,7 +243,7 @@ class TQDM:
         remaining_str = ""
         if self.total and 0 < self.n < self.total and elapsed > 0:
             est_rate = rate or (self.n / elapsed)
-            remaining_str = self._format_time((self.total - self.n) / est_rate)
+            remaining_str = f"<{self._format_time((self.total - self.n) / est_rate)}"
 
         # Numbers and percent
         if self.total:
@@ -265,12 +265,12 @@ class TQDM:
 
         # Compose progress line via f-strings (two shapes: with/without total)
         if self.total:
-            # If complete and bytes, show only final size (preserves previous behavior)
             if self.is_bytes and self.n >= self.total:
+                # Completed bytes: show only final size
                 progress_str = f"{self.desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
             else:
                 progress_str = (
-                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}<{remaining_str}"
+                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
                 )
         else:
             progress_str = f"{self.desc}: {bar} {n_str} {rate_str} {elapsed_str}"

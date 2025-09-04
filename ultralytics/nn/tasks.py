@@ -1483,7 +1483,7 @@ def torch_safe_load(weight, safe_only=False):
     return ckpt, file
 
 
-def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
+def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     """
     Load a single model weights.
 

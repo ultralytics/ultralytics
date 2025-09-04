@@ -675,7 +675,7 @@ class Concat(nn.Module):
         Concatenate input tensors along specified dimension.
 
         Args:
-            x (List[torch.Tensor]): List of input tensors.
+            x (list[torch.Tensor]): List of input tensors.
 
         Returns:
             (torch.Tensor): Concatenated tensor.
@@ -706,7 +706,7 @@ class Index(nn.Module):
         Select and return a particular index from input.
 
         Args:
-            x (List[torch.Tensor]): List of input tensors.
+            x (list[torch.Tensor]): List of input tensors.
 
         Returns:
             (torch.Tensor): Selected tensor.

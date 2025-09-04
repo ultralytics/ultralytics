@@ -32,10 +32,10 @@ class WorldTrainer(DetectionTrainer):
     accelerate training with multi-modal data.
 
     Attributes:
-        text_embeddings (Dict[str, torch.Tensor] | None): Cached text embeddings for category names to accelerate
+        text_embeddings (dict[str, torch.Tensor] | None): Cached text embeddings for category names to accelerate
             training.
         model (WorldModel): The YOLO World model being trained.
-        data (Dict[str, Any]): Dataset configuration containing class information.
+        data (dict[str, Any]): Dataset configuration containing class information.
         args (Any): Training arguments and configuration.
 
     Methods:
@@ -58,9 +58,9 @@ class WorldTrainer(DetectionTrainer):
         Initialize a WorldTrainer object with given arguments.
 
         Args:
-            cfg (Dict[str, Any]): Configuration for the trainer.
-            overrides (Dict[str, Any], optional): Configuration overrides.
-            _callbacks (List[Any], optional): List of callback functions.
+            cfg (dict[str, Any]): Configuration for the trainer.
+            overrides (dict[str, Any], optional): Configuration overrides.
+            _callbacks (list[Any], optional): List of callback functions.
         """
         if overrides is None:
             overrides = {}
@@ -72,7 +72,7 @@ class WorldTrainer(DetectionTrainer):
         Return WorldModel initialized with specified config and weights.
 
         Args:
-            cfg (Dict[str, Any] | str, optional): Model configuration.
+            cfg (dict[str, Any] | str, optional): Model configuration.
             weights (str, optional): Path to pretrained weights.
             verbose (bool): Whether to display model info.
 
@@ -121,7 +121,7 @@ class WorldTrainer(DetectionTrainer):
         for these categories to improve training efficiency.
 
         Args:
-            datasets (List[Any]): List of datasets from which to extract category names.
+            datasets (list[Any]): List of datasets from which to extract category names.
             batch (int | None): Batch size used for processing.
 
         Notes:
@@ -144,12 +144,12 @@ class WorldTrainer(DetectionTrainer):
         Generate text embeddings for a list of text samples.
 
         Args:
-            texts (List[str]): List of text samples to encode.
+            texts (list[str]): List of text samples to encode.
             batch (int): Batch size for processing.
             cache_dir (Path): Directory to save/load cached embeddings.
 
         Returns:
-            (Dict[str, torch.Tensor]): Dictionary mapping text samples to their embeddings.
+            (dict[str, torch.Tensor]): Dictionary mapping text samples to their embeddings.
         """
         model = "clip:ViT-B/32"
         cache_path = cache_dir / f"text_embeddings_{model.replace(':', '_').replace('/', '_')}.pt"

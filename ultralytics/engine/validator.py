@@ -23,6 +23,8 @@ Usage - formats:
                           yolo11n_rknn_model         # Rockchip RKNN
 """
 
+from __future__ import annotations
+
 import json
 import time
 from pathlib import Path
@@ -91,15 +93,21 @@ class BaseValidator:
         eval_json: Evaluate and return JSON format of prediction statistics.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+    def __init__(
+        self,
+        dataloader: torch.utils.data.DataLoader | None = None,
+        save_dir: Path | None = None,
+        args: object | None = None,
+        _callbacks: dict | None = None,
+    ):
         """
         Initialize a BaseValidator instance.
 
         Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
-            save_dir (Path, optional): Directory to save results.
-            args (SimpleNamespace, optional): Configuration for the validator.
-            _callbacks (dict, optional): Dictionary to store various callback functions.
+            dataloader (torch.utils.data.DataLoader | None): Dataloader to be used for validation.
+            save_dir (Path | None): Directory to save results.
+            args (object | None): Configuration for the validator.
+            _callbacks (dict | None): Dictionary to store various callback functions.
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
 
@@ -129,13 +137,13 @@ class BaseValidator:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None):
+    def __call__(self, trainer: object | None = None, model: torch.nn.Module | None = None):
         """
         Execute validation process, running inference on dataloader and computing performance metrics.
 
         Args:
-            trainer (object, optional): Trainer object that contains the model to validate.
-            model (nn.Module, optional): Model to validate if not using a trainer.
+            trainer (object | None): Trainer object that contains the model to validate.
+            model (torch.nn.Module | None): Model to validate if not using a trainer.
 
         Returns:
             (dict): Dictionary containing validation statistics.
@@ -258,7 +266,7 @@ class BaseValidator:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
             true_classes (torch.Tensor): Target class indices of shape (M,).
             iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
-            use_scipy (bool, optional): Whether to use scipy for matching (more precise).
+            use_scipy (bool): Whether to use scipy for matching (more precise).
 
         Returns:
             (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.

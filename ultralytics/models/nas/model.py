@@ -47,13 +47,13 @@ class NAS(Model):
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
 
-    def _load(self, weights: str, task=None) -> None:
+    def _load(self, weights: str, task: str | None = None) -> None:
         """
         Load an existing NAS model weights or create a new NAS model with pretrained weights.
 
         Args:
             weights (str): Path to the model weights file or model name.
-            task (str, optional): Task type for the model.
+            task (str | None): Task type for the model.
         """
         import super_gradients
 
@@ -91,7 +91,7 @@ class NAS(Model):
             verbose (bool): Controls verbosity.
 
         Returns:
-            (Dict[str, Any]): Model information dictionary.
+            (dict[str, Any]): Model information dictionary.
         """
         return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 

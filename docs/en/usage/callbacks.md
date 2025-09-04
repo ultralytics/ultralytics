@@ -67,7 +67,7 @@ def print_checkpoint_metrics(trainer):
     print(
         f"Model details\n"
         f"Best fitness: {trainer.best_fitness}, "
-        f"Loss names: {trainer.loss_names}, "  # List of loss names
+        f"Loss names: {trainer.loss_names}, "  # list of loss names
         f"Metrics: {trainer.metrics}, "
         f"Total loss: {trainer.tloss}"  # Total loss value
     )

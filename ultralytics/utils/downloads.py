@@ -411,7 +411,7 @@ def get_github_assets(
 
     Returns:
         tag (str): The release tag.
-        assets (List[str]): A list of asset names.
+        assets (list[str]): A list of asset names.
 
     Examples:
         >>> tag, assets = get_github_assets(repo="ultralytics/assets", version="latest")
@@ -503,7 +503,7 @@ def download(
     Supports concurrent downloads if multiple threads are specified.
 
     Args:
-        url (str | List[str]): The URL or list of URLs of the files to be downloaded.
+        url (str | list[str]): The URL or list of URLs of the files to be downloaded.
         dir (Path, optional): The directory where the files will be saved.
         unzip (bool, optional): Flag to unzip the files after downloading.
         delete (bool, optional): Flag to delete the zip files after extraction.

@@ -85,7 +85,7 @@ def generate_ddp_command(world_size: int, trainer):
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
 
     Returns:
-        cmd (List[str]): The command to execute for distributed training.
+        cmd (list[str]): The command to execute for distributed training.
         file (str): Path to the temporary file created for DDP training.
     """
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218

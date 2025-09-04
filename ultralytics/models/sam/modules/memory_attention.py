@@ -151,8 +151,8 @@ class MemoryAttentionLayer(nn.Module):
         Args:
             tgt (torch.Tensor): Target tensor for self-attention with shape (N, L, D).
             memory (torch.Tensor): Memory tensor for cross-attention with shape (N, S, D).
-            pos (Optional[torch.Tensor]): Positional encoding for memory tensor.
-            query_pos (Optional[torch.Tensor]): Positional encoding for target tensor.
+            pos (torch.Tensor | None): Positional encoding for memory tensor.
+            query_pos (torch.Tensor | None): Positional encoding for target tensor.
             num_k_exclude_rope (int): Number of keys to exclude from rotary position embedding.
 
         Returns:
@@ -253,8 +253,8 @@ class MemoryAttention(nn.Module):
         Args:
             curr (torch.Tensor): Self-attention input tensor, representing the current state.
             memory (torch.Tensor): Cross-attention input tensor, representing memory information.
-            curr_pos (Optional[torch.Tensor]): Positional encoding for self-attention inputs.
-            memory_pos (Optional[torch.Tensor]): Positional encoding for cross-attention inputs.
+            curr_pos (torch.Tensor | None): Positional encoding for self-attention inputs.
+            memory_pos (torch.Tensor | None): Positional encoding for cross-attention inputs.
             num_obj_ptr_tokens (int): Number of object pointer tokens to exclude from rotary position embedding.
 
         Returns:

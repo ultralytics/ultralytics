@@ -171,8 +171,8 @@ For example, users can load a model, train it, evaluate its performance on a val
 
             # Segmentation
             result.masks.data  # masks, (N, H, W)
-            result.masks.xy  # x,y segments (pixels), List[segment] * N
-            result.masks.xyn  # x,y segments (normalized), List[segment] * N
+            result.masks.xy  # x,y segments (pixels), list[segment] * N
+            result.masks.xyn  # x,y segments (normalized), list[segment] * N
 
             # Classification
             result.probs  # cls prob, (num_class, )

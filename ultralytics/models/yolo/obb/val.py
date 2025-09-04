@@ -77,13 +77,13 @@ class OBBValidator(DetectionValidator):
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
         Args:
-            preds (Dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected
+            preds (dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected
                 class labels and bounding boxes.
-            batch (Dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth
+            batch (dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth
                 class labels and bounding boxes.
 
         Returns:
-            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
+            (dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
                 array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy
                 of predictions compared to the ground truth.
 
@@ -104,7 +104,7 @@ class OBBValidator(DetectionValidator):
             preds (torch.Tensor): Raw predictions from the model.
 
         Returns:
-            (List[Dict[str, torch.Tensor]]): Processed predictions with angle information concatenated to bboxes.
+            (list[dict[str, torch.Tensor]]): Processed predictions with angle information concatenated to bboxes.
         """
         preds = super().postprocess(preds)
         for pred in preds:
@@ -117,7 +117,7 @@ class OBBValidator(DetectionValidator):
 
         Args:
             si (int): Batch index to process.
-            batch (Dict[str, Any]): Dictionary containing batch data with keys:
+            batch (dict[str, Any]): Dictionary containing batch data with keys:
                 - batch_idx: Tensor of batch indices
                 - cls: Tensor of class labels
                 - bboxes: Tensor of bounding boxes
@@ -126,7 +126,7 @@ class OBBValidator(DetectionValidator):
                 - ratio_pad: Ratio and padding information
 
         Returns:
-            (Dict[str, Any]): Prepared batch data with scaled bounding boxes and metadata.
+            (dict[str, Any]): Prepared batch data with scaled bounding boxes and metadata.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -150,8 +150,8 @@ class OBBValidator(DetectionValidator):
         Plot predicted bounding boxes on input images and save the result.
 
         Args:
-            batch (Dict[str, Any]): Batch data containing images, file paths, and other metadata.
-            preds (List[torch.Tensor]): List of prediction tensors for each image in the batch.
+            batch (dict[str, Any]): Batch data containing images, file paths, and other metadata.
+            preds (list[torch.Tensor]): List of prediction tensors for each image in the batch.
             ni (int): Batch index used for naming the output file.
 
         Examples:
@@ -170,9 +170,9 @@ class OBBValidator(DetectionValidator):
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
         Args:
-            predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
                 with bounding box coordinates, confidence scores, and class predictions.
-            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
+            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Notes:
             This method processes rotated bounding box predictions and converts them to both rbox format
@@ -204,7 +204,7 @@ class OBBValidator(DetectionValidator):
             predn (torch.Tensor): Predicted detections with shape (N, 7) containing bounding boxes, confidence scores,
                 class predictions, and angles in format (x, y, w, h, conf, cls, angle).
             save_conf (bool): Whether to save confidence scores in the text file.
-            shape (Tuple[int, int]): Original image shape in format (height, width).
+            shape (tuple[int, int]): Original image shape in format (height, width).
             file (Path): Output file path to save detections.
 
         Examples:
@@ -237,10 +237,10 @@ class OBBValidator(DetectionValidator):
         Evaluate YOLO output in JSON format and save predictions in DOTA format.
 
         Args:
-            stats (Dict[str, Any]): Performance statistics dictionary.
+            stats (dict[str, Any]): Performance statistics dictionary.
 
         Returns:
-            (Dict[str, Any]): Updated performance statistics.
+            (dict[str, Any]): Updated performance statistics.
         """
         if self.args.save_json and self.is_dota and len(self.jdict):
             import json

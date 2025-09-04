@@ -29,12 +29,12 @@ class Analytics(BaseSolution):
         fontsize (int): Font size for text display.
         color_cycle (cycle): Cyclic iterator for chart colors.
         total_counts (int): Total count of detected objects (used for line charts).
-        clswise_count (Dict[str, int]): Dictionary for class-wise object counts.
+        clswise_count (dict[str, int]): Dictionary for class-wise object counts.
         fig (Figure): Matplotlib figure object for the chart.
         ax (Axes): Matplotlib axes object for the chart.
         canvas (FigureCanvasAgg): Canvas for rendering the chart.
         lines (dict): Dictionary to store line objects for area charts.
-        color_mapping (Dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
+        color_mapping (dict[str, str]): Dictionary mapping class labels to colors for consistent visualization.
 
     Methods:
         process: Process image data and update the chart.
@@ -144,7 +144,7 @@ class Analytics(BaseSolution):
 
         Args:
             frame_number (int): The current frame number.
-            count_dict (Dict[str, int], optional): Dictionary with class names as keys and counts as values for
+            count_dict (dict[str, int], optional): Dictionary with class names as keys and counts as values for
                 multiple classes. If None, updates a single line graph.
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
 

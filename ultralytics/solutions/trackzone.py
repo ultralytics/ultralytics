@@ -19,10 +19,10 @@ class TrackZone(BaseSolution):
     Attributes:
         region (np.ndarray): The polygonal region for tracking, represented as a convex hull of points.
         line_width (int): Width of the lines used for drawing bounding boxes and region boundaries.
-        names (List[str]): List of class names that the model can detect.
-        boxes (List[np.ndarray]): Bounding boxes of tracked objects.
-        track_ids (List[int]): Unique identifiers for each tracked object.
-        clss (List[int]): Class indices of tracked objects.
+        names (list[str]): List of class names that the model can detect.
+        boxes (list[np.ndarray]): Bounding boxes of tracked objects.
+        track_ids (list[int]): Unique identifiers for each tracked object.
+        clss (list[int]): Class indices of tracked objects.
 
     Methods:
         process: Process each frame of the video, applying region-based tracking.

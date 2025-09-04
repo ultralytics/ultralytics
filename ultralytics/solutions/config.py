@@ -20,20 +20,20 @@ class SolutionConfig:
     Attributes:
         source (str, optional): Path to the input source (video, RTSP, etc.). Only usable with Solutions CLI.
         model (str, optional): Path to the Ultralytics YOLO model to be used for inference.
-        classes (List[int], optional): List of class indices to filter detections.
+        classes (list[int], optional): List of class indices to filter detections.
         show_conf (bool): Whether to show confidence scores on the visual output.
         show_labels (bool): Whether to display class labels on visual output.
-        region (List[Tuple[int, int]], optional): Polygonal region or line for object counting.
+        region (list[tuple[int, int]], optional): Polygonal region or line for object counting.
         colormap (int, optional): OpenCV colormap constant for visual overlays (e.g., cv2.COLORMAP_JET).
         show_in (bool): Whether to display count number for objects entering the region.
         show_out (bool): Whether to display count number for objects leaving the region.
         up_angle (float): Upper angle threshold used in pose-based workouts monitoring.
         down_angle (int): Lower angle threshold used in pose-based workouts monitoring.
-        kpts (List[int]): Keypoint indices to monitor, e.g., for pose analytics.
+        kpts (list[int]): Keypoint indices to monitor, e.g., for pose analytics.
         analytics_type (str): Type of analytics to perform ("line", "area", "bar", "pie", etc.).
-        figsize (Tuple[int, int], optional): Size of the matplotlib figure used for analytical plots (width, height).
+        figsize (tuple[int, int], optional): Size of the matplotlib figure used for analytical plots (width, height).
         blur_ratio (float): Ratio used to blur objects in the video frames (0.0 to 1.0).
-        vision_point (Tuple[int, int]): Reference point for directional tracking or perspective drawing.
+        vision_point (tuple[int, int]): Reference point for directional tracking or perspective drawing.
         crop_dir (str): Directory path to save cropped detection images.
         json_file (str): Path to a JSON file containing data for parking areas.
         line_width (int): Width for visual display i.e. bounding boxes, keypoints, counts.

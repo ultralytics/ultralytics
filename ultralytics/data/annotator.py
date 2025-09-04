@@ -34,8 +34,8 @@ def auto_annotate(
         iou (float): IoU threshold for filtering overlapping boxes in detection results.
         imgsz (int): Input image resize dimension.
         max_det (int): Maximum number of detections per image.
-        classes (List[int], optional): Filter predictions to specified class IDs, returning only relevant detections.
-        output_dir (str | Path, optional): Directory to save the annotated results. If None, creates a default
+        classes (list[int] | None): Filter predictions to specified class IDs, returning only relevant detections.
+        output_dir (str | Path | None): Directory to save the annotated results. If None, creates a default
             directory based on the input data path.
 
     Examples:

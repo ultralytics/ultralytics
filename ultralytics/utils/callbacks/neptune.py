@@ -23,7 +23,7 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
 
     Args:
         scalars (dict): Dictionary of scalar values to log to NeptuneAI.
-        step (int, optional): The current step or iteration number for logging.
+        step (int): The current step or iteration number for logging.
 
     Examples:
         >>> metrics = {"mAP": 0.85, "loss": 0.32}
@@ -43,7 +43,7 @@ def _log_images(imgs_dict: dict, group: str = "") -> None:
 
     Args:
         imgs_dict (dict): Dictionary of images to log, with keys as image names and values as image data.
-        group (str, optional): Group name to organize images under in the Neptune UI.
+        group (str): Group name to organize images under in the Neptune UI.
 
     Examples:
         >>> # Log validation images

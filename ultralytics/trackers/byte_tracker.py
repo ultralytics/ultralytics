@@ -58,7 +58,7 @@ class STrack(BaseTrack):
         Initialize a new STrack instance.
 
         Args:
-            xywh (List[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where
+            xywh (list[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where
                 (x, y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
@@ -246,9 +246,9 @@ class BYTETracker:
     predicting the new object locations, and performs data association.
 
     Attributes:
-        tracked_stracks (List[STrack]): List of successfully activated tracks.
-        lost_stracks (List[STrack]): List of lost tracks.
-        removed_stracks (List[STrack]): List of removed tracks.
+        tracked_stracks (list[STrack]): List of successfully activated tracks.
+        lost_stracks (list[STrack]): List of lost tracks.
+        removed_stracks (list[STrack]): List of removed tracks.
         frame_id (int): The current frame ID.
         args (Namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
@@ -286,9 +286,9 @@ class BYTETracker:
             >>> args = Namespace(track_buffer=30)
             >>> tracker = BYTETracker(args, frame_rate=30)
         """
-        self.tracked_stracks = []  # type: List[STrack]
-        self.lost_stracks = []  # type: List[STrack]
-        self.removed_stracks = []  # type: List[STrack]
+        self.tracked_stracks = []  # type: list[STrack]
+        self.lost_stracks = []  # type: list[STrack]
+        self.removed_stracks = []  # type: list[STrack]
 
         self.frame_id = 0
         self.args = args
@@ -320,7 +320,7 @@ class BYTETracker:
         detections = self.init_track(results, feats_keep)
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
-        tracked_stracks = []  # type: List[STrack]
+        tracked_stracks = []  # type: list[STrack]
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed.append(track)
@@ -439,9 +439,9 @@ class BYTETracker:
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
-        self.tracked_stracks = []  # type: List[STrack]
-        self.lost_stracks = []  # type: List[STrack]
-        self.removed_stracks = []  # type: List[STrack]
+        self.tracked_stracks = []  # type: list[STrack]
+        self.lost_stracks = []  # type: list[STrack]
+        self.removed_stracks = []  # type: list[STrack]
         self.frame_id = 0
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()

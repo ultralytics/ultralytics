@@ -81,15 +81,15 @@ class BasePredictor:
         data (dict): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
-        vid_writer (Dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
+        vid_writer (dict[str, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
         plotted_img (np.ndarray): Last plotted image.
         source_type (SimpleNamespace): Type of input source.
         seen (int): Number of images processed.
-        windows (List[str]): List of window names for visualization.
+        windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
-        results (List[Any]): Current batch results.
+        results (list[Any]): Current batch results.
         transforms (callable): Image transforms for classification.
-        callbacks (Dict[str, List[callable]]): Callback functions for different events.
+        callbacks (dict[str, list[callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
 
@@ -119,8 +119,8 @@ class BasePredictor:
 
         Args:
             cfg (str | dict): Path to a configuration file or a configuration dictionary.
-            overrides (dict, optional): Configuration overrides.
-            _callbacks (dict, optional): Dictionary of callback functions.
+            overrides (dict[str, Any] | None): Configuration overrides.
+            _callbacks (dict[str, list[callable]] | None): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
         self.save_dir = get_save_dir(self.args)
@@ -154,7 +154,7 @@ class BasePredictor:
         Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | List[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -188,10 +188,10 @@ class BasePredictor:
         Pre-transform input image before inference.
 
         Args:
-            im (List[np.ndarray]): List of images with shape [(H, W, 3) x N].
+            im (list[np.ndarray]): List of images with shape [(H, W, 3) x N].
 
         Returns:
-            (List[np.ndarray]): List of transformed images.
+            (list[np.ndarray]): List of transformed images.
         """
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
@@ -207,20 +207,26 @@ class BasePredictor:
         """Post-process predictions for an image and return them."""
         return preds
 
-    def __call__(self, source=None, model=None, stream: bool = False, *args, **kwargs):
+    def __call__(
+        self,
+        source: str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor | None = None,
+        model: str | Path | torch.nn.Module | None = None,
+        stream: bool = False,
+        *args,
+        **kwargs,
+    ):
         """
         Perform inference on an image or stream.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
-                Source for inference.
-            model (str | Path | torch.nn.Module, optional): Model for inference.
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor | None): Source for inference.
+            model (str | Path | torch.nn.Module | None): Model for inference.
             stream (bool): Whether to stream the inference results. If True, returns a generator.
             *args (Any): Additional arguments for the inference method.
             **kwargs (Any): Additional keyword arguments for the inference method.
 
         Returns:
-            (List[ultralytics.engine.results.Results] | generator): Results objects or generator of Results objects.
+            (list[ultralytics.engine.results.Results] | generator): Results objects or generator of Results objects.
         """
         self.stream = stream
         if stream:
@@ -228,7 +234,11 @@ class BasePredictor:
         else:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
-    def predict_cli(self, source=None, model=None):
+    def predict_cli(
+        self,
+        source: str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor | None = None,
+        model: str | Path | torch.nn.Module | None = None,
+    ):
         """
         Method used for Command Line Interface (CLI) prediction.
 
@@ -237,9 +247,8 @@ class BasePredictor:
         generator without storing results.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
-                Source for inference.
-            model (str | Path | torch.nn.Module, optional): Model for inference.
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor | None): Source for inference.
+            model (str | Path | torch.nn.Module | None): Model for inference.
 
         Note:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
@@ -254,7 +263,7 @@ class BasePredictor:
         Set up source and inference mode.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor):
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor):
                 Source for inference.
         """
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
@@ -276,14 +285,19 @@ class BasePredictor:
         self.vid_writer = {}
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None, *args, **kwargs):
+    def stream_inference(
+        self,
+        source: str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor | None = None,
+        model: str | Path | torch.nn.Module | None = None,
+        *args,
+        **kwargs,
+    ):
         """
         Stream real-time inference on camera feed and save results to file.
 
         Args:
-            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
-                Source for inference.
-            model (str | Path | torch.nn.Module, optional): Model for inference.
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor | None): Source for inference.
+            model (str | Path | torch.nn.Module | None): Model for inference.
             *args (Any): Additional arguments for the inference method.
             **kwargs (Any): Additional keyword arguments for the inference method.
 
@@ -387,7 +401,7 @@ class BasePredictor:
         Initialize YOLO model with given parameters and set it to evaluation mode.
 
         Args:
-            model (str | Path | torch.nn.Module, optional): Model to load or use.
+            model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
         self.model = AutoBackend(
@@ -414,7 +428,7 @@ class BasePredictor:
             i (int): Index of the current image in the batch.
             p (Path): Path to the current image.
             im (torch.Tensor): Preprocessed image tensor.
-            s (List[str]): List of result strings.
+            s (list[str]): List of result strings.
 
         Returns:
             (str): String with result information.

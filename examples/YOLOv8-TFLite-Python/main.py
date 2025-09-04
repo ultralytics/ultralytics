@@ -99,11 +99,11 @@ class YOLOv8TFLite:
 
         Args:
             img (np.ndarray): Input image with shape (H, W, C).
-            new_shape (Tuple[int, int]): Target shape (height, width).
+            new_shape (tuple[int, int]): Target shape (height, width).
 
         Returns:
             (np.ndarray): Resized and padded image.
-            (Tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
+            (tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
         """
         shape = img.shape[:2]  # Current shape [height, width]
 
@@ -169,7 +169,7 @@ class YOLOv8TFLite:
 
         Returns:
             (np.ndarray): Preprocessed image ready for model input.
-            (Tuple[float, float]): Padding ratios for coordinate adjustment.
+            (tuple[float, float]): Padding ratios for coordinate adjustment.
         """
         img, pad = self.letterbox(img, (self.in_width, self.in_height))
         img = img[..., ::-1][None]  # BGR to RGB and add batch dimension (N, H, W, C) for TFLite
@@ -184,7 +184,7 @@ class YOLOv8TFLite:
         Args:
             img (np.ndarray): The original input image.
             outputs (np.ndarray): Raw model outputs.
-            pad (Tuple[float, float]): Padding ratios from preprocessing.
+            pad (tuple[float, float]): Padding ratios from preprocessing.
 
         Returns:
             (np.ndarray): The input image with detections drawn on it.

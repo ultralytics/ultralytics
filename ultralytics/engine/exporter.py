@@ -92,6 +92,7 @@ from ultralytics.utils import (
     SETTINGS,
     WINDOWS,
     YAML,
+    TORCH_VERSION,
     callbacks,
     colorstr,
     get_default_args,
@@ -567,7 +568,7 @@ class Exporter:
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
         """Export YOLO model to TorchScript format."""
-        LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
+        LOGGER.info(f"\n{prefix} starting export with torch {TORCH_VERSION}...")
         f = self.file.with_suffix(".torchscript")
 
         ts = torch.jit.trace(NMSModel(self.model, self.args) if self.args.nms else self.model, self.im, strict=False)
@@ -648,7 +649,7 @@ class Exporter:
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
-        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
+        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={TORCH_VERSION} is installed"
         ov_model = ov.convert_model(
             NMSModel(self.model, self.args) if self.args.nms else self.model,
             input=None if self.args.dynamic else [self.im.shape],

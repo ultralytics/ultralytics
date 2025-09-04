@@ -88,7 +88,7 @@ class TQDM:
         mininterval: float = 0.1,
         disable: bool | None = None,
         unit: str = "it",
-        unit_scale: bool = False,
+        unit_scale: bool = True,
         unit_divisor: int = 1000,
         bar_format: str | None = None,
         initial: int = 0,
@@ -177,11 +177,10 @@ class TQDM:
                 ),
                 f"{rate:.1f}B/s",
             )
-        # For other scalable units, use decimal units
-        if self.unit_scale and self.unit in ("it", "items", ""):
-            for threshold, prefix in [(1000000, "M"), (1000, "K")]:
-                if rate >= threshold:
-                    return f"{rate / threshold:.1f}{prefix}{self.unit}/s"
+        # For all other units, use decimal scaling for large rates
+        for threshold, prefix in [(1000000000, "G"), (1000000, "M"), (1000, "K")]:
+            if rate >= threshold:
+                return f"{rate / threshold:.1f}{prefix}{self.unit}/s"
 
         # Default formatting
         precision = ".1f" if rate >= 1 else ".2f"
@@ -262,8 +261,9 @@ class TQDM:
 
         # Calculate remaining time
         remaining_str = ""
-        if self.total and 0 < self.n < self.total and rate > 0:
-            remaining_str = self._format_time((self.total - self.n) / rate)
+        if self.total and 0 < self.n < self.total and elapsed > 0:
+            est_rate = rate or self.n / elapsed
+            remaining_str = self._format_time((self.total - self.n) / est_rate)
 
         # Build progress components
         if self.total:
@@ -283,6 +283,9 @@ class TQDM:
         # Use different format for completion
         if self.total and self.n >= self.total:
             format_str = self.bar_format.replace("<{remaining}", "")
+            # For completed downloads, show only final size
+            if self.unit_scale and self.unit in ("B", "bytes"):
+                format_str = format_str.replace("{n}/{total}", "{total}")
         else:
             format_str = self.bar_format
 

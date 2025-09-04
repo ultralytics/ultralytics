@@ -123,12 +123,12 @@ class MuonWithSGD(optim.Optimizer):
                     update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
                     # update = muon_update(
                     #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
-                    # )
-                    # lr = self.adjust_lr(group["lr"], p.shape)
+                    #)
                     # TODO
-                    # lr = group["lr"] / 10
+                    lr = group["lr"] / 10
+                    # lr = self.adjust_lr(group["lr"], p.shape)
                     p.mul_(1 - group["lr"] * group["weight_decay"])
-                    p.add_(update.reshape(p.shape), alpha=-group["lr"])
+                    p.add_(update.reshape(p.shape), alpha=-lr)
                     p.add_(sgd_update, alpha=-group["lr"])
             else:  # SGD
                 for p in group["params"]:

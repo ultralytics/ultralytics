@@ -153,38 +153,24 @@ class TQDM:
         self.start_t = time.time()
         self.last_rate = 0
         self.closed = False
+        self.scales = [(1e9, f"G{self.unit}/s"), (1e6, f"M{self.unit}/s"), (1e3, f"K{self.unit}/s")]
+        self.byte_scales = [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]
 
         # Display initial bar if we have total and not disabled
         if not self.disable and self.total and not self.noninteractive:
             self._display()
 
     def _format_rate(self, rate: float) -> str:
-        """Format rate with proper units and reasonable precision."""
+        """Format rate with units."""
         if rate <= 0:
             return ""
-
-        # For bytes with scaling, use binary units
-        if self.unit in ("B", "bytes") and self.unit_scale:
-            return next(
-                (
-                    f"{rate / threshold:.1f}{unit}"
-                    for threshold, unit in [
-                        (1073741824, "GB/s"),
-                        (1048576, "MB/s"),
-                        (1024, "KB/s"),
-                    ]
-                    if rate >= threshold
-                ),
-                f"{rate:.1f}B/s",
-            )
-        # For all other units, use decimal scaling for large rates
-        for threshold, prefix in [(1000000000, "G"), (1000000, "M"), (1000, "K")]:
-            if rate >= threshold:
-                return f"{rate / threshold:.1f}{prefix}{self.unit}/s"
-
-        # Default formatting
-        precision = ".1f" if rate >= 1 else ".2f"
-        return f"{rate:{precision}}{self.unit}/s"
+        if self.unit in {"B", "bytes"} and self.unit_scale:
+            scales = self.byte_scales
+            fallback = f"{rate:.1f}B/s"
+        else:
+            scales = self.scales
+            fallback = f"{rate:.1f}{self.unit}/s"
+        return next((f"{rate / threshold:.1f}{unit}" for threshold, unit in scales if rate >= threshold), fallback)
 
     def _format_num(self, num: int) -> str:
         """Format number with optional unit scaling."""

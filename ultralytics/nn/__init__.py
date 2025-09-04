@@ -5,8 +5,7 @@ from .tasks import (
     ClassificationModel,
     DetectionModel,
     SegmentationModel,
-    attempt_load_one_weight,
-    attempt_load_weights,
+    load_checkpoint,
     guess_model_scale,
     guess_model_task,
     parse_model,
@@ -15,8 +14,7 @@ from .tasks import (
 )
 
 __all__ = (
-    "attempt_load_one_weight",
-    "attempt_load_weights",
+    "load_checkpoint",
     "parse_model",
     "yaml_model_load",
     "guess_model_task",

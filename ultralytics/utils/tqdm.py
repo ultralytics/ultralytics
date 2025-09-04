@@ -88,11 +88,11 @@ class TQDM:
         mininterval: float = 0.1,
         disable: bool | None = None,
         unit: str = "it",
-        unit_scale: bool = False,
+        unit_scale: bool = True,
         unit_divisor: int = 1000,
-        bar_format: str | None = None,
+        bar_format: str | None = None,  # kept for API compatibility; not used for formatting
         initial: int = 0,
-        **kwargs,  # Accept unused args for compatibility
+        **kwargs,
     ) -> None:
         """
         Initialize the TQDM progress bar with specified configuration options.
@@ -138,11 +138,8 @@ class TQDM:
         self.mininterval = max(mininterval, self.NONINTERACTIVE_MIN_INTERVAL) if self.noninteractive else mininterval
         self.initial = initial
 
-        # Set bar format based on whether we have a total
-        if self.total:
-            self.bar_format = bar_format or "{desc}: {percent:.0f}% {bar} {n}/{total} {rate} {elapsed}<{remaining}"
-        else:
-            self.bar_format = bar_format or "{desc}: {bar} {n} {rate} {elapsed}"
+        # Kept for API compatibility (unused for f-string formatting)
+        self.bar_format = bar_format
 
         self.file = file or sys.stdout
 
@@ -151,41 +148,31 @@ class TQDM:
         self.last_print_n = self.initial
         self.last_print_t = time.time()
         self.start_t = time.time()
-        self.last_rate = 0
+        self.last_rate = 0.0
         self.closed = False
+        self.is_bytes = unit_scale and unit in ("B", "bytes")
+        self.scales = (
+            [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]
+            if self.is_bytes
+            else [(1e9, f"G{self.unit}/s"), (1e6, f"M{self.unit}/s"), (1e3, f"K{self.unit}/s")]
+        )
 
-        # Display initial bar if we have total and not disabled
         if not self.disable and self.total and not self.noninteractive:
             self._display()
 
     def _format_rate(self, rate: float) -> str:
-        """Format rate with proper units and reasonable precision."""
+        """Format rate with units."""
         if rate <= 0:
             return ""
+        fallback = f"{rate:.1f}B/s" if self.is_bytes else f"{rate:.1f}{self.unit}/s"
+        return next((f"{rate / t:.1f}{u}" for t, u in self.scales if rate >= t), fallback)
 
-        # For bytes with scaling, use binary units
-        if self.unit in ("B", "bytes") and self.unit_scale:
-            for threshold, unit in [(1024**3, "GB/s"), (1024**2, "MB/s"), (1024, "KB/s")]:
-                if rate >= threshold:
-                    return f"{rate / threshold:.1f}{unit}"
-            return f"{rate:.1f}B/s"
-
-        # For other scalable units, use decimal units
-        if self.unit_scale and self.unit in ("it", "items", ""):
-            for threshold, prefix in [(1000000, "M"), (1000, "K")]:
-                if rate >= threshold:
-                    return f"{rate / threshold:.1f}{prefix}{self.unit}/s"
-
-        # Default formatting
-        precision = ".1f" if rate >= 1 else ".2f"
-        return f"{rate:{precision}}{self.unit}/s"
-
-    def _format_num(self, num: int) -> str:
+    def _format_num(self, num: int | float) -> str:
         """Format number with optional unit scaling."""
-        if not self.unit_scale or self.unit not in ("B", "bytes"):
+        if not self.unit_scale or not self.is_bytes:
             return str(num)
 
-        for unit in ["", "K", "M", "G", "T"]:
+        for unit in ("", "K", "M", "G", "T"):
             if abs(num) < self.unit_divisor:
                 return f"{num:3.1f}{unit}B" if unit else f"{num:.0f}B"
             num /= self.unit_divisor
@@ -210,18 +197,14 @@ class TQDM:
         filled = int(frac * width)
         bar = "━" * filled + "─" * (width - filled)
         if filled < width and frac * width - filled > 0.5:
-            bar = bar[:filled] + "╸" + bar[filled + 1 :]
+            bar = f"{bar[:filled]}╸{bar[filled + 1 :]}"
         return bar
 
     def _should_update(self, dt: float, dn: int) -> bool:
         """Check if display should update."""
         if self.noninteractive:
             return False
-
-        if self.total and self.n >= self.total:
-            return True
-
-        return dt >= self.mininterval
+        return (self.total is not None and self.n >= self.total) or (dt >= self.mininterval)
 
     def _display(self, final: bool = False) -> None:
         """Display progress bar."""
@@ -236,8 +219,8 @@ class TQDM:
             return
 
         # Calculate rate (avoid crazy numbers)
-        if dt > self.MIN_RATE_CALC_INTERVAL:  # Only calculate rate if enough time has passed
-            rate = dn / dt
+        if dt > self.MIN_RATE_CALC_INTERVAL:
+            rate = dn / dt if dt else 0.0
             # Smooth rate for reasonable values, use raw rate for very high values
             if rate < self.MAX_SMOOTHED_RATE:
                 self.last_rate = self.RATE_SMOOTHING_FACTOR * rate + (1 - self.RATE_SMOOTHING_FACTOR) * self.last_rate
@@ -245,8 +228,8 @@ class TQDM:
         else:
             rate = self.last_rate
 
-        # At completion, use the overall rate for more accurate display
-        if self.n >= (self.total or float("inf")) and self.total and self.total > 0:
+        # At completion, use overall rate
+        if self.total and self.n >= self.total:
             overall_elapsed = current_time - self.start_t
             if overall_elapsed > 0:
                 rate = self.n / overall_elapsed
@@ -256,44 +239,41 @@ class TQDM:
         self.last_print_t = current_time
         elapsed = current_time - self.start_t
 
-        # Calculate remaining time
+        # Remaining time
         remaining_str = ""
-        if self.total and 0 < self.n < self.total and rate > 0:
-            remaining_str = self._format_time((self.total - self.n) / rate)
+        if self.total and 0 < self.n < self.total and elapsed > 0:
+            est_rate = rate or (self.n / elapsed)
+            remaining_str = f"<{self._format_time((self.total - self.n) / est_rate)}"
 
-        # Build progress components
+        # Numbers and percent
         if self.total:
             percent = (self.n / self.total) * 100
-            # For bytes with unit scaling, avoid repeating units: show "5.4/5.4MB" not "5.4MB/5.4MB"
-            n = self._format_num(self.n)
-            total = self._format_num(self.total)
-            if self.unit_scale and self.unit in ("B", "bytes"):
-                n = n.rstrip("KMGTPB")  # Remove unit suffix from current
+            n_str = self._format_num(self.n)
+            t_str = self._format_num(self.total)
+            if self.is_bytes:
+                # Collapse suffix only when identical (e.g. "5.4/5.4MB")
+                if n_str[-2] == t_str[-2]:
+                    n_str = n_str.rstrip("KMGTPB")  # Remove unit suffix from current if different than total
         else:
-            percent = 0
-            n = self._format_num(self.n)
-            total = "?"
+            percent = 0.0
+            n_str, t_str = self._format_num(self.n), "?"
 
         elapsed_str = self._format_time(elapsed)
+        rate_str = self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else "")
 
-        # Use different format for completion
-        if self.total and self.n >= self.total:
-            format_str = self.bar_format.replace("<{remaining}", "")
+        bar = self._generate_bar()
+
+        # Compose progress line via f-strings (two shapes: with/without total)
+        if self.total:
+            if self.is_bytes and self.n >= self.total:
+                # Completed bytes: show only final size
+                progress_str = f"{self.desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
+            else:
+                progress_str = (
+                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
+                )
         else:
-            format_str = self.bar_format
-
-        # Format progress string
-        progress_str = format_str.format(
-            desc=self.desc,
-            percent=percent,
-            bar=self._generate_bar(),
-            n=n,
-            total=total,
-            rate=self._format_rate(rate) or (self._format_rate(self.n / elapsed) if elapsed > 0 else ""),
-            remaining=remaining_str,
-            elapsed=elapsed_str,
-            unit=self.unit,
-        )
+            progress_str = f"{self.desc}: {bar} {n_str} {rate_str} {elapsed_str}"
 
         # Write to output
         try:
@@ -331,7 +311,7 @@ class TQDM:
         if self.closed:
             return
 
-        self.closed = True  # Set before final display
+        self.closed = True
 
         if not self.disable:
             # Final display
@@ -449,8 +429,7 @@ if __name__ == "__main__":
 
     def process_files():
         """Simulate processing files of unknown count."""
-        files = [f"file_{i}.txt" for i in range(18)]
-        return files
+        return [f"file_{i}.txt" for i in range(18)]
 
     pbar = TQDM(desc="Scanning files", unit="files")
     files = process_files()

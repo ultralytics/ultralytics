@@ -90,6 +90,7 @@ from ultralytics.utils import (
     RKNN_CHIPS,
     ROOT,
     SETTINGS,
+    TORCH_VERSION,
     WINDOWS,
     YAML,
     callbacks,
@@ -107,7 +108,9 @@ from ultralytics.utils.checks import (
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
 from ultralytics.utils.export import export_engine, export_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated
+from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils.nms import TorchNMS
+from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
@@ -347,7 +350,7 @@ class Exporter:
             assert not getattr(model, "end2end", False), "TFLite INT8 export not supported for end2end models."
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
-            assert not (tflite and ARM64 and LINUX), "TFLite export with NMS unsupported on ARM64 Linux"
+            assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
             if getattr(model, "end2end", False):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
@@ -434,7 +437,7 @@ class Exporter:
 
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and not (coreml or imx) else model(im)
+            y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -565,7 +568,7 @@ class Exporter:
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
         """Export YOLO model to TorchScript format."""
-        LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
+        LOGGER.info(f"\n{prefix} starting export with torch {TORCH_VERSION}...")
         f = self.file.with_suffix(".torchscript")
 
         ts = torch.jit.trace(NMSModel(self.model, self.args) if self.args.nms else self.model, self.im, strict=False)
@@ -584,7 +587,7 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.65", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim==0.1.65", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -646,7 +649,7 @@ class Exporter:
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
-        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
+        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={TORCH_VERSION} is installed"
         ov_model = ov.convert_model(
             NMSModel(self.model, self.args) if self.args.nms else self.model,
             input=None if self.args.dynamic else [self.im.shape],
@@ -962,7 +965,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0,<1.4.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.65",
+                "onnxslim==0.1.65",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
@@ -1562,12 +1565,13 @@ class NMSModel(torch.nn.Module):
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (
                 partial(
-                    nms_rotated,
+                    TorchNMS.fast_nms,
                     use_triu=not (
                         self.is_tf
                         or (self.args.opset or 14) < 14
                         or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
                     ),
+                    iou_func=batch_probiou,
                 )
                 if self.obb
                 else nms

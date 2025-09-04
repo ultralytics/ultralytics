@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import torch
 from torch.nn import functional as F
@@ -96,14 +98,14 @@ class YOLOEDetectValidator(DetectionValidator):
         visual_pe[cls_visual_num == 0] = 0
         return visual_pe.unsqueeze(0)
 
-    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch data, ensuring visuals are on the same device as images."""
         batch = super().preprocess(batch)
         if "visuals" in batch:
-            batch["visuals"] = batch["visuals"].to(batch["img"].device)
+            batch["visuals"] = batch["visuals"].to(batch["img"].device, non_blocking=True)
         return batch
 
-    def get_vpe_dataloader(self, data: Dict[str, Any]) -> torch.utils.data.DataLoader:
+    def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
         """
         Create a dataloader for LVIS training visual prompt samples.
 
@@ -141,11 +143,11 @@ class YOLOEDetectValidator(DetectionValidator):
     @smart_inference_mode()
     def __call__(
         self,
-        trainer: Optional[Any] = None,
-        model: Optional[Union[YOLOEModel, str]] = None,
-        refer_data: Optional[str] = None,
+        trainer: Any | None = None,
+        model: YOLOEModel | str | None = None,
+        refer_data: str | None = None,
         load_vp: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.
 
@@ -184,9 +186,9 @@ class YOLOEDetectValidator(DetectionValidator):
             self.device = select_device(self.args.device, verbose=False)
 
             if isinstance(model, (str, Path)):
-                from ultralytics.nn.tasks import attempt_load_weights
+                from ultralytics.nn.tasks import load_checkpoint
 
-                model = attempt_load_weights(model, device=self.device, inplace=True)
+                model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]

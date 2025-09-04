@@ -66,7 +66,7 @@ jobs:
                   comparison = repo.compare(default_branch.commit.sha, pr.head.sha)
                   if comparison.behind_by > 0:
                       print(f"⚠️ PR #{pr.number} ({head_repo_name}:{head_branch_name} -> {base_repo_name}:{base_branch_name}) is behind {default_branch_name} by {comparison.behind_by} commit(s).")
-                      
+
                       # Attempt to update the branch
                       try:
                           success = pr.update_branch()

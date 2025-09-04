@@ -3,10 +3,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-
-from typing import List
+from __future__ import annotations
 
 import torch
 import torch.nn.functional as F
@@ -61,8 +58,8 @@ class SAMModel(nn.Module):
         image_encoder: ImageEncoderViT,
         prompt_encoder: PromptEncoder,
         mask_decoder: MaskDecoder,
-        pixel_mean: List[float] = (123.675, 116.28, 103.53),
-        pixel_std: List[float] = (58.395, 57.12, 57.375),
+        pixel_mean: list[float] = (123.675, 116.28, 103.53),
+        pixel_std: list[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """
         Initialize the SAMModel class to predict object masks from an image and input prompts.
@@ -959,7 +956,6 @@ class SAM2Model(torch.nn.Module):
         prev_sam_mask_logits=None,
     ):
         """Perform a single tracking step, updating object masks and memory features based on current frame inputs."""
-        current_out = {}
         sam_outputs, _, _ = self._track_step(
             frame_idx,
             is_init_cond_frame,
@@ -975,9 +971,11 @@ class SAM2Model(torch.nn.Module):
         )
         _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = sam_outputs
 
-        current_out["pred_masks"] = low_res_masks
-        current_out["pred_masks_high_res"] = high_res_masks
-        current_out["obj_ptr"] = obj_ptr
+        current_out = {
+            "pred_masks": low_res_masks,
+            "pred_masks_high_res": high_res_masks,
+            "obj_ptr": obj_ptr,
+        }
         if not self.training:
             # Only add this in inference (to avoid unused param in activation checkpointing;
             # it's mainly used in the demo to encode spatial memories w/ consolidated masks)

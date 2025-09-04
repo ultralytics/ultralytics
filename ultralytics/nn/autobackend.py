@@ -203,9 +203,9 @@ class AutoBackend(nn.Module):
                     model = model.fuse(verbose=verbose)
                 model = model.to(device)
             else:  # pt file
-                from ultralytics.nn.tasks import attempt_load_one_weight
+                from ultralytics.nn.tasks import load_checkpoint
 
-                model, _ = attempt_load_one_weight(model, device=device, fuse=fuse)  # load model, ckpt
+                model, _ = load_checkpoint(model, device=device, fuse=fuse)  # load model, ckpt
 
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):

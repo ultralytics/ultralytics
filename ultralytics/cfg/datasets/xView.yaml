@@ -87,7 +87,7 @@ download: |
   from PIL import Image
 
   from ultralytics.utils import TQDM
-  from ultralytics.data.utils import autosplit
+  from ultralytics.data.split import autosplit
   from ultralytics.utils.ops import xyxy2xywhn
 
 

@@ -1877,7 +1877,7 @@ class C2PSA(nn.Module):
         # return self.cv2(self.m(self.cv1(x)))
         a, b = self.cv1(x).split((self.c, self.c), dim=1)
         b = self.m(b)
-        return self.cv2(torch.cat((a, b), 1))
+        return self.cv2(torch.cat((a, b), 1)) + x
 
 
 class C2fPSA(C2f):

@@ -258,7 +258,8 @@ class TQDM:
             n = self._format_num(self.n)
             total = self._format_num(self.total)
             if self.unit_scale and self.unit in ("B", "bytes"):
-                n = n.rstrip("KMGTPB")  # Remove unit suffix from current
+                if n[-2] == total[-2]:
+                    n = n.rstrip("KMGTPB")  # Remove unit suffix from current if different than total
         else:
             percent = 0
             n = self._format_num(self.n)

@@ -168,12 +168,11 @@ class SegmentationValidator(DetectionValidator):
             >>> correct_preds = validator._process_batch(preds, batch)
         """
         tp = super()._process_batch(preds, batch)
-        gt_cls, gt_masks = batch["cls"], batch["masks"]
+        gt_cls = batch["cls"]
         if len(gt_cls) == 0 or len(preds["cls"]) == 0:
             tp_m = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
-            pred_masks = preds["masks"]
-            iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
+            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp

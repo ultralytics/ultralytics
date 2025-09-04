@@ -36,6 +36,7 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     WINDOWS,
@@ -47,7 +48,6 @@ from ultralytics.utils import (
     downloads,
     is_github_action_running,
     url2file,
-    TORCH_VERSION,
 )
 
 

@@ -381,7 +381,7 @@ class YOLOE(Model):
                 directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a
                 generator as they are computed.
-            visual_prompts (dict[str, List]): Dictionary containing visual prompts for the model. Must include
+            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically

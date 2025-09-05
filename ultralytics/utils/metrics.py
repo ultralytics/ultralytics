@@ -1038,7 +1038,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'detect'.
-        stats (dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 
@@ -1211,7 +1211,7 @@ class SegmentMetrics(DetMetrics):
         seg (Metric): An instance of the Metric class to calculate mask segmentation metrics.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'segment'.
-        stats (dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 
@@ -1348,7 +1348,7 @@ class PoseMetrics(DetMetrics):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'pose'.
-        stats (dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 
@@ -1572,7 +1572,7 @@ class OBBMetrics(DetMetrics):
         box (Metric): An instance of the Metric class for storing detection results.
         speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
         task (str): The task type, set to 'obb'.
-        stats (dict[str, List]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
+        stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, and target images.
         nt_per_class: Number of targets per class.
         nt_per_image: Number of targets per image.
 

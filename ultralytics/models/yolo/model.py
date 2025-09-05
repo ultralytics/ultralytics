@@ -370,7 +370,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
         text_prompts: torch.Tensor | None = None,
-        fusion_method: str = 'concat',
+        fusion_method: str = "concat",
         cls_pe: torch.Tensor | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
@@ -407,14 +407,15 @@ class YOLOE(Model):
             >>> text_emb = torch.randn(1, 10, 512)  # Example text embeddings
             >>> results = model.predict("path/to/image.jpg", text_prompts=text_emb)
             >>> # With both text and visual prompts
-            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, 
-            ...                        text_prompts=text_emb, fusion_method='attention')
+            >>> results = model.predict(
+            ...     "path/to/image.jpg", visual_prompts=prompts, text_prompts=text_emb, fusion_method="attention"
+            ... )
         """
         # Handle the case where we have prompts (visual, text, or both) or cls_pe override
         has_visual_prompts = len(visual_prompts) > 0
         has_text_prompts = text_prompts is not None
         has_cls_pe_override = cls_pe is not None
-        
+
         if has_visual_prompts or has_text_prompts or has_cls_pe_override:
             # Validate visual prompts if provided
             if has_visual_prompts:
@@ -425,7 +426,7 @@ class YOLOE(Model):
                     f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                     f"{len(visual_prompts['cls'])} respectively"
                 )
-            
+
             # Setup predictor if needed
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(
@@ -451,16 +452,16 @@ class YOLOE(Model):
                 self.model.model[-1].nc = num_cls
                 self.model.names = [f"object{i}" for i in range(num_cls)]
                 self.predictor.set_prompts(visual_prompts.copy())
-            
+
             # Setup text prompts and fusion method
             if has_text_prompts:
                 self.predictor.set_text_prompts(text_prompts)
                 self.predictor.set_fusion_method(fusion_method)
-            
+
             # Setup cls_pe override if provided
             if has_cls_pe_override:
                 self.predictor.set_cls_pe_override(cls_pe)
-            
+
             self.predictor.setup_model(model=self.model)
 
             # Handle reference image for visual prompts

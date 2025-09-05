@@ -47,7 +47,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.done_warmup = True
         # Initialize prompt-related attributes
         self.text_prompts = None
-        self.fusion_method = 'concat'  # Default fusion method
+        self.fusion_method = "concat"  # Default fusion method
         self.cls_pe_override = None
 
     def set_prompts(self, prompts):
@@ -76,7 +76,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Args:
             method (str): Fusion method - 'concat', 'sum', or 'attention'.
         """
-        if method not in ['concat', 'sum', 'attention']:
+        if method not in ["concat", "sum", "attention"]:
             raise ValueError(f"Unsupported fusion method: {method}. Supported: 'concat', 'sum', 'attention'")
         self.fusion_method = method
 
@@ -185,7 +185,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         # Handle cls_pe override if provided
         if self.cls_pe_override is not None:
             return super().inference(im, cls_pe=self.cls_pe_override, *args, **kwargs)
-        
+
         # Get fused embeddings for inference
         cls_pe = self.get_fused_embeddings(im)
         if cls_pe is not None:
@@ -224,26 +224,26 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         tpe = None
         vpe = None
-        
+
         # Get text prompt embeddings
         if self.text_prompts is not None:
             tpe = self.model.model[-1].get_tpe(self.text_prompts)
-        
+
         # Get visual prompt embeddings
-        if hasattr(self, 'prompts') and self.prompts is not None:
+        if hasattr(self, "prompts") and self.prompts is not None:
             # Use existing VPE processing from model
             vpe = self.model.model[-1].get_vpe([im], self.prompts)
-        
+
         # Return None if no embeddings available
         if tpe is None and vpe is None:
             return None
-        
+
         # Use fusion utility to combine embeddings
         try:
-            embed_dim = getattr(self.model.model[-1], 'embed', 512)
+            embed_dim = getattr(self.model.model[-1], "embed", 512)
             fused = fuse_prompt_embeddings(tpe, vpe, method=self.fusion_method, embed_dim=embed_dim)
             return fused
-        except Exception as e:
+        except Exception:
             # Fallback to basic concatenation if fusion fails
             if tpe is not None and vpe is not None:
                 return torch.cat([tpe, vpe], dim=1)

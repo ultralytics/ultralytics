@@ -680,6 +680,7 @@ nav:
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md
+          - events: reference/utils/events.md
           - export: reference/utils/export.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md

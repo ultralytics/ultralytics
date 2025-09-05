@@ -163,4 +163,3 @@ def smart_request(
         threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True).start()
     else:
         return func(*args, **kwargs)
-

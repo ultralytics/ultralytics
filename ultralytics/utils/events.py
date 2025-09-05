@@ -1,20 +1,20 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+import json
 import random
 import time
 from pathlib import Path
-import json
-from urllib.request import Request, urlopen
 from threading import Thread
+from urllib.request import Request, urlopen
 
-from ultralytics import __version__, SETTINGS
-from ultralytics.utils import ARGV, GIT, IS_PIP_PACKAGE, PYTHON_VERSION, ENVIRONMENT, RANK, TESTS_RUNNING, ONLINE
+from ultralytics import SETTINGS, __version__
+from ultralytics.utils import ARGV, ENVIRONMENT, GIT, IS_PIP_PACKAGE, ONLINE, PYTHON_VERSION, RANK, TESTS_RUNNING
 from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info
 
 
-def _post(url, data, timeout=5):
-    """Send a one-shot JSON POST in a daemon thread."""
+def _post(url: str, data: dict, timeout: float = 5.0) -> None:
+    """Send a one-shot JSON POST request."""
     try:
         body = json.dumps(data, separators=(",", ":")).encode()  # compact JSON
         req = Request(url, data=body, headers={"Content-Type": "application/json"})
@@ -25,27 +25,32 @@ def _post(url, data, timeout=5):
 
 class Events:
     """
-    A class for collecting anonymous event analytics.
+    Collect and send anonymous usage analytics with rate-limiting.
 
-    Event analytics are enabled when sync=True in settings and disabled when sync=False. Run 'yolo settings' to see and
-    update settings.
+    Event collection and transmission are enabled when sync is enabled in settings, the current process is rank -1 or 0,
+    tests are not running, the environment is online, and the installation source is either pip or the official
+    Ultralytics GitHub repository.
 
     Attributes:
-        url (str): The URL to send anonymous events.
-        events (list): List of collected events to be sent.
-        rate_limit (float): The rate limit in seconds for sending events.
-        t (float): Rate limit timer in seconds.
-        metadata (dict): A dictionary containing metadata about the environment.
-        enabled (bool): A flag to enable or disable Events based on certain conditions.
+        url (str): Measurement Protocol endpoint for receiving anonymous events.
+        events (list[dict]): In-memory queue of event payloads awaiting transmission.
+        rate_limit (float): Minimum time in seconds between POST requests.
+        t (float): Timestamp of the last transmission in seconds since the epoch.
+        metadata (dict): Static metadata describing runtime, installation source, and environment.
+        enabled (bool): Flag indicating whether analytics collection is active.
+
+    Methods:
+        __init__: Initialize the event queue, rate limiter, and runtime metadata.
+        __call__: Queue an event and trigger a non-blocking send when the rate limit elapses.
     """
 
     url = "https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw"
 
-    def __init__(self):
-        """Initialize the Events object with default values for events, rate_limit, and metadata."""
-        self.events = []  # events list
+    def __init__(self) -> None:
+        """Initialize the Events instance with queue, rate limiter, and environment metadata."""
+        self.events = []  # pending events
         self.rate_limit = 30.0  # rate limit (seconds)
-        self.t = 0.0  # rate limit timer (seconds)
+        self.t = 0.0  # last send timestamp (seconds)
         self.metadata = {
             "cli": Path(ARGV[0]).name == "yolo",
             "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
@@ -65,9 +70,9 @@ class Events:
             and (IS_PIP_PACKAGE or GIT.origin == "https://github.com/ultralytics/ultralytics.git")
         )
 
-    def __call__(self, cfg, device=None):
+    def __call__(self, cfg, device=None) -> None:
         """
-        Attempt to add a new event to the events list and send events if the rate limit is reached.
+        Queue an event and flush the queue asynchronously when the rate limit elapses.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
@@ -77,8 +82,8 @@ class Events:
             # Events disabled, do nothing
             return
 
-        # Attempt to add to events
-        if len(self.events) < 25:  # Events list limited to 25 events (drop any events past this)
+        # Attempt to enqueue a new event
+        if len(self.events) < 25:  # Queue limited to 25 events to bound memory and traffic
             params = {
                 **self.metadata,
                 "task": cfg.task,
@@ -89,20 +94,20 @@ class Events:
                 params["format"] = cfg.format
             self.events.append({"name": cfg.mode, "params": params})
 
-        # Check rate limit
+        # Check rate limit and return early if under limit
         t = time.time()
         if (t - self.t) < self.rate_limit:
-            # Time is under rate limiter, wait to send
             return
 
-        # Time is over rate limiter, send now
+        # Overrate limit: send a snapshot of queued events in a background thread
+        payload_events = list(self.events)  # snapshot to avoid race with queue reset
         Thread(
             target=_post,
-            args=(self.url, {"client_id": SETTINGS["uuid"], "events": self.events}),  # SHA-256 anonymized
+            args=(self.url, {"client_id": SETTINGS["uuid"], "events": payload_events}),  # SHA-256 anonymized
             daemon=True,
         ).start()
 
-        # Reset events and rate limit timer
+        # Reset queue and rate limit timer
         self.events = []
         self.t = t
 

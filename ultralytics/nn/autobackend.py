@@ -624,7 +624,7 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
+            (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
         """
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
@@ -860,7 +860,7 @@ class AutoBackend(nn.Module):
             p (str): Path to the model file.
 
         Returns:
-            (List[bool]): List of booleans indicating the model type.
+            (list[bool]): List of booleans indicating the model type.
 
         Examples:
             >>> model = AutoBackend(model="path/to/model.onnx")

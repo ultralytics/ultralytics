@@ -729,7 +729,7 @@ class AutoBackend(nn.Module):
 
                 box = xywh2xyxy(y["coordinates"] * [[w, h, w, h]])  # xyxy pixels
                 cls = y["confidence"].argmax(1, keepdims=True)
-                y = np.concatenate((box, np.take_along_axis(y["confidence"], cls), cls), 1)[None]
+                y = np.concatenate((box, np.take_along_axis(y["confidence"], cls, axis=1), cls), 1)[None]
             else:
                 y = list(y.values())
             if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model

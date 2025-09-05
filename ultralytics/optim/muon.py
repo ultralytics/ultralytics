@@ -99,8 +99,8 @@ class MuonWithSGD(optim.Optimizer):
                         # continue
                         p.grad = torch.zeros_like(p)  # Force synchronization
                     grad = p.grad
-                    if group["weight_decay"] != 0:
-                        grad = grad.add(p, alpha=group["weight_decay"])
+                    # if group["weight_decay"] != 0:
+                    #     grad = grad.add(p, alpha=group["weight_decay"])
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
@@ -127,7 +127,7 @@ class MuonWithSGD(optim.Optimizer):
                     # TODO
                     lr = group["lr"] / 10
                     lr = self.adjust_lr(lr, p.shape)
-                    # p.mul_(1 - group["lr"] * group["weight_decay"])
+                    p.mul_(1 - group["lr"] * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-lr)
                     p.add_(sgd_update, alpha=-group["lr"])
             else:  # SGD

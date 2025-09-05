@@ -1444,7 +1444,11 @@ def torch_safe_load(weight, safe_only=False):
                 with open(file, "rb") as f:
                     ckpt = torch_load(f, pickle_module=safe_pickle)
             else:
-                ckpt = torch_load(file, map_location="cpu")
+                try:
+                    ckpt = torch_load(file, map_location="cpu")
+                except Exception:
+                    Path(file).unlink(missing_ok=True)  # file broken → delete
+                    ckpt = torch_load(attempt_download_asset(weight), map_location="cpu")  # re-download
 
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == "models":

@@ -375,7 +375,7 @@ def test_data_annotator():
 
 def test_events():
     """Test event sending functionality."""
-    from ultralytics.hub.utils import Events
+    from ultralytics.utils.events import Events
 
     events = Events()
     events.enabled = True

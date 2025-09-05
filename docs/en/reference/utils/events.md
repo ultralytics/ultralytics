@@ -3,7 +3,6 @@ description: Reference for utilities supporting telemetry, analytics, and event 
 keywords: Ultralytics, YOLO, utils, telemetry, analytics, events, anonymization, background, JSON, POST, Python
 ---
 
-
 # Reference for `ultralytics/utils/events.py`
 
 !!! note

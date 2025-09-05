@@ -102,9 +102,7 @@ def segment2box(segment, width: int = 640, height: int = 640):
     )  # xyxy
 
 
-def scale_boxes(
-    img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False, clip: bool = True
-):
+def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False):
     """
     Rescale bounding boxes from one image shape to another.
 
@@ -118,7 +116,6 @@ def scale_boxes(
         ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
-        clip (bool): Whether to clip the box coordinates to image boundaries.
 
     Returns:
         (torch.Tensor): Rescaled bounding boxes in the same format as input.
@@ -138,7 +135,7 @@ def scale_boxes(
             boxes[..., 2] -= pad_x  # x padding
             boxes[..., 3] -= pad_y  # y padding
     boxes[..., :4] /= gain
-    return clip_boxes(boxes, img0_shape) if clip else boxes
+    return boxes if xywh else clip_boxes(boxes, img0_shape)
 
 
 def make_divisible(x: int, divisor):

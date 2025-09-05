@@ -763,6 +763,7 @@ class Model(torch.nn.Module):
                 optimizer (str): Optimizer to use for training.
                 lr0 (float): Initial learning rate.
                 patience (int): Epochs to wait for no observable improvement for early stopping of training.
+                augmentations (List[Callable]): List of augmentation functions to apply during training.
 
         Returns:
             (Dict | None): Training metrics if available and training is successful; otherwise, None.

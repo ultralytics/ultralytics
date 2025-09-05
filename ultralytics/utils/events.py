@@ -1,7 +1,8 @@
 import random
 import time
 from pathlib import Path
-import requests
+import json
+from urllib.request import Request, urlopen
 from threading import Thread
 
 from ultralytics import __version__, SETTINGS
@@ -85,9 +86,11 @@ class Events:
         # Time is over rate limiter, send now
         data = {"client_id": SETTINGS["uuid"], "events": self.events}  # SHA-256 anonymized UUID hash and events list
 
-        def _post(url, data):
+        def _post(url, data, timeout=5):
             try:
-                requests.post(url, json=data, timeout=10)
+                body = json.dumps(data, separators=(",", ":")).encode()  # compact JSON
+                req = Request(url, data=body, headers={"Content-Type": "application/json"})
+                urlopen(req, timeout=timeout).close()
             except Exception:
                 pass
 

@@ -392,7 +392,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Return category names for the dataset.
 
         Returns:
-            (Set[str]): List of class names.
+            (set[str]): List of class names.
         """
         names = self.data["names"].values()
         return {n.strip() for name in names for n in name.split("/")}  # category names

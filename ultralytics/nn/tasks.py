@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+
 import contextlib
 import pickle
 import re
@@ -17,7 +18,9 @@ from ultralytics.nn.modules import (
     C2,
     C2PSA,
     C3,
+    C3K2_FE,
     C3TR,
+    CBAM,
     ELAN1,
     OBB,
     PSA,
@@ -69,6 +72,7 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
+from ultralytics.nn.modules.conv import BiFPN_ConcatN
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
@@ -1545,7 +1549,7 @@ def parse_model(d, ch, verbose=True):
         scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
-            LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
+            LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
         depth, width, max_channels = scales[scale]
 
     if act:
@@ -1576,6 +1580,7 @@ def parse_model(d, ch, verbose=True):
             C2,
             C2f,
             C3k2,
+            C3K2_FE,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1593,6 +1598,13 @@ def parse_model(d, ch, verbose=True):
             SCDown,
             C2fCIB,
             A2C2f,
+            CBAM,
+            # GSConv,
+            # GSConvE,
+            # GSConvE2,
+            # GSBottleneckC,
+            # GSBottleneck,
+            # GSConvns,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1602,6 +1614,7 @@ def parse_model(d, ch, verbose=True):
             C2,
             C2f,
             C3k2,
+            C3K2_FE,
             C2fAttn,
             C3,
             C3TR,
@@ -1612,6 +1625,12 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             C2PSA,
             A2C2f,
+            # GSConv,
+            # GSConvE,
+            # GSConvE2,
+            # GSBottleneckC,
+            # GSBottleneck,
+            # GSConvns,
         }
     )
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
@@ -1647,8 +1666,6 @@ def parse_model(d, ch, verbose=True):
                 legacy = False
                 if scale in "lx":  # for L/X sizes
                     args.extend((True, 1.2))
-            if m is C2fCIB:
-                legacy = False
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
@@ -1663,13 +1680,19 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
-        ):
+        # 添加bifpn_concat结构
+        elif m in [Concat, BiFPN_ConcatN]:
+            c2 = sum(ch[x] for x in f)
+        elif m in {CBAM}:
+            c1, c2 = ch[f], args[0]
+            if c2 != nc:
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
+            args = [c1, *args[1:]]
+        elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}):
             args.append([ch[x] for x in f])
-            if m is Segment or m is YOLOESegment:
+            if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:
+            if m in {Detect, Segment, Pose, OBB}:
                 m.legacy = legacy
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -1683,6 +1706,7 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+
         else:
             c2 = ch[f]
 

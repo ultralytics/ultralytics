@@ -102,7 +102,9 @@ def segment2box(segment, width: int = 640, height: int = 640):
     )  # xyxy
 
 
-def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False, clip: bool = True):
+def scale_boxes(
+    img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = True, xywh: bool = False, clip: bool = True
+):
     """
     Rescale bounding boxes from one image shape to another.
 

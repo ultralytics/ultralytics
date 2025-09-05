@@ -5,7 +5,6 @@ from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
 from ultralytics.utils import LOGGER, SETTINGS, checks
-from ultralytics.utils.events import events
 
 __all__ = (
     "PREFIX",

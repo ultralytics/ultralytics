@@ -15,6 +15,7 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
+    FLOAT_OR_INT,
     IS_VSCODE,
     LOGGER,
     RANK,
@@ -22,6 +23,7 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
+    STR_OR_PATH,
     TESTS_RUNNING,
     YAML,
     IterableSimpleNamespace,
@@ -267,7 +269,7 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
         - If cfg is a SimpleNamespace object, it's converted to a dictionary using vars().
         - If cfg is already a dictionary, it's returned unchanged.
     """
-    if isinstance(cfg, (str, Path)):
+    if isinstance(cfg, STR_OR_PATH):
         cfg = YAML.load(cfg)  # load dict
     elif isinstance(cfg, SimpleNamespace):
         cfg = vars(cfg)  # convert to dict
@@ -309,7 +311,7 @@ def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrid
 
     # Special handling for numeric project/name
     for k in "project", "name":
-        if k in cfg and isinstance(cfg[k], (int, float)):
+        if k in cfg and isinstance(cfg[k], FLOAT_OR_INT):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
         cfg["name"] = str(cfg.get("model", "")).partition(".")[0]
@@ -352,7 +354,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
-            if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
+            if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
@@ -360,7 +362,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     )
                 cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, (int, float)):
+                if not isinstance(v, FLOAT_OR_INT):
                     if hard:
                         raise TypeError(
                             f"'{k}={v}' is of invalid type {type(v).__name__}. "

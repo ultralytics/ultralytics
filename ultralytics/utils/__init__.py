@@ -133,6 +133,10 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warning
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 
+# Precompiled type tuples for faster isinstance() checks
+FLOAT_OR_INT = (float, int)
+STR_OR_PATH = (str, Path)
+
 
 class DataExportMixin:
     """

@@ -136,8 +136,8 @@ class BaseTrainer:
             self.args.save_dir = str(self.save_dir)
             # Save run args, excluding non-serializable parameters
             args_dict = vars(self.args).copy()
-            if 'augmentations' in args_dict:
-                args_dict.pop('augmentations')  # Remove non-serializable Albumentations transforms
+            if "augmentations" in args_dict:
+                args_dict.pop("augmentations")  # Remove non-serializable Albumentations transforms
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period

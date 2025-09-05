@@ -1761,7 +1761,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def inference(
         self,
-        img: torch.Tensor | np.ndarray,
+        im: torch.Tensor | np.ndarray,
         bboxes: list[list[float]] | None = None,
         masks: torch.Tensor | np.ndarray | None = None,
         points: list[list[float]] | None = None,
@@ -1777,7 +1777,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         When update_memory is False, it will only run inference on the provided image without updating the memory.
 
         Args:
-            img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
+            im (torch.Tensor | np.ndarray): The input image tensor or numpy array.
             bboxes (List[List[float]] | None): Optional list of bounding boxes to update the memory.
             masks (List[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
             points (List[List[float]] | None): Optional list of points to update the memory, each point is [x, y].
@@ -1789,7 +1789,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             res_masks (torch.Tensor): The output masks in shape (C, H, W)
             object_score_logits (torch.Tensor): Quality scores for each mask
         """
-        self.get_im_features(img)
+        self.get_im_features(im)
         points, labels, masks = self._prepare_prompts(
             dst_shape=self.imgsz,
             src_shape=self.batch[1][0].shape[:2],

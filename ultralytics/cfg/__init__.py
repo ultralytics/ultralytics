@@ -283,7 +283,7 @@ def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrid
     Args:
         cfg (str | Path | Dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
             SimpleNamespace object.
-        overrides (Dict | None): Dictionary containing key-value pairs to override the base configuration.
+        overrides (dict | None): Dictionary containing key-value pairs to override the base configuration.
 
     Returns:
         (SimpleNamespace): Namespace containing the merged configuration arguments.

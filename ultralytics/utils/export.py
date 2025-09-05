@@ -74,7 +74,7 @@ def export_engine(
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int, optional): DLA core to use (Jetson devices only).
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
-        metadata (Dict, optional): Metadata to include in the engine file.
+        metadata (dict, optional): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
 

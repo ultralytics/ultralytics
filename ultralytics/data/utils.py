@@ -588,8 +588,8 @@ class HUBDatasetStats:
         task (str): Dataset task type.
         hub_dir (Path): Directory path for HUB dataset files.
         im_dir (Path): Directory path for compressed images.
-        stats (Dict): Statistics dictionary containing dataset information.
-        data (Dict): Dataset configuration data.
+        stats (dict): Statistics dictionary containing dataset information.
+        data (dict): Dataset configuration data.
 
     Methods:
         get_json: Return dataset JSON for Ultralytics HUB.

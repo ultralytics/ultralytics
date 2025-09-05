@@ -1509,7 +1509,7 @@ class DSAttention(nn.Module):
         self.v = Conv(dim, dim, 1, act=False)
         self.proj = Conv(dim, dim, 1, act=False)
         self.pe = Conv(dim, dim, 3, 1, g=dim, act=False)
-        self.downsample = nn.MaxPool2d(kernel_size=downsample_ratio, stride=downsample_ratio)
+        self.downsample = nn.AvgPool2d(kernel_size=downsample_ratio, stride=downsample_ratio)
         self.downsample_ratio = downsample_ratio
 
     def forward(self, x):

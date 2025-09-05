@@ -2017,7 +2017,7 @@ class Albumentations:
                 # Required for deterministic transforms in albumentations>=1.4.21
                 self.transform.set_random_seed(torch.initial_seed())
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
-        except ImportError as e:  # package not installed, skip
+        except ImportError:  # package not installed, skip
             pass
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")

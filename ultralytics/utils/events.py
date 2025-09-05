@@ -11,6 +11,16 @@ from ultralytics.utils.downloads import GITHUB_ASSETS_NAMES
 from ultralytics.utils.torch_utils import get_cpu_info
 
 
+def _post(url, data, timeout=5):
+    """Send a one-shot JSON POST in a daemon thread."""
+    try:
+        body = json.dumps(data, separators=(",", ":")).encode()  # compact JSON
+        req = Request(url, data=body, headers={"Content-Type": "application/json"})
+        urlopen(req, timeout=timeout).close()
+    except Exception:
+        pass
+
+
 class Events:
     """
     A class for collecting anonymous event analytics.
@@ -84,17 +94,11 @@ class Events:
             return
 
         # Time is over rate limiter, send now
-        data = {"client_id": SETTINGS["uuid"], "events": self.events}  # SHA-256 anonymized UUID hash and events list
-
-        def _post(url, data, timeout=5):
-            try:
-                body = json.dumps(data, separators=(",", ":")).encode()  # compact JSON
-                req = Request(url, data=body, headers={"Content-Type": "application/json"})
-                urlopen(req, timeout=timeout).close()
-            except Exception:
-                pass
-
-        Thread(target=_post, args=(self.url, data), daemon=True).start()
+        Thread(
+            target=_post,
+            args=(self.url, {"client_id": SETTINGS["uuid"], "events": self.events}),  # SHA-256 anonymized
+            daemon=True,
+        ).start()
 
         # Reset events and rate limit timer
         self.events = []

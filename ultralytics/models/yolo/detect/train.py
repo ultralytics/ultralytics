@@ -158,7 +158,7 @@ class DetectionTrainer(BaseTrainer):
         Return a loss dict with labeled training loss items tensor.
 
         Args:
-            loss_items (List[float], optional): List of loss values.
+            loss_items (list[float], optional): List of loss values.
             prefix (str): Prefix for keys in the returned dictionary.
 
         Returns:
@@ -186,7 +186,7 @@ class DetectionTrainer(BaseTrainer):
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict[str, Any]): Dictionary containing batch data.
+            batch (dict[str, Any]): Dictionary containing batch data.
             ni (int): Number of iterations.
         """
         plot_images(

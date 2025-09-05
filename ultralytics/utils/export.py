@@ -27,8 +27,8 @@ def export_onnx(
         im (torch.Tensor): Example input tensor for the model.
         onnx_file (str): Path to save the exported ONNX file.
         opset (int): ONNX opset version to use for export.
-        input_names (List[str]): List of input tensor names.
-        output_names (List[str]): List of output tensor names.
+        input_names (list[str]): List of input tensor names.
+        output_names (list[str]): List of output tensor names.
         dynamic (bool | Dict, optional): Whether to enable dynamic axes.
 
     Notes:
@@ -71,7 +71,7 @@ def export_engine(
         half (bool, optional): Enable FP16 precision.
         int8 (bool, optional): Enable INT8 precision.
         dynamic (bool, optional): Enable dynamic input shapes.
-        shape (Tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
+        shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int, optional): DLA core to use (Jetson devices only).
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
         metadata (Dict, optional): Metadata to include in the engine file.

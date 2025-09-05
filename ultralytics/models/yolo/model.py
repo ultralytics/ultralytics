@@ -369,6 +369,9 @@ class YOLOE(Model):
         source=None,
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
+        text_prompts: torch.Tensor | None = None,
+        fusion_method: str = 'concat',
+        cls_pe: torch.Tensor | None = None,
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
@@ -383,6 +386,9 @@ class YOLOE(Model):
                 generator as they are computed.
             visual_prompts (Dict[str, List]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
+            text_prompts (torch.Tensor, optional): Text prompt embeddings with shape (B, N, D).
+            fusion_method (str): Method for fusing text and visual prompts ('concat', 'sum', 'attention').
+            cls_pe (torch.Tensor, optional): Override class prompt embeddings instead of using fusion.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
                 loaded based on the task.
@@ -397,15 +403,30 @@ class YOLOE(Model):
             >>> # With visual prompts
             >>> prompts = {"bboxes": [[10, 20, 100, 200]], "cls": ["person"]}
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
+            >>> # With text prompts
+            >>> text_emb = torch.randn(1, 10, 512)  # Example text embeddings
+            >>> results = model.predict("path/to/image.jpg", text_prompts=text_emb)
+            >>> # With both text and visual prompts
+            >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts, 
+            ...                        text_prompts=text_emb, fusion_method='attention')
         """
-        if len(visual_prompts):
-            assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
-                f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
-            )
-            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
-                f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
-                f"{len(visual_prompts['cls'])} respectively"
-            )
+        # Handle the case where we have prompts (visual, text, or both) or cls_pe override
+        has_visual_prompts = len(visual_prompts) > 0
+        has_text_prompts = text_prompts is not None
+        has_cls_pe_override = cls_pe is not None
+        
+        if has_visual_prompts or has_text_prompts or has_cls_pe_override:
+            # Validate visual prompts if provided
+            if has_visual_prompts:
+                assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
+                    f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
+                )
+                assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
+                    f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
+                    f"{len(visual_prompts['cls'])} respectively"
+                )
+            
+            # Setup predictor if needed
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(
                     overrides={
@@ -420,27 +441,40 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts.copy())
+            # Setup model classes based on visual prompts if provided
+            if has_visual_prompts:
+                num_cls = (
+                    max(len(set(c)) for c in visual_prompts["cls"])
+                    if isinstance(source, list) and refer_image is None  # means multiple images
+                    else len(set(visual_prompts["cls"]))
+                )
+                self.model.model[-1].nc = num_cls
+                self.model.names = [f"object{i}" for i in range(num_cls)]
+                self.predictor.set_prompts(visual_prompts.copy())
+            
+            # Setup text prompts and fusion method
+            if has_text_prompts:
+                self.predictor.set_text_prompts(text_prompts)
+                self.predictor.set_fusion_method(fusion_method)
+            
+            # Setup cls_pe override if provided
+            if has_cls_pe_override:
+                self.predictor.set_cls_pe_override(cls_pe)
+            
             self.predictor.setup_model(model=self.model)
 
-            if refer_image is None and source is not None:
+            # Handle reference image for visual prompts
+            if has_visual_prompts and refer_image is None and source is not None:
                 dataset = load_inference_source(source)
                 if dataset.mode in {"video", "stream"}:
                     # NOTE: set the first frame as refer image for videos/streams inference
                     refer_image = next(iter(dataset))[1][0]
-            if refer_image is not None:
+            if has_visual_prompts and refer_image is not None:
                 vpe = self.predictor.get_vpe(refer_image)
                 self.model.set_classes(self.model.names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-            self.predictor = None  # reset predictor if no visual prompts
+            self.predictor = None  # reset predictor if no prompts
 
         return super().predict(source, stream, **kwargs)

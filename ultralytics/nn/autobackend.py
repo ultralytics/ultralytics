@@ -203,9 +203,9 @@ class AutoBackend(nn.Module):
                     model = model.fuse(verbose=verbose)
                 model = model.to(device)
             else:  # pt file
-                from ultralytics.nn.tasks import attempt_load_one_weight
+                from ultralytics.nn.tasks import load_checkpoint
 
-                model, _ = attempt_load_one_weight(model, device=device, fuse=fuse)  # load model, ckpt
+                model, _ = load_checkpoint(model, device=device, fuse=fuse)  # load model, ckpt
 
             # Common PyTorch model processing
             if hasattr(model, "kpt_shape"):
@@ -724,17 +724,14 @@ class AutoBackend(nn.Module):
             im_pil = Image.fromarray((im * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
             y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
-            if "confidence" in y:
-                raise TypeError(
-                    "Ultralytics only supports inference of non-pipelined CoreML models exported with "
-                    f"'nms=False', but 'model={w}' has an NMS pipeline created by an 'nms=True' export."
-                )
-                # TODO: CoreML NMS inference handling
-                # from ultralytics.utils.ops import xywh2xyxy
-                # box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
-                # conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float32)
-                # y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
-            y = list(y.values())
+            if "confidence" in y:  # NMS included
+                from ultralytics.utils.ops import xywh2xyxy
+
+                box = xywh2xyxy(y["coordinates"] * [[w, h, w, h]])  # xyxy pixels
+                cls = y["confidence"].argmax(1, keepdims=True)
+                y = np.concatenate((box, np.take_along_axis(y["confidence"], cls, axis=1), cls), 1)[None]
+            else:
+                y = list(y.values())
             if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
                 y = list(reversed(y))  # reversed for segmentation models (pred, proto)
 

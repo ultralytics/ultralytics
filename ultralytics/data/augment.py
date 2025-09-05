@@ -2018,7 +2018,7 @@ class Albumentations:
                 self.transform.set_random_seed(torch.initial_seed())
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
         except ImportError as e:  # package not installed, skip
-            LOGGER.info(f"{prefix}{e}")
+            pass
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")
 

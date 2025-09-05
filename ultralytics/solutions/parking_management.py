@@ -186,7 +186,7 @@ class ParkingManagement(BaseSolution):
 
     Attributes:
         json_file (str): Path to the JSON file containing parking region details.
-        json (list[Dict]): Loaded JSON data containing parking region information.
+        json (list[dict]): Loaded JSON data containing parking region information.
         pr_info (dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
         arc (tuple[int, int, int]): RGB color tuple for available region visualization.
         occ (tuple[int, int, int]): RGB color tuple for occupied region visualization.

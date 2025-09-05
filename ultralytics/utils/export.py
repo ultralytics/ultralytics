@@ -29,7 +29,7 @@ def export_onnx(
         opset (int): ONNX opset version to use for export.
         input_names (list[str]): List of input tensor names.
         output_names (list[str]): List of output tensor names.
-        dynamic (bool | Dict, optional): Whether to enable dynamic axes.
+        dynamic (bool | dict, optional): Whether to enable dynamic axes.
 
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.

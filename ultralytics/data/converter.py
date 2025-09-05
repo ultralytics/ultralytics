@@ -539,7 +539,7 @@ def merge_multi_segment(segments: list[list]):
     This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments (list[List]): Original segmentations in COCO's JSON file.
+        segments (list[list]): Original segmentations in COCO's JSON file.
                                Each element is a list of coordinates, like [segmentation1, segmentation2,...].
 
     Returns:

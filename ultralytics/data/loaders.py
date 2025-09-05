@@ -351,7 +351,7 @@ class LoadImagesAndVideos:
         Initialize dataloader for images and videos, supporting various input formats.
 
         Args:
-            path (str | Path | List): Path to images/videos, directory, or list of paths.
+            path (str | Path | list): Path to images/videos, directory, or list of paths.
             batch (int): Batch size for processing.
             vid_stride (int): Video frame-rate stride.
             channels (int): Number of image channels (1 for grayscale, 3 for RGB).
@@ -521,7 +521,7 @@ class LoadPilAndNumpy:
         Initialize a loader for PIL and Numpy images, converting inputs to a standardized format.
 
         Args:
-            im0 (PIL.Image.Image | np.ndarray | List): Single image or list of images in PIL or numpy format.
+            im0 (PIL.Image.Image | np.ndarray | list): Single image or list of images in PIL or numpy format.
             channels (int): Number of image channels (1 for grayscale, 3 for RGB).
         """
         if not isinstance(im0, list):

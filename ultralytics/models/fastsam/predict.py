@@ -81,9 +81,9 @@ class FastSAMPredictor(SegmentationPredictor):
 
         Args:
             results (Results | list[Results]): Original inference results from FastSAM models without any prompts.
-            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            bboxes (np.ndarray | list, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
             texts (str | list[str], optional): Textual prompts, a list containing string objects.
 
         Returns:

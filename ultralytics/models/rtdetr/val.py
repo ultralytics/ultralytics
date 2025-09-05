@@ -163,7 +163,7 @@ class RTDETRValidator(DetectionValidator):
         Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (torch.Tensor | List | Tuple): Raw predictions from the model. If tensor, should have shape
+            preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
                 (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
 
         Returns:

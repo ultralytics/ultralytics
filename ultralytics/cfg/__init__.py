@@ -246,7 +246,7 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     Convert a configuration object to a dictionary.
 
     Args:
-        cfg (str | Path | Dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
@@ -281,7 +281,7 @@ def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrid
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
     Args:
-        cfg (str | Path | Dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
+        cfg (str | Path | dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
             SimpleNamespace object.
         overrides (dict | None): Dictionary containing key-value pairs to override the base configuration.
 

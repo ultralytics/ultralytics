@@ -724,7 +724,7 @@ class Mosaic(BaseMixTransform):
                 the following keys:
                 - 'img' (np.ndarray): The input image.
                 - 'resized_shape' (tuple[int, int]): The shape of the resized image (height, width).
-                - 'mix_labels' (list[Dict]): A list of dictionaries containing information for the additional
+                - 'mix_labels' (list[dict]): A list of dictionaries containing information for the additional
                   eight images, each with the same structure as the input labels.
 
         Returns:

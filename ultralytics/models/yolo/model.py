@@ -389,7 +389,7 @@ class YOLOE(Model):
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (List | generator): List of Results objects or generator of Results objects if stream=True.
+            (list | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")

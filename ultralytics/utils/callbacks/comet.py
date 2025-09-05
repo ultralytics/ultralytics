@@ -322,7 +322,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
         class_map (dict): Additional class mapping for label conversion.
 
     Returns:
-        (List | None): List of annotation dictionaries or None if no annotations exist.
+        (list | None): List of annotation dictionaries or None if no annotations exist.
     """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map

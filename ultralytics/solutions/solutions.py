@@ -35,7 +35,7 @@ class BaseSolution:
         annotator: Annotator instance for drawing on images.
         tracks: YOLO tracking results from the latest inference.
         track_data: Extracted tracking data (boxes or OBB) from tracks.
-        boxes (List): Bounding box coordinates from tracking results.
+        boxes (list): Bounding box coordinates from tracking results.
         clss (list[int]): Class indices from tracking results.
         track_ids (list[int]): Track IDs from tracking results.
         confs (list[float]): Confidence scores from tracking results.
@@ -54,7 +54,7 @@ class BaseSolution:
         track_add_args (dict[str, Any]): Additional arguments for tracking configuration.
         env_check (bool): Flag indicating whether environment supports image display.
         track_history (defaultdict): Dictionary storing tracking history for each object.
-        profilers (Tuple): Profiler instances for performance monitoring.
+        profilers (tuple): Profiler instances for performance monitoring.
 
     Methods:
         adjust_box_label: Generate formatted label for bounding box.

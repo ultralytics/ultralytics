@@ -208,7 +208,7 @@ class DETRLoss(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth bounding boxes.
             gt_cls (torch.Tensor): Ground truth classes.
             gt_groups (list[int]): Number of ground truths per image.
-            match_indices (list[Tuple], optional): Pre-computed matching indices.
+            match_indices (list[tuple], optional): Pre-computed matching indices.
             postfix (str, optional): String to append to loss names.
             masks (torch.Tensor, optional): Predicted masks if using segmentation.
             gt_mask (torch.Tensor, optional): Ground truth masks if using segmentation.
@@ -265,7 +265,7 @@ class DETRLoss(nn.Module):
         Extract batch indices, source indices, and destination indices from match indices.
 
         Args:
-            match_indices (list[Tuple]): List of tuples containing matched indices.
+            match_indices (list[tuple]): List of tuples containing matched indices.
 
         Returns:
             batch_idx (tuple[torch.Tensor, torch.Tensor]): Tuple containing (batch_idx, src_idx).
@@ -285,7 +285,7 @@ class DETRLoss(nn.Module):
         Args:
             pred_bboxes (torch.Tensor): Predicted bounding boxes.
             gt_bboxes (torch.Tensor): Ground truth bounding boxes.
-            match_indices (list[Tuple]): List of tuples containing matched indices.
+            match_indices (list[tuple]): List of tuples containing matched indices.
 
         Returns:
             pred_assigned (torch.Tensor): Assigned predicted bounding boxes.
@@ -329,7 +329,7 @@ class DETRLoss(nn.Module):
             masks (torch.Tensor, optional): Predicted masks if using segmentation.
             gt_mask (torch.Tensor, optional): Ground truth masks if using segmentation.
             postfix (str, optional): String to append to loss names.
-            match_indices (list[Tuple], optional): Pre-computed matching indices.
+            match_indices (list[tuple], optional): Pre-computed matching indices.
 
         Returns:
             (dict[str, torch.Tensor]): Dictionary of losses.

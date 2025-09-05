@@ -168,7 +168,7 @@ class Model(torch.nn.Module):
         directly with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source of
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of
                 the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch
                 tensor, or a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
@@ -477,7 +477,7 @@ class Model(torch.nn.Module):
         source. It allows customization of the embedding process through various keyword arguments.
 
         Args:
-            source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor): The source of the image for
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for
                 generating embeddings. Can be a file path, URL, PIL image, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
@@ -510,7 +510,7 @@ class Model(torch.nn.Module):
         types of image sources and can operate in a streaming mode.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
                 of the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL
                 images, numpy arrays, and torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
@@ -571,7 +571,7 @@ class Model(torch.nn.Module):
         The method registers trackers if not already present and can persist them between calls.
 
         Args:
-            source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor, optional): Input source for object
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream.
             persist (bool): If True, persists trackers between different calls to this method.

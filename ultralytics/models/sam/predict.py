@@ -177,9 +177,9 @@ class Predictor(BasePredictor):
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
-            bboxes (np.ndarray | List | None): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List | None): Labels for point prompts, shape (N,). 1 = foreground, 0 = background.
+            bboxes (np.ndarray | list | None): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list | None): Labels for point prompts, shape (N,). 1 = foreground, 0 = background.
             masks (np.ndarray | None): Low-resolution masks from previous predictions, shape (N, H, W). For SAM H=W=256.
             multimask_output (bool): Flag to return multiple masks. Helpful for ambiguous prompts.
             *args (Any): Additional positional arguments.
@@ -215,9 +215,9 @@ class Predictor(BasePredictor):
 
         Args:
             im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
+            bboxes (np.ndarray | list | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | list | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
@@ -284,9 +284,9 @@ class Predictor(BasePredictor):
         Args:
             dst_shape (tuple[int, int]): The target shape (height, width) for the prompts.
             src_shape (tuple[int, int]): The source shape (height, width) of the input image.
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
+            bboxes (np.ndarray | list | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | list | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array with shape (H, W).
 
         Returns:
@@ -754,10 +754,10 @@ class SAM2Predictor(Predictor):
         Args:
             dst_shape (tuple[int, int]): The target shape (height, width) for the prompts.
             src_shape (tuple[int, int]): The source shape (height, width) of the input image.
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
-            masks (List | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            bboxes (np.ndarray | list | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | list | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            masks (list | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
 
         Returns:
             points (torch.Tensor | None): Transformed points.
@@ -962,9 +962,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
-            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            bboxes (np.ndarray | list, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
             masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
 
         Returns:

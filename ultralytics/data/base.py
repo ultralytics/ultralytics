@@ -37,7 +37,7 @@ class BaseDataset(Dataset):
         channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         cv2_flag (int): OpenCV flag for reading images.
         im_files (list[str]): List of image file paths.
-        labels (list[Dict]): List of label data dictionaries.
+        labels (list[dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
         rect (bool): Whether to use rectangular training.
         batch_size (int): Size of batches.

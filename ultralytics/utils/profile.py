@@ -27,7 +27,8 @@ def _input_from_model(model: nn.Module, imgsz=640, try_stride=True) -> Tuple[tor
     m = de_parallel(model)
     p = next(m.parameters())
     ch = int(p.shape[1]); device = p.device
-    if not isinstance(imgsz, (list, tuple)): imgsz = [int(imgsz), int(imgsz)]
+    if not isinstance(imgsz, (list, tuple)):
+        imgsz = [int(imgsz), int(imgsz)]
     if try_stride and hasattr(m, "stride"):
         try:
             s = max(int(torch.as_tensor(m.stride).max().item()), 32)
@@ -46,12 +47,12 @@ def _count_linear(B, in_f, out_f) -> int:
 
 
 def get_flops(model: nn.Module, imgsz=640) -> float:
-    """Hook-based FLOPs to align with torch.profiler(with_flops=True): Conv/Linear MACs*2, stride-scaled to imgsz."""
+    """Hook-based FLOPs to match torch.profiler(with_flops=True); stride-scaled; no caching."""
     m = de_parallel(model)
-    macs = 0
+    macs = 0; adds = 0
 
     def fh(module, inp, out):
-        nonlocal macs
+        nonlocal macs, adds
         x = inp[0]; B = int(x.shape[0])
         if isinstance(module, nn.Conv2d):
             Cin = int(x.shape[1]); Cout = int(module.out_channels)
@@ -59,8 +60,12 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
             G = int(module.groups)
             H, W = int(out.shape[-2]), int(out.shape[-1])
             macs += _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G)
+            if module.bias is not None:
+                adds += B * Cout * H * W
         elif isinstance(module, nn.Linear):
             macs += _count_linear(B, int(module.in_features), int(module.out_features))
+            if module.bias is not None:
+                adds += B * int(module.out_features)
 
     handles = []
     try:
@@ -69,19 +74,17 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
                 handles.append(mod.register_forward_hook(fh))
         with _eval_no_grad_restore(m):
             try:
-                im, scale = _input_from_model(m, imgsz, try_stride=True)
-                m(im)
+                im, scale = _input_from_model(m, imgsz, try_stride=True); m(im)
             except Exception:
-                macs = 0
-                im, scale = _input_from_model(m, imgsz, try_stride=False)
-                m(im)
-        return float(macs * 2 * scale) / 1e9
+                macs = adds = 0
+                im, scale = _input_from_model(m, imgsz, try_stride=False); m(im)
+        flops = ((macs * 2) + adds) * float(scale) / 1e9
+        return float(flops)
     finally:
-        for h in handles:
-            h.remove()
+        for h in handles: h.remove()
 
 
-# ---------- thop comparator (deepcopy is part of time) ----------
+# ---------- thop comparator ----------
 def _flops_thop_once(model: nn.Module, imgsz=640) -> float:
     import thop
     from copy import deepcopy
@@ -95,7 +98,7 @@ def _flops_thop_once(model: nn.Module, imgsz=640) -> float:
     return float(macs) * 2.0 * scale / 1e9
 
 
-# ---------- torch.profiler (with_flops=True) ----------
+# ---------- torch.profiler ----------
 def get_flops_profiler(model: nn.Module, imgsz=640) -> float:
     """FLOPs from torch.profiler with_flops=True, run at stride and upscale to imgsz."""
     try:
@@ -107,15 +110,13 @@ def get_flops_profiler(model: nn.Module, imgsz=640) -> float:
     if torch.cuda.is_available():
         activities.append(ProfilerActivity.CUDA)
     with _eval_no_grad_restore(m):
-        # Use stride-sized input and scale to imgsz for apples-to-apples with hooks/thop
         try:
             im, scale = _input_from_model(m, imgsz, try_stride=True)
             with profile(activities=activities, with_flops=True, record_shapes=False) as prof:
                 m(im)
         except Exception:
-            # Fallback: exact imgsz, no scaling
-            im, scale = _input_from_model(m, imgsz, try_stride=False)
             try:
+                im, scale = _input_from_model(m, imgsz, try_stride=False)
                 with profile(activities=activities, with_flops=True, record_shapes=False) as prof:
                     m(im)
             except Exception:
@@ -136,28 +137,25 @@ def _run_n(fn, n=10) -> List[float]:
 
 
 def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, float]]:
-    """Benchmark FLOPs calculators; report GFLOPs and avg/total seconds only."""
+    """Benchmark FLOPs calculators; report GFLOPs and avg speed (ms) only."""
     out: Dict[str, Dict[str, float]] = {}
 
     # hooks
-    _ = get_flops(model, imgsz)
     ts = _run_n(lambda: get_flops(model, imgsz), iters)
-    out["hooks"] = {"GFLOPs": get_flops(model, imgsz), "avg_s": sum(ts) / iters, "total_s": sum(ts)}
+    out["hooks"] = {"GFLOPs": get_flops(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
 
-    # thop (optional)
+    # thop
     try:
         import thop  # noqa: F401
-        _ = _flops_thop_once(model, imgsz)
         ts = _run_n(lambda: _flops_thop_once(model, imgsz), iters)
-        out["thop"] = {"GFLOPs": _flops_thop_once(model, imgsz), "avg_s": sum(ts) / iters, "total_s": sum(ts)}
+        out["thop"] = {"GFLOPs": _flops_thop_once(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
     except Exception:
         pass
 
-    # profiler (with_flops=True) — now stride+scaled like hooks/thop
+    # profiler
     try:
-        _ = get_flops_profiler(model, imgsz)
         ts = _run_n(lambda: get_flops_profiler(model, imgsz), iters)
-        out["profiler"] = {"GFLOPs": get_flops_profiler(model, imgsz), "avg_s": sum(ts) / iters, "total_s": sum(ts)}
+        out["profiler"] = {"GFLOPs": get_flops_profiler(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
     except Exception:
         pass
 
@@ -165,10 +163,7 @@ def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, floa
 
 
 if __name__ == "__main__":
-    # load YOLO11n (CPU is fine)
     from ultralytics import YOLO
     model = YOLO("yolo11n.pt").model.eval()
-
-    # run FLOPs benchmark at 640
     res = benchmark(model, imgsz=640, iters=10)
     print(json.dumps(res, indent=2))

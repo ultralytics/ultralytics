@@ -209,6 +209,7 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
+        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
         pin_memory=nd > 0,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,

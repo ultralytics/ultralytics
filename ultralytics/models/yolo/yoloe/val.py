@@ -102,7 +102,7 @@ class YOLOEDetectValidator(DetectionValidator):
         """Preprocess batch data, ensuring visuals are on the same device as images."""
         batch = super().preprocess(batch)
         if "visuals" in batch:
-            batch["visuals"] = batch["visuals"].to(batch["img"].device)
+            batch["visuals"] = batch["visuals"].to(batch["img"].device, non_blocking=True)
         return batch
 
     def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
@@ -186,9 +186,9 @@ class YOLOEDetectValidator(DetectionValidator):
             self.device = select_device(self.args.device, verbose=False)
 
             if isinstance(model, (str, Path)):
-                from ultralytics.nn.tasks import attempt_load_weights
+                from ultralytics.nn.tasks import load_checkpoint
 
-                model = attempt_load_weights(model, device=self.device)
+                model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]

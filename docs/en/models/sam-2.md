@@ -260,7 +260,7 @@ It offers three significant enhancements:
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt
-        predictor.inference(img="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
 
         # Detect this particular object in a new image
         results = predictor(source="image2.jpg")
@@ -273,7 +273,7 @@ It offers three significant enhancements:
             update_memory=True,  # Add to memory
         )
         # Perform inference
-        results = predictor.inference(img="image5.jpg")
+        results = predictor(source="image5.jpg")
 
         # Add refinement prompts to the same category to boost performance
         # This helps when object appearance changes significantly

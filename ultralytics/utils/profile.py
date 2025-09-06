@@ -38,28 +38,46 @@ def _count_linear(B, in_f, out_f) -> int:
     return B * in_f * out_f  # MACs
 
 def get_flops(model: nn.Module, imgsz=640) -> float:
-    """Return GFLOPs via forward hooks (Conv/Linear + bias + AvgPool/AdaptiveAvgPool)."""
     m = de_parallel(model)
-    macs_muladd = 0  # Conv/Linear MACs (each -> 2 FLOPs)
-    adds_only = 0    # bias/pooling adds (optionally add 1 div per output if desired)
+    macs_muladd = 0  # Conv/Linear MACs + BN mul/add counted as "MAC-like"
+    adds_only = 0    # bias and pooling adds (div optional)
 
     def fh(module, inp, out):
         nonlocal macs_muladd, adds_only
         x = inp[0]; B = int(x.shape[0])
+
         if isinstance(module, nn.Conv2d):
             Cin = int(x.shape[1]); Cout = module.out_channels
             Kh, Kw = module.kernel_size; G = module.groups
             H, W = int(out.shape[-2]), int(out.shape[-1])
             macs_muladd += _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G)
-            if module.bias is not None: adds_only += B * Cout * H * W
+            if module.bias is not None:
+                adds_only += B * Cout * H * W  # bias add
+
         elif isinstance(module, nn.Linear):
             macs_muladd += _count_linear(B, module.in_features, module.out_features)
-            if module.bias is not None: adds_only += B * module.out_features
+            if module.bias is not None:
+                adds_only += B * module.out_features  # bias add
+
+        elif isinstance(module, nn.BatchNorm2d):
+            # per-element: y = x * scale + shift  -> 1 mul + 1 add (2 FLOPs)
+            C = int(out.shape[1]); H, W = int(out.shape[-2]), int(out.shape[-1])
+            macs_muladd += B * C * H * W  # *2 later = 2 FLOPs/elt
+
         elif isinstance(module, nn.AvgPool2d):
             Hout, Wout = int(out.shape[-2]), int(out.shape[-1]); C = int(out.shape[1])
             k = module.kernel_size; Kh, Kw = (k if isinstance(k, tuple) else (k, k))
             adds_only += B * C * Hout * Wout * (Kh * Kw - 1)
-            # adds_only += B * C * Hout * Wout  # +1 per output for division if you want to count it
+            # adds_only += B * C * Hout * Wout  # +1 per output to count division
+
+        elif isinstance(module, nn.MaxPool2d):
+            Hout, Wout = int(out.shape[-2]), int(out.shape[-1]);
+            C = int(out.shape[1])
+            k = module.kernel_size;
+            Kh, Kw = (k if isinstance(k, tuple) else (k, k))
+            # count comparisons like THOP: (Kh*Kw - 1) per output element
+            adds_only += B * C * Hout * Wout * (Kh * Kw - 1)
+
         elif isinstance(module, nn.AdaptiveAvgPool2d):
             Hin, Win = int(x.shape[-2]), int(x.shape[-1])
             Hout, Wout = int(out.shape[-2]), int(out.shape[-1]); C = int(out.shape[1])
@@ -70,7 +88,7 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
     handles = []
     try:
         for mod in m.modules():
-            if isinstance(mod, (nn.Conv2d, nn.Linear, nn.AvgPool2d, nn.AdaptiveAvgPool2d)):
+            if isinstance(mod, (nn.Conv2d, nn.Linear, nn.BatchNorm2d, nn.MaxPool2d, nn.AvgPool2d, nn.AdaptiveAvgPool2d)):
                 handles.append(mod.register_forward_hook(fh))
         with _eval_no_grad_restore(m):
             try:

@@ -1376,7 +1376,7 @@ class Exporter:
             nms_spec.description.input[i].ParseFromString(decoder_output)
             nms_spec.description.output.add()
             nms_spec.description.output[i].ParseFromString(decoder_output)
-        
+
         output_names = ["confidence", "coordinates"]
         for i, name in enumerate(output_names):
             nms_spec.description.output[i].name = name

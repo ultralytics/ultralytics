@@ -1572,6 +1572,7 @@ class NMSModel(torch.nn.Module):
                         or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
                     ),
                     iou_func=batch_probiou,
+                    trace=True,
                 )
                 if self.obb
                 else nms

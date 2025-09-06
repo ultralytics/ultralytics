@@ -135,7 +135,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
             boxes[..., 2] -= pad_x  # x padding
             boxes[..., 3] -= pad_y  # y padding
     boxes[..., :4] /= gain
-    return clip_boxes(boxes, img0_shape)
+    return boxes if xywh else clip_boxes(boxes, img0_shape)
 
 
 def make_divisible(x: int, divisor):

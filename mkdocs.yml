@@ -677,6 +677,7 @@ nav:
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md
           - checks: reference/utils/checks.md
+          - cpu: reference/utils/cpu.md
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md

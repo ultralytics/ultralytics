@@ -111,7 +111,7 @@ def run(
         view_img (bool): Display results in a live window.
         save_img (bool): Save processed video to file.
         exist_ok (bool): Overwrite existing output files without incrementing.
-        classes (List[int], optional): Specific class IDs to detect and track.
+        classes (list[int], optional): Specific class IDs to detect and track.
         line_thickness (int): Thickness of bounding box lines.
         track_thickness (int): Thickness of object tracking lines.
         region_thickness (int): Thickness of counting region boundaries.

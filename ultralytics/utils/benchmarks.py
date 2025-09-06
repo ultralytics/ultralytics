@@ -235,10 +235,10 @@ class RF100Benchmark:
     This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
 
     Attributes:
-        ds_names (List[str]): Names of datasets used for benchmarking.
-        ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+        ds_names (list[str]): Names of datasets used for benchmarking.
+        ds_cfg_list (list[Path]): List of paths to dataset configuration files.
         rf (Roboflow): Roboflow instance for accessing datasets.
-        val_metrics (List[str]): Metrics used for validation.
+        val_metrics (list[str]): Metrics used for validation.
 
     Methods:
         set_key: Set Roboflow API key for accessing datasets.
@@ -279,8 +279,8 @@ class RF100Benchmark:
             ds_link_txt (str): Path to the file containing dataset links.
 
         Returns:
-            ds_names (List[str]): List of dataset names.
-            ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+            ds_names (list[str]): List of dataset names.
+            ds_cfg_list (list[Path]): List of paths to dataset configuration files.
 
         Examples:
             >>> benchmark = RF100Benchmark()
@@ -381,7 +381,7 @@ class ProfileModels:
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
     Attributes:
-        paths (List[str]): Paths of the models to profile.
+        paths (list[str]): Paths of the models to profile.
         num_timed_runs (int): Number of timed runs for the profiling.
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
@@ -423,7 +423,7 @@ class ProfileModels:
         Initialize the ProfileModels class for profiling models.
 
         Args:
-            paths (List[str]): List of paths of the models to be profiled.
+            paths (list[str]): List of paths of the models to be profiled.
             num_timed_runs (int): Number of timed runs for the profiling.
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
@@ -455,7 +455,7 @@ class ProfileModels:
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[dict]): List of dictionaries containing profiling results for each model.
+            (list[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -510,7 +510,7 @@ class ProfileModels:
         Return a list of paths for all relevant model files given by the user.
 
         Returns:
-            (List[Path]): List of Path objects for the model files.
+            (list[Path]): List of Path objects for the model files.
         """
         files = []
         for path in self.paths:
@@ -716,7 +716,7 @@ class ProfileModels:
         Print a formatted table of model profiling results.
 
         Args:
-            table_rows (List[str]): List of formatted table row strings.
+            table_rows (list[str]): List of formatted table row strings.
         """
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
         headers = [

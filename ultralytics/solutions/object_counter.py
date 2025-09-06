@@ -19,8 +19,8 @@ class ObjectCounter(BaseSolution):
     Attributes:
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
-        counted_ids (List[int]): List of IDs of objects that have been counted.
-        classwise_counts (Dict[str, Dict[str, int]]): Dictionary for counts, categorized by object class.
+        counted_ids (list[int]): List of IDs of objects that have been counted.
+        classwise_counts (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
@@ -63,9 +63,9 @@ class ObjectCounter(BaseSolution):
         Count objects within a polygonal or linear region based on their tracks.
 
         Args:
-            current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
+            current_centroid (tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
             track_id (int): Unique identifier for the tracked object.
-            prev_position (Tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
+            prev_position (tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
 
         Examples:

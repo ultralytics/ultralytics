@@ -16,10 +16,10 @@ class InstanceSegmentation(BaseSolution):
     Attributes:
         model (str): The segmentation model to use for inference.
         line_width (int): Width of the bounding box and text lines.
-        names (Dict[int, str]): Dictionary mapping class indices to class names.
-        clss (List[int]): List of detected class indices.
-        track_ids (List[int]): List of track IDs for detected instances.
-        masks (List[np.ndarray]): List of segmentation masks for detected instances.
+        names (dict[int, str]): Dictionary mapping class indices to class names.
+        clss (list[int]): List of detected class indices.
+        track_ids (list[int]): List of track IDs for detected instances.
+        masks (list[np.ndarray]): List of segmentation masks for detected instances.
         show_conf (bool): Whether to display confidence scores.
         show_labels (bool): Whether to display class labels.
         show_boxes (bool): Whether to display bounding boxes.

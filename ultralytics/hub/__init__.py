@@ -3,7 +3,7 @@
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HUBTrainingSession
-from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX, events
+from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
 from ultralytics.utils import LOGGER, SETTINGS, checks
 
 __all__ = (
@@ -17,7 +17,6 @@ __all__ = (
     "export_model",
     "get_export",
     "check_dataset",
-    "events",
 )
 
 

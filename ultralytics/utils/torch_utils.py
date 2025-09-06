@@ -1004,6 +1004,7 @@ class FXModel(nn.Module):
 
 @contextmanager
 def _quiet(quiet: bool):
+    """Temporarily silence selected torch loggers and warnings."""
     _TORCH_LOGS = ["torch._dynamo", "torch._inductor", "torch.compile", "torch.utils._sympy"]
     if not quiet:
         yield
@@ -1030,7 +1031,7 @@ def attempt_compile(
     warmup: bool = True,
     prefix: str = colorstr("compile:"),
 ):
-    """Try torch.compile() with optional dummy warmup forward. Logs compile and warmup time."""
+    """Try torch.compile() with optional dummy warmup forward."""
     if not hasattr(torch, "compile"):
         return model
 

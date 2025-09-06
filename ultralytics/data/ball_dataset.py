@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -16,6 +17,7 @@ from torch.utils.data import DataLoader
 
 from ultralytics.data.base import BaseDataset
 from ultralytics.data.dataset import YOLODataset
+from ultralytics.data.augment import Format
 from ultralytics.nn.modules.motion_utils import (
     MotionConfig,
     FlexibleMotionMaskGenerator,
@@ -25,8 +27,48 @@ from ultralytics.nn.modules.motion_utils import (
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.instance import Instances
 
+class TennisBallTransform:
+    """
+    Custom transform for tennis ball dataset with 4-channel input support.
+    
+    This transform handles the conversion from 4-channel numpy arrays to
+    properly formatted torch tensors for the model.
+    """
+    
+    def __init__(self):
+        """Initialize the transform."""
+        pass
+    
+    def __call__(self, img: np.ndarray) -> torch.Tensor:
+        """
+        Transform a 4-channel image to torch tensor.
+        
+        Args:
+            img: 4-channel image as numpy array (H, W, 4)
+            
+        Returns:
+            Transformed image as torch tensor (4, H, W)
+        """
+        # Ensure image is contiguous
+        img = np.ascontiguousarray(img)
+        
+        # Convert to torch tensor
+        img = torch.from_numpy(img)
+        
+        # Transpose from (H, W, C) to (C, H, W)
+        if img.dim() == 3:
+            img = img.permute(2, 0, 1)
+        
+        # Convert to float32 and normalize to [0, 1]
+        if img.dtype == torch.uint8:
+            img = img.float() / 255.0
+        
+        return img
+
+
 __all__ = (
     "TennisBallDataset",
+    "TennisBallTransform",
     "MotionDataLoader", 
     "BallDataTransforms",
     "create_ball_dataloader"
@@ -122,7 +164,13 @@ class TennisBallDataset(YOLODataset):
             data = {}
         
         # Initialize parent class
+        LOGGER.info(f"{colorstr('TennisBallDataset')}: Initializing with motion_masks={self.use_motion_masks}")
         super().__init__(*args, data=data, task=task, **kwargs)
+        
+        # Check if transforms were set up
+        LOGGER.info(f"{colorstr('TennisBallDataset')}: Transforms type: {type(self.transforms)}")
+        
+        # Note: We handle 4-channel input in load_image() method using TennisBallTransform
         
         # Store dataset path
         self.dataset_path = dataset_path
@@ -316,6 +364,13 @@ class TennisBallDataset(YOLODataset):
         # Combine RGB and motion mask
         combined_image = combine_rgb_motion(rgb_image, motion_mask)
         
+        # Apply our custom transform to convert to proper torch tensor format
+        transform = TennisBallTransform()
+        combined_image = transform(combined_image)
+        
+        # Convert back to numpy for compatibility with the rest of the pipeline
+        combined_image = combined_image.numpy().transpose(1, 2, 0)  # CHW to HWC
+        
         return combined_image, ori_shape, resized_shape
     
     def get_image_and_label(self, index: int) -> Dict[str, Any]:
@@ -405,6 +460,7 @@ class BallDataTransforms:
         # For now, return labels as-is
         # TODO: Implement motion-aware augmentation pipeline
         return labels
+    
 
 
 class MotionDataLoader:

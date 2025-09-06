@@ -610,6 +610,59 @@ class PoseModel(DetectionModel):
         return v8PoseLoss(self)
 
 
+class TennisBallPoseModel(PoseModel):
+    """
+    YOLO tennis ball pose model with 4-channel input support.
+
+    This class extends PoseModel to handle tennis ball pose estimation with motion-aware input.
+    It supports 4-channel input (RGB + motion mask) for enhanced tennis ball tracking.
+
+    Attributes:
+        kpt_shape (tuple): Shape of keypoints data (1, 3) for tennis ball center point.
+        use_motion_masks (bool): Whether to use motion masks for enhanced detection.
+
+    Methods:
+        __init__: Initialize YOLO tennis ball pose model.
+        init_criterion: Initialize the loss criterion for tennis ball pose estimation.
+
+    Examples:
+        Initialize a tennis ball pose model
+        >>> model = TennisBallPoseModel("yolo11-tennis-pose.yaml", ch=4, nc=1, data_kpt_shape=(1, 3))
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11-tennis-pose.yaml", ch=4, nc=1, data_kpt_shape=(1, 3), verbose=True):
+        """
+        Initialize Ultralytics YOLO Tennis Ball Pose model.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels (default: 4 for RGB + motion mask).
+            nc (int): Number of classes (default: 1 for tennis ball).
+            data_kpt_shape (tuple): Shape of keypoints data (default: (1, 3) for center point).
+            verbose (bool): Whether to display model information.
+        """
+        # Set default tennis ball keypoint shape if not provided
+        if data_kpt_shape == (None, None):
+            data_kpt_shape = (1, 3)  # 1 keypoint (center), 3 dimensions (x, y, visibility)
+        
+        # Initialize parent PoseModel with 4-channel support
+        super().__init__(cfg=cfg, ch=ch, nc=nc, data_kpt_shape=data_kpt_shape, verbose=verbose)
+        
+        # Store tennis ball specific attributes
+        self.use_motion_masks = ch == 4
+        self.tennis_ball_keypoints = ["center"]  # Single keypoint for tennis ball center
+        
+        if verbose:
+            LOGGER.info(f"TennisBallPoseModel initialized with {ch} input channels")
+            if self.use_motion_masks:
+                LOGGER.info("Motion mask support enabled for enhanced tennis ball tracking")
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the TennisBallPoseModel."""
+        return v8PoseLoss(self)
+
+
 class ClassificationModel(BaseModel):
     """
     YOLO classification model.

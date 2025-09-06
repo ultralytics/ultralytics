@@ -1353,85 +1353,71 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f"{prefix} starting pipeline with coremltools {ct.__version__}...")
-        _, _, h, w = list(self.im.shape)  # BCHW
 
         # Output shapes
         spec = model.get_spec()
-        out0, out1 = iter(spec.description.output)
-        if MACOS:
-            from PIL import Image
-
-            img = Image.new("RGB", (w, h))  # w=192, h=320
-            out = model.predict({"image": img})
-            out0_shape = out[out0.name].shape  # (3780, 80)
-            out1_shape = out[out1.name].shape  # (3780, 4)
-        else:  # linux and windows can not run model.predict(), get sizes from PyTorch model output y
-            out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
-            out1_shape = self.output_shape[2], 4  # (3780, 4)
+        outs = list(iter(spec.description.output))
 
         # Checks
         names = self.metadata["names"]
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
-        _, nc = out0_shape  # number of anchors, number of classes
+        nc = outs[0].type.multiArrayType.shape[-1]
         assert len(names) == nc, f"{len(names)} names found for nc={nc}"  # check
-
-        # Define output shapes (missing)
-        out0.type.multiArrayType.shape[:] = out0_shape  # (3780, 80)
-        out1.type.multiArrayType.shape[:] = out1_shape  # (3780, 4)
 
         # Model from spec
         model = ct.models.MLModel(spec, weights_dir=weights_dir)
 
-        # 3. Create NMS protobuf
+        # Create NMS protobuf
         nms_spec = ct.proto.Model_pb2.Model()
         nms_spec.specificationVersion = spec.specificationVersion
-        for i in range(2):
+        for i in range(len(outs)):
             decoder_output = model._spec.description.output[i].SerializeToString()
             nms_spec.description.input.add()
             nms_spec.description.input[i].ParseFromString(decoder_output)
             nms_spec.description.output.add()
             nms_spec.description.output[i].ParseFromString(decoder_output)
+        
+        output_names = ["confidence", "coordinates"]
+        for i, name in enumerate(output_names):
+            nms_spec.description.output[i].name = name
 
-        nms_spec.description.output[0].name = "confidence"
-        nms_spec.description.output[1].name = "coordinates"
-
-        output_sizes = [nc, 4]
-        for i in range(2):
+        for i, out in enumerate(outs):
             ma_type = nms_spec.description.output[i].type.multiArrayType
             ma_type.shapeRange.sizeRanges.add()
             ma_type.shapeRange.sizeRanges[0].lowerBound = 0
             ma_type.shapeRange.sizeRanges[0].upperBound = -1
             ma_type.shapeRange.sizeRanges.add()
-            ma_type.shapeRange.sizeRanges[1].lowerBound = output_sizes[i]
-            ma_type.shapeRange.sizeRanges[1].upperBound = output_sizes[i]
+            ma_type.shapeRange.sizeRanges[1].lowerBound = out.type.multiArrayType.shape[-1]
+            ma_type.shapeRange.sizeRanges[1].upperBound = out.type.multiArrayType.shape[-1]
             del ma_type.shape[:]
 
         nms = nms_spec.nonMaximumSuppression
-        nms.confidenceInputFeatureName = out0.name  # 1x507x80
-        nms.coordinatesInputFeatureName = out1.name  # 1x507x4
-        nms.confidenceOutputFeatureName = "confidence"
-        nms.coordinatesOutputFeatureName = "coordinates"
+        nms.confidenceInputFeatureName = outs[0].name  # 1x507x80
+        nms.coordinatesInputFeatureName = outs[1].name  # 1x507x4
+        nms.confidenceOutputFeatureName = output_names[0]
+        nms.coordinatesOutputFeatureName = output_names[1]
         nms.iouThresholdInputFeatureName = "iouThreshold"
         nms.confidenceThresholdInputFeatureName = "confidenceThreshold"
         nms.iouThreshold = self.args.iou
         nms.confidenceThreshold = self.args.conf
         nms.pickTop.perClass = True
         nms.stringClassLabels.vector.extend(names.values())
+        nms.int64ClassLabels.vector.extend(names.keys())
         nms_model = ct.models.MLModel(nms_spec)
 
-        # 4. Pipeline models together
+        # Pipeline models together
         pipeline = ct.models.pipeline.Pipeline(
             input_features=[
                 ("image", ct.models.datatypes.Array(3, ny, nx)),
                 ("iouThreshold", ct.models.datatypes.Double()),
                 ("confidenceThreshold", ct.models.datatypes.Double()),
             ],
-            output_features=["confidence", "coordinates"],
+            output_features=output_names,
         )
         pipeline.add_model(model)
         pipeline.add_model(nms_model)
 
-        # Correct datatypes
+        # Copy descriptions
         pipeline.spec.description.input[0].ParseFromString(model._spec.description.input[0].SerializeToString())
         pipeline.spec.description.output[0].ParseFromString(nms_model._spec.description.output[0].SerializeToString())
         pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())

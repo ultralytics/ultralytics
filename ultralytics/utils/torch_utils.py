@@ -14,6 +14,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+
+import io, time, logging, warnings, torch
+from contextlib import contextmanager, redirect_stderr
+
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -997,3 +1001,63 @@ class FXModel(nn.Module):
             x = m(x)  # run
             y.append(x)  # save output
         return x
+
+
+@contextmanager
+def _quiet(quiet: bool):
+    _TORCH_LOGS = ["torch._dynamo", "torch._inductor", "torch.compile", "torch.utils._sympy"]
+    if not quiet:
+        yield
+        return
+    saved = {n: logging.getLogger(n).level for n in _TORCH_LOGS}
+    for n in _TORCH_LOGS:
+        logging.getLogger(n).setLevel(logging.ERROR)
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            with redirect_stderr(io.StringIO()):
+                yield
+    finally:
+        for n, lvl in saved.items():
+            logging.getLogger(n).setLevel(lvl)
+
+
+def attempt_compile(
+    model: torch.nn.Module,
+    device: torch.device,
+    imgsz: int = 640,
+    quiet: bool = False,
+    use_autocast: bool = False,
+):
+    """Try torch.compile() with a dummy warmup forward. Logs compile + warmup time."""
+    if not hasattr(torch, "compile"):
+        return model
+
+    LOGGER.info(f"{colorstr('compile:')} starting torch.compile (first run may take minutes)...")
+    t0 = time.perf_counter()
+    with _quiet(quiet):
+        try:
+            model = torch.compile(model, mode="max-autotune", backend="inductor", dynamic=True)
+        except Exception as e:
+            LOGGER.warning(f"{colorstr('compile:')} torch.compile failed, continuing uncompiled: {e}")
+            return model
+    t_compile = time.perf_counter() - t0
+
+    dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
+    if use_autocast and device.type == "cuda":
+        dummy = dummy.half()
+
+    t1 = time.perf_counter()
+    with torch.inference_mode():
+        if use_autocast and device.type in {"cuda", "mps"}:
+            with torch.autocast(device.type):
+                _ = model(dummy)
+        else:
+            _ = model(dummy)
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+    t_warm = time.perf_counter() - t1
+
+    LOGGER.info(f"{colorstr('compile:')} complete in {t_compile + t_warm:.2f}s "
+                f"(compile {t_compile:.2f}s + warmup {t_warm:.2f}s).")
+    return model

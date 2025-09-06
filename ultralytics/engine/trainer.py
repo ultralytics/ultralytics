@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
+    attempt_compile,
 )
 
 
@@ -256,16 +257,9 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Compile for faster training (PyTorch 2.x only)
+        # Optional compile for faster training (PyTorch 2.x only)
         if getattr(self.args, "compile", False) and hasattr(torch, "compile"):
-            try:
-                t0 = time.time()
-                self.model = torch.compile(self.model, mode="max-autotune", backend="inductor", dynamic=True)
-                LOGGER.info(
-                    f"torch.compile enabled (mode=max-autotune, backend=inductor) in {(time.time() - t0):.2f}s."
-                )
-            except Exception as e:
-                LOGGER.warning(f"torch.compile failed, continuing uncompiled: {e}")
+            self.model = attempt_compile(self.model)
 
         # Freeze layers
         freeze_list = (

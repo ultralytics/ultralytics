@@ -181,15 +181,15 @@ if __name__ == "__main__":
 
     # YOLO11n
     model = YOLO("yolo11n.pt").model.eval()
-    res = benchmark(model, imgsz=640, iters=3)
+    res = benchmark(model, imgsz=640, iters=1)
     print("YOLO11n:", json.dumps(res, indent=2))
 
     # RT-DETR
     model = RTDETR("rtdetr-l.pt").model.eval()
-    res = benchmark(model, imgsz=640, iters=3)
+    res = benchmark(model, imgsz=640, iters=1)
     print("RT-DETR-L:", json.dumps(res, indent=2))
 
     # SAM
     model = FastSAM("FastSAM-s.pt").model.eval()
-    res = benchmark(model, imgsz=640, iters=3)
+    res = benchmark(model, imgsz=640, iters=1)
     print("SAM:", json.dumps(res, indent=2))

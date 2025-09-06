@@ -561,6 +561,47 @@ def merge_equals_args(args: list[str]) -> list[str]:
     return new_args
 
 
+def handle_yolo_dataset_validation(args: list[str]) -> None:
+    """
+    Handle YOLO datasets validation command-line interface (CLI) commands.
+
+    This function processes YOLO datasets validation CLI commands such as check and repair. It should be called before model training to ensure the dataset is valid.
+
+    Args:
+        args (List[str]): A list of command line arguments for YOLO datasets validation.
+
+    Examples:
+        >>> $ yolo datacheck <path_to_dataset>
+        >>> $ yolo datacheck <path_to_dataset> --fix
+
+    Notes:
+        - If no arguments are provided, the function will display information about the available commands.
+        - The 'datacheck' command will validate the dataset and print any issues found.
+    """
+    from ultralytics.utils.dataset_validation import DatasetValidation
+
+    if len(args) < 2 or not args[1]:
+        LOGGER.info("❌ Push path to your dataset np. 'yolo check path/to/dataset'.")
+        return
+
+    is_fix = False
+
+    # search for --fix flag
+    if len(args) > 2:
+        for arg in args[2:]:
+            if arg in ["--fix"]:
+                is_fix = True
+                break
+    # Init dataset validation
+    dataset_validation = DatasetValidation(args[1], is_fix)
+    if args[0] == "datacheck":
+        dataset_validation.validate()
+
+        LOGGER.info("✅ Check dataset completed.")
+    else:
+        LOGGER.info("❌ Unknown command")
+
+
 def handle_yolo_hub(args: list[str]) -> None:
     """
     Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
@@ -866,6 +907,7 @@ def entrypoint(debug: str = "") -> None:
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,
         "solutions": lambda: handle_yolo_solutions(args[1:]),
+        "datacheck": lambda: handle_yolo_dataset_validation(args),
     }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 

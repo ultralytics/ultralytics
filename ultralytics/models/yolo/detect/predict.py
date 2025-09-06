@@ -96,12 +96,12 @@ class DetectionPredictor(BasePredictor):
         Construct a list of Results objects from model predictions.
 
         Args:
-            preds (List[torch.Tensor]): List of predicted bounding boxes and scores for each image.
+            preds (list[torch.Tensor]): List of predicted bounding boxes and scores for each image.
             img (torch.Tensor): Batch of preprocessed images used for inference.
-            orig_imgs (List[np.ndarray]): List of original images before preprocessing.
+            orig_imgs (list[np.ndarray]): List of original images before preprocessing.
 
         Returns:
-            (List[Results]): List of Results objects containing detection information for each image.
+            (list[Results]): List of Results objects containing detection information for each image.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path)

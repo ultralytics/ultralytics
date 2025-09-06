@@ -79,7 +79,7 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tup
         mid_x (int): X-coordinate of the midpoint.
         mid_y (int): Y-coordinate of the midpoint.
         direction (str): Direction to extend ('left', 'right', 'up', 'down').
-        img_shape (Tuple[int, int, int]): Image shape in (height, width, channels).
+        img_shape (tuple[int, int, int]): Image shape in (height, width, channels).
 
     Returns:
         end_x (int): X-coordinate of the endpoint.

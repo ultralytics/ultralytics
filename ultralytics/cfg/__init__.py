@@ -15,6 +15,7 @@ from ultralytics.utils import (
     DEFAULT_CFG,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_PATH,
+    FLOAT_OR_INT,
     IS_VSCODE,
     LOGGER,
     RANK,
@@ -22,6 +23,7 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
+    STR_OR_PATH,
     TESTS_RUNNING,
     YAML,
     IterableSimpleNamespace,
@@ -244,7 +246,7 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     Convert a configuration object to a dictionary.
 
     Args:
-        cfg (str | Path | Dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
@@ -267,7 +269,7 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
         - If cfg is a SimpleNamespace object, it's converted to a dictionary using vars().
         - If cfg is already a dictionary, it's returned unchanged.
     """
-    if isinstance(cfg, (str, Path)):
+    if isinstance(cfg, STR_OR_PATH):
         cfg = YAML.load(cfg)  # load dict
     elif isinstance(cfg, SimpleNamespace):
         cfg = vars(cfg)  # convert to dict
@@ -279,9 +281,9 @@ def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrid
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
     Args:
-        cfg (str | Path | Dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
+        cfg (str | Path | dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
             SimpleNamespace object.
-        overrides (Dict | None): Dictionary containing key-value pairs to override the base configuration.
+        overrides (dict | None): Dictionary containing key-value pairs to override the base configuration.
 
     Returns:
         (SimpleNamespace): Namespace containing the merged configuration arguments.
@@ -309,7 +311,7 @@ def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrid
 
     # Special handling for numeric project/name
     for k in "project", "name":
-        if k in cfg and isinstance(cfg[k], (int, float)):
+        if k in cfg and isinstance(cfg[k], FLOAT_OR_INT):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
         cfg["name"] = str(cfg.get("model", "")).partition(".")[0]
@@ -352,7 +354,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
-            if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
+            if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
@@ -360,7 +362,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     )
                 cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, (int, float)):
+                if not isinstance(v, FLOAT_OR_INT):
                     if hard:
                         raise TypeError(
                             f"'{k}={v}' is of invalid type {type(v).__name__}. "
@@ -413,7 +415,7 @@ def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
         name = name or args.name or f"{args.mode}"
         save_dir = increment_path(Path(project) / name, exist_ok=args.exist_ok if RANK in {-1, 0} else True)
 
-    return Path(save_dir)
+    return Path(save_dir).resolve()  # resolve to display full path in console
 
 
 def _handle_deprecation(custom: dict) -> dict:
@@ -511,10 +513,10 @@ def merge_equals_args(args: list[str]) -> list[str]:
         4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
 
     Args:
-        args (List[str]): A list of strings where each element represents an argument or fragment.
+        args (list[str]): A list of strings where each element represents an argument or fragment.
 
     Returns:
-        (List[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
+        (list[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets are joined.
 
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz=[3,", "640,", "640]"]
@@ -567,7 +569,7 @@ def handle_yolo_hub(args: list[str]) -> None:
     script with arguments related to HUB authentication.
 
     Args:
-        args (List[str]): A list of command line arguments. The first argument should be either 'login'
+        args (list[str]): A list of command line arguments. The first argument should be either 'login'
             or 'logout'. For 'login', an optional second argument can be the API key.
 
     Examples:
@@ -597,7 +599,7 @@ def handle_yolo_settings(args: list[str]) -> None:
     called when executing a script with arguments related to YOLO settings management.
 
     Args:
-        args (List[str]): A list of command line arguments for YOLO settings management.
+        args (list[str]): A list of command line arguments for YOLO settings management.
 
     Examples:
         >>> handle_yolo_settings(["reset"])  # Reset YOLO settings
@@ -637,7 +639,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
     Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
 
     Args:
-        args (List[str]): Command-line arguments for configuring and running the Ultralytics YOLO
+        args (list[str]): Command-line arguments for configuring and running the Ultralytics YOLO
             solutions: https://docs.ultralytics.com/solutions/, It can include solution name, source,
             and other configuration parameters.
 

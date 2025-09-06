@@ -1358,6 +1358,10 @@ class Exporter:
         spec = model.get_spec()
         outs = list(iter(spec.description.output))
 
+        if self.args.format == "mlmodel":  # mlmodel doesn't infer shapes automatically
+            outs[0].type.multiArrayType.shape[:] = self.output_shape[2], self.output_shape[1] - 4
+            outs[1].type.multiArrayType.shape[:] = self.output_shape[2], 4
+
         # Checks
         names = self.metadata["names"]
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height

@@ -1357,7 +1357,6 @@ class Exporter:
         # Output shapes
         spec = model.get_spec()
         outs = list(iter(spec.description.output))
-
         if self.args.format == "mlmodel":  # mlmodel doesn't infer shapes automatically
             outs[0].type.multiArrayType.shape[:] = self.output_shape[2], self.output_shape[1] - 4
             outs[1].type.multiArrayType.shape[:] = self.output_shape[2], 4

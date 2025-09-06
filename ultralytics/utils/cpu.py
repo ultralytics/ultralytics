@@ -18,8 +18,8 @@ class CPUInfo:
     generic platform identifiers.
 
     Methods:
-    name: Return the normalized CPU name using platform-specific sources with robust fallbacks.
-    __str__: Return the normalized CPU name for string contexts.
+        name: Return the normalized CPU name using platform-specific sources with robust fallbacks.
+        __str__: Return the normalized CPU name for string contexts.
 
     Examples:
     >>> CPUInfo.name()

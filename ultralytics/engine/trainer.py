@@ -46,6 +46,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
@@ -54,7 +55,6 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
-    attempt_compile,
 )
 
 

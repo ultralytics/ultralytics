@@ -57,68 +57,9 @@ class CPUInfo:
             return f"{m.group(1)} @ {m.group(2)}"
         return s
 
-    @staticmethod
-    def benchmark(iters: int = 200) -> dict:
-        """Compare call-time vs py-cpuinfo; returns {'cpuinfo':s,'ours':s,'py_s':f,'our_s':f,'speedup':x}."""
-
-        def _time(fn, n: int) -> float:
-            gc_old = gc.isenabled()
-            gc.disable()
-            try:
-                t0 = time.perf_counter()
-                for _ in range(n):
-                    fn()
-                return time.perf_counter() - t0
-            finally:
-                if gc_old:
-                    gc.enable()
-
-        # warmups (avoid one-time costs skewing)
-        _ = CPUInfo.name()
-        try:
-            import cpuinfo as _ci
-
-            def _py():
-                return _ci.get_cpu_info().get("brand_raw", "")
-
-            _ = _py()
-        except Exception:
-            _ci = None
-
-            def _py():
-                return ""
-
-        our_name = CPUInfo.name()
-        py_name = _ci.get_cpu_info().get("brand_raw", "") if _ci else ""
-
-        our_time = _time(CPUInfo.name, iters)
-        py_time = _time((_ci.get_cpu_info if _ci else CPUInfo.name), iters)  # if missing, compare to ourselves
-
-        # If py-cpuinfo exists, measure brand_raw extraction cost (cached dict access is negligible)
-        if _ci:
-
-            def _py_brand():
-                return _ci.get_cpu_info().get("brand_raw", "")
-
-            py_time = _time(_py_brand, iters)
-
-        speedup = (py_time / our_time) if our_time > 0 else float("inf")
-        return {"cpuinfo": our_name, "py_cpuinfo": py_name, "our_s": our_time, "py_s": py_time, "speedup": speedup}
-
     def __str__(self) -> str:
         return self.name()
 
 
 if __name__ == "__main__":
-    import argparse
-    import json
-
-    ap = argparse.ArgumentParser(description="CPU name and optional benchmark")
-    ap.add_argument("--bench", action="store_true", help="benchmark vs py-cpuinfo if available")
-    ap.add_argument("-n", "--iters", type=int, default=200, help="iterations for benchmark")
-    args = ap.parse_args()
-
-    if True:  # args.bench:
-        print(json.dumps(CPUInfo.benchmark(args.iters), indent=2))
-    else:
-        print(CPUInfo.name())
+    print(CPUInfo.name())

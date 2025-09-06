@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Reference documentation for CPUInfo, a lightweight utility to get system CPU details in Ultralytics.
+keywords: Ultralytics, CPUInfo, CPU, system info, hardware, utils
 ---
 
 # Reference for `ultralytics/utils/cpu.py`

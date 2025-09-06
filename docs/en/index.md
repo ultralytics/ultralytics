@@ -63,7 +63,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model
+    Install `ultralytics` with pip and get up and running in minutes to train a YOLO model <br /> &nbsp;
 
     ***
 
@@ -83,7 +83,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Train a new YOLO model on your own custom dataset from scratch or load and train on a pretrained model
+    Train a new YOLO model or load and train on a pretrained model <br /> &nbsp;
 
     ***
 
@@ -113,11 +113,31 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    Ultralytics offers two YOLO licenses: AGPL-3.0 and Enterprise. Explore YOLO on [GitHub](https://github.com/ultralytics/ultralytics).
+    Ultralytics offers two YOLO licenses: AGPL-3.0 and Enterprise. Explore YOLO on [GitHub](https://github.com/ultralytics/ultralytics). <br /> &nbsp;
 
     ***
 
     [:octicons-arrow-right-24: YOLO License](https://www.ultralytics.com/license)
+
+- :fontawesome-solid-database:{ .lg .middle } &nbsp; **Create Custom Dataset for YOLO**
+
+    ***
+
+    Learn how to prepare datasets and train YOLO11 models on your own data <br /> &nbsp;
+
+    ***
+
+    [:octicons-arrow-right-24: Learn more](guides/custom-data.md)
+
+- :fontawesome-solid-cloud:{ .lg .middle } &nbsp; **No-Code Training with HUB**
+
+    ***
+
+    A no-code platform to upload datasets, train YOLO models, and manage experiments directly in the cloud
+
+    ***
+
+    [:octicons-arrow-right-24: Learn more](hub/index.md)
 
 </div>
 

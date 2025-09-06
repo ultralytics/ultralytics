@@ -38,14 +38,6 @@ def _input_from_model(model: nn.Module, imgsz=640, try_stride=True) -> Tuple[tor
     return torch.empty((1, ch, imgsz[0], imgsz[1]), device=device), 1.0
 
 
-def _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G) -> int:
-    return B * H * W * Cout * ((Cin // G) * Kh * Kw)
-
-
-def _count_linear(B, in_f, out_f) -> int:
-    return B * in_f * out_f
-
-
 def _try_profile(m: nn.Module, imgsz: int | Tuple[int, int], runner: Callable[[torch.Tensor], Any]) -> Tuple[Any, float]:
     """Run `runner(im)` first at stride, then fallback to imgsz on error; returns (result, scale)."""
     try:
@@ -69,11 +61,13 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
             k = module.kernel_size; Kh, Kw = (k if isinstance(k, tuple) else (k, k))
             G = int(module.groups)
             H, W = int(out.shape[-2]), int(out.shape[-1])
-            macs += _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G)
+            # conv MACs
+            macs += B * H * W * Cout * ((Cin // G) * Kh * Kw)
             if module.bias is not None:
                 adds += B * Cout * H * W
         elif isinstance(module, nn.Linear):
-            macs += _count_linear(B, int(module.in_features), int(module.out_features))
+            # linear MACs
+            macs += B * int(module.in_features) * int(module.out_features)
             if module.bias is not None:
                 adds += B * int(module.out_features)
 
@@ -90,7 +84,8 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
         flops = ((macs * 2) + adds) * float(scale) / 1e9
         return float(flops)
     finally:
-        for h in handles: h.remove()
+        for h in handles:
+            h.remove()
 
 
 def _flops_thop_once(model: nn.Module, imgsz=640) -> float:

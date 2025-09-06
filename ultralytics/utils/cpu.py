@@ -1,6 +1,13 @@
 from __future__ import annotations
+
+import gc
+import platform
+import re
+import subprocess
+import sys
+import time
 from pathlib import Path
-import platform, re, sys, subprocess, time, gc
+
 
 class CPUInfo:
     """Return a concise, human-readable CPU name (uses sysctl on macOS)."""
@@ -88,7 +95,8 @@ class CPUInfo:
 
 
 if __name__ == "__main__":
-    import argparse, json
+    import argparse
+    import json
     ap = argparse.ArgumentParser(description="CPU name and optional benchmark")
     ap.add_argument("--bench", action="store_true", help="benchmark vs py-cpuinfo if available")
     ap.add_argument("-n", "--iters", type=int, default=200, help="iterations for benchmark")

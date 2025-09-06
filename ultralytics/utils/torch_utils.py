@@ -33,8 +33,8 @@ from ultralytics.utils import (
     colorstr,
 )
 from ultralytics.utils.checks import check_version
-from ultralytics.utils.patches import torch_load
 from ultralytics.utils.cpu import CPUInfo
+from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")

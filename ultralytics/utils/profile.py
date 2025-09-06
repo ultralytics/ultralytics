@@ -7,6 +7,11 @@ import torch
 import torch.nn as nn
 
 
+# ----- flags -----
+TORCH_2_0 = hasattr(torch, "profiler") and hasattr(torch.profiler, "profile")
+
+
+# ----- shared helpers -----
 def de_parallel(m):
     return m.module if isinstance(m, (nn.DataParallel, nn.parallel.DistributedDataParallel)) else m
 
@@ -24,6 +29,7 @@ def _eval_no_grad_restore(model: nn.Module):
 
 
 def _input_from_model(model: nn.Module, imgsz=640, try_stride=True) -> Tuple[torch.Tensor, float]:
+    """Return dummy input and scale; prefer stride-sized square, else imgsz."""
     m = de_parallel(model)
     p = next(m.parameters())
     ch = int(p.shape[1]); device = p.device
@@ -48,6 +54,7 @@ def _try_profile(m: nn.Module, imgsz: int | Tuple[int, int], runner: Callable[[t
         return runner(im), scale
 
 
+# ----- method 1: hooks -----
 def get_flops(model: nn.Module, imgsz=640) -> float:
     """Hook-based FLOPs to match torch.profiler(with_flops=True); stride-scaled; no caching."""
     m = de_parallel(model)
@@ -59,15 +66,12 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
         if isinstance(module, nn.Conv2d):
             Cin = int(x.shape[1]); Cout = int(module.out_channels)
             k = module.kernel_size; Kh, Kw = (k if isinstance(k, tuple) else (k, k))
-            G = int(module.groups)
-            H, W = int(out.shape[-2]), int(out.shape[-1])
-            # conv MACs
-            macs += B * H * W * Cout * ((Cin // G) * Kh * Kw)
+            G = int(module.groups); H, W = int(out.shape[-2]), int(out.shape[-1])
+            macs += B * H * W * Cout * ((Cin // G) * Kh * Kw)  # conv MACs
             if module.bias is not None:
                 adds += B * Cout * H * W
         elif isinstance(module, nn.Linear):
-            # linear MACs
-            macs += B * int(module.in_features) * int(module.out_features)
+            macs += B * int(module.in_features) * int(module.out_features)  # linear MACs
             if module.bias is not None:
                 adds += B * int(module.out_features)
 
@@ -81,63 +85,65 @@ def get_flops(model: nn.Module, imgsz=640) -> float:
                 _, scale = _try_profile(m, imgsz, lambda im: m(im))
             except Exception:
                 return float("nan")
-        flops = ((macs * 2) + adds) * float(scale) / 1e9
-        return float(flops)
+        return float(((macs * 2) + adds) * float(scale) / 1e9)
     finally:
-        for h in handles:
-            h.remove()
+        for h in handles: h.remove()
 
 
-def _flops_thop_once(model: nn.Module, imgsz=640) -> float:
-    """FLOPs via thop; run at stride then fallback to imgsz; stride-scaled."""
+# ----- method 2: thop -----
+def get_flops_thop(model: nn.Module, imgsz=640) -> float:
+    """FLOPs via thop; stride→imgsz; stride-scaled."""
     import thop
     from copy import deepcopy
     m = deepcopy(de_parallel(model)).eval()
+
+    def run(im: torch.Tensor):
+        return thop.profile(m, inputs=[im], verbose=False)[0]  # MACs
+
     with _eval_no_grad_restore(m):
-        macs, scale = _try_profile(m, imgsz, lambda im: thop.profile(m, inputs=[im], verbose=False)[0])
+        try:
+            macs, scale = _try_profile(m, imgsz, run)
+        except Exception:
+            return float("nan")
     return float(macs) * 2.0 * float(scale) / 1e9
 
 
-def get_flops_profiler(model: nn.Module, imgsz=640) -> float:
-    """FLOPs from torch.profiler with_flops=True; stride→imgsz; fallback to hooks if profiler returns 0."""
-    try:
-        from torch.profiler import profile, ProfilerActivity
-    except Exception:
-        return float("nan")
+# ----- method 3: torch.profiler (standalone, stride→imgsz fallback) -----
+def get_flops_with_torch_profiler(model: nn.Module, imgsz=640) -> float:
+    """
+    Compute GFLOPs using torch.profiler only; prefer stride-sized input then fall back to imgsz-sized input.
+    """
+    if not TORCH_2_0:
+        return 0.0  # profiler not available in older torch
 
     m = de_parallel(model)
-    acts = [ProfilerActivity.CPU]
-    if torch.cuda.is_available():
-        acts.append(ProfilerActivity.CUDA)
-
-    def run_with_prof(im: torch.Tensor):
-        with profile(activities=acts, with_flops=True, record_shapes=True) as prof:
-            m(im)
-            flops = sum(int(getattr(e, "flops", 0) or 0) for e in prof.events())
-            if not flops:
-                flops = sum(int(getattr(e, "flops", 0) or 0) for e in prof.key_averages())
-            return flops
+    p = next(m.parameters())
+    if not isinstance(imgsz, (list, tuple)):
+        imgsz = [int(imgsz), int(imgsz)]
 
     with _eval_no_grad_restore(m):
+        # Try stride-sized input first
         try:
-            flops, scale = _try_profile(m, imgsz, run_with_prof)
+            s = (max(int(torch.as_tensor(m.stride).max().item()), 32) if hasattr(m, "stride") else 32) * 2
+            im = torch.empty((1, int(p.shape[1]), s, s), device=p.device)
+            with torch.profiler.profile(with_flops=True) as prof:
+                m(im)
+            flops = sum((getattr(x, "flops", 0) or 0) for x in prof.key_averages()) / 1e9
+            return float(flops) * (imgsz[0] / s) * (imgsz[1] / s)
         except Exception:
-            return float("nan")
-
-    if flops == 0:
-        try:
-            return get_flops(model, imgsz)
-        except Exception:
-            return float("nan")
-    return float(flops) * float(scale) / 1e9
+            # Fall back to actual imgsz input
+            im = torch.empty((1, int(p.shape[1]), imgsz[0], imgsz[1]), device=p.device)
+            with torch.profiler.profile(with_flops=True) as prof:
+                m(im)
+            flops = sum((getattr(x, "flops", 0) or 0) for x in prof.key_averages()) / 1e9
+            return float(flops)
 
 
+# ----- utils -----
 def _run_n(fn, n=10) -> List[float]:
     ts = []
     for _ in range(n):
-        t0 = time.perf_counter()
-        fn()
-        ts.append(time.perf_counter() - t0)
+        t0 = time.perf_counter(); fn(); ts.append(time.perf_counter() - t0)
     return ts
 
 
@@ -145,22 +151,25 @@ def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, floa
     """Benchmark FLOPs calculators; report GFLOPs and avg speed (ms) only."""
     out: Dict[str, Dict[str, float]] = {}
 
+    # hooks
     try:
         ts = _run_n(lambda: get_flops(model, imgsz), iters)
         out["hooks"] = {"GFLOPs": get_flops(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
     except Exception:
         pass
 
+    # thop
     try:
         import thop  # noqa: F401
-        ts = _run_n(lambda: _flops_thop_once(model, imgsz), iters)
-        out["thop"] = {"GFLOPs": _flops_thop_once(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
+        ts = _run_n(lambda: get_flops_thop(model, imgsz), iters)
+        out["thop"] = {"GFLOPs": get_flops_thop(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
     except Exception:
         pass
 
+    # torch.profiler
     try:
-        ts = _run_n(lambda: get_flops_profiler(model, imgsz), iters)
-        out["profiler"] = {"GFLOPs": get_flops_profiler(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
+        ts = _run_n(lambda: get_flops_with_torch_profiler(model, imgsz), iters)
+        out["profiler"] = {"GFLOPs": get_flops_with_torch_profiler(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
     except Exception:
         pass
 
@@ -170,14 +179,17 @@ def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, floa
 if __name__ == "__main__":
     from ultralytics import YOLO, RTDETR, FastSAM
 
+    # YOLO11n
     model = YOLO("yolo11n.pt").model.eval()
     res = benchmark(model, imgsz=640, iters=3)
     print("YOLO11n:", json.dumps(res, indent=2))
 
+    # RT-DETR
     model = RTDETR("rtdetr-l.pt").model.eval()
     res = benchmark(model, imgsz=640, iters=3)
     print("RT-DETR-L:", json.dumps(res, indent=2))
 
+    # SAM
     model = FastSAM("FastSAM-s.pt").model.eval()
     res = benchmark(model, imgsz=640, iters=3)
     print("SAM:", json.dumps(res, indent=2))

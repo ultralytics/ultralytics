@@ -13,19 +13,20 @@ class CPUInfo:
     """
     Provide cross-platform CPU brand and model information.
 
-    This utility queries platform-specific sources to retrieve a human-readable CPU descriptor and normalizes it for
-    consistent presentation across macOS, Linux, and Windows. If platform-specific probing fails, it falls back to
-    generic platform identifiers.
+    Query platform-specific sources to retrieve a human-readable CPU descriptor and normalize it for consistent
+    presentation across macOS, Linux, and Windows. If platform-specific probing fails, generic platform identifiers are
+    used to ensure a stable string is always returned.
 
     Methods:
         name: Return the normalized CPU name using platform-specific sources with robust fallbacks.
+        _clean: Normalize and prettify common vendor brand strings and frequency patterns.
         __str__: Return the normalized CPU name for string contexts.
 
     Examples:
         >>> CPUInfo.name()
         'Apple M4 Pro'
         >>> str(CPUInfo())
-        'Intel(R) Core(TM) i7-9750H @ 2.60GHz'
+        'Intel Core i7-9750H @ 2.60GHz'
     """
 
     @staticmethod
@@ -69,7 +70,7 @@ class CPUInfo:
     def _clean(s: str) -> str:
         """Normalize and prettify a raw CPU descriptor string."""
         s = re.sub(r"\s+", " ", s.strip())
-        s = s.replace("(TM)", "™").replace("(tm)", "™").replace("(R)", "®").replace("(r)", "®")
+        s = s.replace("(TM)", "").replace("(tm)", "").replace("(R)", "").replace("(r)", "")
         # Normalize common Intel pattern to 'Model @ Freq'
         m = re.search(r"(Intel.*?i\d[\w-]*) CPU @ ([\d.]+GHz)", s, re.I)
         if m:

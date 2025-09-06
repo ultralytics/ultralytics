@@ -60,7 +60,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        requirements (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
+        requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
             `specifier` attributes.
 
     Examples:
@@ -120,14 +120,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int | List[int]): Image size.
+        imgsz (int | list[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         max_dim (int): Maximum number of dimensions.
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        (List[int] | int): Updated image size.
+        (list[int] | int): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -363,7 +363,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Path | str | List[str]): Path to a requirements.txt file, a single package requirement as a
+        requirements (Path | str | list[str]): Path to a requirements.txt file, a single package requirement as a
             string, or a list of package requirements as strings.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
@@ -483,7 +483,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     Check file(s) for acceptable suffix.
 
     Args:
-        file (str | List[str]): File or list of files to check.
+        file (str | list[str]): File or list of files to check.
         suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
     """

@@ -1,9 +1,10 @@
-import sys
 import os
+import sys
+
 import torch
 
 # Add the parent directory to the path for direct execution
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from ultralytics.models.yolo.yoloe.fusion import fuse_tpe_vpe
 

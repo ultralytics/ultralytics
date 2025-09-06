@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 import torch
 import torch.nn.functional as F
 
 
-def _aggregate_vpe_by_map(vpe: torch.Tensor, fuse_map: Dict[int, List[int]], num_text: int) -> torch.Tensor:
+def _aggregate_vpe_by_map(vpe: torch.Tensor, fuse_map: dict[int, list[int]], num_text: int) -> torch.Tensor:
     """
     Aggregate visual prompt embeddings by a provided mapping from text class id -> vpe indices.
 
@@ -33,12 +31,12 @@ def _aggregate_vpe_by_map(vpe: torch.Tensor, fuse_map: Dict[int, List[int]], num
 
 
 def fuse_tpe_vpe(
-    tpe: Optional[torch.Tensor],
-    vpe: Optional[torch.Tensor],
+    tpe: torch.Tensor | None,
+    vpe: torch.Tensor | None,
     *,
     mode: str = "concat",
     alpha: float = 0.5,
-    fuse_map: Optional[Dict[int, List[int]]] = None,
+    fuse_map: dict[int, list[int]] | None = None,
 ) -> torch.Tensor:
     """
     Fuse text and visual prompt embeddings.
@@ -73,8 +71,7 @@ def fuse_tpe_vpe(
         # 1:1 assumption if no map provided
         if Nv != Nt:
             raise ValueError(
-                f"fuse_map not provided and Nv ({Nv}) != Nt ({Nt}); "
-                "either provide fuse_map or ensure equal counts."
+                f"fuse_map not provided and Nv ({Nv}) != Nt ({Nt}); either provide fuse_map or ensure equal counts."
             )
         vpe_agg = vpe
 

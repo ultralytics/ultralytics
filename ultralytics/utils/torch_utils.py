@@ -1029,18 +1029,19 @@ def attempt_compile(
     quiet: bool = False,
     use_autocast: bool = False,
     warmup: bool = True,
+    prefix: str = colorstr("compile:"),
 ):
     """Try torch.compile() with optional dummy warmup forward. Logs compile and warmup time."""
     if not hasattr(torch, "compile"):
         return model
 
-    LOGGER.info(f"{colorstr('compile:')} starting torch.compile (first run may take minutes)...")
+    LOGGER.info(f"{prefix} starting torch.compile (first run may take minutes)...")
     t0 = time.perf_counter()
     with _quiet(quiet):
         try:
             model = torch.compile(model, mode="max-autotune", backend="inductor", dynamic=True)
         except Exception as e:
-            LOGGER.warning(f"{colorstr('compile:')} torch.compile failed, continuing uncompiled: {e}")
+            LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
             return model
     t_compile = time.perf_counter() - t0
 
@@ -1062,8 +1063,7 @@ def attempt_compile(
 
     total = t_compile + t_warm
     if warmup:
-        LOGGER.info(f"{colorstr('compile:')} complete in {total:.2f}s "
-                    f"(compile {t_compile:.2f}s + warmup {t_warm:.2f}s).")
+        LOGGER.info(f"{prefix} complete in {total:.2f}s (compile {t_compile:.2f}s + warmup {t_warm:.2f}s).")
     else:
-        LOGGER.info(f"{colorstr('compile:')} compile complete in {t_compile:.2f}s (no warmup).")
+        LOGGER.info(f"{prefix} compile complete in {t_compile:.2f}s (no warmup).")
     return model

@@ -4,19 +4,18 @@ from __future__ import annotations
 
 import functools
 import gc
+import io
+import logging
 import math
 import os
 import random
 import time
-from contextlib import contextmanager
+import warnings
+from contextlib import contextmanager, redirect_stderr
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
-
-import io, time, logging, warnings, torch
-from contextlib import contextmanager, redirect_stderr
 
 import numpy as np
 import torch

@@ -794,8 +794,12 @@ class E2EDetectLoss:
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=1)
         self.updates = 0
-        self.o2o = 0
-        self.o2m = 1.0
+        self.total = 1.0
+        self.o2m = 0.9
+        # self.total = 2.0
+        # self.o2m = 1.0
+        self.o2o = self.total - self.o2m
+        self.o2m_copy = self.o2m
         if self.one2one.hyp.o2m == 1.0:
             self.o2o = 1.0
             self.o2m = 1.0
@@ -814,10 +818,13 @@ class E2EDetectLoss:
     def update(self):
         self.updates += 1
         self.o2m = self.decay(self.updates)
-        self.o2o = max(1.0 - self.o2m, 0)
+        self.o2o = max(self.total - self.o2m, 0)
 
     def decay(self, x):
-        return max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (1.0 - self.one2one.hyp.o2m) + self.one2one.hyp.o2m
+        return (
+            max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.one2one.hyp.o2m)
+            + self.one2one.hyp.o2m
+        )
 
 
 class TVPDetectLoss:

@@ -485,8 +485,8 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-            if self.args.end2end:
-                self.model.criterion.update()
+            # if self.args.end2end:
+            #     self.model.criterion.update()
             # print(self.model.criterion.assigner.zero_assigned)
             # print("total assignment:", self.model.criterion.total_assignments)
             # exit()

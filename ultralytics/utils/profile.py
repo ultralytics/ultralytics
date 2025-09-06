@@ -6,8 +6,10 @@ from typing import Dict, List, Tuple
 import torch
 import torch.nn as nn
 
+
 def de_parallel(m):
     return m.module if isinstance(m, (nn.DataParallel, nn.parallel.DistributedDataParallel)) else m
+
 
 @contextmanager
 def _eval_no_grad_restore(model: nn.Module):
@@ -20,86 +22,64 @@ def _eval_no_grad_restore(model: nn.Module):
         for x, t in zip(model.modules(), modes):
             x.train(t)
 
+
 def _input_from_model(model: nn.Module, imgsz=640, try_stride=True) -> Tuple[torch.Tensor, float]:
     m = de_parallel(model)
     p = next(m.parameters())
     ch = int(p.shape[1]); device = p.device
     if not isinstance(imgsz, (list, tuple)): imgsz = [int(imgsz), int(imgsz)]
     if try_stride and hasattr(m, "stride"):
-        try: s = max(int(torch.as_tensor(m.stride).max().item()), 32)
-        except Exception: s = 32
+        try:
+            s = max(int(torch.as_tensor(m.stride).max().item()), 32)
+        except Exception:
+            s = 32
         return torch.empty((1, ch, s, s), device=device), (imgsz[0] / s) * (imgsz[1] / s)
     return torch.empty((1, ch, imgsz[0], imgsz[1]), device=device), 1.0
+
 
 def _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G) -> int:
     return B * H * W * Cout * ((Cin // G) * Kh * Kw)  # MACs
 
+
 def _count_linear(B, in_f, out_f) -> int:
     return B * in_f * out_f  # MACs
 
+
 def get_flops(model: nn.Module, imgsz=640) -> float:
+    """Hook-based FLOPs to align with torch.profiler(with_flops=True): Conv/Linear MACs*2, stride-scaled to imgsz."""
     m = de_parallel(model)
-    macs_muladd = 0  # Conv/Linear MACs + BN mul/add counted as "MAC-like"
-    adds_only = 0    # bias and pooling adds (div optional)
+    macs = 0
 
     def fh(module, inp, out):
-        nonlocal macs_muladd, adds_only
+        nonlocal macs
         x = inp[0]; B = int(x.shape[0])
-
         if isinstance(module, nn.Conv2d):
-            Cin = int(x.shape[1]); Cout = module.out_channels
-            Kh, Kw = module.kernel_size; G = module.groups
-            H, W = int(out.shape[-2]), int(out.shape[-1])
-            macs_muladd += _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G)
-            if module.bias is not None:
-                adds_only += B * Cout * H * W  # bias add
-
-        elif isinstance(module, nn.Linear):
-            macs_muladd += _count_linear(B, module.in_features, module.out_features)
-            if module.bias is not None:
-                adds_only += B * module.out_features  # bias add
-
-        elif isinstance(module, nn.BatchNorm2d):
-            # per-element: y = x * scale + shift  -> 1 mul + 1 add (2 FLOPs)
-            C = int(out.shape[1]); H, W = int(out.shape[-2]), int(out.shape[-1])
-            macs_muladd += B * C * H * W  # *2 later = 2 FLOPs/elt
-
-        elif isinstance(module, nn.AvgPool2d):
-            Hout, Wout = int(out.shape[-2]), int(out.shape[-1]); C = int(out.shape[1])
+            Cin = int(x.shape[1]); Cout = int(module.out_channels)
             k = module.kernel_size; Kh, Kw = (k if isinstance(k, tuple) else (k, k))
-            adds_only += B * C * Hout * Wout * (Kh * Kw - 1)
-            # adds_only += B * C * Hout * Wout  # +1 per output to count division
-
-        elif isinstance(module, nn.MaxPool2d):
-            Hout, Wout = int(out.shape[-2]), int(out.shape[-1]);
-            C = int(out.shape[1])
-            k = module.kernel_size;
-            Kh, Kw = (k if isinstance(k, tuple) else (k, k))
-            # count comparisons like THOP: (Kh*Kw - 1) per output element
-            adds_only += B * C * Hout * Wout * (Kh * Kw - 1)
-
-        elif isinstance(module, nn.AdaptiveAvgPool2d):
-            Hin, Win = int(x.shape[-2]), int(x.shape[-1])
-            Hout, Wout = int(out.shape[-2]), int(out.shape[-1]); C = int(out.shape[1])
-            Kh = max(1, Hin // Hout); Kw = max(1, Win // Wout)
-            adds_only += B * C * Hout * Wout * (Kh * Kw - 1)
-            # adds_only += B * C * Hout * Wout  # optional division
+            G = int(module.groups)
+            H, W = int(out.shape[-2]), int(out.shape[-1])
+            macs += _count_conv2d(B, Cin, H, W, Cout, Kh, Kw, G)
+        elif isinstance(module, nn.Linear):
+            macs += _count_linear(B, int(module.in_features), int(module.out_features))
 
     handles = []
     try:
         for mod in m.modules():
-            if isinstance(mod, (nn.Conv2d, nn.Linear, nn.BatchNorm2d, nn.MaxPool2d, nn.AvgPool2d, nn.AdaptiveAvgPool2d)):
+            if isinstance(mod, (nn.Conv2d, nn.Linear)):
                 handles.append(mod.register_forward_hook(fh))
         with _eval_no_grad_restore(m):
             try:
-                im, scale = _input_from_model(m, imgsz, try_stride=True); m(im)
+                im, scale = _input_from_model(m, imgsz, try_stride=True)
+                m(im)
             except Exception:
-                macs_muladd = adds_only = 0
-                im, scale = _input_from_model(m, imgsz, try_stride=False); m(im)
-        gflops = ((macs_muladd * 2) + adds_only) * scale / 1e9
-        return float(gflops)
+                macs = 0
+                im, scale = _input_from_model(m, imgsz, try_stride=False)
+                m(im)
+        return float(macs * 2 * scale) / 1e9
     finally:
-        for h in handles: h.remove()
+        for h in handles:
+            h.remove()
+
 
 # ---------- thop comparator (deepcopy is part of time) ----------
 def _flops_thop_once(model: nn.Module, imgsz=640) -> float:
@@ -114,37 +94,77 @@ def _flops_thop_once(model: nn.Module, imgsz=640) -> float:
         macs = thop.profile(m, inputs=[im], verbose=False)[0]
     return float(macs) * 2.0 * scale / 1e9
 
+
+# ---------- torch.profiler (with_flops=True) ----------
+def get_flops_profiler(model: nn.Module, imgsz=640) -> float:
+    """FLOPs from torch.profiler with_flops=True, run at stride and upscale to imgsz."""
+    try:
+        from torch.profiler import profile, ProfilerActivity
+    except Exception:
+        return float("nan")
+    m = de_parallel(model)
+    activities = [ProfilerActivity.CPU]
+    if torch.cuda.is_available():
+        activities.append(ProfilerActivity.CUDA)
+    with _eval_no_grad_restore(m):
+        # Use stride-sized input and scale to imgsz for apples-to-apples with hooks/thop
+        try:
+            im, scale = _input_from_model(m, imgsz, try_stride=True)
+            with profile(activities=activities, with_flops=True, record_shapes=False) as prof:
+                m(im)
+        except Exception:
+            # Fallback: exact imgsz, no scaling
+            im, scale = _input_from_model(m, imgsz, try_stride=False)
+            try:
+                with profile(activities=activities, with_flops=True, record_shapes=False) as prof:
+                    m(im)
+            except Exception:
+                return float("nan")
+    flops = 0
+    for e in prof.key_averages():
+        f = getattr(e, "flops", None)
+        if f is not None:
+            flops += int(f)
+    return float(flops) * float(scale) / 1e9
+
+
 def _run_n(fn, n=10) -> List[float]:
     ts = []
     for _ in range(n):
         t0 = time.perf_counter(); fn(); ts.append(time.perf_counter() - t0)
     return ts
 
+
 def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, float]]:
-    """Compare native hooks vs thop over N runs; thop timing includes deepcopy."""
+    """Benchmark FLOPs calculators; report GFLOPs and avg/total seconds only."""
+    out: Dict[str, Dict[str, float]] = {}
+
     # hooks
-    _ = get_flops(model, imgsz)  # warm
-    ts_hooks = _run_n(lambda: get_flops(model, imgsz), iters)
-    g_hooks = get_flops(model, imgsz)
-    avg_h = sum(ts_hooks) / iters; var_h = sum((t - avg_h) ** 2 for t in ts_hooks) / (iters - 1) if iters > 1 else 0.0
-    out = {"hooks": {"GFLOPs": g_hooks, "avg_s": avg_h, "std_s": var_h ** 0.5, "total_s": sum(ts_hooks)}}
+    _ = get_flops(model, imgsz)
+    ts = _run_n(lambda: get_flops(model, imgsz), iters)
+    out["hooks"] = {"GFLOPs": get_flops(model, imgsz), "avg_s": sum(ts) / iters, "total_s": sum(ts)}
 
     # thop (optional)
     try:
         import thop  # noqa: F401
-        _ = _flops_thop_once(model, imgsz)  # warm
-        ts_thop = _run_n(lambda: _flops_thop_once(model, imgsz), iters)
-        g_thop = _flops_thop_once(model, imgsz)
-        avg_t = sum(ts_thop) / iters; var_t = sum((t - avg_t) ** 2 for t in ts_thop) / (iters - 1) if iters > 1 else 0.0
-        out["thop"] = {"GFLOPs": g_thop, "avg_s": avg_t, "std_s": var_t ** 0.5, "total_s": sum(ts_thop)}
-        if avg_t > 0:
-            out["speedup_vs_thop"] = avg_t / avg_h if avg_h > 0 else float("inf")
+        _ = _flops_thop_once(model, imgsz)
+        ts = _run_n(lambda: _flops_thop_once(model, imgsz), iters)
+        out["thop"] = {"GFLOPs": _flops_thop_once(model, imgsz), "avg_s": sum(ts) / iters, "total_s": sum(ts)}
     except Exception:
         pass
+
+    # profiler (with_flops=True) — now stride+scaled like hooks/thop
+    try:
+        _ = get_flops_profiler(model, imgsz)
+        ts = _run_n(lambda: get_flops_profiler(model, imgsz), iters)
+        out["profiler"] = {"GFLOPs": get_flops_profiler(model, imgsz), "avg_s": sum(ts) / iters, "total_s": sum(ts)}
+    except Exception:
+        pass
+
     return out
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     # load YOLO11n (CPU is fine)
     from ultralytics import YOLO
     model = YOLO("yolo11n.pt").model.eval()

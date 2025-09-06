@@ -97,7 +97,7 @@ class CLIP(TextModel):
         Convert input texts to CLIP tokens.
 
         Args:
-            texts (str | List[str]): Input text or list of texts to tokenize.
+            texts (str | list[str]): Input text or list of texts to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text tensor with shape (batch_size, context_length) ready for model processing.
@@ -240,7 +240,7 @@ class MobileCLIP(TextModel):
         Convert input texts to MobileCLIP tokens.
 
         Args:
-            texts (List[str]): List of text strings to tokenize.
+            texts (list[str]): List of text strings to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
@@ -325,7 +325,7 @@ class MobileCLIPTS(TextModel):
         Convert input texts to MobileCLIP tokens.
 
         Args:
-            texts (List[str]): List of text strings to tokenize.
+            texts (list[str]): List of text strings to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).

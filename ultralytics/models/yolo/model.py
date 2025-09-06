@@ -185,7 +185,7 @@ class YOLOWorld(Model):
         Set the model's class names for detection.
 
         Args:
-            classes (List[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. ["person"].
         """
         self.model.set_classes(classes)
         # Remove background if it's given
@@ -299,8 +299,8 @@ class YOLOE(Model):
         classification tasks. The model must be an instance of YOLOEModel.
 
         Args:
-            vocab (List[str]): Vocabulary list containing tokens or words used by the model for text processing.
-            names (List[str]): List of class names that the model can detect or classify.
+            vocab (list[str]): Vocabulary list containing tokens or words used by the model for text processing.
+            names (list[str]): List of class names that the model can detect or classify.
 
         Raises:
             AssertionError: If the model is not an instance of YOLOEModel.
@@ -322,7 +322,7 @@ class YOLOE(Model):
         Set the model's class names and embeddings for detection.
 
         Args:
-            classes (List[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. ["person"].
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
@@ -381,7 +381,7 @@ class YOLOE(Model):
                 directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a
                 generator as they are computed.
-            visual_prompts (Dict[str, List]): Dictionary containing visual prompts for the model. Must include
+            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
@@ -389,7 +389,7 @@ class YOLOE(Model):
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (List | generator): List of Results objects or generator of Results objects if stream=True.
+            (list | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")

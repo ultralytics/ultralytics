@@ -1028,8 +1028,9 @@ def attempt_compile(
     imgsz: int = 640,
     quiet: bool = False,
     use_autocast: bool = False,
+    warmup: bool = True,
 ):
-    """Try torch.compile() with a dummy warmup forward. Logs compile + warmup time."""
+    """Try torch.compile() with optional dummy warmup forward. Logs compile and warmup time."""
     if not hasattr(torch, "compile"):
         return model
 
@@ -1043,21 +1044,26 @@ def attempt_compile(
             return model
     t_compile = time.perf_counter() - t0
 
-    dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
-    if use_autocast and device.type == "cuda":
-        dummy = dummy.half()
-
-    t1 = time.perf_counter()
-    with torch.inference_mode():
-        if use_autocast and device.type in {"cuda", "mps"}:
-            with torch.autocast(device.type):
+    t_warm = 0.0
+    if warmup:
+        dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
+        if use_autocast and device.type == "cuda":
+            dummy = dummy.half()
+        t1 = time.perf_counter()
+        with torch.inference_mode():
+            if use_autocast and device.type in {"cuda", "mps"}:
+                with torch.autocast(device.type):
+                    _ = model(dummy)
+            else:
                 _ = model(dummy)
-        else:
-            _ = model(dummy)
-    if device.type == "cuda":
-        torch.cuda.synchronize(device)
-    t_warm = time.perf_counter() - t1
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        t_warm = time.perf_counter() - t1
 
-    LOGGER.info(f"{colorstr('compile:')} complete in {t_compile + t_warm:.2f}s "
-                f"(compile {t_compile:.2f}s + warmup {t_warm:.2f}s).")
+    total = t_compile + t_warm
+    if warmup:
+        LOGGER.info(f"{colorstr('compile:')} complete in {total:.2f}s "
+                    f"(compile {t_compile:.2f}s + warmup {t_warm:.2f}s).")
+    else:
+        LOGGER.info(f"{colorstr('compile:')} compile complete in {t_compile:.2f}s (no warmup).")
     return model

@@ -26,7 +26,7 @@ class CPUInfo:
         >>> CPUInfo.name()
         'Apple M4 Pro'
         >>> str(CPUInfo())
-        'Intel Core i7-9750H @ 2.60GHz'
+        'Intel Core i7-9750H 2.60GHz'
     """
 
     @staticmethod
@@ -70,15 +70,15 @@ class CPUInfo:
     def _clean(s: str) -> str:
         """Normalize and prettify a raw CPU descriptor string."""
         s = re.sub(r"\s+", " ", s.strip())
-        s = s.replace("(TM)", "").replace("(tm)", "").replace("(R)", "").replace("(r)", "")
-        # Normalize common Intel pattern to 'Model @ Freq'
+        s = s.replace("(TM)", "").replace("(tm)", "").replace("(R)", "").replace("(r)", "").strip()
+        # Normalize common Intel pattern to 'Model Freq'
         m = re.search(r"(Intel.*?i\d[\w-]*) CPU @ ([\d.]+GHz)", s, re.I)
         if m:
-            return f"{m.group(1)} @ {m.group(2)}"
-        # Normalize common AMD Ryzen pattern to 'Model @ Freq'
+            return f"{m.group(1)} {m.group(2)}"
+        # Normalize common AMD Ryzen pattern to 'Model Freq'
         m = re.search(r"(AMD.*?Ryzen.*?[\w-]*) CPU @ ([\d.]+GHz)", s, re.I)
         if m:
-            return f"{m.group(1)} @ {m.group(2)}"
+            return f"{m.group(1)} {m.group(2)}"
         return s
 
     def __str__(self) -> str:

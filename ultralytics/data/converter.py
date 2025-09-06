@@ -25,7 +25,7 @@ def coco91_to_coco80_class() -> list[int]:
     Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (List[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
+        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
             is the corresponding 91-index class ID.
     """
     return [
@@ -128,7 +128,7 @@ def coco80_to_coco91_class() -> list[int]:
     Convert 80-index (val2014) to 91-index (paper).
 
     Returns:
-        (List[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
+        (list[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
 
     References:
         https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
@@ -539,11 +539,11 @@ def merge_multi_segment(segments: list[list]):
     This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments (List[List]): Original segmentations in COCO's JSON file.
+        segments (list[list]): Original segmentations in COCO's JSON file.
                                Each element is a list of coordinates, like [segmentation1, segmentation2,...].
 
     Returns:
-        s (List[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]

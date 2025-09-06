@@ -317,7 +317,7 @@ class DetectionValidator(BaseValidator):
             names=self.names,
             on_plot=self.on_plot,
         )
-
+    
     def plot_predictions(
         self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
     ) -> None:
@@ -330,14 +330,30 @@ class DetectionValidator(BaseValidator):
             ni (int): Batch index.
             max_det (Optional[int]): Maximum number of detections to plot.
         """
-        # TODO: optimize this
-        for i, pred in enumerate(preds):
-            pred["batch_idx"] = torch.ones_like(pred["conf"]) * i  # add batch index to predictions
-        keys = preds[0].keys()
+        # Efficiently batch predictions without mutating inputs
         max_det = max_det or self.args.max_det
-        batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
-        # TODO: fix this
-        batched_preds["bboxes"][:, :4] = ops.xyxy2xywh(batched_preds["bboxes"][:, :4])  # convert to xywh format
+        sel_ns = [min(len(p["conf"]), max_det) for p in preds]
+        device = preds[0]["conf"].device
+
+        batched_preds = {}
+        for k in preds[0].keys():
+            if k == "batch_idx":
+                continue
+            if sel_ns and sum(sel_ns):
+                batched_preds[k] = torch.cat([p[k][:n] for p, n in zip(preds, sel_ns)], dim=0)
+            else:
+                batched_preds[k] = preds[0][k].new_zeros((0, *preds[0][k].shape[1:]))
+
+        # Build batch indices
+        if sel_ns and sum(sel_ns):
+            batched_preds["batch_idx"] = torch.cat(
+                [torch.full((n,), i, device=device, dtype=torch.int64) for i, n in enumerate(sel_ns)], dim=0
+            )
+        else:
+            batched_preds["batch_idx"] = torch.zeros((0,), device=device, dtype=torch.int64)
+
+        # Convert boxes to xywh format for plotting
+        batched_preds["bboxes"] = ops.xyxy2xywh(batched_preds["bboxes"][..., :4])  # xyxy -> xywh
         plot_images(
             images=batch["img"],
             labels=batched_preds,

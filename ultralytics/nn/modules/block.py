@@ -214,7 +214,7 @@ class SPPF(nn.Module):
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv1 = Conv(c1, c_, 1, 1, act=False)
         self.cv2 = Conv(c_ * (n + 1), c2, 1, 1, act=act)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
         self.n = n
@@ -1154,9 +1154,9 @@ class C3k2(C2f):
         self.m = nn.ModuleList(
             nn.Sequential(
                 # C3k(self.c, self.c, 1, shortcut, g),
-                Bottleneck(self.c, self.c, shortcut, g),
-                PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample),
-                # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
+                Bottleneck(self.c, self.c, shortcut, g),  # concat?
+                # PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample),
+                C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)  # slightly faster
             )
             # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
             if attn is not None

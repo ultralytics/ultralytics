@@ -141,8 +141,11 @@ def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, floa
     out: Dict[str, Dict[str, float]] = {}
 
     # hooks
-    ts = _run_n(lambda: get_flops(model, imgsz), iters)
-    out["hooks"] = {"GFLOPs": get_flops(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
+    try:
+        ts = _run_n(lambda: get_flops(model, imgsz), iters)
+        out["hooks"] = {"GFLOPs": get_flops(model, imgsz), "speed_ms": (sum(ts) / iters) * 1e3}
+    except Exception:
+        pass
 
     # thop
     try:
@@ -163,7 +166,19 @@ def benchmark(model: nn.Module, imgsz=640, iters=10) -> Dict[str, Dict[str, floa
 
 
 if __name__ == "__main__":
-    from ultralytics import YOLO
+    from ultralytics import YOLO, RTDETR, FastSAM
+
+    # YOLO11n
     model = YOLO("yolo11n.pt").model.eval()
-    res = benchmark(model, imgsz=640, iters=10)
-    print(json.dumps(res, indent=2))
+    res = benchmark(model, imgsz=640, iters=3)
+    print("YOLO11n:", json.dumps(res, indent=2))
+
+    # RT-DETR
+    model = RTDETR("rtdetr-l.pt").model.eval()
+    res = benchmark(model, imgsz=640, iters=3)
+    print("RT-DETR-L:", json.dumps(res, indent=2))
+
+    # SAM
+    model = FastSAM("FastSAM-s.pt").model.eval()
+    res = benchmark(model, imgsz=640, iters=3)
+    print("SAM:", json.dumps(res, indent=2))

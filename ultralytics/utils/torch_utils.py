@@ -34,6 +34,7 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.patches import torch_load
+from ultralytics.utils.cpu import CPUInfo
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
@@ -113,12 +114,7 @@ def get_cpu_info():
 
     if "cpu_info" not in PERSISTENT_CACHE:
         try:
-            import cpuinfo  # pip install py-cpuinfo
-
-            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
-            info = cpuinfo.get_cpu_info()  # info dict
-            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+            PERSISTENT_CACHE["cpu_info"] = CPUInfo.name()
         except Exception:
             pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")

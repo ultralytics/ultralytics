@@ -1030,7 +1030,11 @@ def attempt_compile(
     warmup: bool = True,
     prefix: str = colorstr("compile:"),
 ):
-    """Try torch.compile() with optional dummy warmup forward. Logs compile and warmup time."""
+    """
+    Try torch.compile() with optional dummy warmup forward.
+
+    Logs compile and warmup time.
+    """
     if not hasattr(torch, "compile"):
         return model
 

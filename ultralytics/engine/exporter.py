@@ -1402,7 +1402,6 @@ class Exporter:
         nms.confidenceThreshold = self.args.conf
         nms.pickTop.perClass = True
         nms.stringClassLabels.vector.extend(names.values())
-        nms.int64ClassLabels.vector.extend(names.keys())
         nms_model = ct.models.MLModel(nms_spec)
 
         # Pipeline models together

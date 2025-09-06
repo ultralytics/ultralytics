@@ -28,8 +28,8 @@ class ParkingPtsSelection:
         canvas (tk.Canvas): The canvas widget for displaying the image and drawing bounding boxes.
         image (PIL.Image.Image): The uploaded image.
         canvas_image (ImageTk.PhotoImage): The image displayed on the canvas.
-        rg_data (List[List[Tuple[int, int]]]): List of bounding boxes, each defined by 4 points.
-        current_box (List[Tuple[int, int]]): Temporary storage for the points of the current bounding box.
+        rg_data (list[list[tuple[int, int]]]): List of bounding boxes, each defined by 4 points.
+        current_box (list[tuple[int, int]]): Temporary storage for the points of the current bounding box.
         imgw (int): Original width of the uploaded image.
         imgh (int): Original height of the uploaded image.
         canvas_max_width (int): Maximum width of the canvas.
@@ -186,11 +186,11 @@ class ParkingManagement(BaseSolution):
 
     Attributes:
         json_file (str): Path to the JSON file containing parking region details.
-        json (List[Dict]): Loaded JSON data containing parking region information.
-        pr_info (Dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
-        arc (Tuple[int, int, int]): RGB color tuple for available region visualization.
-        occ (Tuple[int, int, int]): RGB color tuple for occupied region visualization.
-        dc (Tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
+        json (list[dict]): Loaded JSON data containing parking region information.
+        pr_info (dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
+        arc (tuple[int, int, int]): RGB color tuple for available region visualization.
+        occ (tuple[int, int, int]): RGB color tuple for occupied region visualization.
+        dc (tuple[int, int, int]): RGB color tuple for centroid visualization of detected objects.
 
     Methods:
         process: Process the input image for parking lot management and visualization.

@@ -52,10 +52,21 @@ class TritonRemoteModel:
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")
             >>> model = TritonRemoteModel(url="http://localhost:8000/yolov8")
+            >>> model = TritonRemoteModel(url="http://localhost:8000/v2/models/yolov8/versions/3")
         """
         if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)
-            endpoint = splits.path.strip("/").split("/", 1)[0]
+            if "models" in splits.path:
+                endpoint = splits.path.split("/")[3]
+                if "version" in splits.path:
+                    splits.path.split("/")[5]
+                    # TODO Add support for different model versions
+            else:
+                stripped_path = splits.path.strip("/").split("/", 1)
+                if len(stripped_path) > 1:
+                    stripped_path[1]
+                endpoint = stripped_path[0]
+
             scheme = splits.scheme
             url = splits.netloc
 
@@ -63,10 +74,11 @@ class TritonRemoteModel:
         self.url = url
 
         # Choose the Triton client based on the communication scheme
-        if scheme == "http":
+        if scheme == "http" or scheme == "https":
             import tritonclient.http as client  # noqa
 
-            self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=False)
+            ssl = scheme == "https"
+            self.triton_client = client.InferenceServerClient(url=self.url, verbose=False, ssl=ssl)
             config = self.triton_client.get_model_config(endpoint)
         else:
             import tritonclient.grpc as client  # noqa

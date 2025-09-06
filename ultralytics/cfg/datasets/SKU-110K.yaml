@@ -45,7 +45,7 @@ download: |
   # Convert labels
   names = "image", "x1", "y1", "x2", "y2", "class", "image_width", "image_height"  # column names
   for d in "annotations_train.csv", "annotations_val.csv", "annotations_test.csv":
-      x = pl.read_csv(dir / "annotations" / d, names=names).to_numpy()  # annotations
+      x = pl.read_csv(dir / "annotations" / d, names=names, infer_schema_length=None).to_numpy()  # annotations
       images, unique_images = x[:, 0], np.unique(x[:, 0])
       with open((dir / d).with_suffix(".txt").__str__().replace("annotations_", ""), "w", encoding="utf-8") as f:
           f.writelines(f"./images/{s}\n" for s in unique_images)

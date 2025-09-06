@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import threading
 import urllib
 from copy import copy
 from pathlib import Path
@@ -199,6 +200,59 @@ def test_track_stream(model):
         custom_yaml = TMP / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
+
+
+@pytest.mark.parametrize("independent_trackers", [False, True])
+@pytest.mark.parametrize("multi_stream", [False, True])
+@pytest.mark.parametrize(
+    "tracker_cfg,with_reid",
+    [
+        ("bytetrack.yaml", False),
+        ("botsort.yaml", False),
+        ("botsort.yaml", True),
+    ],
+)
+def test_independent_track_ids(tmp_path, independent_trackers, multi_stream, tracker_cfg, with_reid):
+    """Test YOLO trackers with independent_trackers (single/multi-stream, ByteTrack, BoT-SORT)."""
+    errors = []
+
+    def run_tracker_in_thread(thread_idx, model_name, source, tracker_yaml):
+        # --- Run tracking ---
+        model = YOLO(model_name)
+        min_id = None
+        for frame_result in model.track(source=str(source), stream=True, persist=True, tracker=tracker_yaml):
+            track_ids = getattr(frame_result.boxes, "id", [])
+            if track_ids is not None:
+                min_id = min(track_ids) if min_id is None else min(min_id, min(track_ids))
+
+        if min_id and min_id != 1:
+            errors.append(f"Thread {thread_idx}: Min Track ID is {min_id}, expected 1")
+
+    # --- Config setup ---
+    default_args = YAML.load(ROOT / f"cfg/trackers/{tracker_cfg}")
+    custom_args = {**default_args, "independent_trackers": independent_trackers}
+    if "botsort" in tracker_cfg.lower():
+        custom_args["with_reid"] = with_reid
+    TMP.mkdir(parents=True, exist_ok=True)
+    temp_tracker_yaml = TMP / f"{tracker_cfg}-temp.yaml"
+    YAML.save(temp_tracker_yaml, custom_args)
+
+    # --- Run parallel threads ---
+    sources = [
+        "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov",
+    ]
+    if multi_stream:
+        sources.append("https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov")
+    threads = [
+        threading.Thread(target=run_tracker_in_thread, args=(i, "yolo11n.pt", src, temp_tracker_yaml), daemon=True)
+        for i, src in enumerate(sources)
+    ]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+
+    # --- Validation ---
+    if independent_trackers:
+        assert not errors, f"Errors in threads: {errors}"
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)

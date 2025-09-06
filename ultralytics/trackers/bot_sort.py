@@ -104,11 +104,11 @@ class BOTrack(STrack):
 
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
-    def re_activate(self, new_track: BOTrack, frame_id: int, new_id: bool = False) -> None:
+    def re_activate(self, new_track: BOTrack, frame_id: int, track_id_count: int, new_id: bool = False) -> None:
         """Reactivate a track with updated features and optionally assign a new ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
-        super().re_activate(new_track, frame_id, new_id)
+        super().re_activate(new_track, frame_id, track_id_count, new_id)
 
     def update(self, new_track: BOTrack, frame_id: int) -> None:
         """Update the track with new detection information and the current frame ID."""

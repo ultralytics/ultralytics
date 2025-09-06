@@ -124,10 +124,13 @@ class STrack(BaseTrack):
                 stracks[i].mean = mean
                 stracks[i].covariance = cov
 
-    def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int):
+    def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int, track_id_count: int):
         """Activate a new tracklet using the provided Kalman filter and initialize its state and covariance."""
         self.kalman_filter = kalman_filter
-        self.track_id = self.next_id()
+        if track_id_count is None:
+            self.track_id = self.next_id()
+        else:
+            self.track_id = track_id_count
         self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
 
         self.tracklet_len = 0
@@ -137,7 +140,7 @@ class STrack(BaseTrack):
         self.frame_id = frame_id
         self.start_frame = frame_id
 
-    def re_activate(self, new_track: STrack, frame_id: int, new_id: bool = False):
+    def re_activate(self, new_track: STrack, frame_id: int, track_id_count: int, new_id: bool = False):
         """Reactivate a previously lost track using new detection data and update its state and attributes."""
         self.mean, self.covariance = self.kalman_filter.update(
             self.mean, self.covariance, self.convert_coords(new_track.tlwh)
@@ -147,7 +150,10 @@ class STrack(BaseTrack):
         self.is_activated = True
         self.frame_id = frame_id
         if new_id:
-            self.track_id = self.next_id()
+            if track_id_count is None:
+                self.track_id = self.next_id()
+            else:
+                self.track_id = track_id_count
         self.score = new_track.score
         self.cls = new_track.cls
         self.angle = new_track.angle
@@ -253,6 +259,7 @@ class BYTETracker:
         args (Namespace): Command-line arguments.
         max_time_lost (int): The maximum frames for a track to be considered as 'lost'.
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
+        track_id_count (Optional[int]): Counter for unique track IDs, None if independent_trackers are not used.
 
     Methods:
         update: Update object tracker with new detections.
@@ -294,7 +301,11 @@ class BYTETracker:
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = self.get_kalmanfilter()
-        self.reset_id()
+        if not args.independent_trackers:
+            self.reset_id()
+            self.track_id_count = None
+        else:
+            self.track_id_count = 0
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""
@@ -349,7 +360,7 @@ class BYTETracker:
                 track.update(det, self.frame_id)
                 activated_stracks.append(track)
             else:
-                track.re_activate(det, self.frame_id, new_id=False)
+                track.re_activate(det, self.frame_id, self.track_id_count, new_id=False)
                 refind_stracks.append(track)
         # Step 3: Second association, with low score detection boxes association the untrack to the low score detections
         detections_second = self.init_track(results_second, feats_second)
@@ -364,7 +375,7 @@ class BYTETracker:
                 track.update(det, self.frame_id)
                 activated_stracks.append(track)
             else:
-                track.re_activate(det, self.frame_id, new_id=False)
+                track.re_activate(det, self.frame_id, self.track_id_count, new_id=False)
                 refind_stracks.append(track)
 
         for it in u_track:
@@ -388,7 +399,9 @@ class BYTETracker:
             track = detections[inew]
             if track.score < self.args.new_track_thresh:
                 continue
-            track.activate(self.kalman_filter, self.frame_id)
+            if self.track_id_count is not None:
+                self.track_id_count += 1
+            track.activate(self.kalman_filter, self.frame_id, self.track_id_count)
             activated_stracks.append(track)
         # Step 5: Update state
         for track in self.lost_stracks:

@@ -18,8 +18,8 @@ class DistanceCalculation(BaseSolution):
 
     Attributes:
         left_mouse_count (int): Counter for left mouse button clicks.
-        selected_boxes (Dict[int, List[float]]): Dictionary to store selected bounding boxes and their track IDs.
-        centroids (List[List[int]]): List to store centroids of selected bounding boxes.
+        selected_boxes (dict[int, list[float]]): Dictionary to store selected bounding boxes and their track IDs.
+        centroids (list[list[int]]): List to store centroids of selected bounding boxes.
 
     Methods:
         mouse_event_for_distance: Handle mouse events for selecting objects in the video stream.

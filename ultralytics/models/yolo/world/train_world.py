@@ -94,7 +94,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         standard YOLO datasets and grounding datasets with different formats.
 
         Args:
-            img_path (List[str] | str): Path to the folder containing images or list of paths.
+            img_path (list[str] | str): Path to the folder containing images or list of paths.
             mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
             batch (int, optional): Size of batches, used for rectangular training/validation.
 

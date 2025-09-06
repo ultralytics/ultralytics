@@ -130,7 +130,7 @@ class Detect(nn.Module):
         Perform forward pass of the v10Detect module.
 
         Args:
-            x (List[torch.Tensor]): Input feature maps from different levels.
+            x (list[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
             outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
@@ -154,7 +154,7 @@ class Detect(nn.Module):
         Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
         Args:
-            x (List[torch.Tensor]): List of feature maps from different detection layers.
+            x (list[torch.Tensor]): List of feature maps from different detection layers.
 
         Returns:
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
@@ -985,7 +985,7 @@ class RTDETRDecoder(nn.Module):
         Run the forward pass of the module, returning bounding box and classification scores for the input.
 
         Args:
-            x (List[torch.Tensor]): List of feature maps from the backbone.
+            x (list[torch.Tensor]): List of feature maps from the backbone.
             batch (dict, optional): Batch information for training.
 
         Returns:
@@ -1075,7 +1075,7 @@ class RTDETRDecoder(nn.Module):
         Process and return encoder inputs by getting projection features from input and concatenating them.
 
         Args:
-            x (List[torch.Tensor]): List of feature maps from the backbone.
+            x (list[torch.Tensor]): List of feature maps from the backbone.
 
         Returns:
             feats (torch.Tensor): Processed features.

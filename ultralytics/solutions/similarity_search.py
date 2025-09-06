@@ -33,7 +33,7 @@ class VisualAISearch:
         data_dir (Path): Path object for the data directory.
         model: Loaded CLIP model.
         index: FAISS index for similarity search.
-        image_paths (List[str]): List of image file paths.
+        image_paths (list[str]): List of image file paths.
 
     Methods:
         extract_image_feature: Extract CLIP embedding from an image.
@@ -138,7 +138,7 @@ class VisualAISearch:
             similarity_thresh (float, optional): Minimum similarity threshold for filtering results.
 
         Returns:
-            (List[str]): List of image filenames ranked by similarity score.
+            (list[str]): List of image filenames ranked by similarity score.
 
         Examples:
             Search for images matching a query

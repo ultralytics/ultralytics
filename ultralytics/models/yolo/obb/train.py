@@ -45,7 +45,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
                 model configuration.
             overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here
                 will take precedence over those in cfg.
-            _callbacks (List[Any], optional): List of callback functions to be invoked during training.
+            _callbacks (list[Any], optional): List of callback functions to be invoked during training.
 
         Examples:
             >>> from ultralytics.models.yolo.obb import OBBTrainer

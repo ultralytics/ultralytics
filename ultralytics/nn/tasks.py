@@ -69,7 +69,7 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
@@ -331,7 +331,7 @@ class BaseModel(torch.nn.Module):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
@@ -482,10 +482,10 @@ class DetectionModel(BaseModel):
         Clip YOLO augmented inference tails.
 
         Args:
-            y (List[torch.Tensor]): List of detection tensors.
+            y (list[torch.Tensor]): List of detection tensors.
 
         Returns:
-            (List[torch.Tensor]): Clipped detection tensors.
+            (list[torch.Tensor]): Clipped detection tensors.
         """
         nl = self.model[-1].nl  # number of detection layers (P3-P5)
         g = sum(4**x for x in range(nl))  # grid points
@@ -876,7 +876,7 @@ class WorldModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            text (List[str]): List of class names.
+            text (list[str]): List of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
         """
@@ -888,7 +888,7 @@ class WorldModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            text (List[str]): List of class names.
+            text (list[str]): List of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
 
@@ -958,7 +958,7 @@ class WorldModel(DetectionModel):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -1014,7 +1014,7 @@ class YOLOEModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            text (List[str]): List of class names.
+            text (list[str]): List of class names.
             batch (int): Batch size for processing text tokens.
             cache_clip_model (bool): Whether to cache the CLIP model.
             without_reprta (bool): Whether to return text embeddings cooperated with reprta module.
@@ -1062,7 +1062,7 @@ class YOLOEModel(DetectionModel):
 
         Args:
             vocab (nn.ModuleList): List of vocabulary items.
-            names (List[str]): List of class names.
+            names (list[str]): List of class names.
         """
         assert not self.training
         head = self.model[-1]
@@ -1116,7 +1116,7 @@ class YOLOEModel(DetectionModel):
         Set classes in advance so that model could do offline-inference without clip model.
 
         Args:
-            names (List[str]): List of class names.
+            names (list[str]): List of class names.
             embeddings (torch.Tensor): Embeddings tensor.
         """
         assert not hasattr(self.model[-1], "lrpc"), (
@@ -1205,7 +1205,7 @@ class YOLOEModel(DetectionModel):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
             from ultralytics.utils.loss import TVPDetectLoss
@@ -1253,7 +1253,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | List[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
         """
         if not hasattr(self, "criterion"):
             from ultralytics.utils.loss import TVPSegmentLoss
@@ -1485,61 +1485,12 @@ def torch_safe_load(weight, safe_only=False):
     return ckpt, file
 
 
-def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
-    """
-    Load an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a.
-
-    Args:
-        weights (str | List[str]): Model weights path(s).
-        device (torch.device, optional): Device to load model to.
-        inplace (bool): Whether to do inplace operations.
-        fuse (bool): Whether to fuse model.
-
-    Returns:
-        (torch.nn.Module): Loaded model.
-    """
-    ensemble = Ensemble()
-    for w in weights if isinstance(weights, list) else [weights]:
-        ckpt, w = torch_safe_load(w)  # load ckpt
-        args = {**DEFAULT_CFG_DICT, **ckpt["train_args"]} if "train_args" in ckpt else None  # combined args
-        model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
-
-        # Model compatibility updates
-        model.args = args  # attach args to model
-        model.pt_path = w  # attach *.pt file path to model
-        model.task = getattr(model, "task", guess_model_task(model))
-        if not hasattr(model, "stride"):
-            model.stride = torch.tensor([32.0])
-
-        # Append
-        ensemble.append((model.fuse().eval() if fuse and hasattr(model, "fuse") else model.eval()).to(device))
-
-    # Module updates
-    for m in ensemble.modules():
-        if hasattr(m, "inplace"):
-            m.inplace = inplace
-        elif isinstance(m, torch.nn.Upsample) and not hasattr(m, "recompute_scale_factor"):
-            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
-
-    # Return model
-    if len(ensemble) == 1:
-        return ensemble[-1]
-
-    # Return ensemble
-    LOGGER.info(f"Ensemble created with {weights}\n")
-    for k in "names", "nc", "yaml":
-        setattr(ensemble, k, getattr(ensemble[0], k))
-    ensemble.stride = ensemble[int(torch.argmax(torch.tensor([m.stride.max() for m in ensemble])))].stride
-    assert all(ensemble[0].nc == m.nc for m in ensemble), f"Models differ in class counts {[m.nc for m in ensemble]}"
-    return ensemble
-
-
-def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
+def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     """
     Load a single model weights.
 
     Args:
-        weight (str): Model weight path.
+        weight (str | Path): Model weight path.
         device (torch.device, optional): Device to load model to.
         inplace (bool): Whether to do inplace operations.
         fuse (bool): Whether to fuse model.
@@ -1553,7 +1504,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
 
     # Model compatibility updates
-    model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
+    model.args = args  # attach args to model
     model.pt_path = weight  # attach *.pt file path to model
     model.task = getattr(model, "task", guess_model_task(model))
     if not hasattr(model, "stride"):

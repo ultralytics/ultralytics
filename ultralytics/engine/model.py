@@ -12,7 +12,7 @@ from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.tasks import attempt_load_one_weight, guess_model_task, yaml_model_load
+from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
     ASSETS,
@@ -168,14 +168,14 @@ class Model(torch.nn.Module):
         directly with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source of
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of
                 the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch
                 tensor, or a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (List[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
+            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
                 Results object.
 
         Examples:
@@ -294,7 +294,7 @@ class Model(torch.nn.Module):
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
 
         if str(weights).rpartition(".")[-1] == "pt":
-            self.model, self.ckpt = attempt_load_one_weight(weights)
+            self.model, self.ckpt = load_checkpoint(weights)
             self.task = self.model.task
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
@@ -385,7 +385,7 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
-            weights, self.ckpt = attempt_load_one_weight(weights)
+            weights, self.ckpt = load_checkpoint(weights)
         self.model.load(weights)
         return self
 
@@ -433,7 +433,7 @@ class Model(torch.nn.Module):
             verbose (bool): If True, prints the information. If False, returns the information as a list.
 
         Returns:
-            (List[str]): A list of strings containing various types of information about the model, including
+            (list[str]): A list of strings containing various types of information about the model, including
                 model summary, layer details, and parameter counts. Empty if verbose is True.
 
         Examples:
@@ -477,13 +477,13 @@ class Model(torch.nn.Module):
         source. It allows customization of the embedding process through various keyword arguments.
 
         Args:
-            source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor): The source of the image for
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for
                 generating embeddings. Can be a file path, URL, PIL image, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
         Returns:
-            (List[torch.Tensor]): A list containing the image embeddings.
+            (list[torch.Tensor]): A list containing the image embeddings.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
@@ -510,7 +510,7 @@ class Model(torch.nn.Module):
         types of image sources and can operate in a streaming mode.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
                 of the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL
                 images, numpy arrays, and torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
@@ -519,7 +519,7 @@ class Model(torch.nn.Module):
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (List[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
+            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
                 Results object.
 
         Examples:
@@ -571,14 +571,14 @@ class Model(torch.nn.Module):
         The method registers trackers if not already present and can persist them between calls.
 
         Args:
-            source (str | Path | int | List | Tuple | np.ndarray | torch.Tensor, optional): Input source for object
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream.
             persist (bool): If True, persists trackers between different calls to this method.
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
-            (List[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
+            (list[ultralytics.engine.results.Results]): A list of tracking results, each a Results object.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
@@ -650,7 +650,7 @@ class Model(torch.nn.Module):
             verbose (bool): Whether to print detailed benchmark information.
             format (str): Export format name for specific benchmarking.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
-                - imgsz (int | List[int]): Image size for benchmarking.
+                - imgsz (int | list[int]): Image size for benchmarking.
                 - half (bool): Whether to use half-precision (FP16) mode.
                 - int8 (bool): Whether to use int8 precision mode.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
@@ -765,7 +765,7 @@ class Model(torch.nn.Module):
                 patience (int): Epochs to wait for no observable improvement for early stopping of training.
 
         Returns:
-            (Dict | None): Training metrics if available and training is successful; otherwise, None.
+            (dict | None): Training metrics if available and training is successful; otherwise, None.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
@@ -802,7 +802,7 @@ class Model(torch.nn.Module):
         # Update model and cfg after training
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
-            self.model, self.ckpt = attempt_load_one_weight(ckpt)
+            self.model, self.ckpt = load_checkpoint(ckpt)
             self.overrides = self.model.args
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
         return self.metrics
@@ -893,7 +893,7 @@ class Model(torch.nn.Module):
         initialized, it sets it up before retrieving the names.
 
         Returns:
-            (Dict[int, str]): A dictionary of class names associated with the model, where keys are class indices and
+            (dict[int, str]): A dictionary of class names associated with the model, where keys are class indices and
                 values are the corresponding class names.
 
         Raises:
@@ -1109,7 +1109,7 @@ class Model(torch.nn.Module):
         various tasks and modes within the Ultralytics framework.
 
         Returns:
-            (Dict[str, Dict[str, Any]]): A dictionary mapping task names to nested dictionaries. Each nested dictionary
+            (dict[str, dict[str, Any]]): A dictionary mapping task names to nested dictionaries. Each nested dictionary
             contains mappings for 'model', 'trainer', 'validator', and 'predictor' keys to their respective class
             implementations for that task.
 

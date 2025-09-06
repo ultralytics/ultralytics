@@ -270,7 +270,7 @@ def test_predict_callback_and_setup():
         path, im0s, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
-        predictor.results = zip(predictor.results, im0s, bs)  # results is List[batch_size]
+        predictor.results = zip(predictor.results, im0s, bs)  # results is list[batch_size]
 
     model = YOLO(MODEL)
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -375,7 +375,7 @@ def test_data_annotator():
 
 def test_events():
     """Test event sending functionality."""
-    from ultralytics.hub.utils import Events
+    from ultralytics.utils.events import Events
 
     events = Events()
     events.enabled = True

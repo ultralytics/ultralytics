@@ -115,16 +115,16 @@ Contributing a new dataset involves several steps to ensure that it aligns well 
 1. **Collect Images**: Gather the images that belong to the dataset. These could be collected from various sources, such as public databases or your own collection.
 2. **Annotate Images**: Annotate these images with bounding boxes, segments, or keypoints, depending on the task.
 3. **Export Annotations**: Convert these annotations into the YOLO `*.txt` file format which Ultralytics supports.
-4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `train/` and `val/` top-level directories, and within each, an `images/` and `labels/` subdirectory.
+4. **Organize Dataset**: Arrange your dataset into the correct folder structure. You should have `images/` and `labels/` top-level directories, and within each, a `train/` and `val/` subdirectory.
 
     ```
     dataset/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── val/
-        ├── images/
-        └── labels/
+    ├── images/
+    │   ├── train/
+    │   └── val/
+    └── labels/
+        ├── train/
+        └── val/
     ```
 
 5. **Create a `data.yaml` File**: In your dataset's root directory, create a `data.yaml` file that describes the dataset, classes, and other necessary information.

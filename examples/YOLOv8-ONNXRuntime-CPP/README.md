@@ -120,6 +120,7 @@ Ensure you have the following dependencies installed:
     ```
 
     **CMake Options:**
+
     - `-DONNXRUNTIME_ROOT=<path>`: **(Required)** Path to the extracted ONNX Runtime library.
     - `-DCMAKE_BUILD_TYPE=Release`: (Optional) Build in Release mode for optimizations.
     - If CMake struggles to find OpenCV, you might need to set `-DOpenCV_DIR=/path/to/opencv/build`.

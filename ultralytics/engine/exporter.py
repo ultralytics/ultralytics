@@ -1417,7 +1417,7 @@ class Exporter:
         pipeline.add_model(model)
         pipeline.add_model(nms_model)
 
-        # Copy descriptions
+        # Correct datatypes
         pipeline.spec.description.input[0].ParseFromString(model._spec.description.input[0].SerializeToString())
         pipeline.spec.description.output[0].ParseFromString(nms_model._spec.description.output[0].SerializeToString())
         pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())

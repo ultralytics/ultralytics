@@ -329,7 +329,7 @@ class SAM2MaskDecoder(nn.Module):
             dense_prompt_embeddings (torch.Tensor): Embeddings of the mask inputs with shape (B, C, H, W).
             multimask_output (bool): Whether to return multiple masks or a single mask.
             repeat_image (bool): Flag to repeat the image embeddings.
-            high_res_features (List[torch.Tensor] | None, optional): Optional high-resolution features.
+            high_res_features (list[torch.Tensor] | None, optional): Optional high-resolution features.
 
         Returns:
             masks (torch.Tensor): Batched predicted masks with shape (B, N, H, W).

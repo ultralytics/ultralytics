@@ -49,7 +49,7 @@ class RTDETR:
         model_input (list): Model input metadata.
         input_width (int): Width dimension required by the model.
         input_height (int): Height dimension required by the model.
-        classes (List[str]): List of class names from COCO dataset.
+        classes (list[str]): List of class names from COCO dataset.
         color_palette (np.ndarray): Random color palette for visualization.
         img (np.ndarray): Loaded input image.
         img_height (int): Height of the input image.
@@ -221,7 +221,7 @@ class RTDETR:
         dimensions, and draws detection annotations.
 
         Args:
-            model_output (List[np.ndarray]): Output tensors from the model inference.
+            model_output (list[np.ndarray]): Output tensors from the model inference.
 
         Returns:
             (np.ndarray): Annotated image with detection bounding boxes and labels.

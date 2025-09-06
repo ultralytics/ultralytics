@@ -57,13 +57,13 @@ class SegmentationValidator(DetectionValidator):
         Preprocess batch of images for YOLO segmentation validation.
 
         Args:
-            batch (Dict[str, Any]): Batch containing images and annotations.
+            batch (dict[str, Any]): Batch containing images and annotations.
 
         Returns:
-            (Dict[str, Any]): Preprocessed batch.
+            (dict[str, Any]): Preprocessed batch.
         """
         batch = super().preprocess(batch)
-        batch["masks"] = batch["masks"].to(self.device).float()
+        batch["masks"] = batch["masks"].to(self.device, non_blocking=True).float()
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -100,10 +100,10 @@ class SegmentationValidator(DetectionValidator):
         Post-process YOLO predictions and return output detections with proto.
 
         Args:
-            preds (List[torch.Tensor]): Raw predictions from the model.
+            preds (list[torch.Tensor]): Raw predictions from the model.
 
         Returns:
-            List[Dict[str, torch.Tensor]]: Processed detection predictions with masks.
+            list[dict[str, torch.Tensor]]: Processed detection predictions with masks.
         """
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         preds = super().postprocess(preds[0])
@@ -127,14 +127,23 @@ class SegmentationValidator(DetectionValidator):
 
         Args:
             si (int): Batch index.
-            batch (Dict[str, Any]): Batch data containing images and annotations.
+            batch (dict[str, Any]): Batch data containing images and annotations.
 
         Returns:
-            (Dict[str, Any]): Prepared batch with processed annotations.
+            (dict[str, Any]): Prepared batch with processed annotations.
         """
         prepared_batch = super()._prepare_batch(si, batch)
-        midx = [si] if self.args.overlap_mask else batch["batch_idx"] == si
-        prepared_batch["masks"] = batch["masks"][midx]
+        nl = len(prepared_batch["cls"])
+        if self.args.overlap_mask:
+            masks = batch["masks"][si]
+            index = torch.arange(1, nl + 1, device=masks.device).view(nl, 1, 1)
+            masks = (masks == index).float()
+        else:
+            masks = batch["masks"][batch["batch_idx"] == si]
+        if nl and self.process is ops.process_mask_native:
+            masks = F.interpolate(masks[None], prepared_batch["imgsz"], mode="bilinear", align_corners=False)[0]
+            masks = masks.gt_(0.5)
+        prepared_batch["masks"] = masks
         return prepared_batch
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> dict[str, np.ndarray]:
@@ -142,11 +151,11 @@ class SegmentationValidator(DetectionValidator):
         Compute correct prediction matrix for a batch based on bounding boxes and optional masks.
 
         Args:
-            preds (Dict[str, torch.Tensor]): Dictionary containing predictions with keys like 'cls' and 'masks'.
-            batch (Dict[str, Any]): Dictionary containing batch data with keys like 'cls' and 'masks'.
+            preds (dict[str, torch.Tensor]): Dictionary containing predictions with keys like 'cls' and 'masks'.
+            batch (dict[str, Any]): Dictionary containing batch data with keys like 'cls' and 'masks'.
 
         Returns:
-            (Dict[str, np.ndarray]): A dictionary containing correct prediction matrices including 'tp_m' for mask IoU.
+            (dict[str, np.ndarray]): A dictionary containing correct prediction matrices including 'tp_m' for mask IoU.
 
         Notes:
             - If `masks` is True, the function computes IoU between predicted and ground truth masks.
@@ -158,20 +167,11 @@ class SegmentationValidator(DetectionValidator):
             >>> correct_preds = validator._process_batch(preds, batch)
         """
         tp = super()._process_batch(preds, batch)
-        gt_cls, gt_masks = batch["cls"], batch["masks"]
+        gt_cls = batch["cls"]
         if len(gt_cls) == 0 or len(preds["cls"]) == 0:
             tp_m = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
-            pred_masks = preds["masks"]
-            if self.args.overlap_mask:
-                nl = len(gt_cls)
-                index = torch.arange(nl, device=gt_masks.device).view(nl, 1, 1) + 1
-                gt_masks = gt_masks.repeat(nl, 1, 1)  # shape(1,640,640) -> (n,640,640)
-                gt_masks = torch.where(gt_masks == index, 1.0, 0.0)
-            if gt_masks.shape[1:] != pred_masks.shape[1:]:
-                gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
-                gt_masks = gt_masks.gt_(0.5)
-            iou = mask_iou(gt_masks.view(gt_masks.shape[0], -1), pred_masks.view(pred_masks.shape[0], -1))
+            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp
@@ -181,8 +181,8 @@ class SegmentationValidator(DetectionValidator):
         Plot batch predictions with masks and bounding boxes.
 
         Args:
-            batch (Dict[str, Any]): Batch containing images and annotations.
-            preds (List[Dict[str, torch.Tensor]]): List of predictions from the model.
+            batch (dict[str, Any]): Batch containing images and annotations.
+            preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
         """
         for p in preds:
@@ -199,7 +199,7 @@ class SegmentationValidator(DetectionValidator):
         Args:
             predn (torch.Tensor): Predictions in the format (x1, y1, x2, y2, conf, class).
             save_conf (bool): Whether to save confidence scores.
-            shape (Tuple[int, int]): Shape of the original image.
+            shape (tuple[int, int]): Shape of the original image.
             file (Path): File path to save the detections.
         """
         from ultralytics.engine.results import Results
@@ -217,8 +217,8 @@ class SegmentationValidator(DetectionValidator):
         Save one JSON result for COCO evaluation.
 
         Args:
-            predn (Dict[str, torch.Tensor]): Predictions containing bboxes, masks, confidence scores, and classes.
-            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
+            predn (dict[str, torch.Tensor]): Predictions containing bboxes, masks, confidence scores, and classes.
+            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
         from faster_coco_eval.core.mask import encode  # noqa
 

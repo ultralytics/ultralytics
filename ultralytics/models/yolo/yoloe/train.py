@@ -183,7 +183,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         standard YOLO datasets and grounding datasets with different formats.
 
         Args:
-            img_path (List[str] | str): Path to the folder containing images or list of paths.
+            img_path (list[str] | str): Path to the folder containing images or list of paths.
             mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
             batch (int, optional): Size of batches, used for rectangular training/validation.
 
@@ -197,7 +197,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch = DetectionTrainer.preprocess_batch(self, batch)
 
         texts = list(itertools.chain(*batch["texts"]))
-        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device)
+        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device, non_blocking=True)
         txt_feats = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         batch["txt_feats"] = txt_feats
         return batch
@@ -207,7 +207,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         Generate text embeddings for a list of text samples.
 
         Args:
-            texts (List[str]): List of text samples to encode.
+            texts (list[str]): List of text samples to encode.
             batch (int): Batch size for processing.
             cache_dir (Path): Directory to save/load cached embeddings.
 
@@ -251,8 +251,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
-        batch = DetectionTrainer.preprocess_batch(self, batch)
-        return batch
+        return DetectionTrainer.preprocess_batch(self, batch)
 
     def set_text_embeddings(self, datasets, batch: int):
         """
@@ -263,7 +262,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         in the parent directory of the first dataset's image path.
 
         Args:
-            datasets (List[Dataset]): List of datasets containing category names to process.
+            datasets (list[Dataset]): List of datasets containing category names to process.
             batch (int): Batch size for processing text embeddings.
 
         Notes:
@@ -291,7 +290,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         Build YOLO Dataset for training or validation with visual prompts.
 
         Args:
-            img_path (List[str] | str): Path to the folder containing images or list of paths.
+            img_path (list[str] | str): Path to the folder containing images or list of paths.
             mode (str): 'train' mode or 'val' mode, allowing customized augmentations for each mode.
             batch (int, optional): Size of batches, used for rectangular training/validation.
 
@@ -318,5 +317,5 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
     def preprocess_batch(self, batch):
         """Preprocess a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
         batch = super().preprocess_batch(batch)
-        batch["visuals"] = batch["visuals"].to(self.device)
+        batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
         return batch

@@ -38,10 +38,10 @@ def non_max_suppression(
             containing boxes, classes, and optional masks.
         conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
         iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
-        classes (List[int], optional): List of class indices to consider. If None, all classes are considered.
+        classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.
-        labels (List[List[Union[int, float, torch.Tensor]]]): A priori labels for each image.
+        labels (list[list[Union[int, float, torch.Tensor]]]): A priori labels for each image.
         max_det (int): Maximum number of detections to keep per image.
         nc (int): Number of classes. Indices after this are considered masks.
         max_time_img (float): Maximum time in seconds for processing one image.
@@ -52,9 +52,9 @@ def non_max_suppression(
         return_idxs (bool): Whether to return the indices of kept detections.
 
     Returns:
-        output (List[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks)
+        output (list[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks)
             containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
-        keepi (List[torch.Tensor]): Indices of kept detections if return_idxs=True.
+        keepi (list[torch.Tensor]): Indices of kept detections if return_idxs=True.
     """
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"

@@ -140,35 +140,61 @@ def generate_motion_mask_batch(
 
 
 def combine_rgb_motion(
-    rgb_frames: torch.Tensor, 
-    motion_masks: torch.Tensor
-) -> torch.Tensor:
+    rgb_frames: Union[np.ndarray, torch.Tensor], 
+    motion_masks: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Combine RGB frames with motion masks to create 4-channel input.
     
     Concatenates RGB (3 channels) with motion mask (1 channel) for YOLO11Pose adaptation.
 
     Args:
-        rgb_frames (torch.Tensor): RGB frames (B, 3, H, W) or (B, T, 3, H, W)
-        motion_masks (torch.Tensor): Motion masks (B, 1, H, W) or (B, T, 1, H, W)
+        rgb_frames: RGB frames (H, W, 3) or (B, H, W, 3) for numpy, (B, 3, H, W) for torch
+        motion_masks: Motion masks (H, W) or (B, H, W) for numpy, (B, 1, H, W) for torch
 
     Returns:
-        (torch.Tensor): 4-channel input (B, 4, H, W) or (B, T, 4, H, W)
+        4-channel input (H, W, 4) or (B, H, W, 4) for numpy, (B, 4, H, W) for torch
 
     Examples:
         >>> import torch
+        >>> import numpy as np
+        >>> # Numpy arrays
+        >>> rgb = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        >>> motion = np.random.randint(0, 2, (480, 640), dtype=np.uint8) * 255
+        >>> combined = combine_rgb_motion(rgb, motion)
+        >>> combined.shape
+        (480, 640, 4)
+        >>> # Torch tensors
         >>> rgb = torch.randn(2, 3, 480, 640)
         >>> motion = torch.randint(0, 2, (2, 1, 480, 640)) * 255
         >>> combined = combine_rgb_motion(rgb, motion)
         >>> combined.shape
         torch.Size([2, 4, 480, 640])
     """
-    # Ensure motion masks are float and normalized
-    if motion_masks.dtype == torch.uint8:
-        motion_masks = motion_masks.float() / 255.0
+    # Handle numpy arrays
+    if isinstance(rgb_frames, np.ndarray) and isinstance(motion_masks, np.ndarray):
+        # Ensure motion mask is normalized
+        if motion_masks.dtype == np.uint8:
+            motion_masks = motion_masks.astype(np.float32) / 255.0
+        
+        # Add channel dimension to motion mask if needed
+        if motion_masks.ndim == 2:
+            motion_masks = motion_masks[..., np.newaxis]
+        
+        # Concatenate along channel dimension
+        return np.concatenate([rgb_frames, motion_masks], axis=-1)
     
-    # Concatenate along channel dimension
-    return torch.cat([rgb_frames, motion_masks], dim=-3)
+    # Handle torch tensors
+    elif isinstance(rgb_frames, torch.Tensor) and isinstance(motion_masks, torch.Tensor):
+        # Ensure motion mask is normalized
+        if motion_masks.dtype == torch.uint8:
+            motion_masks = motion_masks.float() / 255.0
+        
+        # Concatenate along channel dimension
+        return torch.cat([rgb_frames, motion_masks], dim=-3)
+    
+    else:
+        raise TypeError("Both rgb_frames and motion_masks must be of the same type (numpy.ndarray or torch.Tensor)")
 
 
 class MotionMaskGenerator:

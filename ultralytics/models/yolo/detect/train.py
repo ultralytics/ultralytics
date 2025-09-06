@@ -29,7 +29,7 @@ class DetectionTrainer(BaseTrainer):
 
     Attributes:
         model (DetectionModel): The YOLO detection model being trained.
-        data (Dict): Dictionary containing dataset information including class names and number of classes.
+        data (dict): Dictionary containing dataset information including class names and number of classes.
         loss_names (tuple): Names of the loss components used in training (box_loss, cls_loss, dfl_loss).
 
     Methods:
@@ -96,10 +96,10 @@ class DetectionTrainer(BaseTrainer):
         Preprocess a batch of images by scaling and converting to float.
 
         Args:
-            batch (Dict): Dictionary containing batch data with 'img' tensor.
+            batch (dict): Dictionary containing batch data with 'img' tensor.
 
         Returns:
-            (Dict): Preprocessed batch with normalized images.
+            (dict): Preprocessed batch with normalized images.
         """
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         if self.args.multi_scale:
@@ -158,11 +158,11 @@ class DetectionTrainer(BaseTrainer):
         Return a loss dict with labeled training loss items tensor.
 
         Args:
-            loss_items (List[float], optional): List of loss values.
+            loss_items (list[float], optional): List of loss values.
             prefix (str): Prefix for keys in the returned dictionary.
 
         Returns:
-            (Dict | List): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
+            (dict | list): Dictionary of labeled loss items if loss_items is provided, otherwise list of keys.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is not None:
@@ -186,7 +186,7 @@ class DetectionTrainer(BaseTrainer):
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict[str, Any]): Dictionary containing batch data.
+            batch (dict[str, Any]): Dictionary containing batch data.
             ni (int): Number of iterations.
         """
         plot_images(

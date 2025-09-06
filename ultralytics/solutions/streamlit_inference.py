@@ -2,7 +2,7 @@
 
 import io
 import os
-from typing import Any, List
+from typing import Any
 
 import cv2
 import torch
@@ -34,7 +34,7 @@ class Inference:
         org_frame (Any): Container for the original frame to be displayed.
         ann_frame (Any): Container for the annotated frame to be displayed.
         vid_file_name (str | int): Name of the uploaded video file or webcam index.
-        selected_ind (List[int]): List of selected class indices for detection.
+        selected_ind (list[int]): List of selected class indices for detection.
 
     Methods:
         web_ui: Set up the Streamlit web interface with custom HTML elements.
@@ -72,7 +72,7 @@ class Inference:
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
-        self.selected_ind: List[int] = []  # List of selected class indices for detection
+        self.selected_ind: list[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
 
         self.temp_dict = {"model": None, **kwargs}
@@ -91,8 +91,8 @@ class Inference:
         font-family: 'Archivo', sans-serif; margin-bottom:20px;">Ultralytics YOLO Streamlit Application</h1></div>"""
 
         # Subtitle of streamlit application
-        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif; 
-        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images 
+        sub_title_cfg = """<div><h5 style="color:#042AFF; text-align:center; font-family: 'Archivo', sans-serif;
+        margin-top:-15px; margin-bottom:50px;">Experience real-time object detection on your webcam, videos, and images
         with the power of Ultralytics YOLO! 🚀</h5></div>"""
 
         # Set html page configuration and append custom HTML
@@ -141,8 +141,9 @@ class Inference:
         elif self.source == "image":
             import tempfile  # scope import
 
-            imgfiles = self.st.sidebar.file_uploader("Upload Image Files", type=IMG_FORMATS, accept_multiple_files=True)
-            if imgfiles:
+            if imgfiles := self.st.sidebar.file_uploader(
+                "Upload Image Files", type=IMG_FORMATS, accept_multiple_files=True
+            ):
                 for imgfile in imgfiles:  # Save each uploaded image to a temporary file
                     with tempfile.NamedTemporaryFile(delete=False, suffix=f".{imgfile.name.split('.')[-1]}") as tf:
                         tf.write(imgfile.read())
@@ -160,12 +161,19 @@ class Inference:
             ],
             key=lambda x: (M_ORD.index(x[:7].lower()), T_ORD.index(x[7:].lower() or "")),
         )
-        if self.model_path:  # If user provided the custom model, insert model without suffix as *.pt is added later
-            available_models.insert(0, self.model_path.split(".pt", 1)[0])
+        if self.model_path:  # Insert user provided custom model in available_models
+            available_models.insert(0, self.model_path)
         selected_model = self.st.sidebar.selectbox("Model", available_models)
 
         with self.st.spinner("Model is downloading..."):
-            self.model = YOLO(f"{selected_model.lower()}.pt")  # Load the YOLO model
+            if (
+                selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine"))
+                or "openvino_model" in selected_model
+            ):
+                model_path = selected_model
+            else:
+                model_path = f"{selected_model.lower()}.pt"  # Default to .pt if no model provided during function call.
+            self.model = YOLO(model_path)  # Load the YOLO model
             class_names = list(self.model.names.values())  # Convert dictionary to list of class names
         self.st.success("Model loaded successfully!")
 
@@ -178,7 +186,7 @@ class Inference:
 
     def image_inference(self) -> None:
         """Perform inference on uploaded images."""
-        for idx, img_info in enumerate(self.img_file_names):
+        for img_info in self.img_file_names:
             img_path = img_info["path"]
             image = cv2.imread(img_path)  # Load and display the original image
             if image is not None:

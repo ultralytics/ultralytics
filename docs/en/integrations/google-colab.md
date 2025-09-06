@@ -35,22 +35,22 @@ Training YOLO11 models on Google Colab is pretty straightforward. Thanks to the 
 
 When working with Google Colab, you might have a few common questions. Let's answer them.
 
-**Q: Why does my Google Colab session timeout?**  
+**Q: Why does my Google Colab session timeout?**
 A: Google Colab sessions can time out due to inactivity, especially for free users who have a limited session duration.
 
-**Q: Can I increase the session duration in Google Colab?**  
+**Q: Can I increase the session duration in Google Colab?**
 A: Free users face limits, but Google Colab Pro offers extended session durations.
 
-**Q: What should I do if my session closes unexpectedly?**  
+**Q: What should I do if my session closes unexpectedly?**
 A: Regularly save your work to Google Drive or GitHub to avoid losing unsaved progress.
 
-**Q: How can I check my session status and resource usage?**  
+**Q: How can I check my session status and resource usage?**
 A: Colab provides 'RAM Usage' and 'Disk Usage' metrics in the interface to monitor your resources.
 
-**Q: Can I run multiple Colab sessions simultaneously?**  
+**Q: Can I run multiple Colab sessions simultaneously?**
 A: Yes, but be cautious about resource usage to avoid performance issues.
 
-**Q: Does Google Colab have GPU access limitations?**  
+**Q: Does Google Colab have GPU access limitations?**
 A: Yes, free GPU access has limitations, but Google Colab Pro provides more substantial usage options.
 
 ## Key Features of Google Colab

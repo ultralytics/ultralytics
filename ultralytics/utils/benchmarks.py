@@ -27,6 +27,8 @@ IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 """
 
+from __future__ import annotations
+
 import glob
 import os
 import platform
@@ -34,7 +36,6 @@ import re
 import shutil
 import time
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch.cuda
@@ -77,7 +78,7 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
+        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric,
             and inference time.
 
     Examples:
@@ -88,10 +89,15 @@ def benchmark(
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import polars as pl  # scope for faster 'import ultralytics'
 
-    pd.options.display.max_columns = 10
-    pd.options.display.width = 120
+    pl.Config.set_tbl_cols(-1)  # Show all columns
+    pl.Config.set_tbl_rows(-1)  # Show all rows
+    pl.Config.set_tbl_width_chars(-1)  # No width limit
+    pl.Config.set_tbl_hide_column_data_types(True)  # Hide data types
+    pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
+    pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
+
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -193,22 +199,24 @@ def benchmark(
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
+    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
+    df = df.with_row_index(" ", offset=1)  # add index info
+    df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
 
     name = model.model_name
     dt = time.time() - t0
     legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fillna('-')}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df_display}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
 
     if verbose and isinstance(verbose, float):
-        metrics = df[key].array  # values to compare to floor
+        metrics = df[key].to_numpy()  # values to compare to floor
         floor = verbose  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if pd.notna(x)), f"Benchmark failure: metric(s) < floor {floor}"
+        assert all(x > floor for x in metrics if not np.isnan(x)), f"Benchmark failure: metric(s) < floor {floor}"
 
-    return df
+    return df_display
 
 
 class RF100Benchmark:
@@ -218,10 +226,10 @@ class RF100Benchmark:
     This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
 
     Attributes:
-        ds_names (List[str]): Names of datasets used for benchmarking.
-        ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+        ds_names (list[str]): Names of datasets used for benchmarking.
+        ds_cfg_list (list[Path]): List of paths to dataset configuration files.
         rf (Roboflow): Roboflow instance for accessing datasets.
-        val_metrics (List[str]): Metrics used for validation.
+        val_metrics (list[str]): Metrics used for validation.
 
     Methods:
         set_key: Set Roboflow API key for accessing datasets.
@@ -262,8 +270,8 @@ class RF100Benchmark:
             ds_link_txt (str): Path to the file containing dataset links.
 
         Returns:
-            ds_names (List[str]): List of dataset names.
-            ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+            ds_names (list[str]): List of dataset names.
+            ds_cfg_list (list[Path]): List of paths to dataset configuration files.
 
         Examples:
             >>> benchmark = RF100Benchmark()
@@ -364,7 +372,7 @@ class ProfileModels:
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
     Attributes:
-        paths (List[str]): Paths of the models to profile.
+        paths (list[str]): Paths of the models to profile.
         num_timed_runs (int): Number of timed runs for the profiling.
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
@@ -393,20 +401,20 @@ class ProfileModels:
 
     def __init__(
         self,
-        paths: List[str],
+        paths: list[str],
         num_timed_runs: int = 100,
         num_warmup_runs: int = 10,
         min_time: float = 60,
         imgsz: int = 640,
         half: bool = True,
         trt: bool = True,
-        device: Optional[Union[torch.device, str]] = None,
+        device: torch.device | str | None = None,
     ):
         """
         Initialize the ProfileModels class for profiling models.
 
         Args:
-            paths (List[str]): List of paths of the models to be profiled.
+            paths (list[str]): List of paths of the models to be profiled.
             num_timed_runs (int): Number of timed runs for the profiling.
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
@@ -438,7 +446,7 @@ class ProfileModels:
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[dict]): List of dictionaries containing profiling results for each model.
+            (list[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -493,7 +501,7 @@ class ProfileModels:
         Return a list of paths for all relevant model files given by the user.
 
         Returns:
-            (List[Path]): List of Path objects for the model files.
+            (list[Path]): List of Path objects for the model files.
         """
         files = []
         for path in self.paths:
@@ -643,9 +651,9 @@ class ProfileModels:
     def generate_table_row(
         self,
         model_name: str,
-        t_onnx: Tuple[float, float],
-        t_engine: Tuple[float, float],
-        model_info: Tuple[float, float, float, float],
+        t_onnx: tuple[float, float],
+        t_engine: tuple[float, float],
+        model_info: tuple[float, float, float, float],
     ):
         """
         Generate a table row string with model performance metrics.
@@ -668,9 +676,9 @@ class ProfileModels:
     @staticmethod
     def generate_results_dict(
         model_name: str,
-        t_onnx: Tuple[float, float],
-        t_engine: Tuple[float, float],
-        model_info: Tuple[float, float, float, float],
+        t_onnx: tuple[float, float],
+        t_engine: tuple[float, float],
+        model_info: tuple[float, float, float, float],
     ):
         """
         Generate a dictionary of profiling results.
@@ -694,12 +702,12 @@ class ProfileModels:
         }
 
     @staticmethod
-    def print_table(table_rows: List[str]):
+    def print_table(table_rows: list[str]):
         """
         Print a formatted table of model profiling results.
 
         Args:
-            table_rows (List[str]): List of formatted table row strings.
+            table_rows (list[str]): List of formatted table row strings.
         """
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
         headers = [

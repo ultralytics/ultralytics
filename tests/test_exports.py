@@ -120,14 +120,16 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 @pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 @pytest.mark.parametrize(
-    "task, dynamic, int8, half, batch",
+    "task, dynamic, int8, half, nms, batch",
     [  # generate all combinations except for exclusion cases
-        (task, dynamic, int8, half, batch)
-        for task, dynamic, int8, half, batch in product(TASKS, [False], [True, False], [True, False], [1])
-        if not (int8 and half)
+        (task, dynamic, int8, half, nms, batch)
+        for task, dynamic, int8, half, nms, batch in product(
+            TASKS, [False], [True, False], [True, False], [True, False], [1]
+        )
+        if not (int8 and half) and not (task != "detect" and nms)
     ],
 )
-def test_export_coreml_matrix(task, dynamic, int8, half, batch):
+def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
     """Test YOLO export to CoreML format with various parameter configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="coreml",
@@ -136,6 +138,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, batch):
         int8=int8,
         half=half,
         batch=batch,
+        nms=nms,
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file)  # cleanup
@@ -241,12 +244,7 @@ def test_export_ncnn():
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "task, half, batch",
-    [  # generate all combinations except for exclusion cases
-        (task, half, batch) for task, half, batch in product(TASKS, [True, False], [1])
-    ],
-)
+@pytest.mark.parametrize("task, half, batch", list(product(TASKS, [True, False], [1])))
 def test_export_ncnn_matrix(task, half, batch):
     """Test YOLO export to NCNN format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(format="ncnn", imgsz=32, half=half, batch=batch)

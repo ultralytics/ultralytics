@@ -24,9 +24,10 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import (
     DEFAULT_CFG,
+    GIT,
     LOCAL_RANK,
     LOGGER,
     RANK,
@@ -174,6 +175,8 @@ class BaseTrainer:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in {-1, 0}:
             callbacks.add_integration_callbacks(self)
+            # Start console logging immediately at trainer initialization
+            self.run_callbacks("on_pretrain_routine_start")
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the event's callback list."""
@@ -249,8 +252,6 @@ class BaseTrainer:
 
     def _setup_train(self, world_size):
         """Build dataloaders and optimizer on correct rank process."""
-        # Model
-        self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -540,10 +541,10 @@ class BaseTrainer:
             torch.cuda.empty_cache()
 
     def read_results_csv(self):
-        """Read results.csv into a dictionary using pandas."""
-        import pandas as pd  # scope for faster 'import ultralytics'
+        """Read results.csv into a dictionary using polars."""
+        import polars as pl  # scope for faster 'import ultralytics'
 
-        return pd.read_csv(self.csv).to_dict(orient="list")
+        return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
 
     def _model_train(self):
         """Set model in training mode."""
@@ -572,6 +573,12 @@ class BaseTrainer:
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
+                "git": {
+                    "root": str(GIT.root),
+                    "branch": GIT.branch,
+                    "commit": GIT.commit,
+                    "origin": GIT.origin,
+                },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
             },
@@ -598,6 +605,15 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
+            elif self.args.data.rsplit(".", 1)[-1] == "ndjson":
+                # Convert NDJSON to YOLO format
+                import asyncio
+
+                from ultralytics.data.converter import convert_ndjson_to_yolo
+
+                yaml_path = asyncio.run(convert_ndjson_to_yolo(self.args.data))
+                self.args.data = str(yaml_path)
+                data = check_det_dataset(self.args.data)
             elif self.args.data.rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
@@ -628,10 +644,10 @@ class BaseTrainer:
         cfg, weights = self.model, None
         ckpt = None
         if str(self.model).endswith(".pt"):
-            weights, ckpt = attempt_load_one_weight(self.model)
+            weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
-            weights, _ = attempt_load_one_weight(self.args.pretrained)
+            weights, _ = load_checkpoint(self.args.pretrained)
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 
@@ -752,7 +768,7 @@ class BaseTrainer:
                 last = Path(check_file(resume) if exists else get_latest_run())
 
                 # Check that resume data YAML exists, otherwise strip to force re-download of dataset
-                ckpt_args = attempt_load_weights(last).args
+                ckpt_args = load_checkpoint(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 

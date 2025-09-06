@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import functools
 import gc
 import math
@@ -10,7 +12,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -25,6 +27,7 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
@@ -33,15 +36,15 @@ from ultralytics.utils.checks import check_version
 from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
-TORCH_1_9 = check_version(torch.__version__, "1.9.0")
-TORCH_1_13 = check_version(torch.__version__, "1.13.0")
-TORCH_2_0 = check_version(torch.__version__, "2.0.0")
-TORCH_2_4 = check_version(torch.__version__, "2.4.0")
+TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
+TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
+if WINDOWS and check_version(TORCH_VERSION, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
         "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
@@ -163,7 +166,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
-    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -250,68 +253,71 @@ def time_sync():
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers."""
-    fusedconv = (
-        nn.Conv2d(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            dilation=conv.dilation,
-            groups=conv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(conv.weight.device)
-    )
+    """
+    Fuse Conv2d and BatchNorm2d layers for inference optimization.
 
-    # Prepare filters
+    Args:
+        conv (nn.Conv2d): Convolutional layer to fuse.
+        bn (nn.BatchNorm2d): Batch normalization layer to fuse.
+
+    Returns:
+        (nn.Conv2d): The fused convolutional layer with gradients disabled.
+
+    Example:
+        >>> conv = nn.Conv2d(3, 16, 3)
+        >>> bn = nn.BatchNorm2d(16)
+        >>> fused_conv = fuse_conv_and_bn(conv, bn)
+    """
+    # Compute fused weights
     w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
+    conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 
-    # Prepare spatial bias
-    b_conv = (
-        torch.zeros(conv.weight.shape[0], dtype=conv.weight.dtype, device=conv.weight.device)
-        if conv.bias is None
-        else conv.bias
-    )
+    # Compute fused bias
+    b_conv = torch.zeros(conv.out_channels, device=conv.weight.device) if conv.bias is None else conv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
-    return fusedconv
+    if conv.bias is None:
+        conv.register_parameter("bias", nn.Parameter(fused_bias))
+    else:
+        conv.bias.data = fused_bias
+
+    return conv.requires_grad_(False)
 
 
 def fuse_deconv_and_bn(deconv, bn):
-    """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
-    fuseddconv = (
-        nn.ConvTranspose2d(
-            deconv.in_channels,
-            deconv.out_channels,
-            kernel_size=deconv.kernel_size,
-            stride=deconv.stride,
-            padding=deconv.padding,
-            output_padding=deconv.output_padding,
-            dilation=deconv.dilation,
-            groups=deconv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(deconv.weight.device)
-    )
+    """
+    Fuse ConvTranspose2d and BatchNorm2d layers for inference optimization.
 
-    # Prepare filters
+    Args:
+        deconv (nn.ConvTranspose2d): Transposed convolutional layer to fuse.
+        bn (nn.BatchNorm2d): Batch normalization layer to fuse.
+
+    Returns:
+        (nn.ConvTranspose2d): The fused transposed convolutional layer with gradients disabled.
+
+    Example:
+        >>> deconv = nn.ConvTranspose2d(16, 3, 3)
+        >>> bn = nn.BatchNorm2d(3)
+        >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
+    """
+    # Compute fused weights
     w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
+    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
 
-    # Prepare spatial bias
-    b_conv = torch.zeros(deconv.weight.shape[1], device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    # Compute fused bias
+    b_conv = torch.zeros(deconv.out_channels, device=deconv.weight.device) if deconv.bias is None else deconv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
-    return fuseddconv
+    if deconv.bias is None:
+        deconv.register_parameter("bias", nn.Parameter(fused_bias))
+    else:
+        deconv.bias.data = fused_bias
+
+    return deconv.requires_grad_(False)
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
@@ -705,7 +711,7 @@ class ModelEMA:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: Dict[str, Any] = None) -> Dict[str, Any]:
+def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, Any] = None) -> dict[str, Any]:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 

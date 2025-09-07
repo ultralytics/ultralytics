@@ -19,7 +19,7 @@ pipeline enhancements.
 """
 
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import Union, Tuple, Optional
 
 import torch
 import yaml
@@ -336,7 +336,12 @@ def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor):
 # ============================================================
 
 
-def prune_bottleneck(bottleneck: Bottleneck, prune_ratio: float, norm_order: float, mask_prev: torch.Tensor | None):
+def prune_bottleneck(
+        bottleneck: Bottleneck,
+        prune_ratio: float,
+        norm_order: float,
+        mask_prev: Optional[torch.Tensor]
+):
     """
     Prune a Bottleneck block in YOLO.
 

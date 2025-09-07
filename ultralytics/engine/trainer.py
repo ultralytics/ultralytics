@@ -762,6 +762,7 @@ class BaseTrainer:
                     strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
+                    self.validator.args.compile = False  # disable final val compile as too slow
                     self.metrics = self.validator(model=f)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")

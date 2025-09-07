@@ -57,7 +57,7 @@ def check_file_speeds(
     It samples up to 5 files from the provided list and warns if access times exceed the threshold.
 
     Args:
-        files (List[str]): List of file paths to check for access speed.
+        files (list[str]): List of file paths to check for access speed.
         threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
         threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
         max_files (int, optional): The maximum number of files to check.
@@ -235,7 +235,7 @@ def verify_image_label(args: tuple) -> list:
                 lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim) if keypoints else 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim == 2:
@@ -261,7 +261,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
     Args:
         image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
         txt_path (str): The path to the annotation file in YOLO format, that should contain one line per object.
-        label_map (Dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
+        label_map (dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Examples:
         >>> label_map = {0: "cat", 1: "dog", 2: "bird"}  # It should include all annotated classes details
@@ -300,8 +300,8 @@ def polygon2mask(
     Convert a list of polygons to a binary mask of the specified image size.
 
     Args:
-        imgsz (Tuple[int, int]): The size of the image as (height, width).
-        polygons (List[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
+        imgsz (tuple[int, int]): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
@@ -325,8 +325,8 @@ def polygons2masks(
     Convert a list of polygons to a set of binary masks of the specified image size.
 
     Args:
-        imgsz (Tuple[int, int]): The size of the image as (height, width).
-        polygons (List[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
+        imgsz (tuple[int, int]): The size of the image as (height, width).
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
                                      N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
@@ -400,7 +400,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
 
     Returns:
-        (Dict[str, Any]): Parsed dataset information and paths.
+        (dict[str, Any]): Parsed dataset information and paths.
     """
     file = check_file(dataset)
 
@@ -494,13 +494,13 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
 
     Returns:
-        (Dict[str, Any]): A dictionary containing the following keys:
+        (dict[str, Any]): A dictionary containing the following keys:
 
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
-            - 'names' (Dict[int, str]): A dictionary of class names in the dataset.
+            - 'names' (dict[int, str]): A dictionary of class names in the dataset.
     """
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
@@ -588,8 +588,8 @@ class HUBDatasetStats:
         task (str): Dataset task type.
         hub_dir (Path): Directory path for HUB dataset files.
         im_dir (Path): Directory path for compressed images.
-        stats (Dict): Statistics dictionary containing dataset information.
-        data (Dict): Dataset configuration data.
+        stats (dict): Statistics dictionary containing dataset information.
+        data (dict): Dataset configuration data.
 
     Methods:
         get_json: Return dataset JSON for Ultralytics HUB.

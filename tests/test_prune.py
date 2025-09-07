@@ -9,6 +9,7 @@ CFG = ROOT / "ultralytics/cfg/models/v8/sample_prune.yaml"
 
 
 def test_prune_roundtrip(tmp_path):
+    """Test that pruning with a global ratio saves/loads correctly and inference still runs."""
     model = YOLO("yolov8n.yaml")
     pruned_model = prune_detection_model(model, prune_ratio=0.25)
 
@@ -23,6 +24,7 @@ def test_prune_roundtrip(tmp_path):
 
 
 def test_prune_roundtrip_with_config(tmp_path):
+    """Test that pruning with a YAML config works and the pruned model saves/loads correctly and inference still runs"""
     model = YOLO("yolov8n.yaml")
     pruned_model = prune_detection_model(model, prune_yaml=str(CFG))
 
@@ -37,6 +39,7 @@ def test_prune_roundtrip_with_config(tmp_path):
 
 
 def test_prune_train(tmp_path):
+    """Test that a pruned model can still be trained after pruning, and that the trained model's inference still works"""
     model = YOLO("yolov8n.yaml")
     pruned_model = prune_detection_model(model, prune_ratio=0.1)
 
@@ -54,6 +57,7 @@ def test_prune_train(tmp_path):
 
 
 def test_prune_reduces_size(tmp_path):
+    """Test that pruning reduces the saved model size compared to the original."""
     model = YOLO("yolov8n.yaml")
     original_path = tmp_path / "original.pt"
     pruned_path = tmp_path / "pruned.pt"

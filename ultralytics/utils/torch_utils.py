@@ -1002,31 +1002,10 @@ class FXModel(nn.Module):
         return x
 
 
-@contextmanager
-def _quiet(quiet: bool):
-    """Temporarily silence selected torch loggers and warnings."""
-    _TORCH_LOGS = ["torch._dynamo", "torch._inductor", "torch.compile", "torch.utils._sympy"]
-    if not quiet:
-        yield
-        return
-    saved = {n: logging.getLogger(n).level for n in _TORCH_LOGS}
-    for n in _TORCH_LOGS:
-        logging.getLogger(n).setLevel(logging.ERROR)
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            with redirect_stderr(io.StringIO()):
-                yield
-    finally:
-        for n, lvl in saved.items():
-            logging.getLogger(n).setLevel(lvl)
-
-
 def attempt_compile(
     model: torch.nn.Module,
     device: torch.device,
     imgsz: int = 640,
-    quiet: bool = False,
     use_autocast: bool = False,
     warmup: bool = False,
     prefix: str = colorstr("compile:"),
@@ -1035,14 +1014,13 @@ def attempt_compile(
     if not hasattr(torch, "compile"):
         return model
 
-    LOGGER.info(f"{prefix} starting torch.compile (first run may take minutes)...")
+    LOGGER.info(f"{prefix} starting torch.compile...")
     t0 = time.perf_counter()
-    with _quiet(quiet):
-        try:
-            model = torch.compile(model, mode="max-autotune", backend="inductor", dynamic=True)
-        except Exception as e:
-            LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
-            return model
+    try:
+        model = torch.compile(model, mode="max-autotune", backend="inductor", dynamic=True)
+    except Exception as e:
+        LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
+        return model
     t_compile = time.perf_counter() - t0
 
     t_warm = 0.0

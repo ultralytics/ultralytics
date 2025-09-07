@@ -8,6 +8,7 @@ from copy import copy
 from typing import Any
 
 import numpy as np
+import torch
 import torch.nn as nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
@@ -101,9 +102,10 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (dict): Preprocessed batch with normalized images.
         """
-        batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
-        for k in {"batch_idx", "cls", "bboxes"}:
-            batch[k] = batch[k].to(self.device, non_blocking=True)
+        for k, v in batch.items():
+            if isinstance(v, torch.Tensor):
+                batch[k] = v.to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].float() / 255
         if self.args.multi_scale:
             imgs = batch["img"]
             sz = (

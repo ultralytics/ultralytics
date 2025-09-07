@@ -313,9 +313,3 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
                 d.transforms.append(LoadVisualPrompt())
         else:
             self.train_loader.dataset.transforms.append(LoadVisualPrompt())
-
-    def preprocess_batch(self, batch):
-        """Preprocess a batch of images for YOLOE training, moving visual prompts to the appropriate device."""
-        batch = super().preprocess_batch(batch)
-        batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
-        return batch

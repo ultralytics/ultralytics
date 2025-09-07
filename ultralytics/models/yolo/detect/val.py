@@ -71,11 +71,10 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Preprocessed batch.
         """
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        for k, v in batch.items():
+            if isinstance(v, torch.Tensor):
+                batch[k] = v.to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        for k in {"batch_idx", "cls", "bboxes"}:
-            batch[k] = batch[k].to(self.device, non_blocking=True)
-
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:

@@ -19,7 +19,7 @@ pipeline enhancements.
 """
 
 from copy import deepcopy
-from typing import Union, Tuple, Optional
+from typing import Union, Tuple, Optional, List
 
 import torch
 import yaml
@@ -35,7 +35,7 @@ from ultralytics.nn.modules import SPPF, Bottleneck, C2f, Concat, Conv, Detect
 
 def manual_pruning(
     weight_tensor: torch.Tensor, prune_ratio: float, norm_order: float, dim: Union[int, Tuple[int, ...]]
-):
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Prune filters of a weight tensor based on their norms.
 
@@ -75,7 +75,7 @@ def manual_pruning(
 
 def prune_conv2d(
     conv_layer: Conv2d, prune_ratio: float, norm_order: float = 2.0, mask_prev: torch.Tensor = None, prune_groups=None
-):
+) -> Tuple[Conv2d, List[torch.Tensor]]:
     """
     Prune a Conv2d layer with optional group-aware pruning.
 
@@ -83,31 +83,33 @@ def prune_conv2d(
         conv_layer (nn.Conv2d): PyTorch Conv2d layer to prune.
         prune_ratio (float): Fraction of channels to prune (0.0–1.0).
         norm_order (float): Order of the norm used to rank channel importance.
-            For example, order=2 computes L2-norms, order=1 uses L1-norms.
-        mask_prev (Tensor, optional):  Mask of active input channels from previous
+            For example, 2 computes L2-norms, 1 uses L1-norms.
+        mask_prev (torch.Tensor, optional): Mask of active input channels from previous
             layers. For multi-input cases (skip/concat), use the concatenated mask.
         prune_groups (int, optional): Number of groups to split Conv2d weights into
             for independent pruning. Preserves grouped-conv semantics:
-              - None (default): use conv_layer.groups, which covers both
-                standard convs (groups=1) and Ultralytics' DWConv (groups>1).
-              - int: override grouping when pruning must align with an
-                architectural context (e.g. a following DWConv or C2f split).
+
+            - **None (default)**: Uses `conv_layer.groups`, which covers both
+              standard convs (`groups=1`) and Ultralytics' DWConv (`groups>1`).
+            - **int**: Override grouping when pruning must align with an
+              architectural context (e.g., a following DWConv or C2f split).
 
     Returns:
         Tuple[nn.Conv2d, List[torch.Tensor]]:
+            A tuple containing:
             - The pruned Conv2d layer.
-            - List of binary masks, one per group.t of binary masks (one per group, length = prune_groups).
-
+            - A list of binary masks, one per group (length = prune_groups).
 
     Notes:
-    - Default (prune_groups=None) handles both standard convs (groups=1)
-      and Ultralytics' DWConv (groups = gcd(in_channels, out_channels)).
-    - To prune a Conv feeding into a DWConv, set
-      `prune_groups = next_dw.conv.groups` (Ultralytics Conv) or
-      `prune_groups = next_dw.groups` (raw Conv2d).
-    - Inside C2f blocks, set `prune_groups = split_factor`
-      to keep channel splits consistent.
+        - Default (`prune_groups=None`) handles both standard convs (`groups=1`)
+          and Ultralytics' DWConv (`groups = gcd(in_channels, out_channels)`).
+        - To prune a Conv feeding into a DWConv, set
+          `prune_groups = next_dw.conv.groups` (Ultralytics Conv) or
+          `prune_groups = next_dw.groups` (raw Conv2d).
+        - Inside C2f blocks, set `prune_groups = split_factor`
+          to keep channel splits consistent.
     """
+
     groups = prune_groups if prune_groups is not None else conv_layer.groups
     pruned_weight = conv_layer.weight
 
@@ -162,7 +164,7 @@ def prune_conv2d(
     return updated_conv, chunk_masks
 
 
-def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev=None):
+def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev=None) -> Tuple[Conv2d, torch.Tensor]:
     """
     Prune a Conv2d layer based on a skip-producing layer.
 
@@ -215,7 +217,7 @@ def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_pre
 
 def prune_conv(
     yolo_conv_layer: Conv, prune_ratio: float, norm_order: float = 2, mask_prev: torch.Tensor = None, prune_groups=None
-):
+) -> List[torch.Tensor]:
     """
     Prune a YOLO Conv block consisting of Conv2d + BatchNorm.
 
@@ -249,7 +251,7 @@ def prune_conv(
     return conv_mask
 
 
-def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None, mask_prev: torch.Tensor = None):
+def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None, mask_prev: torch.Tensor = None) -> torch.Tensor:
     """
     Prune a YOLO Conv block (Conv2d + BatchNorm) according to skip-producing layer pruning.
 
@@ -285,7 +287,7 @@ def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None, 
 # ============================================================
 
 
-def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor):
+def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor) -> Tuple[BatchNorm2d, torch.Tensor]:
     """
     Prune a BatchNorm2d layer according to a given input channel mask.
 
@@ -341,7 +343,7 @@ def prune_bottleneck(
         prune_ratio: float,
         norm_order: float,
         mask_prev: Optional[torch.Tensor]
-):
+) -> torch.Tensor:
     """
     Prune a Bottleneck block in YOLO.
 
@@ -386,7 +388,7 @@ def prune_bottleneck(
     return cv2_mask
 
 
-def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None, to_dwconv_groups=None):
+def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None, to_dwconv_groups=None) -> torch.Tensor:
     """
     Prune a C2f block in YOLO.
 
@@ -449,7 +451,7 @@ def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None, 
     return torch.cat(mask_cv2)
 
 
-def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2, mask_prev: torch.Tensor = None):
+def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2, mask_prev: torch.Tensor = None) -> torch.Tensor:
     """
     Prune an SPPF (Spatial Pyramid Pooling - Fast) block in YOLO.
 
@@ -460,8 +462,7 @@ def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2, mask
         sppf_layer (SPPF): The SPPF block to prune.
         prune_ratio (float): Fraction of channels to prune.
         norm_order (float, optional): Order of the norm used to score channel importance. Default is 2.
-        mask_prev (torch.Tensor, optional): Boolean mask for input channels from previous layer(s).
-         Must have dtype `torch.bool`.
+        mask_prev (torch.Tensor, optional): Boolean mask for input channels from previous layer(s). Must have dtype `torch.bool`.
 
     Returns:
         torch.Tensor: Boolean mask of pruned output channels from the final Conv layer (`cv2`).
@@ -490,7 +491,7 @@ def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2, mask
 
 def prune_detect(
     detect_head: Detect, prune_ratio_detect: float, prune_ratio_classify: float, norm_order: float, feature_masks: list
-):
+) -> None:
     """
     Prune the detection and classification towers of a YOLO Detect head.
 
@@ -506,23 +507,24 @@ def prune_detect(
         prune_ratio_detect (float): Fraction of filters to prune in the detection towers.
         prune_ratio_classify (float): Fraction of filters to prune in the classification towers.
         norm_order (float): Norm order used to score channel importance during pruning.
-        feature_masks (list of torch.Tensor): Boolean masks of input channels for each
-          of the three feature maps. Each mask must have dtype `torch.bool`.
+        feature_masks (List[torch.Tensor]): Boolean masks of input channels for each
+            of the three feature maps. Each mask must have dtype `torch.bool`.
 
     Returns:
-      None: The function updates `detect_head` in place.
+        None: Updates `detect_head` in place.
 
     Notes:
         - Detection towers (`cv2`) are pruned sequentially for each feature map:
-          1. The first two Conv layers of each tower are pruned using `prune_ratio_detect`.
-          2. The last Conv2d layer is updated using `prune_conv2d` with the mask propagated from previous layers.
+            1. The first two Conv layers of each tower are pruned using `prune_ratio_detect`.
+            2. The last Conv2d layer is updated using `prune_conv2d` with the mask propagated from previous layers.
         - Classification towers (`cv3`) are pruned differently depending on structure:
-            - If the first component is a standard Conv, the first two Conv layers are pruned using `prune_ratio_detect`.
+            - If the first component is a standard Conv, the first two Conv layers are pruned using `prune_ratio_classify`.
             - If the first component is a DWConv sequence, each Conv layer is pruned in order using `prune_ratio_classify`,
-            with proper group alignment for depthwise convolutions.
+              with proper group alignment for depthwise convolutions.
         - Masks are propagated consistently to maintain alignment with the input feature maps.
         - All pruning is performed **in-place** on the Detect head.
     """
+
     cv2 = detect_head.cv2
     cv3 = detect_head.cv3
 
@@ -559,17 +561,17 @@ def prune_detect(
         classification_tower[-1] = updated_conv
 
 
-def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: float = 2, prune_yaml: str = None):
+def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: float = 2, prune_yaml: str = None) -> YOLO:
     """
     Prune a YOLO detection model by reducing channels across supported components.
 
     This function supports pruning of:
-      - Conv layers
-      - BatchNorm layers (through Conv/Bottleneck wrappers)
-      - C2f blocks
-      - SPPF blocks
-      - Detect head (both classification and regression towers)
-      - Concat and Upsample layers are skipped (Concat is handled to maintain mask consistency)
+        - Conv layers
+        - BatchNorm layers (through Conv/Bottleneck wrappers)
+        - C2f blocks
+        - SPPF blocks
+        - Detect head (both classification and regression towers)
+        - Concat and Upsample layers are skipped (Concat is handled to maintain mask consistency)
 
     Pruning can be controlled either globally (same ratio for all components) using `prune_ratio`,
     or component-wise using a YAML file (`prune_yaml`) that specifies pruning ratios per component index.
@@ -580,10 +582,11 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
             Default is 0.1.
         norm_order (float, optional): Norm order used for importance scoring when pruning filters. Default is 2.
         prune_yaml (str, optional): Path to a YAML file specifying per-component pruning ratios.
-        The YAML must include a ratio (float) or tuple/list of ratios for every component that will be pruned,
-        keyed by the component's `i` index. If `prune_yaml` is provided, these values are used for all components,
-        and a KeyError will be raised if any component is missing.
-        See `sample_prune.yaml`(ultralytics/cfg/models/v8/sample_prune.yaml) for proper formatting and examples.
+            - Must include a ratio (float) or tuple/list of ratios for every component that will be pruned,
+              keyed by the component's `i` index.
+            - If provided, these values override the global `prune_ratio`.
+            - Raises `KeyError` if any required component is missing.
+            - See `ultralytics/cfg/models/v8/sample_prune.yaml` for formatting examples.
 
     Returns:
         YOLO: A deep-copied and pruned YOLO model with updated masks applied to supported layers.
@@ -595,6 +598,7 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
         - The model's checkpoint (`model.ckpt`) is updated with `"is_pruned": True` for persistence.
         - Only detection-type YOLO architectures are currently supported.
     """
+
     # Load component-wise pruning ratios if YAML is provided
     if prune_yaml is not None:
         with open(prune_yaml) as f:

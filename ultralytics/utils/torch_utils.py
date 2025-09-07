@@ -1006,8 +1006,36 @@ def attempt_compile(
     use_autocast: bool = False,
     warmup: bool = False,
     prefix: str = colorstr("compile:"),
-):
-    """Try torch.compile() with optional dummy warmup forward."""
+) -> torch.nn.Module:
+    """
+    Compile a model with torch.compile and optionally warm up the graph for lower first-iteration latency.
+
+    This utility attempts to compile the provided model using the inductor backend with dynamic shapes enabled and a
+    mode optimized for autotuning. If compilation is unavailable or fails, the original model is returned unchanged. An
+    optional warmup run can execute a single forward pass on a dummy input to prime the compiled graph and measure the
+    compile and warmup times.
+
+    Args:
+        model (torch.nn.Module): Model to compile.
+        device (torch.device): Inference device used for warmup and autocast decisions.
+        imgsz (int, optional): Square input size used to construct the dummy tensor with shape (1, 3, imgsz, imgsz).
+        use_autocast (bool, optional): Whether to run the warmup under autocast on CUDA or MPS devices.
+        warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
+        prefix (str, optional): Message prefix for logger output.
+
+    Returns:
+        model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
+
+    Notes:
+        - If the current torch build does not provide torch.compile, the function returns the input model immediately.
+        - Warmup uses torch.inference_mode for correctness and may wrap the forward pass in torch.autocast for CUDA/MPS.
+        - CUDA devices are synchronized after warmup to account for asynchronous kernel launches.
+
+    Examples:
+        >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        >>> # Try to compile and warm up a model for a 640x640 input
+        >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
+    """
     if not hasattr(torch, "compile"):
         return model
 
@@ -1022,6 +1050,7 @@ def attempt_compile(
 
     t_warm = 0.0
     if warmup:
+        # Use a single dummy tensor to build the graph shape state and reduce first-iteration latency
         dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
         if use_autocast and device.type == "cuda":
             dummy = dummy.half()

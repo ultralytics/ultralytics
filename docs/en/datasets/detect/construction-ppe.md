@@ -14,7 +14,7 @@ The Construction-PPE dataset is organized into three main subsets:
 
 - **Training Set**: The primary collection of annotated construction images featuring workers with both complete and partial PPE usage.
 - **Validation Set**: A designated subset used to fine-tune and assess model performance during PPE detection and compliance monitoring.
-- **Test Set**: An independent subset reserved for evaluating the final model’s effectiveness in detecting PPE and identifying compliance issues.
+- **Test Set**: An independent subset reserved for evaluating the final model's effectiveness in detecting PPE and identifying compliance issues.
 
 Each image is annotated in the [Ultralytics YOLO format](../#ultralytics-yolo-format) ensuring compatibility with state-of-the-art [object detection](../../tasks/detect.md) and [tracking](../../modes/track.md) pipelines.
 

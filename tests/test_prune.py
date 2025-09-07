@@ -1,5 +1,5 @@
 from pathlib import Path
-
+import torch
 from ultralytics import YOLO
 from ultralytics.utils.prune import prune_detection_model
 
@@ -55,21 +55,29 @@ def test_prune_train(tmp_path):
     results = loaded_model(str(IMG))
     assert results is not None
 
-
 def test_prune_reduces_size(tmp_path):
-    """Test that pruning reduces the saved model size compared to the original."""
+    """Test that pruning reduces the number of parameters and usually reduces saved model size."""
     model = YOLO("yolov8n.yaml")
-    original_path = tmp_path / "original.pt"
-    pruned_path = tmp_path / "pruned.pt"
-
-    # save original model
-    model.save(original_path)
-    orig_size = original_path.stat().st_size
 
     # prune and save
-    pruned_model = prune_detection_model(model, prune_ratio=0.1)
-    pruned_model.save(pruned_path)
-    pruned_size = pruned_path.stat().st_size
+    prune_ratio = 0.2
+    pruned_model = prune_detection_model(model, prune_ratio=prune_ratio)
 
-    # check pruned model is smaller
-    assert pruned_size < orig_size, f"Pruned model size {pruned_size} >= original {orig_size}"
+    # check that number of parameters is reduced
+    orig_params = sum(p.numel() for p in model.parameters())
+    pruned_params = sum(p.numel() for p in pruned_model.parameters())
+    assert pruned_params < orig_params, f"Pruned params {pruned_params} >= original {orig_params}"
+
+
+def test_zero_prune(tmp_path):
+    """Test that pruning with zero ratio doesnt change model weights."""
+    model = YOLO("yolov8n.yaml")
+    pruned_model = prune_detection_model(model, prune_ratio=0)
+
+    # Check number of parameters
+    assert sum(p.numel() for p in pruned_model.parameters()) == sum(p.numel() for p in model.parameters())
+
+    # Check that parameter values are identical
+    assert all(torch.equal(p1, p2) for p1, p2 in zip(model.parameters(), pruned_model.parameters()))
+
+

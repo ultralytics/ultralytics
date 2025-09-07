@@ -1,27 +1,27 @@
 prune_ratios:
   # Backbone
-  0: 0.15      # Conv 0 - P1/2
-  1: 0.15      # Conv 1 - P2/4
-  2: 0.15      # C2f 2 - first backbone C2f
-  3: 0.15      # Conv 3 - P3/8
-  4: 0.15      # C2f 4 - second backbone C2f
-  5: 0.15      # Conv 5 - P4/16
-  6: 0.15       # C2f 6 - third backbone C2f
-  7: 0.15      # Conv 7 - P5/32
-  8: 0.15      # C2f 8 - fourth backbone C2f
-  9: 0.05      # SPPF 9
+  0: 0.15 # Conv 0 - P1/2
+  1: 0.15 # Conv 1 - P2/4
+  2: 0.15 # C2f 2 - first backbone C2f
+  3: 0.15 # Conv 3 - P3/8
+  4: 0.15 # C2f 4 - second backbone C2f
+  5: 0.15 # Conv 5 - P4/16
+  6: 0.15 # C2f 6 - third backbone C2f
+  7: 0.15 # Conv 7 - P5/32
+  8: 0.15 # C2f 8 - fourth backbone C2f
+  9: 0.05 # SPPF 9
 
   # Head
-  10: null    # Upsample
-  11: null    # Concat - cat backbone P4
-  12: 0.15    # C2f 12 - head P4
-  13: null    # Upsample
-  14: null    # Concat - cat backbone P3
-  15: 0.1     # C2f 15 - head P3 / small
-  16: 0.15    # Conv
-  17: null    # Concat - cat head P4
-  18: 0.2    # C2f 18 - head P4 / medium
-  19: 0.15    # Conv
-  20: null    # Concat - cat head P5
-  21: .25     # C2f 21 - head P5 / large
-  22: [0, 0]  # Detect - [regression tower, classification tower]
+  10: null # Upsample
+  11: null # Concat - cat backbone P4
+  12: 0.15 # C2f 12 - head P4
+  13: null # Upsample
+  14: null # Concat - cat backbone P3
+  15: 0.1 # C2f 15 - head P3 / small
+  16: 0.15 # Conv
+  17: null # Concat - cat head P4
+  18: 0.2 # C2f 18 - head P4 / medium
+  19: 0.15 # Conv
+  20: null # Concat - cat head P5
+  21: .25 # C2f 21 - head P5 / large
+  22: [0, 0] # Detect - [regression tower, classification tower]

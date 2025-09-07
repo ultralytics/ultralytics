@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from ultralytics import YOLO
 from ultralytics.utils.prune import prune_detection_model
 

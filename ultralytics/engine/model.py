@@ -797,7 +797,9 @@ class Model(torch.nn.Module):
             if self.ckpt.get("is_pruned", False):
                 self.trainer.model = self.model
             else:
-                self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
+                self.trainer.model = self.trainer.get_model(
+                    weights=self.model if self.ckpt else None, cfg=self.model.yaml
+                )
             self.model = self.trainer.model
 
         self.trainer.hub_session = self.session  # attach optional HUB session

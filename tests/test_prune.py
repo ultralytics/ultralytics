@@ -5,7 +5,7 @@ from ultralytics.utils.prune import prune_detection_model
 
 ROOT = Path(__file__).resolve().parents[1]  # repo root
 IMG = ROOT / "ultralytics/assets/bus.jpg"
-CFG = ROOT / "ultralytics/cfg/models/v8/sample_prune.yaml"
+CFG = ROOT / "ultralytics/cfg/pruning/sample_prune.yaml"
 
 
 def test_prune_roundtrip(tmp_path):

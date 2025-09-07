@@ -618,7 +618,7 @@ def init_seeds(seed=0, deterministic=False):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
-    # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
+    torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
     if deterministic:
         if TORCH_2_0:
             torch.use_deterministic_algorithms(True, warn_only=True)  # warn if deterministic is not possible

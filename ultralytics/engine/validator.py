@@ -149,7 +149,7 @@ class BaseValidator:
             self.args.half = self.device.type != "cpu" and trainer.amp
             model = trainer.ema.ema or trainer.model
             # Use original model for validation when compile=True to avoid torch.compile issues
-            if getattr(trainer.args, 'compile', False) and hasattr(model, 'orig_mod'):
+            if getattr(trainer.args, "compile", False) and hasattr(model, "orig_mod"):
                 print("using orig_mod")
                 model = model.orig_mod
             model = model.half() if self.args.half else model.float()

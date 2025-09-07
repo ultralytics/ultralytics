@@ -46,6 +46,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
@@ -256,6 +257,10 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
+        # Compile model
+        if self.args.compile:
+            self.model = attempt_compile(self.model, device=self.device)
+
         # Freeze layers
         freeze_list = (
             self.args.freeze
@@ -404,6 +409,7 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
+                    metadata = {k: batch.pop(k, None) for k in ["im_file", "ori_shape", "resized_shape"]}
                     loss, self.loss_items = self.model(batch)
                     self.loss = loss.sum()
                     if RANK != -1:
@@ -445,6 +451,7 @@ class BaseTrainer:
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
+                        batch = {**batch, **metadata}
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")

@@ -139,10 +139,6 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.torch_utils._quiet
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.torch_utils.attempt_compile
 
 <br><br>

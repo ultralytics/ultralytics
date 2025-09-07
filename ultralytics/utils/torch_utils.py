@@ -4,14 +4,11 @@ from __future__ import annotations
 
 import functools
 import gc
-import io
-import logging
 import math
 import os
 import random
 import time
-import warnings
-from contextlib import contextmanager, redirect_stderr
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path

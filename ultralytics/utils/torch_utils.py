@@ -1088,7 +1088,7 @@ def attempt_compile(
 
     total = t_compile + t_warm
     if warmup:
-        LOGGER.info(f"{prefix} complete in {total:.2f}s (compile {t_compile:.2f}s + warmup {t_warm:.2f}s)")
+        LOGGER.info(f"{prefix} complete in {total:.1f}s (compile {t_compile:.1f}s + warmup {t_warm:.1f}s)")
     else:
-        LOGGER.info(f"{prefix} compile complete in {t_compile:.2f}s (no warmup)")
+        LOGGER.info(f"{prefix} compile complete in {t_compile:.1f}s (no warmup)")
     return model

@@ -257,8 +257,8 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Optional compile for faster training (PyTorch 2.x only)
-        if getattr(self.args, "compile", False) and hasattr(torch, "compile"):
+        # Compile model
+        if self.args.compile:
             self.model = attempt_compile(self.model, device=self.device)
 
         # Freeze layers

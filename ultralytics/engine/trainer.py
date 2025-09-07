@@ -46,6 +46,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
@@ -255,6 +256,10 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+
+        # Optional compile for faster training (PyTorch 2.x only)
+        if getattr(self.args, "compile", False) and hasattr(torch, "compile"):
+            self.model = attempt_compile(self.model, device=self.device)
 
         # Freeze layers
         freeze_list = (

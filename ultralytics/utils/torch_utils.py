@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import functools
 import gc
+import io
+import logging
 import math
 import os
 import random
 import time
-from contextlib import contextmanager
+import warnings
+from contextlib import contextmanager, redirect_stderr
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -997,3 +1000,48 @@ class FXModel(nn.Module):
             x = m(x)  # run
             y.append(x)  # save output
         return x
+
+
+def attempt_compile(
+    model: torch.nn.Module,
+    device: torch.device,
+    imgsz: int = 640,
+    use_autocast: bool = False,
+    warmup: bool = False,
+    prefix: str = colorstr("compile:"),
+):
+    """Try torch.compile() with optional dummy warmup forward."""
+    if not hasattr(torch, "compile"):
+        return model
+
+    LOGGER.info(f"{prefix} starting torch.compile...")
+    t0 = time.perf_counter()
+    try:
+        model = torch.compile(model, mode="max-autotune", backend="inductor", dynamic=True)
+    except Exception as e:
+        LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
+        return model
+    t_compile = time.perf_counter() - t0
+
+    t_warm = 0.0
+    if warmup:
+        dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
+        if use_autocast and device.type == "cuda":
+            dummy = dummy.half()
+        t1 = time.perf_counter()
+        with torch.inference_mode():
+            if use_autocast and device.type in {"cuda", "mps"}:
+                with torch.autocast(device.type):
+                    _ = model(dummy)
+            else:
+                _ = model(dummy)
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        t_warm = time.perf_counter() - t1
+
+    total = t_compile + t_warm
+    if warmup:
+        LOGGER.info(f"{prefix} complete in {total:.2f}s (compile {t_compile:.2f}s + warmup {t_warm:.2f}s).")
+    else:
+        LOGGER.info(f"{prefix} compile complete in {t_compile:.2f}s (no warmup).")
+    return model

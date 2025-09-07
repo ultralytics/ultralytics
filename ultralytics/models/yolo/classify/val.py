@@ -89,9 +89,8 @@ class ClassificationValidator(BaseValidator):
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
-        for k, v in batch.items():
-            if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=True)
         batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
         return batch
 

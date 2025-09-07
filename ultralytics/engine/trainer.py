@@ -686,7 +686,7 @@ class BaseTrainer:
 
     def validate(self):
         """
-        Run validation on test set using self.validator.
+        Run validation on val set using self.validator.
 
         Returns:
             metrics (dict): Dictionary of validation metrics.

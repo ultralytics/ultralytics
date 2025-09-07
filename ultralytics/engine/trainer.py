@@ -56,62 +56,70 @@ from ultralytics.utils.torch_utils import (
 )
 
 
-# @torch.compile
-# def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
-#     """
-#     Newton-Schulz iteration to compute the zeroth power / orthogonalization of G. We opt to use a
-#     quintic iteration whose coefficients are selected to maximize the slope at zero. For the purpose
-#     of minimizing steps, it turns out to be empirically effective to keep increasing the slope at
-#     zero even beyond the point where the iteration no longer converges all the way to one everywhere
-#     on the interval. This iteration therefore does not produce UV^T but rather something like US'V^T
-#     where S' is diagonal with S_{ii}' \sim Uniform(0.5, 1.5), which turns out not to hurt model
-#     performance at all relative to UV^T, where USV^T = G is the SVD.
-#     """
-#     assert len(G.shape) == 2
-#     a, b, c = (3.4445, -4.7750, 2.0315)
-#     X = G.bfloat16()
-#     X /= X.norm() + eps  # ensure top singular value <= 1
-#     if G.size(0) > G.size(1):
-#         X = X.T
-#     for _ in range(steps):
-#         A = X @ X.T
-#         B = b * A + c * A @ A
-#         X = a * X + B @ X
-#     if G.size(0) > G.size(1):
-#         X = X.T
-#     return X
-#
-#
-# class Muon(torch.optim.Optimizer):
-#     def __init__(self, params, lr=1e-3, momentum=0, nesterov=False):
-#         if lr < 0.0:
-#             raise ValueError(f"Invalid learning rate: {lr}")
-#         if momentum < 0.0:
-#             raise ValueError(f"Invalid momentum value: {momentum}")
-#         if nesterov and momentum <= 0:
-#             raise ValueError("Nesterov momentum requires a momentum")
-#         defaults = dict(lr=lr, momentum=momentum, nesterov=nesterov)
-#         super().__init__(params, defaults)
-#
-#     def step(self):
-#         for group in self.param_groups:
-#             lr = group["lr"]
-#             momentum = group["momentum"]
-#             for p in group["params"]:
-#                 g = p.grad
-#                 if g is None:
-#                     continue
-#                 state = self.state[p]
-#
-#                 if "momentum_buffer" not in state.keys():
-#                     state["momentum_buffer"] = torch.zeros_like(g)
-#                 buf = state["momentum_buffer"]
-#                 buf.mul_(momentum).add_(g)
-#                 g = g.add(buf, alpha=momentum) if group["nesterov"] else buf
-#
-#                 p.data.mul_(len(p.data) ** 0.5 / p.data.norm())  # normalize the weight
-#                 update = zeropower_via_newtonschulz5(g.reshape(len(g), -1)).view(g.shape)  # whiten the update
-#                 p.data.add_(update, alpha=-lr)  # take a step
+def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
+    """
+    Newton-Schulz iteration to compute the zeroth power / orthogonalization of G. We opt to use a
+    quintic iteration whose coefficients are selected to maximize the slope at zero. For the purpose
+    of minimizing steps, it turns out to be empirically effective to keep increasing the slope at
+    zero even beyond the point where the iteration no longer converges all the way to one everywhere
+    on the interval. This iteration therefore does not produce UV^T but rather something like US'V^T
+    where S' is diagonal with S_{ii}' sim Uniform(0.5, 1.5), which turns out not to hurt model
+    performance at all relative to UV^T, where USV^T = G is the SVD.
+    """
+    assert len(G.shape) == 2
+    a, b, c = (3.4445, -4.7750, 2.0315)
+    X = G.bfloat16()
+    X /= X.norm() + eps  # ensure top singular value <= 1
+    if G.size(0) > G.size(1):
+        X = X.T
+    for _ in range(steps):
+        A = X @ X.T
+        B = b * A + c * A @ A
+        X = a * X + B @ X
+    if G.size(0) > G.size(1):
+        X = X.T
+    return X
+
+
+def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
+    momentum.lerp_(grad, 1 - beta)
+    update = grad.lerp_(momentum, beta) if nesterov else momentum
+    if update.ndim == 4:  # for the case of conv filters
+        update = update.view(len(update), -1)
+    update = zeropower_via_newtonschulz5(update, steps=ns_steps)
+    update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
+    return update
+
+
+class Muon(torch.optim.Optimizer):
+    """
+    Muon variant for usage in non-distributed settings.
+    """
+
+    def __init__(self, params, lr=0.02, weight_decay=0, momentum=0.95):
+        defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum)
+        super().__init__(params, defaults)
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            for p in group["params"]:
+                if p.grad is None:
+                    # continue
+                    p.grad = torch.zeros_like(p)  # Force synchronization
+                state = self.state[p]
+                if len(state) == 0:
+                    state["momentum_buffer"] = torch.zeros_like(p)
+                update = muon_update(p.grad, state["momentum_buffer"], beta=group["momentum"])
+                p.mul_(1 - group["lr"] * group["weight_decay"])
+                p.add_(update.reshape(p.shape), alpha=-group["lr"])
+
+        return loss
 
 
 class BaseTrainer:
@@ -198,6 +206,7 @@ class BaseTrainer:
         # Optimization utils init
         self.lf = None
         self.scheduler = None
+        self.scheduler2 = None
 
         # Epoch level metrics
         self.best_fitness = None
@@ -275,6 +284,7 @@ class BaseTrainer:
         else:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
+        self.scheduler2 = optim.lr_scheduler.LambdaLR(self.optimizer2, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
         """Initialize and set the DistributedDataParallel parameters for training."""
@@ -364,7 +374,7 @@ class BaseTrainer:
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
         iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
+        self.optimizer, self.optimizer2 = self.build_optimizer(
             model=self.model,
             name=self.args.optimizer,
             lr=self.args.lr0,
@@ -377,6 +387,7 @@ class BaseTrainer:
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
+        self.scheduler2.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, world_size=1):
@@ -403,12 +414,14 @@ class BaseTrainer:
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
+        self.optimizer2.zero_grad()  # zero any resumed gradients to ensure stability on train start
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 self.scheduler.step()
+                self.scheduler2.step()
 
             self._model_train()
             if RANK != -1:
@@ -437,6 +450,14 @@ class BaseTrainer:
                         )
                         if "momentum" in x:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
+                    if self.args.muon_warmup:
+                        for j, x in enumerate(self.optimizer2.param_groups):
+                            # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
+                            x["lr"] = np.interp(
+                                ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x["initial_lr"] * self.lf(epoch)]
+                            )
+                            if "momentum" in x:
+                                x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
                 with autocast(self.amp):
@@ -521,6 +542,7 @@ class BaseTrainer:
                 self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
                 self._setup_scheduler()
                 self.scheduler.last_epoch = self.epoch  # do not move
+                self.scheduler2.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
             self.run_callbacks("on_fit_epoch_end")
             if self._get_memory(fraction=True) > 0.9:
@@ -682,10 +704,14 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
+        self.scaler.unscale_(self.optimizer2)  # unscale gradients
+        # torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=0.5)  # clip gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
+        self.scaler.step(self.optimizer2)
         self.scaler.update()
         self.optimizer.zero_grad()
+        self.optimizer2.zero_grad()
         if self.ema:
             self.ema.update(self.model)
 
@@ -870,7 +896,7 @@ class BaseTrainer:
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
         """
-        g = [], [], []  # optimizer parameter groups
+        g = [], [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
         if name == "auto":
             LOGGER.info(
@@ -886,6 +912,17 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
+                if param.ndim >= 2 and self.args.muon_head == "model":
+                    g[3].append(param)
+                elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
+                    g[3].append(param)
+                elif param.ndim >= 2 and self.args.muon_head == "backbone" and int(module_name.split(".")[1]) in set(range(11)):
+                    g[3].append(param)
+                # elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
+                elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]:
+                    g[3].append(param)
+                elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
+                    g[3].append(param)
                 if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
@@ -909,11 +946,13 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
+        optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
 
-        optimizer.add_param_group({"params": g[0], "weight_decay": decay, "lr": self.args.weight_lr0 if name =="SGD" else lr})  # add g0 with weight_decay
+        if len(g[0]):
+            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
         )
-        return optimizer
+        return optimizer, optimizer_muon

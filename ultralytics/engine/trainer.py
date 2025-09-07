@@ -259,7 +259,7 @@ class BaseTrainer:
 
         # Optional compile for faster training (PyTorch 2.x only)
         if getattr(self.args, "compile", False) and hasattr(torch, "compile"):
-            self.model = attempt_compile(self.model)
+            self.model = attempt_compile(self.model, device=self.device)
 
         # Freeze layers
         freeze_list = (

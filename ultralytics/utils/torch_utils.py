@@ -999,6 +999,23 @@ class FXModel(nn.Module):
         return x
 
 
+def disable_dynamo(func: Any) -> Any:
+    """
+    Conditionally disable torch.compile compilation for a function or class.
+
+    Args:
+        func: The function, method, or class to conditionally disable compilation for.
+              Can be any callable object.
+
+    Returns:
+        The same function/class, either wrapped with torch._dynamo.disable if
+        torch._dynamo is available, or unchanged if not available.
+    """
+    if hasattr(torch, "_dynamo"):
+        return torch._dynamo.disable(func)
+    return func
+
+
 def attempt_compile(
     model: torch.nn.Module,
     device: torch.device,

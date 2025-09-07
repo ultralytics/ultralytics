@@ -1028,7 +1028,7 @@ def attempt_compile(
     imgsz: int = 640,
     quiet: bool = False,
     use_autocast: bool = False,
-    warmup: bool = True,
+    warmup: bool = False,
     prefix: str = colorstr("compile:"),
 ):
     """Try torch.compile() with optional dummy warmup forward."""

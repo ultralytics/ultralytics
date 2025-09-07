@@ -13,7 +13,7 @@ from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
-from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode, disable_dynamo
+from ultralytics.utils.torch_utils import disable_dynamo, fuse_conv_and_bn, smart_inference_mode
 
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN
 from .conv import Conv, DWConv

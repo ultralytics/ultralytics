@@ -102,6 +102,8 @@ class DetectionTrainer(BaseTrainer):
             (dict): Preprocessed batch with normalized images.
         """
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
+        for k in {"batch_idx", "cls", "bboxes"}:
+            batch[k] = batch[k].to(self.device, non_blocking=True)
         if self.args.multi_scale:
             imgs = batch["img"]
             sz = (

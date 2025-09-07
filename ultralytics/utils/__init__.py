@@ -857,7 +857,7 @@ def get_ubuntu_version():
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """
-    Return a writable config dir, preferring YOLO_CONFIG_DIR and being Docker-aware.
+    Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.

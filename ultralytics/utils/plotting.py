@@ -1004,6 +1004,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
     _save_one_file(csv_file.with_name("tune_fitness.png"))
 
 
+@plt_settings()
 def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
     """
     Visualize feature maps of a given model module during inference.

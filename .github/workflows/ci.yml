@@ -185,7 +185,7 @@ jobs:
           slow=""
           torch=""
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              torch="torch==1.8.0 torchvision==0.9.0"
+              torch="torch==2.0.0 torchvision==0.15.0"
           fi
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="faster-coco-eval mlflow"

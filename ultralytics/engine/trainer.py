@@ -874,7 +874,12 @@ class BaseTrainer:
         # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
         param_groups = [
             dict(
-                params=g[3], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=True
+                params=g[3],
+                lr=lr,
+                weight_decay=self.args.weight_decay_m,  # need to update for DDP
+                momentum=momentum,
+                nesterov=True,
+                use_muon=True,
             ),
             dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
             dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),

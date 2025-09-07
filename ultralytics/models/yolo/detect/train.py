@@ -89,8 +89,14 @@ class DetectionTrainer(BaseTrainer):
         if getattr(dataset, "rect", False) and shuffle:
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
-        workers = self.args.workers if mode == "train" else self.args.workers * 2
-        return build_dataloader(dataset, batch_size, workers, shuffle, rank, drop_last=self.args.compile)
+        return build_dataloader(
+            dataset,
+            batch=batch_size,
+            workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            shuffle=shuffle,
+            rank=rank,
+            drop_last=self.args.compile and mode == "train",
+        )
 
     def preprocess_batch(self, batch: dict) -> dict:
         """

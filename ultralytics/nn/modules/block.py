@@ -1119,7 +1119,9 @@ class C3f(nn.Module):
 class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, attn=None, act=True, g=1, shortcut=True, chattn=False):
+    def __init__(
+        self, c1, c2, n=1, c3k=False, e=0.5, attn=None, act=True, downsample=1, g=1, shortcut=True, chattn=False
+    ):
         """
         Initialize C3k2 module.
 
@@ -1137,7 +1139,13 @@ class C3k2(C2f):
         #     C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
         # )
         self.m = nn.ModuleList(
-            PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn)
+            nn.Sequential(
+                # C3k(self.c, self.c, 1, shortcut, g),
+                Bottleneck(self.c, self.c, shortcut, g),  # concat?
+                PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample),
+                # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)  # slightly faster
+            )
+            # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
             if attn is not None
             else C3k(self.c, self.c, 2, shortcut, g)
             # else C3(self.c, self.c, 4, shortcut, g)

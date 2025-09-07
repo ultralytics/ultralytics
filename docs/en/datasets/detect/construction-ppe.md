@@ -66,7 +66,7 @@ Train YOLO11n on the Construction-PPE dataset with a single command. Below are q
 
 ## Sample Images and Annotations
 
-The dataset captures construction workers across varied environments, lighting conditions, and postures. Both **compliant** and **non-compliant** cases are included.  
+The dataset captures construction workers across varied environments, lighting conditions, and postures. Both **compliant** and **non-compliant** cases are included.
 
 ![Construction-PPE dataset sample image, showing compliant and non-compliant safety gear detection](https://github.com/ultralytics/docs/releases/download/0/construction-ppe-dataset-sample.avif)
 

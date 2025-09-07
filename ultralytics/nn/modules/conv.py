@@ -722,3 +722,30 @@ class Index(nn.Module):
             (torch.Tensor): Selected tensor.
         """
         return x[self.index]
+
+
+class Add(nn.Module):
+    """
+    Element-wise addition of a list of tensors.
+
+    Attributes:
+        None
+    """
+
+    def __init__(self):
+        """
+        Initialize Add module.
+        """
+        super().__init__()
+
+    def forward(self, x):
+        """
+        Perform element-wise addition of input tensors.
+
+        Args:
+            x (List[torch.Tensor]): List of input tensors.
+
+        Returns:
+            (torch.Tensor): Resultant tensor after addition.
+        """
+        return x[0] + x[1]

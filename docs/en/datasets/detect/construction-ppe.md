@@ -42,7 +42,7 @@ The Construction-PPE dataset includes a YAML configuration file that defines the
 
 ## Usage
 
-Train YOLO11n on the Construction-PPE dataset with a single command. Below are quick-start examples:
+You can train a YOLO11n model on the Construction-PPE dataset for 100 epochs with an image size of 640. The following examples show how to get started quickly. For more options and advanced configurations, see the [Training guide](../../modes/train.md).
 
 !!! example "Train Example"
 

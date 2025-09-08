@@ -32,10 +32,10 @@ __all__ = (
 
 def __getattr__(name: str):
     """
-    Dynamically import Ultralytics model classes on first access. This function implements lazy imports
-    for selected model classes (e.g., YOLO, NAS, RTDETR, SAM). Instead of loading all models when the
-    Ultralytics package is imported, the required class is imported from `ultralytics.models` only when
-    first accessed. This reduces initial package load time by ~3%.
+    Dynamically import Ultralytics model classes on first access. This function implements lazy imports for selected
+    model classes (e.g., YOLO, NAS, RTDETR, SAM). Instead of loading all models when the Ultralytics package is
+    imported, the required class is imported from `ultralytics.models` only when first accessed. This reduces initial
+    package load time by ~3%.
 
     Args:
         name (str): The attribute name being accessed.

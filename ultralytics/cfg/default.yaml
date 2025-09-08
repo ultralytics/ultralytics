@@ -89,11 +89,11 @@ workspace: # (float, optional) TensorRT: workspace size (GiB), `None` will let T
 nms: False # (bool) CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.01 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+lr0: 0.0005 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
 lrf: 0.01 # (float) final learning rate (lr0 * lrf)
 momentum: 0.937 # (float) SGD momentum/Adam beta1
 weight_decay: 0.0005 # (float) optimizer weight decay 5e-4
-warmup_epochs: 3.0 # (float) warmup epochs (fractions ok)
+warmup_epochs: 2.0 # (float) warmup epochs (fractions ok)
 warmup_momentum: 0.8 # (float) warmup initial momentum
 warmup_bias_lr: 0.1 # (float) warmup initial bias lr
 box: 7.5 # (float) box loss gain
@@ -105,18 +105,18 @@ nbs: 64 # (int) nominal batch size
 hsv_h: 0.015 # (float) image HSV-Hue augmentation (fraction)
 hsv_s: 0.7 # (float) image HSV-Saturation augmentation (fraction)
 hsv_v: 0.4 # (float) image HSV-Value augmentation (fraction)
-degrees: 0.0 # (float) image rotation (+/- deg)
+degrees: 3.0 # (float) image rotation (+/- deg)
 translate: 0.1 # (float) image translation (+/- fraction)
 scale: 0.5 # (float) image scale (+/- gain)
-shear: 0.0 # (float) image shear (+/- deg)
-perspective: 0.0 # (float) image perspective (+/- fraction), range 0-0.001
-flipud: 0.0 # (float) image flip up-down (probability)
+shear: 1.0 # (float) image shear (+/- deg)
+perspective: 0.0001 # (float) image perspective (+/- fraction), range 0-0.001
+flipud: 0.01 # (float) image flip up-down (probability)
 fliplr: 0.5 # (float) image flip left-right (probability)
-bgr: 0.0 # (float) image channel BGR (probability)
+bgr: 0.01 # (float) image channel BGR (probability)
 mosaic: 1.0 # (float) image mosaic (probability)
 mixup: 0.0 # (float) image mixup (probability)
 cutmix: 0.0 # (float) image cutmix (probability)
-copy_paste: 0.0 # (float) segment copy-paste (probability)
+copy_paste: 0.03 # (float) segment copy-paste (probability)
 copy_paste_mode: "flip" # (str) the method to do copy_paste augmentation (flip, mixup)
 auto_augment: randaugment # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)
 erasing: 0.4 # (float) probability of random erasing during classification training (0-0.9), 0 means no erasing, must be less than 1.0.

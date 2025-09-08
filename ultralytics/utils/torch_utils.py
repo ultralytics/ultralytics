@@ -31,6 +31,7 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
+    IS_JETSON,
 )
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.cpu import CPUInfo

@@ -29,6 +29,7 @@ __all__ = (
     "settings",
 )
 
+
 # Lazy import (~3% speedup package import time)
 def __getattr__(name: str):
     if name in {"NAS", "RTDETR", "SAM", "YOLO", "YOLOE", "FastSAM", "YOLOWorld"}:

@@ -60,35 +60,35 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
 
     ```bash
     curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-      && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-        sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-        sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+      && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+      | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+        | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
     ```
     Update the package lists and install the nvidia-container-toolkit package:
-  
+
     ```bash
     sudo apt-get update
     ```
 
     Install Latest version of nvidia-container-toolkit
-  
+
     ```bash
     sudo apt-get install -y nvidia-container-toolkit \
-        nvidia-container-toolkit-base libnvidia-container-tools \
-        libnvidia-container1
+      nvidia-container-toolkit-base libnvidia-container-tools \
+      libnvidia-container1
     ```
 
     ??? info "Optional: Install specific version of nvidia-container-toolkit"
-    
+
         Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
 
         ```bash
         export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
         sudo apt-get install -y \
-            nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-            nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-            libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-            libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+          nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
         ```
 
     ```bash
@@ -99,8 +99,8 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
 === "RHEL/CentOS/Fedora/Amazon Linux"
 
     ```bash
-    curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
-    sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+      | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
     ```
 
     Update the package lists and install the nvidia-container-toolkit package:
@@ -109,7 +109,7 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
     sudo dnf clean expire-cache
     sudo dnf check-update
     ```
-    
+
     ```bash
     sudo dnf install \
       nvidia-container-toolkit \
@@ -126,10 +126,10 @@ Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datace
           ```bash
           export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
           sudo dnf install -y \
-              nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-              nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-              libnvidia-container-tools-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
-              libnvidia-container1-${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+            nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+            nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+            libnvidia-container-tools-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+            libnvidia-container1-${NVIDIA_CONTAINER_TOOLKIT_VERSION}
           ```
 
     ```bash

@@ -30,6 +30,7 @@ from ultralytics.utils import (
     TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
+    IS_JETSON,
     colorstr,
 )
 from ultralytics.utils.checks import check_version
@@ -1023,7 +1024,7 @@ def disable_dynamo(func: Any) -> Any:
         >>> # Works even if torch._dynamo is not available
         >>> _ = fn(1)
     """
-    if hasattr(torch, "_dynamo"):
+    if hasattr(torch, "_dynamo") and not IS_JETSON:
         return torch._dynamo.disable(func)
     return func
 

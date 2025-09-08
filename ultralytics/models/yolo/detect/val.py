@@ -299,7 +299,9 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): Dataloader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)  # return dataloader
+        return build_dataloader(
+            dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
+        )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:
         """

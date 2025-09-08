@@ -40,7 +40,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
-- If you are using Nvidia Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson/) for more details.
+- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson/) for more details.
 
 ---
 

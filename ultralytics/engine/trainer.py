@@ -119,6 +119,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (list, optional): List of callback functions.
         """
+        self.hub_session = overrides.pop("session") # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
@@ -169,9 +170,6 @@ class BaseTrainer:
         self.loss_names = ["Loss"]
         self.csv = self.save_dir / "results.csv"
         self.plot_idx = [0, 1, 2]
-
-        # HUB
-        self.hub_session = None
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

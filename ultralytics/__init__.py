@@ -2,8 +2,8 @@
 
 __version__ = "8.3.195"
 
-import os
 import importlib
+import os
 
 # Set ENV variables (place before imports)
 if not os.environ.get("OMP_NUM_THREADS"):

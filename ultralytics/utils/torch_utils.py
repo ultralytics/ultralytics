@@ -24,13 +24,13 @@ from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
+    IS_JETSON,
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
     TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
-    IS_JETSON,
     colorstr,
 )
 from ultralytics.utils.checks import check_version

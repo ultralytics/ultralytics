@@ -732,11 +732,12 @@ class Add(nn.Module):
         None
     """
 
-    def __init__(self):
+    def __init__(self, c2):
         """
         Initialize Add module.
         """
         super().__init__()
+        self.gamma = nn.Parameter(0.01 * torch.ones(c2), requires_grad=True)
 
     def forward(self, x):
         """
@@ -748,4 +749,5 @@ class Add(nn.Module):
         Returns:
             (torch.Tensor): Resultant tensor after addition.
         """
-        return x[0] + x[1]
+        return x[0] + self.gamma.view(-1, len(self.gamma), 1, 1) * x[1]
+        # return x[0] + x[1]

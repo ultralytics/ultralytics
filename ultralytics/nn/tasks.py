@@ -1491,8 +1491,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c1 = ch[f]
             args = [*args[1:]]
         elif m is Add:
-            c2 = ch[f[0]]
-            c1 = ch[f[0]]
+            c2 = args[0] = make_divisible(min(args[0], max_channels) * width, 8)
         else:
             c2 = ch[f]
 

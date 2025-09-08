@@ -24,7 +24,6 @@ from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
-    IS_JETSON,
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
@@ -1024,7 +1023,7 @@ def disable_dynamo(func: Any) -> Any:
         >>> # Works even if torch._dynamo is not available
         >>> _ = fn(1)
     """
-    if hasattr(torch, "_dynamo") and not IS_JETSON:
+    if hasattr(torch, "_dynamo"):
         return torch._dynamo.disable(func)
     return func
 

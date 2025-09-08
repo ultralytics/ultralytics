@@ -54,8 +54,8 @@ from ultralytics.utils.torch_utils import (
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
-    unwrap_model,
     unset_deterministic,
+    unwrap_model,
 )
 
 

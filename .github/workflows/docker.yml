@@ -31,10 +31,10 @@ on:
         type: boolean
         description: Dockerfile-jetson-jetpack6
         default: true
-      Dockerfile-jetson-jetpack5:
-        type: boolean
-        description: Dockerfile-jetson-jetpack5
-        default: true
+      # Dockerfile-jetson-jetpack5:
+      #   type: boolean
+      #   description: Dockerfile-jetson-jetpack5
+      #   default: true
       Dockerfile-jetson-jetpack4:
         type: boolean
         description: Dockerfile-jetson-jetpack4

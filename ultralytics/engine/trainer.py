@@ -46,6 +46,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
@@ -53,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
+    unwrap_model,
     unset_deterministic,
 )
 
@@ -256,6 +258,14 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
+        # Initialize loss criterion before compilation for torch.compile compatibility
+        if hasattr(self.model, "init_criterion"):
+            self.model.criterion = self.model.init_criterion()
+
+        # Compile model
+        if self.args.compile:
+            self.model = attempt_compile(self.model, device=self.device)
+
         # Freeze layers
         freeze_list = (
             self.args.freeze
@@ -404,6 +414,8 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
+                    self.mark_dynamic(batch)
+                    metadata = {k: batch.pop(k, None) for k in ["im_file", "ori_shape", "resized_shape"]}
                     loss, self.loss_items = self.model(batch)
                     self.loss = loss.sum()
                     if RANK != -1:
@@ -445,6 +457,7 @@ class BaseTrainer:
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
+                        batch = {**batch, **metadata}
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
@@ -513,6 +526,13 @@ class BaseTrainer:
             max_num_obj=max_num_obj,
         )  # returns batch size
 
+    def mark_dynamic(self, batch):
+        """Mark tensors as dynamic for compiled model."""
+        if self.args.compile and self.args.task != "classify":
+            torch._dynamo.maybe_mark_dynamic(batch["batch_idx"], 0)
+            torch._dynamo.maybe_mark_dynamic(batch["cls"], 0)
+            torch._dynamo.maybe_mark_dynamic(batch["bboxes"], 0)
+
     def _get_memory(self, fraction=False):
         """Get accelerator memory utilization in GB or as a fraction of total memory."""
         memory, total = 0, 0
@@ -565,7 +585,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(self.ema.ema).half(),
+                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "train_args": vars(self.args),  # save as dict
@@ -592,8 +612,6 @@ class BaseTrainer:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
-        # if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
-        #    (self.wdir / "last_mosaic.pt").write_bytes(serialized_ckpt)  # save mosaic checkpoint
 
     def get_dataset(self):
         """
@@ -667,7 +685,7 @@ class BaseTrainer:
 
     def validate(self):
         """
-        Run validation on test set using self.validator.
+        Run validation on val set using self.validator.
 
         Returns:
             metrics (dict): Dictionary of validation metrics.
@@ -755,6 +773,7 @@ class BaseTrainer:
                     strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
+                    self.validator.args.compile = False  # disable final val compile as too slow
                     self.metrics = self.validator(model=f)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")

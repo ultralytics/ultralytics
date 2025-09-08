@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Learn how Ultralytics uses lazy imports with __getattr__ to speed up package startup and load model classes like YOLO, NAS, RTDETR, and SAM only when needed.
+keywords: Ultralytics, YOLO, lazy import, __getattr__, NAS, RTDETR, SAM, FastSAM, YOLOWorld, performance, startup time, optimization
 ---
 
 # Reference for `ultralytics/__init__.py`

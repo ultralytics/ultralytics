@@ -30,8 +30,19 @@ __all__ = (
 )
 
 
-# Lazy import (~3% speedup package import time)
 def __getattr__(name: str):
+    """
+    Dynamically import Ultralytics model classes on first access. This function implements lazy imports
+    for selected model classes (e.g., YOLO, NAS, RTDETR, SAM). Instead of loading all models when the
+    Ultralytics package is imported, the required class is imported from `ultralytics.models` only when
+    first accessed. This reduces initial package load time by ~3%.
+
+    Args:
+        name (str): The attribute name being accessed.
+
+    Raises:
+        AttributeError: If the requested attribute is not a known model.
+    """
     if name in {"NAS", "RTDETR", "SAM", "YOLO", "YOLOE", "FastSAM", "YOLOWorld"}:
         module = importlib.import_module("ultralytics.models")
         return getattr(module, name)

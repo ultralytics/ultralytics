@@ -797,7 +797,7 @@ class Model(torch.nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 
-        self.trainer.hub_session = self.session  # attach optional HUB session
+        self.trainer.hub_session = self.trainer.hub_session or self.session  # attach optional HUB session
         self.trainer.train()
         # Update model and cfg after training
         if RANK in {-1, 0}:

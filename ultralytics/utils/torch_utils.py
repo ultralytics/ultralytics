@@ -32,7 +32,6 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
-    is_jetson,
 )
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.cpu import CPUInfo
@@ -1025,7 +1024,7 @@ def disable_dynamo(func: Any) -> Any:
         >>> # Works even if torch._dynamo is not available
         >>> _ = fn(1)
     """
-    if hasattr(torch, "_dynamo"):
+    if hasattr(torch, "_dynamo") and not IS_JETSON:
         return torch._dynamo.disable(func)
     return func
 
@@ -1066,8 +1065,6 @@ def attempt_compile(
         >>> # Try to compile and warm up a model with a 640x640 input
         >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
     """
-    if IS_JETSON and is_jetson(jetpack=5):
-        return model
     if not hasattr(torch, "compile"):
         return model
 

@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
+    unwrap_model,
     unset_deterministic,
 )
 
@@ -584,7 +585,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(self.ema.ema).half(),
+                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "train_args": vars(self.args),  # save as dict

@@ -112,7 +112,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
+from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device, unwrap_model
 
 
 def export_formats():
@@ -270,6 +270,7 @@ class Exporter:
 
     def __call__(self, model=None) -> str:
         """Return list of exported files/dirs after running callbacks."""
+        model = unwrap_model(model)
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
@@ -1560,6 +1561,7 @@ class NMSModel(torch.nn.Module):
                         or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
                     ),
                     iou_func=batch_probiou,
+                    exit_early=False,
                 )
                 if self.obb
                 else nms

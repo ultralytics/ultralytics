@@ -42,7 +42,7 @@ head:
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 13], 1, Concat, [1]] # cat head P4
   - [-1, 2, C3k2, [512, True, 0.5, "None", True, 2]] # 19 (P4/16-medium)
-  - [[-1, 6], 1, Add, []] # 19 (P4/16-medium)
+  - [[-1, 6], 1, Add, [512]] # 19 (P4/16-medium)
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 10], 1, Concat, [1]] # cat head P5

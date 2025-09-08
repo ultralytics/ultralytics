@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to effortlessly set up Ultralytics in Docker, from installation to running with CPU/GPU support. Follow our comprehensive guide for seamless container experience.
-keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDIA Docker, Nvidia Container Toolkit, container setup, Docker environment, Docker Hub, Ultralytics projects
+keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDIA Docker, NVIDIA Container Toolkit, container setup, Docker environment, Docker Hub, Ultralytics projects
 ---
 
 # Docker Quickstart Guide for Ultralytics

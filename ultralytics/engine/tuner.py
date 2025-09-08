@@ -114,6 +114,7 @@ class Tuner:
             "mixup": (0.0, 1.0),  # image mixup (probability)
             "cutmix": (0.0, 1.0),  # image cutmix (probability)
             "copy_paste": (0.0, 1.0),  # segment copy-paste (probability)
+            "close_mosaic": (0.0, 10.0),  # close dataloader mosaic (epochs)
         }
         mongodb_uri = args.pop("mongodb_uri", None)
         mongodb_db = args.pop("mongodb_db", "ultralytics")

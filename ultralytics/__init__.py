@@ -29,7 +29,7 @@ __all__ = (
     "settings",
 )
 
-# Lazy import handler (~3% speed up import time)
+# Lazy import (~3% speedup package import time)
 def __getattr__(name: str):
     if name in {"NAS", "RTDETR", "SAM", "YOLO", "YOLOE", "FastSAM", "YOLOWorld"}:
         module = importlib.import_module("ultralytics.models")

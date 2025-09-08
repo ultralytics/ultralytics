@@ -18,7 +18,7 @@ from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
-from ultralytics.utils.torch_utils import unwrap_model, torch_distributed_zero_first
+from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
 
 class DetectionTrainer(BaseTrainer):

@@ -788,7 +788,7 @@ class Model(torch.nn.Module):
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
-        args = {**overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
+        args = {**overrides, **custom, **kwargs, "mode": "train", "session": self.session}  # prioritizes rightmost args
         if args.get("resume"):
             args["resume"] = self.ckpt_path
 
@@ -797,7 +797,6 @@ class Model(torch.nn.Module):
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
 
-        self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # Update model and cfg after training
         if RANK in {-1, 0}:

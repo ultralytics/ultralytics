@@ -330,6 +330,9 @@ class Tuner:
             hyp[k] = min(hyp[k], bounds[1])  # upper limit
             hyp[k] = round(hyp[k], 5)  # significant digits
 
+        # Update type
+        hyp["close_mosaic"] = int(hyp["close_mosaic"])
+
         return hyp
 
     def __call__(self, model=None, iterations: int = 10, cleanup: bool = True):

@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import torch
+
 from ultralytics import YOLO
 from ultralytics.utils.prune import prune_detection_model
 
@@ -24,7 +26,9 @@ def test_prune_roundtrip(tmp_path):
 
 
 def test_prune_roundtrip_with_config(tmp_path):
-    """Test that pruning with a YAML config works and the pruned model saves/loads correctly and inference still runs"""
+    """Test that pruning with a YAML config works and the pruned model saves/loads correctly and inference still
+    runs.
+    """
     model = YOLO("yolov8n.yaml")
     pruned_model = prune_detection_model(model, prune_yaml=str(CFG))
 
@@ -39,7 +43,9 @@ def test_prune_roundtrip_with_config(tmp_path):
 
 
 def test_prune_train(tmp_path):
-    """Test that a pruned model can still be trained after pruning, and that the trained model's inference still works"""
+    """Test that a pruned model can still be trained after pruning, and that the trained model's inference still
+    works.
+    """
     model = YOLO("yolov8n.yaml")
     pruned_model = prune_detection_model(model, prune_ratio=0.1)
 
@@ -54,6 +60,7 @@ def test_prune_train(tmp_path):
     # dummy inference
     results = loaded_model(str(IMG))
     assert results is not None
+
 
 def test_prune_reduces_size(tmp_path):
     """Test that pruning reduces the number of parameters and usually reduces saved model size."""

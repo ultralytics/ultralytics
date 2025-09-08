@@ -19,7 +19,7 @@ pipeline enhancements.
 """
 
 from copy import deepcopy
-from typing import Union, Tuple, Optional, List
+from typing import List, Optional, Tuple, Union
 
 import torch
 import yaml
@@ -113,7 +113,6 @@ def prune_conv2d(
         - Inside C2f blocks, set `prune_groups = split_factor`
           to keep channel splits consistent.
     """
-
     groups = prune_groups if prune_groups is not None else conv_layer.groups
     pruned_weight = conv_layer.weight
 
@@ -255,7 +254,9 @@ def prune_conv(
     return conv_mask
 
 
-def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None, mask_prev: torch.Tensor = None) -> torch.Tensor:
+def prune_conv_with_skip(
+    yolo_conv_layer: Conv, mask_skip: torch.Tensor = None, mask_prev: torch.Tensor = None
+) -> torch.Tensor:
     """
     Prune a YOLO Conv block (Conv2d + BatchNorm) according to skip-producing layer pruning.
 
@@ -343,10 +344,7 @@ def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor) -> Tuple[B
 
 
 def prune_bottleneck(
-        bottleneck: Bottleneck,
-        prune_ratio: float,
-        norm_order: float,
-        mask_prev: Optional[torch.Tensor]
+    bottleneck: Bottleneck, prune_ratio: float, norm_order: float, mask_prev: Optional[torch.Tensor]
 ) -> torch.Tensor:
     """
     Prune a Bottleneck block in YOLO.
@@ -455,7 +453,9 @@ def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None, 
     return torch.cat(mask_cv2)
 
 
-def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2, mask_prev: torch.Tensor = None) -> torch.Tensor:
+def prune_sppf(
+    sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2, mask_prev: torch.Tensor = None
+) -> torch.Tensor:
     """
     Prune an SPPF (Spatial Pyramid Pooling - Fast) block in YOLO.
 
@@ -528,7 +528,6 @@ def prune_detect(
         - Masks are propagated consistently to maintain alignment with the input feature maps.
         - All pruning is performed **in-place** on the Detect head.
     """
-
     cv2 = detect_head.cv2
     cv3 = detect_head.cv3
 
@@ -602,7 +601,6 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
         - The model's checkpoint (`model.ckpt`) is updated with `"is_pruned": True` for persistence.
         - Only detection-type YOLO architectures are currently supported.
     """
-
     # Load component-wise pruning ratios if YAML is provided
     if prune_yaml is not None:
         with open(prune_yaml) as f:

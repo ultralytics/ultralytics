@@ -192,7 +192,7 @@ class TorchNMS:
         iou_threshold: float,
         use_triu: bool = True,
         iou_func=box_iou,
-        exit_early=True,
+        exit_early: bool = True,
     ) -> torch.Tensor:
         """
         Fast-NMS implementation from https://arxiv.org/pdf/1904.02689 using upper triangular matrix operations.

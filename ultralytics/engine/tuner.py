@@ -22,7 +22,9 @@ import subprocess
 import time
 from datetime import datetime
 
+import gc
 import numpy as np
+import torch
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
@@ -270,7 +272,7 @@ class Tuner:
     def _mutate(
         self,
         parent: str = "single",
-        n: int = 5,
+        n: int = 10,
         mutation: float = 0.8,
         sigma: float = 0.2,
     ) -> dict[str, float]:
@@ -381,6 +383,11 @@ class Tuner:
                 ckpt_file = weights_dir / ("best.pt" if (weights_dir / "best.pt").exists() else "last.pt")
                 metrics = torch_load(ckpt_file)["train_metrics"]
                 assert return_code == 0, "training failed"
+
+                # Cleanup
+                time.sleep(3)
+                gc.collect()
+                torch.cuda.empty_cache()
 
             except Exception as e:
                 LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")

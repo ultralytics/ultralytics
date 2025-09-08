@@ -876,7 +876,7 @@ class BaseTrainer:
             dict(
                 params=g[3],
                 lr=lr,
-                weight_decay=self.args.weight_decay_m,  # need to update for DDP
+                weight_decay=self.args.muon_decay_scale * decay,  # need to update for DDP
                 momentum=momentum,
                 nesterov=True,
                 use_muon=True,

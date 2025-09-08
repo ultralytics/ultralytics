@@ -331,7 +331,7 @@ class Tuner:
             hyp[k] = round(hyp[k], 5)  # significant digits
 
         # Update type
-        hyp["close_mosaic"] = int(hyp["close_mosaic"])
+        hyp["close_mosaic"] = int(round(hyp["close_mosaic"]))
 
         return hyp
 

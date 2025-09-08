@@ -79,5 +79,3 @@ def test_zero_prune(tmp_path):
 
     # Check that parameter values are identical
     assert all(torch.equal(p1, p2) for p1, p2 in zip(model.parameters(), pruned_model.parameters()))
-
-

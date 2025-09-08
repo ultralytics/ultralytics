@@ -67,7 +67,11 @@ def manual_pruning(
     if k == 0:
         mask = torch.tensor([True] * num_filters)
     else:
-        norm = torch.linalg.vector_norm(weight_tensor, ord=norm_order, dim=dim)
+        if hasattr(torch, "linalg") and hasattr(torch.linalg, "vector_norm"):
+            norm = torch.linalg.vector_norm(weight_tensor, ord=norm_order, dim=dim)
+        else:
+            norm = torch.norm(weight_tensor, p=norm_order, dim=dim)
+
         threshold = torch.quantile(norm, prune_ratio)
         mask = norm > threshold
     return weight_tensor[mask], mask

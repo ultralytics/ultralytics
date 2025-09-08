@@ -3,7 +3,6 @@
 import json
 from time import time
 
-from ultralytics.engine.model import Model
 from ultralytics.hub import HUB_WEB_ROOT, PREFIX, HUBTrainingSession
 from ultralytics.utils import LOGGER, RANK, SETTINGS
 from ultralytics.utils.events import events

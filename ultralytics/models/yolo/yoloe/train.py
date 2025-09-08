@@ -13,7 +13,7 @@ from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.torch_utils import de_parallel
+from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
 from .val import YOLOEDetectValidator
@@ -38,9 +38,6 @@ class YOLOETrainer(DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks=None):
         """
         Initialize the YOLOE Trainer with specified configurations.
-
-        This method sets up the YOLOE trainer with the provided configuration and overrides, initializing
-        the training environment, model, and callbacks for YOLOE object detection training.
 
         Args:
             cfg (dict): Configuration dictionary with default training settings from DEFAULT_CFG.
@@ -102,7 +99,7 @@ class YOLOETrainer(DetectionTrainer):
         Returns:
             (Dataset): YOLO dataset configured for training or validation.
         """
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
@@ -223,7 +220,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
                 return txt_map
         LOGGER.info(f"Caching text embeddings to '{cache_path}'")
         assert self.model is not None
-        txt_feats = de_parallel(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
+        txt_feats = unwrap_model(self.model).get_text_pe(texts, batch, without_reprta=True, cache_clip_model=False)
         txt_map = dict(zip(texts, txt_feats.squeeze(0)))
         torch.save(txt_map, cache_path)
         return txt_map

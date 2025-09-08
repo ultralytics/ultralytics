@@ -15,10 +15,10 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils import LOGGER, RANK, DEFAULT_CFG
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
-from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
+from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
 
 class DetectionTrainer(BaseTrainer):
@@ -54,6 +54,19 @@ class DetectionTrainer(BaseTrainer):
         >>> trainer.train()
     """
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
+        """
+        Initialize a DetectionTrainer object for training YOLO object detection model training.
+
+        Args:
+            cfg (dict, optional): Default configuration dictionary containing training parameters.
+            overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
+            _callbacks (list, optional): List of callback functions to be executed during training.
+        """
+        super().__init__(cfg, overrides, _callbacks)
+        self.dynamic_tensors = ["batch_idx", "cls", "bboxes"]
+
+
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """
         Build YOLO Dataset for training or validation.
@@ -66,7 +79,7 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (Dataset): YOLO dataset object configured for the specified mode.
         """
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
@@ -89,8 +102,14 @@ class DetectionTrainer(BaseTrainer):
         if getattr(dataset, "rect", False) and shuffle:
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
-        workers = self.args.workers if mode == "train" else self.args.workers * 2
-        return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
+        return build_dataloader(
+            dataset,
+            batch=batch_size,
+            workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            shuffle=shuffle,
+            rank=rank,
+            drop_last=self.args.compile and mode == "train",
+        )
 
     def preprocess_batch(self, batch: dict) -> dict:
         """
@@ -120,6 +139,10 @@ class DetectionTrainer(BaseTrainer):
                 ]  # new shape (stretched to gs-multiple)
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
             batch["img"] = imgs
+
+        if self.args.compile:
+            for k in self.dynamic_tensors:
+                torch._dynamo.maybe_mark_dynamic(batch[k], 0)
         return batch
 
     def set_model_attributes(self):

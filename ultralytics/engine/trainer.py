@@ -610,7 +610,7 @@ class BaseTrainer:
             # Convert Path objects to strings for compatibility
             if isinstance(self.args.data, Path):
                 self.args.data = str(self.args.data)
-                
+
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
             elif self.args.data.rsplit(".", 1)[-1] == "ndjson":

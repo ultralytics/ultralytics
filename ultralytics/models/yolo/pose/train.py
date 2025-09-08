@@ -6,6 +6,7 @@ from copy import copy
 from pathlib import Path
 from typing import Any
 
+import torch
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER
@@ -128,3 +129,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         if "kpt_shape" not in data:
             raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
         return data
+
+    def mark_dynamic(self, batch):
+        """Mark tensors as dynamic for compiled model."""
+        super().mark_dynamic(batch)
+        torch._dynamo.maybe_mark_dynamic(batch["keypoints"], 0)

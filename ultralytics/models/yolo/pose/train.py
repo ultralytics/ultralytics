@@ -128,3 +128,10 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         if "kpt_shape" not in data:
             raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
         return data
+
+    def mark_dynamic(self, batch):
+        """Mark tensors as dynamic for compiled model."""
+        super().mark_dynamic(batch)
+        import torch
+
+        torch._dynamo.maybe_mark_dynamic(batch["keypoints"], 0)

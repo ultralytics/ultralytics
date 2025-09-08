@@ -228,3 +228,9 @@ class DetectionTrainer(BaseTrainer):
         max_num_obj = max(len(label["cls"]) for label in train_dataset.labels) * 4  # 4 for mosaic augmentation
         del train_dataset  # free memory
         return super().auto_batch(max_num_obj)
+
+    def mark_dynamic(self, batch):
+        """Mark tensors as dynamic for compiled model."""
+        torch._dynamo.maybe_mark_dynamic(batch["batch_idx"], 0)
+        torch._dynamo.maybe_mark_dynamic(batch["cls"], 0)
+        torch._dynamo.maybe_mark_dynamic(batch["bboxes"], 0)

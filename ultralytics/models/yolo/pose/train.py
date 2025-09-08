@@ -46,9 +46,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """
         Initialize a PoseTrainer object for training YOLO pose estimation models.
 
-        This initializes a trainer specialized for pose estimation tasks, setting the task to 'pose' and
-        handling specific configurations needed for keypoint detection models.
-
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
@@ -57,17 +54,12 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Notes:
             This trainer will automatically set the task to 'pose' regardless of what is provided in overrides.
             A warning is issued when using Apple MPS device due to known bugs with pose models.
-
-        Examples:
-            >>> from ultralytics.models.yolo.pose import PoseTrainer
-            >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml", epochs=3)
-            >>> trainer = PoseTrainer(overrides=args)
-            >>> trainer.train()
         """
         if overrides is None:
             overrides = {}
         overrides["task"] = "pose"
         super().__init__(cfg, overrides, _callbacks)
+        self.dynamic_tensors = ["batch_idx", "cls", "bboxes", "keypoints"]
 
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(
@@ -130,8 +122,3 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         if "kpt_shape" not in data:
             raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
         return data
-
-    def mark_dynamic(self, batch):
-        """Mark tensors as dynamic for compiled model."""
-        super().mark_dynamic(batch)
-        torch._dynamo.maybe_mark_dynamic(batch["keypoints"], 0)

@@ -414,8 +414,6 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    if self.args.compile:
-                        self.mark_dynamic(batch)
                     metadata = {k: batch.pop(k, None) for k in ["im_file", "ori_shape", "resized_shape"]}
                     loss, self.loss_items = self.model(batch)
                     self.loss = loss.sum()
@@ -526,10 +524,6 @@ class BaseTrainer:
             batch=self.batch_size,
             max_num_obj=max_num_obj,
         )  # returns batch size
-
-    def mark_dynamic(self, batch):
-        """Mark tensors as dynamic for compiled model."""
-        pass
 
     def _get_memory(self, fraction=False):
         """Get accelerator memory utilization in GB or as a fraction of total memory."""

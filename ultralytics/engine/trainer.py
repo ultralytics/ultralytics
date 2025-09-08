@@ -119,7 +119,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (list, optional): List of callback functions.
         """
-        self.hub_session = overrides.pop("session")  # HUB
+        self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)

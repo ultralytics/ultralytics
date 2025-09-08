@@ -429,7 +429,7 @@ def get_flops(model, imgsz=640):
         return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
-        model = de_parallel(model)
+        model = unwrap_model(model)
         p = next(model.parameters())
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
@@ -460,7 +460,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
     """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
-    model = de_parallel(model)
+    model = unwrap_model(model)
     p = next(model.parameters())
     if not isinstance(imgsz, list):
         imgsz = [imgsz, imgsz]  # expand if int/float
@@ -577,17 +577,24 @@ def is_parallel(model):
     return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
-def de_parallel(model):
+def unwrap_model(m: nn.Module) -> nn.Module:
     """
-    De-parallelize a model: return single-GPU model if model is of type DP or DDP.
+    Unwrap compiled and parallel models to get the base model.
 
     Args:
-        model (nn.Module): Model to de-parallelize.
+        m (nn.Module): A model that may be wrapped by torch.compile (._orig_mod) or parallel wrappers such as
+            DataParallel/DistributedDataParallel (.module).
 
     Returns:
-        (nn.Module): De-parallelized model.
+        m (nn.Module): The unwrapped base model without compile or parallel wrappers.
     """
-    return model.module if is_parallel(model) else model
+    while True:
+        if hasattr(m, "_orig_mod") and isinstance(m._orig_mod, nn.Module):
+            m = m._orig_mod
+        elif hasattr(m, "module") and isinstance(m.module, nn.Module):
+            m = m.module
+        else:
+            return m
 
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
@@ -669,7 +676,7 @@ class ModelEMA:
             tau (int, optional): EMA decay time constant.
             updates (int, optional): Initial number of updates.
         """
-        self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
+        self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
@@ -687,7 +694,7 @@ class ModelEMA:
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = de_parallel(model).state_dict()  # model state_dict
+            msd = unwrap_model(model).state_dict()  # model state_dict
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
                     v *= d

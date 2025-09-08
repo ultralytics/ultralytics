@@ -188,7 +188,7 @@ class SegmentationValidator(DetectionValidator):
         for p in preds:
             masks = p["masks"]
             if masks.shape[0] > self.args.max_det:
-                LOGGER.warning(f"Limiting validation plots to first {self.args.max_det} items per image for speed...")
+                LOGGER.warning(f"Limiting validation plots to 'max_det={self.args.max_det}' items.")
             p["masks"] = torch.as_tensor(masks[: self.args.max_det], dtype=torch.uint8).cpu()
         super().plot_predictions(batch, preds, ni, max_det=self.args.max_det)  # plot bboxes
 

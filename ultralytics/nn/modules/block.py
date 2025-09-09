@@ -1154,8 +1154,8 @@ class C3k2(C2f):
         self.m = nn.ModuleList(
             nn.Sequential(
                 # C3k(self.c, self.c, 1, shortcut, g),
-                Bottleneck(self.c, self.c, shortcut, g),  # concat?
                 PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample),
+                Bottleneck(self.c, self.c, shortcut, g),  # concat?
                 # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)  # slightly faster
             )
             # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)

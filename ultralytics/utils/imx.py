@@ -18,17 +18,19 @@ class FXModel(nn.Module):
         model (nn.Module): The original model's layers.
     """
 
-    def __init__(self, model):
+    def __init__(self, model, imgsz=(640, 640)):
         """
         Initialize the FXModel.
 
         Args:
             model (nn.Module): The original model to wrap for torch.fx compatibility.
+            imgsz (tuple[int, int]): The input image size (height, width). Default is (640, 640).
         """
         super().__init__()
         copy_attr(self, model)
         # Explicitly set `model` since `copy_attr` somehow does not copy it.
         self.model = model.model
+        self.imgsz = imgsz
 
     def forward(self, x):
         """
@@ -49,14 +51,13 @@ class FXModel(nn.Module):
                 # from earlier layers
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
             if isinstance(m, Detect):
-                m.inference = types.MethodType(_inference, m)  # bind method to Detect
+                m._inference = types.MethodType(_inference, m)  # bind method to Detect
                 m.anchors, m.strides = (
                     x.transpose(0, 1)
                     for x in make_anchors(
                         torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
                     )
                 )
-
             x = m(x)  # run
             y.append(x)  # save output
         return x

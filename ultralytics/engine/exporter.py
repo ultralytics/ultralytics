@@ -408,7 +408,7 @@ class Exporter:
         model = model.fuse()
 
         if imx:
-            from ultralytics.utils.torch_utils import FXModel
+            from ultralytics.utils.imx import FXModel
 
             model = FXModel(model)
         for m in model.modules():
@@ -425,15 +425,6 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
-            if isinstance(m, Detect) and imx:
-                from ultralytics.utils.tal import make_anchors
-
-                m.anchors, m.strides = (
-                    x.transpose(0, 1)
-                    for x in make_anchors(
-                        torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
-                    )
-                )
 
         y = None
         for _ in range(2):  # dry runs

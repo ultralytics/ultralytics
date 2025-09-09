@@ -66,7 +66,7 @@ class FXModel(torch.nn.Module):
                         torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
                     )
                 )
-            if type(m) == Pose:
+            if type(m) is Pose:
                 m.forward = types.MethodType(pose_forward, m)  # bind method to Detect
             x = m(x)  # run
             y.append(x)  # save output

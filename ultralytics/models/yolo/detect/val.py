@@ -71,11 +71,10 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Preprocessed batch.
         """
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        for k, v in batch.items():
+            if isinstance(v, torch.Tensor):
+                batch[k] = v.to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        for k in {"batch_idx", "cls", "bboxes"}:
-            batch[k] = batch[k].to(self.device, non_blocking=True)
-
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -300,7 +299,9 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): Dataloader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)  # return dataloader
+        return build_dataloader(
+            dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
+        )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:
         """

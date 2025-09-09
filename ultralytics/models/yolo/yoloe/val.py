@@ -98,13 +98,6 @@ class YOLOEDetectValidator(DetectionValidator):
         visual_pe[cls_visual_num == 0] = 0
         return visual_pe.unsqueeze(0)
 
-    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
-        """Preprocess batch data, ensuring visuals are on the same device as images."""
-        batch = super().preprocess(batch)
-        if "visuals" in batch:
-            batch["visuals"] = batch["visuals"].to(batch["img"].device, non_blocking=True)
-        return batch
-
     def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
         """
         Create a dataloader for LVIS training visual prompt samples.

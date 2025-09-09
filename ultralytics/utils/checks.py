@@ -452,6 +452,8 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.9": ["0.24"],
+        "2.8": ["0.23"],
         "2.7": ["0.22"],
         "2.6": ["0.21"],
         "2.5": ["0.20"],

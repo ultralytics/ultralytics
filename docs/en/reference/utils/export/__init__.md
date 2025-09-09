@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: Learn how to export PyTorch models to ONNX, TensorRT and Sony IMX formats using Ultralytics utilities. Comprehensive guide for configurations, dynamic shapes, and precision optimizations.
+keywords: Ultralytics, YOLO, export, ONNX, TensorRT, Sony IMX, PyTorch, model conversion, dynamic shapes, FP16, INT8, machine learning
 ---
 
 # Reference for `ultralytics/utils/export/__init__.py`

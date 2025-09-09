@@ -170,9 +170,8 @@ def export_imx(
         prefix (str, optional): Logging prefix string. Defaults to "".
 
     Returns:
-        tuple: A tuple containing:
-            - Path: Path to the exported IMX model directory
-            - None: Placeholder for consistency with other export functions
+        f (Path): Path to the exported IMX model directory
+        None: Placeholder for consistency with other export functions
 
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.

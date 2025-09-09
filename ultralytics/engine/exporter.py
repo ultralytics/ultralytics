@@ -106,8 +106,7 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
-from ultralytics.utils.export import export_engine, export_onnx
-from ultralytics.utils.imx import export_imx  # TODO
+from ultralytics.utils.export import export_engine, export_onnx, export_imx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -409,7 +408,7 @@ class Exporter:
         model = model.fuse()
 
         if imx:
-            from ultralytics.utils.imx import FXModel
+            from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
         for m in model.modules():

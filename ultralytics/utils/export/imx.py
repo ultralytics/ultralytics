@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .torch_utils import copy_attr
+from ultralytics.utils.torch_utils import copy_attr
 from ultralytics.nn.modules import Detect, Pose
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import make_anchors

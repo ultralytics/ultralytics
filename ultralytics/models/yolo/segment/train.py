@@ -41,7 +41,6 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides["task"] = "segment"
         super().__init__(cfg, overrides, _callbacks)
-        self.dynamic_tensors = ["batch_idx", "cls", "bboxes", "masks"]
 
     def get_model(self, cfg: dict | str | None = None, weights: str | Path | None = None, verbose: bool = True):
         """

@@ -119,6 +119,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (list, optional): List of callback functions.
         """
+        self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
@@ -169,9 +170,6 @@ class BaseTrainer:
         self.loss_names = ["Loss"]
         self.csv = self.save_dir / "results.csv"
         self.plot_idx = [0, 1, 2]
-
-        # HUB
-        self.hub_session = None
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -414,8 +412,9 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    metadata = {k: batch.pop(k, None) for k in ["im_file", "ori_shape", "resized_shape"]}
-                    loss, self.loss_items = self.model(batch)
+                    # decouple inference and loss calculations for torch.compile convenience
+                    preds = self.model(batch["img"])
+                    loss, self.loss_items = self.model.loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size
@@ -456,7 +455,6 @@ class BaseTrainer:
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
-                        batch = {**batch, **metadata}
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")

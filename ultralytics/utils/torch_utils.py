@@ -1012,7 +1012,7 @@ def attempt_compile(
     imgsz: int = 640,
     use_autocast: bool = False,
     warmup: bool = False,
-    mode: str = "max-autotune",
+    mode: bool | str = "max-autotune",
     prefix: str = colorstr("compile:"),
 ) -> torch.nn.Module:
     """
@@ -1028,7 +1028,7 @@ def attempt_compile(
         imgsz (int, optional): Square input size to create a dummy tensor with shape (1, 3, imgsz, imgsz) for warmup.
         use_autocast (bool, optional): Whether to run warmup under autocast on CUDA or MPS devices.
         warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
-        mode (str, optional): Compilation mode passed to torch.compile.
+        mode (bool | str, optional): Compilation mode passed to torch.compile.
         prefix (str, optional): Message prefix for logger output.
 
     Returns:

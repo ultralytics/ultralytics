@@ -37,7 +37,7 @@ fraction: 1.0 # (float) dataset fraction to train on (default is 1.0, all images
 profile: False # (bool) profile ONNX and TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
-compile: False # (bool | str) Run torch.compile() on the model before train/val/predict
+compile: False # (bool | str) Enable torch.compile() with backend='inductor'. True → "default", False → disable, or str mode
 # Segmentation
 overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)

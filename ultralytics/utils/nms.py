@@ -192,6 +192,7 @@ class TorchNMS:
         iou_threshold: float,
         use_triu: bool = True,
         iou_func=box_iou,
+        exit_early: bool = True,
     ) -> torch.Tensor:
         """
         Fast-NMS implementation from https://arxiv.org/pdf/1904.02689 using upper triangular matrix operations.
@@ -202,6 +203,7 @@ class TorchNMS:
             iou_threshold (float): IoU threshold for suppression.
             use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
             iou_func (callable): Function to compute IoU between boxes.
+            exit_early (bool): Whether to exit early if there are no boxes.
 
         Returns:
             (torch.Tensor): Indices of boxes to keep after NMS.
@@ -212,7 +214,7 @@ class TorchNMS:
             >>> scores = torch.tensor([0.9, 0.8])
             >>> keep = TorchNMS.nms(boxes, scores, 0.5)
         """
-        if boxes.numel() == 0:
+        if boxes.numel() == 0 and exit_early:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
 
         sorted_idx = torch.argsort(scores, descending=True)

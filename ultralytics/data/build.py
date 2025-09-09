@@ -217,7 +217,7 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
-        drop_last=drop_last,
+        drop_last=drop_last and len(dataset) % batch != 0,
     )
 
 

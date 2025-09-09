@@ -327,6 +327,7 @@ nav:
           - OpenImagesV7: datasets/detect/open-images-v7.md
           - SKU-110K: datasets/detect/sku-110k.md
           - HomeObjects-3K: datasets/detect/homeobjects-3k.md
+          - Construction-PPE: datasets/detect/construction-ppe.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
@@ -339,6 +340,7 @@ nav:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
           - COCO8-seg: datasets/segment/coco8-seg.md
+          - COCO128-seg: datasets/segment/coco128-seg.md
           - Crack-seg: datasets/segment/crack-seg.md
           - Carparts-seg: datasets/segment/carparts-seg.md
           - Package-seg: datasets/segment/package-seg.md

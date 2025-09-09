@@ -31,10 +31,10 @@ on:
         type: boolean
         description: Dockerfile-jetson-jetpack6
         default: true
-      Dockerfile-jetson-jetpack5:
-        type: boolean
-        description: Dockerfile-jetson-jetpack5
-        default: true
+      # Dockerfile-jetson-jetpack5:
+      #   type: boolean
+      #   description: Dockerfile-jetson-jetpack5
+      #   default: true
       Dockerfile-jetson-jetpack4:
         type: boolean
         description: Dockerfile-jetson-jetpack4
@@ -78,11 +78,11 @@ jobs:
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""
-          - dockerfile: "Dockerfile-jetson-jetpack5"
-            tags: "latest-jetson-jetpack5"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
-            derivatives: ""
+          # - dockerfile: "Dockerfile-jetson-jetpack5"
+          #   tags: "latest-jetson-jetpack5"
+          #   platforms: "linux/arm64"
+          #   runs_on: "ubuntu-24.04-arm"
+          #   derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"

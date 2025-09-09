@@ -273,7 +273,7 @@ class Tuner:
         self,
         parent: str = "single",
         n: int = 10,
-        mutation: float = 0.8,
+        mutation: float = 0.5,
         sigma: float = 0.2,
     ) -> dict[str, float]:
         """
@@ -320,8 +320,10 @@ class Tuner:
             g = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
             ng = len(self.space)
             v = np.ones(ng)
-            while all(v == 1):  # mutate until a change occurs (prevent duplicates)
-                v = (g * (r.random(ng) < mutation) * r.randn(ng) * r.random() * sigma + 1).clip(0.3, 3.0)
+            while np.all(v == 1):  # mutate until a change occurs (prevent duplicates)
+                mask = r.random(ng) < mutation
+                step = r.randn(ng) * (sigma * g)
+                v = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
             hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(self.space.keys())}
         else:
             hyp = {k: getattr(self.args, k) for k in self.space.keys()}
@@ -367,8 +369,12 @@ class Tuner:
             start = x.shape[0]
             LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
         for i in range(start, iterations):
+            # Linearly decay sigma from 0.2 → 0.1 over first 300 iterations
+            frac = min(i / 300.0, 1.0)
+            sigma_i = 0.2 - 0.1 * frac
+
             # Mutate hyperparameters
-            mutated_hyp = self._mutate()
+            mutated_hyp = self._mutate(sigma=sigma_i)
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")
 
             metrics = {}

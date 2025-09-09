@@ -64,7 +64,6 @@ class DetectionTrainer(BaseTrainer):
             _callbacks (list, optional): List of callback functions to be executed during training.
         """
         super().__init__(cfg, overrides, _callbacks)
-        self.dynamic_tensors = ["batch_idx", "cls", "bboxes"]
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """
@@ -138,10 +137,6 @@ class DetectionTrainer(BaseTrainer):
                 ]  # new shape (stretched to gs-multiple)
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
             batch["img"] = imgs
-
-        if self.args.compile:
-            for k in self.dynamic_tensors:
-                torch._dynamo.maybe_mark_dynamic(batch[k], 0)
         return batch
 
     def set_model_attributes(self):

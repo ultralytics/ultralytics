@@ -81,6 +81,55 @@ def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
     return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
 
 
+class NMSWrapper(torch.nn.Module):
+    """Wrap PyTorch Module with multiclass_nms layer from sony_custom_layers."""
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        score_threshold: float = 0.001,
+        iou_threshold: float = 0.7,
+        max_detections: int = 300,
+        task: str = "detect",
+    ):
+        """
+        Initialize NMSWrapper with PyTorch Module and NMS parameters.
+
+        Args:
+            model (torch.nn.Module): Model instance.
+            score_threshold (float): Score threshold for non-maximum suppression.
+            iou_threshold (float): Intersection over union threshold for non-maximum suppression.
+            max_detections (int): The number of detections to return.
+            task (str): Task type, either 'detect' or 'pose'.
+        """
+        super().__init__()
+        self.model = model
+        self.score_threshold = score_threshold
+        self.iou_threshold = iou_threshold
+        self.max_detections = max_detections
+        self.task = task
+
+    def forward(self, images):
+        """Forward pass with model inference and NMS post-processing."""
+        # model inference
+        from sony_custom_layers.pytorch import multiclass_nms_with_indices
+
+        outputs = self.model(images)
+        boxes, scores = outputs[0], outputs[1]
+        nms_outputs = multiclass_nms_with_indices(
+            boxes=boxes,
+            scores=scores,
+            score_threshold=self.score_threshold,
+            iou_threshold=self.iou_threshold,
+            max_detections=self.max_detections,
+        )
+        if self.task == "pose":
+            kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
+            out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
+            return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
+        return nms_outputs
+
+
 def export_imx(
     model: torch.nn.Module,
     file: Path | str,
@@ -132,7 +181,6 @@ def export_imx(
     import model_compression_toolkit as mct
     import onnx
     from edgemdt_tpc import get_target_platform_capabilities
-    from sony_custom_layers.pytorch import multiclass_nms_with_indices
 
     LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
@@ -199,53 +247,6 @@ def export_imx(
             target_platform_capabilities=tpc,
         )[0]
     )
-
-    class NMSWrapper(torch.nn.Module):
-        """Wrap PyTorch Module with multiclass_nms layer from sony_custom_layers."""
-
-        def __init__(
-            self,
-            model: torch.nn.Module,
-            score_threshold: float = 0.001,
-            iou_threshold: float = 0.7,
-            max_detections: int = 300,
-            task: str = "detect",
-        ):
-            """
-            Initialize NMSWrapper with PyTorch Module and NMS parameters.
-
-            Args:
-                model (torch.nn.Module): Model instance.
-                score_threshold (float): Score threshold for non-maximum suppression.
-                iou_threshold (float): Intersection over union threshold for non-maximum suppression.
-                max_detections (int): The number of detections to return.
-                task (str): Task type, either 'detect' or 'pose'.
-            """
-            super().__init__()
-            self.model = model
-            self.score_threshold = score_threshold
-            self.iou_threshold = iou_threshold
-            self.max_detections = max_detections
-            self.task = task
-
-        def forward(self, images):
-            """Forward pass with model inference and NMS post-processing."""
-            # model inference
-            outputs = model(images)
-
-            boxes, scores = outputs[0], outputs[1]
-            nms_outputs = multiclass_nms_with_indices(
-                boxes=boxes,
-                scores=scores,
-                score_threshold=self.score_threshold,
-                iou_threshold=self.iou_threshold,
-                max_detections=self.max_detections,
-            )
-            if self.task == "pose":
-                kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
-                out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
-                return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
-            return nms_outputs
 
     quant_model = NMSWrapper(
         model=quant_model,

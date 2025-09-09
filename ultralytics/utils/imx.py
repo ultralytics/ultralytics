@@ -92,7 +92,43 @@ def export_imx(
     dataset=None,
     prefix: str = "",
 ):
-    """Export YOLO model to IMX format."""
+    """
+    Export YOLO model to IMX format for deployment on Sony IMX500 devices.
+
+    This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it
+    to IMX format compatible with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n
+    models for detection and pose estimation tasks.
+
+    Args:
+        model (torch.nn.Module): The YOLO model to export. Must be YOLOv8n or YOLO11n.
+        file (Path | str): Output file path for the exported model.
+        conf (float): Confidence threshold for NMS post-processing.
+        iou (float): IoU threshold for NMS post-processing.
+        max_det (int): Maximum number of detections to return.
+        metadata (dict | None, optional): Metadata to embed in the ONNX model. Defaults to None.
+        gptq (bool, optional): Whether to use Gradient-Based Post Training Quantization.
+            If False, uses standard Post Training Quantization. Defaults to False.
+        dataset (optional): Representative dataset for quantization calibration. Defaults to None.
+        prefix (str, optional): Logging prefix string. Defaults to "".
+
+    Returns:
+        tuple: A tuple containing:
+            - Path: Path to the exported IMX model directory
+            - None: Placeholder for consistency with other export functions
+
+    Raises:
+        ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.
+
+    Example:
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo11n.pt")
+        >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
+
+    Note:
+        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and sony_custom_layers packages
+        - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
+        - Output includes quantized ONNX model, IMX binary, and labels.txt file
+    """
     import model_compression_toolkit as mct
     import onnx
     from edgemdt_tpc import get_target_platform_capabilities
@@ -186,7 +222,7 @@ def export_imx(
                 task (str): Task type, either 'detect' or 'pose'.
             """
             super().__init__()
-            model = model
+            self.model = model
             self.score_threshold = score_threshold
             self.iou_threshold = iou_threshold
             self.max_detections = max_detections

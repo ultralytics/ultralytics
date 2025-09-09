@@ -412,8 +412,9 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    metadata = {k: batch.pop(k, None) for k in ["im_file", "ori_shape", "resized_shape"]}
-                    loss, self.loss_items = self.model(batch)
+                    # decouple inference and loss calculations for torch.compile convenience
+                    preds = self.model(batch["img"])
+                    loss, self.loss_items = self.model.loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size
@@ -454,7 +455,6 @@ class BaseTrainer:
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
-                        batch = {**batch, **metadata}
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")

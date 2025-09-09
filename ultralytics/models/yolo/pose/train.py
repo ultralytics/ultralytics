@@ -57,7 +57,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides["task"] = "pose"
         super().__init__(cfg, overrides, _callbacks)
-        self.dynamic_tensors = ["batch_idx", "cls", "bboxes", "keypoints"]
 
         if isinstance(self.args.device, str) and self.args.device.lower() == "mps":
             LOGGER.warning(

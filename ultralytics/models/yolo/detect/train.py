@@ -107,7 +107,7 @@ class DetectionTrainer(BaseTrainer):
             workers=self.args.workers if mode == "train" else self.args.workers * 2,
             shuffle=shuffle,
             rank=rank,
-            drop_last=self.args.compile is not None and mode == "train",
+            drop_last=self.args.compile and mode == "train",
         )
 
     def preprocess_batch(self, batch: dict) -> dict:

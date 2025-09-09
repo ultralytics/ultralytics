@@ -145,9 +145,7 @@ class ClassificationTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
-        loader = build_dataloader(
-            dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile is not None
-        )
+        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):

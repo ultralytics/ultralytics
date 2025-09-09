@@ -1,7 +1,9 @@
 from .torch_utils import copy_attr
 from ultralytics.nn.modules import Detect
+from ultralytics.utils.tal import make_anchors
 import torch.nn as nn
 import torch
+import types
 
 
 class FXModel(nn.Module):
@@ -47,7 +49,14 @@ class FXModel(nn.Module):
                 # from earlier layers
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
             if isinstance(m, Detect):
-                m.inference = _inference.__get__(m)  # bind method to Detect
+                m.inference = types.MethodType(_inference, m)  # bind method to Detect
+                m.anchors, m.strides = (
+                    x.transpose(0, 1)
+                    for x in make_anchors(
+                        torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
+                    )
+                )
+
             x = m(x)  # run
             y.append(x)  # save output
         return x

@@ -80,15 +80,15 @@ show_boxes: True # (bool) draw bounding boxes on images
 line_width: # (int, optional) line width of boxes; auto-scales with image size if not set
 
 # Export settings ------------------------------------------------------------------------------------------------------
-format: torchscript # (str) export format; see docs for full list, e.g. torchscript, onnx, engine, coreml, openvino, tflite
-keras: False # (bool) export Keras SavedModel (TensorFlow)
-optimize: False # (bool) TorchScript: enable mobile optimizations
-int8: False # (bool) INT8 quantization where supported (CoreML/TF)
-dynamic: False # (bool) dynamic input shapes for ONNX/TF/TensorRT
-simplify: True # (bool) simplify ONNX with onnxslim for cleaner graphs
-opset: # (int, optional) ONNX opset version; leave unset for a tested default
-workspace: # (float, optional) TensorRT workspace size (GiB); None lets TRT choose
-nms: False # (bool) add NMS in exported model if supported (CoreML)
+format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn; imx only for YOLOv8n/yolo11n
+keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
+optimize: False # (bool) TorchScript only; apply mobile optimizations to the scripted model
+int8: False # (bool) INT8/PTQ where supported (openvino, tflite, tfjs, engine, imx); needs calibration data/fraction
+dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine; enable variable image sizes
+simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX before runtime conversion
+opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default
+workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
+nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou (+agnostic_nms except coreml) apply
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)

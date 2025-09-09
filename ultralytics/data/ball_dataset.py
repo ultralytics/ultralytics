@@ -39,29 +39,24 @@ class TennisBallTransform:
         """Initialize the transform."""
         pass
     
-    def __call__(self, img: np.ndarray) -> torch.Tensor:
+    def __call__(self, img: np.ndarray) -> np.ndarray:
         """
-        Transform a 4-channel image to torch tensor.
+        Transform a 4-channel image to properly formatted numpy array.
         
         Args:
             img: 4-channel image as numpy array (H, W, 4)
             
         Returns:
-            Transformed image as torch tensor (4, H, W)
+            Transformed image as numpy array (H, W, 4)
         """
-        # Ensure image is contiguous
+        # Ensure image is contiguous and in correct format
         img = np.ascontiguousarray(img)
         
-        # Convert to torch tensor
-        img = torch.from_numpy(img)
-        
-        # Transpose from (H, W, C) to (C, H, W)
-        if img.dim() == 3:
-            img = img.permute(2, 0, 1)
-        
-        # Convert to float32 and normalize to [0, 1]
-        if img.dtype == torch.uint8:
-            img = img.float() / 255.0
+        # Ensure float32 and normalize to [0, 1] if needed
+        if img.dtype == np.uint8:
+            img = img.astype(np.float32) / 255.0
+        elif img.dtype != np.float32:
+            img = img.astype(np.float32)
         
         return img
 
@@ -79,6 +74,7 @@ class TennisBallDataset(YOLODataset):
     """
     Dataset class for tennis ball tracking with 4-channel input (RGB + motion mask).
     
+    Handles multiple games and clips with proper sequential frame loading for motion detection.
     Extends YOLODataset to support motion mask generation and 4-channel input
     for enhanced tennis ball tracking using YOLO11Pose adaptation.
 
@@ -89,8 +85,11 @@ class TennisBallDataset(YOLODataset):
         motion_cache_dir (Optional[Path]): Directory for caching motion masks
         frame_window_size (int): Number of frames to use for motion detection
         precompute_motion (bool): Whether to pre-compute motion masks
+        clip_frame_map (Dict): Mapping from frame paths to their clip sequences
+        game_clips (Dict): Organized structure of games and clips
 
     Methods:
+        build_clip_structure: Build organized structure of games, clips and frames
         load_motion_mask: Load or generate motion mask for a frame sequence
         get_4channel_input: Get 4-channel input (RGB + motion mask)
         cache_motion_masks: Pre-compute and cache motion masks
@@ -99,7 +98,7 @@ class TennisBallDataset(YOLODataset):
     Examples:
         >>> from ultralytics.data.ball_dataset import TennisBallDataset
         >>> dataset = TennisBallDataset(
-        ...     img_path="Dataset/game1/Clip1",
+        ...     img_path="Dataset",  # Now points to root Dataset directory
         ...     data={"names": {0: "tennis_ball"}, "kpt_shape": [1, 3]},
         ...     task="pose",
         ...     motion_config=MotionConfig(pixel_threshold=15)
@@ -163,14 +162,19 @@ class TennisBallDataset(YOLODataset):
         if data is None:
             data = {}
         
+        # Initialize clip structure mappings
+        self.clip_frame_map = {}
+        self.game_clips = {}
+        
         # Initialize parent class
         LOGGER.info(f"{colorstr('TennisBallDataset')}: Initializing with motion_masks={self.use_motion_masks}")
         super().__init__(*args, data=data, task=task, **kwargs)
         
+        # Build clip structure after parent initialization
+        self.build_clip_structure()
+        
         # Check if transforms were set up
         LOGGER.info(f"{colorstr('TennisBallDataset')}: Transforms type: {type(self.transforms)}")
-        
-        # Note: We handle 4-channel input in load_image() method using TennisBallTransform
         
         # Store dataset path
         self.dataset_path = dataset_path
@@ -186,6 +190,77 @@ class TennisBallDataset(YOLODataset):
         # Pre-compute motion masks if requested
         if self.precompute_motion and self.use_motion_masks:
             self.cache_motion_masks()
+
+    def build_clip_structure(self):
+        """
+        Build organized structure of games, clips and frames for proper motion mask generation.
+        
+        This creates a mapping that allows us to find the sequential frames within each clip
+        for proper motion mask generation.
+        """
+        LOGGER.info(f"{colorstr('TennisBallDataset')}: Building clip structure for motion detection...")
+        
+        # Group image files by their clip directories
+        for img_path in self.im_files:
+            img_path = Path(img_path)
+            
+            # Extract game and clip info from path structure
+            # Expected structure: .../Dataset/gameX/ClipY/frame.jpg or .../Dataset_YOLO/images/train|val/gameX_ClipY_frame.jpg
+            if "Dataset_YOLO" in str(img_path):
+                # Handle converted YOLO format: gameX_ClipY_frame.jpg
+                parts = img_path.stem.split('_')
+                if len(parts) >= 3:
+                    game = parts[0]  # gameX
+                    clip = parts[1]  # ClipY
+                    frame = '_'.join(parts[2:])  # frame number
+                    
+                    clip_key = f"{game}_{clip}"
+                    if clip_key not in self.game_clips:
+                        self.game_clips[clip_key] = []
+                    
+                    self.game_clips[clip_key].append(img_path)
+                    self.clip_frame_map[str(img_path)] = {
+                        'game': game,
+                        'clip': clip,
+                        'frame': frame,
+                        'clip_key': clip_key
+                    }
+            else:
+                # Handle original Dataset format: Dataset/gameX/ClipY/frame.jpg
+                path_parts = img_path.parts
+                if len(path_parts) >= 3:
+                    # Find Dataset, game, and clip in path
+                    try:
+                        dataset_idx = next(i for i, part in enumerate(path_parts) if 'dataset' in part.lower())
+                        if dataset_idx + 2 < len(path_parts):
+                            game = path_parts[dataset_idx + 1]  # gameX
+                            clip = path_parts[dataset_idx + 2]  # ClipY
+                            
+                            clip_key = f"{game}_{clip}"
+                            if clip_key not in self.game_clips:
+                                self.game_clips[clip_key] = []
+                            
+                            self.game_clips[clip_key].append(img_path)
+                            self.clip_frame_map[str(img_path)] = {
+                                'game': game,
+                                'clip': clip,
+                                'frame': img_path.stem,
+                                'clip_key': clip_key
+                            }
+                    except (StopIteration, IndexError):
+                        LOGGER.warning(f"Could not parse path structure for: {img_path}")
+        
+        # Sort frames within each clip for proper sequential order
+        for clip_key in self.game_clips:
+            self.game_clips[clip_key].sort(key=lambda x: x.stem)
+        
+        total_clips = len(self.game_clips)
+        total_frames = sum(len(frames) for frames in self.game_clips.values())
+        LOGGER.info(f"{colorstr('TennisBallDataset')}: Found {total_clips} clips with {total_frames} total frames")
+        
+        # Log clip statistics
+        for clip_key, frames in self.game_clips.items():
+            LOGGER.info(f"  {clip_key}: {len(frames)} frames")
     
     def load_motion_mask(
         self, 
@@ -193,10 +268,10 @@ class TennisBallDataset(YOLODataset):
         current_frame_idx: int
     ) -> np.ndarray:
         """
-        Load or generate motion mask for a frame sequence.
+        Load or generate motion mask for a frame sequence within a clip.
 
         Args:
-            frame_paths: List of frame file paths
+            frame_paths: List of frame file paths in sequential order within a clip
             current_frame_idx: Index of current frame in the sequence
 
         Returns:
@@ -210,24 +285,48 @@ class TennisBallDataset(YOLODataset):
         start_idx = max(0, current_frame_idx - self.frame_window_size // 2)
         end_idx = min(len(frame_paths), start_idx + self.frame_window_size)
         
+        # Ensure we have at least 2 frames for motion detection
+        if end_idx - start_idx < 2:
+            # Expand window to get minimum frames
+            if current_frame_idx == 0:
+                # At beginning, use frames ahead
+                end_idx = min(len(frame_paths), 2)
+                start_idx = 0
+            elif current_frame_idx == len(frame_paths) - 1:
+                # At end, use frames behind
+                start_idx = max(0, len(frame_paths) - 2)
+                end_idx = len(frame_paths)
+            else:
+                # In middle, ensure we have at least 2 frames
+                start_idx = max(0, current_frame_idx - 1)
+                end_idx = min(len(frame_paths), current_frame_idx + 2)
+        
         # Load frame sequence
         frames = []
+        valid_indices = []
         for i in range(start_idx, end_idx):
             if i < len(frame_paths) and frame_paths[i].exists():
                 try:
                     img = Image.open(frame_paths[i])
                     frames.append(np.array(img))
+                    valid_indices.append(i)
                 except Exception as e:
                     LOGGER.warning(f"Failed to load frame {frame_paths[i]}: {e}")
                     continue
         
         if len(frames) < 2:
             # Not enough frames for motion detection
+            LOGGER.warning(f"Only {len(frames)} frames available for motion detection in clip")
             return np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
         
-        # Generate motion mask
-        cache_key = f"{frame_paths[current_frame_idx].stem}_motion"
-        motion_mask = self.motion_generator.generate_enhanced(frames, cache_key)
+        # Generate motion mask using frame sequence
+        try:
+            current_frame_path = frame_paths[current_frame_idx]
+            cache_key = f"{current_frame_path.parent.name}_{current_frame_path.stem}_motion"
+            motion_mask = self.motion_generator.generate_enhanced(frames, cache_key)
+        except Exception as e:
+            LOGGER.warning(f"Failed to generate motion mask for {frame_paths[current_frame_idx]}: {e}")
+            return np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
         
         # Resize motion mask to match target image size
         if motion_mask.shape != (self.imgsz, self.imgsz):
@@ -267,32 +366,26 @@ class TennisBallDataset(YOLODataset):
         return four_channel
     
     def cache_motion_masks(self) -> None:
-        """Pre-compute and cache motion masks for all frames."""
+        """Pre-compute and cache motion masks for all frames organized by clips."""
         if not self.use_motion_masks or not self.motion_cache_dir:
             return
         
-        LOGGER.info(f"{colorstr('TennisBallDataset')}: Pre-computing motion masks...")
+        LOGGER.info(f"{colorstr('TennisBallDataset')}: Pre-computing motion masks for all clips...")
         
-        # Group frames by clip
-        clip_frames = {}
-        for img_path in self.im_files:
-            clip_dir = img_path.parent
-            if clip_dir not in clip_frames:
-                clip_frames[clip_dir] = []
-            clip_frames[clip_dir].append(img_path)
-        
-        # Process each clip
-        for clip_dir, frame_paths in clip_frames.items():
-            frame_paths.sort()  # Ensure chronological order
+        # Use the organized clip structure for caching
+        total_cached = 0
+        for clip_key, frame_paths in self.game_clips.items():
+            LOGGER.info(f"Caching motion masks for {clip_key} ({len(frame_paths)} frames)...")
             
             for i, frame_path in enumerate(frame_paths):
                 try:
                     motion_mask = self.load_motion_mask(frame_paths, i)
+                    total_cached += 1
                     # Cache is handled by motion_generator.generate_enhanced()
                 except Exception as e:
                     LOGGER.warning(f"Failed to cache motion mask for {frame_path}: {e}")
         
-        LOGGER.info(f"{colorstr('TennisBallDataset')}: Motion mask caching completed")
+        LOGGER.info(f"{colorstr('TennisBallDataset')}: Motion mask caching completed for {total_cached} frames")
     
     def get_labels(self) -> List[Dict[str, Any]]:
         """
@@ -303,58 +396,60 @@ class TennisBallDataset(YOLODataset):
         """
         labels = super().get_labels()
         
+        # Don't load motion masks during initialization for performance
+        # They will be loaded on-demand during __getitem__
         if not self.use_motion_masks:
             return labels
         
-        # Add motion mask information to labels
-        for i, label in enumerate(labels):
-            im_file = Path(label["im_file"])
+        # Just mark that motion masks will be available
+        for label in labels:
+            label["motion_mask"] = None  # Will be loaded on demand
+            label["has_motion"] = True   # Assume motion exists, will be calculated on demand
+        
+        return labels
+    
+    def load_image(self, i: int, rect_mode: bool = True) -> Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]]:
+        """
+        Load image and motion mask.
+
+        Args:
+            i: Image index
+            rect_mode: Whether to use rectangular mode
+
+        Returns:
+            Tuple of (image, ori_shape, resized_shape)
+        """
+        # Load RGB image from parent
+        rgb_image, ori_shape, resized_shape = super().load_image(i, rect_mode)
+        
+        if not self.use_motion_masks:
+            return rgb_image, ori_shape, resized_shape
+        
+        # Get frame info from clip structure
+        im_file_path = str(self.im_files[i])
+        
+        if im_file_path in self.clip_frame_map:
+            # Use clip structure for sequential frame loading
+            clip_info = self.clip_frame_map[im_file_path]
+            clip_key = clip_info['clip_key']
+            clip_frames = self.game_clips[clip_key]
             
-            # Get frame sequence for motion detection
+            try:
+                current_idx = clip_frames.index(Path(im_file_path))
+                motion_mask = self.load_motion_mask(clip_frames, current_idx)
+            except (ValueError, IndexError):
+                motion_mask = np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
+        else:
+            # Fallback to directory-based loading
+            im_file = Path(self.im_files[i])
             clip_dir = im_file.parent
             frame_files = sorted([f for f in clip_dir.glob("*.jpg")])
             
             try:
                 current_idx = frame_files.index(im_file)
                 motion_mask = self.load_motion_mask(frame_files, current_idx)
-                
-                # Add motion mask to label
-                label["motion_mask"] = motion_mask
-                label["has_motion"] = np.sum(motion_mask > 0) > 0
-                
-            except (ValueError, IndexError) as e:
-                LOGGER.warning(f"Failed to load motion mask for {im_file}: {e}")
-                label["motion_mask"] = np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
-                label["has_motion"] = False
-        
-        return labels
-    
-    def load_image(self, i: int) -> Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]]:
-        """
-        Load image and motion mask.
-
-        Args:
-            i: Image index
-
-        Returns:
-            Tuple of (image, ori_shape, resized_shape)
-        """
-        # Load RGB image from parent
-        rgb_image, ori_shape, resized_shape = super().load_image(i)
-        
-        if not self.use_motion_masks:
-            return rgb_image, ori_shape, resized_shape
-        
-        # Load motion mask
-        im_file = Path(self.im_files[i])
-        clip_dir = im_file.parent
-        frame_files = sorted([f for f in clip_dir.glob("*.jpg")])
-        
-        try:
-            current_idx = frame_files.index(im_file)
-            motion_mask = self.load_motion_mask(frame_files, current_idx)
-        except (ValueError, IndexError):
-            motion_mask = np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
+            except (ValueError, IndexError):
+                motion_mask = np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
         
         # Resize motion mask to match RGB image dimensions
         if motion_mask.shape[:2] != rgb_image.shape[:2]:
@@ -364,12 +459,12 @@ class TennisBallDataset(YOLODataset):
         # Combine RGB and motion mask
         combined_image = combine_rgb_motion(rgb_image, motion_mask)
         
-        # Apply our custom transform to convert to proper torch tensor format
+        # Ensure it's numpy array and apply our custom transform
+        if isinstance(combined_image, torch.Tensor):
+            combined_image = combined_image.numpy()
+        
         transform = TennisBallTransform()
         combined_image = transform(combined_image)
-        
-        # Convert back to numpy for compatibility with the rest of the pipeline
-        combined_image = combined_image.numpy().transpose(1, 2, 0)  # CHW to HWC
         
         return combined_image, ori_shape, resized_shape
     

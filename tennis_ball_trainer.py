@@ -86,7 +86,7 @@ class TennisBallTrainer(PoseTrainer):
         Build TennisBallDataset for training or validation.
         
         Args:
-            img_path: Path to the folder containing images
+            img_path: Path to the folder containing images (Dataset_YOLO/images/train or val)
             mode: 'train' or 'val' mode
             batch: Batch size for rectangular training
             
@@ -97,7 +97,7 @@ class TennisBallTrainer(PoseTrainer):
         
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         
-        # Create TennisBallDataset with motion support
+        # Create TennisBallDataset with motion support and multi-clip structure
         dataset = TennisBallDataset(
             img_path=img_path,
             imgsz=self.args.imgsz,
@@ -123,6 +123,10 @@ class TennisBallTrainer(PoseTrainer):
         )
         
         LOGGER.info(f"{colorstr('TennisBallTrainer')}: Built {mode} dataset with {len(dataset)} samples")
+        LOGGER.info(f"  Motion masks: {dataset.use_motion_masks}")
+        LOGGER.info(f"  Clips discovered: {len(dataset.game_clips)}")
+        LOGGER.info(f"  Frame window size: {dataset.frame_window_size}")
+        
         return dataset
     
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
@@ -220,10 +224,13 @@ class TennisBallTrainer(PoseTrainer):
         super().set_model_attributes()
         
         # Set tennis ball specific attributes if model supports them
-        if hasattr(self.model, 'use_motion_masks'):
-            self.model.use_motion_masks = self.use_motion_masks
-        if hasattr(self.model, 'motion_config'):
-            self.model.motion_config = self.motion_config
+        model = getattr(self, 'model', None)
+        if model is not None and hasattr(model, 'model'):
+            actual_model = model.model
+            if hasattr(actual_model, 'use_motion_masks'):
+                actual_model.use_motion_masks = self.use_motion_masks
+            if hasattr(actual_model, 'motion_config'):
+                setattr(actual_model, 'motion_config', self.motion_config)
         
         LOGGER.info(f"{colorstr('TennisBallTrainer')}: Set model attributes for tennis ball tracking")
     
@@ -277,9 +284,9 @@ class TennisBallTrainer(PoseTrainer):
         
         # Set tennis ball specific validation attributes if supported
         if hasattr(validator, 'use_motion_masks'):
-            validator.use_motion_masks = self.use_motion_masks
+            setattr(validator, 'use_motion_masks', self.use_motion_masks)
         if hasattr(validator, 'motion_config'):
-            validator.motion_config = self.motion_config
+            setattr(validator, 'motion_config', self.motion_config)
         
         return validator
 

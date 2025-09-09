@@ -289,6 +289,7 @@ class TorchNMS:
 
             # Early exit: skip IoU calculation if no intersection
             if inter.sum() == 0:
+                # No overlaps with current box, keep all remaining boxes
                 order = rest
                 continue
 

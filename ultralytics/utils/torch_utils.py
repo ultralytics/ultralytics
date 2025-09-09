@@ -1012,7 +1012,7 @@ def attempt_compile(
     imgsz: int = 640,
     use_autocast: bool = False,
     warmup: bool = False,
-    mode: bool | str = "default"
+    mode: bool | str = "default",
 ) -> torch.nn.Module:
     """
     Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.

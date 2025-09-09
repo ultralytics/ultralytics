@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from .torch_utils import copy_attr
-from ultralytics.nn.modules import Detect
+from ultralytics.nn.modules import Detect, Pose
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import make_anchors
 from pathlib import Path
@@ -60,25 +62,28 @@ class FXModel(torch.nn.Module):
                         torch.cat([s / m.stride.unsqueeze(-1) for s in self.imgsz], dim=1), m.stride, 0.5
                     )
                 )
+            if type(m) == Pose:
+                m.forward = types.MethodType(pose_forward, m)  # bind method to Detect
             x = m(x)  # run
             y.append(x)  # save output
         return x
 
 
-def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
-    """
-    Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
-
-    Args:
-        x (list[torch.Tensor]): List of feature maps from different detection layers.
-
-    Returns:
-        (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
-    """
+def _inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:
+    """Decode boxes and cls scores for imx object detection."""
     x_cat = torch.cat([xi.view(x[0].shape[0], self.no, -1) for xi in x], 2)
     box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
     dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
     return dbox.transpose(1, 2), cls.sigmoid().permute(0, 2, 1)
+
+
+def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Forward pass for imx pose estimation, including keypoint decoding."""
+    bs = x[0].shape[0]  # batch size
+    kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+    x = Detect.forward(self, x)
+    pred_kpt = self.kpts_decode(bs, kpt)
+    return (*x, pred_kpt.permute(0, 2, 1))
 
 
 class NMSWrapper(torch.nn.Module):
@@ -111,9 +116,9 @@ class NMSWrapper(torch.nn.Module):
 
     def forward(self, images):
         """Forward pass with model inference and NMS post-processing."""
-        # model inference
         from sony_custom_layers.pytorch import multiclass_nms_with_indices
 
+        # model inference
         outputs = self.model(images)
         boxes, scores = outputs[0], outputs[1]
         nms_outputs = multiclass_nms_with_indices(

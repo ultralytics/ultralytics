@@ -411,7 +411,7 @@ class Exporter:
         if imx:
             from ultralytics.utils.imx import FXModel
 
-            model = FXModel(model)
+            model = FXModel(model, self.imgsz)
         for m in model.modules():
             if isinstance(m, Classify):
                 m.export = True

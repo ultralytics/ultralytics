@@ -1034,6 +1034,7 @@ def attempt_compile(
     imgsz: int = 640,
     use_autocast: bool = False,
     warmup: bool = False,
+    mode: str = "max-autotune",
     prefix: str = colorstr("compile:"),
 ) -> torch.nn.Module:
     """
@@ -1049,6 +1050,7 @@ def attempt_compile(
         imgsz (int, optional): Square input size to create a dummy tensor with shape (1, 3, imgsz, imgsz) for warmup.
         use_autocast (bool, optional): Whether to run warmup under autocast on CUDA or MPS devices.
         warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
+        mode (str, optional): Compilation mode passed to torch.compile.
         prefix (str, optional): Message prefix for logger output.
 
     Returns:
@@ -1064,13 +1066,15 @@ def attempt_compile(
         >>> # Try to compile and warm up a model with a 640x640 input
         >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
     """
-    if not hasattr(torch, "compile"):
+    if not hasattr(torch, "compile") or mode is None:
         return model
 
     LOGGER.info(f"{prefix} starting torch.compile...")
     t0 = time.perf_counter()
+    if mode is True:
+        mode = "max-autotune"
     try:
-        model = torch.compile(model, mode="max-autotune", backend="inductor")
+        model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

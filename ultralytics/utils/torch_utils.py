@@ -1012,8 +1012,7 @@ def attempt_compile(
     imgsz: int = 640,
     use_autocast: bool = False,
     warmup: bool = False,
-    mode: bool | str = "max-autotune",
-    prefix: str = colorstr("compile:"),
+    mode: bool | str = "default"
 ) -> torch.nn.Module:
     """
     Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
@@ -1028,8 +1027,8 @@ def attempt_compile(
         imgsz (int, optional): Square input size to create a dummy tensor with shape (1, 3, imgsz, imgsz) for warmup.
         use_autocast (bool, optional): Whether to run warmup under autocast on CUDA or MPS devices.
         warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
-        mode (bool | str, optional): Compilation mode passed to torch.compile.
-        prefix (str, optional): Message prefix for logger output.
+        mode (bool | str, optional): torch.compile mode. True → "default", False → no compile, or a string like
+            "default", "reduce-overhead", "max-autotune".
 
     Returns:
         model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
@@ -1049,6 +1048,7 @@ def attempt_compile(
 
     if mode is True:
         mode = "default"
+    prefix = colorstr("compile:")
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

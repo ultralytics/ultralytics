@@ -174,4 +174,10 @@ pnnx*
 
 # calibration image
 calibration_*.npy
-Dataset/Dataset_YOLO/
+Dataset/
+Dataset_YOLO/
+motion_training/
+*.png
+*.jpg
+motion_cache/
+tennis_ball_training/

@@ -1,0 +1,82 @@
+# Tennis Ball Training Configuration
+# Use this config file with: yolo train cfg=tennis_ball_config.yaml
+
+# Model configuration
+model: ultralytics/cfg/models/11/yolo11-tennis-pose.yaml  # Custom 4-channel tennis ball pose model
+task: pose
+
+# Pretrained weights (will be adapted for 4-channel input)
+# Uncomment one of these lines to use pretrained pose weights:
+# pretrained: yolo11n-pose.pt    # Nano pose model
+# pretrained: yolo11s-pose.pt    # Small pose model  
+# pretrained: yolo11m-pose.pt    # Medium pose model
+# pretrained: yolo11l-pose.pt    # Large pose model
+# pretrained: yolo11x-pose.pt    # Extra Large pose model
+
+# Dataset configuration  
+data: Dataset_YOLO/data.yaml  # Tennis ball dataset in YOLO format
+
+# Training parameters
+epochs: 100
+batch: 16
+imgsz: 640
+lr0: 0.01
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+
+# Device and optimization
+device: 0  # Use GPU 0, or 'cpu' for CPU training
+workers: 8
+patience: 50
+save_period: 10
+
+# Augmentation parameters for tennis ball
+hsv_h: 0.015      # Image HSV-Hue augmentation (fraction)
+hsv_s: 0.7        # Image HSV-Saturation augmentation (fraction)  
+hsv_v: 0.4        # Image HSV-Value augmentation (fraction)
+degrees: 0.0      # Image rotation (+/- deg)
+translate: 0.1    # Image translation (+/- fraction)
+scale: 0.5        # Image scale (+/- gain)
+shear: 0.0        # Image shear (+/- deg)
+perspective: 0.0  # Image perspective (+/- fraction), range 0-0.001
+flipud: 0.0       # Image flip up-down (probability)
+fliplr: 0.5       # Image flip left-right (probability)
+bgr: 0.0          # Image channel BGR (probability)
+mosaic: 1.0       # Image mosaic (probability)
+mixup: 0.0        # Image mixup (probability)
+copy_paste: 0.0   # Segment copy-paste (probability)
+
+# Loss weights for tennis ball pose
+box: 7.5          # Box loss gain
+cls: 0.5          # Class loss gain  
+dfl: 1.5          # Distribution focal loss gain
+pose: 12.0        # Pose loss gain (keypoint loss)
+kobj: 2.0         # Keypoint objectness loss gain
+
+# Validation and saving
+val: True         # Validate/test during training
+save: True        # Save train checkpoints and predict results
+exist_ok: False   # Whether to overwrite existing experiment
+pretrained: True  # Whether to use a pretrained model
+verbose: True     # Whether to print verbose output
+
+# Project organization
+project: tennis_ball_training      # Project name
+name: yolo11_tennis_pose_4channel  # Experiment name
+
+# Custom tennis ball parameters (handled by TennisBallTrainer)
+use_motion_masks: True             # Enable 4-channel input with motion masks
+motion_cache_dir: motion_cache     # Directory for caching motion masks  
+pixel_threshold: 15                # Motion detection threshold
+frame_window_size: 5               # Frames used for motion detection
+precompute_motion: False           # Pre-compute motion masks before training
+
+# Multi-scale training
+multi_scale: False  # Vary img-size +/- 50% (may affect motion mask alignment)
+
+# Advanced options
+amp: True          # Automatic Mixed Precision training
+fraction: 1.0      # Dataset fraction to use
+profile: False     # Profile ONNX and TensorRT speeds during training
+freeze: None       # Freeze layers: backbone=10, first3=0 1 2

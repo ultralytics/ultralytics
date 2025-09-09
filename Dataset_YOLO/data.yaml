@@ -15,3 +15,6 @@ flip_idx: []  # keypoint flip indices (empty for tennis ball)
 # Classes
 names:
   0: tennis_ball
+
+# Input channels (4 for RGB + motion mask, 3 for RGB only)
+channels: 4

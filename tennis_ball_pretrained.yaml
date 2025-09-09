@@ -1,0 +1,74 @@
+# Tennis Ball Training Configuration with Pretrained Pose Weights
+# Use this config file with: yolo train cfg=tennis_ball_pretrained.yaml
+
+# Model configuration
+model: ultralytics/cfg/models/11/yolo11-tennis-pose.yaml  # Custom 4-channel tennis ball pose model
+task: pose
+
+# Pretrained weights (automatically adapted for 4-channel input)
+pretrained: yolo11n-pose.pt    # Nano pose model - will be downloaded if not available
+
+# Dataset configuration  
+data: Dataset_YOLO/data.yaml  # Tennis ball dataset in YOLO format
+
+# Training parameters
+epochs: 100
+batch: 16
+imgsz: 640
+lr0: 0.01
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+
+# Device and optimization
+device: 0  # Use GPU 0, or 'cpu' for CPU training
+workers: 8
+patience: 50
+save_period: 10
+
+# Augmentation parameters for tennis ball
+hsv_h: 0.015      # Image HSV-Hue augmentation (fraction)
+hsv_s: 0.7        # Image HSV-Saturation augmentation (fraction)  
+hsv_v: 0.4        # Image HSV-Value augmentation (fraction)
+degrees: 0.0      # Image rotation (+/- deg)
+translate: 0.1    # Image translation (+/- fraction)
+scale: 0.5        # Image scale (+/- gain)
+shear: 0.0        # Image shear (+/- deg)
+perspective: 0.0  # Image perspective (+/- fraction), range 0-0.001
+flipud: 0.0       # Image flip up-down (probability)
+fliplr: 0.5       # Image flip left-right (probability)
+bgr: 0.0          # Image channel BGR (probability)
+mosaic: 1.0       # Image mosaic (probability)
+mixup: 0.0        # Image mixup (probability)
+copy_paste: 0.0   # Segment copy-paste (probability)
+
+# Loss weights for tennis ball pose (adjusted for pretrained model)
+box: 7.5          # Box loss gain
+cls: 0.5          # Class loss gain  
+dfl: 1.5          # Distribution focal loss gain
+pose: 12.0        # Pose loss gain (keypoint loss)
+kobj: 2.0         # Keypoint objectness loss gain
+
+# Validation and saving
+val: True         # Validate/test during training
+save: True        # Save train checkpoints and predict results
+exist_ok: False   # Whether to overwrite existing experiment
+verbose: True     # Whether to print verbose output
+
+# Project organization
+project: tennis_ball_training      # Project name
+name: yolo11_tennis_pose_pretrained # Experiment name
+
+# Multi-scale training
+multi_scale: False  # Vary img-size +/- 50%
+
+# Advanced options
+amp: True          # Automatic Mixed Precision training
+fraction: 1.0      # Dataset fraction to use
+profile: False     # Profile ONNX and TensorRT speeds during training
+freeze: None       # Freeze layers: backbone=10, first3=0 1 2
+
+# Warmup settings (important when using pretrained weights)
+warmup_epochs: 3.0    # Warmup epochs
+warmup_momentum: 0.8  # Warmup momentum
+warmup_bias_lr: 0.1   # Warmup bias learning rate

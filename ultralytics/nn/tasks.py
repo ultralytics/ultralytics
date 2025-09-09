@@ -658,6 +658,96 @@ class TennisBallPoseModel(PoseModel):
             if self.use_motion_masks:
                 LOGGER.info("Motion mask support enabled for enhanced tennis ball tracking")
 
+    def load_pretrained_pose_weights(self, weights_path, adapt_first_layer=True):
+        """
+        Load pretrained pose weights and adapt for 4-channel input.
+        
+        Args:
+            weights_path (str): Path to pretrained pose model weights (.pt file)
+            adapt_first_layer (bool): Whether to adapt first layer for 4-channel input
+            
+        Returns:
+            bool: True if weights loaded successfully, False otherwise
+        """
+        try:
+            import torch
+            
+            # Load pretrained weights
+            if weights_path.endswith('.pt'):
+                ckpt = torch.load(weights_path, map_location='cpu')
+                if isinstance(ckpt, dict) and 'model' in ckpt:
+                    pretrained_state = ckpt['model'].state_dict()
+                else:
+                    pretrained_state = ckpt.state_dict() if hasattr(ckpt, 'state_dict') else ckpt
+            else:
+                LOGGER.warning(f"Unsupported weight file format: {weights_path}")
+                return False
+            
+            # Get current model state
+            current_state = self.state_dict()
+            
+            # Adapt first convolutional layer for 4-channel input if needed
+            if adapt_first_layer and self.use_motion_masks:
+                first_conv_key = None
+                for key in pretrained_state.keys():
+                    if 'model.0.conv.weight' in key or (key.startswith('model.0.') and 'weight' in key):
+                        first_conv_key = key
+                        break
+                
+                if first_conv_key and first_conv_key in pretrained_state:
+                    pretrained_first_weight = pretrained_state[first_conv_key]
+                    
+                    # Check if pretrained model has 3 channels and we need 4
+                    if pretrained_first_weight.shape[1] == 3 and self.use_motion_masks:
+                        LOGGER.info(f"Adapting first layer from 3 to 4 channels")
+                        
+                        # Create new 4-channel weight by duplicating one of the RGB channels
+                        # We'll duplicate the green channel as it's often most representative
+                        new_first_weight = torch.zeros((
+                            pretrained_first_weight.shape[0],  # out_channels
+                            4,  # new in_channels (RGB + motion)
+                            pretrained_first_weight.shape[2],  # height
+                            pretrained_first_weight.shape[3]   # width
+                        ))
+                        
+                        # Copy RGB channels
+                        new_first_weight[:, :3, :, :] = pretrained_first_weight
+                        # Initialize motion channel with average of RGB channels
+                        new_first_weight[:, 3, :, :] = pretrained_first_weight.mean(dim=1)
+                        
+                        pretrained_state[first_conv_key] = new_first_weight
+                        LOGGER.info(f"Adapted first layer weights from {pretrained_first_weight.shape} to {new_first_weight.shape}")
+            
+            # Load compatible weights
+            loaded_keys = []
+            incompatible_keys = []
+            
+            for key, param in current_state.items():
+                if key in pretrained_state:
+                    pretrained_param = pretrained_state[key]
+                    if param.shape == pretrained_param.shape:
+                        current_state[key] = pretrained_param
+                        loaded_keys.append(key)
+                    else:
+                        incompatible_keys.append(f"{key}: {param.shape} vs {pretrained_param.shape}")
+                        
+            # Load the adapted state dict
+            self.load_state_dict(current_state, strict=False)
+            
+            LOGGER.info(f"Loaded pretrained pose weights from {weights_path}")
+            LOGGER.info(f"Loaded {len(loaded_keys)} compatible layers")
+            if incompatible_keys:
+                LOGGER.info(f"Skipped {len(incompatible_keys)} incompatible layers")
+                # Show first 5 incompatible keys for debugging
+                for key in incompatible_keys[:5]:
+                    LOGGER.debug(f"  - {key}")
+            
+            return True
+            
+        except Exception as e:
+            LOGGER.error(f"Failed to load pretrained weights from {weights_path}: {e}")
+            return False
+
     def init_criterion(self):
         """Initialize the loss criterion for the TennisBallPoseModel."""
         return v8PoseLoss(self)

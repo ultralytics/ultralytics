@@ -1006,28 +1006,6 @@ class FXModel(nn.Module):
         return x
 
 
-def disable_dynamo(func: Any) -> Any:
-    """
-    Disable torch.compile/dynamo for a callable when available.
-
-    Args:
-        func (Any): Callable object to wrap. Could be a function, method, or class.
-
-    Returns:
-        func (Any): Same callable, wrapped by torch._dynamo.disable when available, otherwise unchanged.
-
-    Examples:
-        >>> @disable_dynamo
-        ... def fn(x):
-        ...     return x + 1
-        >>> # Works even if torch._dynamo is not available
-        >>> _ = fn(1)
-    """
-    if hasattr(torch, "_dynamo"):
-        return torch._dynamo.disable(func)
-    return func
-
-
 def attempt_compile(
     model: torch.nn.Module,
     device: torch.device,

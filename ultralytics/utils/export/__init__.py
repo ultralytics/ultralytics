@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
+
 from .imx import export_imx  # noqa
 
 

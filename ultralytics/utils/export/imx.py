@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from ultralytics.utils.torch_utils import copy_attr
+import subprocess
+import types
+from pathlib import Path
+
+import torch
+
 from ultralytics.nn.modules import Detect, Pose
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import make_anchors
-from pathlib import Path
-import subprocess
-import torch
-import types
+from ultralytics.utils.torch_utils import copy_attr
 
 
 class FXModel(torch.nn.Module):

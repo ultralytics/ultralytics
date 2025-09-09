@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
 # For documentation see https://docs.ultralytics.com/usage/cfg/
 
@@ -16,7 +15,7 @@ batch: 16 # (int) batch size; use -1 for AutoBatch
 imgsz: 640 # (int | list) train/val use int (square); predict/export may use [h,w]
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) save checkpoint every N epochs; disabled if < 1
-cache: False # (bool) cache images to RAM ('True'/'ram') or disk ('disk') to speed dataloading
+cache: False # (bool | str) cache images in RAM (True/'ram') or on 'disk' to speed dataloading; False disables
 device: # (int | str | list) device: 0 or [0,1,2,3] for CUDA, 'cpu'/'mps', or -1/[-1,-1] to auto-select idle GPUs
 workers: 8 # (int) dataloader workers (per RANK if DDP)
 project: # (str, optional) project name for results root
@@ -28,7 +27,7 @@ verbose: True # (bool) print verbose logs during training/val
 seed: 0 # (int) random seed for reproducibility
 deterministic: True # (bool) enable deterministic ops; reproducible but may be slower
 single_cls: False # (bool) treat all classes as a single class
-rect: False # (bool) rectangular batches if mode='train', rectangular val if mode='val'
+rect: False # (bool) rectangular batches for train; rectangular batching for val when mode='val'
 cos_lr: False # (bool) cosine learning rate scheduler
 close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to keep enabled)
 resume: False # (bool) resume training from last checkpoint in the run dir
@@ -37,7 +36,7 @@ fraction: 1.0 # (float) fraction of training dataset to use (1.0 = all)
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
 multi_scale: False # (bool) multiscale training by varying image size
-compile: False # (bool | str) enable torch.compile() with backend='inductor'; True="default", False=off, or str mode
+compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune"
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)
@@ -50,7 +49,7 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
 save_json: False # (bool) save results to COCO JSON for external evaluation
-conf: # (float, optional) confidence threshold; default 0.25 in predict, 0.001 in val
+conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image
 half: False # (bool) use half precision (FP16) if supported
@@ -88,7 +87,7 @@ dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine; 
 simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX before runtime conversion
 opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
-nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou (+agnostic_nms except coreml) apply
+nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou apply (agnostic_nms except coreml)
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)

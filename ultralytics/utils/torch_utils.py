@@ -1069,10 +1069,10 @@ def attempt_compile(
     if not hasattr(torch, "compile") or mode is None:
         return model
 
-    LOGGER.info(f"{prefix} starting torch.compile...")
-    t0 = time.perf_counter()
     if mode is True:
         mode = "max-autotune"
+    LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
+    t0 = time.perf_counter()
     try:
         model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:

@@ -25,8 +25,8 @@ class ClassificationTrainer(BaseTrainer):
 
     Attributes:
         model (ClassificationModel): The classification model to be trained.
-        data (Dict[str, Any]): Dictionary containing dataset information including class names and number of classes.
-        loss_names (List[str]): Names of the loss functions used during training.
+        data (dict[str, Any]): Dictionary containing dataset information including class names and number of classes.
+        loss_names (list[str]): Names of the loss functions used during training.
         validator (ClassificationValidator): Validator instance for model evaluation.
 
     Methods:
@@ -55,20 +55,10 @@ class ClassificationTrainer(BaseTrainer):
         """
         Initialize a ClassificationTrainer object.
 
-        This constructor sets up a trainer for image classification tasks, configuring the task type and default
-        image size if not specified.
-
         Args:
-            cfg (Dict[str, Any], optional): Default configuration dictionary containing training parameters.
-            overrides (Dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
-            _callbacks (List[Any], optional): List of callback functions to be executed during training.
-
-        Examples:
-            Create a trainer with custom configuration
-            >>> from ultralytics.models.yolo.classify import ClassificationTrainer
-            >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
-            >>> trainer = ClassificationTrainer(overrides=args)
-            >>> trainer.train()
+            cfg (dict[str, Any], optional): Default configuration dictionary containing training parameters.
+            overrides (dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
+            _callbacks (list[Any], optional): List of callback functions to be executed during training.
         """
         if overrides is None:
             overrides = {}
@@ -155,7 +145,7 @@ class ClassificationTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
-        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)
+        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):
@@ -166,8 +156,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Preprocess a batch of images and classes."""
-        batch["img"] = batch["img"].to(self.device)
-        batch["cls"] = batch["cls"].to(self.device)
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=True)
         return batch
 
     def progress_string(self) -> str:
@@ -196,8 +186,8 @@ class ClassificationTrainer(BaseTrainer):
             prefix (str, optional): Prefix to prepend to loss names.
 
         Returns:
-            keys (List[str]): List of loss keys if loss_items is None.
-            loss_dict (Dict[str, float]): Dictionary of loss items if loss_items is provided.
+            keys (list[str]): List of loss keys if loss_items is None.
+            loss_dict (dict[str, float]): Dictionary of loss items if loss_items is provided.
         """
         keys = [f"{prefix}/{x}" for x in self.loss_names]
         if loss_items is None:
@@ -227,7 +217,7 @@ class ClassificationTrainer(BaseTrainer):
         Plot training samples with their annotations.
 
         Args:
-            batch (Dict[str, torch.Tensor]): Batch containing images and class labels.
+            batch (dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Number of iterations.
         """
         batch["batch_idx"] = torch.arange(len(batch["img"]))  # add batch index for plotting

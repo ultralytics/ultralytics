@@ -27,23 +27,25 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
 )
 from ultralytics.utils.checks import check_version
+from ultralytics.utils.cpu import CPUInfo
 from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
-TORCH_1_9 = check_version(torch.__version__, "1.9.0")
-TORCH_1_13 = check_version(torch.__version__, "1.13.0")
-TORCH_2_0 = check_version(torch.__version__, "2.0.0")
-TORCH_2_4 = check_version(torch.__version__, "2.4.0")
+TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
+TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
+if WINDOWS and check_version(TORCH_VERSION, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
         "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
@@ -112,12 +114,7 @@ def get_cpu_info():
 
     if "cpu_info" not in PERSISTENT_CACHE:
         try:
-            import cpuinfo  # pip install py-cpuinfo
-
-            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
-            info = cpuinfo.get_cpu_info()  # info dict
-            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+            PERSISTENT_CACHE["cpu_info"] = CPUInfo.name()
         except Exception:
             pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
@@ -165,7 +162,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
-    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -432,7 +429,7 @@ def get_flops(model, imgsz=640):
         return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
-        model = de_parallel(model)
+        model = unwrap_model(model)
         p = next(model.parameters())
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
@@ -463,7 +460,7 @@ def get_flops_with_torch_profiler(model, imgsz=640):
     """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
-    model = de_parallel(model)
+    model = unwrap_model(model)
     p = next(model.parameters())
     if not isinstance(imgsz, list):
         imgsz = [imgsz, imgsz]  # expand if int/float
@@ -580,17 +577,24 @@ def is_parallel(model):
     return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
-def de_parallel(model):
+def unwrap_model(m: nn.Module) -> nn.Module:
     """
-    De-parallelize a model: return single-GPU model if model is of type DP or DDP.
+    Unwrap compiled and parallel models to get the base model.
 
     Args:
-        model (nn.Module): Model to de-parallelize.
+        m (nn.Module): A model that may be wrapped by torch.compile (._orig_mod) or parallel wrappers such as
+            DataParallel/DistributedDataParallel (.module).
 
     Returns:
-        (nn.Module): De-parallelized model.
+        m (nn.Module): The unwrapped base model without compile or parallel wrappers.
     """
-    return model.module if is_parallel(model) else model
+    while True:
+        if hasattr(m, "_orig_mod") and isinstance(m._orig_mod, nn.Module):
+            m = m._orig_mod
+        elif hasattr(m, "module") and isinstance(m.module, nn.Module):
+            m = m.module
+        else:
+            return m
 
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
@@ -672,7 +676,7 @@ class ModelEMA:
             tau (int, optional): EMA decay time constant.
             updates (int, optional): Initial number of updates.
         """
-        self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
+        self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
@@ -690,7 +694,7 @@ class ModelEMA:
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = de_parallel(model).state_dict()  # model state_dict
+            msd = unwrap_model(model).state_dict()  # model state_dict
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
                     v *= d
@@ -1000,3 +1004,76 @@ class FXModel(nn.Module):
             x = m(x)  # run
             y.append(x)  # save output
         return x
+
+
+def attempt_compile(
+    model: torch.nn.Module,
+    device: torch.device,
+    imgsz: int = 640,
+    use_autocast: bool = False,
+    warmup: bool = False,
+    prefix: str = colorstr("compile:"),
+) -> torch.nn.Module:
+    """
+    Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
+
+    This utility attempts to compile the provided model using the inductor backend with dynamic shapes enabled and an
+    autotuning mode. If compilation is unavailable or fails, the original model is returned unchanged. An optional
+    warmup performs a single forward pass on a dummy input to prime the compiled graph and measure compile/warmup time.
+
+    Args:
+        model (torch.nn.Module): Model to compile.
+        device (torch.device): Inference device used for warmup and autocast decisions.
+        imgsz (int, optional): Square input size to create a dummy tensor with shape (1, 3, imgsz, imgsz) for warmup.
+        use_autocast (bool, optional): Whether to run warmup under autocast on CUDA or MPS devices.
+        warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
+        prefix (str, optional): Message prefix for logger output.
+
+    Returns:
+        model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
+
+    Notes:
+        - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
+        - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
+        - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
+
+    Examples:
+        >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        >>> # Try to compile and warm up a model with a 640x640 input
+        >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
+    """
+    if not hasattr(torch, "compile"):
+        return model
+
+    LOGGER.info(f"{prefix} starting torch.compile...")
+    t0 = time.perf_counter()
+    try:
+        model = torch.compile(model, mode="max-autotune", backend="inductor")
+    except Exception as e:
+        LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
+        return model
+    t_compile = time.perf_counter() - t0
+
+    t_warm = 0.0
+    if warmup:
+        # Use a single dummy tensor to build the graph shape state and reduce first-iteration latency
+        dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
+        if use_autocast and device.type == "cuda":
+            dummy = dummy.half()
+        t1 = time.perf_counter()
+        with torch.inference_mode():
+            if use_autocast and device.type in {"cuda", "mps"}:
+                with torch.autocast(device.type):
+                    _ = model(dummy)
+            else:
+                _ = model(dummy)
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        t_warm = time.perf_counter() - t1
+
+    total = t_compile + t_warm
+    if warmup:
+        LOGGER.info(f"{prefix} complete in {total:.1f}s (compile {t_compile:.1f}s + warmup {t_warm:.1f}s)")
+    else:
+        LOGGER.info(f"{prefix} compile complete in {t_compile:.1f}s (no warmup)")
+    return model

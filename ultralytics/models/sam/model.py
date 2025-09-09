@@ -91,9 +91,9 @@ class SAM(Model):
             source (str | PIL.Image | np.ndarray): Path to the image or video file, or a PIL.Image object, or
                 a np.ndarray object.
             stream (bool): If True, enables real-time streaming.
-            bboxes (List[List[float]] | None): List of bounding box coordinates for prompted segmentation.
-            points (List[List[float]] | None): List of points for prompted segmentation.
-            labels (List[int] | None): List of labels for prompted segmentation.
+            bboxes (list[list[float]] | None): List of bounding box coordinates for prompted segmentation.
+            points (list[list[float]] | None): List of points for prompted segmentation.
+            labels (list[int] | None): List of labels for prompted segmentation.
             **kwargs (Any): Additional keyword arguments for prediction.
 
         Returns:
@@ -121,9 +121,9 @@ class SAM(Model):
             source (str | PIL.Image | np.ndarray | None): Path to the image or video file, or a PIL.Image
                 object, or a np.ndarray object.
             stream (bool): If True, enables real-time streaming.
-            bboxes (List[List[float]] | None): List of bounding box coordinates for prompted segmentation.
-            points (List[List[float]] | None): List of points for prompted segmentation.
-            labels (List[int] | None): List of labels for prompted segmentation.
+            bboxes (list[list[float]] | None): List of bounding box coordinates for prompted segmentation.
+            points (list[list[float]] | None): List of points for prompted segmentation.
+            labels (list[int] | None): List of labels for prompted segmentation.
             **kwargs (Any): Additional keyword arguments to be passed to the predict method.
 
         Returns:
@@ -160,7 +160,7 @@ class SAM(Model):
         Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
-            (Dict[str, Dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
+            (dict[str, dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding
                 Predictor class. For SAM2 models, it maps to SAM2Predictor, otherwise to the standard Predictor.
 
         Examples:

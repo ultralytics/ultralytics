@@ -1048,7 +1048,7 @@ def attempt_compile(
         return model
 
     if mode is True:
-        mode = "max-autotune"
+        mode = "default"
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     t0 = time.perf_counter()
     try:

@@ -171,7 +171,6 @@ def export_imx(
 
     Returns:
         f (Path): Path to the exported IMX model directory
-        None: Placeholder for consistency with other export functions
 
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.
@@ -287,4 +286,4 @@ def export_imx(
     with open(f / "labels.txt", "w", encoding="utf-8") as file:
         file.writelines([f"{name}\n" for _, name in model.names.items()])
 
-    return f, None
+    return f

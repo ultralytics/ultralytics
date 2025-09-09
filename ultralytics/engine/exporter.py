@@ -1189,7 +1189,7 @@ class Exporter:
             metadata=self.metadata,
             dataset=self.get_int8_calibration_dataloader(prefix),
             prefix=prefix,
-        )
+        ), None
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

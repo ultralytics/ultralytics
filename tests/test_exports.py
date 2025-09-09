@@ -259,3 +259,11 @@ def test_export_imx():
     model = YOLO("yolov8n.pt")
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
+def test_export_rknn():
+    """Test YOLO exports to RKNN format."""
+    YOLO(MODEL).export(format="rknn", imgsz=32)
+    # TODO: RKNN inference on-device after local CIs are in place

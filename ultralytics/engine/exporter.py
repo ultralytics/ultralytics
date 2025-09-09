@@ -194,9 +194,9 @@ def try_export(inner_func):
         dt = 0.0
         try:
             with Profile() as dt:
-                f, model = inner_func(*args, **kwargs)
+                f = inner_func(*args, **kwargs)
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
-            return f, model
+            return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
             raise e
@@ -639,7 +639,7 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-        return f, model_onnx
+        return f
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
@@ -910,7 +910,7 @@ class Exporter:
             )
             f = f.with_suffix(".mlmodel")
             ct_model.save(str(f))
-        return f, ct_model
+        return f
 
     @try_export
     def export_engine(self, dla=None, prefix=colorstr("TensorRT:")):

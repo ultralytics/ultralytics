@@ -71,7 +71,3 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         return yolo.segment.SegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def plot_metrics(self):
-        """Plot training/validation metrics."""
-        plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png

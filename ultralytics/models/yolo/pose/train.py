@@ -101,10 +101,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def plot_metrics(self):
-        """Plot training/validation metrics."""
-        plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
-
     def get_dataset(self) -> dict[str, Any]:
         """
         Retrieve the dataset and ensure it contains the required `kpt_shape` key.

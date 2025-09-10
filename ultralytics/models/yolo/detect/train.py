@@ -219,7 +219,12 @@ class DetectionTrainer(BaseTrainer):
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""
-        plot_results(file=self.csv, on_plot=self.on_plot)  # save results.png
+        plot_results(
+            file=self.csv,
+            on_plot=self.on_plot,
+            loss_keys=self.label_loss_items(prefix="train") + self.label_loss_items(prefix="val"),
+            metric_keys=list(self.metrics.keys()),
+        )  # save results.png
 
     def plot_training_labels(self):
         """Create a labeled training plot of the YOLO model."""

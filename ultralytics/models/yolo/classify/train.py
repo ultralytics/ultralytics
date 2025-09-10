@@ -195,10 +195,6 @@ class ClassificationTrainer(BaseTrainer):
         loss_items = [round(float(loss_items), 5)]
         return dict(zip(keys, loss_items))
 
-    def plot_metrics(self):
-        """Plot metrics from a CSV file."""
-        plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
-
     def final_eval(self):
         """Evaluate trained model and save validation results."""
         for f in self.last, self.best:

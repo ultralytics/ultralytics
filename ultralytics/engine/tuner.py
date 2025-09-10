@@ -16,13 +16,13 @@ Examples:
 
 from __future__ import annotations
 
+import gc
 import random
 import shutil
 import subprocess
 import time
 from datetime import datetime
 
-import gc
 import numpy as np
 import torch
 

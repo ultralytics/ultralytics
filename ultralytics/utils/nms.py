@@ -256,7 +256,7 @@ class TorchNMS:
             >>> keep = TorchNMS.nms(boxes, scores, 0.5)
         """
         if boxes.numel() == 0:
-            return torch.empty((0,), dtype=torch.int32, device=boxes.device)
+            return torch.empty((0,), dtype=torch.int64, device=boxes.device)
 
         # Pre-allocate and extract coordinates once
         x1, y1, x2, y2 = boxes.unbind(1)
@@ -266,7 +266,7 @@ class TorchNMS:
         order = scores.argsort(0, descending=True)
 
         # Pre-allocate keep list with maximum possible size
-        keep = torch.zeros(order.numel(), dtype=torch.int32, device=boxes.device)
+        keep = torch.zeros(order.numel(), dtype=torch.int64, device=boxes.device)
         keep_idx = 0
         while order.numel() > 0:
             i = order[0]

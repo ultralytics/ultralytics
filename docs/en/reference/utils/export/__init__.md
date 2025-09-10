@@ -11,10 +11,10 @@ keywords: Ultralytics, YOLO, export, ONNX, TensorRT, Sony IMX, PyTorch, model co
 
 <br>
 
-## ::: ultralytics.utils.export.export_onnx
+## ::: ultralytics.utils.export.torch2onnx
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.export_engine
+## ::: ultralytics.utils.export.onnx2engine
 
 <br><br>

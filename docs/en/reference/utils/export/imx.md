@@ -27,6 +27,6 @@ keywords: Ultralytics, YOLO, export, Sony IMX, PyTorch, model conversion, INT8, 
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.imx.export_imx
+## ::: ultralytics.utils.export.imx.torch2imx
 
 <br><br>

@@ -848,25 +848,21 @@ def plot_images(
 
 @plt_settings()
 def plot_results(
+    loss_keys: list[str],
+    metric_keys: list[str],
     file: str = "path/to/results.csv",
     dir: str = "",
-    segment: bool = False,
-    pose: bool = False,
-    classify: bool = False,
     on_plot: Callable | None = None,
-    loss_keys: list | None = None,
-    metric_keys: list | None = None,
 ):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
 
     Args:
+        loss_keys (list[str]): List of column names in the CSV corresponding to loss values.
+        metric_keys (list[str]): List of column names in the CSV corresponding to metric values.
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
-        segment (bool, optional): Flag to indicate if the data is for segmentation.
-        pose (bool, optional): Flag to indicate if the data is for pose estimation.
-        classify (bool, optional): Flag to indicate if the data is for classification.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
@@ -878,8 +874,8 @@ def plot_results(
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    first_row = loss_keys[:len(loss_keys)//2] + metric_keys[:len(metric_keys)//2]
-    second_row = loss_keys[len(loss_keys)//2:] + metric_keys[len(metric_keys)//2:]
+    first_row = loss_keys[: len(loss_keys) // 2] + metric_keys[: len(metric_keys) // 2]
+    second_row = loss_keys[len(loss_keys) // 2 :] + metric_keys[len(metric_keys) // 2 :]
     fig, ax = plt.subplots(2, len(first_row), figsize=(2 * len(first_row) + 2, 6), tight_layout=True)
     index = first_row + second_row
     ax = ax.ravel()

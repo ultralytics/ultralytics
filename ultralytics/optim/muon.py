@@ -58,7 +58,8 @@ def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
 
 def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
     momentum.lerp_(grad, 1 - beta)
-    update = grad.lerp_(momentum, beta) if nesterov else momentum
+    # update = grad.lerp_(momentum, beta) if nesterov else momentum
+    update = grad.lerp(momentum, beta) if nesterov else momentum
     if update.ndim == 4:  # for the case of conv filters
         update = update.view(len(update), -1)
     update = zeropower_via_newtonschulz5(update, steps=ns_steps)
@@ -111,20 +112,20 @@ class MuonWithSGD(optim.Optimizer):
                     # )
 
                     # Muon update
-                    state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
-                    update = (
-                        grad.add(state["momentum_buffer"], alpha=group["momentum"])
-                        if group["nesterov"]
-                        else state["momentum_buffer"]
-                    )
-                    # sgd_update = update.clone()
-                    if update.ndim == 4:  # for the case of conv filters
-                        update = update.view(len(update), -1)
-                    update = zeropower_via_newtonschulz5(update)
-                    update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
-                    # update = muon_update(
-                    #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    # state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
+                    # update = (
+                    #     grad.add(state["momentum_buffer"], alpha=group["momentum"])
+                    #     if group["nesterov"]
+                    #     else state["momentum_buffer"]
                     # )
+                    # # sgd_update = update.clone()
+                    # if update.ndim == 4:  # for the case of conv filters
+                    #     update = update.view(len(update), -1)
+                    # update = zeropower_via_newtonschulz5(update)
+                    # update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
+                    update = muon_update(
+                        grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    )
                     # TODO
                     lr = group["lr"] / 10
                     # lr = self.adjust_lr(lr, p.shape)

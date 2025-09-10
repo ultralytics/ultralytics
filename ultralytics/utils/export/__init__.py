@@ -9,10 +9,10 @@ import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
 
-from .imx import torch_to_imx  # noqa
+from .imx import torch2imx  # noqa
 
 
-def torch_to_onnx(
+def torch2onnx(
     torch_model: torch.nn.Module,
     im: torch.Tensor,
     onnx_file: str,
@@ -49,7 +49,7 @@ def torch_to_onnx(
     )
 
 
-def onnx_to_engine(
+def onnx2engine(
     onnx_file: str,
     engine_file: str | None = None,
     workspace: int | None = None,

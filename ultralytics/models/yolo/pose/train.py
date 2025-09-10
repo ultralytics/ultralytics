@@ -30,7 +30,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         set_model_attributes: Set keypoints shape attribute on the model.
         get_validator: Create a validator instance for model evaluation.
         plot_training_samples: Visualize training samples with keypoints.
-        plot_metrics: Generate and save training/validation metric plots.
         get_dataset: Retrieve the dataset and ensure it contains required kpt_shape key.
 
     Examples:

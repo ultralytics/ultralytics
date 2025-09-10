@@ -1008,9 +1008,8 @@ class FXModel(nn.Module):
 
 class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
     """
-    A thin subclass of torch.nn.parallel.DistributedDataParallel that
-    transparently forwards attribute and method access to the wrapped
-    module when they are not defined on DDP itself.
+    A thin subclass of torch.nn.parallel.DistributedDataParallel that transparently forwards attribute and method access
+    to the wrapped module when they are not defined on DDP itself.
 
     This allows you to call custom methods or access attributes of the
     original model directly on the DDP wrapper without having to unwrap

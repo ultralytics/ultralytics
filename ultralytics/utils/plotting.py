@@ -848,11 +848,10 @@ def plot_images(
 
 @plt_settings()
 def plot_results(
+    loss_keys: list[str],
+    metric_keys: list[str],
     file: str = "path/to/results.csv",
     dir: str = "",
-    segment: bool = False,
-    pose: bool = False,
-    classify: bool = False,
     on_plot: Callable | None = None,
 ):
     """
@@ -860,11 +859,10 @@ def plot_results(
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
 
     Args:
+        loss_keys (list[str]): List of column names in the CSV corresponding to loss values.
+        metric_keys (list[str]): List of column names in the CSV corresponding to metric values.
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
-        segment (bool, optional): Flag to indicate if the data is for segmentation.
-        pose (bool, optional): Flag to indicate if the data is for pose estimation.
-        classify (bool, optional): Flag to indicate if the data is for classification.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
@@ -876,34 +874,25 @@ def plot_results(
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    if classify:
-        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [2, 5, 3, 4]
-    elif segment:
-        fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
-    elif pose:
-        fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
-    else:
-        fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
+    columns = (
+        loss_keys[: len(loss_keys) // 2]
+        + metric_keys[: len(metric_keys) // 2]
+        + loss_keys[len(loss_keys) // 2 :]
+        + metric_keys[len(metric_keys) // 2 :]
+    )
+    fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
     ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
     for f in files:
         try:
             data = pl.read_csv(f, infer_schema_length=None)
-            s = [x.strip() for x in data.columns]
             x = data.select(data.columns[0]).to_numpy().flatten()
-            for i, j in enumerate(index):
-                y = data.select(data.columns[j]).to_numpy().flatten().astype("float")
-                # y[y == 0] = np.nan  # don't show zero values
+            for i, j in enumerate(columns):
+                y = data.select(j).to_numpy().flatten().astype("float")
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
-                ax[i].set_title(s[j], fontsize=12)
-                # if j in {8, 9, 10}:  # share train and val loss y axes
-                #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
+                ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
     ax[1].legend()

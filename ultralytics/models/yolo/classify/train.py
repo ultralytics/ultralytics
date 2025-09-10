@@ -39,7 +39,6 @@ class ClassificationTrainer(BaseTrainer):
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
         label_loss_items: Return a loss dict with labelled training loss items.
-        plot_metrics: Plot metrics from a CSV file.
         final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
@@ -194,10 +193,6 @@ class ClassificationTrainer(BaseTrainer):
             return keys
         loss_items = [round(float(loss_items), 5)]
         return dict(zip(keys, loss_items))
-
-    def plot_metrics(self):
-        """Plot metrics from a CSV file."""
-        plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
 
     def final_eval(self):
         """Evaluate trained model and save validation results."""

@@ -43,7 +43,6 @@ class DetectionTrainer(BaseTrainer):
         label_loss_items: Return a loss dictionary with labeled training loss items.
         progress_string: Return a formatted string of training progress.
         plot_training_samples: Plot training samples with their annotations.
-        plot_metrics: Plot metrics from a CSV file.
         plot_training_labels: Create a labeled training plot of the YOLO model.
         auto_batch: Calculate optimal batch size based on model memory requirements.
 
@@ -216,10 +215,6 @@ class DetectionTrainer(BaseTrainer):
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
         )
-
-    def plot_metrics(self):
-        """Plot metrics from a CSV file."""
-        plot_results(file=self.csv, on_plot=self.on_plot)  # save results.png
 
     def plot_training_labels(self):
         """Create a labeled training plot of the YOLO model."""

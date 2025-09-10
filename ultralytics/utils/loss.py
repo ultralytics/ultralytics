@@ -37,6 +37,25 @@ class VarifocalLoss(nn.Module):
         return loss
 
 
+class MAL(nn.Module):
+    def __init__(self, gamma, mal_alpha) -> None:
+        super().__init__()
+        self.gamma = gamma
+        self.mal_alpha = mal_alpha
+
+    def forward(self, pred_cls, target_scores, gt_idx, one_hot):
+        pred_score = F.sigmoid(pred_cls).detach()
+        target_scores = target_scores.pow(self.gamma)
+        weight = (
+            (self.mal_alpha * pred_score.pow(self.gamma) * (1 - one_hot) + one_hot)
+            if self.mal_alpha is not None
+            else (pred_score.pow(self.gamma) * (1 - one_hot) + one_hot)
+        )
+
+        loss = F.binary_cross_entropy_with_logits(pred_cls, target_scores, weight=weight, reduction="none")
+        return loss.mean(1).sum() * pred_cls.shape[1] / max(len(gt_idx), 1)
+
+
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 

@@ -319,7 +319,7 @@ class Tuner:
 
         # Mutate if we have data, otherwise use defaults
         if x is not None:
-            np.random.seed(time.time())
+            np.random.seed(int(time.time()))
             ng = len(self.space)
 
             # Crossover

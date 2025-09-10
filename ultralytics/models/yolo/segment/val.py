@@ -112,7 +112,7 @@ class SegmentationValidator(DetectionValidator):
             coefficient = pred.pop("extra")
             pred["masks"] = (
                 self.process(proto[i], coefficient, pred["bboxes"], shape=imgsz)
-                if coefficient.size(0)
+                if coefficient.shape[0]
                 else torch.zeros(
                     (0, *(imgsz if self.process is ops.process_mask_native else proto.shape[2:])),
                     dtype=torch.uint8,
@@ -133,7 +133,7 @@ class SegmentationValidator(DetectionValidator):
             (dict[str, Any]): Prepared batch with processed annotations.
         """
         prepared_batch = super()._prepare_batch(si, batch)
-        nl = prepared_batch["cls"].size(0)
+        nl = prepared_batch["cls"].shape[0]
         if self.args.overlap_mask:
             masks = batch["masks"][si]
             index = torch.arange(1, nl + 1, device=masks.device).view(nl, 1, 1)
@@ -168,8 +168,8 @@ class SegmentationValidator(DetectionValidator):
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
-        if gt_cls.size(0) == 0 or preds["cls"].size(0) == 0:
-            tp_m = np.zeros((preds["cls"].size(0), self.niou), dtype=bool)
+        if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
+            tp_m = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
         else:
             iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()

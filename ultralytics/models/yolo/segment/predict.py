@@ -99,7 +99,7 @@ class SegmentationPredictor(DetectionPredictor):
         Returns:
             (Results): Result object containing the original image, image path, class names, bounding boxes, and masks.
         """
-        if pred.size(0) == 0:  # save empty boxes
+        if pred.shape[0] == 0:  # save empty boxes
             masks = None
         elif self.args.retina_masks:
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)

@@ -192,8 +192,8 @@ class PoseValidator(DetectionValidator):
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
-        if gt_cls.size(0) == 0 or preds["cls"].size(0) == 0:
-            tp_p = np.zeros((preds["cls"].size(0), self.niou), dtype=bool)
+        if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
+            tp_p = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
         else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53

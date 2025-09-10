@@ -1007,10 +1007,8 @@ class FXModel(nn.Module):
 
 
 class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
-    """
-    Subclass of torch.nn.parallel.DistributedDataParallel that forwards
-    missing attributes/methods to the wrapped module, avoiding explicit
-    `.module` access.
+    """Subclass of torch.nn.parallel.DistributedDataParallel that forwards missing attributes/methods to the wrapped
+    module, avoiding explicit `.module` access.
     """
 
     def __getattr__(self, name):

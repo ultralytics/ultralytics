@@ -53,6 +53,8 @@ Additionally, here are some common installation issues users have encountered, a
     - **Verify CUDA Compatibility and Installation**: Ensure your GPU is CUDA compatible and that CUDA is correctly installed. Use the `nvidia-smi` command to check the status of your NVIDIA GPU and CUDA version.
 
     - **Check PyTorch and CUDA Integration**: Ensure PyTorch can utilize CUDA by running `import torch; print(torch.cuda.is_available())` in a Python terminal. If it returns 'True', PyTorch is set up to use CUDA.
+    
+    - **Check GPU compatibility**: Support for GPU architectures earlier than Turing and compute capability (SM) < 7.5 was abandonned since cuDNN 9.11.0. So if you have an older GPU - like 1080Ti - you may have to use a version of PyTorch built against an older version of CUDA/cuDNN. You can check this by running `import torch, warnings; cap = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else (0, 0); cudnn = torch.backends.cudnn.version() or 0; ok = "not compatible" if cudnn >= 91100 and (cap[0] < 7 or (cap[0] == 7 and cap[1] < 5)) else "should be ok"; print(f"Compute capability: SM {cap[0]}.{cap[1]}, cuDNN: {cudnn} => {ok}")`
 
     - **Environment Activation**: Ensure you're in the correct environment where all necessary packages are installed.
 

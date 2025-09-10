@@ -269,10 +269,22 @@ class Tuner:
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB to CSV sync failed: {e}")
 
+    def _crossover(self, x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
+        """BLX-α crossover from up to top-k parents (x[:,0]=fitness, rest=genes)."""
+        k = min(k, len(x))
+        # fitness weights (shifted to >0); fallback to uniform if degenerate
+        weights = x[:, 0] - x[:, 0].min() + 1e-6
+        if not np.isfinite(weights).all() or weights.sum() == 0:
+            weights = np.ones_like(weights)
+        idxs = random.choices(range(len(x)), weights=weights, k=k)
+        parents_mat = np.stack([x[i][1:] for i in idxs], 0)  # (k, ng) strip fitness
+        lo, hi = parents_mat.min(0), parents_mat.max(0)
+        span = hi - lo
+        return np.random.uniform(lo - alpha * span, hi + alpha * span)
+
     def _mutate(
         self,
-        parent: str = "single",
-        n: int = 10,
+        n: int = 9,
         mutation: float = 0.5,
         sigma: float = 0.2,
     ) -> dict[str, float]:
@@ -280,8 +292,8 @@ class Tuner:
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            parent (str): Parent selection method: 'single' or 'weighted'.
-            n (int): Number of parents to consider.
+            parent (str): Parent selection method (kept for API compatibility, unused in BLX mode).
+            n (int): Number of top parents to consider.
             mutation (float): Probability of a parameter mutation in any given iteration.
             sigma (float): Standard deviation for Gaussian random number generator.
 
@@ -296,45 +308,39 @@ class Tuner:
             if results:
                 # MongoDB already sorted by fitness DESC, so results[0] is best
                 x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
-                n = min(n, len(x))
 
         # Fall back to CSV if MongoDB unavailable or empty
         if x is None and self.tune_csv.exists():
             csv_data = np.loadtxt(self.tune_csv, ndmin=2, delimiter=",", skiprows=1)
             if len(csv_data) > 0:
                 fitness = csv_data[:, 0]  # first column
-                n = min(n, len(csv_data))
-                x = csv_data[np.argsort(-fitness)][:n]  # top n sorted by fitness DESC
+                order = np.argsort(-fitness)
+                x = csv_data[order][:n]  # top-n sorted by fitness DESC
 
         # Mutate if we have data, otherwise use defaults
         if x is not None:
-            w = x[:, 0] - x[:, 0].min() + 1e-6  # weights (sum > 0)
-            if parent == "single" or len(x) <= 1:
-                x = x[random.choices(range(n), weights=w)[0]]  # weighted selection
-            elif parent == "weighted":
-                x = (x * w.reshape(n, 1)).sum(0) / w.sum()  # weighted combination
-
-            # Mutate
-            r = np.random
-            r.seed(int(time.time()))
-            g = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
+            np.random.seed(time.time())
             ng = len(self.space)
-            v = np.ones(ng)
-            while np.all(v == 1):  # mutate until a change occurs (prevent duplicates)
-                mask = r.random(ng) < mutation
-                step = r.randn(ng) * (sigma * g)
-                v = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
-            hyp = {k: float(x[i + 1] * v[i]) for i, k in enumerate(self.space.keys())}
+
+            # Crossover
+            genes = self._crossover(x)
+
+            # Mutation
+            gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
+            factors = np.ones(ng)
+            while np.all(factors == 1):  # mutate until a change occurs (prevent duplicates)
+                mask = np.random.random(ng) < mutation
+                step = np.random.randn(ng) * (sigma * gains)
+                factors = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
+            hyp = {k: float(genes[i] * factors[i]) for i, k in enumerate(self.space.keys())}
         else:
             hyp = {k: getattr(self.args, k) for k in self.space.keys()}
 
         # Constrain to limits
         for k, bounds in self.space.items():
-            hyp[k] = max(hyp[k], bounds[0])  # lower limit
-            hyp[k] = min(hyp[k], bounds[1])  # upper limit
-            hyp[k] = round(hyp[k], 5)  # significant digits
+            hyp[k] = round(min(max(hyp[k], bounds[0]), bounds[1]), 5)
 
-        # Update type
+        # Update types
         hyp["close_mosaic"] = int(round(hyp["close_mosaic"]))
 
         return hyp

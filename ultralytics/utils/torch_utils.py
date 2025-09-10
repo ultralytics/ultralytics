@@ -1031,21 +1031,19 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
 
     def __setattr__(self, name, value):
         """
-        Delegate missing attribute assignments to the wrapped module.
+        Assign attributes to the DDP wrapper if they already exist there,
+        otherwise forward the assignment to the wrapped module.
 
         Args:
-            name (str): Attribute name to assign.
+            name (str): Name of the attribute to assign.
             value (Any): Value to set for the attribute.
 
         Returns:
             None
-
-        Raises:
-            AttributeError: If the assignment fails on both DDP and the module.
         """
-        try:
+        if name in self.__dict__ or hasattr(type(self), name):
             super().__setattr__(name, value)
-        except AttributeError:
+        else:
             setattr(self.module, name, value)
 
 

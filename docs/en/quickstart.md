@@ -167,7 +167,7 @@ While the standard installation methods cover most use cases, you might need a m
         2.  **Manually install dependencies:** You need to install all required packages listed in the `pyproject.toml` file, substituting or modifying versions as needed. For the headless OpenCV example:
             ```bash
             # Install other core dependencies
-            pip install torch torchvision numpy matplotlib polars pyyaml pillow psutil requests scipy seaborn ultralytics-thop
+            pip install torch torchvision numpy matplotlib polars pyyaml pillow psutil requests scipy ultralytics-thop
 
             # Install headless OpenCV instead of the default
             pip install opencv-python-headless

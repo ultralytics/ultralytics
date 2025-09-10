@@ -1008,38 +1008,47 @@ class FXModel(nn.Module):
 
 class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
     """
-    A thin subclass of torch.nn.parallel.DistributedDataParallel that transparently forwards attribute and method access
-    to the wrapped module when they are not defined on DDP itself.
-
-    This allows you to call custom methods or access attributes of the
-    original model directly on the DDP wrapper without having to unwrap
-    with `.module` each time.
-
-    Example:
-        >>> model = MyModel()
-        >>> ddp_model = DistributedDataParallel(model, device_ids=[rank])
-        >>> ddp_model.custom_method()  # Works, forwards to model.custom_method
+    Subclass of torch.nn.parallel.DistributedDataParallel that forwards
+    missing attributes/methods to the wrapped module, avoiding explicit
+    `.module` access.
     """
 
     def __getattr__(self, name):
         """
-        Fallback attribute access for missing attributes on the DDP wrapper.
+        Delegate missing attributes to the wrapped module.
 
         Args:
-            name (str): The name of the attribute to retrieve.
+            name (str): Attribute name to look up.
 
         Returns:
-            Any: The resolved attribute from either the DDP wrapper or the
-            underlying module.
+            Any: Attribute from either the DDP wrapper or the wrapped module.
 
         Raises:
-            AttributeError: If the attribute does not exist on either the
-            DDP wrapper or the underlying module.
+            AttributeError: If not found on both DDP and the wrapped module.
         """
         try:
             return super().__getattr__(name)
         except AttributeError:
             return getattr(self.module, name)
+
+    def __setattr__(self, name, value):
+        """
+        Delegate missing attribute assignments to the wrapped module.
+
+        Args:
+            name (str): Attribute name to assign.
+            value (Any): Value to set for the attribute.
+
+        Returns:
+            None
+
+        Raises:
+            AttributeError: If the assignment fails on both DDP and the module.
+        """
+        try:
+            super().__setattr__(name, value)
+        except AttributeError:
+            setattr(self.module, name, value)
 
 
 def attempt_compile(

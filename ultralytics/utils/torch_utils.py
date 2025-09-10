@@ -1006,6 +1006,50 @@ class FXModel(nn.Module):
         return x
 
 
+class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
+    """
+    A subclass of torch.nn.parallel.DistributedDataParallel that forwards missing attributes and methods to the wrapped module. This removes the need for explicit `.module` access when calling custom methods or working with extra attributes defined on the underlying model.
+    """
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        Delegate missing attribute lookups to the wrapped module.
+
+        Args:
+            name (str): Name of the attribute to retrieve.
+
+        Returns:
+            Any: Attribute from either the DDP wrapper or the wrapped module.
+
+        Raises:
+            AttributeError: If not found on both the DDP wrapper and the module.
+        """
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self.module, name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """
+        Assign attributes to the DDP wrapper if they already exist there,
+        otherwise forward the assignment to the wrapped module.
+
+        Args:
+            name (str): Name of the attribute to assign.
+            value (Any): Value to set for the attribute.
+
+        Returns:
+            None
+
+        Raises:
+            AttributeError: If the assignment fails on both the wrapper and module.
+        """
+        if name in self.__dict__ or hasattr(type(self), name):
+            super().__setattr__(name, value)
+        else:
+            setattr(self.module, name, value)
+
+
 def attempt_compile(
     model: torch.nn.Module,
     device: torch.device,

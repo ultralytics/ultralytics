@@ -1031,8 +1031,8 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
 
     def __setattr__(self, name, value):
         """
-        Assign attributes to the DDP wrapper if they already exist there,
-        otherwise forward the assignment to the wrapped module.
+        Assign attributes to the DDP wrapper if they already exist there, otherwise forward the assignment to the
+        wrapped module.
 
         Args:
             name (str): Name of the attribute to assign.

@@ -140,9 +140,11 @@ class SegmentationValidator(DetectionValidator):
             masks = (masks == index).float()
         else:
             masks = batch["masks"][batch["batch_idx"] == si]
-        if nl and self.process is ops.process_mask_native:
-            masks = F.interpolate(masks[None], prepared_batch["imgsz"], mode="bilinear", align_corners=False)[0]
-            masks = masks.gt_(0.5)
+        if nl:
+            mask_size = [s if self.process is ops.process_mask_native else s // 4 for s in prepared_batch["imgsz"]]
+            if masks.shape[1:] != mask_size:
+                masks = F.interpolate(masks[None], mask_size, mode="bilinear", align_corners=False)[0]
+                masks = masks.gt_(0.5)
         prepared_batch["masks"] = masks
         return prepared_batch
 

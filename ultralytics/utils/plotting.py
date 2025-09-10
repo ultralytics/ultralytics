@@ -817,9 +817,8 @@ def plot_images(
                 else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
-                    index = np.arange(nl).reshape((nl, 1, 1)) + 1
-                    image_masks = np.repeat(image_masks, nl, axis=0)
-                    image_masks = np.where(image_masks == index, 1.0, 0.0)
+                    index = np.arange(1, nl + 1).reshape((nl, 1, 1))
+                    image_masks = (image_masks == index).astype(np.float32)
 
                 im = np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):

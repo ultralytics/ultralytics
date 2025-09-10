@@ -194,9 +194,9 @@ def try_export(inner_func):
         dt = 0.0
         try:
             with Profile() as dt:
-                f, model = inner_func(*args, **kwargs)
+                f = inner_func(*args, **kwargs)
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
-            return f, model
+            return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
             raise e
@@ -486,36 +486,36 @@ class Exporter:
         # Exports
         f = [""] * len(fmts)  # exported filenames
         if jit or ncnn:  # TorchScript
-            f[0], _ = self.export_torchscript()
+            f[0] = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
-            f[1], _ = self.export_engine(dla=dla)
+            f[1] = self.export_engine(dla=dla)
         if onnx:  # ONNX
-            f[2], _ = self.export_onnx()
+            f[2] = self.export_onnx()
         if xml:  # OpenVINO
-            f[3], _ = self.export_openvino()
+            f[3] = self.export_openvino()
         if coreml:  # CoreML
-            f[4], _ = self.export_coreml()
+            f[4] = self.export_coreml()
         if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
             f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self.export_pb(keras_model=keras_model)
+                f[6] = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite()
+                f[7] = self.export_tflite()
             if edgetpu:
-                f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
+                f[8] = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
             if tfjs:
-                f[9], _ = self.export_tfjs()
+                f[9] = self.export_tfjs()
         if paddle:  # PaddlePaddle
-            f[10], _ = self.export_paddle()
+            f[10] = self.export_paddle()
         if mnn:  # MNN
-            f[11], _ = self.export_mnn()
+            f[11] = self.export_mnn()
         if ncnn:  # NCNN
-            f[12], _ = self.export_ncnn()
+            f[12] = self.export_ncnn()
         if imx:
-            f[13], _ = self.export_imx()
+            f[13] = self.export_imx()
         if rknn:
-            f[14], _ = self.export_rknn()
+            f[14] = self.export_rknn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -580,7 +580,7 @@ class Exporter:
             optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
         else:
             ts.save(str(f), _extra_files=extra_files)
-        return f, None
+        return f
 
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
@@ -639,7 +639,7 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-        return f, model_onnx
+        return f
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
@@ -708,13 +708,13 @@ class Exporter:
                 ignored_scope=ignored_scope,
             )
             serialize(quantized_ov_model, fq_ov)
-            return fq, None
+            return fq
 
         f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
         f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
 
         serialize(ov_model, f_ov)
-        return f, None
+        return f
 
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
@@ -738,12 +738,12 @@ class Exporter:
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f, None
+        return f
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
-        f_onnx, _ = self.export_onnx()  # get onnx model first
+        f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")
         import MNN  # noqa
@@ -763,7 +763,7 @@ class Exporter:
         convert_scratch = Path(self.file.parent / ".__convert_external_data.bin")
         if convert_scratch.exists():
             convert_scratch.unlink()
-        return f, None
+        return f
 
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
@@ -831,7 +831,7 @@ class Exporter:
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return str(f), None
+        return str(f)
 
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):
@@ -910,13 +910,13 @@ class Exporter:
             )
             f = f.with_suffix(".mlmodel")
             ct_model.save(str(f))
-        return f, ct_model
+        return f
 
     @try_export
     def export_engine(self, dla=None, prefix=colorstr("TensorRT:")):
         """Export YOLO model to TensorRT format https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
-        f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
+        f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
             import tensorrt as trt  # noqa
@@ -946,7 +946,7 @@ class Exporter:
             prefix=prefix,
         )
 
-        return f, None
+        return f
 
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
@@ -991,7 +991,7 @@ class Exporter:
 
         # Export to ONNX
         self.args.simplify = True
-        f_onnx, _ = self.export_onnx()
+        f_onnx = self.export_onnx()
 
         # Export to TF
         np_data = None
@@ -1051,7 +1051,7 @@ class Exporter:
         frozen_func = convert_variables_to_constants_v2(m)
         frozen_func.graph.as_graph_def()
         tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(f.parent), name=f.name, as_text=False)
-        return f, None
+        return f
 
     @try_export
     def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
@@ -1067,7 +1067,7 @@ class Exporter:
             f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
-        return str(f), None
+        return str(f)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
@@ -1102,7 +1102,7 @@ class Exporter:
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)
-        return f, None
+        return f
 
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
@@ -1135,7 +1135,7 @@ class Exporter:
 
         # Add metadata
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f, None
+        return f
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
@@ -1151,7 +1151,7 @@ class Exporter:
 
         from rknn.api import RKNN
 
-        f, _ = self.export_onnx()
+        f = self.export_onnx()
         export_path = Path(f"{Path(f).stem}_rknn_model")
         export_path.mkdir(exist_ok=True)
 
@@ -1162,7 +1162,7 @@ class Exporter:
         f = f.replace(".onnx", f"-{self.args.name}.rknn")
         rknn.export_rknn(f"{export_path / f}")
         YAML.save(export_path / "metadata.yaml", self.metadata)
-        return export_path, None
+        return export_path
 
     @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
@@ -1339,7 +1339,7 @@ class Exporter:
         with open(f / "labels.txt", "w", encoding="utf-8") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
-        return f, None
+        return f
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""

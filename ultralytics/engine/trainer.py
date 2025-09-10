@@ -44,6 +44,7 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.torch_utils import (
     TORCH_2_4,
+    DistributedDataParallel,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
@@ -299,7 +300,7 @@ class BaseTrainer:
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -413,7 +414,7 @@ class BaseTrainer:
                     batch = self.preprocess_batch(batch)
                     # decouple inference and loss calculations for torch.compile convenience
                     preds = self.model(batch["img"])
-                    loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                    loss, self.loss_items = self.model.loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size

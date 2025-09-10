@@ -1006,6 +1006,29 @@ class FXModel(nn.Module):
         return x
 
 
+class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
+    """
+    A thin subclass of torch.nn.parallel.DistributedDataParallel that
+    transparently forwards attribute and method access to the wrapped
+    module when they are not defined on DDP itself.
+
+    This allows you to call custom methods or access attributes of the
+    original model directly on the DDP wrapper without having to unwrap
+    with `.module` each time.
+
+    Example:
+        >>> model = MyModel()
+        >>> ddp_model = DistributedDataParallel(model, device_ids=[rank])
+        >>> ddp_model.custom_method()  # Works, forwards to model.custom_method
+    """
+
+    def __getattr__(self, name):
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self.module, name)
+
+
 def attempt_compile(
     model: torch.nn.Module,
     device: torch.device,

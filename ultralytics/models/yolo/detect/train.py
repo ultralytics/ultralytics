@@ -18,7 +18,7 @@ from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
-from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
+from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
 
 class DetectionTrainer(BaseTrainer):
@@ -77,7 +77,7 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (Dataset): YOLO dataset object configured for the specified mode.
         """
-        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(self.model.stride.max() if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):

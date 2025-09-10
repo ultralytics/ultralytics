@@ -1007,32 +1007,32 @@ class FXModel(nn.Module):
 
 
 class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
-    """Subclass of torch.nn.parallel.DistributedDataParallel that forwards missing attributes/methods to the wrapped
-    module, avoiding explicit `.module` access.
+    """
+    A subclass of torch.nn.parallel.DistributedDataParallel that forwards missing attributes and methods to the wrapped module. This removes the need for explicit `.module` access when calling custom methods or working with extra attributes defined on the underlying model.
     """
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         """
-        Delegate missing attributes to the wrapped module.
+        Delegate missing attribute lookups to the wrapped module.
 
         Args:
-            name (str): Attribute name to look up.
+            name (str): Name of the attribute to retrieve.
 
         Returns:
             Any: Attribute from either the DDP wrapper or the wrapped module.
 
         Raises:
-            AttributeError: If not found on both DDP and the wrapped module.
+            AttributeError: If not found on both the DDP wrapper and the module.
         """
         try:
             return super().__getattr__(name)
         except AttributeError:
             return getattr(self.module, name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         """
-        Assign attributes to the DDP wrapper if they already exist there, otherwise forward the assignment to the
-        wrapped module.
+        Assign attributes to the DDP wrapper if they already exist there,
+        otherwise forward the assignment to the wrapped module.
 
         Args:
             name (str): Name of the attribute to assign.
@@ -1040,6 +1040,9 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
 
         Returns:
             None
+
+        Raises:
+            AttributeError: If the assignment fails on both the wrapper and module.
         """
         if name in self.__dict__ or hasattr(type(self), name):
             super().__setattr__(name, value)

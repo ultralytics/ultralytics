@@ -119,9 +119,9 @@ class TaskAlignedAssigner(nn.Module):
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
         norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
-        target_scores = target_scores * norm_align_metric
+        target_scores_ = target_scores * norm_align_metric
 
-        return target_labels, target_bboxes, target_scores, fg_mask.bool(), target_gt_idx
+        return target_scores, target_bboxes, target_scores_, fg_mask.bool(), target_gt_idx
 
     def get_pos_mask(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points, mask_gt):
         """

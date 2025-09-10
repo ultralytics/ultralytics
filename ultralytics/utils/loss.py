@@ -38,12 +38,12 @@ class VarifocalLoss(nn.Module):
 
 
 class MAL(nn.Module):
-    def __init__(self, gamma, mal_alpha) -> None:
+    def __init__(self, gamma=2.0, mal_alpha=None) -> None:
         super().__init__()
         self.gamma = gamma
         self.mal_alpha = mal_alpha
 
-    def forward(self, pred_cls, target_scores, gt_idx, one_hot):
+    def forward(self, pred_cls, target_scores, one_hot):
         pred_score = F.sigmoid(pred_cls).detach()
         target_scores = target_scores.pow(self.gamma)
         weight = (
@@ -53,7 +53,7 @@ class MAL(nn.Module):
         )
 
         loss = F.binary_cross_entropy_with_logits(pred_cls, target_scores, weight=weight, reduction="none")
-        return loss.mean(1).sum() * pred_cls.shape[1] / max(len(gt_idx), 1)
+        return loss.mean(1).sum() * pred_cls.shape[1]
 
 
 class FocalLoss(nn.Module):
@@ -222,7 +222,8 @@ class v8DetectionLoss:
         h = model.args  # hyperparameters
 
         m = model.model[-1]  # Detect() module
-        self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        # self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.loss_mal = MAL()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -292,7 +293,7 @@ class v8DetectionLoss:
         # dfl_conf = pred_distri.view(batch_size, -1, 4, self.reg_max).detach().softmax(-1)
         # dfl_conf = (dfl_conf.amax(-1).mean(-1) + dfl_conf.amax(-1).amin(-1)) / 2
 
-        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+        target_labels, target_bboxes, target_scores, fg_mask, _ = self.assigner(
             # pred_scores.detach().sigmoid() * 0.8 + dfl_conf.unsqueeze(-1) * 0.2,
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -307,7 +308,8 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[1] = self.loss_mal(pred_scores, target_scores, target_labels) / target_scores_sum  # MAL
+        # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         # Bbox loss
         if fg_mask.sum():

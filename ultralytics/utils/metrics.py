@@ -397,11 +397,11 @@ class ConfusionMatrix(DataExportMixin):
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled
             self.matches = {k: defaultdict(list) for k in {"TP", "FP", "FN", "GT"}}
-            for i in range(len(gt_cls)):
+            for i in range(gt_cls.shape[0]):
                 self._append_matches("GT", batch, i)  # store GT
         is_obb = gt_bboxes.shape[1] == 5  # check if boxes contains angle for OBB
         conf = 0.25 if conf in {None, 0.01 if is_obb else 0.001} else conf  # apply 0.25 if default val conf is passed
-        no_pred = len(detections["cls"]) == 0
+        no_pred = detections["cls"].shape[0] == 0
         if gt_cls.shape[0] == 0:  # Check if labels is empty
             if not no_pred:
                 detections = {k: detections[k][detections["conf"] > conf] for k in detections}
@@ -491,13 +491,13 @@ class ConfusionMatrix(DataExportMixin):
         for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
             mbatch = self.matches[mtype]
             if "conf" not in mbatch:
-                mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=img.device)
-            mbatch["batch_idx"] = torch.ones(len(mbatch["bboxes"]), device=img.device) * i
+                mbatch["conf"] = torch.tensor([1.0] * mbatch["bboxes"].shape[0], device=img.device)
+            mbatch["batch_idx"] = torch.ones(mbatch["bboxes"].shape[0], device=img.device) * i
             for k in mbatch.keys():
                 labels[k] += mbatch[k]
 
         labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
-        if self.task != "obb" and len(labels["bboxes"]):
+        if self.task != "obb" and labels["bboxes"].shape[0]:
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         (save_dir / "visualizations").mkdir(parents=True, exist_ok=True)
         plot_images(

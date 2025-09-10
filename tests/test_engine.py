@@ -67,7 +67,15 @@ def test_detect():
 
 def test_segment():
     """Test image segmentation training, validation, and prediction pipelines using YOLO models."""
-    overrides = {"data": "coco8-seg.yaml", "model": "yolo11n-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {
+        "data": "coco8-seg.yaml",
+        "model": "yolo11n-seg.yaml",
+        "imgsz": 32,
+        "epochs": 1,
+        "save": False,
+        "mask_ratio": 1,
+        "overlap_mask": False,
+    }
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8-seg.yaml"
     cfg.imgsz = 32

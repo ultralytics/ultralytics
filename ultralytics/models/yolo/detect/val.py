@@ -146,7 +146,7 @@ class DetectionValidator(BaseValidator):
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
-        if len(cls):
+        if cls.size(0):
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
         return {
             "cls": cls,
@@ -185,7 +185,7 @@ class DetectionValidator(BaseValidator):
             predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
-            no_pred = len(predn["cls"]) == 0
+            no_pred = predn["cls"].size(0) == 0
             self.metrics.update_stats(
                 {
                     **self._process_batch(predn, pbatch),
@@ -268,8 +268,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
-        if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
-            return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
+        if batch["cls"].size(0) == 0 or preds["cls"].size(0) == 0:
+            return {"tp": np.zeros((preds["cls"].size(0), self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 

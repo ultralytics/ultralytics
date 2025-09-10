@@ -440,6 +440,13 @@ class MotionConfig:
         
         return threshold
 
+    def __repr__(self) -> str:
+        return (f"MotionConfig(pixel_threshold={self.pixel_threshold}, delta={self.delta}, "
+                f"window_size={self.window_size}, adaptive_threshold={self.adaptive_threshold}, "
+                f"speed_based_threshold={self.speed_based_threshold}, min_motion_pixels={self.min_motion_pixels}, "
+                f"max_motion_pixels={self.max_motion_pixels}, blur_kernel_size={self.blur_kernel_size}, "
+                f"morphological_ops={self.morphological_ops})")
+
 
 def adaptive_motion_threshold(
     frames: Union[List[np.ndarray], torch.Tensor],

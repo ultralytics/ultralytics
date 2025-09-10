@@ -38,7 +38,7 @@ def parse_args():
     parser.add_argument("--data", type=str, 
                        default="Dataset_YOLO/data.yaml",
                        help="Path to dataset configuration YAML")
-    parser.add_argument("--pretrained", type=str, default="",
+    parser.add_argument("--pretrained", type=str, default="yolo11n-pose.pt",
                        help="Path to pretrained pose weights (e.g., yolo11n-pose.pt)")
     parser.add_argument("--auto-download", action="store_true",
                        help="Automatically download pretrained weights if not found")

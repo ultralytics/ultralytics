@@ -134,6 +134,7 @@ class TennisBallDataset(YOLODataset):
             **kwargs: Additional keyword arguments for parent class
         """
         # Extract custom parameters from kwargs
+        # TODO: dataset_path is not used, should be removed.
         dataset_path = kwargs.pop('dataset_path', None)
         
         # Set motion-related attributes before parent initialization
@@ -143,6 +144,8 @@ class TennisBallDataset(YOLODataset):
         self.precompute_motion = precompute_motion
         
         # Motion detection configuration
+        if motion_config is not None:
+            LOGGER.warning(f"{colorstr('TennisBallDataset')}: Overriding default MotionConfig with user-provided config.")
         self.motion_config = motion_config or MotionConfig(
             pixel_threshold=15,
             delta=1,
@@ -151,7 +154,6 @@ class TennisBallDataset(YOLODataset):
             min_motion_pixels=100,
             max_motion_pixels=50000
         )
-        
         # Initialize motion generator
         self.motion_generator = FlexibleMotionMaskGenerator(
             self.motion_config,
@@ -188,6 +190,7 @@ class TennisBallDataset(YOLODataset):
             LOGGER.info(f"{colorstr('TennisBallDataset')}: Using 3-channel input (RGB only)")
         
         # Pre-compute motion masks if requested
+        # TODO: this line seems useless, it do nothing, the cache should follow ultralytics original logic.
         if self.precompute_motion and self.use_motion_masks:
             self.cache_motion_masks()
 
@@ -206,6 +209,7 @@ class TennisBallDataset(YOLODataset):
             
             # Extract game and clip info from path structure
             # Expected structure: .../Dataset/gameX/ClipY/frame.jpg or .../Dataset_YOLO/images/train|val/gameX_ClipY_frame.jpg
+            # TODO: This is the magic word for processed or not, it should be considered more carefully.
             if "Dataset_YOLO" in str(img_path):
                 # Handle converted YOLO format: gameX_ClipY_frame.jpg
                 parts = img_path.stem.split('_')
@@ -329,9 +333,10 @@ class TennisBallDataset(YOLODataset):
             return np.zeros((self.imgsz, self.imgsz), dtype=np.uint8)
         
         # Resize motion mask to match target image size
-        if motion_mask.shape != (self.imgsz, self.imgsz):
-            import cv2
-            motion_mask = cv2.resize(motion_mask, (self.imgsz, self.imgsz), interpolation=cv2.INTER_NEAREST)
+        # TODO: The resize should be down in transforms.
+        # if motion_mask.shape != (self.imgsz, self.imgsz):
+        #     import cv2
+        #     motion_mask = cv2.resize(motion_mask, (self.imgsz, self.imgsz), interpolation=cv2.INTER_NEAREST)
         
         return motion_mask
     

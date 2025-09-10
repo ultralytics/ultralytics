@@ -64,6 +64,7 @@ class TennisBallTrainer(PoseTrainer):
         pixel_threshold = overrides.pop("pixel_threshold", 15)
         
         # Ensure task is set to pose
+        # TODO: Should we using a new task type like ball pose detection?
         overrides["task"] = "pose"
         
         # Set default motion configuration

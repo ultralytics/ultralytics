@@ -937,7 +937,10 @@ def plot_masks(
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    mask_annotator = Annotator(mask_mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    mask_annotator = Annotator(cv2.cvtColor(mask_mosaic, cv2.COLOR_BGR2RGB),
+                               line_width=round(fs / 10),
+                               font_size=fs,
+                               pil=True, example=names)
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders

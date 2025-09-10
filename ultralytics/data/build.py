@@ -203,11 +203,10 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
     return InfiniteDataLoader(
         dataset=dataset,
         batch_size=batch,
-        shuffle=False,
-        #shuffle=shuffle and sampler is None,
+        shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        pin_memory=nd > 0,
+        pin_memory=False,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,

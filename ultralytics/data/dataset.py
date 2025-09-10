@@ -766,6 +766,7 @@ class SemanticDataset(BaseDataset):
                     repeat(ndim)
                 )
             )
+
             pbar = TQDM(results, desc=desc, total=total)
             for im_file, msk_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

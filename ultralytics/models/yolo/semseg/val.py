@@ -77,9 +77,8 @@ class SemSegValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 6) % (
+        return ("%22s" + "%11s" * 5) % (
             "Class",
-            "Images",
             "Precision",
             "Recall",
             "mIoU",
@@ -97,7 +96,7 @@ class SemSegValidator(DetectionValidator):
         """Prepares a batch for training or inference by processing images and targets."""
         return pred
 
-    def mask_iou_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_ious(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         ious = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -106,7 +105,7 @@ class SemSegValidator(DetectionValidator):
             ious[i] = mask_iou(pred_mask[None,:], gt_mask[None,:])
         return ious
 
-    def mask_precision_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_precisions(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         precisions = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -115,7 +114,7 @@ class SemSegValidator(DetectionValidator):
             precisions[i] = mask_precision(pred_mask[None,:], gt_mask[None,:])
         return precisions
 
-    def mask_recall_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_recalls(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         recalls = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -124,7 +123,7 @@ class SemSegValidator(DetectionValidator):
             recalls[i] = mask_recall(pred_mask[None,:], gt_mask[None,:])
         return recalls
 
-    def mask_accuracy_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_accuracys(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         accuracys = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -133,7 +132,7 @@ class SemSegValidator(DetectionValidator):
             accuracys[i] = mask_accuracy(pred_mask[None,:], gt_mask[None,:])
         return accuracys
 
-    def mask_mcr_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_mcrs(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         mcrs = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -142,7 +141,7 @@ class SemSegValidator(DetectionValidator):
             mcrs[i] = mask_mcr(pred_mask[None,:], gt_mask[None,:])
         return mcrs
 
-    def mask_dice_score_each_catgoriy(self,pred_mask_for_category, gt_mask_for_catgory):
+    def mask_dice_scores(self,pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         dice_scores = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -165,7 +164,7 @@ class SemSegValidator(DetectionValidator):
                 mcr=torch.zeros(self.nc, dtype=torch.float, device=self.device)
             )
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch.pop("cls"), pbatch.pop("bboxes")
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
 
@@ -175,35 +174,33 @@ class SemSegValidator(DetectionValidator):
             #for k in range(self.nc):
             #    p = (pred[k,:,:] * 255).cpu().numpy().astype(np.uint8)
             #    m = (gt_mask[k,:,:] * 255).cpu().numpy().astype(np.uint8)
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + self.names[k] + "_pred.jpg", p)
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + self.names[k] + "_mask.jpg", m)
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + batch['im_file'][si].split(os.sep)[-1], cv2.imread(batch['im_file'][si]))
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + batch['msk_file'][si].split(os.sep)[-1],
-            #                cv2.imread(batch['msk_file'][si]))
+            #    cv2.imwrite("E:/workspace/view/" + self.names[k] + "_pred.jpg", p)
+            #    cv2.imwrite("E:/workspace/view/" + self.names[k] + "_mask.jpg", m)
+            #    cv2.imwrite("E:/workspace/view/" + batch['im_file'][si].split(os.sep)[-1], cv2.imread(batch['im_file'][si]))
+            #    cv2.imwrite("E:/workspace/view/" + batch['msk_file'][si].split(os.sep)[-1], cv2.imread(batch['msk_file'][si]))
+
             # Evaluate
-            stat['precision'] = self.mask_precision_for_each_catgoriy(
+            stat['precision'] = self.mask_precisions(
                 (pred > 0.5).float().view(self.nc, -1),
                 (gt_mask > 0.5).float().view(self.nc, -1)
             )
 
-            stat['recall'] = self.mask_recall_for_each_catgoriy(
+            stat['recall'] = self.mask_recalls(
                 (pred > 0.5).float().view(self.nc, -1),
                 (gt_mask > 0.5).float().view(self.nc, -1)
             )
 
-            stat['dice_score'] = self.mask_dice_score_each_catgoriy(
+            stat['dice_score'] = self.mask_dice_scores(
                 (pred > 0.5).float().view(self.nc, -1),
                 (gt_mask > 0.5).float().view(self.nc, -1)
             )
 
-
-            stat['mIoU'] = self.mask_iou_for_each_catgoriy(
+            stat['mIoU'] = self.mask_ious(
                 (pred > 0.5).float().view(self.nc,-1),
                 (gt_mask > 0.5).float().view(self.nc,-1)
             )
 
-
-            stat['mcr'] = self.mask_mcr_for_each_catgoriy(
+            stat['mcr'] = self.mask_mcrs(
                 (pred > 0.5).float().view(self.nc,-1),
                 (gt_mask > 0.5).float().view(self.nc,-1)
             )
@@ -217,8 +214,6 @@ class SemSegValidator(DetectionValidator):
             pred_masks = torch.as_tensor((pred > 0.5).float(), dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
                 self.plot_masks.append(pred_masks.cpu())
-
-
 
     def finalize_metrics(self, *args, **kwargs):
         """Sets speed and confusion matrix for evaluation metrics."""
@@ -272,16 +267,19 @@ class SemSegValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plots validation samples with bounding box labels."""
-        plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
+        """Plots validation samples with masks."""
+        plot_masks(
+            images=batch["img"],
             masks=batch["masks"],
+            batch_idx=batch["batch_idx"],
+            cls=batch["cls"].squeeze(-1),
+            bboxes=batch["bboxes"],
             paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
+            nc=self.data["nc"],
+            names=self.data["names"],
+            colors=self.data["colors"],
+            fname=self.save_dir / f"train_batch{ni}.jpg",
+            mname=self.save_dir / f"mask_batch{ni}.jpg",
             on_plot=self.on_plot,
         )
 
@@ -365,7 +363,7 @@ class SemSegValidator(DetectionValidator):
     def print_results(self):
         """Prints training/validation set metrics per class."""
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all",  *self.metrics.mean_results))
+        LOGGER.info(pf % ("all",  *self.metrics.mean_results()))
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
@@ -389,7 +387,7 @@ class SemSegValidator(DetectionValidator):
             processed_preds.append(processed_preds_batch)
 
         processed_preds = torch.stack(processed_preds, dim=0)
-        return preds.sigmoid()
+        return processed_preds
 
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
@@ -426,15 +424,15 @@ def validate(cfg=DEFAULT_CFG):
     data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
     cfg.name = os.path.join(cfg.name, 'val')
-    data = YAML.load(data)
-    img_path = os.path.join(data['path'], data['val'])
+    #data = YAML.load(data)
+    img_path = os.path.join(YAML.load(data)['path'], YAML.load(data)['val'])
     bs = cfg.batch
-    #args = dict(model=model, data=data, device=device, name=cfg.name, task='skyseg')
+    args = dict(model=model, data=data, device=device, name=cfg.name, task='semseg')
     val_dataset = build_semantic_dataset(
         cfg,
         img_path,
         bs,
-        data,
+        YAML.load(data),
         mode='val'
     )
     val_dataloader = build_dataloader(
@@ -444,7 +442,7 @@ def validate(cfg=DEFAULT_CFG):
         shuffle=False,
     )
 
-    validator = SemSegValidator(val_dataloader, Path(cfg.name))
+    validator = SemSegValidator(val_dataloader, Path(cfg.name), args)
     validator(model=model)
 
 if __name__ == '__main__':

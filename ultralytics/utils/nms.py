@@ -263,7 +263,7 @@ class TorchNMS:
         areas = (x2 - x1) * (y2 - y1)
 
         # Sort by scores descending
-        _, order = scores.sort(0, descending=True)
+        order = scores.argsort(0, descending=True)
 
         # Pre-allocate keep list with maximum possible size
         keep = torch.zeros(order.numel(), dtype=torch.int32, device=boxes.device)

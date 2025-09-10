@@ -27,14 +27,12 @@ class VarifocalLoss(nn.Module):
     @staticmethod
     def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
         """Compute varifocal loss between predictions and ground truth."""
-        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        weight = alpha * pred_score.sigmoid().detach().pow(gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
             loss = (
-                (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
-                .mean(1)
-                .sum()
+                F.binary_cross_entropy_with_logits(pred_score, gt_score, weight=weight, reduction="none").mean(1).sum()
             )
-        return loss
+        return loss * pred_score.shape[1]
 
 
 class MAL(nn.Module):
@@ -224,6 +222,7 @@ class v8DetectionLoss:
         m = model.model[-1]  # Detect() module
         # self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.loss_mal = MAL()
+        self.varifocal_loss = VarifocalLoss()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -307,8 +306,8 @@ class v8DetectionLoss:
         target_scores_sum = max(target_scores.sum(), 1)
 
         # Cls loss
-        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.loss_mal(pred_scores, target_scores, target_labels) / target_scores_sum  # MAL
+        loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels, alpha=1.0) / target_scores_sum  # VFL way
+        # loss[1] = self.loss_mal(pred_scores, target_scores, target_labels) / target_scores_sum  # MAL
         # loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         # Bbox loss

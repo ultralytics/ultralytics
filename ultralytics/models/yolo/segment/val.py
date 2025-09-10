@@ -140,9 +140,11 @@ class SegmentationValidator(DetectionValidator):
             masks = (masks == index).float()
         else:
             masks = batch["masks"][batch["batch_idx"] == si]
-        if nl and self.process is ops.process_mask_native:
-            masks = F.interpolate(masks[None], prepared_batch["imgsz"], mode="bilinear", align_corners=False)[0]
-            masks = masks.gt_(0.5)
+        if nl:
+            mask_size = [s if self.process is ops.process_mask_native else s // 4 for s in prepared_batch["imgsz"]]
+            if masks.shape[1:] != mask_size:
+                masks = F.interpolate(masks[None], mask_size, mode="bilinear", align_corners=False)[0]
+                masks = masks.gt_(0.5)
         prepared_batch["masks"] = masks
         return prepared_batch
 
@@ -171,7 +173,12 @@ class SegmentationValidator(DetectionValidator):
         if len(gt_cls) == 0 or len(preds["cls"]) == 0:
             tp_m = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
         else:
-            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1))
+            pred_masks = preds["masks"]
+            gt_masks = batch["masks"]
+            if gt_masks.shape[1:] != pred_masks.shape[1:]:
+                gt_masks = F.interpolate(gt_masks[None], pred_masks.shape[1:], mode="bilinear", align_corners=False)[0]
+                gt_masks = gt_masks.gt_(0.5)
+            iou = mask_iou(gt_masks.flatten(1), pred_masks.flatten(1))
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp

@@ -42,6 +42,7 @@ from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
+from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
@@ -742,8 +743,8 @@ class BaseTrainer:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
-        """Plot and display metrics visually."""
-        pass
+        """Plot metrics from a CSV file."""
+        plot_results(file=self.csv, on_plot=self.on_plot)  # save results.png
 
     def on_plot(self, name, data=None):
         """Register plots (e.g. to be consumed in callbacks)."""

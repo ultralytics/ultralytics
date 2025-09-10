@@ -874,17 +874,14 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
         try:
             data = pl.read_csv(f, infer_schema_length=None)
             if i == 0:
-                columns = data.columns[2:-3]
-                for c in columns:
+                for c in data.columns:
                     if "loss" in c:
                         loss_keys.append(c)
                     elif "metric" in c:
                         metric_keys.append(c)
+                loss_mid, metric_mid = len(loss_keys) // 2, len(metric_keys) // 2
                 columns = (
-                    loss_keys[: len(loss_keys) // 2]
-                    + metric_keys[: len(metric_keys) // 2]
-                    + loss_keys[len(loss_keys) // 2 :]
-                    + metric_keys[len(metric_keys) // 2 :]
+                    loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
                 fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
                 ax = ax.ravel()

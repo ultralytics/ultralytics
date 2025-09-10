@@ -847,20 +847,12 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(
-    loss_keys: list[str],
-    metric_keys: list[str],
-    file: str = "path/to/results.csv",
-    dir: str = "",
-    on_plot: Callable | None = None,
-):
+def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
 
     Args:
-        loss_keys (list[str]): List of column names in the CSV corresponding to loss values.
-        metric_keys (list[str]): List of column names in the CSV corresponding to metric values.
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
@@ -874,19 +866,28 @@ def plot_results(
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    columns = (
-        loss_keys[: len(loss_keys) // 2]
-        + metric_keys[: len(metric_keys) // 2]
-        + loss_keys[len(loss_keys) // 2 :]
-        + metric_keys[len(metric_keys) // 2 :]
-    )
-    fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
-    ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
-    for f in files:
+
+    loss_keys, metric_keys = [], []
+    for i, f in enumerate(files):
         try:
             data = pl.read_csv(f, infer_schema_length=None)
+            if i == 0:
+                columns = data.columns[2:-3]
+                for c in columns:
+                    if "loss" in c:
+                        loss_keys.append(c)
+                    elif "metric" in c:
+                        metric_keys.append(c)
+                columns = (
+                    loss_keys[: len(loss_keys) // 2]
+                    + metric_keys[: len(metric_keys) // 2]
+                    + loss_keys[len(loss_keys) // 2 :]
+                    + metric_keys[len(metric_keys) // 2 :]
+                )
+                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                ax = ax.ravel()
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")

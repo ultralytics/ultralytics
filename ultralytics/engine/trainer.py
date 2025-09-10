@@ -744,12 +744,7 @@ class BaseTrainer:
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""
-        plot_results(
-            file=self.csv,
-            on_plot=self.on_plot,
-            loss_keys=self.label_loss_items(prefix="train") + self.label_loss_items(prefix="val"),
-            metric_keys=list(self.metrics.keys()),
-        )  # save results.png
+        plot_results(file=self.csv, on_plot=self.on_plot)  # save results.png
 
     def on_plot(self, name, data=None):
         """Register plots (e.g. to be consumed in callbacks)."""

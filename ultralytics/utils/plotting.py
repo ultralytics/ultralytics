@@ -812,7 +812,7 @@ def plot_images(
 
             # Plot masks
             if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_mask=False
+                if idx.shape[0] == masks.shape[0] and masks.max() <= 1:  # overlap_mask=False
                     image_masks = masks[idx]
                 else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)

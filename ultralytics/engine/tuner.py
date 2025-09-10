@@ -397,7 +397,7 @@ class Tuner:
                 assert return_code == 0, "training failed"
 
                 # Cleanup
-                time.sleep(3)
+                time.sleep(1)
                 gc.collect()
                 torch.cuda.empty_cache()
 
@@ -433,7 +433,7 @@ class Tuner:
                 for ckpt in weights_dir.glob("*.pt"):
                     shutil.copy2(ckpt, self.tune_dir / "weights")
             elif cleanup:
-                shutil.rmtree(weights_dir, ignore_errors=True)  # remove iteration weights/ dir to reduce storage space
+                shutil.rmtree(best_save_dir, ignore_errors=True)  # remove iteration dirs to reduce storage space
 
             # Plot tune results
             plot_tune_results(str(self.tune_csv))
@@ -444,8 +444,7 @@ class Tuner:
                 f"{self.prefix}Results saved to {colorstr('bold', self.tune_dir)}\n"
                 f"{self.prefix}Best fitness={fitness[best_idx]} observed at iteration {best_idx + 1}\n"
                 f"{self.prefix}Best fitness metrics are {best_metrics}\n"
-                f"{self.prefix}Best fitness model is {best_save_dir}\n"
-                f"{self.prefix}Best fitness hyperparameters are printed below.\n"
+                f"{self.prefix}Best fitness model is {best_save_dir}"
             )
             LOGGER.info("\n" + header)
             data = {k: float(x[best_idx, i + 1]) for i, k in enumerate(self.space.keys())}

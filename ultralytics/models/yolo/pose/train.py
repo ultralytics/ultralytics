@@ -9,7 +9,6 @@ from typing import Any
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-from ultralytics.utils.plotting import plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -30,7 +29,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         set_model_attributes: Set keypoints shape attribute on the model.
         get_validator: Create a validator instance for model evaluation.
         plot_training_samples: Visualize training samples with keypoints.
-        plot_metrics: Generate and save training/validation metric plots.
         get_dataset: Retrieve the dataset and ensure it contains required kpt_shape key.
 
     Examples:
@@ -100,10 +98,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def plot_metrics(self):
-        """Plot training/validation metrics."""
-        plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
 
     def get_dataset(self) -> dict[str, Any]:
         """

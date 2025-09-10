@@ -1050,6 +1050,8 @@ def attempt_compile(
         mode = "default"
     prefix = colorstr("compile:")
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
+    if mode == "max-autotune":
+        LOGGER.warning(f"{prefix} mode='{mode}' may have long compilation time.")
     t0 = time.perf_counter()
     try:
         model = torch.compile(model, mode=mode, backend="inductor")

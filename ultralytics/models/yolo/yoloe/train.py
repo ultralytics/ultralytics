@@ -13,7 +13,6 @@ from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
 from .val import YOLOEDetectValidator

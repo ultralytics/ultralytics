@@ -106,7 +106,7 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
-from ultralytics.utils.export import export_engine, export_imx, export_onnx
+from ultralytics.utils.export import onnx_to_engine, torch_to_imx, torch_to_onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -600,7 +600,7 @@ class Exporter:
             self.args.opset = opset_version  # for NMSModel
 
         with arange_patch(self.args):
-            export_onnx(
+            torch_to_onnx(
                 NMSModel(self.model, self.args) if self.args.nms else self.model,
                 self.im,
                 f,
@@ -922,7 +922,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
         assert Path(f_onnx).exists(), f"failed to export ONNX file: {f_onnx}"
         f = self.file.with_suffix(".engine")  # TensorRT engine file
-        export_engine(
+        onnx_to_engine(
             f_onnx,
             f,
             self.args.workspace,
@@ -1180,7 +1180,7 @@ class Exporter:
             cmd = (["sudo"] if is_sudo_available() else []) + ["apt", "install", "-y", "openjdk-21-jre"]
             subprocess.run(cmd, check=True)
 
-        return export_imx(
+        return torch_to_imx(
             self.model,
             self.file,
             self.args.conf,

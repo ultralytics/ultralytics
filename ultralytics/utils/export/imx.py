@@ -139,7 +139,7 @@ class NMSWrapper(torch.nn.Module):
         return nms_outputs
 
 
-def export_imx(
+def torch_to_imx(
     model: torch.nn.Module,
     file: Path | str,
     conf: float,

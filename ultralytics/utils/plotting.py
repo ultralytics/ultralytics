@@ -874,10 +874,13 @@ def plot_results(
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    first_row = loss_keys[: len(loss_keys) // 2] + metric_keys[: len(metric_keys) // 2]
-    second_row = loss_keys[len(loss_keys) // 2 :] + metric_keys[len(metric_keys) // 2 :]
-    fig, ax = plt.subplots(2, len(first_row), figsize=(2 * len(first_row) + 2, 6), tight_layout=True)
-    index = first_row + second_row
+    columns = (
+        loss_keys[: len(loss_keys) // 2]
+        + metric_keys[: len(metric_keys) // 2]
+        + loss_keys[len(loss_keys) // 2 :]
+        + metric_keys[len(metric_keys) // 2 :]
+    )
+    fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
     ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
@@ -885,7 +888,7 @@ def plot_results(
         try:
             data = pl.read_csv(f, infer_schema_length=None)
             x = data.select(data.columns[0]).to_numpy().flatten()
-            for i, j in enumerate(index):
+            for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line

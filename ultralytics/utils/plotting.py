@@ -854,6 +854,8 @@ def plot_results(
     pose: bool = False,
     classify: bool = False,
     on_plot: Callable | None = None,
+    loss_keys: list | None = None,
+    metric_keys: list | None = None,
 ):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
@@ -876,18 +878,10 @@ def plot_results(
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    if classify:
-        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [2, 5, 3, 4]
-    elif segment:
-        fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
-    elif pose:
-        fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
-    else:
-        fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
+    first_row = loss_keys[:len(loss_keys)//2] + metric_keys[:len(metric_keys)//2]
+    second_row = loss_keys[len(loss_keys)//2:] + metric_keys[len(metric_keys)//2:]
+    fig, ax = plt.subplots(2, len(first_row), figsize=(2 * len(first_row) + 2, 6), tight_layout=True)
+    index = first_row + second_row
     ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
@@ -897,11 +891,11 @@ def plot_results(
             s = [x.strip() for x in data.columns]
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(index):
-                y = data.select(data.columns[j]).to_numpy().flatten().astype("float")
+                y = data.select(j).to_numpy().flatten().astype("float")
                 # y[y == 0] = np.nan  # don't show zero values
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
-                ax[i].set_title(s[j], fontsize=12)
+                ax[i].set_title(j, fontsize=12)
                 # if j in {8, 9, 10}:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
         except Exception as e:

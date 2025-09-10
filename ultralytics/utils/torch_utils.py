@@ -1007,7 +1007,12 @@ class FXModel(nn.Module):
 
 
 class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
-    """A subclass of torch.nn.parallel.DistributedDataParallel that forwards missing attributes and methods to the wrapped module. This removes the need for explicit `.module` access when calling custom methods or working with extra attributes defined on the underlying model."""
+    """
+    A subclass of torch.nn.parallel.DistributedDataParallel that forwards missing attributes and methods to the wrapped
+    module.
+
+    This removes the need for explicit `.module` access when calling custom methods or working with extra attributes defined on the underlying model.
+    """
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -1029,8 +1034,8 @@ class DistributedDataParallel(torch.nn.parallel.DistributedDataParallel):
 
     def __setattr__(self, name: str, value: Any) -> None:
         """
-        Assign attributes to the DDP wrapper if they already exist there,
-        otherwise forward the assignment to the wrapped module.
+        Assign attributes to the DDP wrapper if they already exist there, otherwise forward the assignment to the
+        wrapped module.
 
         Args:
             name (str): Name of the attribute to assign.

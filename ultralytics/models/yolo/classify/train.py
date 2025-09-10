@@ -220,7 +220,7 @@ class ClassificationTrainer(BaseTrainer):
             batch (dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Number of iterations.
         """
-        batch["batch_idx"] = torch.arange(len(batch["img"]))  # add batch index for plotting
+        batch["batch_idx"] = torch.arange(batch["img"].size(0))  # add batch index for plotting
         plot_images(
             labels=batch,
             fname=self.save_dir / f"train_batch{ni}.jpg",

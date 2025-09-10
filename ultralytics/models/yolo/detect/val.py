@@ -71,11 +71,10 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Preprocessed batch.
         """
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        for k, v in batch.items():
+            if isinstance(v, torch.Tensor):
+                batch[k] = v.to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        for k in {"batch_idx", "cls", "bboxes"}:
-            batch[k] = batch[k].to(self.device, non_blocking=True)
-
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
@@ -147,7 +146,7 @@ class DetectionValidator(BaseValidator):
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
-        if len(cls):
+        if cls.shape[0]:
             bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=bbox.device)[[1, 0, 1, 0]]  # target boxes
         return {
             "cls": cls,
@@ -186,7 +185,7 @@ class DetectionValidator(BaseValidator):
             predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
-            no_pred = len(predn["cls"]) == 0
+            no_pred = predn["cls"].shape[0] == 0
             self.metrics.update_stats(
                 {
                     **self._process_batch(predn, pbatch),
@@ -269,8 +268,8 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for 10 IoU levels.
         """
-        if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
-            return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
+        if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
+            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
@@ -300,7 +299,9 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): Dataloader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
-        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)  # return dataloader
+        return build_dataloader(
+            dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
+        )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:
         """

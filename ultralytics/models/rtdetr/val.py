@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import torch
 
@@ -155,17 +157,17 @@ class RTDETRValidator(DetectionValidator):
         )
 
     def postprocess(
-        self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]
-    ) -> List[Dict[str, torch.Tensor]]:
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
+    ) -> list[dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (torch.Tensor | List | Tuple): Raw predictions from the model. If tensor, should have shape
+            preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
                 (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
 
         Returns:
-            (List[Dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
+            (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
                 - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates
                 - 'conf': Tensor of shape (N,) with confidence scores
                 - 'cls': Tensor of shape (N,) with class indices
@@ -187,14 +189,14 @@ class RTDETRValidator(DetectionValidator):
 
         return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> None:
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """
         Serialize YOLO predictions to COCO json format.
 
         Args:
-            predn (Dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
+            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
                 with bounding box coordinates, confidence scores, and class predictions.
-            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
+            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
         path = Path(pbatch["im_file"])
         stem = path.stem

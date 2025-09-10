@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import importlib.metadata
 import inspect
@@ -9,7 +11,6 @@ import os
 import platform
 import re
 import socket
-import subprocess
 import sys
 import threading
 import time
@@ -17,7 +18,6 @@ from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
-from typing import Union
 from urllib.parse import unquote
 
 import cv2
@@ -25,6 +25,7 @@ import numpy as np
 import torch
 
 from ultralytics import __version__
+from ultralytics.utils.git import GitRepo
 from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for patches
 from ultralytics.utils.tqdm import TQDM  # noqa
 
@@ -48,7 +49,7 @@ MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
 NOT_MACOS14 = not (MACOS and MACOS_VERSION.startswith("14."))
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
-TORCH_VERSION = torch.__version__
+TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 RKNN_CHIPS = frozenset(
@@ -130,6 +131,10 @@ os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+
+# Precompiled type tuples for faster isinstance() checks
+FLOAT_OR_INT = (float, int)
+STR_OR_PATH = (str, Path)
 
 
 class DataExportMixin:
@@ -455,8 +460,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
 # Set logger
 LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
-for logger in "sentry_sdk", "urllib3.connectionpool":
-    logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
+logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
@@ -789,7 +793,7 @@ def is_pip_package(filepath: str = __name__) -> bool:
     return spec is not None and spec.origin is not None
 
 
-def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
+def is_dir_writeable(dir_path: str | Path) -> bool:
     """
     Check if a directory is writeable.
 
@@ -820,77 +824,6 @@ def is_github_action_running() -> bool:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
     return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
-
-
-def get_git_dir():
-    """
-    Determine whether the current file is part of a git repository and if so, return the repository root directory.
-
-    Returns:
-        (Path | None): Git root directory if found or None if not found.
-    """
-    for d in Path(__file__).parents:
-        if (d / ".git").is_dir():
-            return d
-
-
-def is_git_dir():
-    """
-    Determine whether the current file is part of a git repository.
-
-    Returns:
-        (bool): True if current file is part of a git repository.
-    """
-    return GIT_DIR is not None
-
-
-@lru_cache(maxsize=1)
-def get_git_origin_url():
-    """
-    Retrieve the origin URL of a git repository.
-
-    Returns:
-        (str | None): The origin URL of the git repository or None if not git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            return subprocess.check_output(
-                ["git", "config", "--get", "remote.origin.url"], stderr=subprocess.DEVNULL, text=True
-            ).strip()
-        except subprocess.CalledProcessError:
-            return None
-
-
-@lru_cache(maxsize=1)
-def get_git_branch():
-    """
-    Return the current git branch name. If not in a git repository, return None.
-
-    Returns:
-        (str | None): The current git branch name or None if not a git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            return subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL, text=True
-            ).strip()
-        except subprocess.CalledProcessError:
-            return None
-
-
-@lru_cache(maxsize=1)
-def get_git_commit():
-    """
-    Return the current git commit hash. If not in a git repository, return None.
-
-    Returns:
-        (str | None): The current git commit hash or None if not a git directory.
-    """
-    if IS_GIT_DIR:
-        try:
-            return subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
-        except subprocess.CalledProcessError:
-            return None
 
 
 def get_default_args(func):
@@ -924,7 +857,7 @@ def get_ubuntu_version():
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """
-    Return the appropriate config directory based on the environment operating system.
+    Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -932,27 +865,38 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     Returns:
         (Path): The path to the user config directory.
     """
-    if WINDOWS:
-        path = Path.home() / "AppData" / "Roaming" / sub_dir
-    elif MACOS:  # macOS
-        path = Path.home() / "Library" / "Application Support" / sub_dir
+    if env_dir := os.getenv("YOLO_CONFIG_DIR"):
+        p = Path(env_dir).expanduser() / sub_dir
     elif LINUX:
-        path = Path.home() / ".config" / sub_dir
+        p = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / sub_dir
+    elif WINDOWS:
+        p = Path.home() / "AppData" / "Roaming" / sub_dir
+    elif MACOS:
+        p = Path.home() / "Library" / "Application Support" / sub_dir
     else:
         raise ValueError(f"Unsupported operating system: {platform.system()}")
 
-    # GCP and AWS lambda fix, only /tmp is writeable
-    if not is_dir_writeable(path.parent):
-        LOGGER.warning(
-            f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD. "
-            "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
-        )
-        path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
+    if p.exists():  # already created → trust it
+        return p
+    if is_dir_writeable(p.parent):  # create if possible
+        p.mkdir(parents=True, exist_ok=True)
+        return p
 
-    # Create the subdirectory if it does not exist
-    path.mkdir(parents=True, exist_ok=True)
+    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writeable
+    for alt in [Path("/tmp") / sub_dir, Path.cwd() / sub_dir]:
+        if alt.exists():
+            return alt
+        if is_dir_writeable(alt.parent):
+            alt.mkdir(parents=True, exist_ok=True)
+            LOGGER.warning(
+                f"user config directory '{p}' is not writeable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
+            )
+            return alt
 
-    return path
+    # Last fallback → CWD
+    p = Path.cwd() / sub_dir
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 # Define constants (required below)
@@ -965,9 +909,8 @@ IS_JETSON = is_jetson()
 IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
-GIT_DIR = get_git_dir()
-IS_GIT_DIR = is_git_dir()
-USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
+GIT = GitRepo()
+USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
@@ -1189,7 +1132,7 @@ def set_sentry():
         or TESTS_RUNNING
         or not ONLINE
         or not IS_PIP_PACKAGE
-        or IS_GIT_DIR
+        or GIT.is_repo
     ):
         return
     # If sentry_sdk package is not installed then return and do not use Sentry
@@ -1217,7 +1160,7 @@ def set_sentry():
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
-            "install": "git" if IS_GIT_DIR else "pip" if IS_PIP_PACKAGE else "other",
+            "install": "git" if GIT.is_repo else "pip" if IS_PIP_PACKAGE else "other",
             "os": ENVIRONMENT,
         }
         return event
@@ -1264,7 +1207,7 @@ class JSONDict(dict):
         >>> json_dict.clear()
     """
 
-    def __init__(self, file_path: Union[str, Path] = "data.json"):
+    def __init__(self, file_path: str | Path = "data.json"):
         """Initialize a JSONDict object with a specified file path for JSON persistence."""
         super().__init__()
         self.file_path = Path(file_path)
@@ -1362,8 +1305,8 @@ class SettingsManager(JSONDict):
 
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
-        root = GIT_DIR or Path()
-        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
+        root = GIT.root or Path()
+        datasets_root = (root.parent if GIT.root and is_dir_writeable(root.parent) else root).resolve()
 
         self.file = Path(file)
         self.version = version
@@ -1451,7 +1394,7 @@ class SettingsManager(JSONDict):
 
 def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    msg = f"'{arg}' is deprecated and will be removed in in the future."
+    msg = f"'{arg}' is deprecated and will be removed in the future."
     if new_arg is not None:
         msg += f" Use '{new_arg}' instead."
     LOGGER.warning(msg)

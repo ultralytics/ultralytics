@@ -24,9 +24,10 @@ from torch import nn, optim
 from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import (
     DEFAULT_CFG,
+    GIT,
     LOCAL_RANK,
     LOGGER,
     RANK,
@@ -36,7 +37,6 @@ from ultralytics.utils import (
     clean_url,
     colorstr,
     emojis,
-    get_git_commit,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
@@ -46,6 +46,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
+    attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
@@ -54,6 +55,7 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
+    unwrap_model,
 )
 
 
@@ -117,6 +119,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (list, optional): List of callback functions.
         """
+        self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
         self.device = select_device(self.args.device, self.args.batch)
@@ -167,9 +170,6 @@ class BaseTrainer:
         self.loss_names = ["Loss"]
         self.csv = self.save_dir / "results.csv"
         self.plot_idx = [0, 1, 2]
-
-        # HUB
-        self.hub_session = None
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -255,6 +255,13 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+
+        # Initialize loss criterion before compilation for torch.compile compatibility
+        if hasattr(self.model, "init_criterion"):
+            self.model.criterion = self.model.init_criterion()
+
+        # Compile model
+        self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
         freeze_list = (
@@ -404,7 +411,9 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    loss, self.loss_items = self.model(batch)
+                    # decouple inference and loss calculations for torch.compile convenience
+                    preds = self.model(batch["img"])
+                    loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size
@@ -544,7 +553,7 @@ class BaseTrainer:
         """Read results.csv into a dictionary using polars."""
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.read_csv(self.csv).to_dict(as_series=False)
+        return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
 
     def _model_train(self):
         """Set model in training mode."""
@@ -565,7 +574,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(self.ema.ema).half(),
+                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "train_args": vars(self.args),  # save as dict
@@ -573,7 +582,12 @@ class BaseTrainer:
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
-                "git_commit": get_git_commit(),
+                "git": {
+                    "root": str(GIT.root),
+                    "branch": GIT.branch,
+                    "commit": GIT.commit,
+                    "origin": GIT.origin,
+                },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
             },
@@ -587,8 +601,6 @@ class BaseTrainer:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
-        # if self.args.close_mosaic and self.epoch == (self.epochs - self.args.close_mosaic - 1):
-        #    (self.wdir / "last_mosaic.pt").write_bytes(serialized_ckpt)  # save mosaic checkpoint
 
     def get_dataset(self):
         """
@@ -639,10 +651,10 @@ class BaseTrainer:
         cfg, weights = self.model, None
         ckpt = None
         if str(self.model).endswith(".pt"):
-            weights, ckpt = attempt_load_one_weight(self.model)
+            weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
         elif isinstance(self.args.pretrained, (str, Path)):
-            weights, _ = attempt_load_one_weight(self.args.pretrained)
+            weights, _ = load_checkpoint(self.args.pretrained)
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 
@@ -662,7 +674,7 @@ class BaseTrainer:
 
     def validate(self):
         """
-        Run validation on test set using self.validator.
+        Run validation on val set using self.validator.
 
         Returns:
             metrics (dict): Dictionary of validation metrics.
@@ -750,6 +762,7 @@ class BaseTrainer:
                     strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots
+                    self.validator.args.compile = False  # disable final val compile as too slow
                     self.metrics = self.validator(model=f)
                     self.metrics.pop("fitness", None)
                     self.run_callbacks("on_fit_epoch_end")
@@ -763,7 +776,7 @@ class BaseTrainer:
                 last = Path(check_file(resume) if exists else get_latest_run())
 
                 # Check that resume data YAML exists, otherwise strip to force re-download of dataset
-                ckpt_args = attempt_load_weights(last).args
+                ckpt_args = load_checkpoint(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
 

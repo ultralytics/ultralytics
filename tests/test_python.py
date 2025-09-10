@@ -270,7 +270,7 @@ def test_predict_callback_and_setup():
         path, im0s, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
-        predictor.results = zip(predictor.results, im0s, bs)  # results is List[batch_size]
+        predictor.results = zip(predictor.results, im0s, bs)  # results is list[batch_size]
 
     model = YOLO(MODEL)
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -375,7 +375,7 @@ def test_data_annotator():
 
 def test_events():
     """Test event sending functionality."""
-    from ultralytics.hub.utils import Events
+    from ultralytics.utils.events import Events
 
     events = Events()
     events.enabled = True
@@ -397,18 +397,15 @@ def test_cfg_init():
 
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
-    from ultralytics.utils import get_git_branch, get_git_origin_url, get_ubuntu_version, is_github_action_running
+    from ultralytics.utils import get_ubuntu_version, is_github_action_running
 
     get_ubuntu_version()
     is_github_action_running()
-    get_git_origin_url()
-    get_git_branch()
 
 
 def test_utils_checks():
     """Test various utility checks for filenames, git status, requirements, image sizes, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")
-    checks.git_describe(ROOT)
     checks.check_requirements()  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow(warn=True)

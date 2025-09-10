@@ -1,11 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import shutil
 import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from ultralytics import __version__
@@ -26,13 +28,13 @@ class HUBTrainingSession:
     Attributes:
         model_id (str): Identifier for the YOLO model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
-        rate_limits (Dict[str, int]): Rate limits for different API calls in seconds.
-        timers (Dict[str, Any]): Timers for rate limiting.
-        metrics_queue (Dict[str, Any]): Queue for the model's metrics.
-        metrics_upload_failed_queue (Dict[str, Any]): Queue for metrics that failed to upload.
+        rate_limits (dict[str, int]): Rate limits for different API calls in seconds.
+        timers (dict[str, Any]): Timers for rate limiting.
+        metrics_queue (dict[str, Any]): Queue for the model's metrics.
+        metrics_upload_failed_queue (dict[str, Any]): Queue for metrics that failed to upload.
         model (Any): Model data fetched from Ultralytics HUB.
         model_file (str): Path to the model file.
-        train_args (Dict[str, Any]): Arguments for training the model.
+        train_args (dict[str, Any]): Arguments for training the model.
         client (Any): Client for interacting with Ultralytics HUB.
         filename (str): Filename of the model.
 
@@ -90,13 +92,13 @@ class HUBTrainingSession:
                 )
 
     @classmethod
-    def create_session(cls, identifier: str, args: Optional[Dict[str, Any]] = None):
+    def create_session(cls, identifier: str, args: dict[str, Any] | None = None):
         """
         Create an authenticated HUBTrainingSession or return None.
 
         Args:
             identifier (str): Model identifier used to initialize the HUB training session.
-            args (Dict[str, Any], optional): Arguments for creating a new model if identifier is not a HUB model URL.
+            args (dict[str, Any], optional): Arguments for creating a new model if identifier is not a HUB model URL.
 
         Returns:
             session (HUBTrainingSession | None): An authenticated session or None if creation fails.
@@ -137,12 +139,12 @@ class HUBTrainingSession:
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def create_model(self, model_args: Dict[str, Any]):
+    def create_model(self, model_args: dict[str, Any]):
         """
         Initialize a HUB training session with the specified model arguments.
 
         Args:
-            model_args (Dict[str, Any]): Arguments for creating the model, including batch size, epochs, image size,
+            model_args (dict[str, Any]): Arguments for creating the model, including batch size, epochs, image size,
                 etc.
 
         Returns:
@@ -254,8 +256,8 @@ class HUBTrainingSession:
         timeout: int = 30,
         thread: bool = True,
         verbose: bool = True,
-        progress_total: Optional[int] = None,
-        stream_response: Optional[bool] = None,
+        progress_total: int | None = None,
+        stream_response: bool | None = None,
         *args,
         **kwargs,
     ):

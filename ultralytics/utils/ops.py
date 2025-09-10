@@ -1,10 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import math
 import re
 import time
-from typing import Optional
 
 import cv2
 import numpy as np
@@ -38,7 +39,7 @@ class Profile(contextlib.ContextDecorator):
         ...     time.sleep(0.1)
     """
 
-    def __init__(self, t: float = 0.0, device: Optional[torch.device] = None):
+    def __init__(self, t: float = 0.0, device: torch.device | None = None):
         """
         Initialize the Profile class.
 
@@ -134,7 +135,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
             boxes[..., 2] -= pad_x  # x padding
             boxes[..., 3] -= pad_y  # y padding
     boxes[..., :4] /= gain
-    return clip_boxes(boxes, img0_shape)
+    return boxes if xywh else clip_boxes(boxes, img0_shape)
 
 
 def make_divisible(x: int, divisor):
@@ -243,7 +244,9 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
     masks = masks[top:bottom, left:right]
-    masks = cv2.resize(masks, (im0_w, im0_h))
+    # handle the cv2.resize 512 channels limitation: https://github.com/ultralytics/ultralytics/pull/21947
+    masks = [cv2.resize(array, (im0_w, im0_h)) for array in np.array_split(masks, masks.shape[-1] // 512 + 1, axis=-1)]
+    masks = np.concatenate(masks, axis=-1) if len(masks) > 1 else masks[0]
     if len(masks.shape) == 2:
         masks = masks[:, :, None]
 

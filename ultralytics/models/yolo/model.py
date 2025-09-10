@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import torch
 
@@ -49,7 +51,7 @@ class YOLO(Model):
         >>> model = YOLO("yolo11n.yaml")
     """
 
-    def __init__(self, model: Union[str, Path] = "yolo11n.pt", task: Optional[str] = None, verbose: bool = False):
+    def __init__(self, model: str | Path = "yolo11n.pt", task: str | None = None, verbose: bool = False):
         """
         Initialize a YOLO model.
 
@@ -87,7 +89,7 @@ class YOLO(Model):
                 self.__dict__ = new_instance.__dict__
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Any]]:
+    def task_map(self) -> dict[str, dict[str, Any]]:
         """Map head to model, trainer, validator, and predictor classes."""
         return {
             "classify": {
@@ -149,7 +151,7 @@ class YOLOWorld(Model):
         >>> model.set_classes(["person", "car", "bicycle"])
     """
 
-    def __init__(self, model: Union[str, Path] = "yolov8s-world.pt", verbose: bool = False) -> None:
+    def __init__(self, model: str | Path = "yolov8s-world.pt", verbose: bool = False) -> None:
         """
         Initialize YOLOv8-World model with a pre-trained model file.
 
@@ -167,7 +169,7 @@ class YOLOWorld(Model):
             self.model.names = YAML.load(ROOT / "cfg/datasets/coco8.yaml").get("names")
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Any]]:
+    def task_map(self) -> dict[str, dict[str, Any]]:
         """Map head to model, validator, and predictor classes."""
         return {
             "detect": {
@@ -178,12 +180,12 @@ class YOLOWorld(Model):
             }
         }
 
-    def set_classes(self, classes: List[str]) -> None:
+    def set_classes(self, classes: list[str]) -> None:
         """
         Set the model's class names for detection.
 
         Args:
-            classes (List[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. ["person"].
         """
         self.model.set_classes(classes)
         # Remove background if it's given
@@ -232,9 +234,7 @@ class YOLOE(Model):
         >>> results = model.predict("image.jpg", visual_prompts=prompts)
     """
 
-    def __init__(
-        self, model: Union[str, Path] = "yoloe-11s-seg.pt", task: Optional[str] = None, verbose: bool = False
-    ) -> None:
+    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
         """
         Initialize YOLOE model with a pre-trained model file.
 
@@ -246,7 +246,7 @@ class YOLOE(Model):
         super().__init__(model=model, task=task, verbose=verbose)
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Any]]:
+    def task_map(self) -> dict[str, dict[str, Any]]:
         """Map head to model, validator, and predictor classes."""
         return {
             "detect": {
@@ -291,7 +291,7 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_visual_pe(img, visual)
 
-    def set_vocab(self, vocab: List[str], names: List[str]) -> None:
+    def set_vocab(self, vocab: list[str], names: list[str]) -> None:
         """
         Set vocabulary and class names for the YOLOE model.
 
@@ -299,8 +299,8 @@ class YOLOE(Model):
         classification tasks. The model must be an instance of YOLOEModel.
 
         Args:
-            vocab (List[str]): Vocabulary list containing tokens or words used by the model for text processing.
-            names (List[str]): List of class names that the model can detect or classify.
+            vocab (list[str]): Vocabulary list containing tokens or words used by the model for text processing.
+            names (list[str]): List of class names that the model can detect or classify.
 
         Raises:
             AssertionError: If the model is not an instance of YOLOEModel.
@@ -317,12 +317,12 @@ class YOLOE(Model):
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_vocab(names)
 
-    def set_classes(self, classes: List[str], embeddings: Optional[torch.Tensor] = None) -> None:
+    def set_classes(self, classes: list[str], embeddings: torch.Tensor | None = None) -> None:
         """
         Set the model's class names and embeddings for detection.
 
         Args:
-            classes (List[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories i.e. ["person"].
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
@@ -341,7 +341,7 @@ class YOLOE(Model):
         self,
         validator=None,
         load_vp: bool = False,
-        refer_data: Optional[str] = None,
+        refer_data: str | None = None,
         **kwargs,
     ):
         """
@@ -368,7 +368,7 @@ class YOLOE(Model):
         self,
         source=None,
         stream: bool = False,
-        visual_prompts: Dict[str, List] = {},
+        visual_prompts: dict[str, list] = {},
         refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs,
@@ -381,7 +381,7 @@ class YOLOE(Model):
                 directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a
                 generator as they are computed.
-            visual_prompts (Dict[str, List]): Dictionary containing visual prompts for the model. Must include
+            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
@@ -389,7 +389,7 @@ class YOLOE(Model):
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (List | generator): List of Results objects or generator of Results objects if stream=True.
+            (list | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")

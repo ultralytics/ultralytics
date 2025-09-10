@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import copy
-from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -20,7 +21,7 @@ class GMC:
         method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
         downscale (int): Factor by which to downscale the frames for processing.
         prevFrame (np.ndarray): Previous frame for tracking.
-        prevKeyPoints (List): Keypoints from the previous frame.
+        prevKeyPoints (list): Keypoints from the previous frame.
         prevDescriptors (np.ndarray): Descriptors from the previous frame.
         initializedFirstFrame (bool): Flag indicating if the first frame has been processed.
 
@@ -89,13 +90,13 @@ class GMC:
         self.prevDescriptors = None
         self.initializedFirstFrame = False
 
-    def apply(self, raw_frame: np.ndarray, detections: Optional[List] = None) -> np.ndarray:
+    def apply(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
         """
         Apply object detection on a raw frame using the specified method.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (List, optional): List of detections to be used in the processing.
+            detections (list, optional): List of detections to be used in the processing.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).
@@ -156,13 +157,13 @@ class GMC:
 
         return H
 
-    def apply_features(self, raw_frame: np.ndarray, detections: Optional[List] = None) -> np.ndarray:
+    def apply_features(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
         """
         Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (List, optional): List of detections to be used in the processing.
+            detections (list, optional): List of detections to be used in the processing.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).

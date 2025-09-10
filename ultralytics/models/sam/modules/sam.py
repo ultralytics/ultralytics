@@ -3,10 +3,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-
-from typing import List
+from __future__ import annotations
 
 import torch
 import torch.nn.functional as F
@@ -61,8 +58,8 @@ class SAMModel(nn.Module):
         image_encoder: ImageEncoderViT,
         prompt_encoder: PromptEncoder,
         mask_decoder: MaskDecoder,
-        pixel_mean: List[float] = (123.675, 116.28, 103.53),
-        pixel_std: List[float] = (58.395, 57.12, 57.375),
+        pixel_mean: list[float] = (123.675, 116.28, 103.53),
+        pixel_std: list[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """
         Initialize the SAMModel class to predict object masks from an image and input prompts.
@@ -71,8 +68,8 @@ class SAMModel(nn.Module):
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.
             mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
-            pixel_mean (List[float]): Mean values for normalizing pixels in the input image.
-            pixel_std (List[float]): Standard deviation values for normalizing pixels in the input image.
+            pixel_mean (list[float]): Mean values for normalizing pixels in the input image.
+            pixel_std (list[float]): Standard deviation values for normalizing pixels in the input image.
 
         Examples:
             >>> image_encoder = ImageEncoderViT(...)
@@ -438,14 +435,14 @@ class SAM2Model(torch.nn.Module):
 
         Args:
             backbone_features (torch.Tensor): Image features with shape (B, C, H, W).
-            point_inputs (Dict[str, torch.Tensor] | None): Dictionary containing point prompts.
+            point_inputs (dict[str, torch.Tensor] | None): Dictionary containing point prompts.
                 'point_coords': Tensor of shape (B, P, 2) with float32 dtype, containing absolute
                     pixel-unit coordinates in (x, y) format for P input points.
                 'point_labels': Tensor of shape (B, P) with int32 dtype, where 1 means positive clicks,
                     0 means negative clicks, and -1 means padding.
             mask_inputs (torch.Tensor | None): Mask of shape (B, 1, H*16, W*16), float or bool, with the
                 same spatial size as the image.
-            high_res_features (List[torch.Tensor] | None): List of two feature maps with shapes
+            high_res_features (list[torch.Tensor] | None): List of two feature maps with shapes
                 (B, C, 4*H, 4*W) and (B, C, 2*H, 2*W) respectively, used as high-resolution feature maps
                 for SAM decoder.
             multimask_output (bool): If True, output 3 candidate masks and their IoU estimates; if False,

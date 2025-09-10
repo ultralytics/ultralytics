@@ -90,6 +90,7 @@ from ultralytics.utils import (
     RKNN_CHIPS,
     ROOT,
     SETTINGS,
+    TORCH_VERSION,
     WINDOWS,
     YAML,
     callbacks,
@@ -193,9 +194,9 @@ def try_export(inner_func):
         dt = 0.0
         try:
             with Profile() as dt:
-                f, model = inner_func(*args, **kwargs)
+                f = inner_func(*args, **kwargs)
             LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
-            return f, model
+            return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
             raise e
@@ -485,36 +486,36 @@ class Exporter:
         # Exports
         f = [""] * len(fmts)  # exported filenames
         if jit or ncnn:  # TorchScript
-            f[0], _ = self.export_torchscript()
+            f[0] = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
-            f[1], _ = self.export_engine(dla=dla)
+            f[1] = self.export_engine(dla=dla)
         if onnx:  # ONNX
-            f[2], _ = self.export_onnx()
+            f[2] = self.export_onnx()
         if xml:  # OpenVINO
-            f[3], _ = self.export_openvino()
+            f[3] = self.export_openvino()
         if coreml:  # CoreML
-            f[4], _ = self.export_coreml()
+            f[4] = self.export_coreml()
         if is_tf_format:  # TensorFlow formats
             self.args.int8 |= edgetpu
             f[5], keras_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self.export_pb(keras_model=keras_model)
+                f[6] = self.export_pb(keras_model=keras_model)
             if tflite:
-                f[7], _ = self.export_tflite()
+                f[7] = self.export_tflite()
             if edgetpu:
-                f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
+                f[8] = self.export_edgetpu(tflite_model=Path(f[5]) / f"{self.file.stem}_full_integer_quant.tflite")
             if tfjs:
-                f[9], _ = self.export_tfjs()
+                f[9] = self.export_tfjs()
         if paddle:  # PaddlePaddle
-            f[10], _ = self.export_paddle()
+            f[10] = self.export_paddle()
         if mnn:  # MNN
-            f[11], _ = self.export_mnn()
+            f[11] = self.export_mnn()
         if ncnn:  # NCNN
-            f[12], _ = self.export_ncnn()
+            f[12] = self.export_ncnn()
         if imx:
-            f[13], _ = self.export_imx()
+            f[13] = self.export_imx()
         if rknn:
-            f[14], _ = self.export_rknn()
+            f[14] = self.export_rknn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -567,7 +568,7 @@ class Exporter:
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):
         """Export YOLO model to TorchScript format."""
-        LOGGER.info(f"\n{prefix} starting export with torch {torch.__version__}...")
+        LOGGER.info(f"\n{prefix} starting export with torch {TORCH_VERSION}...")
         f = self.file.with_suffix(".torchscript")
 
         ts = torch.jit.trace(NMSModel(self.model, self.args) if self.args.nms else self.model, self.im, strict=False)
@@ -579,14 +580,14 @@ class Exporter:
             optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
         else:
             ts.save(str(f), _extra_files=extra_files)
-        return f, None
+        return f
 
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.65", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.67", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -638,7 +639,7 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         onnx.save(model_onnx, f)
-        return f, model_onnx
+        return f
 
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):
@@ -648,7 +649,7 @@ class Exporter:
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
-        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={torch.__version__} is installed"
+        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={TORCH_VERSION} is installed"
         ov_model = ov.convert_model(
             NMSModel(self.model, self.args) if self.args.nms else self.model,
             input=None if self.args.dynamic else [self.im.shape],
@@ -707,13 +708,13 @@ class Exporter:
                 ignored_scope=ignored_scope,
             )
             serialize(quantized_ov_model, fq_ov)
-            return fq, None
+            return fq
 
         f = str(self.file).replace(self.file.suffix, f"_openvino_model{os.sep}")
         f_ov = str(Path(f) / self.file.with_suffix(".xml").name)
 
         serialize(ov_model, f_ov)
-        return f, None
+        return f
 
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):
@@ -737,12 +738,12 @@ class Exporter:
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type="trace", input_examples=[self.im])  # export
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f, None
+        return f
 
     @try_export
     def export_mnn(self, prefix=colorstr("MNN:")):
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
-        f_onnx, _ = self.export_onnx()  # get onnx model first
+        f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")
         import MNN  # noqa
@@ -762,7 +763,7 @@ class Exporter:
         convert_scratch = Path(self.file.parent / ".__convert_external_data.bin")
         if convert_scratch.exists():
             convert_scratch.unlink()
-        return f, None
+        return f
 
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
@@ -830,7 +831,7 @@ class Exporter:
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return str(f), None
+        return str(f)
 
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):
@@ -909,13 +910,13 @@ class Exporter:
             )
             f = f.with_suffix(".mlmodel")
             ct_model.save(str(f))
-        return f, ct_model
+        return f
 
     @try_export
     def export_engine(self, dla=None, prefix=colorstr("TensorRT:")):
         """Export YOLO model to TensorRT format https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
-        f_onnx, _ = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
+        f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
             import tensorrt as trt  # noqa
@@ -945,7 +946,7 @@ class Exporter:
             prefix=prefix,
         )
 
-        return f, None
+        return f
 
     @try_export
     def export_saved_model(self, prefix=colorstr("TensorFlow SavedModel:")):
@@ -954,17 +955,17 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements("tensorflow>=2.0.0")
+            check_requirements("tensorflow>=2.0.0,<=2.19.0")
             import tensorflow as tf  # noqa
         check_requirements(
             (
-                "tf_keras",  # required by 'onnx2tf' package
+                "tf_keras<=2.19.0",  # required by 'onnx2tf' package
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0,<1.4.0",  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.65",
+                "onnxslim>=0.1.67",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
@@ -990,7 +991,7 @@ class Exporter:
 
         # Export to ONNX
         self.args.simplify = True
-        f_onnx, _ = self.export_onnx()
+        f_onnx = self.export_onnx()
 
         # Export to TF
         np_data = None
@@ -1050,7 +1051,7 @@ class Exporter:
         frozen_func = convert_variables_to_constants_v2(m)
         frozen_func.graph.as_graph_def()
         tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(f.parent), name=f.name, as_text=False)
-        return f, None
+        return f
 
     @try_export
     def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
@@ -1066,7 +1067,7 @@ class Exporter:
             f = saved_model / f"{self.file.stem}_float16.tflite"  # fp32 in/out
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
-        return str(f), None
+        return str(f)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
@@ -1101,7 +1102,7 @@ class Exporter:
         LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)
-        return f, None
+        return f
 
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
@@ -1134,7 +1135,7 @@ class Exporter:
 
         # Add metadata
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f, None
+        return f
 
     @try_export
     def export_rknn(self, prefix=colorstr("RKNN:")):
@@ -1150,7 +1151,7 @@ class Exporter:
 
         from rknn.api import RKNN
 
-        f, _ = self.export_onnx()
+        f = self.export_onnx()
         export_path = Path(f"{Path(f).stem}_rknn_model")
         export_path.mkdir(exist_ok=True)
 
@@ -1161,7 +1162,7 @@ class Exporter:
         f = f.replace(".onnx", f"-{self.args.name}.rknn")
         rknn.export_rknn(f"{export_path / f}")
         YAML.save(export_path / "metadata.yaml", self.metadata)
-        return export_path, None
+        return export_path
 
     @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
@@ -1338,7 +1339,7 @@ class Exporter:
         with open(f / "labels.txt", "w", encoding="utf-8") as file:
             file.writelines([f"{name}\n" for _, name in self.model.names.items()])
 
-        return f, None
+        return f
 
     def _add_tflite_metadata(self, file):
         """Add metadata to *.tflite models per https://ai.google.dev/edge/litert/models/metadata."""
@@ -1352,64 +1353,52 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f"{prefix} starting pipeline with coremltools {ct.__version__}...")
-        _, _, h, w = list(self.im.shape)  # BCHW
 
         # Output shapes
         spec = model.get_spec()
-        out0, out1 = iter(spec.description.output)
-        if MACOS:
-            from PIL import Image
-
-            img = Image.new("RGB", (w, h))  # w=192, h=320
-            out = model.predict({"image": img})
-            out0_shape = out[out0.name].shape  # (3780, 80)
-            out1_shape = out[out1.name].shape  # (3780, 4)
-        else:  # linux and windows can not run model.predict(), get sizes from PyTorch model output y
-            out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
-            out1_shape = self.output_shape[2], 4  # (3780, 4)
+        outs = list(iter(spec.description.output))
+        if self.args.format == "mlmodel":  # mlmodel doesn't infer shapes automatically
+            outs[0].type.multiArrayType.shape[:] = self.output_shape[2], self.output_shape[1] - 4
+            outs[1].type.multiArrayType.shape[:] = self.output_shape[2], 4
 
         # Checks
         names = self.metadata["names"]
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
-        _, nc = out0_shape  # number of anchors, number of classes
+        nc = outs[0].type.multiArrayType.shape[-1]
         assert len(names) == nc, f"{len(names)} names found for nc={nc}"  # check
-
-        # Define output shapes (missing)
-        out0.type.multiArrayType.shape[:] = out0_shape  # (3780, 80)
-        out1.type.multiArrayType.shape[:] = out1_shape  # (3780, 4)
 
         # Model from spec
         model = ct.models.MLModel(spec, weights_dir=weights_dir)
 
-        # 3. Create NMS protobuf
+        # Create NMS protobuf
         nms_spec = ct.proto.Model_pb2.Model()
         nms_spec.specificationVersion = spec.specificationVersion
-        for i in range(2):
+        for i in range(len(outs)):
             decoder_output = model._spec.description.output[i].SerializeToString()
             nms_spec.description.input.add()
             nms_spec.description.input[i].ParseFromString(decoder_output)
             nms_spec.description.output.add()
             nms_spec.description.output[i].ParseFromString(decoder_output)
 
-        nms_spec.description.output[0].name = "confidence"
-        nms_spec.description.output[1].name = "coordinates"
+        output_names = ["confidence", "coordinates"]
+        for i, name in enumerate(output_names):
+            nms_spec.description.output[i].name = name
 
-        output_sizes = [nc, 4]
-        for i in range(2):
+        for i, out in enumerate(outs):
             ma_type = nms_spec.description.output[i].type.multiArrayType
             ma_type.shapeRange.sizeRanges.add()
             ma_type.shapeRange.sizeRanges[0].lowerBound = 0
             ma_type.shapeRange.sizeRanges[0].upperBound = -1
             ma_type.shapeRange.sizeRanges.add()
-            ma_type.shapeRange.sizeRanges[1].lowerBound = output_sizes[i]
-            ma_type.shapeRange.sizeRanges[1].upperBound = output_sizes[i]
+            ma_type.shapeRange.sizeRanges[1].lowerBound = out.type.multiArrayType.shape[-1]
+            ma_type.shapeRange.sizeRanges[1].upperBound = out.type.multiArrayType.shape[-1]
             del ma_type.shape[:]
 
         nms = nms_spec.nonMaximumSuppression
-        nms.confidenceInputFeatureName = out0.name  # 1x507x80
-        nms.coordinatesInputFeatureName = out1.name  # 1x507x4
-        nms.confidenceOutputFeatureName = "confidence"
-        nms.coordinatesOutputFeatureName = "coordinates"
+        nms.confidenceInputFeatureName = outs[0].name  # 1x507x80
+        nms.coordinatesInputFeatureName = outs[1].name  # 1x507x4
+        nms.confidenceOutputFeatureName = output_names[0]
+        nms.coordinatesOutputFeatureName = output_names[1]
         nms.iouThresholdInputFeatureName = "iouThreshold"
         nms.confidenceThresholdInputFeatureName = "confidenceThreshold"
         nms.iouThreshold = self.args.iou
@@ -1418,14 +1407,14 @@ class Exporter:
         nms.stringClassLabels.vector.extend(names.values())
         nms_model = ct.models.MLModel(nms_spec)
 
-        # 4. Pipeline models together
+        # Pipeline models together
         pipeline = ct.models.pipeline.Pipeline(
             input_features=[
                 ("image", ct.models.datatypes.Array(3, ny, nx)),
                 ("iouThreshold", ct.models.datatypes.Double()),
                 ("confidenceThreshold", ct.models.datatypes.Double()),
             ],
-            output_features=["confidence", "coordinates"],
+            output_features=output_names,
         )
         pipeline.add_model(model)
         pipeline.add_model(nms_model)
@@ -1571,6 +1560,7 @@ class NMSModel(torch.nn.Module):
                         or (self.args.format == "openvino" and self.args.int8)  # OpenVINO int8 error with triu
                     ),
                     iou_func=batch_probiou,
+                    exit_early=False,
                 )
                 if self.obb
                 else nms

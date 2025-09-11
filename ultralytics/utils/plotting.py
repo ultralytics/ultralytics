@@ -941,6 +941,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results.
+        exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")

@@ -452,6 +452,8 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.9": ["0.24"],
+        "2.8": ["0.23"],
         "2.7": ["0.22"],
         "2.6": ["0.21"],
         "2.5": ["0.20"],
@@ -905,7 +907,7 @@ def is_intel():
     try:
         result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
         return "intel" in result.stdout.lower()
-    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+    except Exception:  # broad clause to capture all Intel GPU exception types
         return False
 
 

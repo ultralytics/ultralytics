@@ -265,40 +265,31 @@ def main():
         "copy_paste": 0.0
     }
     
-    try:
-        print(f"\n{colorstr('Training')}: Starting tennis ball pose training...")
-        
-        # Create trainer with custom configuration
-        trainer = TennisBallTrainer(overrides=training_config)
-        
-        # Add motion configuration to trainer
-        trainer.motion_config = motion_config
-        
-        print(f"{colorstr('Training')}: Trainer initialized successfully")
-        print(f"{colorstr('Training')}: Starting training for {args.epochs} epochs...")
-        
-        # Start training
-        results = trainer.train()
-        
-        print(f"\n{colorstr('Success')}: Training completed!")
-        print(f"Results saved to: {trainer.save_dir}")
-        print(f"Best weights: {trainer.best}")
-        
-        # Display training metrics
-        if hasattr(trainer, 'metrics') and trainer.metrics:
-            print(f"\n{colorstr('Metrics')}:")
-            for key, value in trainer.metrics.items():
-                print(f"  {key}: {value:.4f}")
-        
-        return results
-        
-    except Exception as e:
-        print(f"{colorstr('Error')}: Training failed!")
-        print(f"Error details: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-
+    print(f"\n{colorstr('Training')}: Starting tennis ball pose training...")
+    
+    # Create trainer with custom configuration
+    trainer = TennisBallTrainer(overrides=training_config)
+    
+    # Add motion configuration to trainer
+    trainer.motion_config = motion_config
+    
+    print(f"{colorstr('Training')}: Trainer initialized successfully")
+    print(f"{colorstr('Training')}: Starting training for {args.epochs} epochs...")
+    
+    # Start training
+    results = trainer.train()
+    
+    print(f"\n{colorstr('Success')}: Training completed!")
+    print(f"Results saved to: {trainer.save_dir}")
+    print(f"Best weights: {trainer.best}")
+    
+    # Display training metrics
+    if hasattr(trainer, 'metrics') and trainer.metrics:
+        print(f"\n{colorstr('Metrics')}:")
+        for key, value in trainer.metrics.items():
+            print(f"  {key}: {value:.4f}")
+    
+    return results
+    
 if __name__ == "__main__":
     results = main()

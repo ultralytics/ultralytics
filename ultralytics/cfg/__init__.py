@@ -200,6 +200,8 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "cache_size",
+        "num_preload_workers",
     }
 )
 CFG_BOOL_KEYS = frozenset(
@@ -237,6 +239,8 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "multi_scale",
+        "preload_clips",
+        "use_optimized_dataset",
     }
 )
 

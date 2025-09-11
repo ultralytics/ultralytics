@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
-import pandas as pd
 import torch
 from PIL import Image
 from torch.utils.data import DataLoader

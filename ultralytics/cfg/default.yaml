@@ -123,5 +123,11 @@ erasing: 0.4 # (float) probability of random erasing during classification train
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) for overriding defaults.yaml
 
+# Custom tennis ball training settings --------------------------------------------------------------------------------
+preload_clips: False # (bool) whether to preload video clips for training
+use_optimized_dataset: False # (bool) whether to use optimized dataset loader
+cache_size: 1000 # (int) size of the cache for data loading
+num_preload_workers: 4 # (int) number of workers for preloading clips
+
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]

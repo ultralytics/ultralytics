@@ -541,7 +541,7 @@ Docker provides an isolated, consistent environment for Ultralytics YOLO, ensuri
 sudo docker pull ultralytics/ultralytics:latest
 
 # Run the ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest
 ```
 
 For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).

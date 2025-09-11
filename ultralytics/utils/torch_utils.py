@@ -1028,7 +1028,7 @@ def attempt_compile(
         use_autocast (bool, optional): Whether to run warmup under autocast on CUDA or MPS devices.
         warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
         mode (bool | str, optional): torch.compile mode. True → "default", False → no compile, or a string like
-            "default", "reduce-overhead", "max-autotune".
+            "default", "reduce-overhead", "max-autotune-no-cudagraphs".
 
     Returns:
         model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.

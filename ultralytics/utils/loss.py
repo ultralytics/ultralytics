@@ -27,14 +27,31 @@ class VarifocalLoss(nn.Module):
     @staticmethod
     def forward(pred_score, gt_score, label, alpha=0.75, gamma=2.0):
         """Compute varifocal loss between predictions and ground truth."""
-        weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
+        weight = alpha * pred_score.sigmoid().detach().pow(gamma) * (1 - label) + gt_score * label
         with autocast(enabled=False):
             loss = (
-                (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
-                .mean(1)
-                .sum()
+                F.binary_cross_entropy_with_logits(pred_score, gt_score, weight=weight, reduction="none").mean(1).sum()
             )
-        return loss
+        return loss * pred_score.shape[1]
+
+
+class MAL(nn.Module):
+    def __init__(self, gamma=2.0, mal_alpha=None) -> None:
+        super().__init__()
+        self.gamma = gamma
+        self.mal_alpha = mal_alpha
+
+    def forward(self, pred_cls, target_scores, one_hot):
+        pred_score = F.sigmoid(pred_cls).detach()
+        target_scores = target_scores.pow(self.gamma)
+        weight = (
+            (self.mal_alpha * pred_score.pow(self.gamma) * (1 - one_hot) + one_hot)
+            if self.mal_alpha is not None
+            else (pred_score.pow(self.gamma) * (1 - one_hot) + one_hot)
+        )
+
+        loss = F.binary_cross_entropy_with_logits(pred_cls, target_scores, weight=weight, reduction="none")
+        return loss.mean(1).sum() * pred_cls.shape[1]
 
 
 class FocalLoss(nn.Module):
@@ -273,7 +290,7 @@ class v8DetectionLoss:
         # dfl_conf = pred_distri.view(batch_size, -1, 4, self.reg_max).detach().softmax(-1)
         # dfl_conf = (dfl_conf.amax(-1).mean(-1) + dfl_conf.amax(-1).amin(-1)) / 2
 
-        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+        target_labels, target_bboxes, target_scores, fg_mask, _ = self.assigner(
             # pred_scores.detach().sigmoid() * 0.8 + dfl_conf.unsqueeze(-1) * 0.2,
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),

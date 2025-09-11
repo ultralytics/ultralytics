@@ -962,6 +962,8 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
     x = data.to_numpy()
     fitness = x[:, 0]  # fitness
+    mask = fitness > 0  # exclude zero-fitness points
+    x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)

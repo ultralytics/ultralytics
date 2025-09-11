@@ -962,7 +962,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
     x = data.to_numpy()
     fitness = x[:, 0]  # fitness
-    if exclude_zero_fitness_points
+    if exclude_zero_fitness_points:
         mask = fitness > 0  # exclude zero-fitness points
         x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index

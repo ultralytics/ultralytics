@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to effortlessly set up Ultralytics in Docker, from installation to running with CPU/GPU support. Follow our comprehensive guide for seamless container experience.
-keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDIA Docker, container setup, Docker environment, Docker Hub, Ultralytics projects
+keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDIA Docker, NVIDIA Container Toolkit, container setup, Docker environment, Docker Hub, Ultralytics projects
 ---
 
 # Docker Quickstart Guide for Ultralytics
@@ -40,6 +40,7 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - Ensure that your system has an NVIDIA GPU and NVIDIA drivers are installed.
+- If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](https://docs.ultralytics.com/guides/nvidia-jetson/) for more details.
 
 ---
 
@@ -51,23 +52,90 @@ First, verify that the NVIDIA drivers are properly installed by running:
 nvidia-smi
 ```
 
-### Installing NVIDIA Docker Runtime
+### Installing NVIDIA Container Toolkit
 
-Now, let's install the NVIDIA Docker runtime to enable GPU support in Docker containers:
+Now, let's install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html) to enable GPU support in Docker containers:
 
-```bash
-# Add NVIDIA package repositories
-curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-distribution=$(lsb_release -cs)
-curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+=== "Ubuntu/Debian"
 
-# Install NVIDIA Docker runtime
-sudo apt-get update
-sudo apt-get install -y nvidia-docker2
+    ```bash
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+      && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+      | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+        | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    ```
+    Update the package lists and install the nvidia-container-toolkit package:
 
-# Restart Docker service to apply changes
-sudo systemctl restart docker
-```
+    ```bash
+    sudo apt-get update
+    ```
+
+    Install Latest version of nvidia-container-toolkit
+
+    ```bash
+    sudo apt-get install -y nvidia-container-toolkit \
+      nvidia-container-toolkit-base libnvidia-container-tools \
+      libnvidia-container1
+    ```
+
+    ??? info "Optional: Install specific version of nvidia-container-toolkit"
+
+        Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
+
+        ```bash
+        export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+        sudo apt-get install -y \
+          nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+          libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+        ```
+
+    ```bash
+    sudo nvidia-ctk runtime configure --runtime=docker
+    sudo systemctl restart docker
+    ```
+
+=== "RHEL/CentOS/Fedora/Amazon Linux"
+
+    ```bash
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+      | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
+    ```
+
+    Update the package lists and install the nvidia-container-toolkit package:
+
+    ```bash
+    sudo dnf clean expire-cache
+    sudo dnf check-update
+    ```
+
+    ```bash
+    sudo dnf install \
+      nvidia-container-toolkit \
+      nvidia-container-toolkit-base \
+      libnvidia-container-tools \
+      libnvidia-container1
+    ```
+
+
+    ??? info "Optional: Install specific version of nvidia-container-toolkit"
+
+        Optionally, you can install a specific version of the nvidia-container-toolkit by setting the `NVIDIA_CONTAINER_TOOLKIT_VERSION` environment variable:
+
+          ```bash
+          export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+          sudo dnf install -y \
+            nvidia-container-toolkit-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+            nvidia-container-toolkit-base-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+            libnvidia-container-tools-${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+            libnvidia-container1-${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+          ```
+
+    ```bash
+    sudo nvidia-ctk runtime configure --runtime=docker
+    sudo systemctl restart docker
+    ```
 
 ### Verify NVIDIA Runtime with Docker
 
@@ -120,10 +188,10 @@ sudo docker run -it --ipc=host $t
 
 ```bash
 # Run with all GPUs
-sudo docker run -it --ipc=host --gpus all $t
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t
 
 # Run specifying which GPUs to use
-sudo docker run -it --ipc=host --gpus '"device=2,3"' $t
+sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t
 ```
 
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--gpus` flag allows the container to access the host's GPUs.
@@ -134,7 +202,7 @@ To work with files on your local machine within the container, you can use Docke
 
 ```bash
 # Mount a local directory into the container
-sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container $t
 ```
 
 Replace `/path/on/host` with the directory path on your local machine and `/path/in/container` with the desired path inside the Docker container.
@@ -159,6 +227,9 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
     ??? info "Use GPUs"
             If you're using [GPUs](#using-gpus), you can add the `--gpus all` flag to the command.
+
+    ??? info "Docker runtime flag"
+            If your Docker installation does not use the `nvidia` runtime by default, you can add the `--runtime=nvidia` flag to the command.
 
     === "X11"
 
@@ -220,7 +291,7 @@ Congratulations! You're now set up to use Ultralytics with Docker and ready to t
 
 ### How do I set up Ultralytics with Docker?
 
-To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the NVIDIA Docker runtime to enable GPU support. Then, pull the latest Ultralytics Docker image from Docker Hub using the following command:
+To set up Ultralytics with Docker, first ensure that Docker is installed on your system. If you have an NVIDIA GPU, install the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) to enable GPU support. Then, pull the latest Ultralytics Docker image from Docker Hub using the following command:
 
 ```bash
 sudo docker pull ultralytics/ultralytics:latest
@@ -234,10 +305,10 @@ Using Ultralytics Docker images ensures a consistent environment across differen
 
 ### How can I run Ultralytics YOLO in a Docker container with GPU support?
 
-First, ensure that the NVIDIA Docker runtime is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
+First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
 
 ```bash
-sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest
 ```
 
 This command sets up a Docker container with GPU access. For additional details, see the Docker Quickstart Guide.
@@ -268,7 +339,7 @@ More information can be found in the [Run graphical user interface (GUI) applica
 Yes, you can mount local directories into the Ultralytics Docker container using the `-v` flag:
 
 ```bash
-sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all -v /path/on/host:/path/in/container ultralytics/ultralytics:latest
 ```
 
 Replace `/path/on/host` with the directory on your local machine and `/path/in/container` with the desired path inside the container. This setup allows you to work with your local files within the container. For more information, refer to the [Note on File Accessibility](#note-on-file-accessibility) section.

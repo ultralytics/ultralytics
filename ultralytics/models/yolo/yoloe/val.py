@@ -89,7 +89,7 @@ class YOLOEDetectValidator(DetectionValidator):
             for i in range(preds.shape[0]):
                 cls = batch["cls"][batch_idx == i].squeeze(-1).to(torch.int).unique(sorted=True)
                 pad_cls = torch.ones(preds.shape[1], device=self.device) * -1
-                pad_cls[: len(cls)] = cls
+                pad_cls[: cls.shape[0]] = cls
                 for c in cls:
                     visual_pe[c] += preds[i][pad_cls == c].sum(0) / cls_visual_num[c]
 

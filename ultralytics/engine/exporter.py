@@ -1306,7 +1306,7 @@ class Exporter:
                     kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
                     out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
                     return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
-                return nms_outputs
+                return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, nms_outputs.n_valid
 
         quant_model = NMSWrapper(
             model=quant_model,

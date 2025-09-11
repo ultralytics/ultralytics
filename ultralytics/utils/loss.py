@@ -221,6 +221,7 @@ class v8DetectionLoss:
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        self.loss_mal = MAL()
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
@@ -305,7 +306,10 @@ class v8DetectionLoss:
 
         # Cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        if self.tal_topk == 1:
+            loss[1] = self.loss_mal(pred_scores, target_scores, target_labels) / target_scores_sum  # MAL
+        else:
+            loss[1] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         # Bbox loss
         if fg_mask.sum():
@@ -812,7 +816,7 @@ class E2EDetectLoss:
         self.one2one = v8DetectionLoss(model, tal_topk=1)
         self.updates = 0
         self.total = 1.0
-        self.o2m = 0.7
+        self.o2m = 0.8
         # self.total = 2.0
         # self.o2m = 1.0
         self.o2o = self.total - self.o2m

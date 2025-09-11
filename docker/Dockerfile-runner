@@ -14,7 +14,7 @@ ENV RUNNER_ALLOW_RUNASROOT=1 \
 # Set the working directory
 WORKDIR /actions-runner
 
-# Download and unpack the runner and install dependencies
+# Download and unpack the latest runner from https://github.com/actions/runner and install dependencies
 RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     curl -o "$FILENAME" -L "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     tar xzf "$FILENAME" && \

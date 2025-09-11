@@ -1051,7 +1051,8 @@ def attempt_compile(
     prefix = colorstr("compile:")
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     if mode == "max-autotune":
-        LOGGER.warning(f"{prefix} mode='{mode}' NOT recommended, using mode='max-autotune-no-cudagraphs' instead")
+        LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")
+        mode = "max-autotune-no-cudagraphs"
     t0 = time.perf_counter()
     try:
         model = torch.compile(model, mode=mode, backend="inductor")

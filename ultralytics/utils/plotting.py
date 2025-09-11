@@ -934,13 +934,14 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
 
 
 @plt_settings()
-def plot_tune_results(csv_file: str = "tune_results.csv"):
+def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_points: bool = True):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results.
+        exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
@@ -962,6 +963,9 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
     x = data.to_numpy()
     fitness = x[:, 0]  # fitness
+    if exclude_zero_fitness_points:
+        mask = fitness > 0  # exclude zero-fitness points
+        x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)

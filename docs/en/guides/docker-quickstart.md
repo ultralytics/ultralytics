@@ -308,7 +308,7 @@ Using Ultralytics Docker images ensures a consistent environment across differen
 First, ensure that the [NVIDIA Container Toolkit](#installing-nvidia-container-toolkit) is installed and configured. Then, use the following command to run Ultralytics YOLO with GPU support:
 
 ```bash
-sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest # all GPUs
 ```
 
 This command sets up a Docker container with GPU access. For additional details, see the Docker Quickstart Guide.

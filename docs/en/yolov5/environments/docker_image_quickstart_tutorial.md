@@ -154,10 +154,10 @@ To enable GPU access within the container, use the `--gpus` flag. This requires 
 
 ```bash
 # Run with access to all available GPUs
-sudo docker run -it  --runtime=nvidia --ipc=host --gpus all $t
+sudo docker run -it --runtime=nvidia --ipc=host --gpus all $t
 
 # Run with access to specific GPUs (e.g., GPUs 2 and 3)
-sudo docker run -it  --runtime=nvidia --ipc=host --gpus '"device=2,3"' $t
+sudo docker run -it --runtime=nvidia --ipc=host --gpus '"device=2,3"' $t
 ```
 
 Refer to the [Docker run reference](https://docs.docker.com/engine/containers/run/) for more details on command options.

@@ -8,6 +8,7 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
+from mmcv.ops import DeformConv2d as MMCVDeformConv2d, ModulatedDeformConv2d as MMCVModulatedDeformConv2d
 
 __all__ = (
     "CBAM",
@@ -153,6 +154,89 @@ class Conv2(Conv):
         self.conv.weight.data += w
         self.__delattr__("cv2")
         self.forward = self.forward_fuse
+
+
+class DeformConv(nn.Module):
+    """Deformable Convolution Layer (DCN v2-like) with internal offset/mask predictor.
+
+    If mmcv.ops.ModulatedDeformConv2d is available and modulated=True, this module
+    predicts offset+mask internally and calls the modulated deform conv op. If mmcv
+    isn't available, it falls back to a regular Conv2d for compatibility.
+    """
+    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, modulated=True):
+        super().__init__()
+        if p is None:
+            p = k // 2
+        self.modulated = modulated
+        self.k = k
+        self.stride = s
+        self.padding = p
+        self.dilation = d
+        self.groups = g
+
+        # Always use MMCV deformable conv ops (no fallback)
+        if modulated:
+            self.conv = MMCVModulatedDeformConv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=False)
+        else:
+            self.conv = MMCVDeformConv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=False)
+
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = nn.SiLU(inplace=True)
+
+        # Offset/mask predictor: outputs 2*k*k (offsets) or 3*k*k (offsets+mask)
+        if modulated:
+            self.offset_mask_conv = nn.Conv2d(
+                c1, 3 * k * k, kernel_size=3, stride=s, padding=autopad(3, None, d), bias=True
+            )
+        else:
+            self.offset_mask_conv = nn.Conv2d(
+                c1, 2 * k * k, kernel_size=3, stride=s, padding=autopad(3, None, d), bias=True
+            )
+
+    def forward(self, x):
+        # Predict offsets (and mask)
+        offset_mask = self.offset_mask_conv(x)
+        if self.modulated:
+            # split into offsets and mask
+            # offset shape: (B, 2*k*k, H, W), mask shape: (B, k*k, H, W)
+            o1 = offset_mask[:, : 2 * self.k * self.k, :, :]
+            mask = offset_mask[:, 2 * self.k * self.k :, :, :].sigmoid()
+            # call modulated deform conv
+            out = self.conv(x, o1, mask)
+        else:
+            offsets = offset_mask
+            out = self.conv(x, offsets)
+        out = self.bn(out)
+        out = self.act(out)
+        return out
+
+
+class DeformC2f(nn.Module):
+    """C2f block variant with Deformable Conv2d layers."""
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5, modulated=True):
+        super().__init__()
+        c_ = max(1, int(c2 * e))  # hidden channels (avoid zero)
+
+        # First conv: reduce channels
+        self.cv1 = nn.Conv2d(c1, c_, 1, 1, 0, bias=False)
+
+        # Inner deformable conv blocks
+        self.blocks = nn.ModuleList([
+            DeformConv(c_, c_, k=3, s=1, p=1, g=g, modulated=modulated)
+            for _ in range(n)
+        ])
+
+        # Final conv to expand back
+        self.cv2 = nn.Conv2d(c_ * (n + 1), c2, 1, 1, 0, bias=False)
+
+        self.shortcut = shortcut and c1 == c2
+
+    def forward(self, x):
+        y = [self.cv1(x)]
+        for block in self.blocks:
+            y.append(block(y[-1]))
+        out = self.cv2(torch.cat(y, 1))
+        return x + out if self.shortcut else out
 
 
 class LightConv(nn.Module):

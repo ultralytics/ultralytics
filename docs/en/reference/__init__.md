@@ -13,4 +13,8 @@ keywords: Ultralytics, YOLO, lazy import, __getattr__, NAS, RTDETR, SAM, FastSAM
 
 ## ::: ultralytics.__getattr__
 
+<br><br><hr><br>
+
+## ::: ultralytics.__dir__
+
 <br><br>

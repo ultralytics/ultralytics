@@ -216,7 +216,7 @@ jobs:
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     timeout-minutes: 20
-    runs-on: github-linux-gpu-t4-4-core
+    runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
@@ -419,11 +419,7 @@ jobs:
     if: always()
     steps:
       - name: Check for failure and notify
-        if: >
-          github.repository == 'ultralytics/ultralytics' &&
-          (github.event_name == 'schedule' || github.event_name == 'push') &&
-          github.run_attempt == '1' &&
-          (failure() || cancelled())
+        if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook-type: incoming-webhook

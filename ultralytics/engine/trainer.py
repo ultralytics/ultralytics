@@ -42,6 +42,7 @@ from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
+from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_2_4,
     EarlyStopping,
@@ -261,8 +262,7 @@ class BaseTrainer:
             self.model.criterion = self.model.init_criterion()
 
         # Compile model
-        if self.args.compile:
-            self.model = attempt_compile(self.model, device=self.device)
+        self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
         freeze_list = (
@@ -412,8 +412,9 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    metadata = {k: batch.pop(k, None) for k in ["im_file", "ori_shape", "resized_shape"]}
-                    loss, self.loss_items = self.model(batch)
+                    # decouple inference and loss calculations for torch.compile convenience
+                    preds = self.model(batch["img"])
+                    loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= world_size
@@ -454,7 +455,6 @@ class BaseTrainer:
                     )
                     self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
-                        batch = {**batch, **metadata}
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
@@ -743,8 +743,8 @@ class BaseTrainer:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
-        """Plot and display metrics visually."""
-        pass
+        """Plot metrics from a CSV file."""
+        plot_results(file=self.csv, on_plot=self.on_plot)  # save results.png
 
     def on_plot(self, name, data=None):
         """Register plots (e.g. to be consumed in callbacks)."""

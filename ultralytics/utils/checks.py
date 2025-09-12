@@ -907,7 +907,7 @@ def is_intel():
     try:
         result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
         return "intel" in result.stdout.lower()
-    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+    except Exception:  # broad clause to capture all Intel GPU exception types
         return False
 
 

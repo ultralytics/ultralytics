@@ -263,12 +263,11 @@ class TorchNMS:
         areas = (x2 - x1) * (y2 - y1)
 
         # Sort by scores descending
-        _, order = scores.sort(0, descending=True)
+        order = scores.argsort(0, descending=True)
 
         # Pre-allocate keep list with maximum possible size
         keep = torch.zeros(order.numel(), dtype=torch.int64, device=boxes.device)
         keep_idx = 0
-
         while order.numel() > 0:
             i = order[0]
             keep[keep_idx] = i
@@ -276,7 +275,6 @@ class TorchNMS:
 
             if order.numel() == 1:
                 break
-
             # Vectorized IoU calculation for remaining boxes
             rest = order[1:]
             xx1 = torch.maximum(x1[i], x1[rest])
@@ -288,20 +286,14 @@ class TorchNMS:
             w = (xx2 - xx1).clamp_(min=0)
             h = (yy2 - yy1).clamp_(min=0)
             inter = w * h
-
-            # Early termination: skip IoU calculation if no intersection
+            # Early exit: skip IoU calculation if no intersection
             if inter.sum() == 0:
                 # No overlaps with current box, keep all remaining boxes
-                remaining_count = rest.numel()
-                keep[keep_idx : keep_idx + remaining_count] = rest
-                keep_idx += remaining_count
-                break
-
+                order = rest
+                continue
             iou = inter / (areas[i] + areas[rest] - inter)
-
             # Keep boxes with IoU <= threshold
-            mask = iou <= iou_threshold
-            order = rest[mask]
+            order = rest[iou <= iou_threshold]
 
         return keep[:keep_idx]
 

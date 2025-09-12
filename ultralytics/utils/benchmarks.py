@@ -587,27 +587,31 @@ class ProfileModels:
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
-        input_tensor = sess.get_inputs()[0]
-        input_type = input_tensor.type
-        dynamic = not all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape)  # dynamic input shape
-        input_shape = (1, 3, self.imgsz, self.imgsz) if dynamic else input_tensor.shape
+        
+        input_tensors = sess.get_inputs()
+        input_dict = {}
+        for input_tensor in input_tensors:
+            input_type = input_tensor.type
+            dynamic = not all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape)  # dynamic input shape
+            input_shape = (1, *input_tensor.shape[1:]) if dynamic else input_tensor.shape
 
-        # Mapping ONNX datatype to numpy datatype
-        if "float16" in input_type:
-            input_dtype = np.float16
-        elif "float" in input_type:
-            input_dtype = np.float32
-        elif "double" in input_type:
-            input_dtype = np.float64
-        elif "int64" in input_type:
-            input_dtype = np.int64
-        elif "int32" in input_type:
-            input_dtype = np.int32
-        else:
-            raise ValueError(f"Unsupported ONNX datatype {input_type}")
+            # Mapping ONNX datatype to numpy datatype
+            if "float16" in input_type:
+                input_dtype = np.float16
+            elif "float" in input_type:
+                input_dtype = np.float32
+            elif "double" in input_type:
+                input_dtype = np.float64
+            elif "int64" in input_type:
+                input_dtype = np.int64
+            elif "int32" in input_type:
+                input_dtype = np.int32
+            else:
+                raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-        input_data = np.random.rand(*input_shape).astype(input_dtype)
-        input_name = input_tensor.name
+            input_data = np.random.rand(*input_shape).astype(input_dtype)
+            input_name = input_tensor.name
+            input_dict[input_name] = input_data
         output_name = sess.get_outputs()[0].name
 
         # Warmup runs
@@ -615,7 +619,7 @@ class ProfileModels:
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                sess.run([output_name], {input_name: input_data})
+                sess.run([output_name], input_dict)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
@@ -625,7 +629,7 @@ class ProfileModels:
         run_times = []
         for _ in TQDM(range(num_runs), desc=onnx_file):
             start_time = time.time()
-            sess.run([output_name], {input_name: input_data})
+            sess.run([output_name], input_dict)
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping

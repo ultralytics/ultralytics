@@ -34,7 +34,7 @@ def __getattr__(name: str):
     raise AttributeError(f"module {__name__} has no attribute {name}")
 
 
-def __dir__() -> list[str]:
+def __dir__():
     """Extend dir() to include lazily available model names for IDE autocompletion."""
     return sorted(set(globals()) | set(MODELS))
 

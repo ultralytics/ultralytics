@@ -1,12 +1,10 @@
-from ultralytics.models.yolo.pose.tennis_ball_train import TennisBallTrainer
-from ultralytics.nn.modules.motion_utils import MotionConfig
+from ultralytics.models.yolo.pose import PoseTrainer
 
-# Multi-GPU training configuration for full dataset
-trainer = TennisBallTrainer(
+trainer = PoseTrainer(
     overrides={
         # Model and data
         'model': 'yolo11n-pose.pt',
-        'data': '/root/autodl-tmp/Dataset_YOLO/data.yaml',  # Full dataset instead of debug
+        'data': '/root/autodl-tmp/Dataset_YOLO/data_original.yaml',  # Full dataset instead of debug
         
         # Training parameters
         'epochs': 100,  # Increased for full training
@@ -30,8 +28,8 @@ trainer = TennisBallTrainer(
         'cache': False,   # Disable RAM cache due to large dataset
         
         # Motion mask settings
-        'use_motion_masks': True,
-        'motion_cache_dir': '/root/autodl-tmp/Dataset_YOLO/motion_cache',  # Use dataset's motion cache
+        # 'use_motion_masks': True,
+        # 'motion_cache_dir': '/root/autodl-tmp/Dataset_YOLO/motion_cache',  # Use dataset's motion cache
         
         # Training optimization
         'amp': True,      # Automatic Mixed Precision
@@ -40,8 +38,8 @@ trainer = TennisBallTrainer(
         'save_period': 5, # Save checkpoint every 5 epochs
         
         # Project settings
-        'project': 'tennis_ball_training',
-        'name': 'yolo11_tennis_pose_4channel_multi_gpu',
+        'project': '/root/autodl-tmp/experiments/original_yolopose',
+        'name': 'yolo11_pose_original_multi_gpu',
         'exist_ok': False,
         'verbose': True,
         
@@ -52,15 +50,4 @@ trainer = TennisBallTrainer(
     }
 )
 
-print("🚀 Starting multi-GPU training on full dataset:")
-print(f"   📊 Training images: 16,468")
-print(f"   📊 Validation images: 3,367") 
-print(f"   🖥️  Using 12 GPUs: {trainer.args.device}")
-print(f"   🎯 Batch size: {trainer.args.batch} (≈{trainer.args.batch//12} per GPU)")
-print(f"   🔄 Epochs: {trainer.args.epochs}")
-print(f"   🎭 Motion masks: {trainer.use_motion_masks}")
-
 results = trainer.train()
-
-print("✅ Multi-GPU training completed!")
-print(f"📈 Results: {results}")

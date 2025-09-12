@@ -10,6 +10,7 @@ import torch
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
+from ultralytics.models.yolo.pose.tennis_ball_train import TennisBallTrainer
 from ultralytics.nn.tasks import (
     ClassificationModel,
     DetectionModel,
@@ -119,7 +120,7 @@ class YOLO(Model):
             },
             "tennis-pose": {
                 "model": TennisBallPoseModel,
-                "trainer": yolo.pose.PoseTrainer,
+                "trainer": TennisBallTrainer,
                 "validator": yolo.pose.PoseValidator,
                 "predictor": yolo.pose.PosePredictor,
             },

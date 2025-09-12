@@ -52,12 +52,13 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
+TASKS = frozenset({"detect", "segment", "classify", "pose", "obb", "tennis-pose"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
+    "tennis-pose": "coco8-pose.yaml",  # Use pose dataset format but with tennis-specific trainer
     "obb": "dota8.yaml",
 }
 TASK2MODEL = {
@@ -65,6 +66,7 @@ TASK2MODEL = {
     "segment": "yolo11n-seg.pt",
     "classify": "yolo11n-cls.pt",
     "pose": "yolo11n-pose.pt",
+    "tennis-pose": "yolo11n-pose.pt",  # Use pose model as base for tennis-pose
     "obb": "yolo11n-obb.pt",
 }
 TASK2METRIC = {
@@ -72,6 +74,7 @@ TASK2METRIC = {
     "segment": "metrics/mAP50-95(M)",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
+    "tennis-pose": "metrics/mAP50-95(P)",  # Use same metric as pose
     "obb": "metrics/mAP50-95(B)",
 }
 

@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 import os
 import random
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
 import torch
-from PIL import Image
 from torch.utils.data import DataLoader
 
 from ultralytics.data.base import BaseDataset
@@ -25,6 +25,7 @@ from ultralytics.nn.modules.motion_utils import (
 )
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.instance import Instances
+from ultralytics.utils.patches import imread
 
 class TennisBallTransform:
     """
@@ -310,9 +311,10 @@ class TennisBallDataset(YOLODataset):
         for i in range(start_idx, end_idx):
             if i < len(frame_paths) and frame_paths[i].exists():
                 try:
-                    img = Image.open(frame_paths[i])
-                    frames.append(np.array(img))
-                    valid_indices.append(i)
+                    img = imread(str(frame_paths[i]))
+                    if img is not None:
+                        frames.append(img)
+                        valid_indices.append(i)
                 except Exception as e:
                     LOGGER.warning(f"Failed to load frame {frame_paths[i]}: {e}")
                     continue
@@ -423,11 +425,16 @@ class TennisBallDataset(YOLODataset):
         Returns:
             Tuple of (image, ori_shape, resized_shape)
         """
-        # Load RGB image from parent
-        rgb_image, ori_shape, resized_shape = super().load_image(i, rect_mode)
+        # Load BGR image from parent (ultralytics base loads in BGR)
+        bgr_image, ori_shape, resized_shape = super().load_image(i, rect_mode)
         
         if not self.use_motion_masks:
+            # Convert BGR to RGB for consistency
+            rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
             return rgb_image, ori_shape, resized_shape
+        
+        # Convert BGR to RGB first
+        rgb_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
         
         # Get frame info from clip structure
         im_file_path = str(self.im_files[i])
@@ -457,7 +464,6 @@ class TennisBallDataset(YOLODataset):
         
         # Resize motion mask to match RGB image dimensions
         if motion_mask.shape[:2] != rgb_image.shape[:2]:
-            import cv2
             motion_mask = cv2.resize(motion_mask, (rgb_image.shape[1], rgb_image.shape[0]), interpolation=cv2.INTER_NEAREST)
         
         # Combine RGB and motion mask
@@ -482,22 +488,22 @@ class TennisBallDataset(YOLODataset):
         Returns:
             Dictionary containing image, label, and motion information
         """
-        # Get base image and label
-        result = super().get_image_and_label(index)
-        
         if not self.use_motion_masks:
-            return result
+            # Get base image and label normally for 3-channel
+            return super().get_image_and_label(index)
         
-        # Load RGB image and motion mask
-        rgb_image, ori_shape, resized_shape = self.load_image(index)
+        # For 4-channel, we need to do this manually to avoid the base class calling load_image twice
+        label = deepcopy(self.labels[index])  # requires deepcopy()
+        label.pop("shape", None)  # shape is for rect, remove it
+        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
+        label["ratio_pad"] = (
+            label["resized_shape"][0] / label["ori_shape"][0],
+            label["resized_shape"][1] / label["ori_shape"][1],
+        )  # for evaluation
+        if self.rect:
+            label["rect_shape"] = self.batch_shapes[self.batch[index]]
         
-        # The load_image method already returns the combined 4-channel image
-        # Update result with 4-channel input
-        result["img"] = rgb_image
-        result["ori_shape"] = ori_shape
-        result["resized_shape"] = resized_shape
-        
-        return result
+        return self.update_labels_info(label)
 
 
 class BallDataTransforms:

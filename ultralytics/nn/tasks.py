@@ -1896,6 +1896,27 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
+        # Special check for tennis-pose models - look for specific indicators
+        with contextlib.suppress(Exception):
+            # Check model name or comments
+            if isinstance(cfg, dict):
+                yaml_str = str(cfg)
+                if 'tennis' in yaml_str.lower() and 'pose' in yaml_str.lower():
+                    return "tennis-pose"
+                
+                # Check kpt_shape for tennis ball (1 keypoint)
+                kpt_shape = cfg.get("kpt_shape", [])
+                if kpt_shape == [1, 3]:  # Tennis ball has 1 center point keypoint
+                    return "tennis-pose"
+                
+                # Check nc (number of classes) = 1 combined with pose head
+                nc = cfg.get("nc", 0)
+                if nc == 1:  # Tennis ball detection typically has 1 class
+                    head = cfg.get("head", [])
+                    for layer in head:
+                        if len(layer) >= 3 and "Pose" in str(layer[2]):
+                            return "tennis-pose"
+        
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -1914,6 +1935,18 @@ def guess_model_task(model):
             return cfg2task(model)
     # Guess from PyTorch model
     if isinstance(model, torch.nn.Module):  # PyTorch model
+        # Check for 4-channel input in PyTorch model
+        with contextlib.suppress(Exception):
+            for module in model.modules():
+                if hasattr(module, 'conv') and hasattr(module.conv, 'weight'):
+                    conv_layer = module.conv
+                    if hasattr(conv_layer, 'weight') and conv_layer.weight.shape[1] == 4:  # 4 input channels
+                        return "tennis-pose"
+                    break  # Only check first conv layer
+                elif isinstance(module, torch.nn.Conv2d):
+                    if module.weight.shape[1] == 4:  # 4 input channels
+                        return "tennis-pose"
+                    break  # Only check first conv layer
         for x in "model.args", "model.model.args", "model.model.model.args":
             with contextlib.suppress(Exception):
                 return eval(x)["task"]
@@ -1935,10 +1968,21 @@ def guess_model_task(model):
     # Guess from model filename
     if isinstance(model, (str, Path)):
         model = Path(model)
+        
+        # Check if it's a YAML file and load it to examine input channels
+        if model.suffix.lower() in {'.yaml', '.yml'}:
+            with contextlib.suppress(Exception):
+                cfg = yaml_model_load(model)
+                task = cfg2task(cfg)
+                if task:
+                    return task
+        
         if "-seg" in model.stem or "segment" in model.parts:
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"
+        elif "tennis-pose" in model.stem or "tennis-pose" in model.parts:
+            return "tennis-pose"
         elif "-pose" in model.stem or "pose" in model.parts:
             return "pose"
         elif "-obb" in model.stem or "obb" in model.parts:

@@ -14,16 +14,13 @@ from ultralytics.utils.checks import check_yolo as checks
 from ultralytics.utils.downloads import download
 
 settings = SETTINGS
+
+MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR")
+
 __all__ = (
     "__version__",
     "ASSETS",
-    "YOLO",
-    "YOLOWorld",
-    "YOLOE",
-    "NAS",
-    "SAM",
-    "FastSAM",
-    "RTDETR",
+    *MODELS,
     "checks",
     "download",
     "settings",
@@ -31,19 +28,16 @@ __all__ = (
 
 
 def __getattr__(name: str):
-    """
-    Dynamically import Ultralytics model classes on first access. This function implements lazy imports for selected
-    model classes (e.g., YOLO, NAS, RTDETR, SAM). Instead of loading all models when the Ultralytics package is
-    imported, the required class is imported from `ultralytics.models` only when first accessed. This reduces initial
-    package load time by ~3%.
-
-    Args:
-        name (str): The attribute name being accessed.
-
-    Raises:
-        AttributeError: If the requested attribute is not a known model.
-    """
-    if name in {"NAS", "RTDETR", "SAM", "YOLO", "YOLOE", "FastSAM", "YOLOWorld"}:
-        module = importlib.import_module("ultralytics.models")
-        return getattr(module, name)
+    """Lazy-import model classes on first access."""
+    if name in MODELS:
+        return getattr(importlib.import_module("ultralytics.models"), name)
     raise AttributeError(f"module {__name__} has no attribute {name}")
+
+
+def __dir__() -> list[str]:
+    """Extend dir() to include lazily available model names for IDE autocompletion."""
+    return sorted(set(globals()) | set(MODELS))
+
+
+if __name__ == "__main__":
+    print(__version__)

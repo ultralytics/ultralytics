@@ -1055,7 +1055,7 @@ def attempt_compile(
         mode = "max-autotune-no-cudagraphs"
     t0 = time.perf_counter()
     try:
-        model = torch.compile(model, mode=mode, backend="inductor")
+        model = torch.compile(model, mode=mode, backend="inductor", options={"triton.cudagraphs": False})
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

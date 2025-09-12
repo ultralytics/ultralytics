@@ -76,8 +76,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
         ```
 
     === "Git clone"
@@ -122,8 +122,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker pull $t
 
         # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --gpus all $t            # all GPUs
-        sudo docker run -it --ipc=host --gpus '"device=2,3"' $t # specify GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus all $t            # all GPUs
+        sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
         ```
 
         The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flags assign a pseudo-TTY and keep stdin open, allowing interaction with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, crucial for tasks requiring GPU computation.
@@ -541,7 +541,7 @@ Docker provides an isolated, consistent environment for Ultralytics YOLO, ensuri
 sudo docker pull ultralytics/ultralytics:latest
 
 # Run the ultralytics image in a container with GPU support
-sudo docker run -it --ipc=host --gpus all ultralytics/ultralytics:latest
+sudo docker run -it --ipc=host --runtime=nvidia --gpus all ultralytics/ultralytics:latest
 ```
 
 For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).

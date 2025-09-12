@@ -141,7 +141,7 @@ class MuonWithSGD(optim.Optimizer):
                         if group["nesterov"]
                         else state["momentum_buffer_SGD"]
                     )
-                    p.add_(sgd_update, alpha=-group["lr"])
+                    p.add_(sgd_update, alpha=-group["lr"] / 2)
             else:  # SGD
                 for p in group["params"]:
                     if p.grad is None:

@@ -3,6 +3,7 @@
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import ops
+import torch
 
 
 class DetectionPredictor(BasePredictor):
@@ -32,17 +33,20 @@ class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs, **kwargs):
         """Post-processes predictions and returns a list of Results objects."""
-        preds = ops.non_max_suppression(
-            preds,
-            self.args.conf,
-            self.args.iou,
-            self.args.classes,
-            self.args.agnostic_nms,
-            max_det=self.args.max_det,
-            nc=len(self.model.names),
-            end2end=getattr(self.model, "end2end", False),
-            rotated=self.args.task == "obb",
-        )
+        try:
+            preds = ops.non_max_suppression(
+                preds,
+                self.args.conf,
+                self.args.iou,
+                self.args.classes,
+                self.args.agnostic_nms,
+                max_det=self.args.max_det,
+                nc=len(self.model.names),
+                end2end=getattr(self.model, "end2end", False),
+                rotated=self.args.task == "obb",
+            )
+        except Exception:
+            preds = [torch.zeros((0, 6), device=preds[0].device)] * img.shape[0]  # for empty results
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

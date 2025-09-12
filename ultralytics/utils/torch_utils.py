@@ -1055,7 +1055,16 @@ def attempt_compile(
         mode = "max-autotune-no-cudagraphs"
     t0 = time.perf_counter()
     try:
-        model = torch.compile(model, backend="inductor", options={"triton.cudagraphs": False})
+        model = torch.compile(
+            model,
+            backend="inductor",
+            options={
+                "triton.cudagraphs": False,
+                "triton.unique_kernel_names": True,
+                "fx_graph_cache": False,
+                "coordinate_descent_tuning": False,
+            },
+        )
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

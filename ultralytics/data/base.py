@@ -53,6 +53,7 @@ class BaseDataset(Dataset):
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
         batch (np.ndarray): Batch index of each image.
+        fast_verify_data_num (int): Number of images to verify during initialization.
 
     Methods:
         get_img_files: Read image files from the specified path.
@@ -67,6 +68,7 @@ class BaseDataset(Dataset):
         update_labels_info: Custom label format method to be implemented by subclasses.
         build_transforms: Build transformation pipeline to be implemented by subclasses.
         get_labels: Get labels method to be implemented by subclasses.
+        partition_labels: function to filter the partition of the dataset for quick verification.
     """
 
     def __init__(
@@ -85,6 +87,8 @@ class BaseDataset(Dataset):
         classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
+        fast_verify_data_num:int =None,
+
     ):
         """
         Initialize BaseDataset with given configuration and options.
@@ -104,6 +108,7 @@ class BaseDataset(Dataset):
             classes (List[int], optional): List of included classes.
             fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
+            fast_verify_data_num (int, optional): Number of images to verify during initialization.
         """
         super().__init__()
         self.img_path = img_path
@@ -115,6 +120,7 @@ class BaseDataset(Dataset):
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         self.im_files = self.get_img_files(self.img_path)
+        self.fast_verify_data_num=fast_verify_data_num
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
@@ -441,3 +447,20 @@ class BaseDataset(Dataset):
             ... )
         """
         raise NotImplementedError
+
+    def partition_labels(self,labels):
+        """
+        Demo function to filter the dataset for quick verification.
+        Args:
+            labels (list): List of label dictionaries.
+
+        Returns:
+            (list): Filtered list of label dictionaries.
+        Raises:
+            AssertionError: If the number of labels is less than fast_verify_data_num.
+        """
+        if self.fast_verify_data_num is None:
+            return labels
+        assert len(labels)>self.fast_verify_data_num, f"the number of labels {len(labels)} should be greater than {self.fast_verify_data_num}"
+        return labels[:self.fast_verify_data_num]
+

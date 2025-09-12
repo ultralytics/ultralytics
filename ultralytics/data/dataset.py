@@ -186,6 +186,7 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+        labels= self.partition_labels(labels)  # for demo purpose only
         if not labels:
             raise RuntimeError(
                 f"No valid images found in {cache_path}. Images with incorrectly formatted labels are ignored. {HELP_URL}"
@@ -607,7 +608,9 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
+
         self.verify_labels(labels)
+        labels = self.partition_labels(labels)  # for demo purpose only
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")

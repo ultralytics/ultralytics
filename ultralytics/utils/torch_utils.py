@@ -222,7 +222,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
                     f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
                     f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
                 )
-        space = " " * (len(s) + 1)
+        space = " " * len(s)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"

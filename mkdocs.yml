@@ -392,6 +392,7 @@ nav:
   - Guides:
       - guides/index.md
       - YOLO Common Issues: guides/yolo-common-issues.md
+      - YOLO Custom Dataset Guide: guides/custom-data.md
       - YOLO Performance Metrics: guides/yolo-performance-metrics.md
       - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md

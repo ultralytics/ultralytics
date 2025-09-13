@@ -26,6 +26,7 @@ Whether you're a beginner or an expert in [deep learning](https://www.ultralytic
 Here's a compilation of in-depth guides to help you master different aspects of Ultralytics YOLO.
 
 - [YOLO Common Issues](yolo-common-issues.md) ⭐ RECOMMENDED: Practical solutions and troubleshooting tips to the most frequently encountered issues when working with Ultralytics YOLO models.
+- [YOLO Custom Data Guide](custom-data.md) ⭐ RECOMMENDED: Step-by-step instructions to create, annotate, and prepare your datasets for YOLO11, including YAML formatting and data preparation augmentation tips.
 - [YOLO Performance Metrics](yolo-performance-metrics.md) ⭐ ESSENTIAL: Understand the key metrics like mAP, IoU, and [F1 score](https://www.ultralytics.com/glossary/f1-score) used to evaluate the performance of your YOLO models. Includes practical examples and tips on how to improve detection accuracy and speed.
 - [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md) 🚀 NEW: Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
 - [YOLO Data Augmentation](yolo-data-augmentation.md) 🚀 NEW: Master the complete range of data augmentation techniques in YOLO, from basic transformations to advanced strategies for improving model robustness and performance.

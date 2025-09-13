@@ -2029,3 +2029,58 @@ class SAVPE(nn.Module):
         aggregated = score.transpose(-2, -3) @ x.reshape(B, self.c, C // self.c, -1).transpose(-1, -2)
 
         return F.normalize(aggregated.transpose(-2, -3).reshape(B, Q, -1), dim=-1, p=2)
+
+    def init_weights(self):
+        """Initialize SAVPE module weights for training reproduction."""
+        # Initialize cv1 ModuleList (3 sequential conv layers for different scales)
+        for cv1_seq in self.cv1:
+            for module in cv1_seq:
+                if isinstance(module, Conv):
+                    nn.init.kaiming_normal_(module.conv.weight, mode='fan_out', nonlinearity='relu')
+                    if module.conv.bias is not None:
+                        nn.init.constant_(module.conv.bias, 0)
+                    if hasattr(module, 'bn'):
+                        nn.init.constant_(module.bn.weight, 1)
+                        nn.init.constant_(module.bn.bias, 0)
+        
+        # Initialize cv2 ModuleList (3 conv layers with upsampling)
+        for cv2_seq in self.cv2:
+            for module in cv2_seq:
+                if isinstance(module, Conv):
+                    nn.init.kaiming_normal_(module.conv.weight, mode='fan_out', nonlinearity='relu')
+                    if module.conv.bias is not None:
+                        nn.init.constant_(module.conv.bias, 0)
+                    if hasattr(module, 'bn'):
+                        nn.init.constant_(module.bn.weight, 1)
+                        nn.init.constant_(module.bn.bias, 0)
+        
+        # Initialize cv3 (Conv2d for embedding)
+        nn.init.kaiming_normal_(self.cv3.weight, mode='fan_out', nonlinearity='relu')
+        if self.cv3.bias is not None:
+            nn.init.constant_(self.cv3.bias, 0)
+        
+        # Initialize cv4 (Conv2d for channel projection)
+        nn.init.kaiming_normal_(self.cv4.weight, mode='fan_out', nonlinearity='relu')
+        if self.cv4.bias is not None:
+            nn.init.constant_(self.cv4.bias, 0)
+        
+        # Initialize cv5 (Conv2d for visual prompt processing)
+        nn.init.kaiming_normal_(self.cv5.weight, mode='fan_out', nonlinearity='relu')
+        if self.cv5.bias is not None:
+            nn.init.constant_(self.cv5.bias, 0)
+        
+        # Initialize cv6 Sequential (final fusion layers)
+        for module in self.cv6:
+            if isinstance(module, Conv):
+                nn.init.kaiming_normal_(module.conv.weight, mode='fan_out', nonlinearity='relu')
+                if module.conv.bias is not None:
+                    nn.init.constant_(module.conv.bias, 0)
+                if hasattr(module, 'bn'):
+                    nn.init.constant_(module.bn.weight, 1)
+                    nn.init.constant_(module.bn.bias, 0)
+            elif isinstance(module, nn.Conv2d):
+                nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+        
+        print("🔄 SAVPE weights initialized: cv1, cv2, cv3, cv4, cv5, cv6 modules")

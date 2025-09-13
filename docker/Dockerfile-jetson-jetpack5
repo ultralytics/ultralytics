@@ -27,9 +27,10 @@ RUN apt-get update && \
 WORKDIR /ultralytics
 
 # Copy contents and configure git
+# Remove opencv-python from pyproject.toml to avoid conflicts with pre-installed OpenCV comes with NVIDIA JetPack 5
 COPY . .
 RUN sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
-    sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
+    sed -i '/opencv-python/d' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 # Replace pyproject.toml TF.js version with 'tensorflowjs>=3.9.0' for JetPack5 compatibility and install packages

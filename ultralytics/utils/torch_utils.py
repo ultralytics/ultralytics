@@ -1053,9 +1053,12 @@ def attempt_compile(
     if mode == "max-autotune":
         LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")
         mode = "max-autotune-no-cudagraphs"
+    torch._dynamo.reset()  # reset cache
+    mode_opts = torch._inductor.list_mode_options()[mode]
+    options = {**mode_opts, "coordinate_descent_tuning": False}  # override non-reproducible/slow opts
     t0 = time.perf_counter()
     try:
-        model = torch.compile(model, mode=mode, backend="inductor")
+        model = torch.compile(model, backend="inductor", options=options)
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

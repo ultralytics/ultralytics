@@ -1050,21 +1050,12 @@ def attempt_compile(
         mode = "default"
     prefix = colorstr("compile:")
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
-    if mode == "max-autotune":
-        LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")
-        mode = "max-autotune-no-cudagraphs"
+    torch._dynamo.reset()  # reset cache
+    default_opts = torch._inductor.list_mode_options()[mode]
+    options = {**default_opts, "coordinate_descent_tuning": False}  # override non-reproducible/slow opts
     t0 = time.perf_counter()
     try:
-        model = torch.compile(
-            model,
-            backend="inductor",
-            options={
-                "triton.cudagraphs": False,
-                "triton.unique_kernel_names": True,
-                "fx_graph_cache": False,
-                "coordinate_descent_tuning": False,
-            },
-        )
+        model = torch.compile(model, backend="inductor", options=options)
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
         return model

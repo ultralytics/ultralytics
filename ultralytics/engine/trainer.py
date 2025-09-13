@@ -138,7 +138,11 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
+            # Save run args, excluding non-serializable parameters
+            args_dict = vars(self.args).copy()
+            if "augmentations" in args_dict:
+                args_dict.pop("augmentations")  # Remove non-serializable Albumentations transforms
+            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
@@ -611,6 +615,10 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
+            # Convert Path objects to strings for compatibility
+            if isinstance(self.args.data, Path):
+                self.args.data = str(self.args.data)
+
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
             elif self.args.data.rsplit(".", 1)[-1] == "ndjson":

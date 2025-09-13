@@ -197,7 +197,7 @@ def test_track_stream(model):
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
         custom_yaml = TMP / f"botsort-{gmc}.yaml"
-        YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
+        YAML.save(file=custom_yaml, data={**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
@@ -722,7 +722,7 @@ def test_grayscale(task: str, model: str, data: str) -> None:
     grayscale_data = Path(TMP) / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)
     data["channels"] = 1  # add additional channels key for grayscale
-    YAML.save(grayscale_data, data)
+    YAML.save(data=data, file=grayscale_data)
     # remove npy files in train/val splits if exists, might be created by previous tests
     for split in {"train", "val"}:
         for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):

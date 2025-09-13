@@ -415,6 +415,25 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
+    types_dict = {
+        "path": str,
+        "train": (str, list),
+        "val": (str, list),
+        "test": (str, list),
+        "nc": int,
+        "names": (list, dict),
+        "kpt_shape": list,
+        "flip_idx": list,
+    }
+
+    for key, types in types_dict.items():
+        if data.get(key) is not None and not isinstance(data[key], types):
+            valid_types = ", ".join(t.__name__ for t in types) if isinstance(types, tuple) else types.__name__
+            task = "pose" if key in {"kpt_shape", "flip_idx"} else "detect"
+            raise TypeError(
+                f"'{key}' has invalid type {type(data[key]).__name__}. Valid types: {valid_types}. See https://docs.ultralytics.com/datasets/{task}/"
+            )
+
     for k in "train", "val":
         if k not in data:
             if k != "val" or "validation" not in data:

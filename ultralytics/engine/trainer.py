@@ -32,6 +32,7 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
+    WORLD_SIZE,
     YAML,
     callbacks,
     clean_url,
@@ -194,7 +195,9 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+        if WORLD_SIZE != -1:
+            world_size = WORLD_SIZE
+        elif isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
             world_size = len(self.args.device)
@@ -240,8 +243,8 @@ class BaseTrainer:
 
     def _setup_ddp(self, world_size):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
+        torch.cuda.set_device(LOCAL_RANK)
+        self.device = torch.device("cuda", LOCAL_RANK)
         # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
@@ -300,7 +303,9 @@ class BaseTrainer:
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
         if world_size > 1:
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[LOCAL_RANK], find_unused_parameters=True
+            )
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)

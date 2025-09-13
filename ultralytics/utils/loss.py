@@ -795,7 +795,7 @@ class E2EDetectLoss:
         self.one2one = v8DetectionLoss(model, tal_topk=1)
         self.updates = 0
         self.total = 1.0
-        self.o2m = 0.6
+        self.o2m = 0.8
         # self.total = 2.0
         # self.o2m = 1.0
         self.o2o = self.total - self.o2m

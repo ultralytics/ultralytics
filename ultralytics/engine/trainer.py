@@ -914,21 +914,12 @@ class BaseTrainer:
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2 and self.args.muon_head == "model":
                     g[3].append(param)
-                elif param.ndim >= 2 and "head" in self.args.muon_head and int(module_name.split(".")[1]) == 23:
+                elif param.ndim >= 2 and self.args.muon_head == "head" and int(module_name.split(".")[1]) == 23:
                     g[3].append(param)
-                elif (
-                    param.ndim >= 2
-                    and "backbone" in self.args.muon_head
-                    and int(module_name.split(".")[1]) in set(range(11))
-                ):
+                elif param.ndim >= 2 and self.args.muon_head == "backbone" and int(module_name.split(".")[1]) in set(range(11)):
                     g[3].append(param)
                 # elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
-                elif (
-                    param.ndim >= 2
-                    and "neck" in self.args.muon_head
-                    # and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
-                    and int(module_name.split(".")[1]) in list(range(11, 23))
-                ):
+                elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in list(range(11)) + [17, 21]:
                     g[3].append(param)
                 elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
                     g[3].append(param)

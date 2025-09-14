@@ -784,15 +784,31 @@ class E2EDetectLoss:
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = v8DetectionLoss(model, tal_topk=10)
         self.one2one = v8DetectionLoss(model, tal_topk=1)
+        self.updates = 0
+        self.total = 1.0
+        self.o2m = 0.8
+        self.o2mf = 0.1  # final weight for o2m branch
+        self.o2o = self.total - self.o2m
+        self.o2m_copy = self.o2m
 
-    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = preds[1] if isinstance(preds, tuple) else preds
         one2many = preds["one2many"]
         loss_one2many = self.one2many(one2many, batch)
         one2one = preds["one2one"]
         loss_one2one = self.one2one(one2one, batch)
-        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
+            1
+        ] * self.o2o
+
+    def update(self):
+        self.updates += 1
+        self.o2m = self.decay(self.updates)
+        self.o2o = max(self.total - self.o2m, 0)
+
+    def decay(self, x):
+        return max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.o2mf) + self.o2mf
 
 
 class TVPDetectLoss:

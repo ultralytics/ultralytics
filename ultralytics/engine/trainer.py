@@ -53,6 +53,7 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
+    de_parallel,
 )
 
 
@@ -513,7 +514,7 @@ class BaseTrainer:
             # exit()
 
             if self.args.o2m != 1.0:
-                self.model.criterion.update()
+                de_parallel(self.model).criterion.update()
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:

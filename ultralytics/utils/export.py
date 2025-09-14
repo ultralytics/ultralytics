@@ -100,9 +100,9 @@ def export_engine(
     config = builder.create_builder_config()
     workspace_bytes = int((workspace or 0) * (1 << 30))
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
-    if is_trt10 and workspace > 0:
+    if is_trt10 and workspace_bytes > 0:
         config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
-    elif workspace > 0:  # TensorRT versions 7, 8
+    elif workspace_bytes > 0:  # TensorRT versions 7, 8
         config.max_workspace_size = workspace_bytes
     flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
     network = builder.create_network(flag)

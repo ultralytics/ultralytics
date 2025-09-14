@@ -1037,7 +1037,6 @@ class YOLOEModel(DetectionModel):
         if without_reprta:
             return txt_feats
 
-        assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         return head.get_tpe(txt_feats)  # run auxiliary text head

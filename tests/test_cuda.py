@@ -164,7 +164,7 @@ def test_autobatch():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(True, reason="Skip for now since T4 instance does not support TensorRT > 10.0")
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_utils_benchmarks():
     """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels

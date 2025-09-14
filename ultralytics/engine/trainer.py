@@ -873,6 +873,7 @@ class BaseTrainer:
 
         assert name == "SGD", f"Muon optimizer only works with SGD for now! But got {name}."
         for module_name, module in model.named_modules():
+            module_name = module_name.replace("module.", "")  # for ddp model
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2 and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]:

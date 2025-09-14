@@ -922,7 +922,8 @@ class Exporter:
             import tensorrt as trt  # noqa
         except ImportError:
             if LINUX:
-                check_requirements("tensorrt>7.0.0,!=10.1.0")
+                cuda_version = torch.version.cuda.split(".")[0]
+                check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
             import tensorrt as trt  # noqa
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
@@ -1306,7 +1307,7 @@ class Exporter:
                     kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
                     out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
                     return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
-                return nms_outputs
+                return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, nms_outputs.n_valid
 
         quant_model = NMSWrapper(
             model=quant_model,

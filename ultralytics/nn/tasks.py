@@ -1543,8 +1543,8 @@ def parse_model(d, ch, verbose=True):
     max_channels = float("inf")
     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
+    scale = d.get("scale")
     if scales:
-        scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")

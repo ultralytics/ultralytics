@@ -531,6 +531,7 @@ nav:
           - hub/api/index.md
 
   - Reference:
+      - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
       - data:

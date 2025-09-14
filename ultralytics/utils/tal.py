@@ -6,7 +6,7 @@ import torch.nn as nn
 from . import LOGGER, TORCH_VERSION
 from .checks import check_version
 from .metrics import bbox_iou, probiou
-from .ops import xywhr2xyxyxyxy
+from .ops import xywhr2xyxyxyxy, xyxy2xywh, xywh2xyxy
 
 TORCH_1_10 = check_version(TORCH_VERSION, "1.10.0")
 
@@ -143,7 +143,7 @@ class TaskAlignedAssigner(nn.Module):
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
             overlaps (torch.Tensor): Overlaps between predicted and ground truth boxes with shape (bs, max_num_obj, h*w).
         """
-        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes)
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
@@ -276,7 +276,7 @@ class TaskAlignedAssigner(nn.Module):
         return target_labels, target_bboxes, target_scores
 
     @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
+    def select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps=1e-9):
         """
         Select positive anchor centers within ground truth bounding boxes.
 
@@ -292,11 +292,17 @@ class TaskAlignedAssigner(nn.Module):
             b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
             Bounding box format: [x_min, y_min, x_max, y_max].
         """
+        gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
+        wh_mask = gt_bboxes_xywh[..., 2:] < 8
+        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), 16, gt_bboxes_xywh[..., 2:])
+        gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
+
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
         bbox_deltas = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(bs, n_boxes, n_anchors, -1)
-        return bbox_deltas.amin(3).gt_(eps)
+        bbox_deltas = bbox_deltas.amin(3).gt_(eps)
+        return bbox_deltas
 
     @staticmethod
     def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):

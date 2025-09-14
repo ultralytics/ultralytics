@@ -25,6 +25,7 @@ from ultralytics import __version__
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import load_checkpoint
+from ultralytics.optim.muon import Muon
 from ultralytics.utils import (
     DEFAULT_CFG,
     GIT,
@@ -237,6 +238,7 @@ class BaseTrainer:
         else:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
+        self.scheduler2 = optim.lr_scheduler.LambdaLR(self.optimizer2, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
         """Initialize and set the DistributedDataParallel parameters for training."""
@@ -335,7 +337,7 @@ class BaseTrainer:
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
         iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
+        self.optimizer, self.optimizer2 = self.build_optimizer(
             model=self.model,
             name=self.args.optimizer,
             lr=self.args.lr0,
@@ -374,6 +376,7 @@ class BaseTrainer:
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
+        self.optimizer2.zero_grad()  # zero any resumed gradients to ensure stability on train start
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
@@ -662,10 +665,13 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
+        self.scaler.unscale_(self.optimizer2)  # unscale gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
+        self.scaler.step(self.optimizer2)
         self.scaler.update()
         self.optimizer.zero_grad()
+        self.optimizer2.zero_grad()
         if self.ema:
             self.ema.update(self.model)
 
@@ -868,6 +874,12 @@ class BaseTrainer:
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
+                if (
+                    param.ndim >= 2
+                    and self.args.muon_head == "neck"
+                    and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
+                ):
+                    g[3].append(param)
                 if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn) or "logit_scale" in fullname:  # weight (no decay)
@@ -876,7 +888,7 @@ class BaseTrainer:
                 else:  # weight (with decay)
                     g[0].append(param)
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "Muon", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
@@ -889,11 +901,13 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
+        optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
 
-        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+        if len(g[0]):
+            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
         )
-        return optimizer
+        return optimizer, optimizer_muon

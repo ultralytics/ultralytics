@@ -873,8 +873,7 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         assert name == "SGD", f"Muon optimizer only works with SGD for now! But got {name}."
-        for module_name, module in model.named_modules():
-            module_name = module_name.replace("module.", "")  # for ddp model
+        for module_name, module in unwrap_model(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2 and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]:

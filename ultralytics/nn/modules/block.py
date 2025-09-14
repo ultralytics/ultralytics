@@ -1117,7 +1117,7 @@ class C3k2(C2f):
         n: int = 1,
         c3k: bool = False,
         e: float = 0.5,
-        attn: bool = True,
+        attn: bool = False,
         g: int = 1,
         shortcut: bool = True,
     ):
@@ -1140,7 +1140,7 @@ class C3k2(C2f):
                 PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
             )
             # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
-            if attn is not None
+            if attn
             else C3k(self.c, self.c, 2, shortcut, g)
             # else C3(self.c, self.c, 4, shortcut, g)
             if c3k

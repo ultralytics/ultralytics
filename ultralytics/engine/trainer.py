@@ -428,7 +428,7 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-            if self.args.end2end:
+            if self.args.o2m != 1.0:
                 self.model.criterion.update()
             # print(self.model.criterion.assigner.zero_assigned)
             # print("total assignment:", self.model.criterion.total_assignments)
@@ -876,7 +876,7 @@ class BaseTrainer:
             dict(
                 params=g[3],
                 lr=lr,
-                weight_decay=self.args.muon_decay_scale * decay,  # need to update for DDP
+                weight_decay=decay,  # need to update for DDP
                 momentum=momentum,
                 nesterov=True,
                 use_muon=True,

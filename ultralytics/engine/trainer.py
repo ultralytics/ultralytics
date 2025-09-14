@@ -885,7 +885,7 @@ class BaseTrainer:
             dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
             dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
         ]
-        optimizer = MuonWithSGD(param_groups)
+        optimizer = MuonWithSGD(param_groups, muon=self.args.muon_w, sgd=self.args.sgd_w)
 
         # if len(g[0]):
         #     optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay

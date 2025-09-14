@@ -871,14 +871,11 @@ class BaseTrainer:
             name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
+        assert name == "SGD", f"Muon optimizer only works with SGD for now! But got {name}."
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if (
-                    param.ndim >= 2
-                    and self.args.muon_head == "neck"
-                    and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
-                ):
+                if param.ndim >= 2 and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]:
                     g[3].append(param)
                 if "bias" in fullname:  # bias (no decay)
                     g[2].append(param)
@@ -901,7 +898,7 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
+        optimizer_muon = Muon(g[3], lr=lr * 0.1, weight_decay=decay, momentum=momentum)
 
         if len(g[0]):
             optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay

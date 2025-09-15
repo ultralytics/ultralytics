@@ -618,7 +618,7 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
-                dynamo=dynamo,
+                dynamo=dynamo and not self.args.nms,
             )
 
         # Checks

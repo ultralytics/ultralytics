@@ -23,8 +23,11 @@ TensorFlow.js           | `tfjs`                    | yolo11n_web_model/
 PaddlePaddle            | `paddle`                  | yolo11n_paddle_model/
 MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
+IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
 """
+
+from __future__ import annotations
 
 import glob
 import os
@@ -40,7 +43,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
+from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
@@ -57,6 +60,7 @@ def benchmark(
     verbose=False,
     eps=1e-3,
     format="",
+    **kwargs,
 ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
@@ -71,9 +75,10 @@ def benchmark(
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
         format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
+        **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size, metric,
+        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric,
             and inference time.
 
     Examples:
@@ -84,10 +89,15 @@ def benchmark(
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
-    import pandas as pd  # scope for faster 'import ultralytics'
+    import polars as pl  # scope for faster 'import ultralytics'
 
-    pd.options.display.max_columns = 10
-    pd.options.display.width = 120
+    pl.Config.set_tbl_cols(-1)  # Show all columns
+    pl.Config.set_tbl_rows(-1)  # Show all rows
+    pl.Config.set_tbl_width_chars(-1)  # No width limit
+    pl.Config.set_tbl_hide_column_data_types(True)  # Hide data types
+    pl.Config.set_tbl_hide_dataframe_shape(True)  # Hide shape info
+    pl.Config.set_tbl_formatting("ASCII_BORDERS_ONLY_CONDENSED")
+
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -102,41 +112,41 @@ def benchmark(
     if format_arg:
         formats = frozenset(export_formats()["Argument"])
         assert format in formats, f"Expected format to be one of {formats}, but got '{format_arg}'."
-    for i, (name, format, suffix, cpu, gpu, _) in enumerate(zip(*export_formats().values())):
+    for name, format, suffix, cpu, gpu, _ in zip(*export_formats().values()):
         emoji, filename = "❌", None  # export defaults
         try:
             if format_arg and format_arg != format:
                 continue
 
             # Checks
-            if i == 7:  # TF GraphDef
+            if format == "pb":
                 assert model.task != "obb", "TensorFlow GraphDef not supported for OBB task"
-            elif i == 9:  # Edge TPU
+            elif format == "edgetpu":
                 assert LINUX and not ARM64, "Edge TPU export only supported on non-aarch64 Linux"
-            elif i in {5, 10}:  # CoreML and TF.js
+            elif format in {"coreml", "tfjs"}:
                 assert MACOS or (LINUX and not ARM64), (
                     "CoreML and TF.js export only supported on macOS and non-aarch64 Linux"
                 )
-            if i in {5}:  # CoreML
+            if format == "coreml":
                 assert not IS_PYTHON_3_13, "CoreML not supported on Python 3.13"
-            if i in {6, 7, 8, 9, 10}:  # TF SavedModel, TF GraphDef, and TFLite, TF EdgeTPU and TF.js
+            if format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
                 # assert not IS_PYTHON_MINIMUM_3_12, "TFLite exports not supported on Python>=3.12 yet"
-            if i == 11:  # Paddle
+            if format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
                 assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert not is_end2end, "End-to-end models not supported by PaddlePaddle yet"
-                assert LINUX or MACOS, "Windows Paddle exports not supported yet"
-            if i == 12:  # MNN
+                assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
+            if format == "mnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 MNN exports not supported yet"
-            if i == 13:  # NCNN
+            if format == "ncnn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 NCNN exports not supported yet"
-            if i == 14:  # IMX
+            if format == "imx":
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
                 assert model.task == "detect", "IMX only supported for detection task"
-                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8"  # TODO: enable for YOLO11
-            if i == 15:  # RKNN
+                assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
+            if format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"
                 assert LINUX, "RKNN only supported on Linux"
@@ -152,23 +162,31 @@ def benchmark(
                 exported_model = model  # PyTorch format
             else:
                 filename = model.export(
-                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False
+                    imgsz=imgsz, format=format, half=half, int8=int8, data=data, device=device, verbose=False, **kwargs
                 )
                 exported_model = YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
 
             # Predict
-            assert model.task != "pose" or i != 7, "GraphDef Pose inference is not supported"
-            assert i not in {9, 10}, "inference not supported"  # Edge TPU and TF.js are unsupported
-            assert i != 5 or platform.system() == "Darwin", "inference only supported on macOS>=10.13"  # CoreML
-            if i in {13}:
+            assert model.task != "pose" or format != "pb", "GraphDef Pose inference is not supported"
+            assert format not in {"edgetpu", "tfjs"}, "inference not supported"
+            assert format != "coreml" or platform.system() == "Darwin", "inference only supported on macOS>=10.13"
+            if format == "ncnn":
                 assert not is_end2end, "End-to-end torch.topk operation is not supported for NCNN prediction yet"
             exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, half=half, verbose=False)
 
             # Validate
             results = exported_model.val(
-                data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, int8=int8, verbose=False
+                data=data,
+                batch=1,
+                imgsz=imgsz,
+                plots=False,
+                device=device,
+                half=half,
+                int8=int8,
+                verbose=False,
+                conf=0.001,  # all the pre-set benchmark mAP values are based on conf=0.001
             )
             metric, speed = results.results_dict[key], results.speed["inference"]
             fps = round(1000 / (speed + eps), 2)  # frames per second
@@ -181,22 +199,24 @@ def benchmark(
 
     # Print results
     check_yolo(device=device)  # print system info
-    df = pd.DataFrame(y, columns=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"])
+    df = pl.DataFrame(y, schema=["Format", "Status❔", "Size (MB)", key, "Inference time (ms/im)", "FPS"], orient="row")
+    df = df.with_row_index(" ", offset=1)  # add index info
+    df_display = df.with_columns(pl.all().cast(pl.String).fill_null("-"))
 
     name = model.model_name
     dt = time.time() - t0
     legend = "Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed"
-    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df.fillna('-')}\n"
+    s = f"\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({dt:.2f}s)\n{legend}\n{df_display}\n"
     LOGGER.info(s)
     with open("benchmarks.log", "a", errors="ignore", encoding="utf-8") as f:
         f.write(s)
 
     if verbose and isinstance(verbose, float):
-        metrics = df[key].array  # values to compare to floor
+        metrics = df[key].to_numpy()  # values to compare to floor
         floor = verbose  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if pd.notna(x)), f"Benchmark failure: metric(s) < floor {floor}"
+        assert all(x > floor for x in metrics if not np.isnan(x)), f"Benchmark failure: metric(s) < floor {floor}"
 
-    return df
+    return df_display
 
 
 class RF100Benchmark:
@@ -206,10 +226,10 @@ class RF100Benchmark:
     This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
 
     Attributes:
-        ds_names (List[str]): Names of datasets used for benchmarking.
-        ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+        ds_names (list[str]): Names of datasets used for benchmarking.
+        ds_cfg_list (list[Path]): List of paths to dataset configuration files.
         rf (Roboflow): Roboflow instance for accessing datasets.
-        val_metrics (List[str]): Metrics used for validation.
+        val_metrics (list[str]): Metrics used for validation.
 
     Methods:
         set_key: Set Roboflow API key for accessing datasets.
@@ -225,7 +245,7 @@ class RF100Benchmark:
         self.rf = None
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
-    def set_key(self, api_key):
+    def set_key(self, api_key: str):
         """
         Set Roboflow API key for processing.
 
@@ -242,7 +262,7 @@ class RF100Benchmark:
 
         self.rf = Roboflow(api_key=api_key)
 
-    def parse_dataset(self, ds_link_txt="datasets_links.txt"):
+    def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
         """
         Parse dataset links and download datasets.
 
@@ -250,8 +270,8 @@ class RF100Benchmark:
             ds_link_txt (str): Path to the file containing dataset links.
 
         Returns:
-            ds_names (List[str]): List of dataset names.
-            ds_cfg_list (List[Path]): List of paths to dataset configuration files.
+            ds_names (list[str]): List of dataset names.
+            ds_cfg_list (list[Path]): List of paths to dataset configuration files.
 
         Examples:
             >>> benchmark = RF100Benchmark()
@@ -280,14 +300,14 @@ class RF100Benchmark:
         return self.ds_names, self.ds_cfg_list
 
     @staticmethod
-    def fix_yaml(path):
+    def fix_yaml(path: Path):
         """Fix the train and validation paths in a given YAML file."""
         yaml_data = YAML.load(path)
         yaml_data["train"] = "train/images"
         yaml_data["val"] = "valid/images"
         YAML.dump(yaml_data, path)
 
-    def evaluate(self, yaml_path, val_log_file, eval_log_file, list_ind):
+    def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
         """
         Evaluate model performance on validation results.
 
@@ -342,6 +362,8 @@ class RF100Benchmark:
         with open(eval_log_file, "a", encoding="utf-8") as f:
             f.write(f"{self.ds_names[list_ind]}: {map_val}\n")
 
+        return float(map_val)
+
 
 class ProfileModels:
     """
@@ -350,7 +372,7 @@ class ProfileModels:
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
     Attributes:
-        paths (List[str]): Paths of the models to profile.
+        paths (list[str]): Paths of the models to profile.
         num_timed_runs (int): Number of timed runs for the profiling.
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
@@ -360,15 +382,15 @@ class ProfileModels:
         device (torch.device): Device used for profiling.
 
     Methods:
-        profile: Profiles the models and prints the result.
-        get_files: Gets all relevant model files.
-        get_onnx_model_info: Extracts metadata from an ONNX model.
-        iterative_sigma_clipping: Applies sigma clipping to remove outliers.
-        profile_tensorrt_model: Profiles a TensorRT model.
-        profile_onnx_model: Profiles an ONNX model.
-        generate_table_row: Generates a table row with model metrics.
-        generate_results_dict: Generates a dictionary of profiling results.
-        print_table: Prints a formatted table of results.
+        run: Profile YOLO models for speed and accuracy across various formats.
+        get_files: Get all relevant model files.
+        get_onnx_model_info: Extract metadata from an ONNX model.
+        iterative_sigma_clipping: Apply sigma clipping to remove outliers.
+        profile_tensorrt_model: Profile a TensorRT model.
+        profile_onnx_model: Profile an ONNX model.
+        generate_table_row: Generate a table row with model metrics.
+        generate_results_dict: Generate a dictionary of profiling results.
+        print_table: Print a formatted table of results.
 
     Examples:
         Profile models and print results
@@ -379,27 +401,27 @@ class ProfileModels:
 
     def __init__(
         self,
-        paths: list,
-        num_timed_runs=100,
-        num_warmup_runs=10,
-        min_time=60,
-        imgsz=640,
-        half=True,
-        trt=True,
-        device=None,
+        paths: list[str],
+        num_timed_runs: int = 100,
+        num_warmup_runs: int = 10,
+        min_time: float = 60,
+        imgsz: int = 640,
+        half: bool = True,
+        trt: bool = True,
+        device: torch.device | str | None = None,
     ):
         """
         Initialize the ProfileModels class for profiling models.
 
         Args:
-            paths (List[str]): List of paths of the models to be profiled.
+            paths (list[str]): List of paths of the models to be profiled.
             num_timed_runs (int): Number of timed runs for the profiling.
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
             imgsz (int): Size of the image used during profiling.
             half (bool): Flag to indicate whether to use FP16 half-precision for TensorRT profiling.
             trt (bool): Flag to indicate whether to profile using TensorRT.
-            device (torch.device | None): Device used for profiling. If None, it is determined automatically.
+            device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
 
         Notes:
             FP16 'half' argument option removed for ONNX as slower on CPU than FP32.
@@ -417,14 +439,14 @@ class ProfileModels:
         self.imgsz = imgsz
         self.half = half
         self.trt = trt  # run TensorRT profiling
-        self.device = device or torch.device(0 if torch.cuda.is_available() else "cpu")
+        self.device = device if isinstance(device, torch.device) else select_device(device)
 
     def run(self):
         """
         Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
-            (List[Dict]): List of dictionaries containing profiling results for each model.
+            (list[dict]): List of dictionaries containing profiling results for each model.
 
         Examples:
             Profile models and print results
@@ -436,7 +458,7 @@ class ProfileModels:
 
         if not files:
             LOGGER.warning("No matching *.pt or *.onnx files found.")
-            return
+            return []
 
         table_rows = []
         output = []
@@ -479,7 +501,7 @@ class ProfileModels:
         Return a list of paths for all relevant model files given by the user.
 
         Returns:
-            (List[Path]): List of Path objects for the model files.
+            (list[Path]): List of Path objects for the model files.
         """
         files = []
         for path in self.paths:
@@ -497,21 +519,21 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extracts metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
+        """Extract metadata from an ONNX model file including parameters, GFLOPs, and input shape."""
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
-    def iterative_sigma_clipping(data, sigma=2, max_iters=3):
+    def iterative_sigma_clipping(data: np.ndarray, sigma: float = 2, max_iters: int = 3):
         """
         Apply iterative sigma clipping to data to remove outliers.
 
         Args:
-            data (numpy.ndarray): Input data array.
+            data (np.ndarray): Input data array.
             sigma (float): Number of standard deviations to use for clipping.
             max_iters (int): Maximum number of iterations for the clipping process.
 
         Returns:
-            (numpy.ndarray): Clipped data array with outliers removed.
+            (np.ndarray): Clipped data array with outliers removed.
         """
         data = np.array(data)
         for _ in range(max_iters):
@@ -626,7 +648,13 @@ class ProfileModels:
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
-    def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+    def generate_table_row(
+        self,
+        model_name: str,
+        t_onnx: tuple[float, float],
+        t_engine: tuple[float, float],
+        model_info: tuple[float, float, float, float],
+    ):
         """
         Generate a table row string with model performance metrics.
 
@@ -646,7 +674,12 @@ class ProfileModels:
         )
 
     @staticmethod
-    def generate_results_dict(model_name, t_onnx, t_engine, model_info):
+    def generate_results_dict(
+        model_name: str,
+        t_onnx: tuple[float, float],
+        t_engine: tuple[float, float],
+        model_info: tuple[float, float, float, float],
+    ):
         """
         Generate a dictionary of profiling results.
 
@@ -669,12 +702,12 @@ class ProfileModels:
         }
 
     @staticmethod
-    def print_table(table_rows):
+    def print_table(table_rows: list[str]):
         """
         Print a formatted table of model profiling results.
 
         Args:
-            table_rows (List[str]): List of formatted table row strings.
+            table_rows (list[str]): List of formatted table row strings.
         """
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "GPU"
         headers = [

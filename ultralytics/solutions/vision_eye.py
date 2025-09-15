@@ -1,5 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -13,7 +14,7 @@ class VisionEye(BaseSolution):
     mapping vision points, and annotating results with bounding boxes and labels.
 
     Attributes:
-        vision_point (Tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
+        vision_point (tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
 
     Methods:
         process: Process the input image to detect objects, annotate them, and apply vision mapping.
@@ -25,7 +26,7 @@ class VisionEye(BaseSolution):
         >>> print(f"Total detected instances: {results.total_tracks}")
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the VisionEye class for detecting objects and applying vision mapping.
 
@@ -36,12 +37,12 @@ class VisionEye(BaseSolution):
         # Set the vision point where the system will view objects and draw tracks
         self.vision_point = self.CFG["vision_point"]
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Perform object detection, vision mapping, and annotation on the input image.
 
         Args:
-            im0 (numpy.ndarray): The input image for detection and annotation.
+            im0 (np.ndarray): The input image for detection and annotation.
 
         Returns:
             (SolutionResults): Object containing the annotated image and tracking statistics.

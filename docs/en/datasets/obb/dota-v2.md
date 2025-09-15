@@ -12,6 +12,17 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 
 ## Key Features
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/JjQ-URE0LJE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the DOTA Dataset for Oriented Bounding Boxes in Google Colab
+</p>
+
 - Collection from various sensors and platforms, with image sizes ranging from 800 × 800 to 20,000 × 20,000 pixels.
 - Features more than 1.7M Oriented Bounding Boxes across 18 categories.
 - Encompasses multiscale object detection.

@@ -54,7 +54,7 @@ Using the maximum batch size supported by your GPU, you can fully take advantage
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO11 | Speed Up Object Detection in Python 🎉 
+  <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO11 | Speed Up Object Detection in Python 🎉
 </p>
 
 With respect to YOLO11, you can set the `batch_size` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the [batch size](https://www.ultralytics.com/glossary/batch-size) that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
@@ -145,12 +145,10 @@ You can also fine-tune optimizer parameters to improve model performance. Adjust
 Different optimizers have various strengths and weaknesses. Let's take a glimpse at a few common optimizers.
 
 - **SGD (Stochastic Gradient Descent)**:
-
     - Updates model parameters using the gradient of the loss function with respect to the parameters.
     - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
 - **[Adam](https://www.ultralytics.com/glossary/adam-optimizer) (Adaptive Moment Estimation)**:
-
     - Combines the benefits of both SGD with momentum and RMSProp.
     - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
     - Well-suited for noisy data and sparse gradients.

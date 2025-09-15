@@ -12,7 +12,7 @@ You can train [Ultralytics YOLO11 models](https://github.com/ultralytics/ultraly
 
 ## What is IBM Watsonx?
 
-[Watsonx](https://www.ibm.com/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
+[Watsonx](https://www.ibm.com/products/watsonx) is IBM's cloud-based platform designed for commercial [generative AI](https://www.ultralytics.com/glossary/generative-ai) and scientific data. IBM Watsonx's three components - `watsonx.ai`, `watsonx.data`, and `watsonx.governance` - come together to create an end-to-end, trustworthy AI platform that can accelerate AI projects aimed at solving business problems. It provides powerful tools for building, training, and [deploying machine learning models](../guides/model-deployment-options.md) and makes it easy to connect with various data sources.
 
 <p align="center">
   <img width="800" src="https://github.com/ultralytics/docs/releases/download/0/overview-of-ibm-watsonx.avif" alt="Overview of IBM Watsonx">
@@ -150,7 +150,7 @@ Fortunately, all labels in the marine litter data set are already formatted as Y
 But, YOLO models by default require separate images and labels in subdirectories within the train/val/test split. We need to reorganize the directory into the following structure:
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/yolo-directory-structure.avif" alt="Yolo Directory Structure">
+  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/yolo-directory-structure.avif" alt="YOLO Directory Structure">
 </p>
 
 To reorganize the data set directory, we can run the following script:
@@ -273,10 +273,10 @@ We can now run inference to test the performance of our fine-tuned model:
 
 This brief script generates predicted labels for each image in our test set, as well as new output image files that overlay the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) atop the original image.
 
-Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.  
+Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.
 The parameter `conf=0.5` informs the model to ignore all predictions with a confidence level of less than 50%.
 
-Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.  
+Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.
 we can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
 !!! example "Display Predictions"
@@ -318,7 +318,7 @@ You can measure the prediction [accuracy](https://www.ultralytics.com/glossary/a
 
 We explored IBM Watsonx key features, and how to train a YOLO11 model using IBM Watsonx. We also saw how IBM Watsonx can enhance your AI workflows with advanced tools for model building, data management, and compliance.
 
-For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/watsonx).
+For further details on usage, visit [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 
 Also, be sure to check out the [Ultralytics integration guide page](./index.md), to learn more about different exciting integrations.
 
@@ -345,7 +345,7 @@ IBM Watsonx offers several key features for AI model training:
 - **Watsonx.data**: Supports cloud and on-premises deployments, offering centralized data access, efficient query engines like Presto and Spark, and an AI-powered semantic layer.
 - **Watsonx.governance**: Automates compliance, manages risk with alerts, and provides tools for detecting issues like bias and drift. It also includes dashboards and reporting tools for collaboration.
 
-For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/watsonx).
+For more information, visit the [IBM Watsonx official documentation](https://www.ibm.com/products/watsonx).
 
 ### Why should I use IBM Watsonx for training Ultralytics YOLO11 models?
 

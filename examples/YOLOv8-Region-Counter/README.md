@@ -37,7 +37,7 @@ git clone https://github.com/ultralytics/ultralytics
 cd ultralytics/examples/YOLOv8-Region-Counter
 
 # Install required packages (if not already installed)
-# pip install ultralytics shapely
+pip install ultralytics shapely
 ```
 
 ## ▶️ Step 2: Run Region Counting with Ultralytics YOLOv8

@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -19,15 +20,16 @@ except ImportError:
 
 class YOLOv8TFLite:
     """
-    A class for performing object detection using the YOLOv8 model with TensorFlow Lite.
+    A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
 
-    This class handles model loading, preprocessing, inference, and visualization of detection results.
+    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8
+    models converted to TensorFlow Lite format.
 
     Attributes:
         model (Interpreter): TensorFlow Lite interpreter for the YOLOv8 model.
         conf (float): Confidence threshold for filtering detections.
         iou (float): Intersection over Union threshold for non-maximum suppression.
-        classes (Dict[int, str]): Dictionary mapping class IDs to class names.
+        classes (dict): Dictionary mapping class IDs to class names.
         color_palette (np.ndarray): Random color palette for visualization with shape (num_classes, 3).
         in_width (int): Input width required by the model.
         in_height (int): Input height required by the model.
@@ -40,16 +42,22 @@ class YOLOv8TFLite:
         out_zero_point (int): Output quantization zero point.
 
     Methods:
-        letterbox: Resizes and pads image while maintaining aspect ratio.
-        draw_detections: Draws bounding boxes and labels on the input image.
-        preprocess: Preprocesses the input image before inference.
-        postprocess: Processes model outputs to extract and visualize detections.
-        detect: Performs object detection on an input image.
+        letterbox: Resize and pad image while maintaining aspect ratio.
+        draw_detections: Draw bounding boxes and labels on the input image.
+        preprocess: Preprocess the input image before inference.
+        postprocess: Process model outputs to extract and visualize detections.
+        detect: Perform object detection on an input image.
+
+    Examples:
+        Initialize detector and run inference
+        >>> detector = YOLOv8TFLite("yolov8n.tflite", conf=0.25, iou=0.45)
+        >>> result = detector.detect("image.jpg")
+        >>> cv2.imshow("Result", result)
     """
 
-    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):
+    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: str | None = None):
         """
-        Initialize an instance of the YOLOv8TFLite class.
+        Initialize the YOLOv8TFLite detector.
 
         Args:
             model (str): Path to the TFLite model file.
@@ -84,18 +92,18 @@ class YOLOv8TFLite:
         self.out_scale, self.out_zero_point = output_details["quantization"]
 
     def letterbox(
-        self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)
-    ) -> Tuple[np.ndarray, Tuple[float, float]]:
+        self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)
+    ) -> tuple[np.ndarray, tuple[float, float]]:
         """
         Resize and pad image while maintaining aspect ratio.
 
         Args:
             img (np.ndarray): Input image with shape (H, W, C).
-            new_shape (Tuple[int, int]): Target shape (height, width).
+            new_shape (tuple[int, int]): Target shape (height, width).
 
         Returns:
             (np.ndarray): Resized and padded image.
-            (Tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
+            (tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
         """
         shape = img.shape[:2]  # Current shape [height, width]
 
@@ -116,7 +124,7 @@ class YOLOv8TFLite:
 
     def draw_detections(self, img: np.ndarray, box: np.ndarray, score: np.float32, class_id: int) -> None:
         """
-        Draw bounding boxes and labels on the input image based on the detected objects.
+        Draw bounding boxes and labels on the input image based on detected objects.
 
         Args:
             img (np.ndarray): The input image to draw detections on.
@@ -152,7 +160,7 @@ class YOLOv8TFLite:
         # Draw text
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def preprocess(self, img: np.ndarray) -> Tuple[np.ndarray, Tuple[float, float]]:
+    def preprocess(self, img: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
         """
         Preprocess the input image before performing inference.
 
@@ -161,7 +169,7 @@ class YOLOv8TFLite:
 
         Returns:
             (np.ndarray): Preprocessed image ready for model input.
-            (Tuple[float, float]): Padding ratios for coordinate adjustment.
+            (tuple[float, float]): Padding ratios for coordinate adjustment.
         """
         img, pad = self.letterbox(img, (self.in_width, self.in_height))
         img = img[..., ::-1][None]  # BGR to RGB and add batch dimension (N, H, W, C) for TFLite
@@ -169,14 +177,14 @@ class YOLOv8TFLite:
         img = img.astype(np.float32)
         return img / 255, pad  # Normalize to [0, 1]
 
-    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> np.ndarray:
+    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: tuple[float, float]) -> np.ndarray:
         """
         Process model outputs to extract and visualize detections.
 
         Args:
             img (np.ndarray): The original input image.
             outputs (np.ndarray): Raw model outputs.
-            pad (Tuple[float, float]): Padding ratios from preprocessing.
+            pad (tuple[float, float]): Padding ratios from preprocessing.
 
         Returns:
             (np.ndarray): The input image with detections drawn on it.

@@ -18,13 +18,13 @@ class HUBModelError(Exception):
 
     Examples:
         >>> try:
-        >>> # Code that might fail to find a model
-        >>>     raise HUBModelError("Custom model not found message")
-        >>> except HUBModelError as e:
-        >>>     print(e)  # Displays the emoji-enhanced error message
+        ...     # Code that might fail to find a model
+        ...     raise HUBModelError("Custom model not found message")
+        ... except HUBModelError as e:
+        ...     print(e)  # Displays the emoji-enhanced error message
     """
 
-    def __init__(self, message="Model not found. Please check model URL and try again."):
+    def __init__(self, message: str = "Model not found. Please check model URL and try again."):
         """
         Initialize a HUBModelError exception.
 

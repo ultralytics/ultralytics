@@ -77,9 +77,15 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
 #### Fine-Tuning on custom dataset
 
+You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on your custom YOLO dataset for both detection and instance segmentation tasks.
+
 !!! example
 
     === "Fine-Tuning"
+
+        **Instance segmentation**
+
+        Fine-tuning a YOLOE pretrained checkpoint mostly follows the [standard YOLO training procedure](../modes/train.md). The key difference is explicitly passing `YOLOEPESegTrainer` as the `trainer` parameter to `model.train()`:
 
         ```python
         from ultralytics import YOLOE
@@ -87,35 +93,63 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
         model = YOLOE("yoloe-11s-seg.pt")
 
-        model.train(
-            data="coco128-seg.yaml",
+        # Fine-tune on your segmentation dataset
+        results = model.train(
+            data="coco128-seg.yaml",  # Segmentation dataset
             epochs=80,
-            close_mosaic=10,
-            batch=128,
-            optimizer="AdamW",
-            lr0=1e-3,
-            warmup_bias_lr=0.0,
-            weight_decay=0.025,
-            momentum=0.9,
-            workers=4,
-            device="0",
-            trainer=YOLOEPESegTrainer,
+            patience=10,
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
+        )
+        ```
+
+        **Object detection**
+
+        All [pretrained YOLOE models](#textvisual-prompt-models) perform instance segmentation by default. To use these pretrained checkpoints for training a detection model, initialize a detection model from scratch using the YAML configuration, then load the pretrained segmentation checkpoint of the same scale. Note that we use `YOLOEPETrainer` instead of `YOLOEPESegTrainer` since we're training a detection model:
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
+
+        # Initialize a detection model from a config
+        model = YOLOE("yoloe-11s.yaml")
+
+        # Load weights from a pretrained segmentation checkpoint (same scale)
+        model.load("yoloe-11s-seg.pt")
+
+        # Fine-tune on your detection dataset
+        results = model.train(
+            data="coco128.yaml",  # Detection dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
         )
         ```
 
     === "Linear Probing"
 
+        Linear probing fine-tunes only the classification branch while freezing the rest of the model. This approach is useful when working with limited data, as it prevents overfitting by leveraging previously learned features while adapting only the classification head.
+
+        **Instance segmentation**
+
         ```python
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
+        # Load a pretrained segmentation model
         model = YOLOE("yoloe-11s-seg.pt")
+
+        # Identify the head layer index
         head_index = len(model.model.model) - 1
-        freeze = [str(f) for f in range(0, head_index)]
+
+        # Freeze all backbone and neck layers (i.e. everything before the head)
+        freeze = [str(i) for i in range(0, head_index)]
+
+        # Freeze parts of the segmentation head, keeping only the classification branch trainable
         for name, child in model.model.model[-1].named_children():
             if "cv3" not in name:
                 freeze.append(f"{head_index}.{name}")
 
+        # Freeze detection branch components
         freeze.extend(
             [
                 f"{head_index}.cv3.0.0",
@@ -127,19 +161,59 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
             ]
         )
 
-        model.train(
-            data="coco128-seg.yaml",
-            epochs=2,
-            close_mosaic=0,
-            batch=16,
-            optimizer="AdamW",
-            lr0=1e-3,
-            warmup_bias_lr=0.0,
-            weight_decay=0.025,
-            momentum=0.9,
-            workers=4,
-            device="0",
-            trainer=YOLOEPESegTrainer,
+        # Train only the classification branch
+        results = model.train(
+            data="coco128-seg.yaml",  # Segmentation dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPESegTrainer,  # <- Important: use segmentation trainer
+            freeze=freeze,
+        )
+        ```
+
+        **Object detection**
+
+        For object detection task, the training process is almost the same as the instance segmentation example above but we use `YOLOEPETrainer` instead of `YOLOEPESegTrainer`, and initialize the object detection model using the YAML and then load the weights from the pretrained instance segmentation checkpoint.
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEPETrainer
+
+        # Initialize a detection model from a config
+        model = YOLOE("yoloe-11s.yaml")
+
+        # Load weights from a pretrained segmentation checkpoint (same scale)
+        model.load("yoloe-11s-seg.pt")
+
+        # Identify the head layer index
+        head_index = len(model.model.model) - 1
+
+        # Freeze all backbone and neck layers (i.e. everything before the head)
+        freeze = [str(i) for i in range(0, head_index)]
+
+        # Freeze parts of the segmentation head, keeping only the classification branch trainable
+        for name, child in model.model.model[-1].named_children():
+            if "cv3" not in name:
+                freeze.append(f"{head_index}.{name}")
+
+        # Freeze detection branch components
+        freeze.extend(
+            [
+                f"{head_index}.cv3.0.0",
+                f"{head_index}.cv3.0.1",
+                f"{head_index}.cv3.1.0",
+                f"{head_index}.cv3.1.1",
+                f"{head_index}.cv3.2.0",
+                f"{head_index}.cv3.2.1",
+            ]
+        )
+
+        # Train only the classification branch
+        results = model.train(
+            data="coco128.yaml",  # Detection dataset
+            epochs=80,
+            patience=10,
+            trainer=YOLOEPETrainer,  # <- Important: use detection trainer
             freeze=freeze,
         )
         ```
@@ -251,6 +325,15 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         results[0].show()
         ```
 
+        Using `refer_image` also sets the classes permanently, so you can run predictions without having to supply the same visual prompts again, and export the model while retaining the ability to still detect the same classes after export:
+        ```python
+        # After making prediction with `refer_image`, you can run predictions without passing visual_prompts again and still get the same classes back
+        results = model("ultralytics/assets/bus.jpg")
+
+        # Or export it to a different format while retaining the classes
+        model.export(format="onnx")
+        ```
+
         You can also pass multiple target images to run prediction on:
 
         ```python
@@ -315,6 +398,8 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
 ### Val Usage
 
+Model validation on a dataset is streamlined as follows:
+
 !!! example
 
     === "Text Prompt"
@@ -363,13 +448,37 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         from ultralytics import YOLOE
 
         # Create a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")  # or select yoloe-11s/m-seg.pt for different sizes
+        model = YOLOE("yoloe-11l-seg-pf.pt")  # or select yoloe-11s/m-seg-pf.pt for different sizes
 
         # Conduct model validation on the COCO128-seg example dataset
-        metrics = model.val(data="coco128-seg.yaml")
+        metrics = model.val(data="coco128-seg.yaml", single_cls=True)
         ```
 
-Model validation on a dataset is streamlined as follows:
+### Export Usage
+
+The export process is similar to other YOLO models, with the added flexibility of handling text and visual prompts:
+
+!!! example
+
+    ```python
+    from ultralytics import YOLOE
+
+    # Select yoloe-11s/m-seg.pt for different sizes
+    model = YOLOE("yoloe-11l-seg.pt")
+
+    # Configure the set_classes() before exporting the model
+    names = ["person", "bus"]
+    model.set_classes(names, model.get_text_pe(names))
+
+    export_model = model.export(format="onnx")
+    model = YOLOE(export_model)
+
+    # Run detection on the given image
+    results = model.predict("path/to/image.jpg")
+
+    # Show results
+    results[0].show()
+    ```
 
 ### Train Official Models
 
@@ -384,7 +493,7 @@ Model validation on a dataset is streamlined as follows:
 | Dataset                                                           | Type                                                        | Samples | Boxes | Raw Detection Annotations                                                                                                                  | Processed Segment Annotations                                                                                                                |
 | ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                 | [objects365_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/objects365_train_segm.json)                           |
-| [GQA](https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip)  | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         | [final_mixed_train_no_coco_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_mixed_train_no_coco_segm.json)         |
+| [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html)      | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         | [final_mixed_train_no_coco_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_mixed_train_no_coco_segm.json)         |
 | [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_flickr_separateGT_train.json) | [final_flickr_separateGT_train_segm.json](https://huggingface.co/datasets/jameslahm/yoloe/blob/main/final_flickr_separateGT_train_segm.json) |
 
 - Val data
@@ -412,12 +521,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -448,12 +557,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -469,12 +577,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -532,12 +640,11 @@ Model validation on a dataset is streamlined as follows:
         Note this step is optional, you can directly start from segmentation as well.
 
         ```python
-        import torch
-
         from ultralytics import YOLOE
+        from ultralytics.utils.patches import torch_load
 
         det_model = YOLOE("yoloe-11l.yaml")
-        state = torch.load("yoloe-11l-seg.pt")
+        state = torch_load("yoloe-11l-seg.pt")
         det_model.load(state["model"])
         det_model.save("yoloe-11l-seg-det.pt")
         ```
@@ -550,12 +657,12 @@ Model validation on a dataset is streamlined as follows:
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr/full_images/",
-                        json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/",
+                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
                     ),
                     dict(
-                        img_path="../datasets/mixed_grounding/gqa/images",
-                        json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
+                        img_path="mixed_grounding/gqa/images",
+                        json_file="mixed_grounding/annotations/final_mixed_train_no_coco_segm.json",
                     ),
                 ],
             ),
@@ -649,16 +756,16 @@ For zero-shot and transfer tasks, YOLOE excels: on LVIS, YOLOE-small improves ov
 
 YOLOE introduces notable advancements over prior YOLO models and open-vocabulary detectors:
 
-- **YOLOE vs YOLOv5:**  
+- **YOLOE vs YOLOv5:**
   [YOLOv5](yolov5.md) offered good speed-accuracy balance but required retraining for new classes and used anchor-based heads. In contrast, YOLOE is **anchor-free** and dynamically detects new classes. YOLOE, building on YOLOv8's improvements, achieves higher accuracy (52.6% vs. YOLOv5's ~50% mAP on COCO) and integrates instance segmentation, unlike YOLOv5.
 
-- **YOLOE vs YOLOv8:**  
+- **YOLOE vs YOLOv8:**
   YOLOE extends [YOLOv8](yolov8.md)'s redesigned architecture, achieving similar or superior accuracy (**52.6% mAP with ~26M parameters** vs. YOLOv8-L's **52.9% with ~44M parameters**). It significantly reduces training time due to stronger pre-training. The key advancement is YOLOE's **open-world capability**, detecting unseen objects (e.g., "**bird scooter**" or "**peace symbol**") via prompts, unlike YOLOv8's closed-set design.
 
-- **YOLOE vs YOLO11:**  
+- **YOLOE vs YOLO11:**
   [YOLO11](yolo11.md) improves upon YOLOv8 with enhanced efficiency and fewer parameters (~22% reduction). YOLOE inherits these gains directly, matching YOLO11's inference speed and parameter count (~26M parameters), while adding **open-vocabulary detection and segmentation**. In closed-set scenarios, YOLOE is equivalent to YOLO11, but crucially adds adaptability to detect unseen classes, achieving **YOLO11 + open-world capability** without compromising speed.
 
-- **YOLOE vs previous open-vocabulary detectors:**  
+- **YOLOE vs previous open-vocabulary detectors:**
   Earlier open-vocab models (GLIP, OWL-ViT, [YOLO-World](yolo-world.md)) relied heavily on vision-language [transformers](https://www.ultralytics.com/glossary/transformer), leading to slow inference. YOLOE surpasses these in zero-shot accuracy (e.g., **+3.5 AP vs. YOLO-Worldv2**) while running **1.4× faster** with significantly lower training resources. Compared to transformer-based approaches (e.g., GLIP), YOLOE offers orders-of-magnitude faster inference, effectively bridging the accuracy-efficiency gap in open-set detection.
 
 In summary, YOLOE maintains YOLO's renowned speed and efficiency, surpasses predecessors in accuracy, integrates segmentation, and introduces powerful open-world detection, making it uniquely versatile and practical.
@@ -667,22 +774,22 @@ In summary, YOLOE maintains YOLO's renowned speed and efficiency, surpasses pred
 
 YOLOE's open-vocabulary detection and segmentation enable diverse applications beyond traditional fixed-class models:
 
-- **Open-World Object Detection:**  
+- **Open-World Object Detection:**
   Ideal for dynamic scenarios like [robotics](https://www.ultralytics.com/blog/understanding-the-integration-of-computer-vision-in-robotics), where robots recognize previously unseen objects using prompts, or [security systems](https://www.ultralytics.com/blog/computer-vision-for-theft-prevention-enhancing-security) quickly adapting to new threats (e.g., hazardous items) without retraining.
 
-- **Few-Shot and One-Shot Detection:**  
+- **Few-Shot and One-Shot Detection:**
   Using visual prompts (SAVPE), YOLOE rapidly learns new objects from single reference images—perfect for [industrial inspection](https://www.ultralytics.com/blog/computer-vision-in-manufacturing-improving-production-and-quality) (identifying parts or defects instantly) or **custom surveillance**, enabling visual searches with minimal setup.
 
-- **Large-Vocabulary & Long-Tail Recognition:**  
+- **Large-Vocabulary & Long-Tail Recognition:**
   Equipped with a vocabulary of 1000+ classes, YOLOE excels in tasks like [biodiversity monitoring](https://www.ultralytics.com/blog/ai-in-wildlife-conservation) (detecting rare species), **museum collections**, [retail inventory](https://www.ultralytics.com/blog/ai-for-smarter-retail-inventory-management), or **e-commerce**, reliably identifying many classes without extensive per-class training.
 
-- **Interactive Detection and Segmentation:**  
+- **Interactive Detection and Segmentation:**
   YOLOE supports real-time interactive applications such as **searchable video/image retrieval**, **augmented reality (AR)**, and intuitive **image editing**, driven by natural inputs (text or visual prompts). Users can dynamically isolate, identify, or edit objects precisely using segmentation masks.
 
-- **Automated Data Labeling and Bootstrapping:**  
+- **Automated Data Labeling and Bootstrapping:**
   YOLOE facilitates rapid dataset creation by providing initial bounding box and segmentation annotations, significantly reducing human labeling efforts. Particularly valuable in **analytics of large media collections**, where it can auto-identify objects present, assisting in building specialized models faster.
 
-- **Segmentation for Any Object:**  
+- **Segmentation for Any Object:**
   Extends segmentation capabilities to arbitrary objects through prompts—particularly beneficial for [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), **microscopy**, or [satellite imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyse-satellite-imagery), automatically identifying and precisely segmenting structures without specialized pre-trained models. Unlike models like [SAM](sam.md), YOLOE simultaneously recognizes and segments objects automatically, aiding in tasks like **content creation** or **scene understanding**.
 
 Across all these use cases, YOLOE's core advantage is **versatility**, providing a unified model for detection, recognition, and segmentation across dynamic scenarios. Its efficiency ensures real-time performance on resource-constrained devices, ideal for robotics, [autonomous driving](https://www.ultralytics.com/blog/ai-in-self-driving-cars), defense, and beyond.
@@ -757,7 +864,6 @@ Quickly set up YOLOE with Ultralytics by following these steps:
    Pre-trained YOLOE models (e.g., YOLOE-v8-S/L, YOLOE-11 variants) are available from the YOLOE GitHub releases. Simply download your desired `.pt` file to load into the Ultralytics YOLO class.
 
 3. **Hardware Requirements**:
-
     - **Inference**: Recommended GPU (NVIDIA with ≥4-8GB VRAM). Small models run efficiently on edge GPUs (e.g., [Jetson](../guides/nvidia-jetson.md)) or CPUs at lower resolutions.
     - **Training**: Fine-tuning YOLOE on custom data typically requires just one GPU. Extensive open-vocabulary pre-training (LVIS/Objects365) used by authors required substantial compute (8× RTX 4090 GPUs).
 
@@ -765,7 +871,6 @@ Quickly set up YOLOE with Ultralytics by following these steps:
    YOLOE configurations use standard Ultralytics YAML files. Default configs (e.g., `yoloe-11s-seg.yaml`) typically suffice, but you can modify backbone, classes, or image size as needed.
 
 5. **Running YOLOE**:
-
     - **Quick inference** (prompt-free):
         ```bash
         yolo predict model=yoloe-11s-seg-pf.pt source="image.jpg"

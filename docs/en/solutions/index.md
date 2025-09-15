@@ -40,7 +40,8 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO11, optimizing space utilization and user experience.
 - [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO11 for descriptive, predictive, and prescriptive analytics.
 - [Live Inference with Streamlit](../guides/streamlit-live-inference.md): Leverage the power of YOLO11 for real-time [object detection](https://www.ultralytics.com/glossary/object-detection) directly through your web browser with a user-friendly Streamlit interface.
-- [Track Objects in Zone](../guides/trackzone.md) 🚀 NEW: Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Track Objects in Zone](../guides/trackzone.md): Learn how to track objects within specific zones of video frames using YOLO11 for precise and efficient monitoring.
+- [Similarity search](../guides/similarity-search.md) 🚀 NEW: Enable intelligent image retrieval by combining [OpenAI CLIP](https://cookbook.openai.com/examples/custom_image_embedding_search) embeddings with [Meta FAISS](https://ai.meta.com/tools/faiss/), allowing natural language queries like "person holding a bag" or "vehicles in motion."
 
 ### Solutions Arguments
 
@@ -65,28 +66,26 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 All Ultralytics Solutions use the separate class [`SolutionAnnotator`](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator), that extends the main [`Annotator`](https://docs.ultralytics.com/reference/utils/plotting/#ultralytics.utils.plotting.Annotator) class, and have the following methods:
 
-| Method                             | Return Type | Description                                                            |
-| ---------------------------------- | ----------- | ---------------------------------------------------------------------- |
-| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.          |
-| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                         |
-| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                |
-| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.           |
-| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                 |
-| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                 |
-| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.        |
-| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line. |
-| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                     |
-| `seg_bbox()`                       | `None`      | Draws contours for segmented objects and optionally labels them.       |
-| `sweep_annotator()`                | `None`      | Visualizes a vertical sweep line and optional label.                   |
-| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.            |
-| `circle_label()`                   | `None`      | Draws a circular label in the place of a bounding box.                 |
-| `text_label()`                     | `None`      | Draws a rectangular label in the place of a bounding box.              |
+| Method                             | Return Type | Description                                                                      |
+| ---------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `draw_region()`                    | `None`      | Draws a region using specified points, colors, and thickness.                    |
+| `queue_counts_display()`           | `None`      | Displays queue counts in the specified region.                                   |
+| `display_analytics()`              | `None`      | Displays overall statistics for parking lot management.                          |
+| `estimate_pose_angle()`            | `float`     | Calculates the angle between three points in an object pose.                     |
+| `draw_specific_points()`           | `None`      | Draws specific keypoints on the image.                                           |
+| `plot_workout_information()`       | `None`      | Draws a labeled text box on the image.                                           |
+| `plot_angle_and_count_and_stage()` | `None`      | Visualizes angle, step count, and stage for workout monitoring.                  |
+| `plot_distance_and_line()`         | `None`      | Displays the distance between centroids and connects them with a line.           |
+| `display_objects_labels()`         | `None`      | Annotates bounding boxes with object class labels.                               |
+| `sweep_annotator()`                | `None`      | Visualize a vertical sweep line and optional label.                              |
+| `visioneye()`                      | `None`      | Maps and connects object centroids to a visual "eye" point.                      |
+| `adaptive_label()`                 | `None`      | Draw a circular or rectangle background shape label in center of a bounding box. |
 
 ### Working with SolutionResults
 
-All Solutions calls return a list of `SolutionResults` objects, containing comprehensive information about the solutions.
+Except [`Similarity Search`](../guides/similarity-search.md), each Solution calls return a list of `SolutionResults` object.
 
-- For object counting, the results include `incount`, `outcount`, and `classwise_counts`.
+- For object counting, the results include `in_count`, `out_count`, and `classwise_count`.
 
 !!! example "SolutionResults"
 
@@ -109,7 +108,30 @@ All Solutions calls return a list of `SolutionResults` objects, containing compr
     results = counter(im0)
     print(results.in_count)  # display in_counts
     print(results.out_count)  # display out_counts
+    print(results.classwise_count)  # display classwise_count
     ```
+
+`SolutionResults` object have the following attributes:
+
+| Attribute            | Type               | Description                                                                                                   |
+| -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `plot_im`            | `np.ndarray`       | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
+| `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
+| `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |
+| `classwise_count`    | `Dict[str, int]`   | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
+| `queue_count`        | `int`              | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
+| `workout_count`      | `int`              | Total number of workout repetitions completed during exercise tracking.                                       |
+| `workout_angle`      | `float`            | Calculated joint or pose angle during workout for form assessment.                                            |
+| `workout_stage`      | `str`              | Current workout stage or movement phase (e.g., 'up', 'down').                                                 |
+| `pixels_distance`    | `float`            | Pixel-based distance between two objects or points e.g., bounding boxes. (Suitable for distance calculation). |
+| `available_slots`    | `int`              | Number of unoccupied slots in a monitored area (suitable for parking management).                             |
+| `filled_slots`       | `int`              | Number of occupied slots in a monitored area. (suitable for parking management)                               |
+| `email_sent`         | `bool`             | Indicates whether a notification or alert email has been successfully sent (suitable for security alarm).     |
+| `total_tracks`       | `int`              | Total number of unique object tracks observed during video analysis.                                          |
+| `region_counts`      | `Dict[str, int]`   | Object counts within user-defined regions or zones.                                                           |
+| `speed_dict`         | `Dict[str, float]` | Track-wise dictionary of calculated object speeds, useful for velocity analysis.                              |
+| `total_crop_objects` | `int`              | Total number of cropped object images generated by the ObjectCropper solution.                                |
+| `speed`              | `Dict[str, float]` | Dictionary containing performance metrics for tracking and solution processing.                               |
 
 For more details, refer to the [`SolutionResults` class documentation](https://docs.ultralytics.com/reference/solutions/solutions/#ultralytics.solutions.solutions.SolutionAnnotator).
 

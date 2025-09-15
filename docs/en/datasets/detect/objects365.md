@@ -8,6 +8,17 @@ keywords: Objects365 dataset, object detection, machine learning, deep learning,
 
 The [Objects365](https://www.objects365.org/) dataset is a large-scale, high-quality dataset designed to foster object detection research with a focus on diverse objects in the wild. Created by a team of [Megvii](https://en.megvii.com/) researchers, the dataset offers a wide range of high-resolution images with a comprehensive set of annotated bounding boxes covering 365 object categories.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/J-RH22rwx1A"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the Objects365 Dataset with Ultralytics | 2M Annotations 🚀
+</p>
+
 ## Key Features
 
 - Objects365 contains 365 object categories, with 2 million images and over 30 million bounding boxes.

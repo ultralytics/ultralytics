@@ -29,7 +29,7 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
 - #### For Linux or macOS Users:
   - Download the ONNX Runtime package from the [Releases page](https://github.com/microsoft/onnxruntime/releases).
   - Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable:
-    ```shell
+    ```bash
     export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0 # Adjust version/path as needed
     ```
 
@@ -122,7 +122,7 @@ cargo run --release -- --trt --fp16 --profile --model MODEL_PATH.onnx --source S
 
 Example Profile Output (yolov8m.onnx, batch=1, 3 runs, trt, fp16, RTX 3060Ti):
 
-```output
+```text
 ==> 0 # Warm-up run
 [Model Preprocess]: 12.75788ms
 [ORT H2D]: 237.118µs
@@ -177,7 +177,7 @@ cargo run --release -- --model ../assets/weights/yolov8m-cls-dyn.onnx --source .
 
 Example output:
 
-```output
+```text
 Summary:
 > Task: Classify (Ultralytics 8.0.217) # Version might differ
 > EP: Cpu

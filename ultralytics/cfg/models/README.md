@@ -52,7 +52,7 @@ Ultralytics supports a variety of cutting-edge model architectures. Visit the [U
 - [YOLOv5](https://docs.ultralytics.com/models/yolov5/)
 - [And more...](https://docs.ultralytics.com/models/)
 
-You can easily use any of these models by loading their configuration files (`.yaml`) or their [pre-trained](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html) checkpoints (`.pt`).
+You can easily use any of these models by loading their configuration files (`.yaml`) or their [pre-trained](https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html) checkpoints (`.pt`).
 
 ## 🤝 Contribute New Models
 

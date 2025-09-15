@@ -8,6 +8,8 @@ composed of classes and functions, and also creates a navigation menu for use in
 Note: Must be run from repository root directory. Do not run from docs directory.
 """
 
+from __future__ import annotations
+
 import re
 import subprocess
 from collections import defaultdict
@@ -28,14 +30,16 @@ else:
 MKDOCS_YAML = PACKAGE_DIR.parent / "mkdocs.yml"
 
 
-def extract_classes_and_functions(filepath: Path) -> tuple:
-    """Extracts class and function names from a given Python file."""
+def extract_classes_and_functions(filepath: Path) -> tuple[list[str], list[str]]:
+    """Extract top-level class and (a)sync function names from a Python file."""
     content = filepath.read_text()
-    return (re.findall(r"(?:^|\n)class\s(\w+)(?:\(|:)", content), re.findall(r"(?:^|\n)def\s(\w+)\(", content))
+    classes = re.findall(r"(?:^|\n)class\s(\w+)(?:\(|:)", content)
+    functions = re.findall(r"(?:^|\n)(?:async\s+)?def\s(\w+)\(", content)
+    return classes, functions
 
 
-def create_markdown(py_filepath: Path, module_path: str, classes: list, functions: list) -> Path:
-    """Creates a Markdown file containing the API reference for the given Python module."""
+def create_markdown(py_filepath: Path, module_path: str, classes: list[str], functions: list[str]) -> Path:
+    """Create a Markdown file containing the API reference for the given Python module."""
     md_filepath = py_filepath.with_suffix(".md")
     exists = md_filepath.exists()
 
@@ -81,17 +85,17 @@ def create_markdown(py_filepath: Path, module_path: str, classes: list, function
 
 
 def nested_dict():
-    """Creates and returns a nested defaultdict."""
+    """Create and return a nested defaultdict."""
     return defaultdict(nested_dict)
 
 
 def sort_nested_dict(d: dict) -> dict:
-    """Sorts a nested dictionary recursively."""
+    """Sort a nested dictionary recursively."""
     return {k: sort_nested_dict(v) if isinstance(v, dict) else v for k, v in sorted(d.items())}
 
 
-def create_nav_menu_yaml(nav_items: list) -> str:
-    """Creates and returns a YAML string for the navigation menu."""
+def create_nav_menu_yaml(nav_items: list[str]) -> str:
+    """Create and return a YAML string for the navigation menu."""
     nav_tree = nested_dict()
 
     for item_str in nav_items:
@@ -103,7 +107,7 @@ def create_nav_menu_yaml(nav_items: list) -> str:
         current_level[parts[-1].replace(".md", "")] = item
 
     def _dict_to_yaml(d, level=0):
-        """Converts a nested dictionary to a YAML-formatted string with indentation."""
+        """Convert a nested dictionary to a YAML-formatted string with indentation."""
         yaml_str = ""
         indent = "  " * level
         for k, v in sorted(d.items()):
@@ -118,8 +122,8 @@ def create_nav_menu_yaml(nav_items: list) -> str:
     return reference_yaml
 
 
-def extract_document_paths(yaml_section):
-    """Extract just the document paths from a yaml section, ignoring formatting and structure."""
+def extract_document_paths(yaml_section: str) -> list[str]:
+    """Extract document paths from a YAML section, ignoring formatting and structure."""
     paths = []
     # Match all paths that appear after a colon in the YAML
     path_matches = re.findall(r":\s*([^\s][^:\n]*?)(?:\n|$)", yaml_section)
@@ -132,7 +136,7 @@ def extract_document_paths(yaml_section):
 
 
 def update_mkdocs_file(reference_yaml: str) -> None:
-    """Updates the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
+    """Update the mkdocs.yaml file with the new reference section only if changes in document paths are detected."""
     mkdocs_content = MKDOCS_YAML.read_text()
 
     # Find the top-level Reference section
@@ -141,10 +145,11 @@ def update_mkdocs_file(reference_yaml: str) -> None:
 
     # Build new section with proper indentation
     new_section_lines = ["\n  - Reference:"]
-    for line in reference_yaml.splitlines():
-        if line.strip() == "- reference:":  # Skip redundant header
-            continue
-        new_section_lines.append(f"    {line}")
+    new_section_lines.extend(
+        f"    {line}"
+        for line in reference_yaml.splitlines()
+        if line.strip() != "- reference:"  # Skip redundant header
+    )
     new_ref_section = "\n".join(new_section_lines) + "\n"
 
     if ref_match:
@@ -168,17 +173,15 @@ def update_mkdocs_file(reference_yaml: str) -> None:
         MKDOCS_YAML.write_text(new_content)
         subprocess.run(["npx", "prettier", "--write", str(MKDOCS_YAML)], check=False, cwd=PACKAGE_DIR.parent)
         print(f"Updated Reference section in {MKDOCS_YAML}")
-    else:
+    elif help_match := re.search(r"(\n  - Help:)", mkdocs_content):
         # No existing Reference section, we need to add it
-        help_match = re.search(r"(\n  - Help:)", mkdocs_content)
-        if help_match:
-            help_section = help_match.group(1)
-            # Insert before Help section
-            new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
-            MKDOCS_YAML.write_text(new_content)
-            print(f"Added new Reference section before Help in {MKDOCS_YAML}")
-        else:
-            print("Could not find a suitable location to add Reference section")
+        help_section = help_match.group(1)
+        # Insert before Help section
+        new_content = mkdocs_content.replace(help_section, f"{new_ref_section}{help_section}")
+        MKDOCS_YAML.write_text(new_content)
+        print(f"Added new Reference section before Help in {MKDOCS_YAML}")
+    else:
+        print("Could not find a suitable location to add Reference section")
 
 
 def main():

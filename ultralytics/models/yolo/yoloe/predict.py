@@ -72,7 +72,6 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         if len(img) == 1:
             visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
             prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
-            prompts = prompts.half() if self.model.fp16 else prompts.float()
         else:
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"

@@ -403,7 +403,7 @@ class YOLOE(Model):
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
             if isinstance(refer_image, list):
-                # multiple prompt for multple reference images
+                # multiple prompt for multiple reference images
                 assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) == len(refer_image), (
                     "Expected number of prompts to be equal to number of reference images."
                 )
@@ -429,7 +429,7 @@ class YOLOE(Model):
 
             num_cls = (
                 max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(visual_prompts["cls"], list) # means multiple images
+                if isinstance(visual_prompts["cls"], list)  # means multiple images
                 else len(set(visual_prompts["cls"]))
             )
             self.model.model[-1].nc = num_cls

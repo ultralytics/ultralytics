@@ -584,7 +584,7 @@ class Exporter:
         return f
 
     @try_export
-    def export_onnx(self, prefix=colorstr("ONNX:"), dynamo=False):
+    def export_onnx(self, prefix=colorstr("ONNX:"), dynamo=True):
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0", "onnxscript>=0.2.5"]
         if self.args.simplify:

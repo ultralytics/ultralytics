@@ -72,6 +72,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         if len(img) == 1:
             visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
             prompts = visuals.unsqueeze(0).to(self.device)  # (1, N, H, W)
+            prompts = prompts.half() if self.model.fp16 else prompts.float()
         else:
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
@@ -85,12 +86,16 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             assert len(im) == len(category) == len(bboxes), (
                 f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
             )
-            visuals = [
-                self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i])
+            prompts = [
+                self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i]).to(self.device)
                 for i in range(len(img))
             ]
-            prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
-        self.prompts = prompts.half() if self.model.fp16 else prompts.float()
+            # prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
+        if isinstance(prompts, list):
+            prompts = [prompt.half() if self.model.fp16 else prompt.float() for prompt in prompts]
+        else:
+            prompts = prompts.half() if self.model.fp16 else prompts.float()
+        self.prompts = prompts
         return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
@@ -156,11 +161,24 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
         """
+        
+        # Merge embeddings for same classes
         self.setup_source(source)
-        assert len(self.dataset) == 1, "get_vpe only supports one image!"
+        categories = self.prompts["cls"]
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            if im.shape[0] > 1:  # multiple refer_image
+                vpes = [self.model(im[i][None], vpe=self.prompts[i][None], return_vpe=True) for i in range(im.shape[0])]
+                vpe_stack = []
+                for cls_id in range(len(self.model.names)): # merge embeddings classwise
+                    cls_stack = []
+                    for vpe, cat in zip(vpes, categories):
+                        if cls_id in cat:
+                            cls_stack += [vpe[0, np.unique(cat).tolist().index(cls_id)]]
+                    vpe_stack += [torch.nn.functional.normalize(torch.stack(cls_stack).mean(0), p=2, dim=-1)]
+                return torch.stack(vpe_stack)[None]
+            else:
+                return self.model(im, vpe=self.prompts, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

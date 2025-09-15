@@ -191,6 +191,7 @@ class BaseTrainer:
         # Run subprocess if DDP training, else train normally
         if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)
+            # Start console logging immediately at trainer initialization
             self.run_callbacks("on_pretrain_routine_start")
 
     def add_callback(self, event: str, callback):

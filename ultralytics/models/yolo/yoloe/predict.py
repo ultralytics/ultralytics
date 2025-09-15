@@ -87,7 +87,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                 f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
             )
             visuals = [
-                self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i]).to(self.device)
+                self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i])
                 for i in range(len(img))
             ]
             prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
@@ -176,7 +176,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                     vpe_stack += [torch.nn.functional.normalize(torch.stack(cls_stack).mean(0), p=2, dim=-1)]
                 return torch.stack(vpe_stack)[None]
             else:
-ac                im = self.preprocess(im0s)
+                im = self.preprocess(im0s)
                 return self.model(im, vpe=self.prompts, return_vpe=True)
 
 

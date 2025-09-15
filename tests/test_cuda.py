@@ -76,7 +76,6 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(True, reason="WARNING: Failing TensorRT export tests")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",

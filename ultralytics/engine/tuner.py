@@ -341,7 +341,8 @@ class Tuner:
             hyp[k] = round(min(max(hyp[k], bounds[0]), bounds[1]), 5)
 
         # Update types
-        hyp["close_mosaic"] = int(round(hyp["close_mosaic"]))
+        if "close_mosaic" in hyp:
+            hyp["close_mosaic"] = int(round(hyp["close_mosaic"]))
 
         return hyp
 

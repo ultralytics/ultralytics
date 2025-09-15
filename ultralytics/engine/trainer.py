@@ -189,8 +189,9 @@ class BaseTrainer:
         self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
         self.world_size = world_size
         # Run subprocess if DDP training, else train normally
-        if RANK in {-1, 0}:
+        if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)
+            self.run_callbacks("on_pretrain_routine_start")
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the event's callback list."""
@@ -254,7 +255,6 @@ class BaseTrainer:
 
     def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
-        self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()

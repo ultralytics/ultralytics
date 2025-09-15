@@ -633,9 +633,18 @@ class GroundingDataset(YOLODataset):
 
                     if not ignore:
                         merge_bboxes.append(bbox)
-                        merge_cls.append(cls_)
+
                         merge_segments.append(segment)
-                        merge_texts.append(texts[int(cls_)])
+                        text=texts[int(cls_)]
+                        
+                        # Check if text already exists in merge_texts
+                        if text in merge_texts:
+                            new_cls = merge_texts.index(text)
+                        else:
+                            merge_texts.append(text)
+                            new_cls = len(merge_texts) - 1
+                        
+                        merge_cls.append(np.array([new_cls]))
                     else:
                         continue
             print("merge_bboxes:", len(merge_bboxes), "original bboxes:", sum([len(label["bboxes"]) for label in labels]))

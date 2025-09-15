@@ -396,7 +396,10 @@ class Exporter:
             SETTINGS["openvino_msg"] = False
 
         # Input
-        im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
+        if self.args.hwc
+            im = torch.zeros(self.args.batch, *self.imgsz, model.yaml.get("channels", 3)).to(self.device)
+        else:
+            im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
         file = Path(
             getattr(model, "pt_path", None) or getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")
         )

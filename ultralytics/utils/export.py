@@ -39,7 +39,7 @@ def export_onnx(
     """
     kwargs = (
         dict(
-            dynamo=dynamo and not dynamic, # TorchDynamo-based export
+            dynamo=dynamo and not dynamic,  # TorchDynamo-based export
             external_data=False,  # do not create .onnx.data file
         )
         if check_version(torch.__version__, ">=2.8.0")

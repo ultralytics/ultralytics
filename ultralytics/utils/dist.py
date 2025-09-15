@@ -76,12 +76,11 @@ if __name__ == "__main__":
     return file.name
 
 
-def generate_ddp_command(world_size: int, trainer):
+def generate_ddp_command(trainer):
     """
     Generate command for distributed training.
 
     Args:
-        world_size (int): Number of processes to spawn for distributed training.
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
 
     Returns:
@@ -95,7 +94,16 @@ def generate_ddp_command(world_size: int, trainer):
     file = generate_ddp_file(trainer)
     dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
     port = find_free_network_port()
-    cmd = [sys.executable, "-m", dist_cmd, "--nproc_per_node", f"{world_size}", "--master_port", f"{port}", file]
+    cmd = [
+        sys.executable,
+        "-m",
+        dist_cmd,
+        "--nproc_per_node",
+        f"{trainer.world_size}",
+        "--master_port",
+        f"{port}",
+        file,
+    ]
     return cmd, file
 
 

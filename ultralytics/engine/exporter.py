@@ -993,7 +993,7 @@ class Exporter:
 
         # Export to ONNX
         self.args.simplify = True
-        f_onnx = self.export_onnx()
+        f_onnx = self.export_onnx(dynamo=False)
 
         # Export to TF
         np_data = None

@@ -19,6 +19,7 @@ def export_onnx(
     input_names: list[str] = ["images"],
     output_names: list[str] = ["output0"],
     dynamic: bool | dict = False,
+    dynamo: bool = True,
 ) -> None:
     """
     Export a PyTorch model to ONNX format.
@@ -31,6 +32,7 @@ def export_onnx(
         input_names (list[str]): List of input tensor names.
         output_names (list[str]): List of output tensor names.
         dynamic (bool | dict, optional): Whether to enable dynamic axes.
+        dynamo (bool): Use dynamo for export.
 
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
@@ -45,7 +47,7 @@ def export_onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
-        dynamo=False if (dynamic or check_version(torch.__version__, "<2.7.0")) else True,  # TorchDynamo-based export
+        dynamo=dynamo and (False if (dynamic or check_version(torch.__version__, "<2.7.0")) else True),  # TorchDynamo-based export
         external_data=False,  # do not create .onnx.data file
     )
 

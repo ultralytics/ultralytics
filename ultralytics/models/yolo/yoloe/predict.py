@@ -86,16 +86,12 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             assert len(im) == len(category) == len(bboxes), (
                 f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
             )
-            prompts = [
+            visuals = [
                 self._process_single_image(img[i].shape[:2], im[i].shape[:2], category[i], bboxes[i]).to(self.device)
                 for i in range(len(img))
             ]
-            # prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
-        if isinstance(prompts, list):
-            prompts = [prompt.half() if self.model.fp16 else prompt.float() for prompt in prompts]
-        else:
-            prompts = prompts.half() if self.model.fp16 else prompts.float()
-        self.prompts = prompts
+            prompts = torch.nn.utils.rnn.pad_sequence(visuals, batch_first=True).to(self.device)  # (B, N, H, W)
+        self.prompts = prompts.half() if self.model.fp16 else prompts.float()
         return img
 
     def _process_single_image(self, dst_shape, src_shape, category, bboxes=None, masks=None):
@@ -161,23 +157,26 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
         """
-        
-        # Merge embeddings for same classes
         self.setup_source(source)
-        categories = self.prompts["cls"]
         for _, im0s, _ in self.dataset:
-            im = self.preprocess(im0s)
-            if im.shape[0] > 1:  # multiple refer_image
-                vpes = [self.model(im[i][None], vpe=self.prompts[i][None], return_vpe=True) for i in range(im.shape[0])]
-                vpe_stack = []
-                for cls_id in range(len(self.model.names)): # merge embeddings classwise
-                    cls_stack = []
+            if len(im0s) > 1:  # multiple refer_image
+                categories = self.prompts["cls"]
+                prompts = self.prompts  # original prompts
+                vpes = []
+                for i, im in enumerate(im0s):
+                    self.prompts = {k: prompts[k][i] for k in ["bboxes", "cls"]}  # extract prompt for current image
+                    im = self.preprocess([im])
+                    vpes += [self.model(im, vpe=self.prompts, return_vpe=True)]
+                vpe_stack = []  # vpe for each class processed separately
+                for cls_id in range(len(self.model.names)):  # merge embeddings classwise
+                    cls_stack = []  # collect embeddings for same class
                     for vpe, cat in zip(vpes, categories):
-                        if cls_id in cat:
-                            cls_stack += [vpe[0, np.unique(cat).tolist().index(cls_id)]]
+                        if cls_id in cat:  # image may not have prompts for current class
+                            cls_stack += [vpe[0, list(set(cat)).index(cls_id)]]  # index of class ID in cls list
                     vpe_stack += [torch.nn.functional.normalize(torch.stack(cls_stack).mean(0), p=2, dim=-1)]
                 return torch.stack(vpe_stack)[None]
             else:
+ac                im = self.preprocess(im0s)
                 return self.model(im, vpe=self.prompts, return_vpe=True)
 
 

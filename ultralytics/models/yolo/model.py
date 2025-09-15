@@ -51,7 +51,7 @@ class YOLO(Model):
         >>> model = YOLO("yolo11n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo11n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(self, model: str | Path | Model = "yolo11n.pt", task: str | None = None, verbose: bool = False):
         """
         Initialize a YOLO model.
 
@@ -59,7 +59,8 @@ class YOLO(Model):
         (YOLOWorld or YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
+            model (str | Path | Model): Model name or path to model file, or existing Model instance.
+                Examples: 'yolo11n.pt', 'yolo11n.yaml', or an existing YOLO/Model object.
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
@@ -68,7 +69,17 @@ class YOLO(Model):
             >>> from ultralytics import YOLO
             >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
             >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
+            >>> reused = YOLO(model)  # reuse existing model (returns same instance)
+            >>> assert reused is model  # True - same object, not a copy
         """
+        # If this instance is already initialized (from __new__ returning existing instance),
+        # don't reinitialize it. Use __dict__ to avoid triggering __getattr__
+        if '_initialized' in self.__dict__:
+            return
+        
+        # Mark as being initialized to prevent re-initialization
+        self._initialized = True
+            
         path = Path(model if isinstance(model, (str, Path)) else "")
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)

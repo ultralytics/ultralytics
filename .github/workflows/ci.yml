@@ -215,7 +215,7 @@ jobs:
 
   GPU:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
-    timeout-minutes: 20
+    timeout-minutes: 60
     runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v5

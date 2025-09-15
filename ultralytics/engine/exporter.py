@@ -584,9 +584,9 @@ class Exporter:
         return f
 
     @try_export
-    def export_onnx(self, prefix=colorstr("ONNX:")):
+    def export_onnx(self, prefix=colorstr("ONNX:"), dynamo=True):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0"]
+        requirements = ["onnx>=1.12.0", "onnxscript>=0.2.5"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.67", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -618,6 +618,7 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
+                dynamo=dynamo and not self.args.nms,
             )
 
         # Checks
@@ -993,7 +994,7 @@ class Exporter:
 
         # Export to ONNX
         self.args.simplify = True
-        f_onnx = self.export_onnx()
+        f_onnx = self.export_onnx(dynamo=False)
 
         # Export to TF
         np_data = None

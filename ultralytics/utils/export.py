@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
+from ultralytics.utils.checks import check_version
 
 
 def export_onnx(
@@ -18,6 +19,7 @@ def export_onnx(
     input_names: list[str] = ["images"],
     output_names: list[str] = ["output0"],
     dynamic: bool | dict = False,
+    dynamo: bool = True,
 ) -> None:
     """
     Export a PyTorch model to ONNX format.
@@ -30,10 +32,19 @@ def export_onnx(
         input_names (list[str]): List of input tensor names.
         output_names (list[str]): List of output tensor names.
         dynamic (bool | dict, optional): Whether to enable dynamic axes.
+        dynamo (bool): Use dynamo for export.
 
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
+    kwargs = (
+        dict(
+            dynamo=dynamo and not dynamic,  # TorchDynamo-based export
+            external_data=False,  # do not create .onnx.data file
+        )
+        if check_version(torch.__version__, ">=2.8.0")
+        else {}
+    )
     torch.onnx.export(
         torch_model,
         im,
@@ -44,6 +55,7 @@ def export_onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
+        **kwargs,
     )
 
 

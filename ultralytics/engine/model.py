@@ -109,7 +109,7 @@ class Model(torch.nn.Module):
         # Return existing Model instance directly instead of copying __dict__
         if isinstance(model, cls):
             return model
-        
+
         # Create new instance for all other cases
         instance = super().__new__(cls)
         return instance

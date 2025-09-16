@@ -532,6 +532,7 @@ nav:
           - hub/api/index.md
 
   - Reference:
+      - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
       - data:
@@ -685,7 +686,9 @@ nav:
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
-          - export: reference/utils/export.md
+          - export:
+              - __init__: reference/utils/export/__init__.md
+              - imx: reference/utils/export/imx.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

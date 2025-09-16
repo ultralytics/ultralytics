@@ -1,0 +1,15 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# NYU Depth V2 dataset. See https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html for details
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/nyu
+train: images/train
+val: images/val
+test: images/test
+
+# Classes
+names:
+  0: depth
+
+# Download script/URL
+download: ''

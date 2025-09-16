@@ -194,8 +194,11 @@ def try_export(inner_func):
         dt = 0.0
         try:
             with Profile() as dt:
-                f = inner_func(*args, **kwargs)
-            LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
+                f = inner_func(*args, **kwargs)  # exported file/dir or tuple of (file/dir, *)
+            path = f if isinstance(f, (str, Path)) else f[0]
+            mb = file_size(path)
+            assert mb > 0.0, "0.0 MB output model size"
+            LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{path}' ({mb:.1f} MB)")
             return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")

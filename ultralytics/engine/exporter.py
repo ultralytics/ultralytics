@@ -195,7 +195,9 @@ def try_export(inner_func):
         try:
             with Profile() as dt:
                 f = inner_func(*args, **kwargs)
-            LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({file_size(f):.1f} MB)")
+            mb = file_size(f)
+            assert mb > 0.0, "0.0 MB output model size"
+            LOGGER.info(f"{prefix} export success ✅ {dt.t:.1f}s, saved as '{f}' ({mb:.1f} MB)")
             return f
         except Exception as e:
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}")
@@ -1429,3 +1431,4 @@ class NMSModel(torch.nn.Module):
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
         return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]
+ 

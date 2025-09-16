@@ -361,7 +361,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         continue
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5') or str ('batch=auto')"
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5') or str ('{k}=auto')"
                     )
                 cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:

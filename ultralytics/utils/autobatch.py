@@ -17,7 +17,7 @@ def check_train_batch_size(
     model: torch.nn.Module,
     imgsz: int = 640,
     amp: bool = True,
-    batch: int | float = -1,
+    batch: int | float | str = -1,
     max_num_obj: int = 1,
 ) -> int:
     """
@@ -37,9 +37,16 @@ def check_train_batch_size(
         If 0.0 < batch < 1.0, it's used as the fraction of GPU memory to use.
         Otherwise, a default fraction of 0.6 is used.
     """
+    if isinstance(batch, int) and batch >= 1:
+        return int(batch)
+
+    # Default fraction
+    fraction = batch if isinstance(batch, float) and 0.0 < batch <= 1.0 else 0.6 if (
+            str(batch).lower().strip() in {"-1", "auto"}) else 0.6
+
     with autocast(enabled=amp):
         return autobatch(
-            deepcopy(model).train(), imgsz, fraction=batch if 0.0 < batch < 1.0 else 0.6, max_num_obj=max_num_obj
+            deepcopy(model).train(), imgsz, fraction=fraction, max_num_obj=max_num_obj
         )
 
 

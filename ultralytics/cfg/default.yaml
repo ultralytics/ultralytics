@@ -12,7 +12,7 @@ data: # (str, optional) path to data file, i.e. coco8.yaml
 epochs: 100 # (int) number of epochs to train for
 time: # (float, optional) max hours to train; overrides epochs if set
 patience: 100 # (int) early stop after N epochs without val improvement
-batch: 16 # (int | float | str) batch size; use -1 for AutoBatch or 0.70 i.e for specified utilization fraction
+batch: 16 # (int) batch size; use -1 for AutoBatch
 imgsz: 640 # (int | list) train/val use int (square); predict/export may use [h,w]
 save: True # (bool) save train checkpoints and predict results
 save_period: -1 # (int) save checkpoint every N epochs; disabled if < 1

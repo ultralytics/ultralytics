@@ -7,6 +7,7 @@ FROM ultralytics/ultralytics:latest
 
 # Install export dependencies and run exports to AutoInstall packages
 # Numpy 1.26.4 required due to TF export bug with torch 2.8
+# Note tensorrt installed on-demand as depends on runtime environment CUDA version
 RUN uv pip install --system -e ".[export]" "onnxruntime-gpu" paddlepaddle x2paddle numpy==1.26.4 && \
     # Run exports to AutoInstall packages \
     yolo export model=yolo11n.pt format=edgetpu imgsz=32 && \

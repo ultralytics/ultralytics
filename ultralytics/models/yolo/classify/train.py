@@ -12,7 +12,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
 
 
@@ -39,7 +39,6 @@ class ClassificationTrainer(BaseTrainer):
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
         label_loss_items: Return a loss dict with labelled training loss items.
-        plot_metrics: Plot metrics from a CSV file.
         final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
@@ -55,20 +54,10 @@ class ClassificationTrainer(BaseTrainer):
         """
         Initialize a ClassificationTrainer object.
 
-        This constructor sets up a trainer for image classification tasks, configuring the task type and default
-        image size if not specified.
-
         Args:
             cfg (dict[str, Any], optional): Default configuration dictionary containing training parameters.
             overrides (dict[str, Any], optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (list[Any], optional): List of callback functions to be executed during training.
-
-        Examples:
-            Create a trainer with custom configuration
-            >>> from ultralytics.models.yolo.classify import ClassificationTrainer
-            >>> args = dict(model="yolo11n-cls.pt", data="imagenet10", epochs=3)
-            >>> trainer = ClassificationTrainer(overrides=args)
-            >>> trainer.train()
         """
         if overrides is None:
             overrides = {}
@@ -155,7 +144,7 @@ class ClassificationTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
 
-        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)
+        loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank, drop_last=self.args.compile)
         # Attach inference transforms
         if mode != "train":
             if is_parallel(self.model):
@@ -205,10 +194,6 @@ class ClassificationTrainer(BaseTrainer):
         loss_items = [round(float(loss_items), 5)]
         return dict(zip(keys, loss_items))
 
-    def plot_metrics(self):
-        """Plot metrics from a CSV file."""
-        plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
-
     def final_eval(self):
         """Evaluate trained model and save validation results."""
         for f in self.last, self.best:
@@ -230,7 +215,7 @@ class ClassificationTrainer(BaseTrainer):
             batch (dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Number of iterations.
         """
-        batch["batch_idx"] = torch.arange(len(batch["img"]))  # add batch index for plotting
+        batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
         plot_images(
             labels=batch,
             fname=self.save_dir / f"train_batch{ni}.jpg",

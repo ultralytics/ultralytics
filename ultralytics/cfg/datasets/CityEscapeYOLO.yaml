@@ -7,10 +7,10 @@
 # └── datasets
 #     └── coco8-seg  ← downloads here (1 MB)
 
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: /media/yanggang/847C02507C023D84/CityEscape-YOLO # dataset root dir
-train: train/image # train images (relative to 'path') 4 images
-val: val/image # val images (relative to 'path') 4 images
+# Train/val/test sets
+path: D:/data/CityEscape-YOLO # dataset root dir
+train: train/image # train images (relative to 'path')
+val: val/image # val images (relative to 'path')
 test: # test images (optional)
 nc: 19
 

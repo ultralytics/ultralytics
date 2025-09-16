@@ -356,9 +356,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:
+                    if k == "batch" and str(v).lower().strip() == "auto":
+                        cfg[k] = -1  # set the batch=-1 if user pass batch=auto for model training.
+                        continue
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5') or str ('batch=auto')"
                     )
                 cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:

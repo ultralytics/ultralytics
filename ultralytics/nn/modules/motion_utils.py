@@ -14,7 +14,8 @@ __all__ = (
     "precompute_motion_masks",
     "adaptive_motion_threshold",
     "MotionConfig",
-    "create_motion_visualization"
+    "create_motion_visualization",
+    "motion_graph_generator"
 )
 
 
@@ -51,21 +52,24 @@ def generate_motion_mask(
     if not frames:
         raise ValueError("Empty frame sequence provided")
     
+    processed_frames: Union[List[np.ndarray], np.ndarray]
     # Convert to numpy if torch tensor
     if isinstance(frames, torch.Tensor):
-        frames = frames.cpu().numpy()
+        processed_frames = frames.cpu().numpy()
+    else:
+        processed_frames = frames
     
     # Limit window size if specified
     if window_size is not None:
-        frames = frames[:window_size]
+        processed_frames = processed_frames[:window_size]
     
-    if len(frames) < 2:
+    if len(processed_frames) < 2:
         # Return empty mask if insufficient frames
-        return np.zeros_like(frames[0][:, :, 0] if len(frames[0].shape) == 3 else frames[0], dtype=np.uint8)
+        return np.zeros_like(processed_frames[0][:, :, 0] if len(processed_frames[0].shape) == 3 else processed_frames[0], dtype=np.uint8)
     
     # Convert to grayscale for motion detection
     gray_frames = []
-    for frame in frames:
+    for frame in processed_frames:
         if len(frame.shape) == 3:
             # Convert RGB to grayscale
             gray_frame = np.mean(frame, axis=2)
@@ -646,20 +650,23 @@ class FlexibleMotionMaskGenerator(MotionMaskGenerator):
             if cache_path.exists():
                 return np.load(cache_path)
         
+        processed_frames: Union[List[np.ndarray], np.ndarray]
         # Convert to numpy if torch tensor
         if isinstance(frames, torch.Tensor):
-            frames = frames.cpu().numpy()
+            processed_frames = frames.cpu().numpy()
+        else:
+            processed_frames = frames
         
         # Get effective threshold
         if self.config.adaptive_threshold:
-            frame_stats = self._calculate_frame_stats(frames)
+            frame_stats = self._calculate_frame_stats(processed_frames)
             effective_threshold = self.config.get_effective_threshold(frame_stats)
         else:
             effective_threshold = self.config.pixel_threshold
         
         # Generate base motion mask
         motion_mask = generate_motion_mask(
-            frames, 
+            processed_frames, 
             effective_threshold, 
             self.config.delta, 
             self.config.window_size
@@ -738,3 +745,104 @@ class FlexibleMotionMaskGenerator(MotionMaskGenerator):
         motion_mask = cv2.morphologyEx(motion_mask, cv2.MORPH_CLOSE, kernel)
         
         return motion_mask
+
+
+def motion_graph_generator(
+    frames: Union[List[np.ndarray], torch.Tensor],
+    n: int,
+    window_size: int,
+    pixel_threshold: int = 15,
+    delta: int = 1,
+    weights: Optional[List[float]] = None,
+) -> List[np.ndarray]:
+    """
+    Generate a sequence of N weighted motion graphs from a series of frames.
+
+    This function creates `n` motion masks by processing `frames` in sliding windows.
+    Each motion mask is a weighted combination of frame differences within its window.
+
+    Args:
+        frames (Union[List[np.ndarray], torch.Tensor]): Sequence of frames (H, W, C) or (C, H, W).
+        n (int): The number of motion graphs to generate.
+        window_size (int): The number of frames to use for each motion graph.
+        pixel_threshold (int): Threshold for detecting significant motion (default: 15).
+        delta (int): Frame step for motion calculation (default: 1).
+        weights (Optional[List[float]]): A list of weights to apply to the motion masks
+                                         within a window. If None, equal weights are used.
+                                         The list length should be `window_size - delta`.
+
+    Returns:
+        List[np.ndarray]: A list of `n` motion masks, each as a numpy array (H, W).
+
+    Raises:
+        ValueError: If the number of frames is insufficient, or if `weights` has an
+                    incorrect length.
+
+    Examples:
+        >>> import numpy as np
+        >>> frames = [np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8) for _ in range(10)]
+        >>> motion_graphs = motion_graph_generator(frames, n=3, window_size=4)
+        >>> len(motion_graphs)
+        3
+        >>> motion_graphs[0].shape
+        (100, 100)
+    """
+    processed_frames: Union[List[np.ndarray], np.ndarray]
+    if isinstance(frames, torch.Tensor):
+        processed_frames = frames.cpu().numpy()
+    else:
+        processed_frames = frames
+
+    num_frames = len(processed_frames)
+    if num_frames < window_size:
+        raise ValueError(f"Insufficient frames. Need at least {window_size}, but got {num_frames}")
+
+    if weights and len(weights) != window_size - delta:
+        raise ValueError(f"Weights list must have length {window_size - delta}, but got {len(weights)}")
+
+    # Convert frames to grayscale for motion detection
+    gray_frames = []
+    for frame in processed_frames:
+        if frame.ndim == 3:
+            gray_frame = np.mean(frame, axis=2)
+        else:
+            gray_frame = frame
+        gray_frames.append(gray_frame.astype(np.float32))
+
+    # Calculate all possible difference masks first
+    diff_masks = []
+    for i in range(num_frames - delta):
+        diff = np.abs(gray_frames[i + delta] - gray_frames[i])
+        motion_mask = (diff > pixel_threshold).astype(np.float32)
+        diff_masks.append(motion_mask)
+
+    # Generate N motion graphs using a sliding window approach
+    output_motion_graphs = []
+    num_possible_windows = len(diff_masks) - (window_size - delta) + 1
+    
+    # Determine which windows to use to generate N graphs
+    if n > num_possible_windows:
+        # If more graphs are requested than possible, use all possible windows
+        window_indices = range(num_possible_windows)
+    else:
+        # Distribute the N graphs across the available windows
+        window_indices = np.linspace(0, num_possible_windows - 1, n, dtype=int)
+
+    for i in window_indices:
+        window_diffs = diff_masks[i : i + window_size - delta]
+        
+        if not weights:
+            # If no weights, average the masks in the window
+            combined_mask = np.mean(window_diffs, axis=0)
+        else:
+            # Apply weights to the masks in the window
+            weighted_masks = [mask * w for mask, w in zip(window_diffs, weights)]
+            combined_mask = np.sum(weighted_masks, axis=0)
+
+        # Normalize and convert to uint8
+        if np.max(combined_mask) > 0:
+            combined_mask = (combined_mask / np.max(combined_mask)) * 255
+        
+        output_motion_graphs.append(combined_mask.astype(np.uint8))
+
+    return output_motion_graphs

@@ -21,7 +21,7 @@ from ultralytics.data import build_dataloader
 from ultralytics.nn.tasks import TennisBallPoseModel
 from ultralytics.nn.modules.motion_utils import MotionConfig
 from ultralytics.utils import LOGGER, DEFAULT_CFG, colorstr
-from ultralytics.utils.torch_utils import torch_distributed_zero_first, de_parallel
+from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
 
 class TennisBallTrainer(PoseTrainer):
@@ -96,7 +96,7 @@ class TennisBallTrainer(PoseTrainer):
         """
         LOGGER.info(f"{colorstr('TennisBallTrainer')}: Building {mode} dataset from {img_path}")
         
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
         
         # Create TennisBallDataset with motion support and multi-clip structure
         dataset = TennisBallDataset(

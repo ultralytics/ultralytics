@@ -1,0 +1,14 @@
+channels: 3
+citation: Tennis Ball Tracking Dataset
+description: Tennis Ball Tracking Dataset with Pose Estimation
+flip_idx: []
+kpt_shape:
+- 1
+- 3
+license: Custom
+names:
+  0: tennis_ball
+path: Dataset_YOLO
+task: pose
+train: images/train
+val: images/val

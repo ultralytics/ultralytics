@@ -851,7 +851,7 @@ def entrypoint(debug: str = "") -> None:
           Ultralytics documentation at https://docs.ultralytics.com.
     """
     args = (debug.split(" ") if debug else ARGV)[1:]
-    if not args:  # no arguments passed
+    if not args or args[0] == "-h":  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
 

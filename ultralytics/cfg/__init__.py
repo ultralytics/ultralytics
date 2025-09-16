@@ -851,17 +851,17 @@ def entrypoint(debug: str = "") -> None:
           Ultralytics documentation at https://docs.ultralytics.com.
     """
     args = (debug.split(" ") if debug else ARGV)[1:]
-    if not args or args[0] == "-h":  # no arguments passed or `yolo -h`
+    if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
 
     special = {
-        "help": lambda: LOGGER.info(CLI_HELP_MSG),
+        "hub": lambda: handle_yolo_hub(args[1:]),
+        "help": lambda: LOGGER.info(CLI_HELP_MSG),  # help below hub for -h flag precedence
         "checks": checks.collect_system_info,
         "version": lambda: LOGGER.info(__version__),
         "settings": lambda: handle_yolo_settings(args[1:]),
         "cfg": lambda: YAML.print(DEFAULT_CFG_PATH),
-        "hub": lambda: handle_yolo_hub(args[1:]),
         "login": lambda: handle_yolo_hub(args),
         "logout": lambda: handle_yolo_hub(args),
         "copy-cfg": copy_default_cfg,

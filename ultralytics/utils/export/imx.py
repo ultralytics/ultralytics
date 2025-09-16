@@ -185,8 +185,21 @@ def torch2imx(
         - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """
-    if getattr(model, "end2end", False):
-        raise ValueError("IMX export is not supported for end2end models.")
+    import model_compression_toolkit as mct
+    import onnx
+    from edgemdt_tpc import get_target_platform_capabilities
+
+    LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
+
+    def representative_dataset_gen(dataloader=dataset):
+        for batch in dataloader:
+            img = batch["img"]
+            img = img / 255.0
+            yield [img]
+
+    tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
+
+    bit_cfg = mct.core.BitWidthConfig()
     if "C2PSA" in model.__str__():  # YOLO11
         if model.task == "detect":
             layer_names = ["sub", "mul_2", "add_14", "cat_21"]
@@ -210,21 +223,6 @@ def torch2imx(
     if len(list(model.modules())) != n_layers:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
-    import model_compression_toolkit as mct
-    import onnx
-    from edgemdt_tpc import get_target_platform_capabilities
-
-    LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
-
-    def representative_dataset_gen(dataloader=dataset):
-        for batch in dataloader:
-            img = batch["img"]
-            img = img / 255.0
-            yield [img]
-
-    tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
-
-    bit_cfg = mct.core.BitWidthConfig()
     for layer_name in layer_names:
         bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 
@@ -279,10 +277,13 @@ def torch2imx(
 
     onnx.save(model_onnx, onnx_model)
 
-    subprocess.run(
-        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
-        check=True,
-    )
+    try:
+        subprocess.run(
+            ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
+            check=True,
+        )
+    except:
+        LOGGER.error("imxconv-pt command failed. Make sure it's installed correctly.")
 
     # Needed for imx models.
     with open(f / "labels.txt", "w", encoding="utf-8") as file:

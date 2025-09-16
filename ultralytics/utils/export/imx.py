@@ -191,15 +191,8 @@ def torch2imx(
 
     LOGGER.info(f"\n{prefix} starting export with model_compression_toolkit {mct.__version__}...")
 
-    def representative_dataset_gen(dataloader=dataset):
-        for batch in dataloader:
-            img = batch["img"]
-            img = img / 255.0
-            yield [img]
-
-    tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
-
-    bit_cfg = mct.core.BitWidthConfig()
+    if getattr(model, "end2end", False):
+        raise ValueError("IMX export is not supported for end2end models.")
     if "C2PSA" in model.__str__():  # YOLO11
         if model.task == "detect":
             layer_names = ["sub", "mul_2", "add_14", "cat_21"]
@@ -223,6 +216,15 @@ def torch2imx(
     if len(list(model.modules())) != n_layers:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
+    def representative_dataset_gen(dataloader=dataset):
+        for batch in dataloader:
+            img = batch["img"]
+            img = img / 255.0
+            yield [img]
+
+    tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
+
+    bit_cfg = mct.core.BitWidthConfig()
     for layer_name in layer_names:
         bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 

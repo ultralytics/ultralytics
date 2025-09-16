@@ -1164,8 +1164,6 @@ class Exporter:
             "export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         )
-        if getattr(self.model, "end2end", False):
-            raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
             ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
         )

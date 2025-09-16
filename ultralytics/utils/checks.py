@@ -363,8 +363,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Path | str | list[str]): Path to a requirements.txt file, a single package requirement as a
-            string, or a list of package requirements as strings.
+        requirements (Path | str | list[str] | tuple[str]): Path to a requirements.txt file, a single package
+            requirement as a string, or a list of package requirements as strings.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.

@@ -1,22 +1,21 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Default Ultralytics settings for BoT-SORT tracker when using mode="track"
-# For documentation and examples see https://docs.ultralytics.com/modes/track/
-# For BoT-SORT source code see https://github.com/NirAharon/BoT-SORT
+# BoT-SORT tracker defaults for mode="track"
+# Docs: https://docs.ultralytics.com/modes/track/
 
-tracker_type: botsort # tracker type, ['botsort', 'bytetrack']
-track_high_thresh: 0.25 # threshold for the first association
-track_low_thresh: 0.1 # threshold for the second association
-new_track_thresh: 0.25 # threshold for init new track if the detection does not match any tracks
-track_buffer: 30 # buffer to calculate the time when to remove tracks
-match_thresh: 0.8 # threshold for matching tracks
-fuse_score: True # Whether to fuse confidence scores with the iou distances before matching
-# min_box_area: 10  # threshold for min box areas(for tracker evaluation, not used for now)
+tracker_type: botsort # (str) Tracker backend: botsort|bytetrack; choose botsort to enable BoT-SORT features
+track_high_thresh: 0.25 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more
+track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches; balances recovery vs drift
+new_track_thresh: 0.25 # (float) Start a new track if no match ≥ this; higher reduces false tracks
+track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switches risk
+match_thresh: 0.8 # (float) Association similarity threshold (IoU/cost); tune with detector quality
+fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; stabilizes weak detections
 
-# BoT-SORT settings
-gmc_method: sparseOptFlow # method of global motion compensation
+# BoT-SORT specifics
+gmc_method: sparseOptFlow # (str) Global motion compensation: sparseOptFlow|orb|none; helps moving camera scenes
+
 # ReID model related thresh
-proximity_thresh: 0.5 # minimum IoU for valid match with ReID
-appearance_thresh: 0.8 # minimum appearance similarity for ReID
-with_reid: False
-model: auto # uses native features if detector is YOLO else yolo11n-cls.pt
+proximity_thresh: 0.5 # (float) Min IoU to consider tracks proximate for ReID; higher is stricter
+appearance_thresh: 0.8 # (float) Min appearance similarity for ReID; raise to avoid identity swaps
+with_reid: False # (bool) Enable ReID model use; needs extra model and compute
+model: auto # (str) ReID model name/path; "auto" uses detector features if available

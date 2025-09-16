@@ -282,7 +282,7 @@ def torch2imx(
             ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
             check=True,
         )
-    except:
+    except Exception:
         LOGGER.error("imxconv-pt command failed. Make sure it's installed correctly.")
 
     # Needed for imx models.

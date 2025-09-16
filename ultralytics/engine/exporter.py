@@ -477,7 +477,7 @@ class Exporter:
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
 
         LOGGER.info(
-            f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
+            f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} {'BHWC' if self.args.hwc else 'BCHW'} and "
             f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)"
         )
         self.run_callbacks("on_export_start")

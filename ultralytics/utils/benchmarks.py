@@ -144,7 +144,8 @@ def benchmark(
             if format == "imx":
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
-                assert model.task == "detect", "IMX only supported for detection task"
+                assert model.task in {"detect", "pose"}, "IMX only supported for detection and pose tasks"
+                assert not ARM64, "IMX only supported only supported on non-aarch64 Linux"
             if format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"
                 assert not is_end2end, "End-to-end models not supported by RKNN yet"

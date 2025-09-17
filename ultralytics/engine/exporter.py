@@ -1449,7 +1449,6 @@ class PermuteModel(torch.nn.Module):
 
         Args:
             model (torch.nn.Module): The model to wrap for input transpose.
-            args (Namespace): The export arguments.
         """
         super().__init__()
         self.model = model

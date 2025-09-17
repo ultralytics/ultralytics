@@ -979,6 +979,7 @@ class Exporter:
             int8=self.args.int8,
             images=images,
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
+            onnx_file=str(self.file.with_suffix(".onnx")),
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         # Add TFLite metadata

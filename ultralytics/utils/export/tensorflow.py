@@ -19,6 +19,7 @@ def torch2saved_model(
     int8: bool = False,
     images: np.ndarray = None,
     disable_group_convolution: bool = False,
+    onnx_file: str = None,
     prefix="",
 ):
     """
@@ -32,6 +33,7 @@ def torch2saved_model(
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
         images (np.ndarray, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        onnx_file (str, optional): ONNX file path. Use this file path if provided. Defaults to None.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -45,11 +47,11 @@ def torch2saved_model(
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
     if not onnx2tf_file.exists():
         attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
-    f_onnx = str(file.with_suffix(".onnx"))
+    onnx_file = onnx_file or str(file.with_suffix(".onnx"))
     torch2onnx(
         model,
         im,
-        f_onnx,
+        onnx_file,
         opset=opset,
         input_names=["images"],
         output_names=["output0", "output1"] if model.task == "segment" else ["output0"],
@@ -67,7 +69,7 @@ def torch2saved_model(
 
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
     keras_model = onnx2tf.convert(
-        input_onnx_file_path=f_onnx,
+        input_onnx_file_path=onnx_file,
         output_folder_path=str(file),
         not_use_onnxsim=True,
         verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873

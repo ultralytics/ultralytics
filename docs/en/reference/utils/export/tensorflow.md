@@ -1,6 +1,6 @@
 ---
-description: TODO ADD DESCRIPTION
-keywords: TODO ADD KEYWORDS
+description: TensorFlow export utilities for converting PyTorch models to various TensorFlow formats. Provides functions for converting models to TensorFlow SavedModel, Protocol Buffer (.pb), TensorFlow Lite, Edge TPU, and TensorFlow.js formats via ONNX intermediate representation with support for INT8 quantization and calibration.
+keywords: Ultralytics, TensorFlow, SavedModel, Protocol Buffer, TensorFlow Lite, TFLite, Edge TPU, TensorFlow.js, ONNX conversion, PyTorch to TensorFlow, INT8 quantization, model calibration, frozen graph, onnx2tf, model export, web deployment, mobile deployment
 ---
 
 # Reference for `ultralytics/utils/export/tensorflow.py`

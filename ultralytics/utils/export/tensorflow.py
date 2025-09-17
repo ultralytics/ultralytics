@@ -1,9 +1,11 @@
 from pathlib import Path
-from ultralytics.utils.export import torch2onnx
-from ultralytics.utils import LOGGER
-from ultralytics.utils.downloads import attempt_download_asset
+
 import numpy as np
 import torch
+
+from ultralytics.utils import LOGGER
+from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils.export import torch2onnx
 
 
 def torch2saved_model(

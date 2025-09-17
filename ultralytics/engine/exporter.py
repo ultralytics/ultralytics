@@ -683,7 +683,7 @@ class Exporter:
             quantized_ov_model = nncf.quantize(
                 model=ov_model,
                 calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
-                preset=nncf.QuantizationPreset.PERFORMANCE
+                preset=nncf.QuantizationPreset.PERFORMANCE,
             )
             serialize(quantized_ov_model, fq_ov)
             return fq

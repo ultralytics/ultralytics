@@ -396,7 +396,7 @@ class Exporter:
             SETTINGS["openvino_msg"] = False
 
         # Input
-        if self.args.hwc
+        if self.args.hwc:
             im = torch.zeros(self.args.batch, *self.imgsz, model.yaml.get("channels", 3)).to(self.device)
         else:
             im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
@@ -435,7 +435,8 @@ class Exporter:
 
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
+            m = NMSModel(model, self.args) if self.args.nms and not coreml and not imx else model
+            y = PermuteModel(m)(im) if self.args.hwc else m(im)
         if self.args.half and onnx and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -606,9 +607,11 @@ class Exporter:
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset_version  # for NMSModel
 
+        m = NMSModel(self.model, self.args) if self.args.nms else self.model
+        m = PermuteModel(m) if self.args.hwc else m
         with arange_patch(self.args):
             torch2onnx(
-                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                m,
                 self.im,
                 f,
                 opset=opset_version,
@@ -1435,3 +1438,30 @@ class NMSModel(torch.nn.Module):
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
         return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]
+
+
+class PermuteModel(torch.nn.Module):
+    """Model wrapper for permute model input from CHW to HWC"""
+
+    def __init__(self, model):
+        """
+        Initialize the PermuteModel.
+
+        Args:
+            model (torch.nn.Module): The model to wrap for input transpose.
+            args (Namespace): The export arguments.
+        """
+        super().__init__()
+        self.model = model
+
+    def forward(self, x):
+        """
+        Perform inference with input transpose.
+
+        Args:
+            x (torch.Tensor): The tensor with shape (N, 3, H, W).
+
+        Returns:
+            (torch.Tensor): List of detections.
+        """
+        return self.model(torch.div(torch.permute(x, (0, 3, 1, 2)).contiguous(), 255))

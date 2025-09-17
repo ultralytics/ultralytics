@@ -1400,7 +1400,11 @@ class ThreadedImporter:
         self.module_name = module_name
 
     def __call__(self, func_or_none=None):
-        """Start background import. Returns original function if used as decorator."""
+        """
+        Start background import.
+
+        Returns original function if used as decorator.
+        """
         # Start import in background thread
         thread = threading.Thread(target=self._import_module, daemon=True)
         thread.start()

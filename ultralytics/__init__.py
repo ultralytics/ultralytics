@@ -45,7 +45,7 @@ def __getattr__(name: str):
 
 def __dir__():
     """Extend dir() to include lazily available model names for IDE autocompletion."""
-    return sorted(set(globals().keys()) | set(MODELS) | {"settings", "checks", "download"})
+    return sorted(set(globals()) | set(MODELS) | {"settings", "checks", "download"})
 
 
 if __name__ == "__main__":

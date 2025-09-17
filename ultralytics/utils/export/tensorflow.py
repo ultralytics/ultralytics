@@ -119,7 +119,7 @@ def tflite2edgetpu(tflite_file: Path, prefix: str = ""):
     Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
 
     Args:
-        tflite_model (Path): Path to the input TensorFlow Lite (.tflite) model file.
+        tflite_file (Path): Path to the input TensorFlow Lite (.tflite) model file.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:

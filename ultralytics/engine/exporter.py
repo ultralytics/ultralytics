@@ -105,8 +105,8 @@ from ultralytics.utils.checks import (
     is_intel,
     is_sudo_available,
 )
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
-from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx
+from ultralytics.utils.downloads import get_github_assets, safe_download
+from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx, torch2saved_model, keras2pb
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -589,7 +589,7 @@ class Exporter:
         opset_version = self.args.opset or get_latest_opset()
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
         f = str(self.file.with_suffix(".onnx"))
-        output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
+        output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
@@ -612,28 +612,9 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
+                simplify=self.args.simplify,
+                metadata=self.metadata,
             )
-
-        # Checks
-        model_onnx = onnx.load(f)  # load onnx model
-
-        # Simplify
-        if self.args.simplify:
-            try:
-                import onnxslim
-
-                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
-                model_onnx = onnxslim.slim(model_onnx)
-
-            except Exception as e:
-                LOGGER.warning(f"{prefix} simplifier failure: {e}")
-
-        # Metadata
-        for k, v in self.metadata.items():
-            meta = model_onnx.metadata_props.add()
-            meta.key, meta.value = k, str(v)
-
-        onnx.save(model_onnx, f)
         return f
 
     @try_export
@@ -980,53 +961,27 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
-        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
-        onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
-        if not onnx2tf_file.exists():
-            attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
-
-        # Export to ONNX
-        self.args.simplify = True
-        f_onnx = self.export_onnx()
-
         # Export to TF
-        np_data = None
-        if self.args.int8:
-            tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
-            if self.args.data:
-                f.mkdir()
-                images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-                images = torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz).permute(
-                    0, 2, 3, 1
-                )
-                np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
-                np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
+        images = None
+        if self.args.int8 and self.args.data:
+            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
+            images = (
+                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
+                .permute(0, 2, 3, 1)
+                .numpy()
+                .astype(np.float32)
+            )
 
-        import onnx2tf  # scoped for after ONNX export for reduced conflict during import
-
-        LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
-        keras_model = onnx2tf.convert(
-            input_onnx_file_path=f_onnx,
-            output_folder_path=str(f),
-            not_use_onnxsim=True,
-            verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
-            output_integer_quantized_tflite=self.args.int8,
-            quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
-            custom_input_op_name_np_data_path=np_data,
-            enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
-            output_signaturedefs=True,  # fix error with Attention block group convolution
-            disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},  # fix error with group convolution
+        keras_model = torch2saved_model(
+            self.model,
+            f,
+            self.im,
+            opset=self.args.opset or get_latest_opset(),
+            int8=self.args.int8,
+            images=images,
+            disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-
-        # Remove/rename TFLite models
-        if self.args.int8:
-            tmp_file.unlink(missing_ok=True)
-            for file in f.rglob("*_dynamic_range_quant.tflite"):
-                file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
-            for file in f.rglob("*_integer_quant_with_int16_act.tflite"):
-                file.unlink()  # delete extra fp16 activation TFLite files
-
         # Add TFLite metadata
         for file in f.rglob("*.tflite"):
             f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
@@ -1036,17 +991,8 @@ class Exporter:
     @try_export
     def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
         """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
-        import tensorflow as tf  # noqa
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
-
-        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         f = self.file.with_suffix(".pb")
-
-        m = tf.function(lambda x: keras_model(x))  # full model
-        m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
-        frozen_func = convert_variables_to_constants_v2(m)
-        frozen_func.graph.as_graph_def()
-        tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(f.parent), name=f.name, as_text=False)
+        keras2pb(keras_model, f, prefix)
         return f
 
     @try_export

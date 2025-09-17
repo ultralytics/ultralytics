@@ -53,3 +53,12 @@ def torch2saved_model(
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
     )
+
+    # Remove/rename TFLite models
+    if int8:
+        tmp_file.unlink(missing_ok=True)
+        for file in file.rglob("*_dynamic_range_quant.tflite"):
+            file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
+        for file in file.rglob("*_integer_quant_with_int16_act.tflite"):
+            file.unlink()  # delete extra fp16 activation TFLite files
+    return keras_model

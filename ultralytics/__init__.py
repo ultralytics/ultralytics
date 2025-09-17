@@ -20,7 +20,7 @@ __all__ = (
     *MODELS,
     "checks",
     "download",
-    "settings",
+    "SETTINGS",
 )
 
 
@@ -28,7 +28,7 @@ def __getattr__(name: str):
     """Lazy-import model classes and utilities on first access."""
     if name in MODELS:
         return getattr(importlib.import_module("ultralytics.models"), name)
-    elif name == "settings":
+    elif name == "SETTINGS":
         from ultralytics.utils import SETTINGS
         return SETTINGS
     elif name == "checks":

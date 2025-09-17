@@ -112,7 +112,7 @@ def keras2pb(keras_model, file: Path, prefix=""):
     tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(file.parent), name=file.name, as_text=False)
 
 
-def tflite2edgetpu(tflite_file: Path, prefix=""):
+def tflite2edgetpu(tflite_file: Path, prefix: str = ""):
     """
     Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
 

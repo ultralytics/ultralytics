@@ -785,7 +785,7 @@ class TestCheckSource:
         """Mock webcam input for testing purposes."""
 
         class MockWebcam:
-            def __init__(self, source: list | tuple):
+            def __init__(self, source: list):
                 self.source = source
                 self.index = 0
 

@@ -129,9 +129,6 @@ def tflite2edgetpu(tflite_file: Path, prefix=""):
     """
     import subprocess
 
-    ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
-    LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
-
     cmd = (
         "edgetpu_compiler "
         f'--out_dir "{tflite_file.parent}" '

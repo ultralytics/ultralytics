@@ -1027,6 +1027,8 @@ class Exporter:
             ):
                 subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
 
+        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+        LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
         tflite2edgetpu(tflite_model, prefix)
         f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
         self._add_tflite_metadata(f)

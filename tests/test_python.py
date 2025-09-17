@@ -15,7 +15,7 @@ from PIL import Image
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
-from ultralytics.data.build import load_inference_source
+from ultralytics.data.build import check_source, load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -737,3 +737,121 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+class TestCheckSource:
+    """Test the `check_source` function with various input types and scenarios."""
+
+    @pytest.fixture
+    def file_src(self):
+        """Return a predefined local image file path."""
+        return SOURCE
+
+    @pytest.fixture
+    def url_src(self):
+        """Return a predefined online image URL."""
+        return "https://ultralytics.com/images/bus.jpg?token=12345" if ONLINE else ""
+
+    @pytest.fixture
+    def numpy_src(self):
+        """Load and return an image as a numpy array from a predefined source."""
+        return cv2.imread(SOURCE.as_posix())
+
+    @pytest.fixture
+    def pillow_src(self):
+        """Load and return an image as a PIL Image from a predefined source."""
+        return Image.open(SOURCE)
+
+    @pytest.fixture
+    def tensor_src(self):
+        """Load and return an image as a PyTorch tensor from a predefined source."""
+        im = cv2.imread(SOURCE.as_posix())
+        im = torch.from_numpy(im).permute(2, 0, 1).unsqueeze(0).float() / 255.0  # BCHW, float32, 0.0-1.0
+        return im
+
+    @pytest.fixture
+    def mock_webcam(self, monkeypatch):
+        """Mock webcam input for testing purposes."""
+
+        class MockWebcam:
+            def __init__(self, source: list | tuple):
+                self.source = source
+                self.index = 0
+
+            def isOpened(self):
+                return True
+
+            def read(self):
+                if self.index < len(self.source):
+                    img = cv2.imread(self.source[self.index].as_posix())
+                    self.index += 1
+                    return True, img
+                else:
+                    return False, None
+
+            def release(self):
+                pass
+
+        monkeypatch.setattr(cv2, "VideoCapture", lambda x: MockWebcam([SOURCE, SOURCE]))
+        yield
+
+    @pytest.fixture
+    def mock_screenshot(self, monkeypatch):
+        """Mock screenshot input for testing purposes using the mss library."""
+
+        class MockMSS:
+            def grab(self, monitor):
+                img = cv2.imread(SOURCE.as_posix())
+
+                class Screenshot:
+                    def __init__(self, img):
+                        self.rgb = img.tobytes()
+                        self.size = img.shape[1], img.shape[0]
+
+                return Screenshot(img)
+
+        monkeypatch.setattr("mss.mss", lambda: MockMSS())
+        yield
+
+    def test_check_file(self, file_src):
+        """Test `check_source` with a file path."""
+        src, webcam, screenshot, img, in_memory, tensor = check_source(file_src)
+        assert str(src) == str(file_src)
+        assert not any((webcam, screenshot, img, in_memory, tensor))
+
+    def test_file_list(self, file_src):
+        """Test `check_source` with a list of file paths."""
+        src, webcam, screenshot, img, in_memory, tensor = check_source([file_src, file_src])
+        assert len(src) == 2 and all(isinstance(s, Image.Image) for s in src)
+        assert img and not any((webcam, screenshot, in_memory, tensor))
+
+    def test_check_url(self, url_src):
+        """Test `check_source` with a URL."""
+        if not url_src:
+            pytest.skip("Skipping online test in offline environment")
+        src, webcam, screenshot, img, in_memory, tensor = check_source(url_src)
+        assert str(src) == url_src.split("?")[0].rsplit("/")[-1]  # check filename only
+        assert not any((webcam, screenshot, img, in_memory, tensor))
+
+    def test_check_tensor(self, tensor_src):
+        """Test `check_source` with a PyTorch tensor."""
+        src, webcam, screenshot, img, in_memory, tensor = check_source(tensor_src)
+        assert (src == tensor_src).all()
+        assert tensor and not any((webcam, screenshot, img, in_memory))
+
+    def test_check_pillow(self, pillow_src):
+        """Test `check_source` with a PIL Image."""
+        src, webcam, screenshot, img, in_memory, tensor = check_source(pillow_src)
+        assert src == pillow_src
+        assert img and not any((webcam, screenshot, in_memory, tensor))
+
+    def test_check_webcam(self, mock_webcam):
+        """Test `check_source` with a mocked webcam input."""
+        src, webcam, screenshot, img, in_memory, tensor = check_source(0)
+        assert webcam and not any((screenshot, img, in_memory, tensor))
+
+    def test_check_screenshot(self, mock_screenshot):
+        """Test `check_source` with a mocked screenshot input."""
+        src, webcam, screenshot, img, in_memory, tensor = check_source("screen")
+        assert screenshot
+        assert not any((webcam, img, in_memory, tensor))

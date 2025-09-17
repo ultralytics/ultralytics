@@ -743,7 +743,8 @@ class TestCheckSource:
     """Test the `check_source` function with various input types and scenarios."""
 
     def _assert_flags(self, flags, expected_true=()):
-        """Assert that only the expected flags are True and others are False.
+        """
+        Assert that only the expected flags are True and others are False.
 
         flags: tuple of (webcam, screenshot, img, in_memory, tensor)
         expected_true: iterable of flag names that should be True
@@ -808,7 +809,6 @@ class TestCheckSource:
     @pytest.fixture
     def mock_screenshot(self, monkeypatch):
         """Mock screenshot input for testing purposes using the mss library."""
-
         # Ensure 'mss' is available by leveraging Ultralytics' existing requirement installer
         if ONLINE:
             try:

@@ -1441,7 +1441,7 @@ class NMSModel(torch.nn.Module):
 
 
 class PermuteModel(torch.nn.Module):
-    """Model wrapper for permute model input from CHW to HWC"""
+    """Model wrapper for permute model input from CHW to HWC."""
 
     def __init__(self, model):
         """

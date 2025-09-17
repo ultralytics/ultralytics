@@ -1394,41 +1394,42 @@ class SettingsManager(JSONDict):
 
 class ThreadedImporter:
     """Preloads a module in a background thread when function is called."""
-    
+
     def __init__(self, module_name):
         """Initialize with the module name to preload."""
         self.module_name = module_name
-        
+
     def __call__(self, func_or_none=None):
         """Return a wrapper that starts import on first call, or start immediately if not decorating."""
         if func_or_none is None:
             # Used as callable - start import immediately
             self._start_import()
             return
-            
+
         # Used as decorator - return wrapper that imports on first call
         import_started = False
-        
+
         def wrapper(*args, **kwargs):
             nonlocal import_started
             if not import_started:
                 self._start_import()
                 import_started = True
             return func_or_none(*args, **kwargs)
-            
+
         return wrapper
-            
+
     def _start_import(self):
         """Start the background import thread."""
         thread = threading.Thread(target=self._import_module, daemon=True)
         thread.start()
-        
+
     def _import_module(self):
         """Import the module in background thread."""
         try:
             importlib.import_module(self.module_name)
         except ImportError:
             pass
+
 
 def preload(module_name):
     """Create a threaded importer for the given module name."""

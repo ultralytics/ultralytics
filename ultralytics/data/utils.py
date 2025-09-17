@@ -26,11 +26,11 @@ from ultralytics.utils import (
     SETTINGS_FILE,
     TQDM,
     YAML,
+    TypeValidator,
     clean_url,
     colorstr,
     emojis,
     is_dir_writeable,
-    TypeValidator,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file

@@ -836,7 +836,8 @@ class TestCheckSource:
 
                 return Screenshot(img)
 
-        monkeypatch.setattr("mss.mss", lambda: MockMSS())
+        if checks.check_requirements("mss", install=False):
+            monkeypatch.setattr("mss.mss", lambda: MockMSS())
         yield
 
     @pytest.fixture

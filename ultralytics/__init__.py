@@ -20,7 +20,7 @@ __all__ = (
     *MODELS,
     "checks",
     "download",
-    "SETTINGS",
+    "settings",
 )
 
 

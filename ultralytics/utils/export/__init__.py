@@ -20,6 +20,9 @@ def torch2onnx(
     input_names: list[str] = ["images"],
     output_names: list[str] = ["output0"],
     dynamic: bool | dict = False,
+    simplify: bool = False,
+    metadata: dict | None = None,
+    prefix: str = "",
 ) -> None:
     """
     Export a PyTorch model to ONNX format.
@@ -32,6 +35,9 @@ def torch2onnx(
         input_names (list[str]): List of input tensor names.
         output_names (list[str]): List of output tensor names.
         dynamic (bool | dict, optional): Whether to enable dynamic axes.
+        simplify (bool, optional): Whether to simplify the ONNX model using onnxslim.
+        metadata (dict, optional): Metadata to include in the ONNX file.
+        prefix (str, optional): Prefix for log messages.
 
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
@@ -47,6 +53,23 @@ def torch2onnx(
         output_names=output_names,
         dynamic_axes=dynamic or None,
     )
+    import onnx
+
+    model_onnx = onnx.load(onnx_file)  # load onnx model
+    if simplify:
+        try:
+            import onnxslim
+
+            LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
+            model_onnx = onnxslim.slim(model_onnx)
+
+        except Exception as e:
+            LOGGER.warning(f"{prefix} simplifier failure: {e}")
+    if metadata is not None:
+        for k, v in metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+    onnx.save(model_onnx, onnx_file)
 
 
 def onnx2engine(

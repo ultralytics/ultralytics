@@ -105,7 +105,7 @@ from ultralytics.utils.checks import (
     is_intel,
     is_sudo_available,
 )
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
+from ultralytics.utils.downloads import get_github_assets, safe_download
 from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
@@ -612,28 +612,9 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
+                simplify=self.args.simplify,
+                metadata=self.metadata,
             )
-
-        # Checks
-        model_onnx = onnx.load(f)  # load onnx model
-
-        # Simplify
-        if self.args.simplify:
-            try:
-                import onnxslim
-
-                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
-                model_onnx = onnxslim.slim(model_onnx)
-
-            except Exception as e:
-                LOGGER.warning(f"{prefix} simplifier failure: {e}")
-
-        # Metadata
-        for k, v in self.metadata.items():
-            meta = model_onnx.metadata_props.add()
-            meta.key, meta.value = k, str(v)
-
-        onnx.save(model_onnx, f)
         return f
 
     @try_export
@@ -979,11 +960,6 @@ class Exporter:
         f = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
-
-        # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
-        onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
-        if not onnx2tf_file.exists():
-            attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
         self.args.simplify = True

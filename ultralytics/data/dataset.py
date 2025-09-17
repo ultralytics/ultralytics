@@ -437,7 +437,7 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    cache_suffix=".cache"
+    cache_suffix=".merged.cache"
 
     def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
         """
@@ -454,6 +454,8 @@ class GroundingDataset(YOLODataset):
         self.json_file = json_file
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
+
+        assert self.cache_suffix in {".cache", ".merged.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {self.cache_suffix}"
 
     def get_img_files(self, img_path: str) -> list:
         """
@@ -591,6 +593,12 @@ class GroundingDataset(YOLODataset):
                 }
             )
         x["hash"] = get_hash(self.json_file)
+
+
+        if self.cache_suffix == ".merged.cache":
+            x["labels"] = self.run_merge_labels(x["labels"])
+
+
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -697,10 +705,9 @@ class GroundingDataset(YOLODataset):
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
 
-        self.verify_labels(labels)
-        merge_samples_share_the_same_image_file=True
-        if merge_samples_share_the_same_image_file:
-            labels = self.run_merge_labels(labels)
+        if self.cache_suffix == ".cache":
+            self.verify_labels(labels)
+
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
@@ -793,6 +800,8 @@ class YOLOConcatDataset(ConcatDataset):
             if not hasattr(dataset, "close_mosaic"):
                 continue
             dataset.close_mosaic(hyp)
+
+
 
 
 # TODO: support semantic segmentation

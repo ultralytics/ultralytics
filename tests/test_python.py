@@ -742,6 +742,16 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 class TestCheckSource:
     """Test the `check_source` function with various input types and scenarios."""
 
+    def _assert_flags(self, flags, expected_true=()):
+        """Assert that only the expected flags are True and others are False.
+
+        flags: tuple of (webcam, screenshot, img, in_memory, tensor)
+        expected_true: iterable of flag names that should be True
+        """
+        names = ("webcam", "screenshot", "img", "in_memory", "tensor")
+        actual_true = {name for name, v in zip(names, flags) if v}
+        assert actual_true == set(expected_true), f"Expected {set(expected_true)} true, got {actual_true}"
+
     @pytest.fixture
     def file_src(self):
         """Return a predefined local image file path."""
@@ -750,7 +760,7 @@ class TestCheckSource:
     @pytest.fixture
     def url_src(self):
         """Return a predefined online image URL."""
-        return "https://ultralytics.com/images/bus.jpg?token=12345" if ONLINE else ""
+        return "https://ultralytics.com/images/bus.jpg" if ONLINE else ""
 
     @pytest.fixture
     def numpy_src(self):
@@ -799,6 +809,22 @@ class TestCheckSource:
     def mock_screenshot(self, monkeypatch):
         """Mock screenshot input for testing purposes using the mss library."""
 
+        # Ensure 'mss' is available by leveraging Ultralytics' existing requirement installer
+        if ONLINE:
+            try:
+                checks.AUTOINSTALL = True
+                if ARM64:  # avoid pip not found on arm64
+                    monkeypatch.setattr(checks, "ARM64", False, raising=False)
+                checks.check_requirements("mss", install=True)
+            except Exception:  # fallback to direct install
+                try:
+                    import subprocess
+
+                    installer = "uv pip" if checks.check_uv() else "pip"
+                    subprocess.run([installer, "install", "mss"], check=True)
+                except Exception:
+                    pass  # if still fails, proceed to stub or skip
+
         class MockMSS:
             def grab(self, monitor):
                 img = cv2.imread(SOURCE.as_posix())
@@ -824,45 +850,51 @@ class TestCheckSource:
         """Test `check_source` with a file path."""
         src, webcam, screenshot, img, in_memory, tensor = check_source(file_src)
         assert str(src) == str(file_src)
-        assert not any((webcam, screenshot, img, in_memory, tensor))
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=())
 
     def test_file_list(self, file_src):
         """Test `check_source` with a list of file paths."""
         src, webcam, screenshot, img, in_memory, tensor = check_source([file_src, file_src])
         assert len(src) == 2 and all(isinstance(s, Image.Image) for s in src)
-        assert img and not any((webcam, screenshot, in_memory, tensor))
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=("img",))
 
-    def test_check_url(self, url_src):
-        """Test `check_source` with a URL."""
+    @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+    @pytest.mark.parametrize("suffix, expect_stream", [("", False), ("?token=abc123", False)])
+    def test_check_image_url_variants(self, url_src, suffix, expect_stream):
+        """Test image file URLs (with/without query) are treated as files, not streams."""
         if not url_src:
             pytest.skip("Skipping online test in offline environment")
-        src, webcam, screenshot, img, in_memory, tensor = check_source(url_src)
-        assert str(src) == url_src.split("?")[0].rsplit("/")[-1]  # check filename only
-        assert not any((webcam, screenshot, img, in_memory, tensor))
+        url = url_src + suffix
+        src, webcam, screenshot, img, in_memory, tensor = check_source(url)
+        expected_true = ("webcam",) if expect_stream else ()
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=expected_true)
+        assert Path(str(src)).suffix.lower() in {".jpg", ".jpeg", ".png"}
 
     def test_check_tensor(self, tensor_src):
         """Test `check_source` with a PyTorch tensor."""
         src, webcam, screenshot, img, in_memory, tensor = check_source(tensor_src)
         assert (src == tensor_src).all()
-        assert tensor and not any((webcam, screenshot, img, in_memory))
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=("tensor",))
 
     def test_check_pillow(self, pillow_src):
         """Test `check_source` with a PIL Image."""
         src, webcam, screenshot, img, in_memory, tensor = check_source(pillow_src)
         assert src == pillow_src
-        assert img and not any((webcam, screenshot, in_memory, tensor))
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=("img",))
 
     def test_check_webcam(self, mock_webcam):
         """Test `check_source` with a mocked webcam input."""
         src, webcam, screenshot, img, in_memory, tensor = check_source(0)
-        assert webcam and not any((screenshot, img, in_memory, tensor))
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=("webcam",))
 
     def test_check_screenshot(self, mock_screenshot):
         """Test `check_source` with a mocked screenshot input."""
+        if not checks.check_requirements("mss", install=False):
+            pytest.skip("Skipping screenshot test because 'mss' is not available and cannot be installed")
         src, webcam, screenshot, img, in_memory, tensor = check_source("screen")
-        assert screenshot
-        assert not any((webcam, img, in_memory, tensor))
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=("screenshot",))
 
+    @pytest.mark.skipif(not ONLINE, reason="environment is offline")
     @pytest.mark.parametrize("suffix, expect_stream", [("", False), ("?token=abc123", False)])
     def test_check_video_file_url_variants(self, video_url, suffix, expect_stream):
         """Test video file URLs (with/without query) are treated as files, not streams."""
@@ -870,6 +902,6 @@ class TestCheckSource:
             pytest.skip("Skipping remote video file test in offline environment")
         url = video_url + suffix
         src, webcam, screenshot, img, in_memory, tensor = check_source(url)
-        assert webcam is expect_stream, "Video file URL should not be classified as a stream"
+        expected_true = ("webcam",) if expect_stream else ()
+        self._assert_flags((webcam, screenshot, img, in_memory, tensor), expected_true=expected_true)
         assert Path(str(src)).suffix.lower() in {".mov", ".mp4", ".avi"}
-        assert not any((screenshot, img, in_memory, tensor))

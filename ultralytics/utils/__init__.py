@@ -1393,33 +1393,42 @@ class SettingsManager(JSONDict):
 
 
 class ThreadedImporter:
-    """Preloads a module in a background thread to speed up later imports."""
-
+    """Preloads a module in a background thread when function is called."""
+    
     def __init__(self, module_name):
         """Initialize with the module name to preload."""
         self.module_name = module_name
-
+        
     def __call__(self, func_or_none=None):
-        """
-        Start background import.
-
-        Returns original function if used as decorator.
-        """
-        # Start import in background thread
+        """Return a wrapper that starts import on first call, or start immediately if not decorating."""
+        if func_or_none is None:
+            # Used as callable - start import immediately
+            self._start_import()
+            return
+            
+        # Used as decorator - return wrapper that imports on first call
+        import_started = False
+        
+        def wrapper(*args, **kwargs):
+            nonlocal import_started
+            if not import_started:
+                self._start_import()
+                import_started = True
+            return func_or_none(*args, **kwargs)
+            
+        return wrapper
+            
+    def _start_import(self):
+        """Start the background import thread."""
         thread = threading.Thread(target=self._import_module, daemon=True)
         thread.start()
-
-        # If used as decorator, return the original function unchanged
-        if func_or_none is not None:
-            return func_or_none
-
+        
     def _import_module(self):
-        """Import the module in background thread, fail silently on error."""
+        """Import the module in background thread."""
         try:
             importlib.import_module(self.module_name)
         except ImportError:
-            pass  # Fail silently, actual import will show the error
-
+            pass
 
 def preload(module_name):
     """Create a threaded importer for the given module name."""

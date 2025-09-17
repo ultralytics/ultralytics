@@ -2,7 +2,7 @@
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
-from ultralytics.utils import nms, ops, preload
+from ultralytics.utils import nms, ops
 
 
 class DetectionPredictor(BasePredictor):
@@ -31,7 +31,6 @@ class DetectionPredictor(BasePredictor):
         >>> predictor.predict_cli()
     """
 
-    @preload("torchvision.ops")
     def postprocess(self, preds, img, orig_imgs, **kwargs):
         """
         Post-process predictions and return a list of Results objects.

@@ -421,6 +421,7 @@ nav:
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
+      - Model YAML Configuration Guide: guides/model-yaml-config.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md

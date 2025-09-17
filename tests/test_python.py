@@ -813,6 +813,13 @@ class TestCheckSource:
         monkeypatch.setattr("mss.mss", lambda: MockMSS())
         yield
 
+    @pytest.fixture
+    def video_url(self):
+        """Remote video file URL with an explicit extension for testing."""
+        return (
+            "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov" if ONLINE else ""
+        )
+
     def test_check_file(self, file_src):
         """Test `check_source` with a file path."""
         src, webcam, screenshot, img, in_memory, tensor = check_source(file_src)
@@ -855,3 +862,14 @@ class TestCheckSource:
         src, webcam, screenshot, img, in_memory, tensor = check_source("screen")
         assert screenshot
         assert not any((webcam, img, in_memory, tensor))
+
+    @pytest.mark.parametrize("suffix, expect_stream", [("", False), ("?token=abc123", False)])
+    def test_check_video_file_url_variants(self, video_url, suffix, expect_stream):
+        """Test video file URLs (with/without query) are treated as files, not streams."""
+        if not video_url:
+            pytest.skip("Skipping remote video file test in offline environment")
+        url = video_url + suffix
+        src, webcam, screenshot, img, in_memory, tensor = check_source(url)
+        assert webcam is expect_stream, "Video file URL should not be classified as a stream"
+        assert Path(str(src)).suffix.lower() in {".mov", ".mp4", ".avi"}
+        assert not any((screenshot, img, in_memory, tensor))

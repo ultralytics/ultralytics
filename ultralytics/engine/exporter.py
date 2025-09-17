@@ -680,27 +680,10 @@ class Exporter:
                 im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0-255 to 0.0-1.0
                 return np.expand_dims(im, 0) if im.ndim == 3 else im
 
-            # Generate calibration data for integer quantization
-            ignored_scope = None
-            if isinstance(self.model.model[-1], Detect):
-                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
-                head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
-                ignored_scope = nncf.IgnoredScope(  # ignore operations
-                    patterns=[
-                        f".*{head_module_name}/.*/Add",
-                        f".*{head_module_name}/.*/Sub*",
-                        f".*{head_module_name}/.*/Mul*",
-                        f".*{head_module_name}/.*/Div*",
-                        f".*{head_module_name}\\.dfl.*",
-                    ],
-                    types=["Sigmoid"],
-                )
-
             quantized_ov_model = nncf.quantize(
                 model=ov_model,
                 calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
-                preset=nncf.QuantizationPreset.MIXED,
-                ignored_scope=ignored_scope,
+                preset=nncf.QuantizationPreset.PERFORMANCE
             )
             serialize(quantized_ov_model, fq_ov)
             return fq

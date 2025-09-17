@@ -93,7 +93,7 @@ def torch2saved_model(
 
 def keras2pb(keras_model, file: Path, prefix=""):
     """
-    Convert a Keras model to TensorFlow Protocol Buffer (.pb) format.
+    Convert a Keras model to TensorFlow GraphDef (.pb) format.
 
     Args:
         keras_model(tf_keras): Keras model to convert to frozen graph format.

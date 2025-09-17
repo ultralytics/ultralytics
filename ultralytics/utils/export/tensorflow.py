@@ -35,7 +35,7 @@ def torch2saved_model(
         tmp_file = file / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         if images is not None:
             file.mkdir()
-            np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
+            np.save(str(tmp_file), images)  # BHWC
             np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
     import onnx2tf  # scoped for after ONNX export for reduced conflict during import

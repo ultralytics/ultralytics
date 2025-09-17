@@ -965,7 +965,12 @@ class Exporter:
         images = None
         if self.args.int8 and self.args.data:
             images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz).permute(0, 2, 3, 1)
+            images = (
+                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
+                .permute(0, 2, 3, 1)
+                .numpy()
+                .astype(np.float32)
+            )
 
         keras_model = torch2saved_model(
             self.model,

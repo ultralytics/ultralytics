@@ -687,10 +687,14 @@ class Exporter:
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
                 ignored_scope = nncf.IgnoredScope(
                     subgraphs=[
-                        nncf.Subgraph(inputs=[f".*{head_module_name}/aten::cat/Concat",
-                                            f".*{head_module_name}/aten::cat/Concat_1",
-                                            f".*{head_module_name}/aten::cat/Concat_2"],
-                                    outputs=[f".*{head_module_name}/aten::cat/Concat_7"])
+                        nncf.Subgraph(
+                            inputs=[
+                                f".*{head_module_name}/aten::cat/Concat",
+                                f".*{head_module_name}/aten::cat/Concat_1",
+                                f".*{head_module_name}/aten::cat/Concat_2",
+                            ],
+                            outputs=[f".*{head_module_name}/aten::cat/Concat_7"],
+                        )
                     ]
                 )
 

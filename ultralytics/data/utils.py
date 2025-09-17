@@ -415,6 +415,19 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
     data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
+    DATA_DOCS = "https://docs.ultralytics.com/datasets/{}"
+    DATA_CFG_TYPES = [ # key, valid_types, example, docs
+        ["path", str, "/datasets/coco", DATA_DOCS.format("detect")],
+        ["train", (str, list), "images/train", DATA_DOCS.format("detect")],
+        ["val", (str, list), "images/val", DATA_DOCS.format("detect")],
+        ["test", (str, list), "images/test", DATA_DOCS.format("detect")],
+        ["nc", int, "80", DATA_DOCS.format("detect")],
+        ["names", (list, dict), '["person", "car"]', DATA_DOCS.format("detect")],
+        ["kpt_shape", list, "[17, 3]", DATA_DOCS.format("pose")],
+        ["flip_idx", list, "[0, 1, 2, 3]", DATA_DOCS.format("pose")],
+    ]
+    TypeValidator(DATA_CFG_TYPES)(data)
+
     for k in "train", "val":
         if k not in data:
             if k != "val" or "validation" not in data:

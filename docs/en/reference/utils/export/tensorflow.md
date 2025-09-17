@@ -17,4 +17,16 @@ keywords: TODO ADD KEYWORDS
 
 ## ::: ultralytics.utils.export.tensorflow.keras2pb
 
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.tensorflow.tflite2edgetpu
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.tensorflow.pb2tfjs
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.tensorflow.gd_outputs
+
 <br><br>

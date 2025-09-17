@@ -109,13 +109,13 @@ from ultralytics.utils.downloads import get_github_assets, safe_download
 from ultralytics.utils.export import (
     keras2pb,
     onnx2engine,
+    pb2tfjs,
+    tflite2edgetpu,
     torch2imx,
     torch2onnx,
     torch2saved_model,
-    tflite2edgetpu,
-    pb2tfjs,
 )
-from ultralytics.utils.files import file_size, spaces_in_path
+from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile

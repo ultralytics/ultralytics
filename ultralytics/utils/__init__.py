@@ -1392,6 +1392,36 @@ class SettingsManager(JSONDict):
         self.update(self.defaults)
 
 
+class ThreadedImporter:
+    """Preloads a module in a background thread to speed up later imports."""
+
+    def __init__(self, module_name):
+        """Initialize with the module name to preload."""
+        self.module_name = module_name
+
+    def __call__(self, func_or_none=None):
+        """Start background import. Returns original function if used as decorator."""
+        # Start import in background thread
+        thread = threading.Thread(target=self._import_module, daemon=True)
+        thread.start()
+
+        # If used as decorator, return the original function unchanged
+        if func_or_none is not None:
+            return func_or_none
+
+    def _import_module(self):
+        """Import the module in background thread, fail silently on error."""
+        try:
+            importlib.import_module(self.module_name)
+        except ImportError:
+            pass  # Fail silently, actual import will show the error
+
+
+def preload(module_name):
+    """Create a threaded importer for the given module name."""
+    return ThreadedImporter(module_name)
+
+
 def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     msg = f"'{arg}' is deprecated and will be removed in the future."

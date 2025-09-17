@@ -386,7 +386,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
 
-    @preload("torchvision.ops")
+    @preload("torchvision")
     def setup_model(self, model, verbose: bool = True):
         """
         Initialize YOLO model with given parameters and set it to evaluation mode.

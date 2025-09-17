@@ -106,7 +106,7 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import get_github_assets, safe_download
-from ultralytics.utils.export import keras2pb, onnx2engine, torch2imx, torch2onnx, torch2saved_model
+from ultralytics.utils.export import keras2pb, onnx2engine, torch2imx, torch2onnx, torch2saved_model, tflite2edgetpu
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -1027,22 +1027,9 @@ class Exporter:
                 "sudo apt-get install edgetpu-compiler",
             ):
                 subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
-        ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
 
-        LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
+        tflite2edgetpu(tflite_model, prefix)
         f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
-
-        cmd = (
-            "edgetpu_compiler "
-            f'--out_dir "{Path(f).parent}" '
-            "--show_operations "
-            "--search_delegate "
-            "--delegate_search_step 30 "
-            "--timeout_sec 180 "
-            f'"{tflite_model}"'
-        )
-        LOGGER.info(f"{prefix} running '{cmd}'")
-        subprocess.run(cmd, shell=True)
         self._add_tflite_metadata(f)
         return f
 

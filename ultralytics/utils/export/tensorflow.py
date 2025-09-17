@@ -109,3 +109,36 @@ def keras2pb(keras_model, file: Path, prefix=""):
     frozen_func = convert_variables_to_constants_v2(m)
     frozen_func.graph.as_graph_def()
     tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(file.parent), name=file.name, as_text=False)
+
+
+def tflite2edgetpu(tflite_model: Path, prefix=""):
+    """
+    Convert a TensorFlow Lite model to Edge TPU format using the Edge TPU compiler.
+
+    Args:
+        tflite_model (Path): Path to the input TensorFlow Lite (.tflite) model file.
+        prefix (str, optional): Logging prefix. Defaults to "".
+
+    Returns:
+        Path: Path to the converted Edge TPU model file (_edgetpu.tflite).
+
+    Note:
+        Requires the Edge TPU compiler to be installed. The function compiles the TFLite model
+        for optimal performance on Google's Edge TPU hardware accelerator.
+    """
+    import subprocess
+
+    ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
+
+    cmd = (
+        "edgetpu_compiler "
+        f'--out_dir "{tflite_model.parent}" '
+        "--show_operations "
+        "--search_delegate "
+        "--delegate_search_step 30 "
+        "--timeout_sec 180 "
+        f'"{tflite_model}"'
+    )
+    LOGGER.info(f"{prefix} running '{cmd}'")
+    subprocess.run(cmd, shell=True)

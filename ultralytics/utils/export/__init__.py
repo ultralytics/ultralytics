@@ -2,6 +2,6 @@
 
 from .imx import torch2imx  # noqa
 from .engine import torch2onnx, onnx2engine
-from .tensorflow import torch2saved_model, keras2pb
+from .tensorflow import torch2saved_model, keras2pb, tflite2edgetpu
 
-__all__ = ["torch2imx", "torch2onnx", "onnx2engine", "torch2saved_model", "keras2pb"]
+__all__ = ["torch2imx", "torch2onnx", "onnx2engine", "torch2saved_model", "keras2pb", "tflite2edgetpu"]

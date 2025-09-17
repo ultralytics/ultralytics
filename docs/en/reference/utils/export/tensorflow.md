@@ -11,7 +11,7 @@ keywords: Ultralytics, TensorFlow, SavedModel, Protocol Buffer, TensorFlow Lite,
 
 <br>
 
-## ::: ultralytics.utils.export.tensorflow.torch2saved_model
+## ::: ultralytics.utils.export.tensorflow.onnx2saved_model
 
 <br><br><hr><br>
 

@@ -109,11 +109,11 @@ from ultralytics.utils.downloads import get_github_assets, safe_download
 from ultralytics.utils.export import (
     keras2pb,
     onnx2engine,
+    onnx2saved_model,
     pb2tfjs,
     tflite2edgetpu,
     torch2imx,
     torch2onnx,
-    onnx2saved_model,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou

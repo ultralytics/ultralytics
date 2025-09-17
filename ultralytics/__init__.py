@@ -30,12 +30,15 @@ def __getattr__(name: str):
         return getattr(importlib.import_module("ultralytics.models"), name)
     elif name == "settings":
         from ultralytics.utils import SETTINGS
+
         return SETTINGS
     elif name == "checks":
         from ultralytics.utils.checks import check_yolo
+
         return check_yolo
     elif name == "download":
         from ultralytics.utils.downloads import download
+
         return download
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 

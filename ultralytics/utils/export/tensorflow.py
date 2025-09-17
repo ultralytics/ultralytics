@@ -3,37 +3,29 @@
 from pathlib import Path
 
 import numpy as np
-import torch
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.export import torch2onnx
 from ultralytics.utils.files import spaces_in_path
 
 
-def torch2saved_model(
-    model: torch.nn.Module,
-    file: Path,
-    im: torch.Tensor,
-    opset: int = 14,
+def onnx2saved_model(
+    onnx_file: str,
+    output_dir: Path,
     int8: bool = False,
     images: np.ndarray = None,
     disable_group_convolution: bool = False,
-    onnx_file: str = None,
     prefix="",
 ):
     """
-    Convert a PyTorch model to TensorFlow SavedModel format via ONNX.
+    Convert a ONNX model to TensorFlow SavedModel format via ONNX.
 
     Args:
-        model (torch.nn.Module): PyTorch model to convert.
-        file (Path): Output directory path for the SavedModel.
-        im (torch.Tensor): Sample input tensor for model tracing.
-        opset (int, optional): ONNX opset version. Defaults to 14.
+        onnx_file (str): ONNX file path.
+        output_dir (Path): Output directory path for the SavedModel.
         int8 (bool, optional): Enable INT8 quantization. Defaults to False.
         images (np.ndarray, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
-        onnx_file (str, optional): ONNX file path. Use this file path if provided. Defaults to None.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -47,21 +39,11 @@ def torch2saved_model(
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
     if not onnx2tf_file.exists():
         attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
-    onnx_file = onnx_file or str(file.with_suffix(".onnx"))
-    torch2onnx(
-        model,
-        im,
-        onnx_file,
-        opset=opset,
-        input_names=["images"],
-        output_names=["output0", "output1"] if model.task == "segment" else ["output0"],
-        simplify=True,
-    )
     np_data = None
     if int8:
-        tmp_file = file / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
+        tmp_file = output_dir / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
         if images is not None:
-            file.mkdir()
+            output_dir.mkdir()
             np.save(str(tmp_file), images)  # BHWC
             np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
@@ -70,7 +52,7 @@ def torch2saved_model(
     LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
     keras_model = onnx2tf.convert(
         input_onnx_file_path=onnx_file,
-        output_folder_path=str(file),
+        output_folder_path=str(output_dir),
         not_use_onnxsim=True,
         verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
         output_integer_quantized_tflite=int8,
@@ -84,10 +66,12 @@ def torch2saved_model(
     # Remove/rename TFLite models
     if int8:
         tmp_file.unlink(missing_ok=True)
-        for file in file.rglob("*_dynamic_range_quant.tflite"):
-            file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
-        for file in file.rglob("*_integer_quant_with_int16_act.tflite"):
-            file.unlink()  # delete extra fp16 activation TFLite files
+        for output_dir in output_dir.rglob("*_dynamic_range_quant.tflite"):
+            output_dir.rename(
+                output_dir.with_name(output_dir.stem.replace("_dynamic_range_quant", "_int8") + output_dir.suffix)
+            )
+        for output_dir in output_dir.rglob("*_integer_quant_with_int16_act.tflite"):
+            output_dir.unlink()  # delete extra fp16 activation TFLite files
     return keras_model
 
 

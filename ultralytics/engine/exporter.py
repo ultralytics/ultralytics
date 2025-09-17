@@ -113,7 +113,7 @@ from ultralytics.utils.export import (
     tflite2edgetpu,
     torch2imx,
     torch2onnx,
-    torch2saved_model,
+    onnx2saved_model,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
@@ -971,15 +971,15 @@ class Exporter:
                 .astype(np.float32)
             )
 
-        keras_model = torch2saved_model(
-            self.model,
+        self.args.simplify = True
+        f_onnx = self.export_onnx()  # ensure ONNX is available
+        keras_model = onnx2saved_model(
+            f_onnx,
             f,
-            self.im,
-            opset=self.args.opset or get_latest_opset(),
             int8=self.args.int8,
             images=images,
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},
-            onnx_file=str(self.file.with_suffix(".onnx")),
+            prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         # Add TFLite metadata

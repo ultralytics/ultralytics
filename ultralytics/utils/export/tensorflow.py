@@ -16,6 +16,26 @@ def torch2saved_model(
     disable_group_convolution: bool = False,
     prefix="",
 ):
+    """
+    Convert a PyTorch model to TensorFlow SavedModel format via ONNX.
+
+    Args:
+        model (torch.nn.Module): PyTorch model to convert.
+        file (Path): Output directory path for the SavedModel.
+        im (torch.Tensor): Sample input tensor for model tracing.
+        opset (int, optional): ONNX opset version. Defaults to 14.
+        int8 (bool, optional): Enable INT8 quantization. Defaults to False.
+        images (np.ndarray, optional): Calibration images for INT8 quantization in BHWC format.
+        disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
+        prefix (str, optional): Logging prefix. Defaults to "".
+
+    Returns:
+        (keras.Model): Converted Keras model.
+
+    Note:
+        Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
+        Removes temporary files and renames quantized models after conversion.
+    """
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")
     if not onnx2tf_file.exists():

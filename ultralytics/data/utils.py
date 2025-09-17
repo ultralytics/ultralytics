@@ -417,7 +417,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
 
     # Checks
     DATA_DOCS = "https://docs.ultralytics.com/datasets/{}"
-    DATA_CFG_TYPES = [ # key, valid_types, example, docs
+    DATA_CFG_TYPES = [  # key, valid_types, example, docs
         ["path", str, "/datasets/coco", DATA_DOCS.format("detect")],
         ["train", (str, list), "images/train", DATA_DOCS.format("detect")],
         ["val", (str, list), "images/val", DATA_DOCS.format("detect")],

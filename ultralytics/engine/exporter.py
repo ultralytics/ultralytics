@@ -106,7 +106,15 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import get_github_assets, safe_download
-from ultralytics.utils.export import keras2pb, onnx2engine, torch2imx, torch2onnx, torch2saved_model, tflite2edgetpu
+from ultralytics.utils.export import (
+    keras2pb,
+    onnx2engine,
+    torch2imx,
+    torch2onnx,
+    torch2saved_model,
+    tflite2edgetpu,
+    pb2tfjs,
+)
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -173,15 +181,6 @@ def validate_args(format, passed_args, valid_args):
         not_default = getattr(passed_args, arg, None) != getattr(default_args, arg, None)
         if not_default:
             assert arg in valid_args, f"ERROR ❌️ argument '{arg}' is not supported for format='{format}'"
-
-
-def gd_outputs(gd):
-    """Return TensorFlow GraphDef model output node names."""
-    name_list, input_list = [], []
-    for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
-        name_list.append(node.name)
-        input_list.extend(node.input)
-    return sorted(f"{x}:0" for x in list(set(name_list) - set(input_list)) if not x.startswith("NoOp"))
 
 
 def try_export(inner_func):
@@ -1037,31 +1036,10 @@ class Exporter:
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
         check_requirements("tensorflowjs")
-        import tensorflow as tf
-        import tensorflowjs as tfjs  # noqa
 
-        LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
         f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
         f_pb = str(self.file.with_suffix(".pb"))  # *.pb path
-
-        gd = tf.Graph().as_graph_def()  # TF GraphDef
-        with open(f_pb, "rb") as file:
-            gd.ParseFromString(file.read())
-        outputs = ",".join(gd_outputs(gd))
-        LOGGER.info(f"\n{prefix} output node names: {outputs}")
-
-        quantization = "--quantize_float16" if self.args.half else "--quantize_uint8" if self.args.int8 else ""
-        with spaces_in_path(f_pb) as fpb_, spaces_in_path(f) as f_:  # exporter can not handle spaces in path
-            cmd = (
-                "tensorflowjs_converter "
-                f'--input_format=tf_frozen_model {quantization} --output_node_names={outputs} "{fpb_}" "{f_}"'
-            )
-            LOGGER.info(f"{prefix} running '{cmd}'")
-            subprocess.run(cmd, shell=True)
-
-        if " " in f:
-            LOGGER.warning(f"{prefix} your model may not work correctly with spaces in path '{f}'.")
-
+        pb2tfjs(pb_file=f_pb, tfjs_dir=f, half=self.args.half, int8=self.args.int8, prefix=prefix)
         # Add metadata
         YAML.save(Path(f) / "metadata.yaml", self.metadata)  # add metadata.yaml
         return f

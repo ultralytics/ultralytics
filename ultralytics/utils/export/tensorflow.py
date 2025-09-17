@@ -82,3 +82,29 @@ def torch2saved_model(
         for file in file.rglob("*_integer_quant_with_int16_act.tflite"):
             file.unlink()  # delete extra fp16 activation TFLite files
     return keras_model
+
+
+def keras2pb(keras_model, file: Path, prefix=""):
+    """
+    Convert a Keras model to TensorFlow Protocol Buffer (.pb) format.
+
+    Args:
+        keras_model: Keras model to convert to frozen graph format.
+        file (Path): Output file path (suffix will be changed to .pb).
+        prefix (str, optional): Logging prefix. Defaults to "".
+
+    Returns:
+        Path: Path to the exported .pb file.
+
+    Note:
+        Creates a frozen graph by converting variables to constants for inference optimization.
+    """
+    import tensorflow as tf
+    from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
+
+    LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
+    m = tf.function(lambda x: keras_model(x))  # full model
+    m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
+    frozen_func = convert_variables_to_constants_v2(m)
+    frozen_func.graph.as_graph_def()
+    tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(file.parent), name=file.name, as_text=False)

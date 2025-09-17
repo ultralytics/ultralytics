@@ -106,7 +106,7 @@ from ultralytics.utils.checks import (
     is_sudo_available,
 )
 from ultralytics.utils.downloads import get_github_assets, safe_download
-from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx, torch2saved_model
+from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx, torch2saved_model, keras2pb
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -991,17 +991,8 @@ class Exporter:
     @try_export
     def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
         """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
-        import tensorflow as tf  # noqa
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
-
-        LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         f = self.file.with_suffix(".pb")
-
-        m = tf.function(lambda x: keras_model(x))  # full model
-        m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
-        frozen_func = convert_variables_to_constants_v2(m)
-        frozen_func.graph.as_graph_def()
-        tf.io.write_graph(graph_or_graph_def=frozen_func.graph, logdir=str(f.parent), name=f.name, as_text=False)
+        keras2pb(keras_model, f, prefix)
         return f
 
     @try_export

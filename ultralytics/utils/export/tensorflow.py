@@ -122,9 +122,6 @@ def tflite2edgetpu(tflite_file: Path, prefix: str = ""):
         tflite_file (Path): Path to the input TensorFlow Lite (.tflite) model file.
         prefix (str, optional): Logging prefix. Defaults to "".
 
-    Returns:
-        Path: Path to the converted Edge TPU model file (_edgetpu.tflite).
-
     Note:
         Requires the Edge TPU compiler to be installed. The function compiles the TFLite model
         for optimal performance on Google's Edge TPU hardware accelerator.

@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
+    de_parallel,
 )
 
 
@@ -429,7 +430,7 @@ class BaseTrainer:
 
                 self.run_callbacks("on_train_batch_end")
             if self.args.o2m != 1.0:
-                self.model.criterion.update()
+                de_parallel(self.model).criterion.update()
             # print(self.model.criterion.assigner.zero_assigned)
             # print("total assignment:", self.model.criterion.total_assignments)
             # exit()
@@ -825,8 +826,7 @@ class BaseTrainer:
             name, lr, momentum = ("SGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
-        for module_name, module in model.named_modules():
-            module_name = module_name.replace("module.", "")  # for ddp model
+        for module_name, module in de_parallel(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2 and self.args.muon_head == "model":

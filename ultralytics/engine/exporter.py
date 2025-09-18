@@ -586,7 +586,7 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset_version = self.args.opset or (onnx.defs.onnx_opset_version() - 1)  # default to second-most recent
+        opset_version = self.args.opset or (onnx.defs.onnx_opset_version() - 2)  # default to third-most recent
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]

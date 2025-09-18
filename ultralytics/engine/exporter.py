@@ -633,6 +633,11 @@ class Exporter:
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
 
+        # IR version
+        if model_onnx.ir_version >= 10:
+            LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
+            model_onnx.ir_version = 10
+
         onnx.save(model_onnx, f)
         return f
 

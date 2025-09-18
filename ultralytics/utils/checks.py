@@ -363,8 +363,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Path | str | list[str]): Path to a requirements.txt file, a single package requirement as a
-            string, or a list of package requirements as strings.
+        requirements (Path | str | list[str] | tuple[str]): Path to a requirements.txt file, a single package
+            requirement as a string, or a list of package requirements as strings.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
@@ -907,7 +907,7 @@ def is_intel():
     try:
         result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
         return "intel" in result.stdout.lower()
-    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+    except Exception:  # broad clause to capture all Intel GPU exception types
         return False
 
 

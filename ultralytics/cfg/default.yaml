@@ -37,7 +37,7 @@ fraction: 1.0 # (float) fraction of training dataset to use (1.0 = all)
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
 multi_scale: False # (bool) multiscale training by varying image size
-compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune"
+compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)

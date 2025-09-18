@@ -670,7 +670,7 @@ def check_yolo(verbose=True, device=""):
         s = ""
 
     if GIT.is_repo:
-        check_multi_install()  # check conflicting installation if using local clone
+        check_multiple_install()  # check conflicting installation if using local clone
 
     select_device(device=device, newline=False)
     LOGGER.info(f"Setup complete ✅ {s}")
@@ -810,7 +810,7 @@ def check_amp(model):
     return True
 
 
-def check_multi_install():
+def check_multiple_install():
     """Check if there are multiple Ultralytics installations."""
     import sys
 

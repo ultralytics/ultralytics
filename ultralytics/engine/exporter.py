@@ -151,29 +151,31 @@ def export_formats():
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
+
 def max_supported_onnx_opset() -> int:
     """Return max ONNX opset for this torch version, floored at 12 with ONNX fallback."""
     table = {
-        "1.8":  12,
-        "1.9":  12,
+        "1.8": 12,
+        "1.9": 12,
         "1.10": 13,
         "1.11": 14,
         "1.12": 15,
         "1.13": 17,
-        "2.0":  18,
-        "2.1":  19,
-        "2.2":  19,
-        "2.3":  19,
-        "2.4":  20,
-        "2.5":  20,
-        "2.6":  20,
-        "2.7":  20,
-        "2.8":  23,
+        "2.0": 18,
+        "2.1": 19,
+        "2.2": 19,
+        "2.3": 19,
+        "2.4": 20,
+        "2.5": 20,
+        "2.6": 20,
+        "2.7": 20,
+        "2.8": 23,
     }
     m = re.match(r"(\d+\.\d+)", torch.__version__)
     key = m.group(1) if m else torch.__version__
     opset = table.get(key, onnx.defs.onnx_opset_version() - 2)
     return max(12, opset)
+
 
 def validate_args(format, passed_args, valid_args):
     """

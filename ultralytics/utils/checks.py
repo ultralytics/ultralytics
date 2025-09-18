@@ -811,9 +811,7 @@ def check_amp(model):
 
 
 def check_multi_install():
-    """
-    Check if there are multiple Ultralytics installations.
-    """
+    """Check if there are multiple Ultralytics installations."""
     import sys
 
     try:

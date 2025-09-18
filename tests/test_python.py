@@ -15,7 +15,7 @@ from PIL import Image
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
-from ultralytics.data.build import check_source, load_inference_source
+from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -125,7 +125,9 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
+        "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg?token=123"
+        if ONLINE
+        else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy

@@ -45,7 +45,7 @@ class Detect(nn.Module):
         self.cv2 = nn.ModuleList(
             nn.Sequential(
                 Conv(x, c2, 3, act=act),
-                Conv(c2, c2, 3, act=act),
+                # Conv(c2, c2, 3, act=act),
                 Conv(c2, c2, 3, act=act),
                 nn.Conv2d(c2, 4 * self.reg_max, 1),
             )

@@ -826,6 +826,7 @@ class BaseTrainer:
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         for module_name, module in model.named_modules():
+            module_name = module_name.replace("module.", "")  # for ddp model
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 if param.ndim >= 2 and self.args.muon_head == "model":

@@ -152,7 +152,7 @@ def export_formats():
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
 
-def max_supported_onnx_opset() -> int:
+def max_supported_onnx_opset(onnx) -> int:
     """Return max ONNX opset for this torch version, floored at 12 with ONNX fallback."""
     table = {
         "1.8": 12,
@@ -611,7 +611,7 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset_version = self.args.opset or max_supported_onnx_opset()
+        opset_version = self.args.opset or max_supported_onnx_opset(onnx)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]

@@ -40,22 +40,22 @@ conda activate ultralytics
 
 export PYTHONPATH="/root/ultra_louis_work/ultralytics:$PYTHONPATH"
 
-if [ ! -f "yoloe-11s-seg.pt" ]; then
-    echo "File yoloe-11s-seg.pt does not exist. Downloading..."
-    wget https://huggingface.co/jameslahm/yoloe/resolve/main/yoloe-11s-seg.pt
+if [ ! -f "yoloe-v8s-seg.pt" ]; then
+    echo "File yoloe-v8s-seg.pt does not exist. Downloading..."
+    wget https://huggingface.co/jameslahm/yoloe/resolve/main/yoloe-v8s-seg.pt
 else
-    echo "File yoloe-11s-seg.pt already exists. Skipping download."
+    echo "File yoloe-v8s-seg.pt already exists. Skipping download."
 fi
 
 
 
 
-DATA_DIR="/root/autodl-tmp/datasets"
+DATA_DIR="../datasets"
 log_step "Step 1: Generating LVIS visual prompt dataset..."
 
 if [ ! -d "$DATA_DIR/lvis_train_vps" ]; then
     log_info "Generating LVIS visual prompt data..."
-    python generate_lvis_visual_prompt_data.py
+    python train_vp/generate_lvis_visual_prompt_data.py
     log_success "LVIS visual prompt dataset generated"
 else
     log_info "LVIS visual prompt dataset already exists. Skipping generation."
@@ -64,6 +64,6 @@ fi
 
 
 
-python train_vp.py
+python train_vp/train_vp.py
 
 # python val_vp.py

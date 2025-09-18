@@ -1,15 +1,11 @@
 
-import sys,os
-sys.path.append("/root/ultra_louis_work/ultralytics")
-os.chdir(os.path.dirname(os.path.abspath(__file__)))  # change to the directory of the current script
-
 from ultralytics import YOLOE
 from ultralytics.models.yolo.yoloe import YOLOEVPTrainer
 
 
 
 
-DATA_DIR="/root/autodl-tmp/datasets/"
+DATA_DIR="../datasets/"
 
 Objects365v1="./Objects365v1.yaml"
 
@@ -62,8 +58,8 @@ data = dict(
 #                     refer_data="./lvis_train_vps.yaml",max_det=1000)
 
 
-model = YOLOE("/root/ultra_louis_work/yoloe/yoloe-v8s-seg-det.pt")
-
+# model = YOLOE("/root/ultra_louis_work/yoloe/yoloe-v8s-seg-det.pt")
+model = YOLOE("yoloe-v8s.yaml").load("./yoloe-v8s-seg.pt")
 
 # reinit the model.model.savpe.
 model.model.model[-1].savpe.init_weights()
@@ -81,7 +77,7 @@ for name, child in model.model.model[-1].named_children():
 
 model.train(
     data=data,
-    batch=64,
+    batch=128,
     epochs=2,
     close_mosaic=2,
     optimizer="AdamW",
@@ -89,9 +85,9 @@ model.train(
     warmup_bias_lr=0.0,
     weight_decay=0.025,
     momentum=0.9,
-    # workers=4,
+    workers=8,
     trainer=YOLOEVPTrainer,  # use YOLOEVPTrainer if converted to detection model
-    device="0",
+    device="0,1,2,3",
     freeze=freeze, 
     val=False
 )

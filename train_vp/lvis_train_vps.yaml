@@ -1,5 +1,5 @@
 
-path: /root/autodl-tmp/datasets/lvis_train_vps 
+path: ../datasets/lvis_train_vps 
 train: null
 val: images
 test: nulls

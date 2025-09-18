@@ -6,7 +6,7 @@ import shutil
 import os
 from tqdm import tqdm
 
-DATA_DIR="/root/autodl-tmp/datasets/"
+DATA_DIR="../datasets/"
 
 
 if __name__ == '__main__':

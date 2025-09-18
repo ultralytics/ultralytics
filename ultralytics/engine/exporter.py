@@ -634,7 +634,7 @@ class Exporter:
             meta.key, meta.value = k, str(v)
 
         # IR version
-        if model_onnx.ir_version >= 10:
+        if getattr(model_onnx, "ir_version", 0) >= 10:
             LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
             model_onnx.ir_version = 10
 

@@ -427,6 +427,7 @@ class Exporter:
                     m.fuse(model.pe.to(self.device))
                 if tflite or edgetpu:
                     import types
+
                     from ultralytics.utils.export.tensorflow import _tf_inference, tf_kpts_decode
 
                     m._inference = types.MethodType(_tf_inference, m)

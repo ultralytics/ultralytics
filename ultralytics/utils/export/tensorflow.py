@@ -5,12 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
-import torch
 
 
 def _tf_inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:

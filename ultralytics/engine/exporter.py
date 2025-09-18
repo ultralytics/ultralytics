@@ -1049,7 +1049,7 @@ class Exporter:
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
-        tflite2edgetpu(tflite_model, prefix)
+        tflite2edgetpu(tflite_file=tflite_model, output_dir=tflite2edgetpu.parent, prefix=prefix)
         f = str(tflite_model).replace(".tflite", "_edgetpu.tflite")  # Edge TPU model
         self._add_tflite_metadata(f)
         return f

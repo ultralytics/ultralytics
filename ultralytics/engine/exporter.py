@@ -173,8 +173,9 @@ def max_supported_onnx_opset(onnx) -> int:
     }
     m = re.match(r"(\d+\.\d+)", torch.__version__)
     key = m.group(1) if m else torch.__version__
-    opset = table.get(key, onnx.defs.onnx_opset_version() - 2)
-    return max(12, opset)
+    max_opset = onnx.defs.onnx_opset_version() - 2
+    opset = table.get(key, max_opset)
+    return min(max(12, opset), max_opset)
 
 
 def validate_args(format, passed_args, valid_args):

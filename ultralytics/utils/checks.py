@@ -817,7 +817,7 @@ def check_multiple_install():
     try:
         result = subprocess.run([sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True)
         install_msg = (
-            "Install your local copy in editable mode with 'pip install -e .' to avoid "
+            f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
             "issues. See https://docs.ultralytics.com/quickstart/"
         )
         if result.returncode != 0:

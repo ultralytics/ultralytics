@@ -823,7 +823,7 @@ def check_multi_install():
         if result.returncode != 0:
             if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported
                 LOGGER.warning(f"Ultralytics not found via pip but importing from: {ROOT}. {install_msg}")
-                return
+            return
         yolo_path = (Path(re.search(r"Location: (.+)", result.stdout).group(1)) / "ultralytics").resolve()
         if not yolo_path.samefile(ROOT.resolve()):
             LOGGER.warning(

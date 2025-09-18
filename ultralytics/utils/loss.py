@@ -800,7 +800,7 @@ class TVPDetectLoss:
         self.ori_nc = self.vp_criterion.nc
         self.ori_no = self.vp_criterion.no
         self.ori_reg_max = self.vp_criterion.reg_max
-        self.ori_nc=0
+        # self.ori_nc=0
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt detection."""

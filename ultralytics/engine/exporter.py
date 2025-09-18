@@ -689,11 +689,11 @@ class Exporter:
                     subgraphs=[
                         nncf.Subgraph(
                             inputs=[
-                                f".*{head_module_name}/aten::cat/Concat",
-                                f".*{head_module_name}/aten::cat/Concat_1",
-                                f".*{head_module_name}/aten::cat/Concat_2",
+                                f"__module.{head_module_name}/aten::cat/Concat",
+                                f"__module.{head_module_name}/aten::cat/Concat_1",
+                                f"__module.{head_module_name}/aten::cat/Concat_2",
                             ],
-                            outputs=[f".*{head_module_name}/aten::cat/Concat_7"],
+                            outputs=[f"__module.{head_module_name}/aten::cat/Concat_5"],
                         )
                     ]
                 )

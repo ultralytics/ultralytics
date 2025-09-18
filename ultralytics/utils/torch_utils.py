@@ -534,18 +534,6 @@ def copy_attr(a, b, include=(), exclude=()):
             setattr(a, k, v)
 
 
-def get_latest_opset():
-    """
-    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
-
-    Returns:
-        (int): The ONNX opset version.
-    """
-    import onnx
-
-    return onnx.defs.onnx_opset_version() - 1
-
-
 def intersect_dicts(da, db, exclude=()):
     """
     Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.

@@ -153,7 +153,7 @@ def export_formats():
 
 
 def max_supported_onnx_opset(onnx) -> int:
-    """Return max ONNX opset for this torch version, floored at 12 with ONNX fallback."""
+    """Return max ONNX opset for this torch version with ONNX fallback."""
     table = {
         "1.8": 12,
         "1.9": 12,
@@ -173,9 +173,8 @@ def max_supported_onnx_opset(onnx) -> int:
     }
     m = re.match(r"(\d+\.\d+)", torch.__version__)
     key = m.group(1) if m else torch.__version__
-    max_opset = onnx.defs.onnx_opset_version() - 2
-    opset = table.get(key, max_opset)
-    return min(max(12, opset), max_opset)
+    opset = table.get(key, onnx.defs.onnx_opset_version() - 2)
+    return min(max(12, opset), 22)  # Ceiling at 22 for ONNXRuntime compatibility
 
 
 def validate_args(format, passed_args, valid_args):

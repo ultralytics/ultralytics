@@ -611,9 +611,28 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
-                simplify=self.args.simplify,
-                metadata=self.metadata,
             )
+
+        # Checks
+        model_onnx = onnx.load(f)  # load onnx model
+
+        # Simplify
+        if self.args.simplify:
+            try:
+                import onnxslim
+
+                LOGGER.info(f"{prefix} slimming with onnxslim {onnxslim.__version__}...")
+                model_onnx = onnxslim.slim(model_onnx)
+
+            except Exception as e:
+                LOGGER.warning(f"{prefix} simplifier failure: {e}")
+
+        # Metadata
+        for k, v in self.metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+
+        onnx.save(model_onnx, f)
         return f
 
     @try_export

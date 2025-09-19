@@ -152,29 +152,29 @@ def export_formats():
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
 
-def max_supported_onnx_opset(onnx) -> int:
+def best_onnx_opset(onnx) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    table = {
-        "1.8": 12,
-        "1.9": 12,
-        "1.10": 13,
-        "1.11": 14,
-        "1.12": 15,
-        "1.13": 17,
-        "2.0": 18,
-        "2.1": 19,
-        "2.2": 19,
-        "2.3": 19,
-        "2.4": 20,
-        "2.5": 20,
-        "2.6": 20,
-        "2.7": 20,
-        "2.8": 23,
-    }
-    m = re.match(r"(\d+\.\d+)", torch.__version__)
-    key = m.group(1) if m else torch.__version__
-    opset = table.get(key, onnx.defs.onnx_opset_version() - 2)
-    return min(max(12, opset), 22)  # Ceiling at 22 for ONNXRuntime compatibility
+    if hasattr(torch.onnx.utils, "_constants"):  # not supported in torch 1.8
+        opset = torch.onnx.utils._constants.ONNX_MAX_OPSET
+    else:
+        opset = {
+            "1.8": 12,
+            "1.9": 12,
+            "1.10": 13,
+            "1.11": 14,
+            "1.12": 15,
+            "1.13": 17,
+            "2.0": 18,
+            "2.1": 19,
+            "2.2": 19,
+            "2.3": 19,
+            "2.4": 20,
+            "2.5": 20,
+            "2.6": 20,
+            "2.7": 20,
+            "2.8": 23,
+        }.get(".".join(TORCH_VERSION.split(".")[:2]), 12)
+    return min(opset, onnx.defs.onnx_opset_version()) - 1  # use second-latest version for safety
 
 
 def validate_args(format, passed_args, valid_args):
@@ -611,8 +611,7 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset = self.args.opset or (torch.onnx.utils._constants.ONNX_MAX_OPSET - 1)
-        opset = min(max(opset, torch.onnx.utils._constants.ONNX_MIN_OPSET), torch.onnx.utils._constants.ONNX_MAX_OPSET)
+        opset = self.args.opset or best_onnx_opset(onnx)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]

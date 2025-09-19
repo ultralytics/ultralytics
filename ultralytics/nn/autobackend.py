@@ -220,7 +220,7 @@ class AutoBackend(nn.Module):
 
         # TorchScript
         elif jit:
-            import torchvision  # noqa - https://github.com/ultralytics/ultralytics/pull/19747
+            # import torchvision  # noqa - https://github.com/ultralytics/ultralytics/pull/19747
 
             LOGGER.info(f"Loading {w} for TorchScript inference...")
             extra_files = {"config.txt": ""}  # model metadata

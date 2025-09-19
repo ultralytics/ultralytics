@@ -50,6 +50,7 @@ class Model(torch.nn.Module):
 
     Methods:
         __call__: Alias for the predict method, enabling the model instance to be callable.
+        __new__: Create a new instance or return existing instance if Model object is passed.
         _new: Initialize a new model based on a configuration file.
         _load: Load a model from a checkpoint file.
         _check_is_pytorch_model: Ensure that the model is a PyTorch model.
@@ -78,6 +79,40 @@ class Model(torch.nn.Module):
         >>> metrics = model.val()
         >>> model.export(format="onnx")
     """
+
+    def __new__(
+        cls,
+        model: str | Path | Model = "yolo11n.pt",
+        task: str = None,
+        verbose: bool = False,
+    ):
+        """
+        Create a new Model instance or return existing instance if Model object is passed.
+
+        This method implements proper object creation semantics using __new__ instead of
+        copying __dict__ in __init__. When a Model instance is passed, it returns that
+        instance directly, which is more efficient and Pythonic than copying its state.
+
+        Args:
+            model (str | Path | Model): Path to model file, model name, or existing Model instance.
+            task (str, optional): Task type for the model.
+            verbose (bool): Enable verbose output.
+
+        Returns:
+            (Model): New Model instance or the existing instance if Model object was passed.
+
+        Examples:
+            >>> model1 = Model("yolo11n.yaml")
+            >>> model2 = Model(model1)  # Returns model1, not a copy
+            >>> assert model2 is model1  # True
+        """
+        # Return existing Model instance directly instead of copying __dict__
+        if isinstance(model, cls):
+            return model
+        
+        # Create new instance for all other cases
+        instance = super().__new__(cls)
+        return instance
 
     def __init__(
         self,
@@ -110,9 +145,6 @@ class Model(torch.nn.Module):
             >>> model = Model("path/to/model.yaml", task="detect")
             >>> model = Model("hub_model", verbose=True)
         """
-        if isinstance(model, Model):
-            self.__dict__ = model.__dict__  # accepts an already initialized Model
-            return
         super().__init__()
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor

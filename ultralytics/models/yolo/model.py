@@ -342,6 +342,8 @@ class YOLOE(Model):
         validator=None,
         load_vp: bool = False,
         refer_data: str | None = None,
+        vp_weight: float=1.0,
+        use_json_metrics: bool=True,
         **kwargs,
     ):
         """
@@ -351,6 +353,8 @@ class YOLOE(Model):
             validator (callable, optional): A callable validator function. If None, a default validator is loaded.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
             refer_data (str, optional): Path to the reference data for visual prompts.
+            vp_weight (float): Weight for visual prompt embeddings when combining with text embeddings. Default is 1.0.
+            use_json_metrics (bool): Whether to return JSON metrics. Default is True.
             **kwargs (Any): Additional keyword arguments to override default settings.
 
         Returns:
@@ -360,9 +364,12 @@ class YOLOE(Model):
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
-        validator(model=self.model, load_vp=load_vp, refer_data=refer_data)
-        self.metrics = validator.metrics
-        return validator.metrics
+        json_metrics=validator(model=self.model, load_vp=load_vp, refer_data=refer_data,vp_weight=vp_weight)
+        if use_json_metrics:
+            self.metrics = json_metrics
+        else:
+            self.metrics = validator.metrics
+        return self.metrics
 
     def predict(
         self,

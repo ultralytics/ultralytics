@@ -147,6 +147,7 @@ class YOLOEDetectValidator(DetectionValidator):
         model: YOLOEModel | str | None = None,
         refer_data: str | None = None,
         load_vp: bool = False,
+        vp_weight: float= 1.0,
     ) -> dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.
@@ -160,6 +161,7 @@ class YOLOEDetectValidator(DetectionValidator):
             model (YOLOEModel | str, optional): Model to validate. Required if trainer is not provided.
             refer_data (str, optional): Path to reference data for visual prompts.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
+            vp_weight (float): Weight for visual prompt embeddings when combining with text embeddings. Default is 1.0.
 
         Returns:
             (dict): Validation statistics containing metrics computed during validation.
@@ -171,9 +173,16 @@ class YOLOEDetectValidator(DetectionValidator):
 
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
+                if vp_weight<1:
+                    LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
                 self.args.half = False
                 # Directly use the same dataloader for visual embeddings extracted during training
                 vpe = self.get_visual_pe(self.dataloader, model)
+
+                if vp_weight<1:
+                    vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)
+
+
                 model.set_classes(names, vpe)
             else:
                 LOGGER.info("Validate using the text prompt.")
@@ -195,11 +204,21 @@ class YOLOEDetectValidator(DetectionValidator):
 
             if load_vp:
                 LOGGER.info("Validate using the visual prompt.")
+                if vp_weight<1:
+                    LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
+                    
+                     
                 self.args.half = False
                 # TODO: need to check if the names from refer data is consistent with the evaluated dataset
                 # could use same dataset or refer to extract visual prompt embeddings
                 dataloader = self.get_vpe_dataloader(data)
                 vpe = self.get_visual_pe(dataloader, model)
+
+                if vp_weight<1:
+                    vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)
+
+
+
                 model.set_classes(names, vpe)
                 stats = super().__call__(model=deepcopy(model))
             elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
@@ -210,6 +229,14 @@ class YOLOEDetectValidator(DetectionValidator):
                 model.set_classes(names, tpe)
                 stats = super().__call__(model=deepcopy(model))
         return stats
+
+
+
+    def print_results(self) -> None:
+        """Since too much classes in grounding dataset, we disable Print training/validation set metrics per class."""
+        pass
+
+
 
 
 class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):

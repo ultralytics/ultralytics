@@ -83,6 +83,7 @@ from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
+    TORCH_1_13,
     fuse_conv_and_bn,
     fuse_deconv_and_bn,
     initialize_weights,
@@ -90,7 +91,7 @@ from ultralytics.utils.torch_utils import (
     model_info,
     scale_img,
     smart_inference_mode,
-    time_sync, TORCH_1_13,
+    time_sync,
 )
 
 

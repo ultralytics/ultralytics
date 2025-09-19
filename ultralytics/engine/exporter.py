@@ -612,7 +612,7 @@ class Exporter:
         import onnx  # noqa
 
         opset = self.args.opset or (torch.onnx.utils._constants.ONNX_MAX_OPSET - 1)
-        opset = min(max(opset, torch.onnx.utils._constants.ONNX_MIN_OPSET, torch.onnx.utils._constants.ONNX_MAX_OPSET)
+        opset = min(max(opset, torch.onnx.utils._constants.ONNX_MIN_OPSET), torch.onnx.utils._constants.ONNX_MAX_OPSET)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]

@@ -415,9 +415,12 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    # decouple inference and loss calculations for torch.compile convenience
-                    preds = self.model(batch["img"])
-                    loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                    if self.args.compile:
+                        # Decouple inference and loss calculations for improved compile performance
+                        preds = self.model(batch["img"])
+                        loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                    else:
+                        loss, self.loss_items = self.model(batch)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size

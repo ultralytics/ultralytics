@@ -29,7 +29,6 @@ __all__ = (
 )
 
 
-
 class TransformerEncoderLayer(nn.Module):
     """
     A single layer of the transformer encoder.

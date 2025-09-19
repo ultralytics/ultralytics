@@ -996,12 +996,6 @@ def attempt_compile(
         >>> # Try to compile and warm up a model with a 640x640 input
         >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
     """
-    from ultralytics.nn.tasks import WorldModel, YOLOEModel
-
-    assert not isinstance(model, (WorldModel, YOLOEModel)), (
-        f"torch.compile not supported for {model.__class__.__name__}, re-run with 'compile=False'"
-    )
-
     if not hasattr(torch, "compile") or not mode:
         return model
 

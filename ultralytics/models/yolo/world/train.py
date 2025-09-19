@@ -64,6 +64,7 @@ class WorldTrainer(DetectionTrainer):
         """
         if overrides is None:
             overrides = {}
+        assert not overrides["compile"], f"torch.compile training not supported with 'model={overrides['model']}'"
         super().__init__(cfg, overrides, _callbacks)
         self.text_embeddings = None
 

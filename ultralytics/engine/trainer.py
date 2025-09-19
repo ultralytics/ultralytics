@@ -265,7 +265,7 @@ class BaseTrainer:
             self.model.criterion = self.model.init_criterion()
 
         # Compile model
-        self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
+        self.args.compile, self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
         freeze_list = (
@@ -415,9 +415,12 @@ class BaseTrainer:
                 # Forward
                 with autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    # decouple inference and loss calculations for torch.compile convenience
-                    preds = self.model(batch["img"])
-                    loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
+                    if not self.args.compile:
+                        loss, self.loss_items = self.model(batch)
+                    else:
+                        # decouple inference and loss calculations for torch.compile convenience
+                        preds = self.model(batch["img"])
+                        loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size

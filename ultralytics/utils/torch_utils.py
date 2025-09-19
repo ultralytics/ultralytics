@@ -966,7 +966,7 @@ def attempt_compile(
     use_autocast: bool = False,
     warmup: bool = False,
     mode: bool | str = "default",
-) -> torch.nn.Module:
+) -> list[bool, torch.nn.Module]:
     """
     Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
 
@@ -984,7 +984,7 @@ def attempt_compile(
             "default", "reduce-overhead", "max-autotune-no-cudagraphs".
 
     Returns:
-        model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
+        list[bool, model (torch.nn.Module)]: [True, compiled model] if compilation succeeds, otherwise the [False, original model].
 
     Notes:
         - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
@@ -994,14 +994,21 @@ def attempt_compile(
     Examples:
         >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         >>> # Try to compile and warm up a model with a 640x640 input
-        >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
+        >>> success, model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
     """
+    from ultralytics.nn.tasks import WorldModel, YOLOEModel
+
     if not hasattr(torch, "compile") or not mode:
-        return model
+        return False, model
 
     if mode is True:
         mode = "default"
     prefix = colorstr("compile:")
+
+    if isinstance(model, (WorldModel, YOLOEModel)):
+        LOGGER.warning(f"{prefix} torch.compile not supported for {model.__class__.__name__}")
+        return False, model
+
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     if mode == "max-autotune":
         LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")
@@ -1011,7 +1018,7 @@ def attempt_compile(
         model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
-        return model
+        return False, model
     t_compile = time.perf_counter() - t0
 
     t_warm = 0.0
@@ -1036,4 +1043,4 @@ def attempt_compile(
         LOGGER.info(f"{prefix} complete in {total:.1f}s (compile {t_compile:.1f}s + warmup {t_warm:.1f}s)")
     else:
         LOGGER.info(f"{prefix} compile complete in {t_compile:.1f}s (no warmup)")
-    return model
+    return True, model

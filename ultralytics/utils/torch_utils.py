@@ -994,7 +994,7 @@ def attempt_compile(
     Examples:
         >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         >>> # Try to compile and warm up a model with a 640x640 input
-        >>> success, model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
+        >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
     """
     from ultralytics.nn.tasks import WorldModel, YOLOEModel
 

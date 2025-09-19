@@ -1,0 +1,20 @@
+# KITTI Dataset Configuration for Monocular Depth Estimation
+# Dataset path
+path: /root/autodl-tmp/kitti_yolo_depth
+
+# Train and validation paths
+train: images
+val: images
+
+# Number of classes
+nc: 3
+
+# Class names
+names:
+  0: Car
+  1: Pedestrian
+  2: Cyclist
+
+# Depth range for normalization (in meters)
+depth_min: 0
+depth_max: 100

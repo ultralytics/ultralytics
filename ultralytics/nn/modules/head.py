@@ -20,7 +20,7 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment"
+__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment", "Detect_MDE"
 
 
 class Detect(nn.Module):
@@ -1228,3 +1228,133 @@ class v10Detect(Detect):
     def fuse(self):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
+
+
+class Detect_MDE(nn.Module):
+    """
+    YOLO Detect head with Monocular Depth Estimation (MDE).
+    
+    This class extends the standard YOLO detection head to include depth estimation
+    for each detected object. It predicts bounding boxes, class probabilities, and
+    depth values simultaneously.
+    
+    Attributes:
+        nc (int): Number of classes.
+        nl (int): Number of detection layers.
+        reg_max (int): DFL channels.
+        no (int): Number of outputs per anchor (includes depth channel).
+        stride (torch.Tensor): Strides computed during build.
+        cv2 (nn.ModuleList): Convolution layers for box regression.
+        cv3 (nn.ModuleList): Convolution layers for classification.
+        cv_depth (nn.ModuleList): Convolution layers for depth estimation.
+        dfl (nn.Module): Distribution Focal Loss layer.
+        
+    Methods:
+        forward: Perform forward pass and return predictions with depth.
+        depth_activation: Apply log-sigmoid activation for depth prediction.
+        bias_init: Initialize detection head biases.
+        
+    Examples:
+        Create an MDE detection head for 5 classes (KITTI dataset)
+        >>> mde_head = Detect_MDE(nc=5, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = mde_head(x)
+    """
+    
+    # Class attributes for compatibility with YOLO framework
+    dynamic = False  # force grid reconstruction
+    export = False  # export mode
+    format = None  # export format
+    end2end = False  # end2end
+    max_det = 300  # max_det
+    shape = None
+    anchors = torch.empty(0)  # init
+    strides = torch.empty(0)  # init
+    legacy = False  # backward compatibility for v3/v5/v8/v9 models
+    xyxy = False  # xyxy or xywh output
+    
+    def __init__(self, nc: int = 80, ch: tuple = (), reg_max: int = 16):
+        """
+        Initialize MDE detection head.
+        
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            reg_max (int): DFL channels for box regression.
+        """
+        super().__init__()
+        self.nc = nc  # number of classes
+        self.nl = len(ch)  # number of detection layers
+        self.reg_max = reg_max  # DFL channels
+        self.no = nc + self.reg_max * 4 + 1  # number of outputs per anchor (+1 for depth)
+        self.stride = torch.zeros(self.nl)  # strides computed during build
+        
+        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))
+        
+        # Box regression branch
+        self.cv2 = nn.ModuleList(
+            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) 
+            for x in ch
+        )
+        
+        # Classification branch
+        self.cv3 = nn.ModuleList(
+            nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) 
+            for x in ch
+        )
+        
+        # Depth estimation branch
+        self.cv_depth = nn.ModuleList(
+            nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, 1, 1))
+            for x in ch
+        )
+        
+        # Distribution Focal Loss for box regression
+        self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
+
+    def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor]:
+        """
+        Forward pass through the MDE head.
+        
+        Args:
+            x (list[torch.Tensor]): List of feature maps from different scales.
+            
+        Returns:
+            list[torch.Tensor]: List of predictions with [box, class, depth] concatenated.
+        """
+        for i in range(self.nl):
+            # Box and class predictions
+            box = self.cv2[i](x[i])
+            cls = self.cv3[i](x[i])
+            # Depth prediction with log-sigmoid activation
+            depth = self.cv_depth[i](x[i])
+            depth = self.depth_activation(depth)
+            
+            x[i] = torch.cat((box, cls, depth), 1)
+        
+        return x
+
+    def depth_activation(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Log-sigmoid activation for depth (Equation 3 from paper)
+        fd = β * log(sigmoid(Od)) where β = -14.4
+        
+        Args:
+            x (torch.Tensor): Raw depth predictions.
+            
+        Returns:
+            torch.Tensor: Activated depth predictions.
+        """
+        beta = -14.4
+        return beta * torch.log(torch.sigmoid(x) + 1e-7)
+    
+    def bias_init(self):
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        m = self  # self.model[-1]  # Detect() module
+        for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
+            a[-1].bias.data[:] = 1.0  # box
+            b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+        
+        # Initialize depth bias to predict reasonable depth values
+        for d in self.cv_depth:
+            d[-1].bias.data[:] = 0.0  # depth (start with neutral prediction)

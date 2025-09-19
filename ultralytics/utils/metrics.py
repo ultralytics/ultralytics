@@ -1590,3 +1590,460 @@ class OBBMetrics(DetMetrics):
         DetMetrics.__init__(self, names)
         # TODO: probably remove task as well
         self.task = "obb"
+
+
+class MDEMetrics(DetMetrics):
+    """
+    Metrics for evaluating Monocular Depth Estimation (MDE) with object detection.
+
+    This class extends DetMetrics to include depth estimation metrics alongside
+    standard object detection metrics. It provides comprehensive evaluation
+    for models that predict both bounding boxes and depth values.
+
+    Attributes:
+        names (dict[int, str]): Dictionary of class names.
+        box (Metric): An instance of the Metric class for storing detection results.
+        depth (Metric): An instance of the Metric class for storing depth estimation results.
+        speed (dict[str, float]): A dictionary for storing execution times of different parts of the detection process.
+        task (str): The task type, set to 'mde'.
+        stats (dict[str, list]): A dictionary containing lists for true positives, confidence scores, predicted classes, target classes, target images, and depth values.
+        nt_per_class: Number of targets per class.
+        nt_per_image: Number of targets per image.
+        depth_errors (list): List of depth error rates for each matched prediction.
+        depth_abs_errors (list): List of absolute depth errors for each matched prediction.
+        depth_sq_errors (list): List of squared depth errors for each matched prediction.
+        depth_accuracies (dict): Dictionary of depth accuracy metrics at different thresholds.
+
+    Methods:
+        process: Process the detection and depth estimation metrics over the given set of predictions.
+        keys: Return a list of keys for accessing metrics.
+        mean_results: Return the mean metrics for bounding box and depth estimation results.
+        class_result: Return the class-wise detection results for a specific class i.
+        maps: Return the mean average precision (mAP) per class for both box and depth detections.
+        fitness: Return combined fitness score for depth estimation and box detection.
+        curves: Return a list of curves for accessing specific metrics curves.
+        curves_results: Provide a list of computed performance metrics and statistics.
+        summary: Generate a summarized representation of per-class MDE metrics as a list of dictionaries.
+        calculate_depth_error: Calculate depth error rate (Equation 8 from paper).
+        calculate_absolute_depth_error: Calculate absolute depth error in meters.
+        calculate_squared_depth_error: Calculate squared depth error (RMSE).
+        calculate_depth_accuracy: Calculate depth accuracy metrics (δ < threshold).
+        match_predictions: Match predictions with ground truth labels for depth evaluation.
+
+    References:
+        Monocular Depth Estimation with Object Detection Integration
+    """
+
+    def __init__(self, names: dict[int, str] = {}) -> None:
+        """
+        Initialize an MDEMetrics instance with directory, plotting, and class names.
+
+        Args:
+            names (dict[int, str], optional): Dictionary of class names.
+        """
+        DetMetrics.__init__(self, names)
+        self.depth = Metric()
+        self.task = "mde"
+        self.stats["pred_depths"] = []  # add additional stats for depth predictions
+        self.stats["target_depths"] = []  # add additional stats for depth targets
+        
+        # Depth-specific metrics
+        self.depth_errors = []
+        self.depth_abs_errors = []
+        self.depth_sq_errors = []
+        self.depth_accuracies = {f"δ < {th:.3f}": [] for th in [1.25, 1.25**2, 1.25**3]}
+
+    def calculate_depth_error(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate depth error rate (Equation 8 from paper).
+        
+        Args:
+            pred_depths: Predicted depth values [N]
+            gt_depths: Ground truth depth values [N]
+            
+        Returns:
+            torch.Tensor: Depth error rate as percentage
+        """
+        # Avoid division by zero
+        mask = gt_depths > 1e-6
+        if not mask.any():
+            return torch.tensor(0.0, device=pred_depths.device)
+        
+        pred_depths = pred_depths[mask]
+        gt_depths = gt_depths[mask]
+        
+        errors = torch.abs(gt_depths - pred_depths) / gt_depths
+        return errors.mean() * 100  # Percentage
+
+    def calculate_absolute_depth_error(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate absolute depth error in meters.
+        
+        Args:
+            pred_depths: Predicted depth values [N]
+            gt_depths: Ground truth depth values [N]
+            
+        Returns:
+            torch.Tensor: Mean absolute depth error in meters
+        """
+        return torch.abs(pred_depths - gt_depths).mean()
+
+    def calculate_squared_depth_error(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate squared depth error (RMSE).
+        
+        Args:
+            pred_depths: Predicted depth values [N]
+            gt_depths: Ground truth depth values [N]
+            
+        Returns:
+            torch.Tensor: Root mean squared depth error in meters
+        """
+        return torch.sqrt(torch.mean((pred_depths - gt_depths) ** 2))
+
+    def calculate_depth_accuracy(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor, 
+                               thresholds: list[float] = [1.25, 1.25**2, 1.25**3]) -> dict[str, float]:
+        """
+        Calculate depth accuracy metrics (δ < threshold).
+        
+        Args:
+            pred_depths: Predicted depth values [N]
+            gt_depths: Ground truth depth values [N]
+            thresholds: List of accuracy thresholds
+            
+        Returns:
+            Dict[str, float]: Accuracy metrics for each threshold
+        """
+        # Avoid division by zero
+        mask = gt_depths > 1e-6
+        if not mask.any():
+            return {f"δ < {th:.3f}": 0.0 for th in thresholds}
+        
+        pred_depths = pred_depths[mask]
+        gt_depths = gt_depths[mask]
+        
+        # Calculate ratios
+        ratio1 = pred_depths / gt_depths
+        ratio2 = gt_depths / pred_depths
+        ratio = torch.max(ratio1, ratio2)
+        
+        accuracies = {}
+        for th in thresholds:
+            acc = (ratio < th).float().mean().item()
+            accuracies[f"δ < {th:.3f}"] = acc * 100  # Percentage
+        
+        return accuracies
+
+    def match_predictions(self, preds: list[torch.Tensor], gt_labels: list[dict], 
+                         iou_threshold: float = 0.5) -> list[tuple[torch.Tensor, torch.Tensor]]:
+        """
+        Match predictions with ground truth labels for depth evaluation.
+        
+        Args:
+            preds: List of prediction tensors [batch_size, num_detections, 6] (x1,y1,x2,y2,conf,depth)
+            gt_labels: List of ground truth labels for each image
+            iou_threshold: IoU threshold for matching
+            
+        Returns:
+            List[Tuple[torch.Tensor, torch.Tensor]]: List of (pred_depth, gt_depth) pairs
+        """
+        matched_pairs = []
+        
+        for pred, gt_label in zip(preds, gt_labels):
+            if len(pred) == 0 or len(gt_label) == 0:
+                continue
+                
+            # Extract boxes and depths
+            pred_boxes = pred[:, :4]  # x1, y1, x2, y2
+            pred_depths = pred[:, 5]  # depth
+            pred_confs = pred[:, 4]   # confidence
+            
+            gt_boxes = gt_label['boxes']  # x1, y1, x2, y2
+            gt_depths = gt_label['depths']  # depth values
+            
+            # Calculate IoU between all prediction and ground truth boxes
+            ious = self._calculate_iou(pred_boxes, gt_boxes)
+            
+            # Find best matches
+            for i, pred_box in enumerate(pred_boxes):
+                if pred_confs[i] < 0.5:  # Skip low confidence predictions
+                    continue
+                    
+                # Find best matching ground truth
+                best_iou = 0
+                best_gt_idx = -1
+                
+                for j, gt_box in enumerate(gt_boxes):
+                    iou = ious[i, j]
+                    if iou > best_iou and iou > iou_threshold:
+                        best_iou = iou
+                        best_gt_idx = j
+                
+                if best_gt_idx >= 0:
+                    matched_pairs.append((pred_depths[i], gt_depths[best_gt_idx]))
+        
+        return matched_pairs
+
+    def _calculate_iou(self, boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate IoU between two sets of boxes.
+        
+        Args:
+            boxes1: First set of boxes [N, 4] (x1, y1, x2, y2)
+            boxes2: Second set of boxes [M, 4] (x1, y1, x2, y2)
+            
+        Returns:
+            torch.Tensor: IoU matrix [N, M]
+        """
+        # Calculate intersection
+        x1 = torch.max(boxes1[:, None, 0], boxes2[:, 0])
+        y1 = torch.max(boxes1[:, None, 1], boxes2[:, 1])
+        x2 = torch.min(boxes1[:, None, 2], boxes2[:, 2])
+        y2 = torch.min(boxes1[:, None, 3], boxes2[:, 3])
+        
+        intersection = torch.clamp(x2 - x1, min=0) * torch.clamp(y2 - y1, min=0)
+        
+        # Calculate areas
+        area1 = (boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1])
+        area2 = (boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1])
+        
+        # Calculate union
+        union = area1[:, None] + area2 - intersection
+        
+        # Calculate IoU
+        iou = intersection / (union + 1e-6)
+        
+        return iou
+
+    def process(self, save_dir: Path = Path("."), plot: bool = False, on_plot=None) -> dict[str, np.ndarray]:
+        """
+        Process the detection and depth estimation metrics over the given set of predictions.
+
+        Args:
+            save_dir (Path): Directory to save plots. Defaults to Path(".").
+            plot (bool): Whether to plot precision-recall curves. Defaults to False.
+            on_plot (callable, optional): Function to call after plots are generated. Defaults to None.
+
+        Returns:
+            (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
+        """
+        # Process detection metrics first (only if we have detection stats)
+        detection_stats = {k: v for k, v in self.stats.items() if k not in ["pred_depths", "target_depths"]}
+        if any(len(v) > 0 for v in detection_stats.values()):
+            stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)
+        else:
+            stats = {}
+        
+        # Process depth metrics
+        if self.stats["pred_depths"] and self.stats["target_depths"]:
+            pred_depths = torch.cat(self.stats["pred_depths"])
+            target_depths = torch.cat(self.stats["target_depths"])
+            
+            # Calculate depth metrics
+            if len(pred_depths) > 0 and len(target_depths) > 0:
+                # Depth error rate
+                error_rate = self.calculate_depth_error(pred_depths, target_depths)
+                self.depth_errors.append(error_rate.item())
+                
+                # Absolute error
+                abs_error = self.calculate_absolute_depth_error(pred_depths, target_depths)
+                self.depth_abs_errors.append(abs_error.item())
+                
+                # Squared error (RMSE)
+                sq_error = self.calculate_squared_depth_error(pred_depths, target_depths)
+                self.depth_sq_errors.append(sq_error.item())
+                
+                # Accuracy metrics
+                acc_metrics = self.calculate_depth_accuracy(pred_depths, target_depths)
+                for key, value in acc_metrics.items():
+                    self.depth_accuracies[key].append(value)
+        
+        return stats
+
+    @property
+    def keys(self) -> list[str]:
+        """Return a list of keys for accessing metrics."""
+        return DetMetrics.keys.fget(self) + [
+            "metrics/depth_error_rate",
+            "metrics/depth_abs_error", 
+            "metrics/depth_rmse",
+            "metrics/depth_accuracy_1.25",
+            "metrics/depth_accuracy_1.56",
+            "metrics/depth_accuracy_1.95",
+        ]
+
+    def mean_results(self) -> list[float]:
+        """Return the mean metrics for bounding box and depth estimation results."""
+        base_results = DetMetrics.mean_results(self)
+        
+        # Add depth metrics
+        depth_results = []
+        if self.depth_errors:
+            depth_results.append(np.mean(self.depth_errors))
+        else:
+            depth_results.append(0.0)
+            
+        if self.depth_abs_errors:
+            depth_results.append(np.mean(self.depth_abs_errors))
+        else:
+            depth_results.append(0.0)
+            
+        if self.depth_sq_errors:
+            depth_results.append(np.sqrt(np.mean(self.depth_sq_errors)))
+        else:
+            depth_results.append(0.0)
+        
+        # Add accuracy metrics
+        for key in ["δ < 1.250", "δ < 1.562", "δ < 1.953"]:
+            if self.depth_accuracies[key]:
+                depth_results.append(np.mean(self.depth_accuracies[key]))
+            else:
+                depth_results.append(0.0)
+        
+        return base_results + depth_results
+
+    def class_result(self, i: int) -> list[float]:
+        """Return the class-wise detection results for a specific class i."""
+        # For MDE, we don't have per-class depth metrics, so we return the same depth metrics for all classes
+        base_results = DetMetrics.class_result(self, i)
+        
+        # Add depth metrics (same for all classes)
+        depth_results = []
+        if self.depth_errors:
+            depth_results.append(np.mean(self.depth_errors))
+        else:
+            depth_results.append(0.0)
+            
+        if self.depth_abs_errors:
+            depth_results.append(np.mean(self.depth_abs_errors))
+        else:
+            depth_results.append(0.0)
+            
+        if self.depth_sq_errors:
+            depth_results.append(np.sqrt(np.mean(self.depth_sq_errors)))
+        else:
+            depth_results.append(0.0)
+        
+        # Add accuracy metrics
+        for key in ["δ < 1.250", "δ < 1.562", "δ < 1.953"]:
+            if self.depth_accuracies[key]:
+                depth_results.append(np.mean(self.depth_accuracies[key]))
+            else:
+                depth_results.append(0.0)
+        
+        return base_results + depth_results
+
+    @property
+    def maps(self) -> np.ndarray:
+        """Return the mean average precision (mAP) per class for both box and depth detections."""
+        # For MDE, we only have detection mAP, not depth mAP
+        return DetMetrics.maps.fget(self)
+
+    @property
+    def fitness(self) -> float:
+        """Return combined fitness score for depth estimation and box detection."""
+        # Weight detection and depth metrics
+        detection_fitness = DetMetrics.fitness.fget(self)
+        
+        # Depth fitness based on error rate (lower is better)
+        if self.depth_errors:
+            depth_fitness = max(0, 1.0 - np.mean(self.depth_errors) / 100.0)  # Normalize to 0-1
+        else:
+            depth_fitness = 0.0
+        
+        # Combined fitness (weighted)
+        return 0.7 * detection_fitness + 0.3 * depth_fitness
+
+    @property
+    def curves(self) -> list[str]:
+        """Return a list of curves for accessing specific metrics curves."""
+        return DetMetrics.curves.fget(self) + [
+            "Depth-Error-Rate",
+            "Depth-Absolute-Error",
+            "Depth-RMSE",
+        ]
+
+    @property
+    def curves_results(self) -> list[list]:
+        """Return a list of computed performance metrics and statistics."""
+        base_curves = DetMetrics.curves_results.fget(self)
+        
+        # Add depth curves (placeholder - would need actual curve data)
+        depth_curves = [
+            [[], [], "Confidence", "Depth Error Rate"],
+            [[], [], "Confidence", "Depth Absolute Error"],
+            [[], [], "Confidence", "Depth RMSE"],
+        ]
+        
+        return base_curves + depth_curves
+
+    def summary(self, normalize: bool = True, decimals: int = 5) -> list[dict[str, Any]]:
+        """
+        Generate a summarized representation of per-class MDE metrics as a list of dictionaries. Includes both
+        box and depth scalar metrics alongside precision, recall, and F1-score for each class.
+
+        Args:
+            normalize (bool): For MDE metrics, everything is normalized by default [0-1].
+            decimals (int): Number of decimal places to round the metrics values to.
+
+        Returns:
+            (list[dict[str, Any]]): A list of dictionaries, each representing one class with corresponding metric values.
+
+        Examples:
+            >>> results = model.val(data="kitti_mde.yaml")
+            >>> mde_summary = results.summary(decimals=4)
+            >>> print(mde_summary)
+        """
+        # Get base detection summary
+        summary = DetMetrics.summary(self, normalize, decimals)
+        
+        # Add depth metrics to each class
+        depth_metrics = {}
+        if self.depth_errors:
+            depth_metrics["Depth_Error_Rate"] = round(np.mean(self.depth_errors), decimals)
+        else:
+            depth_metrics["Depth_Error_Rate"] = 0.0
+            
+        if self.depth_abs_errors:
+            depth_metrics["Depth_Abs_Error"] = round(np.mean(self.depth_abs_errors), decimals)
+        else:
+            depth_metrics["Depth_Abs_Error"] = 0.0
+            
+        if self.depth_sq_errors:
+            depth_metrics["Depth_RMSE"] = round(np.sqrt(np.mean(self.depth_sq_errors)), decimals)
+        else:
+            depth_metrics["Depth_RMSE"] = 0.0
+        
+        # Add accuracy metrics
+        for key in ["δ < 1.250", "δ < 1.562", "δ < 1.953"]:
+            clean_key = key.replace("δ < ", "Depth_Acc_").replace(".", "_")
+            if self.depth_accuracies[key]:
+                depth_metrics[clean_key] = round(np.mean(self.depth_accuracies[key]), decimals)
+            else:
+                depth_metrics[clean_key] = 0.0
+        
+        # Add depth metrics to each class summary
+        for s in summary:
+            s.update(depth_metrics)
+        
+        return summary
+
+    def print_depth_statistics(self, depths: torch.Tensor, name: str = "Depth"):
+        """
+        Print depth statistics for analysis.
+        
+        Args:
+            depths: Depth values tensor
+            name: Name for the statistics
+        """
+        depths_np = depths.cpu().numpy()
+        
+        LOGGER.info(f"\n📈 {name} Statistics:")
+        LOGGER.info(f"   Count: {len(depths_np)}")
+        LOGGER.info(f"   Min: {depths_np.min():.2f}m")
+        LOGGER.info(f"   Max: {depths_np.max():.2f}m")
+        LOGGER.info(f"   Mean: {depths_np.mean():.2f}m")
+        LOGGER.info(f"   Std: {depths_np.std():.2f}m")
+        LOGGER.info(f"   Median: {np.median(depths_np):.2f}m")
+        LOGGER.info(f"   25th percentile: {np.percentile(depths_np, 25):.2f}m")
+        LOGGER.info(f"   75th percentile: {np.percentile(depths_np, 75):.2f}m")

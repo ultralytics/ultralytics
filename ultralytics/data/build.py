@@ -15,7 +15,6 @@ from torch.utils.data import dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
-from ultralytics.models.yolo.depth.nyu import NYUDepthV2
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,

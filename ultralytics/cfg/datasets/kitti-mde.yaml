@@ -1,0 +1,43 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# KITTI MDE (Monocular Depth Estimation) dataset configuration
+
+# Dataset info
+path: /root/autodl-tmp/kitti_yolo_depth  # dataset root dir
+train: images  # train images (relative to 'path')
+val: images    # val images (relative to 'path')
+
+# Classes
+nc: 5  # number of classes
+names: ['Car', 'Pedestrian', 'Cyclist', 'Van', 'Truck']  # class names
+
+# Additional MDE-specific parameters
+depth_max: 100.0  # maximum depth for normalization (meters)
+depth_loss_weight: 1.0  # weight for depth loss component
+depth_loss_type: 'l1'  # depth loss type ('l1', 'l2', 'smooth_l1')
+
+# Training parameters
+imgsz: 640  # image size
+batch: 16   # batch size
+epochs: 100 # number of epochs
+lr0: 0.01   # initial learning rate
+lrf: 0.01   # final learning rate
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3.0
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+
+# Augmentation parameters
+hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
+hsv_s: 0.7    # image HSV-Saturation augmentation (fraction)
+hsv_v: 0.4    # image HSV-Value augmentation (fraction)
+degrees: 0.0  # image rotation (+/- deg)
+translate: 0.1  # image translation (+/- fraction)
+scale: 0.5    # image scale (+/- gain)
+shear: 0.0    # image shear (+/- deg)
+perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
+flipud: 0.0   # image flip up-down (probability)
+fliplr: 0.5   # image flip left-right (probability)
+mosaic: 1.0   # image mosaic (probability)
+mixup: 0.0    # image mixup (probability)
+copy_paste: 0.0  # segment copy-paste (probability)

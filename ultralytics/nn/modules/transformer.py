@@ -12,6 +12,7 @@ from torch.nn.init import constant_, xavier_uniform_
 
 from .conv import Conv
 from .utils import _get_clones, inverse_sigmoid, multi_scale_deformable_attn_pytorch
+from ultralytics.utils.torch_utils import TORCH_1_11
 
 __all__ = (
     "TransformerEncoderLayer",
@@ -25,6 +26,7 @@ __all__ = (
     "MSDeformAttn",
     "MLP",
 )
+
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -236,7 +238,7 @@ class AIFI(TransformerEncoderLayer):
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
         grid_w = torch.arange(w, dtype=torch.float32)
         grid_h = torch.arange(h, dtype=torch.float32)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_w, grid_h)
         pos_dim = embed_dim // 4
         omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
         omega = 1.0 / (temperature**omega)

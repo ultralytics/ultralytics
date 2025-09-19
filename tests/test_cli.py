@@ -48,12 +48,14 @@ def test_export(model: str) -> None:
     """Test exporting a YOLO model to TorchScript format."""
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
+
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
     # Add comma, spaces, fraction=0.25 args to test single-image training
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
     run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
+
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(

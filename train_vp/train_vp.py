@@ -26,36 +26,6 @@ data = dict(
     val=dict(yolo_data=["./lvis.yaml"]),
 )
 
-# model = YOLOE("yoloe-11s-seg.pt")
-# replace to yoloe-11l-seg-det.pt if converted to detection model
-# model = YOLOE("yoloe-v8s.yaml")
-# # model_path="/home/user/shuailyu/ultralytics/runs/segment/train23/weights/best.pt"
-# model_path="yoloe-v8s-seg.pt"
-# from ultralytics.utils.patches import torch_load
-# state = torch_load(model_path)
-
-
-# # Load model weights but skip savpe module weights
-# model_state_dict = state["model"].state_dict()
-
-# # Filter out savpe weights from the loaded state dict
-# filtered_state_dict = {}
-# for key, value in model_state_dict.items():
-#     # if "savpe" not in key:
-#     filtered_state_dict[key] = value
-
-# # Load the filtered state dict
-# model.model.load_state_dict(filtered_state_dict, strict=False)
-
-
-
-
-
-# model.load("./tempmodel1.pt")
-
-
-# metrics = model.val(batch=1,data="./lvis.yaml", load_vp=True, split='minival',save_json=True,
-#                     refer_data="./lvis_train_vps.yaml",max_det=1000)
 
 
 # model = YOLOE("/root/ultra_louis_work/yoloe/yoloe-v8s-seg-det.pt")
@@ -79,7 +49,7 @@ model.train(
     data=data,
     batch=128,
     epochs=2,
-    close_mosaic=2,
+    close_mosaic=0,
     optimizer="AdamW",
     lr0=8e-3, # for s/m, please set lr0=8e-3
     warmup_bias_lr=0.0,

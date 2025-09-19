@@ -199,12 +199,7 @@ class Detect(nn.Module):
 
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
         """Decode bounding boxes from predictions."""
-        return dist2bbox(
-            bboxes,
-            anchors,
-            xywh=xywh and not self.end2end and not self.xyxy,
-            dim=1,
-        )
+        return dist2bbox(bboxes, anchors, xywh=xywh and not self.end2end and not self.xyxy, dim=1)
 
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -691,15 +686,7 @@ class YOLOEDetect(Detect):
             b1 = (t @ b.reshape(-1).unsqueeze(-1)).squeeze(-1)
             b2 = torch.ones_like(b1) * bias
 
-            conv = (
-                nn.Conv2d(
-                    conv.in_channels,
-                    w.shape[0],
-                    kernel_size=1,
-                )
-                .requires_grad_(False)
-                .to(conv.weight.device)
-            )
+            conv = nn.Conv2d(conv.in_channels, w.shape[0], kernel_size=1).requires_grad_(False).to(conv.weight.device)
 
             conv.weight.data.copy_(w.unsqueeze(-1).unsqueeze(-1))
             conv.bias.data.copy_(b1 + b2)

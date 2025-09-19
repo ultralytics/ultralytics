@@ -89,12 +89,7 @@ Use this to convert [COCO](https://docs.ultralytics.com/datasets/detect/coco/) J
 ```python
 from ultralytics.data.converter import convert_coco
 
-convert_coco(
-    "coco/annotations/",
-    use_segments=False,
-    use_keypoints=False,
-    cls91to80=True,
-)
+convert_coco("coco/annotations/", use_segments=False, use_keypoints=False, cls91to80=True)
 ```
 
 For additional information about the `convert_coco` function, [visit the reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).
@@ -395,11 +390,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
         from ultralytics.utils.plotting import Annotator, colors
 
-        names = {
-            0: "person",
-            5: "bus",
-            11: "stop sign",
-        }
+        names = {0: "person", 5: "bus", 11: "stop sign"}
 
         image = cv.imread("ultralytics/assets/bus.jpg")
         ann = Annotator(
@@ -457,11 +448,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
             c_idx, *obb = obb
             obb = np.array(obb).reshape(-1, 4, 2).squeeze()
             label = f"{obb_names.get(int(c_idx))}"
-            ann.box_label(
-                obb,
-                label,
-                color=colors(c_idx, True),
-            )
+            ann.box_label(obb, label, color=colors(c_idx, True))
 
         image_with_obb = ann.result()
         ```
@@ -740,12 +727,7 @@ To convert COCO JSON annotations into YOLO format for object detection, you can 
 ```python
 from ultralytics.data.converter import convert_coco
 
-convert_coco(
-    "coco/annotations/",
-    use_segments=False,
-    use_keypoints=False,
-    cls91to80=True,
-)
+convert_coco("coco/annotations/", use_segments=False, use_keypoints=False, cls91to80=True)
 ```
 
 For additional information, visit the [convert_coco reference page](../reference/data/converter.md#ultralytics.data.converter.convert_coco).

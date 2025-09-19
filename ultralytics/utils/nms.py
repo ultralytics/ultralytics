@@ -299,11 +299,7 @@ class TorchNMS:
 
     @staticmethod
     def batched_nms(
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-        idxs: torch.Tensor,
-        iou_threshold: float,
-        use_fast_nms: bool = False,
+        boxes: torch.Tensor, scores: torch.Tensor, idxs: torch.Tensor, iou_threshold: float, use_fast_nms: bool = False
     ) -> torch.Tensor:
         """
         Batched NMS for class-aware suppression.

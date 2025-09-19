@@ -25,10 +25,7 @@ def on_fit_epoch_end(trainer):
     """Upload training progress metrics to Ultralytics HUB at the end of each epoch."""
     if session := getattr(trainer, "hub_session", None):
         # Upload metrics after validation ends
-        all_plots = {
-            **trainer.label_loss_items(trainer.tloss, prefix="train"),
-            **trainer.metrics,
-        }
+        all_plots = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
         if trainer.epoch == 0:
             from ultralytics.utils.torch_utils import model_info_for_loggers
 
@@ -62,12 +59,7 @@ def on_train_end(trainer):
     if session := getattr(trainer, "hub_session", None):
         # Upload final model and metrics with exponential standoff
         LOGGER.info(f"{PREFIX}Syncing final model...")
-        session.upload_model(
-            trainer.epoch,
-            trainer.best,
-            map=trainer.metrics.get("metrics/mAP50-95(B)", 0),
-            final=True,
-        )
+        session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get("metrics/mAP50-95(B)", 0), final=True)
         session.alive = False  # stop heartbeats
         LOGGER.info(f"{PREFIX}Done ✅\n{PREFIX}View model at {session.model_url} 🚀")
 

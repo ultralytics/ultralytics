@@ -224,13 +224,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     data = []
     for box, label in zip(bboxes, cls_labels):
         box = _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad)
-        data.append(
-            {
-                "boxes": [box],
-                "label": f"gt_{label}",
-                "score": _scale_confidence_score(1.0),
-            }
-        )
+        data.append({"boxes": [box], "label": f"gt_{label}", "score": _scale_confidence_score(1.0)})
 
     return {"name": "ground_truth", "data": data}
 
@@ -426,19 +420,9 @@ def _log_image_predictions(experiment, validator, curr_step) -> None:
 
             image_path = Path(image_path)
             annotations = _fetch_annotations(
-                img_idx,
-                image_path,
-                batch,
-                predictions_metadata_map,
-                class_label_map,
-                class_map=class_map,
+                img_idx, image_path, batch, predictions_metadata_map, class_label_map, class_map=class_map
             )
-            _log_images(
-                experiment,
-                [image_path],
-                curr_step,
-                annotations=annotations,
-            )
+            _log_images(experiment, [image_path], curr_step, annotations=annotations)
             _comet_image_prediction_count += 1
 
 

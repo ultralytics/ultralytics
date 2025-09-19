@@ -92,13 +92,7 @@ class MaskDownSampler(nn.Module):
         for _ in range(num_layers):
             mask_out_chans = mask_in_chans * (stride**2)
             self.encoder.append(
-                nn.Conv2d(
-                    mask_in_chans,
-                    mask_out_chans,
-                    kernel_size=kernel_size,
-                    stride=stride,
-                    padding=padding,
-                )
+                nn.Conv2d(mask_in_chans, mask_out_chans, kernel_size=kernel_size, stride=stride, padding=padding)
             )
             self.encoder.append(LayerNorm2d(mask_out_chans))
             self.encoder.append(activation())
@@ -171,11 +165,7 @@ class CXBlock(nn.Module):
         """
         super().__init__()
         self.dwconv = nn.Conv2d(
-            dim,
-            dim,
-            kernel_size=kernel_size,
-            padding=padding,
-            groups=dim if use_dwconv else 1,
+            dim, dim, kernel_size=kernel_size, padding=padding, groups=dim if use_dwconv else 1
         )  # depthwise conv
         self.norm = LayerNorm2d(dim, eps=1e-6)
         self.pwconv1 = nn.Linear(dim, 4 * dim)  # pointwise/1x1 convs, implemented with linear layers
@@ -464,10 +454,7 @@ class RoPEAttention(Attention):
 
         num_k_rope = k.size(-2) - num_k_exclude_rope
         q, k[:, :, :num_k_rope] = apply_rotary_enc(
-            q,
-            k[:, :, :num_k_rope],
-            freqs_cis=self.freqs_cis,
-            repeat_freqs_k=self.rope_k_repeat,
+            q, k[:, :, :num_k_rope], freqs_cis=self.freqs_cis, repeat_freqs_k=self.rope_k_repeat
         )
 
         # Attention
@@ -530,13 +517,7 @@ class MultiScaleAttention(nn.Module):
         torch.Size([1, 64, 64, 256])
     """
 
-    def __init__(
-        self,
-        dim: int,
-        dim_out: int,
-        num_heads: int,
-        q_pool: nn.Module = None,
-    ):
+    def __init__(self, dim: int, dim_out: int, num_heads: int, q_pool: nn.Module = None):
         """Initialize multiscale attention with optional query pooling for efficient feature extraction."""
         super().__init__()
 
@@ -566,11 +547,7 @@ class MultiScaleAttention(nn.Module):
             q = q.reshape(B, H * W, self.num_heads, -1)
 
         # Torch's SDPA expects [B, nheads, H*W, C] so we transpose
-        x = F.scaled_dot_product_attention(
-            q.transpose(1, 2),
-            k.transpose(1, 2),
-            v.transpose(1, 2),
-        )
+        x = F.scaled_dot_product_attention(q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2))
         # Transpose back
         x = x.transpose(1, 2)
         x = x.reshape(B, H, W, -1)
@@ -639,22 +616,11 @@ class MultiScaleBlock(nn.Module):
         if self.q_stride:
             self.pool = nn.MaxPool2d(kernel_size=q_stride, stride=q_stride, ceil_mode=False)
 
-        self.attn = MultiScaleAttention(
-            dim,
-            dim_out,
-            num_heads=num_heads,
-            q_pool=self.pool,
-        )
+        self.attn = MultiScaleAttention(dim, dim_out, num_heads=num_heads, q_pool=self.pool)
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
         self.norm2 = norm_layer(dim_out)
-        self.mlp = MLP(
-            dim_out,
-            int(dim_out * mlp_ratio),
-            dim_out,
-            num_layers=2,
-            act=act_layer,
-        )
+        self.mlp = MLP(dim_out, int(dim_out * mlp_ratio), dim_out, num_layers=2, act=act_layer)
 
         if dim != dim_out:
             self.proj = nn.Linear(dim, dim_out)
@@ -724,11 +690,7 @@ class PositionEmbeddingSine(nn.Module):
     """
 
     def __init__(
-        self,
-        num_pos_feats: int,
-        temperature: int = 10000,
-        normalize: bool = True,
-        scale: float | None = None,
+        self, num_pos_feats: int, temperature: int = 10000, normalize: bool = True, scale: float | None = None
     ):
         """Initialize sinusoidal position embeddings for 2D image inputs."""
         super().__init__()

@@ -236,15 +236,7 @@ class Predictor(BasePredictor):
         prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
         return self._inference_features(features, *prompts, multimask_output)
 
-    def _inference_features(
-        self,
-        features,
-        bboxes=None,
-        points=None,
-        labels=None,
-        masks=None,
-        multimask_output=False,
-    ):
+    def _inference_features(self, features, bboxes=None, points=None, labels=None, masks=None, multimask_output=False):
         """
         Perform inference on image features using the SAM model.
 
@@ -735,11 +727,7 @@ class SAM2Predictor(Predictor):
         >>> print(f"Predicted {len(result.masks)} masks with average score {result.boxes.conf.mean():.2f}")
     """
 
-    _bb_feat_sizes = [
-        (256, 256),
-        (128, 128),
-        (64, 64),
-    ]
+    _bb_feat_sizes = [(256, 256), (128, 128), (64, 64)]
 
     def get_model(self):
         """Retrieve and initialize the Segment Anything Model 2 (SAM2) for image segmentation tasks."""
@@ -829,15 +817,7 @@ class SAM2Predictor(Predictor):
         ]
         return {"image_embed": feats[-1], "high_res_feats": feats[:-1]}
 
-    def _inference_features(
-        self,
-        features,
-        points=None,
-        labels=None,
-        masks=None,
-        multimask_output=False,
-        img_idx=-1,
-    ):
+    def _inference_features(self, features, points=None, labels=None, masks=None, multimask_output=False, img_idx=-1):
         """
         Perform inference on image features using the SAM2 model.
 
@@ -857,11 +837,7 @@ class SAM2Predictor(Predictor):
             pred_scores (torch.Tensor): Quality scores for each mask, with length C.
         """
         points = (points, labels) if points is not None else None
-        sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(
-            points=points,
-            boxes=None,
-            masks=masks,
-        )
+        sparse_embeddings, dense_embeddings = self.model.sam_prompt_encoder(points=points, boxes=None, masks=masks)
         # Predict masks
         batched_mode = points is not None and points[0].shape[0] > 1  # multi object prediction
         high_res_features = None
@@ -1055,14 +1031,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         return results
 
     @smart_inference_mode()
-    def add_new_prompts(
-        self,
-        obj_id,
-        points=None,
-        labels=None,
-        masks=None,
-        frame_idx=0,
-    ):
+    def add_new_prompts(self, obj_id, points=None, labels=None, masks=None, frame_idx=0):
         """
         Add new points or masks to a specific frame for a given object ID.
 
@@ -1148,11 +1117,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         obj_temp_output_dict[storage_key][frame_idx] = current_out
 
         # Resize the output mask to the original video resolution
-        consolidated_out = self._consolidate_temp_output_across_obj(
-            frame_idx,
-            is_cond=is_cond,
-            run_mem_encoder=False,
-        )
+        consolidated_out = self._consolidate_temp_output_across_obj(frame_idx, is_cond=is_cond, run_mem_encoder=False)
         pred_masks = consolidated_out["pred_masks"].flatten(0, 1)
         return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
 
@@ -1470,12 +1435,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 out_maskmem_pos_enc = [x.expand(batch_size, -1, -1, -1) for x in maskmem_pos_enc]
         return out_maskmem_pos_enc
 
-    def _consolidate_temp_output_across_obj(
-        self,
-        frame_idx,
-        is_cond=False,
-        run_mem_encoder=False,
-    ):
+    def _consolidate_temp_output_across_obj(self, frame_idx, is_cond=False, run_mem_encoder=False):
         """
         Consolidate per-object temporary outputs into a single output for all objects.
 
@@ -1516,10 +1476,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 device=self.device,
             ),
             "obj_ptr": torch.full(
-                size=(batch_size, self.model.hidden_dim),
-                fill_value=-1024.0,
-                dtype=self.torch_dtype,
-                device=self.device,
+                size=(batch_size, self.model.hidden_dim), fill_value=-1024.0, dtype=self.torch_dtype, device=self.device
             ),
             "object_score_logits": torch.full(
                 size=(batch_size, 1),
@@ -1560,10 +1517,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Optionally, apply non-overlapping constraints on the consolidated scores and rerun the memory encoder
         if run_mem_encoder:
             high_res_masks = F.interpolate(
-                consolidated_out["pred_masks"],
-                size=self.imgsz,
-                mode="bilinear",
-                align_corners=False,
+                consolidated_out["pred_masks"], size=self.imgsz, mode="bilinear", align_corners=False
             )
             if self.model.non_overlap_masks_for_mem_enc:
                 high_res_masks = self.model._apply_non_overlapping_constraints(high_res_masks)
@@ -1955,9 +1909,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             )
         # reshape the output (HW)BC => BCHW
         return pix_feat_with_mem.permute(1, 2, 0).view(
-            self._max_obj_num,
-            self.model.memory_attention.d_model,
-            *self.feat_sizes[-1],
+            self._max_obj_num, self.model.memory_attention.d_model, *self.feat_sizes[-1]
         )
 
     def get_maskmem_enc(self) -> tuple[torch.Tensor, torch.Tensor]:

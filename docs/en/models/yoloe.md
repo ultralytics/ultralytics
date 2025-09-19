@@ -271,7 +271,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
                 [
                     [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
                     [120, 425, 160, 445],  # Box enclosing glasses
-                ],
+                ]
             ),
             cls=np.array(
                 [
@@ -282,11 +282,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         )
 
         # Run inference on an image, using the provided visual prompts as guidance
-        results = model.predict(
-            "ultralytics/assets/bus.jpg",
-            visual_prompts=visual_prompts,
-            predictor=YOLOEVPSegPredictor,
-        )
+        results = model.predict("ultralytics/assets/bus.jpg", visual_prompts=visual_prompts, predictor=YOLOEVPSegPredictor)
 
         # Show results
         results[0].show()
@@ -353,7 +349,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
                     [
                         [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
                         [120, 425, 160, 445],  # Box enclosing glasses
-                    ],
+                    ]
                 ),
                 np.array([[150, 200, 1150, 700]]),
             ],
@@ -521,8 +517,7 @@ The export process is similar to other YOLO models, with the added flexibility o
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="flickr/full_images/",
-                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/", json_file="flickr/annotations/final_flickr_separateGT_train_segm.json"
                     ),
                     dict(
                         img_path="mixed_grounding/gqa/images",
@@ -577,8 +572,7 @@ The export process is similar to other YOLO models, with the added flexibility o
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="flickr/full_images/",
-                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/", json_file="flickr/annotations/final_flickr_separateGT_train_segm.json"
                     ),
                     dict(
                         img_path="mixed_grounding/gqa/images",
@@ -657,8 +651,7 @@ The export process is similar to other YOLO models, with the added flexibility o
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="flickr/full_images/",
-                        json_file="flickr/annotations/final_flickr_separateGT_train_segm.json",
+                        img_path="flickr/full_images/", json_file="flickr/annotations/final_flickr_separateGT_train_segm.json"
                     ),
                     dict(
                         img_path="mixed_grounding/gqa/images",

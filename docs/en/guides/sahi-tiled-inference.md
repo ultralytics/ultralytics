@@ -86,8 +86,7 @@ download_from_url(
     "demo_data/small-vehicles1.jpeg",
 )
 download_from_url(
-    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png",
-    "demo_data/terrain2.png",
+    "https://raw.githubusercontent.com/obss/sahi/main/demo/demo_data/terrain2.png", "demo_data/terrain2.png"
 )
 ```
 

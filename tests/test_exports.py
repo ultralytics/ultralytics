@@ -12,14 +12,7 @@ import pytest
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import (
-    ARM64,
-    IS_RASPBERRYPI,
-    LINUX,
-    MACOS,
-    WINDOWS,
-    checks,
-)
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
 
 
@@ -57,14 +50,7 @@ def test_export_openvino():
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     """Test YOLO model export to OpenVINO under various configuration matrix conditions."""
     file = YOLO(TASK2MODEL[task]).export(
-        format="openvino",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-        data=TASK2DATA[task],
-        nms=nms,
+        format="openvino", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, data=TASK2DATA[task], nms=nms
     )
     if WINDOWS:
         # Use unique filenames due to Windows file permissions bug possibly due to latent threaded use
@@ -132,13 +118,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
     """Test YOLO export to CoreML format with various parameter configurations."""
     file = YOLO(TASK2MODEL[task]).export(
-        format="coreml",
-        imgsz=32,
-        dynamic=dynamic,
-        int8=int8,
-        half=half,
-        batch=batch,
-        nms=nms,
+        format="coreml", imgsz=32, dynamic=dynamic, int8=int8, half=half, batch=batch, nms=nms
     )
     YOLO(file)([SOURCE] * batch, imgsz=32)  # exported model inference
     shutil.rmtree(file)  # cleanup

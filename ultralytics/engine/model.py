@@ -13,17 +13,7 @@ from PIL import Image
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
-from ultralytics.utils import (
-    ARGV,
-    ASSETS,
-    DEFAULT_CFG_DICT,
-    LOGGER,
-    RANK,
-    SETTINGS,
-    YAML,
-    callbacks,
-    checks,
-)
+from ultralytics.utils import ARGV, ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, YAML, callbacks, checks
 
 
 class Model(torch.nn.Module):
@@ -79,12 +69,7 @@ class Model(torch.nn.Module):
         >>> model.export(format="onnx")
     """
 
-    def __init__(
-        self,
-        model: str | Path | Model = "yolo11n.pt",
-        task: str = None,
-        verbose: bool = False,
-    ) -> None:
+    def __init__(self, model: str | Path | Model = "yolo11n.pt", task: str = None, verbose: bool = False) -> None:
         """
         Initialize a new instance of the YOLO model class.
 
@@ -600,11 +585,7 @@ class Model(torch.nn.Module):
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
 
-    def val(
-        self,
-        validator=None,
-        **kwargs: Any,
-    ):
+    def val(self, validator=None, **kwargs: Any):
         """
         Validate the model using a specified dataset and validation configuration.
 
@@ -687,10 +668,7 @@ class Model(torch.nn.Module):
             **export_kwargs,
         )
 
-    def export(
-        self,
-        **kwargs: Any,
-    ) -> str:
+    def export(self, **kwargs: Any) -> str:
         """
         Export the model to a different format suitable for deployment.
 
@@ -735,11 +713,7 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
-    def train(
-        self,
-        trainer=None,
-        **kwargs: Any,
-    ):
+    def train(self, trainer=None, **kwargs: Any):
         """
         Train the model using the specified dataset and training configuration.
 
@@ -806,13 +780,7 @@ class Model(torch.nn.Module):
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
         return self.metrics
 
-    def tune(
-        self,
-        use_ray=False,
-        iterations=10,
-        *args: Any,
-        **kwargs: Any,
-    ):
+    def tune(self, use_ray=False, iterations=10, *args: Any, **kwargs: Any):
         """
         Conduct hyperparameter tuning for the model, with an option to use Ray Tune.
 

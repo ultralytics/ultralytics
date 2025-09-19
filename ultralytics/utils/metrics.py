@@ -376,11 +376,7 @@ class ConfusionMatrix(DataExportMixin):
             self.matrix[p][t] += 1
 
     def process_batch(
-        self,
-        detections: dict[str, torch.Tensor],
-        batch: dict[str, Any],
-        conf: float = 0.25,
-        iou_thres: float = 0.45,
+        self, detections: dict[str, torch.Tensor], batch: dict[str, Any], conf: float = 0.25, iou_thres: float = 0.45
     ) -> None:
         """
         Update confusion matrix for object detection task.
@@ -1183,11 +1179,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
            >>> detection_summary = results.summary()
            >>> print(detection_summary)
         """
-        per_class = {
-            "Box-P": self.box.p,
-            "Box-R": self.box.r,
-            "Box-F1": self.box.f1,
-        }
+        per_class = {"Box-P": self.box.p, "Box-R": self.box.r, "Box-F1": self.box.f1}
         return [
             {
                 "Class": self.names[self.ap_class_index[i]],
@@ -1327,11 +1319,7 @@ class SegmentMetrics(DetMetrics):
             >>> seg_summary = results.summary(decimals=4)
             >>> print(seg_summary)
         """
-        per_class = {
-            "Mask-P": self.seg.p,
-            "Mask-R": self.seg.r,
-            "Mask-F1": self.seg.f1,
-        }
+        per_class = {"Mask-P": self.seg.p, "Mask-R": self.seg.r, "Mask-F1": self.seg.f1}
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
             s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})
@@ -1468,11 +1456,7 @@ class PoseMetrics(DetMetrics):
             >>> pose_summary = results.summary(decimals=4)
             >>> print(pose_summary)
         """
-        per_class = {
-            "Pose-P": self.pose.p,
-            "Pose-R": self.pose.r,
-            "Pose-F1": self.pose.f1,
-        }
+        per_class = {"Pose-P": self.pose.p, "Pose-R": self.pose.r, "Pose-F1": self.pose.f1}
         summary = DetMetrics.summary(self, normalize, decimals)  # get box summary
         for i, s in enumerate(summary):
             s.update({**{k: round(v[i], decimals) for k, v in per_class.items()}})

@@ -71,23 +71,13 @@ class ObjectCropper(BaseSolution):
         """
         with self.profilers[0]:
             results = self.model.predict(
-                im0,
-                classes=self.classes,
-                conf=self.conf,
-                iou=self.iou,
-                device=self.CFG["device"],
-                verbose=False,
+                im0, classes=self.classes, conf=self.conf, iou=self.iou, device=self.CFG["device"], verbose=False
             )[0]
             self.clss = results.boxes.cls.tolist()  # required for logging only.
 
         for box in results.boxes:
             self.crop_idx += 1
-            save_one_box(
-                box.xyxy,
-                im0,
-                file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
-                BGR=True,
-            )
+            save_one_box(box.xyxy, im0, file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg", BGR=True)
 
         # Return SolutionResults
         return SolutionResults(plot_im=im0, total_crop_objects=self.crop_idx)

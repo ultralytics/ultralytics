@@ -406,10 +406,7 @@ class DetectionValidator(BaseValidator):
         return {
             **predn,
             "bboxes": ops.scale_boxes(
-                pbatch["imgsz"],
-                predn["bboxes"].clone(),
-                pbatch["ori_shape"],
-                ratio_pad=pbatch["ratio_pad"],
+                pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
             ),
         }
 

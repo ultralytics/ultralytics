@@ -89,14 +89,11 @@ def iou_distance(atracks: list, btracks: list) -> np.ndarray:
     if len(atlbrs) and len(btlbrs):
         if len(atlbrs[0]) == 5 and len(btlbrs[0]) == 5:
             ious = batch_probiou(
-                np.ascontiguousarray(atlbrs, dtype=np.float32),
-                np.ascontiguousarray(btlbrs, dtype=np.float32),
+                np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32)
             ).numpy()
         else:
             ious = bbox_ioa(
-                np.ascontiguousarray(atlbrs, dtype=np.float32),
-                np.ascontiguousarray(btlbrs, dtype=np.float32),
-                iou=True,
+                np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True
             )
     return 1 - ious  # cost matrix
 

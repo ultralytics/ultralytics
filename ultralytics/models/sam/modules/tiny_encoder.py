@@ -113,11 +113,7 @@ class PatchEmbed(nn.Module):
         self.in_chans = in_chans
         self.embed_dim = embed_dim
         n = embed_dim
-        self.seq = nn.Sequential(
-            Conv2d_BN(in_chans, n // 2, 3, 2, 1),
-            activation(),
-            Conv2d_BN(n // 2, n, 3, 2, 1),
-        )
+        self.seq = nn.Sequential(Conv2d_BN(in_chans, n // 2, 3, 2, 1), activation(), Conv2d_BN(n // 2, n, 3, 2, 1))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Process input tensor through patch embedding sequence, converting images to patch embeddings."""
@@ -320,11 +316,7 @@ class ConvLayer(nn.Module):
         self.blocks = nn.ModuleList(
             [
                 MBConv(
-                    dim,
-                    dim,
-                    conv_expand_ratio,
-                    activation,
-                    drop_path[i] if isinstance(drop_path, list) else drop_path,
+                    dim, dim, conv_expand_ratio, activation, drop_path[i] if isinstance(drop_path, list) else drop_path
                 )
                 for i in range(depth)
             ]
@@ -437,12 +429,7 @@ class Attention(torch.nn.Module):
     """
 
     def __init__(
-        self,
-        dim: int,
-        key_dim: int,
-        num_heads: int = 8,
-        attn_ratio: float = 4,
-        resolution: tuple[int, int] = (14, 14),
+        self, dim: int, key_dim: int, num_heads: int = 8, attn_ratio: float = 4, resolution: tuple[int, int] = (14, 14)
     ):
         """
         Initialize the Attention module for multi-head attention with spatial awareness.
@@ -893,20 +880,9 @@ class TinyViT(nn.Module):
         self.apply(self._init_weights)
         self.set_layer_lr_decay(layer_lr_decay)
         self.neck = nn.Sequential(
-            nn.Conv2d(
-                embed_dims[-1],
-                256,
-                kernel_size=1,
-                bias=False,
-            ),
+            nn.Conv2d(embed_dims[-1], 256, kernel_size=1, bias=False),
             LayerNorm2d(256),
-            nn.Conv2d(
-                256,
-                256,
-                kernel_size=3,
-                padding=1,
-                bias=False,
-            ),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1, bias=False),
             LayerNorm2d(256),
         )
 

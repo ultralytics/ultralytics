@@ -119,10 +119,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
         model = YOLO("yolo11n.pt")
 
         # Define search space
-        search_space = {
-            "lr0": (1e-5, 1e-1),
-            "degrees": (0.0, 45.0),
-        }
+        search_space = {"lr0": (1e-5, 1e-1), "degrees": (0.0, 45.0)}
 
         # Tune hyperparameters on COCO8 for 30 epochs
         model.tune(
@@ -150,10 +147,7 @@ You can resume an interrupted hyperparameter tuning session by passing `resume=T
     model = YOLO("yolo11n.pt")
 
     # Define search space
-    search_space = {
-        "lr0": (1e-5, 1e-1),
-        "degrees": (0.0, 45.0),
-    }
+    search_space = {"lr0": (1e-5, 1e-1), "degrees": (0.0, 45.0)}
 
     # Resume previous run
     results = model.tune(data="coco8.yaml", epochs=50, iterations=300, space=search_space, resume=True)

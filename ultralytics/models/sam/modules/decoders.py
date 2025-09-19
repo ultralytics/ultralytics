@@ -392,12 +392,7 @@ class SAM2MaskDecoder(nn.Module):
         s = 0
         if self.pred_obj_scores:
             output_tokens = torch.cat(
-                [
-                    self.obj_score_token.weight,
-                    self.iou_token.weight,
-                    self.mask_tokens.weight,
-                ],
-                dim=0,
+                [self.obj_score_token.weight, self.iou_token.weight, self.mask_tokens.weight], dim=0
             )
             s = 1
         else:
@@ -501,13 +496,9 @@ class SAM2MaskDecoder(nn.Module):
 
         # Dynamically fall back to best multimask output upon low stability scores.
         mask_logits_out = torch.where(
-            is_stable[..., None, None].expand_as(singlemask_logits),
-            singlemask_logits,
-            best_multimask_logits,
+            is_stable[..., None, None].expand_as(singlemask_logits), singlemask_logits, best_multimask_logits
         )
         iou_scores_out = torch.where(
-            is_stable.expand_as(singlemask_iou_scores),
-            singlemask_iou_scores,
-            best_multimask_iou_scores,
+            is_stable.expand_as(singlemask_iou_scores), singlemask_iou_scores, best_multimask_iou_scores
         )
         return mask_logits_out, iou_scores_out

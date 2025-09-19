@@ -150,10 +150,7 @@ out = cv2.VideoWriter(
     (1280, 720),  # this is fixed
 )
 
-analytics = solutions.Analytics(
-    analytics_type="line",
-    show=True,
-)
+analytics = solutions.Analytics(analytics_type="line", show=True)
 
 frame_count = 0
 while cap.isOpened():
@@ -200,10 +197,7 @@ out = cv2.VideoWriter(
     (1280, 720),  # this is fixed
 )
 
-analytics = solutions.Analytics(
-    analytics_type="bar",
-    show=True,
-)
+analytics = solutions.Analytics(analytics_type="bar", show=True)
 
 frame_count = 0
 while cap.isOpened():
@@ -250,10 +244,7 @@ out = cv2.VideoWriter(
     (1280, 720),  # this is fixed
 )
 
-analytics = solutions.Analytics(
-    analytics_type="pie",
-    show=True,
-)
+analytics = solutions.Analytics(analytics_type="pie", show=True)
 
 frame_count = 0
 while cap.isOpened():
@@ -295,10 +286,7 @@ out = cv2.VideoWriter(
     (1280, 720),  # this is fixed
 )
 
-analytics = solutions.Analytics(
-    analytics_type="line",
-    show=True,
-)
+analytics = solutions.Analytics(analytics_type="line", show=True)
 
 frame_count = 0
 while cap.isOpened():

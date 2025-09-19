@@ -519,11 +519,7 @@ class BaseTrainer:
     def auto_batch(self, max_num_obj=0):
         """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
-            model=self.model,
-            imgsz=self.args.imgsz,
-            amp=self.amp,
-            batch=self.batch_size,
-            max_num_obj=max_num_obj,
+            model=self.model, imgsz=self.args.imgsz, amp=self.amp, batch=self.batch_size, max_num_obj=max_num_obj
         )  # returns batch size
 
     def _get_memory(self, fraction=False):
@@ -586,12 +582,7 @@ class BaseTrainer:
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().isoformat(),
                 "version": __version__,
-                "git": {
-                    "root": str(GIT.root),
-                    "branch": GIT.branch,
-                    "commit": GIT.commit,
-                    "origin": GIT.origin,
-                },
+                "git": {"root": str(GIT.root), "branch": GIT.branch, "commit": GIT.commit, "origin": GIT.origin},
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
             },

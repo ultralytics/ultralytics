@@ -17,14 +17,7 @@ settings = SETTINGS
 
 MODELS = ("YOLO", "YOLOWorld", "YOLOE", "NAS", "SAM", "FastSAM", "RTDETR")
 
-__all__ = (
-    "__version__",
-    "ASSETS",
-    *MODELS,
-    "checks",
-    "download",
-    "settings",
-)
+__all__ = ("__version__", "ASSETS", *MODELS, "checks", "download", "settings")
 
 
 def __getattr__(name: str):

@@ -444,11 +444,7 @@ class SolutionAnnotator(Annotator):
         return angle if angle <= 180.0 else (360 - angle)
 
     def draw_specific_kpts(
-        self,
-        keypoints: list[list[float]],
-        indices: list[int] | None = None,
-        radius: int = 2,
-        conf_thresh: float = 0.25,
+        self, keypoints: list[list[float]], indices: list[int] | None = None, radius: int = 2, conf_thresh: float = 0.25
     ) -> np.ndarray:
         """
         Draw specific keypoints for gym steps counting.
@@ -572,16 +568,7 @@ class SolutionAnnotator(Annotator):
 
         # Calculate the position for the text with a 10-pixel margin and draw text
         text_position = (25, 25 + text_height_m + 10)
-        cv2.putText(
-            self.im,
-            text,
-            text_position,
-            0,
-            self.sf,
-            (255, 255, 255),
-            self.tf,
-            cv2.LINE_AA,
-        )
+        cv2.putText(self.im, text, text_position, 0, self.sf, (255, 255, 255), self.tf, cv2.LINE_AA)
 
         cv2.line(self.im, centroids[0], centroids[1], line_color, 3)
         cv2.circle(self.im, centroids[0], 6, centroid_color, -1)

@@ -82,10 +82,7 @@ class TwoWayTransformer(nn.Module):
         self.norm_final_attn = nn.LayerNorm(embedding_dim)
 
     def forward(
-        self,
-        image_embedding: torch.Tensor,
-        image_pe: torch.Tensor,
-        point_embedding: torch.Tensor,
+        self, image_embedding: torch.Tensor, image_pe: torch.Tensor, point_embedding: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Process image and point embeddings through the Two-Way Transformer.
@@ -109,12 +106,7 @@ class TwoWayTransformer(nn.Module):
 
         # Apply transformer blocks and final layernorm
         for layer in self.layers:
-            queries, keys = layer(
-                queries=queries,
-                keys=keys,
-                query_pe=point_embedding,
-                key_pe=image_pe,
-            )
+            queries, keys = layer(queries=queries, keys=keys, query_pe=point_embedding, key_pe=image_pe)
 
         # Apply the final attention layer from the points to the image
         q = queries + point_embedding
@@ -275,13 +267,7 @@ class Attention(nn.Module):
         torch.Size([1, 100, 256])
     """
 
-    def __init__(
-        self,
-        embedding_dim: int,
-        num_heads: int,
-        downsample_rate: int = 1,
-        kv_in_dim: int = None,
-    ) -> None:
+    def __init__(self, embedding_dim: int, num_heads: int, downsample_rate: int = 1, kv_in_dim: int = None) -> None:
         """
         Initialize the Attention module with specified dimensions and settings.
 

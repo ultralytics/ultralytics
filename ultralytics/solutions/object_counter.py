@@ -53,11 +53,7 @@ class ObjectCounter(BaseSolution):
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
     def count_objects(
-        self,
-        current_centroid: tuple[float, float],
-        track_id: int,
-        prev_position: tuple[float, float] | None,
-        cls: int,
+        self, current_centroid: tuple[float, float], track_id: int, prev_position: tuple[float, float] | None, cls: int
     ) -> None:
         """
         Count objects within a polygonal or linear region based on their tracks.

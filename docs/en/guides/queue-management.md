@@ -141,12 +141,7 @@ from ultralytics import solutions
 cap = cv2.VideoCapture("path/to/video.mp4")
 queue_region = [(20, 400), (1080, 400), (1080, 360), (20, 360)]
 
-queuemanager = solutions.QueueManager(
-    model="yolo11n.pt",
-    region=queue_region,
-    line_width=3,
-    show=True,
-)
+queuemanager = solutions.QueueManager(model="yolo11n.pt", region=queue_region, line_width=3, show=True)
 
 while cap.isOpened():
     success, im0 = cap.read()
@@ -189,11 +184,7 @@ Example for airports:
 
 ```python
 queue_region_airport = [(50, 600), (1200, 600), (1200, 550), (50, 550)]
-queue_airport = solutions.QueueManager(
-    model="yolo11n.pt",
-    region=queue_region_airport,
-    line_width=3,
-)
+queue_airport = solutions.QueueManager(model="yolo11n.pt", region=queue_region_airport, line_width=3)
 ```
 
 For more information on diverse applications, check out our [Real World Applications](#real-world-applications) section.

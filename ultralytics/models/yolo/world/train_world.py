@@ -36,14 +36,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         ...     train=dict(
         ...         yolo_data=["Objects365.yaml"],
         ...         grounding_data=[
-        ...             dict(
-        ...                 img_path="flickr30k/images",
-        ...                 json_file="flickr30k/final_flickr_separateGT_train.json",
-        ...             ),
-        ...             dict(
-        ...                 img_path="GQA/images",
-        ...                 json_file="GQA/final_mixed_train_no_coco.json",
-        ...             ),
+        ...             dict(img_path="flickr30k/images", json_file="flickr30k/final_flickr_separateGT_train.json"),
+        ...             dict(img_path="GQA/images", json_file="GQA/final_mixed_train_no_coco.json"),
         ...         ],
         ...     ),
         ...     val=dict(yolo_data=["lvis.yaml"]),
@@ -71,10 +65,7 @@ class WorldTrainerFromScratch(WorldTrainer):
             ...     train=dict(
             ...         yolo_data=["Objects365.yaml"],
             ...         grounding_data=[
-            ...             dict(
-            ...                 img_path="flickr30k/images",
-            ...                 json_file="flickr30k/final_flickr_separateGT_train.json",
-            ...             ),
+            ...             dict(img_path="flickr30k/images", json_file="flickr30k/final_flickr_separateGT_train.json")
             ...         ],
             ...     ),
             ...     val=dict(yolo_data=["lvis.yaml"]),

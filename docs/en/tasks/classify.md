@@ -113,11 +113,7 @@ Train YOLO11n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
             # Add your custom validation transforms here
             val_transforms = T.Compose(
-                [
-                    T.Resize((args.imgsz, args.imgsz)),
-                    T.ToTensor(),
-                    T.Normalize(mean=torch.tensor(0), std=torch.tensor(1)),
-                ]
+                [T.Resize((args.imgsz, args.imgsz)), T.ToTensor(), T.Normalize(mean=torch.tensor(0), std=torch.tensor(1))]
             )
             self.torch_transforms = train_transforms if augment else val_transforms
 

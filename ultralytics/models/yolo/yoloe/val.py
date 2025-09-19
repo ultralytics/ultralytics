@@ -113,25 +113,14 @@ class YOLOEDetectValidator(DetectionValidator):
             (torch.utils.data.DataLoader): The dataloader for visual prompt samples.
         """
         dataset = build_yolo_dataset(
-            self.args,
-            data.get(self.args.split, data.get("val")),
-            self.args.batch,
-            data,
-            mode="val",
-            rect=False,
+            self.args, data.get(self.args.split, data.get("val")), self.args.batch, data, mode="val", rect=False
         )
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
                 d.transforms.append(LoadVisualPrompt())
         else:
             dataset.transforms.append(LoadVisualPrompt())
-        return build_dataloader(
-            dataset,
-            self.args.batch,
-            self.args.workers,
-            shuffle=False,
-            rank=-1,
-        )
+        return build_dataloader(dataset, self.args.batch, self.args.workers, shuffle=False, rank=-1)
 
     @smart_inference_mode()
     def __call__(

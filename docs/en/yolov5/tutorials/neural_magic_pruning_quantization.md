@@ -106,10 +106,7 @@ images = ["basilica.jpg"]
 
 # create Pipeline
 model_stub = "zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned65_quant-none"
-yolo_pipeline = Pipeline.create(
-    task="yolo",
-    model_path=model_stub,
-)
+yolo_pipeline = Pipeline.create(task="yolo", model_path=model_stub)
 
 # run inference on images, receive bounding boxes + classes
 pipeline_outputs = yolo_pipeline(images=images, iou_thres=0.6, conf_thres=0.001)

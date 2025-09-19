@@ -66,12 +66,7 @@ model = YOLO("yolo11n.pt")
 def predict_image(img, conf_threshold, iou_threshold):
     """Predicts objects in an image using a YOLO11 model with adjustable confidence and IOU thresholds."""
     results = model.predict(
-        source=img,
-        conf=conf_threshold,
-        iou=iou_threshold,
-        show_labels=True,
-        show_conf=True,
-        imgsz=640,
+        source=img, conf=conf_threshold, iou=iou_threshold, show_labels=True, show_conf=True, imgsz=640
     )
 
     for r in results:
@@ -91,10 +86,7 @@ iface = gr.Interface(
     outputs=gr.Image(type="pil", label="Result"),
     title="Ultralytics Gradio",
     description="Upload images for inference. The Ultralytics YOLO11n model is used by default.",
-    examples=[
-        [ASSETS / "bus.jpg", 0.25, 0.45],
-        [ASSETS / "zidane.jpg", 0.25, 0.45],
-    ],
+    examples=[[ASSETS / "bus.jpg", 0.25, 0.45], [ASSETS / "zidane.jpg", 0.25, 0.45]],
 )
 
 if __name__ == "__main__":
@@ -138,13 +130,7 @@ model = YOLO("yolo11n.pt")
 
 
 def predict_image(img, conf_threshold, iou_threshold):
-    results = model.predict(
-        source=img,
-        conf=conf_threshold,
-        iou=iou_threshold,
-        show_labels=True,
-        show_conf=True,
-    )
+    results = model.predict(source=img, conf=conf_threshold, iou=iou_threshold, show_labels=True, show_conf=True)
     return results[0].plot() if results else None
 
 

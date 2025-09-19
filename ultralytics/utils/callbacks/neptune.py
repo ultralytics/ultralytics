@@ -71,9 +71,7 @@ def on_pretrain_routine_start(trainer) -> None:
     try:
         global run
         run = neptune.init_run(
-            project=trainer.args.project or "Ultralytics",
-            name=trainer.args.name,
-            tags=["Ultralytics"],
+            project=trainer.args.project or "Ultralytics", name=trainer.args.name, tags=["Ultralytics"]
         )
         run["Configuration/Hyperparameters"] = {k: "" if v is None else v for k, v in vars(trainer.args).items()}
     except Exception as e:

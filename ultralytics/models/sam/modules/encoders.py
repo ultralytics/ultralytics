@@ -123,20 +123,9 @@ class ImageEncoderViT(nn.Module):
             self.blocks.append(block)
 
         self.neck = nn.Sequential(
-            nn.Conv2d(
-                embed_dim,
-                out_chans,
-                kernel_size=1,
-                bias=False,
-            ),
+            nn.Conv2d(embed_dim, out_chans, kernel_size=1, bias=False),
             LayerNorm2d(out_chans),
-            nn.Conv2d(
-                out_chans,
-                out_chans,
-                kernel_size=3,
-                padding=1,
-                bias=False,
-            ),
+            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
             LayerNorm2d(out_chans),
         )
 
@@ -286,9 +275,7 @@ class PromptEncoder(nn.Module):
 
     @staticmethod
     def _get_batch_size(
-        points: tuple[torch.Tensor, torch.Tensor] | None,
-        boxes: torch.Tensor | None,
-        masks: torch.Tensor | None,
+        points: tuple[torch.Tensor, torch.Tensor] | None, boxes: torch.Tensor | None, masks: torch.Tensor | None
     ) -> int:
         """Get the batch size of the output given the batch size of the input prompts."""
         if points is not None:
@@ -301,10 +288,7 @@ class PromptEncoder(nn.Module):
             return 1
 
     def forward(
-        self,
-        points: tuple[torch.Tensor, torch.Tensor] | None,
-        boxes: torch.Tensor | None,
-        masks: torch.Tensor | None,
+        self, points: tuple[torch.Tensor, torch.Tensor] | None, boxes: torch.Tensor | None, masks: torch.Tensor | None
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Embed different types of prompts, returning both sparse and dense embeddings.
@@ -414,12 +398,7 @@ class MemoryEncoder(nn.Module):
         if out_dim != in_dim:
             self.out_proj = nn.Conv2d(in_dim, out_dim, kernel_size=1)
 
-    def forward(
-        self,
-        pix_feat: torch.Tensor,
-        masks: torch.Tensor,
-        skip_mask_sigmoid: bool = False,
-    ) -> dict:
+    def forward(self, pix_feat: torch.Tensor, masks: torch.Tensor, skip_mask_sigmoid: bool = False) -> dict:
         """Process pixel features and masks to generate encoded memory representations for segmentation."""
         if not skip_mask_sigmoid:
             masks = F.sigmoid(masks)
@@ -463,12 +442,7 @@ class ImageEncoder(nn.Module):
         dict_keys(['vision_features', 'vision_pos_enc', 'backbone_fpn'])
     """
 
-    def __init__(
-        self,
-        trunk: nn.Module,
-        neck: nn.Module,
-        scalp: int = 0,
-    ):
+    def __init__(self, trunk: nn.Module, neck: nn.Module, scalp: int = 0):
         """
         Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
 
@@ -505,11 +479,7 @@ class ImageEncoder(nn.Module):
             features, pos = features[: -self.scalp], pos[: -self.scalp]
 
         src = features[-1]
-        return {
-            "vision_features": src,
-            "vision_pos_enc": pos,
-            "backbone_fpn": features,
-        }
+        return {"vision_features": src, "vision_pos_enc": pos, "backbone_fpn": features}
 
 
 class FpnNeck(nn.Module):
@@ -580,11 +550,7 @@ class FpnNeck(nn.Module):
             current.add_module(
                 "conv",
                 nn.Conv2d(
-                    in_channels=dim,
-                    out_channels=d_model,
-                    kernel_size=kernel_size,
-                    stride=stride,
-                    padding=padding,
+                    in_channels=dim, out_channels=d_model, kernel_size=kernel_size, stride=stride, padding=padding
                 ),
             )
 
@@ -701,18 +667,9 @@ class Hiera(nn.Module):
         head_mul: float = 2.0,  # head_mul factor at stage shift
         window_pos_embed_bkg_spatial_size: tuple[int, int] = (14, 14),
         # window size per stage, when not using global att.
-        window_spec: tuple[int, ...] = (
-            8,
-            4,
-            14,
-            7,
-        ),
+        window_spec: tuple[int, ...] = (8, 4, 14, 7),
         # global attn in these blocks
-        global_att_blocks: tuple[int, ...] = (
-            12,
-            16,
-            20,
-        ),
+        global_att_blocks: tuple[int, ...] = (12, 16, 20),
         return_interm_layers=True,  # return feats from every stage
     ):
         """
@@ -755,12 +712,7 @@ class Hiera(nn.Module):
         self.q_pool_blocks = [x + 1 for x in self.stage_ends[:-1]][:q_pool]
         self.return_interm_layers = return_interm_layers
 
-        self.patch_embed = PatchEmbed(
-            embed_dim=embed_dim,
-            kernel_size=(7, 7),
-            stride=(4, 4),
-            padding=(3, 3),
-        )
+        self.patch_embed = PatchEmbed(embed_dim=embed_dim, kernel_size=(7, 7), stride=(4, 4), padding=(3, 3))
         # Which blocks have global attention?
         self.global_att_blocks = global_att_blocks
 

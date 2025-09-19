@@ -351,15 +351,7 @@ def run(
         labels (list[str], optional): List of labels for zero-shot classification.
     """
     if labels is None:
-        labels = [
-            "walking",
-            "running",
-            "brushing teeth",
-            "looking into phone",
-            "weight lifting",
-            "cooking",
-            "sitting",
-        ]
+        labels = ["walking", "running", "brushing teeth", "looking into phone", "weight lifting", "cooking", "sitting"]
     # Initialize models and device
     device = select_device(device)
     yolo_model = YOLO(weights).to(device)

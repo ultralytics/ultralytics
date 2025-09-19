@@ -76,8 +76,7 @@ class ObjectBlurrer(BaseSolution):
         for box, cls, conf in zip(self.boxes, self.clss, self.confs):
             # Crop and blur the detected object
             blur_obj = cv2.blur(
-                im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])],
-                (self.blur_ratio, self.blur_ratio),
+                im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])], (self.blur_ratio, self.blur_ratio)
             )
             # Update the blurred area in the original image
             im0[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = blur_obj

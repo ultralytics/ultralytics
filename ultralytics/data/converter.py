@@ -671,9 +671,7 @@ def create_synthetic_coco_dataset():
         if not image_file.exists():
             size = (random.randint(480, 640), random.randint(480, 640))
             Image.new(
-                "RGB",
-                size=size,
-                color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+                "RGB", size=size, color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
             ).save(image_file)
 
     # Download labels

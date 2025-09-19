@@ -87,8 +87,7 @@ You get a pandas dataframe with the `limit` number of most similar data points t
 
         # Search using multiple indices
         similar = exp.get_similar(
-            img=["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/bus.jpg"],
-            limit=10,
+            img=["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/bus.jpg"], limit=10
         )
         print(similar.head())
         ```

@@ -108,10 +108,7 @@ class Inference:
             self.st.image(logo, width=250)
 
         self.st.sidebar.title("User Configuration")  # Add elements to vertical setting menu
-        self.source = self.st.sidebar.selectbox(
-            "Source",
-            ("webcam", "video", "image"),
-        )  # Add source selection dropdown
+        self.source = self.st.sidebar.selectbox("Source", ("webcam", "video", "image"))  # Add source selection dropdown
         if self.source in ["webcam", "video"]:
             self.enable_trk = self.st.sidebar.radio("Enable Tracking", ("Yes", "No")) == "Yes"  # Enable object tracking
         self.conf = float(

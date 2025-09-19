@@ -180,10 +180,7 @@ class ClassificationValidator(BaseValidator):
         """
         batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
         plot_images(
-            labels=batch,
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
+            labels=batch, fname=self.save_dir / f"val_batch{ni}_labels.jpg", names=self.names, on_plot=self.on_plot
         )
 
     def plot_predictions(self, batch: dict[str, Any], preds: torch.Tensor, ni: int) -> None:
@@ -202,13 +199,8 @@ class ClassificationValidator(BaseValidator):
             >>> validator.plot_predictions(batch, preds, 0)
         """
         batched_preds = dict(
-            img=batch["img"],
-            batch_idx=torch.arange(batch["img"].shape[0]),
-            cls=torch.argmax(preds, dim=1),
+            img=batch["img"], batch_idx=torch.arange(batch["img"].shape[0]), cls=torch.argmax(preds, dim=1)
         )
         plot_images(
-            batched_preds,
-            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
+            batched_preds, fname=self.save_dir / f"val_batch{ni}_pred.jpg", names=self.names, on_plot=self.on_plot
         )  # pred

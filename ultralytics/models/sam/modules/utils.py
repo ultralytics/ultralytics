@@ -52,8 +52,7 @@ def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: dict[int, Any
         # of `max_cond_frame_num` conditioning frames.
         num_remain = max_cond_frame_num - len(selected_outputs)
         inds_remain = sorted(
-            (t for t in cond_frame_outputs if t not in selected_outputs),
-            key=lambda x: abs(x - frame_idx),
+            (t for t in cond_frame_outputs if t not in selected_outputs), key=lambda x: abs(x - frame_idx)
         )[:num_remain]
         selected_outputs.update((t, cond_frame_outputs[t]) for t in inds_remain)
         unselected_outputs = {t: v for t, v in cond_frame_outputs.items() if t not in selected_outputs}
@@ -173,12 +172,7 @@ def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
     return freqs_cis.view(*shape)
 
 
-def apply_rotary_enc(
-    xq: torch.Tensor,
-    xk: torch.Tensor,
-    freqs_cis: torch.Tensor,
-    repeat_freqs_k: bool = False,
-):
+def apply_rotary_enc(xq: torch.Tensor, xk: torch.Tensor, freqs_cis: torch.Tensor, repeat_freqs_k: bool = False):
     """
     Apply rotary positional encoding to query and key tensors.
 
@@ -314,9 +308,7 @@ def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor
     if rel_pos.shape[0] != max_rel_dist:
         # Interpolate rel pos.
         rel_pos_resized = F.interpolate(
-            rel_pos.reshape(1, rel_pos.shape[0], -1).permute(0, 2, 1),
-            size=max_rel_dist,
-            mode="linear",
+            rel_pos.reshape(1, rel_pos.shape[0], -1).permute(0, 2, 1), size=max_rel_dist, mode="linear"
         )
         rel_pos_resized = rel_pos_resized.reshape(-1, max_rel_dist).permute(1, 0)
     else:

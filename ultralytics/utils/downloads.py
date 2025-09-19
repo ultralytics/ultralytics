@@ -203,12 +203,7 @@ def unzip_file(
     return path  # return unzip dir
 
 
-def check_disk_space(
-    file_bytes: int,
-    path: str | Path = Path.cwd(),
-    sf: float = 1.5,
-    hard: bool = True,
-) -> bool:
+def check_disk_space(file_bytes: int, path: str | Path = Path.cwd(), sf: float = 1.5, hard: bool = True) -> bool:
     """
     Check if there is sufficient disk space to download and store a file.
 
@@ -395,9 +390,7 @@ def safe_download(
 
 
 def get_github_assets(
-    repo: str = "ultralytics/assets",
-    version: str = "latest",
-    retry: bool = False,
+    repo: str = "ultralytics/assets", version: str = "latest", retry: bool = False
 ) -> tuple[str, list[str]]:
     """
     Retrieve the specified version's tag and assets from a GitHub repository.
@@ -432,10 +425,7 @@ def get_github_assets(
 
 
 def attempt_download_asset(
-    file: str | Path,
-    repo: str = "ultralytics/assets",
-    release: str = "v8.3.0",
-    **kwargs,
+    file: str | Path, repo: str = "ultralytics/assets", release: str = "v8.3.0", **kwargs
 ) -> str:
     """
     Attempt to download a file from GitHub release assets if it is not found locally.

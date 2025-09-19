@@ -282,12 +282,7 @@ class Tuner:
         span = hi - lo
         return np.random.uniform(lo - alpha * span, hi + alpha * span)
 
-    def _mutate(
-        self,
-        n: int = 9,
-        mutation: float = 0.5,
-        sigma: float = 0.2,
-    ) -> dict[str, float]:
+    def _mutate(self, n: int = 9, mutation: float = 0.5, sigma: float = 0.2) -> dict[str, float]:
         """
         Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 

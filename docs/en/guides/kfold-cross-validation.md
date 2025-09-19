@@ -203,15 +203,7 @@ The rows index the label files, each corresponding to an image in your dataset, 
         ds_yamls.append(dataset_yaml)
 
         with open(dataset_yaml, "w") as ds_y:
-            yaml.safe_dump(
-                {
-                    "path": split_dir.as_posix(),
-                    "train": "train",
-                    "val": "val",
-                    "names": classes,
-                },
-                ds_y,
-            )
+            yaml.safe_dump({"path": split_dir.as_posix(), "train": "train", "val": "val", "names": classes}, ds_y)
     ```
 
 5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.

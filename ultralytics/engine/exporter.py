@@ -1419,11 +1419,9 @@ class NMSModel(torch.nn.Module):
                 if self.obb
                 else nms
             )
-            keep = nms_fn(
-                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
-                score,
-                self.args.iou,
-            )[: self.args.max_det]
+            keep = nms_fn(torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox, score, self.args.iou)[
+                : self.args.max_det
+            ]
             dets = torch.cat(
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )

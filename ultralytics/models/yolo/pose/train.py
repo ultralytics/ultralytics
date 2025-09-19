@@ -63,10 +63,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
             )
 
     def get_model(
-        self,
-        cfg: str | Path | dict[str, Any] | None = None,
-        weights: str | Path | None = None,
-        verbose: bool = True,
+        self, cfg: str | Path | dict[str, Any] | None = None, weights: str | Path | None = None, verbose: bool = True
     ) -> PoseModel:
         """
         Get pose estimation model with specified configuration and weights.

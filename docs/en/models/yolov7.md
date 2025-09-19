@@ -206,21 +206,13 @@ To use YOLOv7 ONNX model with Ultralytics:
 
     final_output_name = f"{concat_output_name}_batched"
     reshape_node = helper.make_node(
-        "Reshape",
-        inputs=[concat_output_name, "reshape_shape"],
-        outputs=[final_output_name],
-        name="AddBatchDimension",
+        "Reshape", inputs=[concat_output_name, "reshape_shape"], outputs=[final_output_name], name="AddBatchDimension"
     )
     graph.node.append(reshape_node)
 
     # Get the shape of the reshaped tensor
     shape_node_name = f"{final_output_name}_shape"
-    shape_node = helper.make_node(
-        "Shape",
-        inputs=[final_output_name],
-        outputs=[shape_node_name],
-        name="GetShapeDim",
-    )
+    shape_node = helper.make_node("Shape", inputs=[final_output_name], outputs=[shape_node_name], name="GetShapeDim")
     graph.node.append(shape_node)
 
     # Extract the second dimension
@@ -229,10 +221,7 @@ To use YOLOv7 ONNX model with Ultralytics:
 
     second_dim_name = f"{final_output_name}_dim1"
     gather_node = helper.make_node(
-        "Gather",
-        inputs=[shape_node_name, "dim_1_index"],
-        outputs=[second_dim_name],
-        name="GatherSecondDim",
+        "Gather", inputs=[shape_node_name, "dim_1_index"], outputs=[second_dim_name], name="GatherSecondDim"
     )
     graph.node.append(gather_node)
 
@@ -242,10 +231,7 @@ To use YOLOv7 ONNX model with Ultralytics:
 
     pad_size_name = f"{second_dim_name}_padsize"
     sub_node = helper.make_node(
-        "Sub",
-        inputs=["target_size", second_dim_name],
-        outputs=[pad_size_name],
-        name="CalculatePadSize",
+        "Sub", inputs=["target_size", second_dim_name], outputs=[pad_size_name], name="CalculatePadSize"
     )
     graph.node.append(sub_node)
 
@@ -270,20 +256,13 @@ To use YOLOv7 ONNX model with Ultralytics:
 
     pad_values_name = "pad_values"
     concat_pad_node = helper.make_node(
-        "Concat",
-        inputs=["pad_starts", pad_ends_name],
-        outputs=[pad_values_name],
-        axis=0,
-        name="ConcatPadStartsEnds",
+        "Concat", inputs=["pad_starts", pad_ends_name], outputs=[pad_values_name], axis=0, name="ConcatPadStartsEnds"
     )
     graph.node.append(concat_pad_node)
 
     # Create Pad operator to pad with zeros
     pad_output_name = f"{final_output_name}_padded"
-    pad_constant_value = numpy_helper.from_array(
-        np.array([0.0], dtype=np.float32),
-        name="pad_constant_value",
-    )
+    pad_constant_value = numpy_helper.from_array(np.array([0.0], dtype=np.float32), name="pad_constant_value")
     graph.initializer.append(pad_constant_value)
 
     pad_node = helper.make_node(

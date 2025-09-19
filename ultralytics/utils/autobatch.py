@@ -14,11 +14,7 @@ from ultralytics.utils.torch_utils import autocast, profile_ops
 
 
 def check_train_batch_size(
-    model: torch.nn.Module,
-    imgsz: int = 640,
-    amp: bool = True,
-    batch: int | float = -1,
-    max_num_obj: int = 1,
+    model: torch.nn.Module, imgsz: int = 640, amp: bool = True, batch: int | float = -1, max_num_obj: int = 1
 ) -> int:
     """
     Compute optimal YOLO training batch size using the autobatch() function.

@@ -256,11 +256,7 @@ def torch2imx(
     )
 
     quant_model = NMSWrapper(
-        model=quant_model,
-        score_threshold=conf or 0.001,
-        iou_threshold=iou,
-        max_detections=max_det,
-        task=model.task,
+        model=quant_model, score_threshold=conf or 0.001, iou_threshold=iou, max_detections=max_det, task=model.task
     )
 
     f = Path(str(file).replace(file.suffix, "_imx_model"))
@@ -278,8 +274,7 @@ def torch2imx(
     onnx.save(model_onnx, onnx_model)
 
     subprocess.run(
-        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"],
-        check=True,
+        ["imxconv-pt", "-i", str(onnx_model), "-o", str(f), "--no-input-persistency", "--overwrite-output"], check=True
     )
 
     # Needed for imx models.

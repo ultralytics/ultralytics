@@ -347,11 +347,7 @@ class Instances:
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
         return Instances(
-            bboxes=bboxes,
-            segments=segments,
-            keypoints=keypoints,
-            bbox_format=bbox_format,
-            normalized=self.normalized,
+            bboxes=bboxes, segments=segments, keypoints=keypoints, bbox_format=bbox_format, normalized=self.normalized
         )
 
     def flipud(self, h: int) -> None:

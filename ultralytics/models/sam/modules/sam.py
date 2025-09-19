@@ -355,10 +355,7 @@ class SAM2Model(torch.nn.Module):
             # Compile the forward function (not the full module) to allow loading checkpoints.
             LOGGER.info("Image encoder compilation is enabled. First forward pass will be slow.")
             self.image_encoder.forward = torch.compile(
-                self.image_encoder.forward,
-                mode="max-autotune",
-                fullgraph=True,
-                dynamic=False,
+                self.image_encoder.forward, mode="max-autotune", fullgraph=True, dynamic=False
             )
 
     @property
@@ -381,20 +378,14 @@ class SAM2Model(torch.nn.Module):
         # Build PromptEncoder and MaskDecoder from SAM (hyperparameters like `mask_in_chans=16` are from SAM code)
         self.sam_prompt_encoder = PromptEncoder(
             embed_dim=self.sam_prompt_embed_dim,
-            image_embedding_size=(
-                self.sam_image_embedding_size,
-                self.sam_image_embedding_size,
-            ),
+            image_embedding_size=(self.sam_image_embedding_size, self.sam_image_embedding_size),
             input_image_size=(self.image_size, self.image_size),
             mask_in_chans=16,
         )
         self.sam_mask_decoder = SAM2MaskDecoder(
             num_multimask_outputs=3,
             transformer=SAM2TwoWayTransformer(
-                depth=2,
-                embedding_dim=self.sam_prompt_embed_dim,
-                mlp_dim=2048,
-                num_heads=8,
+                depth=2, embedding_dim=self.sam_prompt_embed_dim, mlp_dim=2048, num_heads=8
             ),
             transformer_dim=self.sam_prompt_embed_dim,
             iou_head_depth=3,
@@ -421,12 +412,7 @@ class SAM2Model(torch.nn.Module):
             self.obj_ptr_tpos_proj = torch.nn.Identity()
 
     def _forward_sam_heads(
-        self,
-        backbone_features,
-        point_inputs=None,
-        mask_inputs=None,
-        high_res_features=None,
-        multimask_output=False,
+        self, backbone_features, point_inputs=None, mask_inputs=None, high_res_features=None, multimask_output=False
     ):
         """
         Forward pass through SAM prompt encoders and mask heads.
@@ -509,9 +495,7 @@ class SAM2Model(torch.nn.Module):
             sam_mask_prompt = None
 
         sparse_embeddings, dense_embeddings = self.sam_prompt_encoder(
-            points=(sam_point_coords, sam_point_labels),
-            boxes=None,
-            masks=sam_mask_prompt,
+            points=(sam_point_coords, sam_point_labels), boxes=None, masks=sam_mask_prompt
         )
         low_res_multimasks, ious, sam_output_tokens, object_score_logits = self.sam_mask_decoder(
             image_embeddings=backbone_features,
@@ -531,10 +515,7 @@ class SAM2Model(torch.nn.Module):
         # convert masks from possibly bfloat16 (or float16) to float32
         # (older PyTorch versions before 2.1 don't support `interpolate` on bf16)
         high_res_multimasks = F.interpolate(
-            low_res_multimasks,
-            size=(self.image_size, self.image_size),
-            mode="bilinear",
-            align_corners=False,
+            low_res_multimasks, size=(self.image_size, self.image_size), mode="bilinear", align_corners=False
         )
 
         sam_output_token = sam_output_tokens[:, 0]
@@ -608,15 +589,7 @@ class SAM2Model(torch.nn.Module):
                 obj_ptr = lambda_is_obj_appearing * obj_ptr
             obj_ptr = obj_ptr + (1 - lambda_is_obj_appearing) * self.no_obj_ptr
 
-        return (
-            low_res_masks,
-            high_res_masks,
-            ious,
-            low_res_masks,
-            high_res_masks,
-            obj_ptr,
-            object_score_logits,
-        )
+        return (low_res_masks, high_res_masks, ious, low_res_masks, high_res_masks, obj_ptr, object_score_logits)
 
     def forward_image(self, img_batch: torch.Tensor):
         """Process image batch through encoder to extract multi-level features for SAM model."""
@@ -808,12 +781,7 @@ class SAM2Model(torch.nn.Module):
         return pix_feat_with_mem
 
     def _encode_new_memory(
-        self,
-        current_vision_feats,
-        feat_sizes,
-        pred_masks_high_res,
-        object_score_logits,
-        is_mask_from_pts,
+        self, current_vision_feats, feat_sizes, pred_masks_high_res, object_score_logits, is_mask_from_pts
     ):
         """Encode frame features and masks into a new memory representation for video segmentation."""
         B = current_vision_feats[-1].size(1)  # batch size on this frame
@@ -971,11 +939,7 @@ class SAM2Model(torch.nn.Module):
         )
         _, _, _, low_res_masks, high_res_masks, obj_ptr, object_score_logits = sam_outputs
 
-        current_out = {
-            "pred_masks": low_res_masks,
-            "pred_masks_high_res": high_res_masks,
-            "obj_ptr": obj_ptr,
-        }
+        current_out = {"pred_masks": low_res_masks, "pred_masks_high_res": high_res_masks, "obj_ptr": obj_ptr}
         if not self.training:
             # Only add this in inference (to avoid unused param in activation checkpointing;
             # it's mainly used in the demo to encode spatial memories w/ consolidated masks)

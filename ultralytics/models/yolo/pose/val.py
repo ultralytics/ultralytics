@@ -253,10 +253,7 @@ class PoseValidator(DetectionValidator):
         return {
             **super().scale_preds(predn, pbatch),
             "kpts": ops.scale_coords(
-                pbatch["imgsz"],
-                predn["keypoints"].clone(),
-                pbatch["ori_shape"],
-                ratio_pad=pbatch["ratio_pad"],
+                pbatch["imgsz"], predn["keypoints"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
             ),
         }
 

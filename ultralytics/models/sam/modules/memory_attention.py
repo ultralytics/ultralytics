@@ -78,11 +78,7 @@ class MemoryAttentionLayer(nn.Module):
         self.dropout_value = dropout
         self.self_attn = RoPEAttention(embedding_dim=256, num_heads=1, downsample_rate=1)
         self.cross_attn_image = RoPEAttention(
-            rope_k_repeat=True,
-            embedding_dim=256,
-            num_heads=1,
-            downsample_rate=1,
-            kv_in_dim=64,
+            rope_k_repeat=True, embedding_dim=256, num_heads=1, downsample_rate=1, kv_in_dim=64
         )
 
         # Implementation of Feedforward model
@@ -295,13 +291,7 @@ class MemoryAttention(nn.Module):
             if isinstance(layer.cross_attn_image, RoPEAttention):
                 kwds = {"num_k_exclude_rope": num_obj_ptr_tokens}
 
-            output = layer(
-                tgt=output,
-                memory=memory,
-                pos=memory_pos,
-                query_pos=curr_pos,
-                **kwds,
-            )
+            output = layer(tgt=output, memory=memory, pos=memory_pos, query_pos=curr_pos, **kwds)
         normed_output = self.norm(output)
 
         if self.batch_first:

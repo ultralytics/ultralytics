@@ -216,8 +216,4 @@ class ClassificationTrainer(BaseTrainer):
             ni (int): Number of iterations.
         """
         batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
-        plot_images(
-            labels=batch,
-            fname=self.save_dir / f"train_batch{ni}.jpg",
-            on_plot=self.on_plot,
-        )
+        plot_images(labels=batch, fname=self.save_dir / f"train_batch{ni}.jpg", on_plot=self.on_plot)

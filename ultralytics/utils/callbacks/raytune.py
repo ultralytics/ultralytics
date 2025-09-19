@@ -34,10 +34,4 @@ def on_fit_epoch_end(trainer):
         session.report({**metrics, **{"epoch": trainer.epoch + 1}})
 
 
-callbacks = (
-    {
-        "on_fit_epoch_end": on_fit_epoch_end,
-    }
-    if tune
-    else {}
-)
+callbacks = {"on_fit_epoch_end": on_fit_epoch_end} if tune else {}

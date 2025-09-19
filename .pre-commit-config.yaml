@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Pre-commit hooks configuration for Ultralytics
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
@@ -10,9 +12,9 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-        args: ['--unsafe']  # Allow custom YAML tags
+        args: ["--unsafe"] # Allow custom YAML tags
       - id: check-added-large-files
-        args: ['--maxkb=10000']  # 10MB limit
+        args: ["--maxkb=10000"] # 10MB limit
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: debug-statements
@@ -24,14 +26,19 @@ repos:
     hooks:
       - id: isort
         args: [
-          "--profile", "black",
-          "--line-length", "120",
-          "--multi-line", "3",  # Use vertical hanging indent for multiline imports
-          "--trailing-comma",  # Add trailing commas to multiline imports
-          "--force-grid-wrap", "0",  # Don't force grid wrap
-          "--combine-as",  # Combine as imports
-          "--lines-after-imports", "2"  # Two lines after imports
-        ]
+            "--profile",
+            "black",
+            "--line-length",
+            "120",
+            "--multi-line",
+            "3", # Use vertical hanging indent for multiline imports
+            "--trailing-comma", # Add trailing commas to multiline imports
+            "--force-grid-wrap",
+            "0", # Don't force grid wrap
+            "--combine-as", # Combine as imports
+            "--lines-after-imports",
+            "2", # Two lines after imports
+          ]
 
   # Python code formatting and linting
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -49,10 +56,11 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        args: [
-          "--ignore-words-list=crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,iTerm",
-          "--skip=*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml"
-        ]
+        args:
+          [
+            "--ignore-words-list=crate,nd,ned,strack,dota,ane,segway,fo,gool,winn,commend,bloc,nam,afterall,iTerm",
+            "--skip=*.pt,*.pth,*.torchscript,*.onnx,*.tflite,*.pb,*.bin,*.param,*.mlmodel,*.engine,*.npy,*.data*,*.csv,*pnnx*,*venv*,*translat*,__pycache__*,*.ico,*.jpg,*.png,*.mp4,*.mov,/runs,/.git,./docs/??/*.md,./docs/mkdocs_??.yml",
+          ]
 
   # Jupyter notebook formatting (isort only, ruff has issues with notebooks)
   - repo: https://github.com/nbQA-dev/nbQA

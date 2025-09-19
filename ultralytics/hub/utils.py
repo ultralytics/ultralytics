@@ -5,13 +5,7 @@ import threading
 import time
 from typing import Any
 
-from ultralytics.utils import (
-    IS_COLAB,
-    LOGGER,
-    TQDM,
-    TryExcept,
-    colorstr,
-)
+from ultralytics.utils import IS_COLAB, LOGGER, TQDM, TryExcept, colorstr
 
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 HUB_WEB_ROOT = os.environ.get("ULTRALYTICS_HUB_WEB", "https://hub.ultralytics.com")

@@ -30,13 +30,7 @@ VERTICAL_LINE = [(320, 0), (320, 400)]  # for object counting
 
 # Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
 SOLUTIONS = [
-    (
-        "ObjectCounter",
-        solutions.ObjectCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
+    ("ObjectCounter", solutions.ObjectCounter, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
     (
         "ObjectCounter",
         solutions.ObjectCounter,
@@ -72,20 +66,8 @@ SOLUTIONS = [
         DEMO_VIDEO,
         {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL, "show": SHOW},
     ),
-    (
-        "SpeedEstimator",
-        solutions.SpeedEstimator,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "QueueManager",
-        solutions.QueueManager,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
+    ("SpeedEstimator", solutions.SpeedEstimator, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
+    ("QueueManager", solutions.QueueManager, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
     (
         "LineAnalytics",
         solutions.Analytics,
@@ -122,13 +104,7 @@ SOLUTIONS = [
         CROP_VIDEO,
         {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL, "show": SHOW},
     ),
-    (
-        "ObjectBlurrer",
-        solutions.ObjectBlurrer,
-        False,
-        DEMO_VIDEO,
-        {"blur_ratio": 0.02, "model": MODEL, "show": SHOW},
-    ),
+    ("ObjectBlurrer", solutions.ObjectBlurrer, False, DEMO_VIDEO, {"blur_ratio": 0.02, "model": MODEL, "show": SHOW}),
     (
         "InstanceSegmentation",
         solutions.InstanceSegmentation,
@@ -137,13 +113,7 @@ SOLUTIONS = [
         {"model": "yolo11n-seg.pt", "show": SHOW},
     ),
     ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW}),
-    (
-        "RegionCounter",
-        solutions.RegionCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
+    ("RegionCounter", solutions.RegionCounter, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
     ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [6, 8, 10], "show": SHOW}),
     (
         "ParkingManager",
@@ -198,11 +168,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
         return
 
     video = VERTICAL_VIDEO if name == "ObjectCounterVertical" else video
-    process_video(
-        solution=solution_class(**kwargs),
-        video_path=str(TMP / video),
-        needs_frame_count=needs_frame_count,
-    )
+    process_video(solution=solution_class(**kwargs), video_path=str(TMP / video), needs_frame_count=needs_frame_count)
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")

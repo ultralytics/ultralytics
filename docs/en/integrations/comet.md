@@ -89,12 +89,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 
         # Train the model
         results = model.train(
-            data="coco8.yaml",
-            project="comet-example-yolo11-coco128",
-            batch=32,
-            save_period=1,
-            save_json=True,
-            epochs=3,
+            data="coco8.yaml", project="comet-example-yolo11-coco128", batch=32, save_period=1, save_json=True, epochs=3
         )
         ```
 
@@ -225,12 +220,7 @@ To integrate Comet ML with Ultralytics YOLO11, follow these steps:
 
     model = YOLO("yolo11n.pt")
     results = model.train(
-        data="coco8.yaml",
-        project="comet-example-yolo11-coco128",
-        batch=32,
-        save_period=1,
-        save_json=True,
-        epochs=3,
+        data="coco8.yaml", project="comet-example-yolo11-coco128", batch=32, save_period=1, save_json=True, epochs=3
     )
     ```
 

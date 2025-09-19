@@ -337,13 +337,7 @@ class YOLOE(Model):
         if self.predictor:
             self.predictor.model.names = classes
 
-    def val(
-        self,
-        validator=None,
-        load_vp: bool = False,
-        refer_data: str | None = None,
-        **kwargs,
-    ):
+    def val(self, validator=None, load_vp: bool = False, refer_data: str | None = None, **kwargs):
         """
         Validate the model using text or visual prompts.
 

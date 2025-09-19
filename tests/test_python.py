@@ -546,12 +546,7 @@ def image():
 
 @pytest.mark.parametrize(
     "auto_augment, erasing, force_color_jitter",
-    [
-        (None, 0.0, False),
-        ("randaugment", 0.5, True),
-        ("augmix", 0.2, False),
-        ("autoaugment", 0.0, True),
-    ],
+    [(None, 0.0, False), ("randaugment", 0.5, True), ("augmix", 0.2, False), ("autoaugment", 0.0, True)],
 )
 def test_classify_transforms_train(image, auto_augment, erasing, force_color_jitter):
     """Test classification transforms during training with various augmentations."""
@@ -612,13 +607,7 @@ def test_yolo_world():
     model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.
     # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
-    model.train(
-        data="dota8.yaml",
-        epochs=1,
-        imgsz=32,
-        cache="disk",
-        close_mosaic=1,
-    )
+    model.train(data="dota8.yaml", epochs=1, imgsz=32, cache="disk", close_mosaic=1)
 
     # test WorWorldTrainerFromScratch
     from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
@@ -636,8 +625,7 @@ def test_yolo_world():
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
-    checks.IS_PYTHON_3_8 and LINUX and ARM64,
-    reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
+    checks.IS_PYTHON_3_8 and LINUX and ARM64, reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux"
 )
 def test_yoloe():
     """Test YOLOE models with MobileClip support."""
@@ -654,17 +642,8 @@ def test_yoloe():
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts
-    visuals = dict(
-        bboxes=np.array(
-            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
-        ),
-        cls=np.array([0, 1]),
-    )
-    model.predict(
-        SOURCE,
-        visual_prompts=visuals,
-        predictor=YOLOEVPSegPredictor,
-    )
+    visuals = dict(bboxes=np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]), cls=np.array([0, 1]))
+    model.predict(SOURCE, visual_prompts=visuals, predictor=YOLOEVPSegPredictor)
 
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
@@ -677,13 +656,7 @@ def test_yoloe():
     from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
 
     model = YOLOE("yoloe-11s-seg.pt")
-    model.train(
-        data="coco128-seg.yaml",
-        epochs=1,
-        close_mosaic=1,
-        trainer=YOLOEPESegTrainer,
-        imgsz=32,
-    )
+    model.train(data="coco128-seg.yaml", epochs=1, close_mosaic=1, trainer=YOLOEPESegTrainer, imgsz=32)
 
     # prompt-free
     # predict

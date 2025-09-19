@@ -120,11 +120,7 @@ class GCPRegions:
         return region, statistics.mean(latencies), std_dev, min(latencies), max(latencies)
 
     def lowest_latency(
-        self,
-        top: int = 1,
-        verbose: bool = False,
-        tier: int | None = None,
-        attempts: int = 1,
+        self, top: int = 1, verbose: bool = False, tier: int | None = None, attempts: int = 1
     ) -> list[tuple[str, float, float, float, float]]:
         """
         Determine the GCP regions with the lowest latency based on ping tests.

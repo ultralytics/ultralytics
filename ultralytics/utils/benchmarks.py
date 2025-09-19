@@ -470,18 +470,9 @@ class ProfileModels:
                 model_info = model.info()
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
-                        format="engine",
-                        half=self.half,
-                        imgsz=self.imgsz,
-                        device=self.device,
-                        verbose=False,
+                        format="engine", half=self.half, imgsz=self.imgsz, device=self.device, verbose=False
                     )
-                onnx_file = model.export(
-                    format="onnx",
-                    imgsz=self.imgsz,
-                    device=self.device,
-                    verbose=False,
-                )
+                onnx_file = model.export(format="onnx", imgsz=self.imgsz, device=self.device, verbose=False)
             elif file.suffix == ".onnx":
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file

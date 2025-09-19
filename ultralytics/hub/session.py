@@ -160,10 +160,7 @@ class HUBTrainingSession:
                 "cache": str(model_args.get("cache", "ram")),  # convert True, False, None to string
             },
             "dataset": {"name": model_args.get("data")},
-            "lineage": {
-                "architecture": {"name": self.filename.replace(".pt", "").replace(".yaml", "")},
-                "parent": {},
-            },
+            "lineage": {"architecture": {"name": self.filename.replace(".pt", "").replace(".yaml", "")}, "parent": {}},
             "meta": {"name": self.filename},
         }
 
@@ -334,11 +331,7 @@ class HUBTrainingSession:
     @staticmethod
     def _should_retry(status_code: int) -> bool:
         """Determine if a request should be retried based on the HTTP status code."""
-        retry_codes = {
-            HTTPStatus.REQUEST_TIMEOUT,
-            HTTPStatus.BAD_GATEWAY,
-            HTTPStatus.GATEWAY_TIMEOUT,
-        }
+        retry_codes = {HTTPStatus.REQUEST_TIMEOUT, HTTPStatus.BAD_GATEWAY, HTTPStatus.GATEWAY_TIMEOUT}
         return status_code in retry_codes
 
     def _get_failure_message(self, response, retry: int, timeout: int) -> str:
@@ -372,12 +365,7 @@ class HUBTrainingSession:
         return self.request_queue(self.model.upload_metrics, metrics=self.metrics_queue.copy(), thread=True)
 
     def upload_model(
-        self,
-        epoch: int,
-        weights: str,
-        is_best: bool = False,
-        map: float = 0.0,
-        final: bool = False,
+        self, epoch: int, weights: str, is_best: bool = False, map: float = 0.0, final: bool = False
     ) -> None:
         """
         Upload a model checkpoint to Ultralytics HUB.

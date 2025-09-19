@@ -24,9 +24,7 @@ if CUDA_IS_AVAILABLE:
         gpu_info.print_status()
         autodevice_fraction = __import__("os").environ.get("YOLO_AUTODEVICE_FRACTION_FREE", 0.3)
         if idle_gpus := gpu_info.select_idle_gpu(
-            count=2,
-            min_memory_fraction=autodevice_fraction,
-            min_util_fraction=autodevice_fraction,
+            count=2, min_memory_fraction=autodevice_fraction, min_util_fraction=autodevice_fraction
         ):
             DEVICES = idle_gpus
 
@@ -171,13 +169,7 @@ def test_utils_benchmarks():
     # Pre-export a dynamic engine model to use dynamic inference
     YOLO(MODEL).export(format="engine", imgsz=32, dynamic=True, batch=1, device=DEVICES[0])
     ProfileModels(
-        [MODEL],
-        imgsz=32,
-        half=False,
-        min_time=1,
-        num_timed_runs=3,
-        num_warmup_runs=1,
-        device=DEVICES[0],
+        [MODEL], imgsz=32, half=False, min_time=1, num_timed_runs=3, num_warmup_runs=1, device=DEVICES[0]
     ).run()
 
 

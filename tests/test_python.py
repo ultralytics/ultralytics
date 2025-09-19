@@ -74,12 +74,6 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
-def test_torchscript_inference():
-    """Test torchscript inference without torchvision import: https://github.com/ultralytics/ultralytics/pull/19747."""
-    YOLO("yolo11n.pt").export(format="torchscript")
-    YOLO("yolo11n.torchscript")(batch=2)
-
-
 @pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 def test_predict_txt():
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""

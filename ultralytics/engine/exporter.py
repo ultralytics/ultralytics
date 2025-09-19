@@ -173,7 +173,7 @@ def best_onnx_opset(onnx) -> int:
             "2.6": 20,
             "2.7": 20,
             "2.8": 23,
-        }.get(".".join(TORCH_VERSION.split(".")[:2]), 12)
+        }.get(".".join(TORCH_VERSION.split(".")[:2]), 12) - 1
     return min(opset, onnx.defs.onnx_opset_version()) - 1  # use second-latest version for safety
 
 

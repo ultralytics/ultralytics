@@ -154,7 +154,7 @@ def export_formats():
 
 def best_onnx_opset(onnx) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    if hasattr(torch.onnx.utils, "_constants"):  # not supported in torch 1.8
+    if TORCH_1_13:  # not supported by torch<1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
     else:
         opset = {

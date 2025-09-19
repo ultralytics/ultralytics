@@ -966,7 +966,7 @@ def attempt_compile(
     use_autocast: bool = False,
     warmup: bool = False,
     mode: bool | str = "default",
-) -> list[bool, torch.nn.Module]:
+) -> tuple[bool, torch.nn.Module]:
     """
     Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
 
@@ -984,7 +984,9 @@ def attempt_compile(
             "default", "reduce-overhead", "max-autotune-no-cudagraphs".
 
     Returns:
-        list[bool, model (torch.nn.Module)]: [True, compiled model] if compilation succeeds, otherwise the [False, original model].
+        tuple[bool, torch.nn.Module]: A tuple containing:
+            - success_flag (bool): True if compilation succeeded, False otherwise
+            - compiled_model (torch.nn.Module): The compiled model or original model if compilation failed
 
     Notes:
         - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.

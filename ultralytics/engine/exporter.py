@@ -685,18 +685,59 @@ class Exporter:
             if isinstance(self.model.model[-1], Detect):
                 # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
                 head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
-                ignored_scope = nncf.IgnoredScope(
-                    subgraphs=[
-                        nncf.Subgraph(
-                            inputs=[
-                                f"__module.{head_module_name}/aten::cat/Concat",
-                                f"__module.{head_module_name}/aten::cat/Concat_1",
-                                f"__module.{head_module_name}/aten::cat/Concat_2",
-                            ],
-                            outputs=[f"__module.{head_module_name}/aten::cat/Concat_5"],
-                        )
-                    ]
-                )
+                
+                def find_concat_operations_in_head(ov_model, head_prefix):
+                    """Find all concat operations in the detection head and identify the final one."""
+                    concat_ops = []
+                    
+                    for op in ov_model.get_ops():
+                        op_name = op.get_friendly_name()
+                        # Look for concat operations in the detection head
+                        if f"__module.{head_prefix}/aten::cat/Concat" in op_name:
+                            concat_ops.append(op_name)
+                    
+                    if not concat_ops:
+                        return None, None
+                    
+                    # Sort concat operations to find the pattern
+                    # Usually we have Concat, Concat_1, Concat_2 as inputs and the final one as output
+                    concat_ops.sort()
+                    
+                    # Find the final concat (typically the one with the highest number)
+                    # This is usually the last concat operation that combines the detection outputs
+                    final_concat = None
+                    input_concats = []
+                    
+                    # Look for the pattern where we have multiple concat ops
+                    # The final one is usually the last in the sequence
+                    if len(concat_ops) >= 4:  # We expect at least 4 concat operations in typical YOLO heads
+                        # Take the first 3 as inputs and find the final one
+                        input_concats = concat_ops[:3]  # Concat, Concat_1, Concat_2
+                        
+                        # Find the final concat by looking for the one that's not in the first 3
+                        # and has the highest suffix number
+                        remaining_concats = [op for op in concat_ops if op not in input_concats]
+                        if remaining_concats:
+                            # Sort by suffix number and take the last one
+                            remaining_concats.sort(key=lambda x: int(x.split('_')[-1]) if '_' in x else 0)
+                            final_concat = remaining_concats[-1]
+                    
+                    return input_concats, final_concat
+                
+                input_concat_ops, final_concat_op = find_concat_operations_in_head(ov_model, head_module_name)
+                
+                if input_concat_ops and final_concat_op:
+                    ignored_scope = nncf.IgnoredScope(
+                        subgraphs=[
+                            nncf.Subgraph(
+                                inputs=input_concat_ops,
+                                outputs=[final_concat_op],
+                            )
+                        ]
+                    )
+                    LOGGER.info(f"{prefix} Detected concat operations - Inputs: {input_concat_ops}, Output: {final_concat_op}")
+                else:
+                    LOGGER.warning(f"{prefix} Could not detect concat operations for INT8 quantization ignore scope")
 
             quantized_ov_model = nncf.quantize(
                 model=ov_model,

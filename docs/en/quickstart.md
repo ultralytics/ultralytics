@@ -80,7 +80,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         sudo docker run -it --ipc=host --runtime=nvidia --gpus '"device=2,3"' $t # specify GPUs
         ```
 
-    === "Git clone"{ #git-clone }
+    === "Git clone"
 
         Clone the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) if you are interested in contributing to development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
 

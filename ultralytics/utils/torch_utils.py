@@ -1011,7 +1011,7 @@ def attempt_compile(
         model = torch.compile(model, mode=mode, backend="inductor")
     except Exception as e:
         LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
-        return False, model
+        return model
     t_compile = time.perf_counter() - t0
 
     t_warm = 0.0

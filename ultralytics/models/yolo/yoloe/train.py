@@ -46,7 +46,7 @@ class YOLOETrainer(DetectionTrainer):
         """
         if overrides is None:
             overrides = {}
-        assert not overrides["compile"], f"Training with 'model={overrides['model']}' requires 'compile=False'"
+        assert not overrides.get("compile"), f"Training with 'model={overrides['model']}' requires 'compile=False'"
         overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 

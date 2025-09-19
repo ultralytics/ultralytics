@@ -265,7 +265,7 @@ class BaseTrainer:
             self.model.criterion = self.model.init_criterion()
 
         # Compile model
-        self.args.compile, self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
+        self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
         # Freeze layers
         freeze_list = (

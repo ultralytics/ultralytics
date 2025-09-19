@@ -966,7 +966,7 @@ def attempt_compile(
     use_autocast: bool = False,
     warmup: bool = False,
     mode: bool | str = "default",
-) -> tuple[bool, torch.nn.Module]:
+) -> torch.nn.Module:
     """
     Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
 
@@ -984,9 +984,7 @@ def attempt_compile(
             "default", "reduce-overhead", "max-autotune-no-cudagraphs".
 
     Returns:
-        tuple[bool, torch.nn.Module]: A tuple containing:
-            - success_flag (bool): True if compilation succeeded, False otherwise
-            - compiled_model (torch.nn.Module): The compiled model or original model if compilation failed
+        model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
 
     Notes:
         - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
@@ -1000,17 +998,16 @@ def attempt_compile(
     """
     from ultralytics.nn.tasks import WorldModel, YOLOEModel
 
+    assert not isinstance(model, (WorldModel, YOLOEModel)), (
+        f"torch.compile not supported for {model.__class__.__name__}, re-run with 'compile=False'"
+    )
+
     if not hasattr(torch, "compile") or not mode:
-        return False, model
+        return model
 
     if mode is True:
         mode = "default"
     prefix = colorstr("compile:")
-
-    if isinstance(model, (WorldModel, YOLOEModel)):
-        LOGGER.warning(f"{prefix} torch.compile not supported for {model.__class__.__name__}")
-        return False, model
-
     LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
     if mode == "max-autotune":
         LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")
@@ -1045,4 +1042,4 @@ def attempt_compile(
         LOGGER.info(f"{prefix} complete in {total:.1f}s (compile {t_compile:.1f}s + warmup {t_warm:.1f}s)")
     else:
         LOGGER.info(f"{prefix} compile complete in {t_compile:.1f}s (no warmup)")
-    return True, model
+    return model

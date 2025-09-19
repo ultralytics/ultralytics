@@ -104,6 +104,12 @@ class YOLO(Model):
                 "validator": yolo.detect.DetectionValidator,
                 "predictor": yolo.detect.DetectionPredictor,
             },
+            "mde": {
+                "model": DetectionModel,  # MDE uses the same model structure as detection
+                "trainer": yolo.depth.MDETrainer,
+                "validator": yolo.depth.MDEValidator,
+                "predictor": yolo.detect.DetectionPredictor,  # Use detection predictor for now
+            },
             "segment": {
                 "model": SegmentationModel,
                 "trainer": yolo.segment.SegmentationTrainer,

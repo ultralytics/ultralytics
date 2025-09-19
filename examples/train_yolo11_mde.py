@@ -17,39 +17,9 @@ from ultralytics.utils.metrics import MDEMetrics
 def train_yolo_mde():
     """Train YOLO11 MDE model on KITTI dataset."""
     
-    # Load model with custom MDE head
-    model = YOLO('yolo11-mde.yaml')
-    
-    # Training arguments
-    args = {
-        'data': 'kitti_mde_debug.yaml',  # Debug dataset config
-        'epochs': 5,  # Reduced epochs for debugging
-        'imgsz': [384, 1248],  # As per paper
-        'batch': 2,  # Reduced batch size for debugging
-        'device': 0,
-        'lr0': 0.0001,
-        'optimizer': 'Adam',
-        'project': 'runs/train',
-        'name': 'yolo11_mde_kitti_debug',
-        'patience': 20,
-        'save_period': 10,  # Save checkpoint every 10 epochs
-        'val': True,  # Enable validation
-        'plots': True,  # Generate training plots
-        'verbose': True,  # Verbose output
-    }
-    
-    print("🚀 Starting YOLO11 MDE training...")
-    print(f"📊 Dataset: {args['data']}")
-    print(f"🔄 Epochs: {args['epochs']}")
-    print(f"📐 Image size: {args['imgsz']}")
-    print(f"📦 Batch size: {args['batch']}")
-    print(f"🎯 Project: {args['project']}/{args['name']}")
-    
-    # Train the model
-    results = model.train(**args)
-    
-    print("✅ Training completed!")
-    print(f"📁 Results saved to: {args['project']}/{args['name']}")
+    # Simple 2-line training as requested
+    model = YOLO('yolo11-mde.yaml', task='mde')
+    results = model.train()
     
     return model, results
 

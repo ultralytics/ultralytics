@@ -83,6 +83,15 @@ def non_max_suppression(
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
+    
+    # Handle both 3D and 4D prediction tensors for MDE models
+    if prediction.dim() == 4:  # 4D case: [bs, features, height, width]
+        # Reshape to 3D: [bs, height*width, features]
+        bs, features, h, w = prediction.shape
+        prediction = prediction.permute(0, 2, 3, 1).contiguous().view(bs, h*w, features)
+    
+    xc = prediction[:, :, 4:mi].amax(2) > conf_thres  # candidates (after transpose/reshape)
+    
     if not rotated:
         prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
@@ -110,7 +119,13 @@ def non_max_suppression(
             continue
 
         # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, extra), 1)
+        # Handle MDE models with 70 features: [4 box + 5 cls + 64 dfl + 1 depth]
+        if x.shape[1] == 70:  # MDE model format
+            box = x[:, :4]  # First 4: bounding box coordinates
+            cls = x[:, 4:9]  # Next 5: class probabilities  
+            mask = x[:, 69:70]  # Last 1: depth values
+        else:
+            box, cls, mask = x.split((4, nc, extra), 1)
 
         if multi_label:
             i, j = torch.where(cls > conf_thres)

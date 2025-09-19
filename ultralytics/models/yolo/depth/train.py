@@ -15,10 +15,9 @@ import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
 
 from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.utils import LOGGER, colorstr
+from ultralytics.utils import LOGGER, colorstr, RANK, DEFAULT_CFG
 from ultralytics.utils.loss import v8DetectionLoss
 from ultralytics.utils.metrics import DetMetrics
-from ultralytics.utils.torch_utils import de_parallel
 
 
 class MDELoss(nn.Module):
@@ -145,13 +144,9 @@ class MDETrainer(BaseTrainer):
         validate: Validate the model.
     """
     
-    def __init__(self, cfg=None, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize MDE trainer."""
         super().__init__(cfg, overrides, _callbacks)
-        
-        # Override model to use MDE
-        if hasattr(self, 'model') and self.model is not None:
-            self.model = self.get_model(cfg=self.model.yaml, nc=self.data['nc'], verbose=True)
     
     def get_model(self, cfg=None, weights=None, verbose=True):
         """
@@ -163,15 +158,74 @@ class MDETrainer(BaseTrainer):
             verbose: Whether to print model information.
             
         Returns:
-            MDE model.
+            DetectionModel with MDE heads.
         """
-        from .mde_model import MDE
+        from ultralytics.nn.tasks import DetectionModel
         
-        model = MDE(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = DetectionModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         
         return model
+    
+    def get_validator(self):
+        """Return a MDEValidator for YOLO MDE model validation."""
+        self.loss_names = "box_loss", "cls_loss", "dfl_loss", "depth_loss"
+        from .val import MDEValidator
+        from copy import copy
+        return MDEValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )
+    
+    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
+        """
+        Build YOLO Dataset for training or validation.
+        
+        Args:
+            img_path (str): Path to the folder containing images.
+            mode (str): 'train' mode or 'val' mode.
+            batch (int, optional): Batch size for dataset.
+            
+        Returns:
+            YOLODataset: Dataset object.
+        """
+        from ultralytics.data import build_yolo_dataset
+        from ultralytics.utils.torch_utils import torch_distributed_zero_first
+        
+        gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+    
+    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
+        """
+        Construct and return dataloader for the specified mode.
+        
+        Args:
+            dataset_path (str): Path to the dataset.
+            batch_size (int): Number of images per batch.
+            rank (int): Process rank for distributed training.
+            mode (str): 'train' for training dataloader, 'val' for validation dataloader.
+            
+        Returns:
+            (DataLoader): PyTorch dataloader object.
+        """
+        from ultralytics.data import build_dataloader
+        from ultralytics.utils.torch_utils import torch_distributed_zero_first
+        
+        assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
+        with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
+            dataset = self.build_dataset(dataset_path, mode, batch_size)
+        shuffle = mode == "train"
+        if getattr(dataset, "rect", False) and shuffle:
+            LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
+            shuffle = False
+        return build_dataloader(
+            dataset,
+            batch=batch_size,
+            workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            shuffle=shuffle,
+            rank=rank,
+            drop_last=self.args.compile and mode == "train",
+        )
     
     def criterion(self, preds, batch):
         """
@@ -197,7 +251,7 @@ class MDETrainer(BaseTrainer):
         
         pbar = enumerate(self.train_loader)
         if RANK in (-1, 0):
-            pbar = self.pbar(pbar, total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
+            pbar = self.pbar(pbar, total=len(self.train_loader))
         
         self.optimizer.zero_grad()
         
@@ -245,7 +299,7 @@ class MDETrainer(BaseTrainer):
         
         pbar = enumerate(self.val_loader)
         if RANK in (-1, 0):
-            pbar = self.pbar(pbar, total=len(self.val_loader), bar_format=TQDM_BAR_FORMAT)
+            pbar = self.pbar(pbar, total=len(self.val_loader))
         
         with torch.no_grad():
             for i, batch in pbar:

@@ -11,13 +11,14 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import DetMetrics
-from ultralytics.utils.torch_utils import de_parallel
+# from ultralytics.utils.torch_utils import de_parallel  # Not used
 from ultralytics.utils.nms import non_max_suppression
 
 
-class MDEValidator:
+class MDEValidator(BaseValidator):
     """
     MDE Validator for YOLO models with depth estimation.
     
@@ -35,18 +36,19 @@ class MDEValidator:
         postprocess: Post-process MDE model predictions.
     """
     
-    def __init__(self, model, dataloader, device='cpu'):
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
-        Initialize MDE validator.
+        Initialize MDE validator with necessary variables and settings.
         
         Args:
-            model: The MDE model to validate.
-            dataloader: Validation data loader.
-            device: Device to run validation on.
+            dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
+            save_dir (Path, optional): Directory to save results.
+            args (SimpleNamespace, optional): Arguments for validation.
+            _callbacks (dict, optional): Callbacks for validation.
         """
-        self.model = de_parallel(model)
-        self.dataloader = dataloader
-        self.device = device
+        # Initialize base validator
+        super().__init__(dataloader, save_dir, args, _callbacks)
+        self.args.task = 'detect'  # Ensure task is set for detection metrics
         self.metrics = DetMetrics()
         
     def __call__(self):

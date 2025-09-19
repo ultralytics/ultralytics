@@ -199,7 +199,12 @@ class v8DetectionLoss:
     def __init__(self, model, tal_topk: int = 10):  # model must be de-paralleled
         """Initialize v8DetectionLoss with model parameters and task-aligned assignment settings."""
         device = next(model.parameters()).device  # get model device
-        h = model.args  # hyperparameters
+        h = getattr(model, 'args', None)  # hyperparameters - handle case where model doesn't have args
+        
+        # Provide default hyperparameters if model.args is None
+        if h is None:
+            from ultralytics.cfg import DEFAULT_CFG_DICT
+            h = DEFAULT_CFG_DICT
 
         m = model.model[-1]  # Detect() module
         self.bce = nn.BCEWithLogitsLoss(reduction="none")

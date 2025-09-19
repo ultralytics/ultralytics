@@ -166,13 +166,46 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm, windows-11-arm]
+        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
         python-version: ["3.12"]
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
-            torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
+            python-version: "3.8"
+            torch: "1.8.0"
+          - os: ubuntu-latest
+            python-version: "3.9"
+            torch: "1.9.0"
+          - os: ubuntu-latest
+            python-version: "3.9"
+            torch: "1.10.0"
+          - os: ubuntu-latest
+            python-version: "3.10"
+            torch: "1.11.0"
+          - os: ubuntu-latest
+            python-version: "3.10"
+            torch: "1.12.0"
+          - os: ubuntu-latest
+            python-version: "3.10"
+            torch: "1.13.0"
+          - os: ubuntu-latest
+            python-version: "3.11"
+            torch: "2.0.0"
+          - os: ubuntu-latest
+            python-version: "3.11"
+            torch: "2.1.0"
+          - os: ubuntu-latest
+            python-version: "3.12"
+            torch: "2.2.0"
+          - os: ubuntu-latest
+            python-version: "3.12"
+            torch: "2.3.0"
+          - os: ubuntu-latest
+            python-version: "3.12"
+            torch: "2.4.0"
+          - os: ubuntu-latest
+            python-version: "3.12"
+            torch: "2.5.0"
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -181,12 +214,23 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
-        run: |
+        run: |  # with torchvision compatibility https://pypi.org/project/torchvision/
           slow=""
           torch=""
-          if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              torch="torch==1.8.0 torchvision==0.9.0"
-          fi
+          case "${{ matrix.torch }}" in
+            "1.8.0") torch="torch==1.8.0 torchvision==0.9.0" ;;
+            "1.9.0") torch="torch==1.9.0 torchvision==0.10.0" ;;
+            "1.10.0") torch="torch==1.10.0 torchvision==0.11.0" ;;
+            "1.11.0") torch="torch==1.11.0 torchvision==0.12.0" ;;
+            "1.12.0") torch="torch==1.12.0 torchvision==0.13.0" ;;
+            "1.13.0") torch="torch==1.13.0 torchvision==0.14.0" ;;
+            "2.0.0") torch="torch==2.0.0 torchvision==0.15.0" ;;
+            "2.1.0") torch="torch==2.1.0 torchvision==0.16.0" ;;
+            "2.2.0") torch="torch==2.2.0 torchvision==0.17.0" ;;
+            "2.3.0") torch="torch==2.3.0 torchvision==0.18.0" ;;
+            "2.4.0") torch="torch==2.4.0 torchvision==0.19.0" ;;
+            "2.5.0") torch="torch==2.5.0 torchvision==0.20.0" ;;
+          esac
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
               slow="faster-coco-eval mlflow"
           fi

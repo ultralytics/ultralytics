@@ -383,8 +383,6 @@ class TQDM:
 
 
 if __name__ == "__main__":
-    import time
-
     print("1. Basic progress bar with known total:")
     for i in TQDM(range(3), desc="Known total"):
         time.sleep(0.05)

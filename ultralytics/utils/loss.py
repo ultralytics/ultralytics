@@ -215,6 +215,11 @@ class v8DetectionLoss:
         self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
+    
+    @property
+    def loss_names(self):
+        """Return loss component names for standard detection model."""
+        return ["box", "cls", "dfl"]
 
     def preprocess(self, targets: torch.Tensor, batch_size: int, scale_tensor: torch.Tensor) -> torch.Tensor:
         """Preprocess targets by converting to tensor format and scaling coordinates."""
@@ -921,6 +926,11 @@ class v8DetectionLoss_MDE(v8DetectionLoss):
         
         # Update number of outputs to include depth channel
         self.no = self.nc + self.reg_max * 4 + 1  # +1 for depth
+    
+    @property
+    def loss_names(self):
+        """Return loss component names for MDE model."""
+        return ["box", "cls", "dfl", "depth"]
     
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """

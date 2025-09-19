@@ -212,8 +212,9 @@ def verify_image_label(args: tuple) -> list:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
                     points = lb[:, 5:].reshape(-1, ndim)[:, :2]
                 else:
-                    assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
-                    points = lb[:, 1:]
+                    # Allow 5 columns for standard detection or 6 columns for MDE (detection + depth)
+                    assert lb.shape[1] in {5, 6}, f"labels require 5 or 6 columns, {lb.shape[1]} columns detected"
+                    points = lb[:, 1:5]  # Only use first 4 coordinate columns for validation
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
                 assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"

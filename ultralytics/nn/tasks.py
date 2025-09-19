@@ -498,7 +498,16 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+        if getattr(self, "end2end", False):
+            return E2EDetectLoss(self)
+        
+        # Check if model uses Detect_MDE heads
+        has_mde_head = any(isinstance(m, Detect_MDE) for m in self.model.modules())
+        if has_mde_head:
+            from ultralytics.utils.loss import v8DetectionLoss_MDE
+            return v8DetectionLoss_MDE(self)
+        
+        return v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):

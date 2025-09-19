@@ -71,8 +71,15 @@ def non_max_suppression(
         return output
 
     bs = prediction.shape[0]  # batch size (BCN, i.e. 1,84,6300)
-    nc = nc or (prediction.shape[1] - 4)  # number of classes
-    extra = prediction.shape[1] - nc - 4  # number of extra info
+    
+    # Handle MDE models: if we have 70 outputs (5 classes + 16*4 + 1 depth), 
+    # then we have 5 classes and 1 extra depth channel
+    if prediction.shape[1] == 70:  # MDE format: 5 classes + 16*4 + 1 depth
+        nc = 5  # KITTI dataset has 5 classes
+        extra = 1  # 1 depth channel
+    else:
+        nc = nc or (prediction.shape[1] - 4)  # number of classes
+        extra = prediction.shape[1] - nc - 4  # number of extra info
     mi = 4 + nc  # mask start index
     xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
     xinds = torch.arange(prediction.shape[-1], device=prediction.device).expand(bs, -1)[..., None]  # to track idxs
@@ -93,6 +100,9 @@ def non_max_suppression(
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
         filt = xc[xi]  # confidence
+        # Debug: print shapes to understand the issue
+        if xi == 0:  # Only print for first image to avoid spam
+            print(f"DEBUG NMS: x.shape={x.shape}, filt.shape={filt.shape}, xc[xi].shape={xc[xi].shape}")
         x = x[filt]
         if return_idxs:
             xk = xk[filt]

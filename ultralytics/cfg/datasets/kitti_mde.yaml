@@ -7,13 +7,15 @@ train: images
 val: images
 
 # Number of classes
-nc: 3
+nc: 5
 
 # Class names
 names:
   0: Car
   1: Pedestrian
   2: Cyclist
+  3: Van
+  4: Truck
 
 # Depth range for normalization (in meters)
 depth_min: 0

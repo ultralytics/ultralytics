@@ -22,15 +22,15 @@ def train_yolo_mde():
     
     # Training arguments
     args = {
-        'data': 'kitti_mde.yaml',  # Dataset config
-        'epochs': 60,
+        'data': 'kitti_mde_debug.yaml',  # Debug dataset config
+        'epochs': 5,  # Reduced epochs for debugging
         'imgsz': [384, 1248],  # As per paper
-        'batch': 4,
+        'batch': 2,  # Reduced batch size for debugging
         'device': 0,
         'lr0': 0.0001,
         'optimizer': 'Adam',
-        'project': 'yolo11_mde',
-        'name': 'kitti_depth',
+        'project': 'runs/train',
+        'name': 'yolo11_mde_kitti_debug',
         'patience': 20,
         'save_period': 10,  # Save checkpoint every 10 epochs
         'val': True,  # Enable validation

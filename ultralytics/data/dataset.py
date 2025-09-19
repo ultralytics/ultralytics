@@ -130,18 +130,32 @@ class YOLODataset(BaseDataset):
                 ne += ne_f
                 nc += nc_f
                 if im_file:
-                    x["labels"].append(
-                        {
-                            "im_file": im_file,
-                            "shape": shape,
-                            "cls": lb[:, 0:1],  # n, 1
-                            "bboxes": lb[:, 1:],  # n, 4
-                            "segments": segments,
-                            "keypoints": keypoint,
-                            "normalized": True,
-                            "bbox_format": "xywh",
-                        }
-                    )
+                    # Handle both 5-column (standard) and 6-column (MDE) labels
+                    if lb.shape[1] == 6:
+                        # MDE format: class, x_center, y_center, width, height, depth
+                        bboxes = lb[:, 1:5]  # n, 4 (x_center, y_center, width, height)
+                        depths = lb[:, 5:6]  # n, 1 (depth)
+                    else:
+                        # Standard format: class, x_center, y_center, width, height
+                        bboxes = lb[:, 1:]  # n, 4
+                        depths = None
+                    
+                    label_dict = {
+                        "im_file": im_file,
+                        "shape": shape,
+                        "cls": lb[:, 0:1],  # n, 1
+                        "bboxes": bboxes,  # n, 4
+                        "segments": segments,
+                        "keypoints": keypoint,
+                        "normalized": True,
+                        "bbox_format": "xywh",
+                    }
+                    
+                    # Add depth information if available
+                    if depths is not None:
+                        label_dict["depths"] = depths
+                    
+                    x["labels"].append(label_dict)
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"

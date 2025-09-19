@@ -1,0 +1,20 @@
+# KITTI MDE Debug Dataset Configuration
+# Small dataset for debugging purposes
+
+# Dataset paths
+path: /root/autodl-tmp/kitti_yolo_depth_debug  # dataset root dir
+train: images  # train images (relative to 'path')
+val: images    # val images (relative to 'path')
+
+# Classes
+nc: 5  # number of classes
+names:
+  0: Car
+  1: Pedestrian
+  2: Cyclist
+  3: Van
+  4: Truck
+
+# MDE specific settings
+depth_loss_weight: 1.0  # weight for depth loss component
+depth_loss_type: 'l1'  # depth loss type ('l1', 'l2', 'smooth_l1')

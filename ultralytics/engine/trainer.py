@@ -263,6 +263,9 @@ class BaseTrainer:
         # Initialize loss criterion before compilation for torch.compile compatibility
         if hasattr(self.model, "init_criterion"):
             self.model.criterion = self.model.init_criterion()
+            # Update loss names based on the criterion
+            if hasattr(self.model.criterion, "loss_names"):
+                self.loss_names = self.model.criterion.loss_names
 
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)

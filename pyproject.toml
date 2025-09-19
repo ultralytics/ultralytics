@@ -83,6 +83,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage[toml]",
+    "pre-commit>=3.0.0", # pre-commit hooks for code quality
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.5.9",
     "mkdocstrings[python]",
@@ -160,7 +161,11 @@ omit = ["ultralytics/utils/callbacks/*"]
 
 [tool.isort]
 line_length = 120
-multi_line_output = 0
+multi_line_output = 3  # Use vertical hanging indent for multiline imports
+include_trailing_comma = true  # Add trailing commas to multiline imports
+force_grid_wrap = 0  # Don't force grid wrap
+combine_as_imports = true  # Combine as imports
+lines_after_imports = 2  # Two lines after imports
 
 [tool.yapf]
 based_on_style = "pep8"
@@ -174,9 +179,20 @@ split_before_first_argument = false
 
 [tool.ruff]
 line-length = 120
+# Exclude rules that conflict with ultralytics multiline style
+extend-exclude = [
+    "E501",  # Line too long (let formatter handle this)
+    "W503",  # Line break before binary operator (conflicts with multiline style)
+]
 
 [tool.ruff.format]
 docstring-code-format = true
+# Preserve ultralytics multiline style
+skip-magic-trailing-comma = true
+# Don't force single-line for short statements
+line-ending = "auto"
+# Preserve multiline function calls and arguments
+preview = false
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

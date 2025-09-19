@@ -308,6 +308,8 @@ class Tuner:
             if results:
                 # MongoDB already sorted by fitness DESC, so results[0] is best
                 x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
+            elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere
+                x = np.array([[0.0] + [getattr(self.args, k) for k in self.space.keys()]])
 
         # Fall back to CSV if MongoDB unavailable or empty
         if x is None and self.tune_csv.exists():
@@ -433,7 +435,7 @@ class Tuner:
                 best_metrics = {k: round(v, 5) for k, v in metrics.items()}
                 for ckpt in weights_dir.glob("*.pt"):
                     shutil.copy2(ckpt, self.tune_dir / "weights")
-            elif cleanup:
+            elif cleanup and best_save_dir:
                 shutil.rmtree(best_save_dir, ignore_errors=True)  # remove iteration dirs to reduce storage space
 
             # Plot tune results

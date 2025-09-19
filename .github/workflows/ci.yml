@@ -171,7 +171,7 @@ jobs:
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python: "3.8"
+            python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0"
             torchvision: "0.9.0"
           - os: ubuntu-latest

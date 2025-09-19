@@ -1,10 +1,10 @@
 ---
-title: Model YAML Configuration Guide
+comments: true
 description: Learn how to structure and customize model architectures using Ultralytics YAML configuration files. Master module definitions, connections, and scaling parameters.
 keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural networks, deep learning, backbone, head, modules, custom models
 ---
 
-# Model YAML Configuration
+# Model YAML Configuration Guide
 
 The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 

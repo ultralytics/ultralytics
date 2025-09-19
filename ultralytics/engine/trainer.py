@@ -174,7 +174,22 @@ class BaseTrainer:
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
-        if RANK in {-1, 0}:
+
+        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
+            world_size = len(self.args.device.split(","))
+        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+            world_size = len(self.args.device)
+        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+            world_size = 0
+        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
+            world_size = 1  # default to device 0
+        else:  # i.e. device=None or device=''
+            world_size = 0
+
+        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.world_size = world_size
+        # Run subprocess if DDP training, else train normally
+        if RANK in {-1, 0} and not self.ddp:
             callbacks.add_integration_callbacks(self)
             # Start console logging immediately at trainer initialization
             self.run_callbacks("on_pretrain_routine_start")
@@ -194,19 +209,8 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
-        if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
-        elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
-        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
-            world_size = 0
-        elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
-            world_size = 1  # default to device 0
-        else:  # i.e. device=None or device=''
-            world_size = 0
-
         # Run subprocess if DDP training, else train normally
-        if world_size > 1 and "LOCAL_RANK" not in os.environ:
+        if self.ddp:
             # Argument checks
             if self.args.rect:
                 LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
@@ -218,7 +222,7 @@ class BaseTrainer:
                 self.args.batch = 16
 
             # Command
-            cmd, file = generate_ddp_command(world_size, self)
+            cmd, file = generate_ddp_command(self)
             try:
                 LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
                 subprocess.run(cmd, check=True)
@@ -228,7 +232,7 @@ class BaseTrainer:
                 ddp_cleanup(self, str(file))
 
         else:
-            self._do_train(world_size)
+            self._do_train()
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -238,20 +242,19 @@ class BaseTrainer:
             self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
-    def _setup_ddp(self, world_size):
+    def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device("cuda", RANK)
-        # LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
-            world_size=world_size,
+            world_size=self.world_size,
         )
 
-    def _setup_train(self, world_size):
+    def _setup_train(self):
         """Build dataloaders and optimizer on correct rank process."""
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
@@ -293,13 +296,13 @@ class BaseTrainer:
             callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
-        if RANK > -1 and world_size > 1:  # DDP
+        if RANK > -1 and self.world_size > 1:  # DDP
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
-        if world_size > 1:
+        if self.world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz
@@ -312,7 +315,7 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
 
         # Dataloaders
-        batch_size = self.batch_size // max(world_size, 1)
+        batch_size = self.batch_size // max(self.world_size, 1)
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
@@ -350,11 +353,11 @@ class BaseTrainer:
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks("on_pretrain_routine_end")
 
-    def _do_train(self, world_size=1):
+    def _do_train(self):
         """Train the model with the specified world size."""
-        if world_size > 1:
-            self._setup_ddp(world_size)
-        self._setup_train(world_size)
+        if self.world_size > 1:
+            self._setup_ddp()
+        self._setup_train()
 
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100) if self.args.warmup_epochs > 0 else -1  # warmup iterations
@@ -365,7 +368,7 @@ class BaseTrainer:
         self.run_callbacks("on_train_start")
         LOGGER.info(
             f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
-            f"Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n"
+            f"Using {self.train_loader.num_workers * (self.world_size or 1)} dataloader workers\n"
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
             f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
@@ -417,7 +420,7 @@ class BaseTrainer:
                     loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
                     self.loss = loss.sum()
                     if RANK != -1:
-                        self.loss *= world_size
+                        self.loss *= self.world_size
                     self.tloss = (
                         (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None else self.loss_items
                     )

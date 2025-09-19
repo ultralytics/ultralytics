@@ -10,7 +10,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import checks
-from ultralytics.utils.torch_utils import smart_inference_mode, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_13, smart_inference_mode
 
 try:
     import clip

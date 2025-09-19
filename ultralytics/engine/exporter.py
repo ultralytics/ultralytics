@@ -611,7 +611,7 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset = self.args.opset or torch.onnx.utils._constants.ONNX_MAX_OPSET
+        opset = self.args.opset or (torch.onnx.utils._constants.ONNX_MAX_OPSET - 1)
         opset = min(max(opset, torch.onnx.utils._constants.ONNX_MIN_OPSET, torch.onnx.utils._constants.ONNX_MAX_OPSET)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         f = str(self.file.with_suffix(".onnx"))

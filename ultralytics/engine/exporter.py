@@ -611,8 +611,9 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset_version = self.args.opset or max_supported_onnx_opset(onnx)
-        LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
+        opset = self.args.opset or torch.onnx.utils._constants.ONNX_MAX_OPSET
+        opset = min(max(opset, torch.onnx.utils._constants.ONNX_MIN_OPSET, torch.onnx.utils._constants.ONNX_MAX_OPSET)
+        LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
@@ -626,14 +627,14 @@ class Exporter:
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
-            self.args.opset = opset_version  # for NMSModel
+            self.args.opset = opset  # for NMSModel
 
         with arange_patch(self.args):
             torch2onnx(
                 NMSModel(self.model, self.args) if self.args.nms else self.model,
                 self.im,
                 f,
-                opset=opset_version,
+                opset=opset,
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,

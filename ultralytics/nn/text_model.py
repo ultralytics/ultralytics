@@ -10,7 +10,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import checks
-from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_13, smart_inference_mode
 
 try:
     import clip
@@ -33,6 +33,7 @@ class TextModel(nn.Module):
 
     def __init__(self):
         """Initialize the TextModel base class."""
+        assert TORCH_1_13, "Text models like CLIP require torch>=1.13"
         super().__init__()
 
     @abstractmethod

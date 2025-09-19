@@ -90,7 +90,7 @@ from ultralytics.utils.torch_utils import (
     model_info,
     scale_img,
     smart_inference_mode,
-    time_sync, TORCH_1_13,
+    time_sync,
 )
 
 
@@ -1007,7 +1007,6 @@ class YOLOEModel(DetectionModel):
             verbose (bool): Whether to display model information.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-        assert TORCH_1_13, "YOLOE with CLIP requires torch>=1.13"
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):

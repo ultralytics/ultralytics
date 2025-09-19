@@ -20,7 +20,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13, TORCH_2_1
 
 
 def test_export_torchscript():
@@ -35,7 +35,7 @@ def test_export_onnx():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 def test_export_openvino():
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32)
@@ -43,7 +43,7 @@ def test_export_openvino():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases

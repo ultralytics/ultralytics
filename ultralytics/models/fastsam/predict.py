@@ -7,7 +7,7 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG, checks
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import scale_masks
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_10
 
 from .utils import adjust_bboxes_to_image_border
 
@@ -136,7 +136,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 crop_ims, filter_idx = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = (int(x) for x in b)
-                    if masks[i].sum(0).sum() if TORCH_1_9 else masks[i].sum() <= 100:  # Torch 1.9 in-place bug
+                    if (masks[i].sum(0).sum() if (TORCH_1_9 and not TORCH_1_10) else masks[i].sum()) <= 100:
                         filter_idx.append(i)
                         continue
                     crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))

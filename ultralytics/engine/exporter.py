@@ -154,15 +154,19 @@ def export_formats():
 
 def best_onnx_opset(onnx) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
+    version = ".".join(TORCH_VERSION.split(".")[:2]
     if TORCH_1_13:  # not supported by torch<1.13
-        opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
+        if version in {"2.1", "2.2", "2.3}:
+            opset = 17
+        else:
+            opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
     else:
         opset = {
             "1.8": 12,
             "1.9": 12,
             "1.10": 13,
-            "1.11": 14,
-            "1.12": 15,
+            "1.11": 13,  # reduced from 14 to fix ONNX errors
+            "1.12": 13,  # reduced from 15 to fix ONNX errors
             "1.13": 17,
             "2.0": 18,
             "2.1": 19,
@@ -173,7 +177,7 @@ def best_onnx_opset(onnx) -> int:
             "2.6": 20,
             "2.7": 20,
             "2.8": 23,
-        }.get(".".join(TORCH_VERSION.split(".")[:2]), 12)
+        }.get(version, 12)
     return min(opset, onnx.defs.onnx_opset_version())
 
 

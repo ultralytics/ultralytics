@@ -135,7 +135,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 crop_ims, filter_idx = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = (int(x) for x in b)
-                    if masks[i].sum() <= 100:
+                    if torch.sum(masks[i]) <= 100:
                         filter_idx.append(i)
                         continue
                     crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))

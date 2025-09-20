@@ -38,8 +38,10 @@ from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
@@ -534,21 +536,6 @@ def copy_attr(a, b, include=(), exclude=()):
             setattr(a, k, v)
 
 
-def get_latest_opset():
-    """
-    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
-
-    Returns:
-        (int): The ONNX opset version.
-    """
-    if TORCH_1_13:
-        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
-    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
-    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
-    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
-
-
 def intersect_dicts(da, db, exclude=()):
     """
     Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
@@ -957,53 +944,6 @@ class EarlyStopping:
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
             )
         return stop
-
-
-class FXModel(nn.Module):
-    """
-    A custom model class for torch.fx compatibility.
-
-    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
-    manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
-    copying.
-
-    Attributes:
-        model (nn.Module): The original model's layers.
-    """
-
-    def __init__(self, model):
-        """
-        Initialize the FXModel.
-
-        Args:
-            model (nn.Module): The original model to wrap for torch.fx compatibility.
-        """
-        super().__init__()
-        copy_attr(self, model)
-        # Explicitly set `model` since `copy_attr` somehow does not copy it.
-        self.model = model.model
-
-    def forward(self, x):
-        """
-        Forward pass through the model.
-
-        This method performs the forward pass through the model, handling the dependencies between layers and saving
-        intermediate outputs.
-
-        Args:
-            x (torch.Tensor): The input tensor to the model.
-
-        Returns:
-            (torch.Tensor): The output tensor from the model.
-        """
-        y = []  # outputs
-        for m in self.model:
-            if m.f != -1:  # if not from previous layer
-                # from earlier layers
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-            x = m(x)  # run
-            y.append(x)  # save output
-        return x
 
 
 def attempt_compile(

@@ -177,7 +177,7 @@ jobs:
           - os: ubuntu-latest
             python: "3.9"
             torch: "1.9.1"
-            torchvision: "0.10.0"
+            torchvision: "0.10.1"
           - os: ubuntu-latest
             python: "3.9"
             torch: "1.10.0"

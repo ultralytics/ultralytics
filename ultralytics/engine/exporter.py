@@ -177,7 +177,7 @@ def best_onnx_opset(onnx) -> int:
             "2.6": 20,
             "2.7": 20,
             "2.8": 23,
-        }.get(version), 12)
+        }.get(version, 12)
     return min(opset, onnx.defs.onnx_opset_version())
 
 

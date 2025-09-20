@@ -37,11 +37,11 @@ head:
 
   - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
   - [[-1, 4], 1, Concat, [1]] # cat backbone P3
-  - [-1, 2, C3k2, [256, True, 0.5, "None", True, 4]] # 16 (P3/8-small)
+  - [-1, 2, C3k2, [256, True]] # 16 (P3/8-small)
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 13], 1, Concat, [1]] # cat head P4
-  - [-1, 2, C3k2, [512, True, 0.5, "None", True, 2]] # 19 (P4/16-medium)
+  - [-1, 2, C3k2, [512, True]] # 19 (P4/16-medium)
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 10], 1, Concat, [1]] # cat head P5

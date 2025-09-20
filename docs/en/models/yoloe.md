@@ -377,7 +377,6 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
             save=True,
             exist_ok=True,
         )
-
         ```
 
         You can also pass multiple target images to run prediction on:

@@ -334,6 +334,52 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         model.export(format="onnx")
         ```
 
+        You can pass multiple `refer_image` to get better predictions:
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11s-seg.pt")
+
+        # Define visual prompts using bounding boxes and their corresponding class IDs.
+        # Each box highlights an example of the object you want the model to detect.
+        # For multiple `refer_image`, prompts are a list of numpy arrays.
+        visual_prompts = dict(
+            bboxes=[
+                np.array([[150, 200, 1150, 700]]),  # Box enclosing person in reference image 1
+                np.array(
+                    [
+                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing person in reference image 2
+                        [120, 425, 160, 445],  # Box enclosing glasses in reference image 2
+                    ],
+                ),
+            ],
+            cls=[
+                np.array([0]),  # ID to be assigned for person in reference image 1
+                np.array(
+                    [
+                        0,  # ID to be assigned for person in reference image 2
+                        1,  # ID to be assigned for glasses in reference image 2
+                    ]
+                ),
+            ],
+        )
+
+        # Run prediction on a different image, using reference image to guide what to look for
+        results = model.predict(
+            "ultralytics/assets/bus.jpg",  # Target image for detection
+            refer_image=["ultralytics/assets/zidane.jpg", "ultralytics/assets/bus.jpg"],  # Multiple reference images
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+            save=True,
+            exist_ok=True,
+        )
+
+        ```
+
         You can also pass multiple target images to run prediction on:
 
         ```python
@@ -347,6 +393,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
 
         # Define visual prompts using bounding boxes and their corresponding class IDs.
         # Each box highlights an example of the object you want the model to detect.
+        # For multiple target image, prompts are a list of numpy arrays.
         visual_prompts = dict(
             bboxes=[
                 np.array(

@@ -1,0 +1,26 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Reid model with ResNeSt50 backbone
+
+# Parameters
+nc: 1000 # number of classes
+scales:
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 1024]
+  l: [1.00, 1.00, 1024]
+  x: [1.00, 1.25, 1024]
+
+# ResNeSt50 backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, ResNeStLayer, [3, 64, 1, True, 1]] # 0-P1/2
+  - [-1, 1, ResNeStLayer, [64, 64, 1, False, 3]] # 1-P2/4
+  - [-1, 1, ResNeStLayer, [256, 128, 2, False, 4]] # 2-P3/8
+  - [-1, 1, ResNeStLayer, [512, 256, 2, False, 6]] # 3-P4/16
+  - [-1, 1, ResNeStLayer, [1024, 512, 2, False, 3, 2]] # 4-P5/16
+
+# cls head
+head:
+  - [-1, 1, Classify, [nc]] # Classify

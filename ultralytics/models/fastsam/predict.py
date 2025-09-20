@@ -7,6 +7,7 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG, checks
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import scale_masks
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 from .utils import adjust_bboxes_to_image_border
 
@@ -75,6 +76,7 @@ class FastSAMPredictor(SegmentationPredictor):
 
         return self.prompt(results, bboxes=bboxes, points=points, labels=labels, texts=texts)
 
+    @smart_inference_mode()
     def prompt(self, results, bboxes=None, points=None, labels=None, texts=None):
         """
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.

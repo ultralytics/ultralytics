@@ -426,7 +426,7 @@ class YOLOE(Model):
                 )
 
             num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
+                max(max(c) + 1 for c in visual_prompts["cls"])
                 if isinstance(visual_prompts["cls"], list)  # means multiple images
                 else len(set(visual_prompts["cls"]))
             )

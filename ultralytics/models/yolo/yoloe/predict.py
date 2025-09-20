@@ -171,7 +171,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
                     cls_stack = []  # collect embeddings for same class
                     for vpe, cat in zip(vpes, categories):
                         if cls_id in cat:  # image may not have prompts for current class
-                            cls_stack += [vpe[0, list(set(cat)).index(cls_id)]]  # index of class ID in cls list
+                            cls_stack += [vpe[0, np.unique(cat).tolist().index(cls_id)]]  # index of cls_id in unique list
                     vpe_stack += [torch.nn.functional.normalize(torch.stack(cls_stack).mean(0), p=2, dim=-1)]
                 return torch.stack(vpe_stack)[None]
             else:

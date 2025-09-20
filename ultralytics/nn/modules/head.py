@@ -96,7 +96,6 @@ class Detect(nn.Module):
             nn.Sequential(
                 Conv(x, c2, 3),
                 Conv(c2, c2, 3),
-                Conv(c2, c2, 3),
                 nn.Conv2d(c2, 4 * self.reg_max, 1),
             )
             for x in ch

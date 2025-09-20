@@ -324,15 +324,19 @@ class v8DetectionLoss:
 class v8SegmentationLoss(v8DetectionLoss):
     """Criterion class for computing training losses for YOLOv8 segmentation."""
 
-    def __init__(self, model):  # model must be de-paralleled
+    def __init__(self, model, tal_topk: int = 10):  # model must be de-paralleled
         """Initialize the v8SegmentationLoss class with model parameters and mask overlap setting."""
-        super().__init__(model)
+        super().__init__(model, tal_topk=tal_topk)
         self.overlap = model.args.overlap_mask
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate and return the combined loss for detection and segmentation."""
-        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
+        return self.mask_loss(feats, pred_masks, proto, batch)
+
+    def mask_loss(self, feats, pred_masks, proto, batch):
+        """Calculate and return the combined loss for detection and segmentation."""
+        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1
@@ -391,6 +395,8 @@ class v8SegmentationLoss(v8DetectionLoss):
                 target_scores,
                 target_scores_sum,
                 fg_mask,
+                imgsz,
+                stride_tensor,
             )
             # Masks loss
             masks = batch["masks"].to(self.device).float()
@@ -821,6 +827,42 @@ class E2EDetectLoss:
 
     def update(self):
         self.updates += 1
+        self.o2m = self.decay(self.updates)
+        self.o2o = max(self.total - self.o2m, 0)
+
+    def decay(self, x):
+        return max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.o2mf) + self.o2mf
+
+
+class E2ESegmentLoss:
+    """Criterion class for computing training losses for end-to-end detection."""
+
+    def __init__(self, model):
+        """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
+        self.one2many = v8SegmentationLoss(model, tal_topk=10)
+        self.one2one = v8SegmentationLoss(model, tal_topk=1)
+        self.updates = 0
+        self.total = 1.0
+        self.o2m = 0.8
+        self.o2mf = 0.1  # final weight for o2m branch
+        self.o2o = self.total - self.o2m
+        self.o2m_copy = self.o2m
+
+    def __call__(self, preds, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
+        preds, pred_masks, proto = preds if len(preds) == 3 else preds[1]
+        one2many = preds["one2many"]
+        loss_one2many = self.one2many.mask_loss(one2many, pred_masks, proto, batch)
+        one2one = preds["one2one"]
+        loss_one2one = self.one2one.mask_loss(one2one, pred_masks, proto, batch)
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
+            1
+        ] * self.o2o
+
+    def update(self):
+        self.updates += 1
+        if self.one2one.hyp.epochs < 2:
+            return
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
 

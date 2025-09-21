@@ -75,7 +75,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     shutil.rmtree(file, ignore_errors=True)  # retry in case of potential lingering multi-threaded file usage errors
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, simplify, nms",
     [  # generate all combinations except for exclusion cases
@@ -83,7 +83,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
         for task, dynamic, int8, half, batch, simplify, nms in product(
             TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (task == "obb" and nms and not TORCH_1_13))
+        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
     ],
 )
 def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):

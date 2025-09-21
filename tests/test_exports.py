@@ -157,7 +157,7 @@ def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [False], [True, False], [True, False], [1], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms))
+        if not ((int8 and half) or (task == "classify" and nms) or (ARM64 and nms) or (nms and not TORCH_1_13))
     ],
 )
 def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):

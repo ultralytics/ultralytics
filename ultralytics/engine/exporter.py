@@ -381,6 +381,8 @@ class Exporter:
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
+            assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
+            assert not onnx or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             if getattr(model, "end2end", False):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False

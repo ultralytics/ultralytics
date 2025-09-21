@@ -8,7 +8,6 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
-from ultralytics.utils.torch_utils import TORCH_1_13
 
 from .imx import torch2imx  # noqa
 
@@ -43,7 +42,7 @@ def torch2onnx(
         onnx_file,
         verbose=False,
         opset_version=opset,
-        do_constant_folding=TORCH_1_13,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+        do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,

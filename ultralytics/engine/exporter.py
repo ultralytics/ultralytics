@@ -112,7 +112,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, select_device
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, select_device, TORCH_2_4
 
 
 def export_formats():
@@ -155,23 +155,20 @@ def export_formats():
 def best_onnx_opset(onnx) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
     version = ".".join(TORCH_VERSION.split(".")[:2])
-    if TORCH_1_13:  # not supported by torch<1.13
-        if version in {"2.1", "2.2", "2.3"}:
-            opset = 17
-        else:
-            opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
+    if TORCH_2_4:
+        opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
     else:
         opset = {
             "1.8": 12,
             "1.9": 12,
             "1.10": 13,
-            "1.11": 14,  # reduced from 14 to fix ONNX errors
-            "1.12": 15,  # reduced from 15 to fix ONNX errors
+            "1.11": 14,
+            "1.12": 15,
             "1.13": 17,
             "2.0": 18,
-            "2.1": 19,
-            "2.2": 19,
-            "2.3": 19,
+            "2.1": 17,  # reduced from 19 to fix ONNX errors
+            "2.2": 17,  # reduced from 19 to fix ONNX errors
+            "2.3": 17,  # reduced from 19 to fix ONNX errors
             "2.4": 20,
             "2.5": 20,
             "2.6": 20,

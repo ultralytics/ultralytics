@@ -617,6 +617,9 @@ class Exporter:
 
         opset = self.args.opset or best_onnx_opset(onnx)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
+        if self.args.nms:
+            assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
+
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic

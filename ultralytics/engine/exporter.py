@@ -165,8 +165,8 @@ def best_onnx_opset(onnx) -> int:
             "1.8": 12,
             "1.9": 12,
             "1.10": 13,
-            "1.11": 12,  # reduced from 14 to fix ONNX errors
-            "1.12": 12,  # reduced from 15 to fix ONNX errors
+            "1.11": 14,  # reduced from 14 to fix ONNX errors
+            "1.12": 15,  # reduced from 15 to fix ONNX errors
             "1.13": 17,
             "2.0": 18,
             "2.1": 19,

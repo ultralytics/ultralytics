@@ -12,7 +12,7 @@ from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import WorldModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.torch_utils import to_device, unwrap_model
+from ultralytics.utils.torch_utils import unwrap_model, to_device
 
 
 def on_pretrain_routine_end(trainer) -> None:

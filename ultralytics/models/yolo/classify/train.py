@@ -13,7 +13,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import plot_images
-from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, to_device, torch_distributed_zero_first
+from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first, to_device
 
 
 class ClassificationTrainer(BaseTrainer):

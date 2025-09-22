@@ -4,6 +4,25 @@ os.chdir("/home/louis/ultra_louis_work/ultralytics")
 from ultralytics import YOLOE
 
 
+unfused_model = YOLOE("/home/louis/ultra_louis_work/ultralytics/yoloe-v8s-seg.pt")
+# unfused_model.load("pretrain/yoloe-v8l-seg.pt")
+unfused_model.eval()
+unfused_model.cuda()
+
+with open('/home/louis/ultra_louis_work/yoloe/tools/ram_tag_list.txt', 'r') as f:
+    names = [x.strip() for x in f.readlines()]
+vocab = unfused_model.get_vocab(names)
+
+# model = YOLOE("pretrain/yoloe-v8l-seg-pf.pt").cuda()
+# model.set_vocab(vocab, names=names)
+# model.model.model[-1].is_fused = True
+# model.model.model[-1].conf = 0.001
+# model.model.model[-1].max_det = 1000
+
+# filename = "ultralytics/cfg/datasets/lvis.yaml"
+
+# model.predict('ultralytics/assets/bus.jpg', save=True)
+
 
 
 
@@ -12,6 +31,12 @@ def run_val(**kwargs):
     assert "single_cls"  in kwargs.keys(), "need single_cls in kwargs"
 
     model = YOLOE(kwargs["model_weight"])
+    model.set_vocab(vocab, names=names)
+    model.model.model[-1].is_fused = True
+    model.model.model[-1].conf = 0.1 #
+    model.model.model[-1].max_det = 1000
+
+
     data=kwargs["data"]
 
     batch=kwargs["batch"]
@@ -37,7 +62,9 @@ def run_val(**kwargs):
 
 
 model_weight="/home/louis/ultra_louis_work/ultralytics/runs/detect/train14/weights/best.pt"
-model_weight=os.path.abspath("./yoloe-v8s-seg-pf.pt")
+
+
+# model_weight=os.path.abspath("./yoloe-v8s-seg-pf.pt")
 print(f"model_weight: {model_weight}")
 
 kwargs= dict(model_weight=model_weight,
@@ -50,20 +77,20 @@ kwargs= dict(model_weight=model_weight,
               single_cls=True
 )
 
-# states=run_val(**kwargs)
+states=run_val(**kwargs)
 
 
 
 ######################################################################
-# test the val mode
+# # test the val mode
 
-from ultralytics import YOLOE
-model_weight=os.path.abspath("./yoloe-v8s-seg-pf.pt")
-# Create a YOLOE model
-model = YOLOE(model_weight)  # or select yoloe-11s/m-seg-pf.pt for different sizes
+# from ultralytics import YOLOE
+# model_weight=os.path.abspath("./yoloe-v8s-seg-pf.pt")
+# # Create a YOLOE model
+# model = YOLOE(model_weight)  # or select yoloe-11s/m-seg-pf.pt for different sizes
 
-# Conduct model validation on the COCO128-seg example dataset
-metrics = model.val(data="coco128-seg.yaml", single_cls=True)
+# # Conduct model validation on the COCO128-seg example dataset
+# metrics = model.val(data="coco128-seg.yaml", single_cls=True)
 
 
 ######################################################################

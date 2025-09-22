@@ -112,7 +112,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, select_device
 
 
 def export_formats():
@@ -150,6 +150,31 @@ def export_formats():
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
+
+
+def best_onnx_opset(onnx) -> int:
+    """Return max ONNX opset for this torch version with ONNX fallback."""
+    if TORCH_1_13:  # not supported by torch<1.13
+        opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
+    else:
+        opset = {
+            "1.8": 12,
+            "1.9": 12,
+            "1.10": 13,
+            "1.11": 14,
+            "1.12": 15,
+            "1.13": 17,
+            "2.0": 18,
+            "2.1": 19,
+            "2.2": 19,
+            "2.3": 19,
+            "2.4": 20,
+            "2.5": 20,
+            "2.6": 20,
+            "2.7": 20,
+            "2.8": 23,
+        }.get(".".join(TORCH_VERSION.split(".")[:2]), 12)
+    return min(opset, onnx.defs.onnx_opset_version())
 
 
 def validate_args(format, passed_args, valid_args):
@@ -586,8 +611,8 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset_version = self.args.opset or get_latest_opset()
-        LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...")
+        opset = self.args.opset or best_onnx_opset(onnx)
+        LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic
@@ -601,14 +626,14 @@ class Exporter:
             if self.args.nms:  # only batch size is dynamic with NMS
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
-            self.args.opset = opset_version  # for NMSModel
+            self.args.opset = opset  # for NMSModel
 
         with arange_patch(self.args):
             torch2onnx(
                 NMSModel(self.model, self.args) if self.args.nms else self.model,
                 self.im,
                 f,
-                opset=opset_version,
+                opset=opset,
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
@@ -633,6 +658,11 @@ class Exporter:
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
 
+        # IR version
+        if getattr(model_onnx, "ir_version", 0) > 10:
+            LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
+            model_onnx.ir_version = 10
+
         onnx.save(model_onnx, f)
         return f
 
@@ -644,7 +674,7 @@ class Exporter:
         import openvino as ov
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
-        assert TORCH_1_13, f"OpenVINO export requires torch>=1.13.0 but torch=={TORCH_VERSION} is installed"
+        assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"
         ov_model = ov.convert_model(
             NMSModel(self.model, self.args) if self.args.nms else self.model,
             input=None if self.args.dynamic else [self.im.shape],
@@ -837,6 +867,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
+        assert TORCH_1_11, "CoreML export requires torch>=1.11"
         assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
@@ -1011,9 +1042,8 @@ class Exporter:
             not_use_onnxsim=True,
             verbosity="error",  # note INT8-FP16 activation bug https://github.com/ultralytics/ultralytics/issues/15873
             output_integer_quantized_tflite=self.args.int8,
-            quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
             custom_input_op_name_np_data_path=np_data,
-            enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
+            enable_batchmatmul_unfold=True and not self.args.int8,  # fix lower no. of detected objects on GPU delegate
             output_signaturedefs=True,  # fix error with Attention block group convolution
             disable_group_convolution=self.args.format in {"tfjs", "edgetpu"},  # fix error with group convolution
         )

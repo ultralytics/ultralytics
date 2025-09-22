@@ -1,13 +1,14 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import subprocess
+from pathlib import Path
 
 import pytest
 from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.torch_utils import TORCH_1_11
 
 
 def run(cmd: str) -> None:
@@ -48,15 +49,12 @@ def test_export(model: str) -> None:
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
 
-def test_rtdetr(task: str = "detect", model: str = "yolov8n-rtdetr.yaml", data: str = "coco8.yaml") -> None:
+@pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
+def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
-    # Warning: must use imgsz=640 (note also add comma, spaces, fraction=0.25 args to test single-image training)
-    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")  # spaces
+    # Add comma, spaces, fraction=0.25 args to test single-image training
     run(f"yolo predict {task} model={model} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
-    if TORCH_1_9:
-        weights = WEIGHTS_DIR / "rtdetr-l.pt"
-        run(f"yolo predict {task} model={weights} source={ASSETS / 'bus.jpg'} imgsz=160 save save_crop save_txt")
-        run(f"yolo train {task} model={weights} epochs=1 imgsz=160 cache=disk data=coco8.yaml")
+    run(f"yolo train {task} model={model} data={data} --imgsz= 160 epochs =1, cache = disk fraction=0.25")
 
 
 @pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="MobileSAM with CLIP is not supported in Python 3.12")

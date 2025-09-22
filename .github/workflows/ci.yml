@@ -235,7 +235,7 @@ jobs:
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
-          slow=""
+          slow="faster-coco-eval mlflow"
           torch=""
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"

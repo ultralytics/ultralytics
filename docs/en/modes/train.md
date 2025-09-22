@@ -11,7 +11,7 @@ keywords: Ultralytics, YOLO11, model training, deep learning, object detection, 
 ## Introduction
 
 !!! info "Tip"
-    
+
      PyTorch models can [train](../modes/train.md), val, predict and [export](../modes/export.md), i.e. `model.train(data="coco8.yaml")`, but exported formats like ONNX, TensorRT etc. only support [predict](../modes/predict.md) and [val](../modes/val.md) modes.
 
 Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO11 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO11's robust set of features.

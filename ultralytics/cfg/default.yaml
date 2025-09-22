@@ -107,7 +107,7 @@ nbs: 64 # (int) nominal batch size used for loss normalization
 hsv_h: 0.015 # (float) HSV hue augmentation fraction
 hsv_s: 0.7 # (float) HSV saturation augmentation fraction
 hsv_v: 0.4 # (float) HSV value (brightness) augmentation fraction
-degrees: 0.0 # (float) rotation degrees (+/-)
+degrees: 0.0 # (float, list) rotation degrees (+/-)
 translate: 0.1 # (float) translation fraction (+/-)
 scale: 0.5 # (float) scale gain (+/-)
 shear: 0.0 # (float) shear degrees (+/-)

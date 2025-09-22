@@ -513,9 +513,11 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
         if data_dir.suffix != "":
-            raise ValueError(f"Invalid argument: received a non-directory path 'data={dataset}'. "
-            "For classification task you must provide a dataset directory, not a file. "
-            "Refer to https://docs.ultralytics.com/datasets/classify/")
+            raise ValueError(
+                f"Invalid argument: received a non-directory path 'data={dataset}'. "
+                "For classification task you must provide a dataset directory, not a file. "
+                "Refer to https://docs.ultralytics.com/datasets/classify/"
+            )
         LOGGER.info("")
         LOGGER.warning(f"Dataset not found, missing path {data_dir}, attempting download...")
         t = time.time()

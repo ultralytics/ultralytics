@@ -12,6 +12,7 @@ from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import to_device
 
 
 class ClassificationValidator(BaseValidator):
@@ -89,9 +90,9 @@ class ClassificationValidator(BaseValidator):
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = to_device(batch["img"], self.device)
         batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=True)
+        batch["cls"] = to_device(batch["cls"], self.device)
         return batch
 
     def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:

@@ -130,6 +130,12 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
+def to_device(x, device, *args, non_blocking=True, **kwargs):
+    """Move tensor to device, using blocking transfer for MPS to avoid PyTorch MPS bug."""
+    device_str = device.type if isinstance(device, torch.device) else device
+    return x.to(device, *args, **kwargs, non_blocking=non_blocking and device_str != "mps")
+
+
 def select_device(device="", batch=0, newline=False, verbose=True):
     """
     Select the appropriate PyTorch device based on the provided arguments.

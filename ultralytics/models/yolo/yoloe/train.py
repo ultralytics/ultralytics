@@ -13,7 +13,7 @@ from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
 from ultralytics.nn.tasks import YOLOEModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.torch_utils import unwrap_model
+from ultralytics.utils.torch_utils import unwrap_model, to_device
 
 from ..world.train_world import WorldTrainerFromScratch
 from .val import YOLOEDetectValidator
@@ -195,7 +195,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch = DetectionTrainer.preprocess_batch(self, batch)
 
         texts = list(itertools.chain(*batch["texts"]))
-        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device, non_blocking=True)
+        txt_feats = to_device(torch.stack([self.text_embeddings[text] for text in texts]), self.device)
         txt_feats = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         batch["txt_feats"] = txt_feats
         return batch

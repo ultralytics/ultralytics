@@ -70,6 +70,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         simplify=simplify,
         nms=nms,
         device=DEVICES[0],
+        # opset=20 if nms else None,  # fix ONNX Runtime errors with NMS
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup

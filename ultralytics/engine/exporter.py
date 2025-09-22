@@ -152,11 +152,13 @@ def export_formats():
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
 
-def best_onnx_opset(onnx) -> int:
+def best_onnx_opset(onnx, cuda=False) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
     version = ".".join(TORCH_VERSION.split(".")[:2])
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
+        if cuda:
+            opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
     else:
         opset = {
             "1.8": 12,
@@ -614,7 +616,7 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset = self.args.opset or best_onnx_opset(onnx)
+        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"

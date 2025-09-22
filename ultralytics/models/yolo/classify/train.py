@@ -13,7 +13,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import plot_images
-from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first, to_device
+from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -155,8 +155,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Preprocess a batch of images and classes."""
-        batch["img"] = to_device(batch["img"], self.device)
-        batch["cls"] = to_device(batch["cls"], self.device)
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=True)
         return batch
 
     def progress_string(self) -> str:

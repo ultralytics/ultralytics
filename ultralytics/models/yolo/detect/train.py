@@ -18,7 +18,7 @@ from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
-from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model, to_device
+from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
 
 class DetectionTrainer(BaseTrainer):
@@ -120,7 +120,7 @@ class DetectionTrainer(BaseTrainer):
         """
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
-                batch[k] = to_device(v, self.device)
+                batch[k] = v.to(self.device, non_blocking=True)
         batch["img"] = batch["img"].float() / 255
         if self.args.multi_scale:
             imgs = batch["img"]

@@ -22,7 +22,7 @@ from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
-from ultralytics.utils.torch_utils import select_device, smart_inference_mode, to_device
+from ultralytics.utils.torch_utils import select_device, smart_inference_mode
 
 from .amg import (
     batch_iterator,
@@ -1126,7 +1126,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             )
 
             if prev_out is not None and prev_out.get("pred_masks") is not None:
-                prev_sam_mask_logits = to_device(prev_out["pred_masks"], device=self.device)
+                prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
                 # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
                 prev_sam_mask_logits.clamp_(-32.0, 32.0)
         current_out = self._run_single_frame_inference(
@@ -1417,11 +1417,13 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
-            current_out["maskmem_features"] = to_device(maskmem_features, dtype=torch.float16, device=self.device)
+            current_out["maskmem_features"] = maskmem_features.to(
+                dtype=torch.float16, device=self.device, non_blocking=True
+            )
         # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
         # potentially fill holes in the predicted masks
         # if self.fill_hole_area > 0:
-        #     pred_masks = to_device(current_out["pred_masks"], self.device)
+        #     pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
         #     pred_masks = fill_holes_in_mask_scores(pred_masks, self.fill_hole_area)
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
@@ -1634,7 +1636,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(maskmem_pos_enc)
-        return to_device(maskmem_features, dtype=torch.float16, device=self.device), maskmem_pos_enc
+        return maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=True), maskmem_pos_enc
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """
@@ -1904,7 +1906,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(
-            to_device(consolidated_out["pred_masks"], self.device),
+            consolidated_out["pred_masks"].to(self.device, non_blocking=True),
             size=self.imgsz,
             mode="bilinear",
             align_corners=False,

@@ -12,7 +12,6 @@ from torch.nn.init import trunc_normal_
 
 from ultralytics.nn.modules import MLP
 from ultralytics.utils import LOGGER
-from ultralytics.utils.torch_utils import to_device
 
 from .blocks import SAM2TwoWayTransformer
 from .decoders import MaskDecoder, SAM2MaskDecoder
@@ -713,7 +712,7 @@ class SAM2Model(torch.nn.Module):
                     continue  # skip padding frames
                 # "maskmem_features" might have been offloaded to CPU in demo use cases,
                 # so we load it back to inference device (it's a no-op if it's already on device).
-                feats = to_device(prev["maskmem_features"], device=device)
+                feats = prev["maskmem_features"].to(device=device, non_blocking=True)
                 to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))
                 # Spatial positional encoding (it might have been offloaded to CPU in eval)
                 maskmem_enc = prev["maskmem_pos_enc"][-1].to(device=device)

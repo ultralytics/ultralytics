@@ -584,6 +584,7 @@ class BaseTrainer:
                 "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+                "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, **{"fitness": self.fitness}},
                 "train_results": self.read_results_csv(),
@@ -812,9 +813,11 @@ class BaseTrainer:
             return
         best_fitness = 0.0
         start_epoch = ckpt.get("epoch", -1) + 1
-        if ckpt.get("optimizer", None) is not None:
+        if ckpt.get("optimizer") is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])  # optimizer
             best_fitness = ckpt["best_fitness"]
+        if ckpt.get("scaler") is not None:
+            self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())  # EMA
             self.ema.updates = ckpt["updates"]

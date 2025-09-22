@@ -49,7 +49,6 @@ class VisualAISearch:
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
-
         from ultralytics.nn.text_model import build_text_model
 
         check_requirements("faiss-cpu")

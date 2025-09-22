@@ -12,9 +12,9 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, TORCH_VERSION, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
-from ultralytics.utils.torch_utils import TORCH_2_1, TORCH_2_4
+from ultralytics.utils.torch_utils import TORCH_2_4
 
 # Pre-defined arguments values
 SHOW = False
@@ -289,7 +289,6 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
-
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
@@ -297,7 +296,6 @@ def test_similarity_search():
     safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file
     searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
-
 
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")

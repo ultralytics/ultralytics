@@ -12,8 +12,9 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks, TORCH_VERSION
 from ultralytics.utils.downloads import safe_download
+from ultralytics.utils.torch_utils import TORCH_2_1, TORCH_2_4
 
 # Pre-defined arguments values
 SHOW = False
@@ -205,7 +206,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     )
 
 
-@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
+@pytest.mark.skipif(TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution with sample images and text query."""
@@ -297,6 +298,7 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
+@pytest.mark.skipif(checks.IS_PYTHON_3_11 and TORCH_2_1 and LINUX, reason="Disabled due to FAISS installation.")
 @pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_app_init():

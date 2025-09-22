@@ -12,7 +12,7 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks, TORCH_VERSION
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_1, TORCH_2_4
 

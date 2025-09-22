@@ -15,6 +15,7 @@ from ultralytics.utils import LOGGER, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
+from ultralytics.utils.torch_utils import to_device
 
 
 class DetectionValidator(BaseValidator):
@@ -73,7 +74,7 @@ class DetectionValidator(BaseValidator):
         """
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
-                batch[k] = v.to(self.device, non_blocking=True)
+                batch[k] = to_device(v, self.device)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
         return batch
 

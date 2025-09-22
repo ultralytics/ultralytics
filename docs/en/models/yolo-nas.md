@@ -10,7 +10,7 @@ keywords: YOLO-NAS, Deci AI, object detection, deep learning, Neural Architectur
 
     Please note that [Deci](https://www.linkedin.com/company/deciai/), the original creators of YOLO-NAS, have been acquired by NVIDIA. As a result, these models are no longer actively maintained by Deci. While this page highlights YOLO-NAS benchmarks, the `super-gradients` library is not compatible with Python versions above 3.9. Due to this limitation, Ultralytics no longer supports inference, validation, or export for YOLO-NAS models.
 
-    We strongly recommend exploring our state-of-the-art object detection algorithm: [Ultralytics YOLO11](../yolo11.md).
+    We strongly recommend exploring our state-of-the-art object detection algorithm: [Ultralytics YOLO11](../models/yolo11.md).
 
 ## Overview
 

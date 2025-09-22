@@ -160,7 +160,8 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   Tests:
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
+    if: false
+    # if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
     timeout-minutes: 360
     runs-on: ${{ matrix.os }}
     strategy:

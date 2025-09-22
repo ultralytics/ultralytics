@@ -206,7 +206,7 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     )
 
 
-@pytest.mark.skipif(TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search():
     """Test similarity search solution with sample images and text query."""

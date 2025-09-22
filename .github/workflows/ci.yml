@@ -237,8 +237,7 @@ jobs:
           if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
             slow="--slow"
           fi
-          # pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
-          pytest --slow --cov=ultralytics/ --cov-report=xml tests/test_cuda.py -sv
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Upload Coverage Reports to CodeCov

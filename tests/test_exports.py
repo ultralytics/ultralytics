@@ -20,7 +20,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1
 
 
 def test_export_torchscript():
@@ -35,7 +35,7 @@ def test_export_onnx():
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 def test_export_openvino():
     """Test YOLO export to OpenVINO format for model inference compatibility."""
     file = YOLO(MODEL).export(format="openvino", imgsz=32)
@@ -43,7 +43,7 @@ def test_export_openvino():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not TORCH_1_13, reason="OpenVINO requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch, nms",
     [  # generate all combinations except for exclusion cases
@@ -117,7 +117,7 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
-@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, nms, batch",
@@ -169,7 +169,7 @@ def test_export_tflite_matrix(task, dynamic, int8, half, batch, nms):
     Path(file).unlink()  # cleanup
 
 
-@pytest.mark.skipif(not TORCH_1_9, reason="CoreML>=7.2 not supported with PyTorch<=1.8")
+@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")
 @pytest.mark.skipif(checks.IS_PYTHON_3_13, reason="CoreML not supported in Python 3.13")

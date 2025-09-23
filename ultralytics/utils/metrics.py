@@ -496,7 +496,7 @@ class ConfusionMatrix(DataExportMixin):
             for k in mbatch.keys():
                 labels[k] += mbatch[k]
 
-        labels = {k: torch.stack(v, 0) if len(v) else torch.empty(0, 0) for k, v in labels.items()}
+        labels = {k: torch.stack(v, 0) if len(v) else torch.empty(0) for k, v in labels.items()}
         if self.task != "obb" and labels["bboxes"].shape[0]:
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         (save_dir / "visualizations").mkdir(parents=True, exist_ok=True)

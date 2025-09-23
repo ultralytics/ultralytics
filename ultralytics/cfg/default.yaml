@@ -83,7 +83,7 @@ line_width: # (int, optional) line width of boxes; auto-scales with image size i
 format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn
 keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) TorchScript only; apply mobile optimizations to the scripted model
-int8: False # (bool) INT8/PTQ where supported (openvino, tflite, tfjs, engine, imx); needs calibration data/fraction
+int8: False # (bool) enables QAT in train mode or INT8/PTQ during export where supported (openvino, tflite, tfjs, engine, imx); needs calibration data/fraction
 dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine; enable variable image sizes
 simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX before runtime conversion
 opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default

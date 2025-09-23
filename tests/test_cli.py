@@ -34,7 +34,7 @@ def test_train(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
-    run(f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json")
+    run(f"yolo val {task} model={model} data={data} imgsz=32 save_txt save_json visualize")
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)

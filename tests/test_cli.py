@@ -54,7 +54,7 @@ def test_qat():
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("nvidia-modelopt[torch,onnx]")  # installation before torch import
-    run("yolo train data=coco128.yaml imgsz=32 name=qat int8")
+    run("yolo train data=coco128.yaml imgsz=32 epochs=1 name=qat int8 exist_ok")
     run("yolo export model=runs/detect/qat/weights/best.pt format=onnx")
 
 

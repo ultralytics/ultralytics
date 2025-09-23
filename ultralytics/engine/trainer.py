@@ -53,6 +53,7 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     select_device,
+    smart_inference_mode,
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
@@ -716,6 +717,7 @@ class BaseTrainer:
         check_requirements("nvidia-modelopt")
 
         import modelopt.torch.quantization as mtq
+        from ultralytics.data.build import build_dataloader
 
         config = {
             "quant_cfg": {
@@ -726,24 +728,20 @@ class BaseTrainer:
             "algorithm": "max",  # Calibration algorithm
         }
 
-        from ultralytics.data.build import build_dataloader
-
-        with torch_distributed_zero_first(RANK):  # init dataset *.cache only once if DDP
+        with torch_distributed_zero_first(LOCAL_RANK):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(self.data["val"], "quantize", self.args.batch)
         calib_loader = build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)
 
-        def forward_loop(model, device=self.device):
+        @smart_inference_mode()
+        def forward_loop(model):
             model.eval()
-            samples_processed = 0
-            num_samples = 512
-            with torch.no_grad():
-                for batch_idx, batch in enumerate(calib_loader):
-                    if samples_processed >= num_samples:
-                        break
-
-                    images = self.preprocess_batch(batch)["img"]
-                    model(images)
-                    samples_processed += images.shape[0]
+            count, num_samples = 0, 512  # max calibration samples
+            for batch in calib_loader:
+                if count >= num_samples:
+                    break
+                images = self.preprocess_batch(batch)["img"]
+                model(images)
+                count += images.shape[0]
 
         self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
 

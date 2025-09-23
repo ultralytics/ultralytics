@@ -743,7 +743,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
     if hasattr(x["model"], "criterion"):
         x["model"].criterion = None  # strip loss criterion
-    if not x.get("modelopt_state"):
+    if "state_dict" not in x:  # QAT saves state dict
         x["model"].half()  # to FP16
         for p in x["model"].parameters():
             p.requires_grad = False

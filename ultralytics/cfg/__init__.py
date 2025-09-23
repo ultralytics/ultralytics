@@ -10,28 +10,9 @@ from types import SimpleNamespace
 from typing import Any
 
 from ultralytics import __version__
-from ultralytics.utils import (
-    ASSETS,
-    DEFAULT_CFG,
-    DEFAULT_CFG_DICT,
-    DEFAULT_CFG_PATH,
-    FLOAT_OR_INT,
-    IS_VSCODE,
-    LOGGER,
-    RANK,
-    ROOT,
-    RUNS_DIR,
-    SETTINGS,
-    SETTINGS_FILE,
-    STR_OR_PATH,
-    TESTS_RUNNING,
-    YAML,
-    IterableSimpleNamespace,
-    checks,
-    colorstr,
-    deprecation_warn,
-    vscode_msg,
-)
+from ultralytics.utils import (ASSETS, DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, FLOAT_OR_INT, IS_VSCODE, LOGGER,
+                               RANK, ROOT, RUNS_DIR, SETTINGS, SETTINGS_FILE, STR_OR_PATH, TESTS_RUNNING, YAML,
+                               IterableSimpleNamespace, checks, colorstr, deprecation_warn, vscode_msg)
 
 # Define valid solutions
 SOLUTION_MAP = {
@@ -59,6 +40,7 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    # TODO: change to a normal kitti dataset like kitti8_mde.yaml
     "mde": "kitti_mde_debug.yaml",
 }
 TASK2MODEL = {
@@ -67,6 +49,7 @@ TASK2MODEL = {
     "classify": "yolo11n-cls.pt",
     "pose": "yolo11n-pose.pt",
     "obb": "yolo11n-obb.pt",
+    # TODO: the yolo11n-mde.pt is not ready
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -74,6 +57,7 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
+    "mde": "metrics/mAP50-95(D)",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

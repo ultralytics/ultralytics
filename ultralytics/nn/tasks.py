@@ -11,88 +11,22 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules import (
-    AIFI,
-    C1,
-    C2,
-    C2PSA,
-    C3,
-    C3TR,
-    ELAN1,
-    OBB,
-    PSA,
-    SPP,
-    SPPELAN,
-    SPPF,
-    A2C2f,
-    AConv,
-    ADown,
-    Bottleneck,
-    BottleneckCSP,
-    C2f,
-    C2fAttn,
-    C2fCIB,
-    C2fPSA,
-    C3Ghost,
-    C3k2,
-    C3x,
-    CBFuse,
-    CBLinear,
-    Classify,
-    Concat,
-    Conv,
-    Conv2,
-    ConvTranspose,
-    Detect,
-    DWConv,
-    DWConvTranspose2d,
-    Focus,
-    GhostBottleneck,
-    GhostConv,
-    HGBlock,
-    HGStem,
-    ImagePoolingAttn,
-    Index,
-    LRPCHead,
-    Pose,
-    RepC3,
-    RepConv,
-    RepNCSPELAN4,
-    RepVGGDW,
-    ResNetLayer,
-    RTDETRDecoder,
-    SCDown,
-    Segment,
-    TorchVision,
-    WorldDetect,
-    YOLOEDetect,
-    YOLOESegment,
-    v10Detect,
-    Detect_MDE,
-)
+from ultralytics.nn.modules import (AIFI, C1, C2, C2PSA, C3, C3TR, ELAN1, OBB, PSA, SPP, SPPELAN, SPPF, A2C2f, AConv,
+                                    ADown, Bottleneck, BottleneckCSP, C2f, C2fAttn, C2fCIB, C2fPSA, C3Ghost, C3k2, C3x,
+                                    CBFuse, CBLinear, Classify, Concat, Conv, Conv2, ConvTranspose, Detect, Detect_MDE,
+                                    DWConv, DWConvTranspose2d, Focus, GhostBottleneck, GhostConv, HGBlock, HGStem,
+                                    ImagePoolingAttn, Index, LRPCHead, Pose, RepC3, RepConv, RepNCSPELAN4, RepVGGDW,
+                                    ResNetLayer, RTDETRDecoder, SCDown, Segment, TorchVision, WorldDetect, YOLOEDetect,
+                                    YOLOESegment, v10Detect)
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
-from ultralytics.utils.loss import (
-    E2EDetectLoss,
-    v8ClassificationLoss,
-    v8DetectionLoss,
-    v8OBBLoss,
-    v8PoseLoss,
-    v8SegmentationLoss,
-)
+from ultralytics.utils.loss import (E2EDetectLoss, v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss,
+                                    v8SegmentationLoss)
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import feature_visualization
-from ultralytics.utils.torch_utils import (
-    fuse_conv_and_bn,
-    fuse_deconv_and_bn,
-    initialize_weights,
-    intersect_dicts,
-    model_info,
-    scale_img,
-    smart_inference_mode,
-    time_sync,
-)
+from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
+                                           model_info, scale_img, smart_inference_mode, time_sync)
 
 
 class BaseModel(torch.nn.Module):
@@ -500,13 +434,14 @@ class DetectionModel(BaseModel):
         """Initialize the loss criterion for the DetectionModel."""
         if getattr(self, "end2end", False):
             return E2EDetectLoss(self)
-        
+
         # Check if model uses Detect_MDE heads
         has_mde_head = any(isinstance(m, Detect_MDE) for m in self.model.modules())
         if has_mde_head:
-            from ultralytics.utils.loss import v8DetectionLoss_MDE
-            return v8DetectionLoss_MDE(self)
-        
+            from ultralytics.utils.loss import v11DetectionLoss_MDE
+
+            return v11DetectionLoss_MDE(self)
+
         return v8DetectionLoss(self)
 
 
@@ -1128,9 +1063,9 @@ class YOLOEModel(DetectionModel):
             names (list[str]): List of class names.
             embeddings (torch.Tensor): Embeddings tensor.
         """
-        assert not hasattr(self.model[-1], "lrpc"), (
-            "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
-        )
+        assert not hasattr(
+            self.model[-1], "lrpc"
+        ), "Prompt-free model does not support setting classes. Please try with Text/Visual prompt models."
         assert embeddings.ndim == 3
         self.pe = embeddings
         self.model[-1].nc = len(names)
@@ -1629,9 +1564,7 @@ def parse_model(d, ch, verbose=True):
         m = (
             getattr(torch.nn, m[3:])
             if "nn." in m
-            else getattr(__import__("torchvision").ops, m[16:])
-            if "torchvision.ops." in m
-            else globals()[m]
+            else getattr(__import__("torchvision").ops, m[16:]) if "torchvision.ops." in m else globals()[m]
         )  # get module
         for j, a in enumerate(args):
             if isinstance(a, str):
@@ -1675,7 +1608,18 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, Detect_MDE}
+            {
+                Detect,
+                WorldDetect,
+                YOLOEDetect,
+                Segment,
+                YOLOESegment,
+                Pose,
+                OBB,
+                ImagePoolingAttn,
+                v10Detect,
+                Detect_MDE,
+            }
         ):
             args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment:

@@ -8,6 +8,8 @@ This module provides training functionality for YOLO models with depth estimatio
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -199,7 +201,7 @@ class MDETrainer(BaseTrainer):
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """
-        Build YOLO Dataset for training or validation.
+        Build MDE Dataset for training or validation with depth information.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -207,16 +209,45 @@ class MDETrainer(BaseTrainer):
             batch (int, optional): Batch size for dataset.
 
         Returns:
-            YOLODataset: Dataset object.
+            MDEDataset: Dataset object with depth information.
         """
+        import sys
+
         from ultralytics.data import build_yolo_dataset
 
-        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+        sys.path.append("/root/ultralytics")
+        from build_mde_dataset import build_mde_dataset
+
+        # For MDE training, use the custom MDE dataset
+        try:
+            # Create data config from current args
+            data_config = {
+                "path": str(
+                    Path(self.data["path"])
+                    if isinstance(self.data.get("path"), str)
+                    else self.data.get("path", img_path)
+                ),
+                "train": self.data.get("train", "images"),
+                "val": self.data.get("val", "images"),
+                "nc": self.data["nc"],
+                "names": self.data["names"],
+                "depth_loss_weight": getattr(self.args, "depth_loss_weight", 1.0),
+                "depth_loss_type": getattr(self.args, "depth_loss_type", "l1"),
+            }
+
+            # Use MDE dataset
+            mde_dataset = build_mde_dataset(data_config, mode=mode, batch=batch)
+            return mde_dataset
+
+        except Exception as e:
+            LOGGER.warning(f"Failed to create MDE dataset, falling back to standard dataset: {e}")
+            # Fallback to standard YOLO dataset
+            gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)
+            return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """
-        Construct and return dataloader for the specified mode.
+        Construct and return MDE dataloader for the specified mode.
 
         Args:
             dataset_path (str): Path to the dataset.
@@ -225,26 +256,63 @@ class MDETrainer(BaseTrainer):
             mode (str): 'train' for training dataloader, 'val' for validation dataloader.
 
         Returns:
-            (DataLoader): PyTorch dataloader object.
+            (DataLoader): PyTorch dataloader object with MDE batches.
         """
+        import sys
+
         from ultralytics.data import build_dataloader
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
+        sys.path.append("/root/ultralytics")
+        from build_mde_dataset import create_mde_dataloader
+
         assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
-        with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-            dataset = self.build_dataset(dataset_path, mode, batch_size)
-        shuffle = mode == "train"
-        if getattr(dataset, "rect", False) and shuffle:
-            LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
-            shuffle = False
-        return build_dataloader(
-            dataset,
-            batch=batch_size,
-            workers=self.args.workers if mode == "train" else self.args.workers * 2,
-            shuffle=shuffle,
-            rank=rank,
-            drop_last=self.args.compile and mode == "train",
-        )
+
+        # Try to use MDE dataloader first
+        try:
+            # Create data config
+            data_config = {
+                "path": str(
+                    Path(self.data["path"])
+                    if isinstance(self.data.get("path"), str)
+                    else self.data.get("path", dataset_path)
+                ),
+                "train": self.data.get("train", "images"),
+                "val": self.data.get("val", "images"),
+                "nc": self.data["nc"],
+                "names": self.data["names"],
+                "depth_loss_weight": getattr(self.args, "depth_loss_weight", 1.0),
+                "depth_loss_type": getattr(self.args, "depth_loss_type", "l1"),
+            }
+
+            # Use MDE dataloader
+            mde_dataloader = create_mde_dataloader(
+                data_config,
+                batch_size=batch_size,
+                mode=mode,
+                workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            )
+            LOGGER.info(f"✅ Created MDE dataloader for {mode} mode")
+            return mde_dataloader
+
+        except Exception as e:
+            LOGGER.warning(f"Failed to create MDE dataloader, falling back to standard dataloader: {e}")
+
+            # Fallback to standard dataloader
+            with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
+                dataset = self.build_dataset(dataset_path, mode, batch_size)
+            shuffle = mode == "train"
+            if getattr(dataset, "rect", False) and shuffle:
+                LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
+                shuffle = False
+            return build_dataloader(
+                dataset,
+                batch=batch_size,
+                workers=self.args.workers if mode == "train" else self.args.workers * 2,
+                shuffle=shuffle,
+                rank=rank,
+                drop_last=self.args.compile and mode == "train",
+            )
 
     def preprocess_batch(self, batch: dict) -> dict:
         """
@@ -264,8 +332,52 @@ class MDETrainer(BaseTrainer):
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=True)
 
-        # Normalize images to [0, 1] range
-        batch["img"] = batch["img"].float() / 255
+        # Debug logging
+        if hasattr(self, "_debug_count"):
+            self._debug_count += 1
+        else:
+            self._debug_count = 1
+
+        if self._debug_count <= 3:  # Only log first 3 batches
+            LOGGER.info(f"DEBUG Batch {self._debug_count} keys: {list(batch.keys())}")
+            for k, v in batch.items():
+                if isinstance(v, torch.Tensor):
+                    LOGGER.info(f"  {k}: {v.shape}")
+
+        # Normalize images to [0, 1] range (if not already normalized)
+        if batch["img"].max() > 1.0:
+            batch["img"] = batch["img"].float() / 255
+
+        # Convert MDE batch format to standard YOLO format
+        if "labels" in batch and "depth" in batch:
+            # MDE batch format - convert to standard format
+            labels = batch["labels"]
+            if len(labels) > 0:
+                # Split labels into components
+                batch_idx = labels[:, 0].long()
+                cls = labels[:, 1].long()
+                bboxes = labels[:, 2:6]
+
+                # Create standard batch format
+                batch["batch_idx"] = batch_idx
+                batch["cls"] = cls
+                batch["bboxes"] = bboxes
+
+                # Keep depth information
+                batch["depth"] = batch["depth"]
+            else:
+                # No labels - create empty tensors
+                batch["batch_idx"] = torch.zeros(0, dtype=torch.long, device=self.device)
+                batch["cls"] = torch.zeros(0, dtype=torch.long, device=self.device)
+                batch["bboxes"] = torch.zeros(0, 4, dtype=torch.float32, device=self.device)
+
+        # Ensure all required keys exist for YOLO format
+        if "batch_idx" not in batch:
+            batch["batch_idx"] = torch.zeros(0, dtype=torch.long, device=self.device)
+        if "cls" not in batch:
+            batch["cls"] = torch.zeros(0, dtype=torch.long, device=self.device)
+        if "bboxes" not in batch:
+            batch["bboxes"] = torch.zeros(0, 4, dtype=torch.float32, device=self.device)
 
         # Handle multi-scale training if enabled
         if self.args.multi_scale:
@@ -286,7 +398,13 @@ class MDETrainer(BaseTrainer):
                     math.ceil(x * sf / self.stride) * self.stride for x in imgs.shape[2:]
                 ]  # new shape (stretched to gs-multiple)
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
-            batch["img"] = imgs
+                batch["img"] = imgs
+
+                # Also resize depth maps if present
+                if "depth" in batch:
+                    depth_maps = batch["depth"]
+                    depth_maps = nn.functional.interpolate(depth_maps, size=ns, mode="bilinear", align_corners=False)
+                    batch["depth"] = depth_maps
 
         return batch
 
@@ -308,7 +426,10 @@ class MDETrainer(BaseTrainer):
             tuple: (loss, loss_dict)
         """
         if not hasattr(self, "_criterion"):
-            self._criterion = MDELoss(self.model)
+            # Use the new v11DetectionLoss_MDE instead of the old MDELoss
+            from ultralytics.utils.loss import v11DetectionLoss_MDE
+
+            self._criterion = v11DetectionLoss_MDE(self.model)
 
         return self._criterion(preds, batch)
 
@@ -353,10 +474,10 @@ class MDETrainer(BaseTrainer):
 
             # Update loss
             self.loss_items = [
-                loss_dict.get("box_loss", 0.0),
-                loss_dict.get("cls_loss", 0.0),
-                loss_dict.get("dfl_loss", 0.0),
-                loss_dict.get("depth_loss", 0.0),
+                loss_dict[0],
+                loss_dict[1],
+                loss_dict[2],
+                loss_dict[3],
             ]
 
             # Update progress bar

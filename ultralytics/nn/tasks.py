@@ -1503,7 +1503,7 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     if "modelopt_state" in ckpt:  # QAT model
         import modelopt.torch.opt as mto
 
-        model = (ckpt.get("ema") or ckpt["model"])  # only skeleton, model.model absent
+        model = ckpt.get("ema") or ckpt["model"]  # only skeleton, model.model absent
         new_model = parse_model(model.yaml, ch=model.yaml.get("channels", 3))[0]  # rebuild from YAML
         # restore model and QAT weights
         for sd in ckpt["modelopt_state"]["modelopt_state_dict"]:

@@ -37,21 +37,12 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         """
         Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
-        This trainer extends the DetectionTrainer class to specialize in training models that detect oriented
-        bounding boxes. It automatically sets the task to 'obb' in the configuration.
-
         Args:
             cfg (dict, optional): Configuration dictionary for the trainer. Contains training parameters and
                 model configuration.
             overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here
                 will take precedence over those in cfg.
             _callbacks (list[Any], optional): List of callback functions to be invoked during training.
-
-        Examples:
-            >>> from ultralytics.models.yolo.obb import OBBTrainer
-            >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
-            >>> trainer = OBBTrainer(overrides=args)
-            >>> trainer.train()
         """
         if overrides is None:
             overrides = {}

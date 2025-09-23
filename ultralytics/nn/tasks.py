@@ -336,7 +336,8 @@ class BaseModel(torch.nn.Module):
         if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
 
-        preds = self.forward(batch["img"]) if preds is None else preds
+        if preds is None:
+            preds = self.forward(batch["img"])
         return self.criterion(preds, batch)
 
     def init_criterion(self):
@@ -767,7 +768,7 @@ class RTDETRDetectionModel(DetectionModel):
 
         img = batch["img"]
         # NOTE: preprocess gt_bbox and gt_labels to list.
-        bs = len(img)
+        bs = img.shape[0]
         batch_idx = batch["batch_idx"]
         gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
         targets = {
@@ -777,7 +778,8 @@ class RTDETRDetectionModel(DetectionModel):
             "gt_groups": gt_groups,
         }
 
-        preds = self.predict(img, batch=targets) if preds is None else preds
+        if preds is None:
+            preds = self.predict(img, batch=targets)
         dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
         if dn_meta is None:
             dn_bboxes, dn_scores = None, None
@@ -923,7 +925,7 @@ class WorldModel(DetectionModel):
             (torch.Tensor): Model's output tensor.
         """
         txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
-        if len(txt_feats) != len(x) or self.model[-1].export:
+        if txt_feats.shape[0] != x.shape[0] or self.model[-1].export:
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
         y, dt, embeddings = [], [], []  # outputs
@@ -1037,7 +1039,6 @@ class YOLOEModel(DetectionModel):
         if without_reprta:
             return txt_feats
 
-        assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         return head.get_tpe(txt_feats)  # run auxiliary text head
@@ -1543,8 +1544,8 @@ def parse_model(d, ch, verbose=True):
     max_channels = float("inf")
     nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
+    scale = d.get("scale")
     if scales:
-        scale = d.get("scale")
         if not scale:
             scale = tuple(scales.keys())[0]
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")

@@ -158,9 +158,6 @@ source = ["ultralytics/"]
 data_file = "tests/.coverage"
 omit = ["ultralytics/utils/callbacks/*"]
 
-[tool.uv]
-required-version = "==0.8.19"
-
 [tool.isort]
 line_length = 120
 multi_line_output = 0

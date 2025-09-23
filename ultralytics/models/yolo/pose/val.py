@@ -86,7 +86,7 @@ class PoseValidator(DetectionValidator):
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch by converting keypoints data to float and moving it to the device."""
         batch = super().preprocess(batch)
-        batch["keypoints"] = batch["keypoints"].to(self.device, non_blocking=True).float()
+        batch["keypoints"] = batch["keypoints"].float()
         return batch
 
     def get_desc(self) -> str:
@@ -192,8 +192,8 @@ class PoseValidator(DetectionValidator):
         """
         tp = super()._process_batch(preds, batch)
         gt_cls = batch["cls"]
-        if len(gt_cls) == 0 or len(preds["cls"]) == 0:
-            tp_p = np.zeros((len(preds["cls"]), self.niou), dtype=bool)
+        if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
+            tp_p = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
         else:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53

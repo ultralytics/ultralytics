@@ -51,7 +51,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode
 
 STREAM_WARNING = """
 inference results will accumulate in RAM unless `stream=True` is passed, causing potential out-of-memory
@@ -409,6 +409,7 @@ class BasePredictor:
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
+        self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
         """

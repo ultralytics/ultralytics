@@ -2,7 +2,7 @@
 
 # Ultralytics YOLO Continuous Integration (CI) GitHub Actions tests
 
-name: Ultralytics CI
+name: CI
 
 permissions:
   contents: read
@@ -52,12 +52,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.12"]
+        python: ["3.12"]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
@@ -106,13 +106,13 @@ jobs:
       matrix:
         # Temporarily disable windows-latest due to https://github.com/ultralytics/ultralytics/actions/runs/13020330819/job/36319338854?pr=18921
         os: [ubuntu-latest, macos-26, ubuntu-24.04-arm]
-        python-version: ["3.12"]
+        python: ["3.12"]
         model: [yolo11n]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
@@ -160,56 +160,140 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   Tests:
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.tests == 'true'
-    timeout-minutes: 360
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
-        python-version: ["3.12"]
+        python: ["3.12"]
         torch: [latest]
         include:
           - os: ubuntu-latest
-            python-version: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
-            torch: "1.8.0" # min torch version CI https://pypi.org/project/torchvision/
+            python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
+            torch: "1.8.0"
+            torchvision: "0.9.0"
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v6
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
           slow=""
           torch=""
-          if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              torch="torch==1.8.0 torchvision==0.9.0"
+          if [ "${{ matrix.torch }}" != "latest" ]; then
+              torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-              slow="faster-coco-eval mlflow"
-          fi
-          uv pip install --system -e ".[export,solutions]" $torch $slow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+          uv pip install --system -e ".[export,solutions]" $torch pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
       - name: Check environment
         run: |
           yolo checks
           uv pip list
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        run: |
-          slow=""
-          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
-              slow="--slow"
-          fi
-          pytest $slow --cov=ultralytics/ --cov-report xml tests/
+        run: pytest --cov=ultralytics/ --cov-report=xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v5
         with:
           flags: Tests
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - name: Prune uv Cache
+        run: uv cache prune --ci
+
+  SlowTests:
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
+    timeout-minutes: 360
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm]
+        python: ["3.12"]
+        torch: [latest]
+        include:
+          - os: ubuntu-latest
+            python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
+            torch: "1.8.0"
+            torchvision: "0.9.0"
+          - os: ubuntu-latest
+            python: "3.9"
+            torch: "1.9.0"
+            torchvision: "0.10.0"
+          - os: ubuntu-latest
+            python: "3.9"
+            torch: "1.10.0"
+            torchvision: "0.11.0"
+          - os: ubuntu-latest
+            python: "3.10"
+            torch: "1.11.0"
+            torchvision: "0.12.0"
+          - os: ubuntu-latest
+            python: "3.10"
+            torch: "1.12.0"
+            torchvision: "0.13.0"
+          - os: ubuntu-latest
+            python: "3.10"
+            torch: "1.13.0"
+            torchvision: "0.14.0"
+          - os: ubuntu-latest
+            python: "3.11"
+            torch: "2.0.0"
+            torchvision: "0.15.0"
+          - os: ubuntu-latest
+            python: "3.11"
+            torch: "2.1.0"
+            torchvision: "0.16.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.2.0"
+            torchvision: "0.17.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.3.0"
+            torchvision: "0.18.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.4.0"
+            torchvision: "0.19.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.5.0"
+            torchvision: "0.20.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.6.0"
+            torchvision: "0.21.0"
+          - os: ubuntu-latest
+            python: "3.12"
+            torch: "2.7.0"
+            torchvision: "0.22.0"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+      - name: Install requirements
+        shell: bash # for Windows compatibility
+        run: |
+          torch=""
+          if [ "${{ matrix.torch }}" != "latest" ]; then
+              torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
+          fi
+          uv pip install --system -e ".[export,solutions]" $torch faster-coco-eval mlflow pytest-cov --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
+      - name: Pytest tests
+        shell: bash # for Windows compatibility
+        run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/
       - name: Prune uv Cache
         run: uv cache prune --ci
 
@@ -356,7 +440,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.12"]
+        python: ["3.12"]
     defaults:
       run:
         shell: bash -el {0}
@@ -364,7 +448,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: anaconda-client-env

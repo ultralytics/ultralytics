@@ -717,6 +717,7 @@ class BaseTrainer:
         check_requirements("nvidia-modelopt")
 
         import modelopt.torch.quantization as mtq
+
         from ultralytics.data.build import build_dataloader
 
         config = {

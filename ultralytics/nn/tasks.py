@@ -1512,8 +1512,9 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
         model.nc = ckpt["nc"]
         model.yaml = ckpt["yaml"]
         # restore model and QAT weights
-        mto.restore_from_modelopt_state(model, ckpt["modelopt_state"])
-        model.load_state_dict(ckpt["state_dict"])
+        with torch.no_grad():
+            mto.restore_from_modelopt_state(model, ckpt["modelopt_state"])
+            model.load_state_dict(ckpt["state_dict"])
 
     model = model.float()  # FP32 model
 

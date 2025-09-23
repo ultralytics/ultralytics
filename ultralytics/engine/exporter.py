@@ -444,6 +444,10 @@ class Exporter:
             from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
+        if tflite or edgetpu:
+            from ultralytics.utils.export.tensorflow import tf_wrapper
+
+            model = tf_wrapper(model)
         for m in model.modules():
             if isinstance(m, Classify):
                 m.export = True
@@ -455,14 +459,6 @@ class Exporter:
                 m.xyxy = self.args.nms and not coreml
                 if hasattr(model, "pe") and hasattr(m, "fuse"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
-                if tflite or edgetpu:
-                    import types
-
-                    from ultralytics.utils.export.tensorflow import _tf_inference, tf_kpts_decode
-
-                    m._inference = types.MethodType(_tf_inference, m)
-                    if type(m) is Pose:
-                        m.kpts_decode = types.MethodType(tf_kpts_decode, m)
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split

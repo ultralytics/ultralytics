@@ -11,6 +11,20 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
+from ultralytics.nn.modules import Detect, Pose
+
+
+def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
+    """A wrapper to add TensorFlow compatible inference methods to Detect and Pose layers."""
+    for m in model.modules():
+        if not isinstance(m, Detect):
+            continue
+        import types
+
+        m._inference = types.MethodType(_tf_inference, m)
+        if type(m) is Pose:
+            m.kpts_decode = types.MethodType(tf_kpts_decode, m)
+    return model
 
 
 def _tf_inference(self, x: list[torch.Tensor]) -> tuple[torch.Tensor]:

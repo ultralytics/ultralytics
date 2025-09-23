@@ -586,7 +586,7 @@ class BaseTrainer:
         if self.args.int8:
             import modelopt.torch.opt as mto
 
-            extras = {
+            extras = {  # model can't be pickled; saving state_dict
                 "modelopt_state": mto.modelopt_state(model),
                 "state_dict": model.state_dict(),
                 "model_class": model.__class__,
@@ -594,9 +594,6 @@ class BaseTrainer:
                 "names": model.names,
                 "nc": model.nc,
             }
-            del model._modelopt_state
-            del model._modelopt_state_version
-            del model.model  # model.model can't be pickled
 
         torch.save(
             {
@@ -721,7 +718,7 @@ class BaseTrainer:
         """Adds quantization layers to model for QAT training."""
         from ultralytics.utils.checks import check_requirements
 
-        check_requirements'"nvidia-modelopt["torch"]')
+        check_requirements('nvidia-modelopt["torch"]')
 
         import modelopt.torch.quantization as mtq
 

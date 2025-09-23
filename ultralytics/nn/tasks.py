@@ -288,13 +288,14 @@ class BaseModel(torch.nn.Module):
             (BaseModel): An updated BaseModel object.
         """
         self = super()._apply(fn)
-        m = self.model[-1]  # Detect()
-        if isinstance(
-            m, Detect
-        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
-            m.stride = fn(m.stride)
-            m.anchors = fn(m.anchors)
-            m.strides = fn(m.strides)
+        if hasattr(self, "model"):
+            m = self.model[-1]  # Detect()
+            if isinstance(
+                m, Detect
+            ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
+                m.stride = fn(m.stride)
+                m.anchors = fn(m.anchors)
+                m.strides = fn(m.strides)
         return self
 
     def load(self, weights, verbose=True):
@@ -1500,7 +1501,18 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     """
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    model = ckpt.get("ema") or ckpt["model"]
+
+    if "modelopt_state" in ckpt:  # QAT model
+        import modelopt.torch.opt as mto
+
+        # model.model absent, rebuild from YAML
+        model.model = parse_model(model.yaml, ch=model.yaml.get("channels", 3), verbose=False)[0]
+        # restore model and QAT weights
+        mto.restore_from_modelopt_state(model, ckpt["modelopt_state"])
+        model.load_state_dict(ckpt["state_dict"])
+
+    model = model.float()  # FP32 model
 
     # Model compatibility updates
     model.args = args  # attach args to model

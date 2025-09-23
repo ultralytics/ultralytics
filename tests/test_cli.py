@@ -49,6 +49,15 @@ def test_export(model: str) -> None:
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
 
+def test_qat():
+    """Test model training and export with QAT."""
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements("nvidia-modelopt[torch,onnx]")  # installation before torch import
+    run("yolo train data=coco128.yaml imgsz=32 name=qat int8")
+    run("yolo export model=runs/detect/qat/weights/best.py format=onnx")
+
+
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""

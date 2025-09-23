@@ -581,10 +581,13 @@ class BaseTrainer:
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
         model = deepcopy(unwrap_model(self.ema.ema))
+        extras = {}
         if self.args.int8:
             import modelopt.torch.opt as mto
 
-            extras = {"modelopt_state": mto.modelopt_state(model), "model_state_dict": model.model.state_dict()}
+            extras = {"modelopt_state": mto.modelopt_state(model), "state_dict": model.state_dict()}
+            del model._modelopt_state
+            del model._modelopt_state_version
             del model.model  # model.model can't be pickled
 
         torch.save(

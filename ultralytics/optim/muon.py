@@ -131,7 +131,7 @@ class MuonWithSGD(optim.Optimizer):
                     # TODO
                     lr = group["lr"] * self.muon
                     # lr = self.adjust_lr(lr, p.shape)
-                    # p.mul_(1 - group["lr"] * group["weight_decay"])
+                    p.mul_(1 - lr * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-lr)
 
                     # SGD update

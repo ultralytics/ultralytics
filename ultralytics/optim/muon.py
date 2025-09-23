@@ -68,10 +68,11 @@ def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
 
 
 class MuonWithSGD(optim.Optimizer):
-    def __init__(self, param_groups, muon=0.1, sgd=1.0):
+    def __init__(self, param_groups, muon=0.1, sgd=1.0, decay_factor=0.1):
         super().__init__(param_groups, dict())
         self.muon = muon
         self.sgd = sgd
+        self.decay_factor = decay_factor
 
     def adjust_lr(self, lr, param_shape):
         """Adjust learning rate based on parameter shape."""
@@ -131,7 +132,7 @@ class MuonWithSGD(optim.Optimizer):
                     # TODO
                     lr = group["lr"] * self.muon
                     # lr = self.adjust_lr(lr, p.shape)
-                    p.mul_(1 - lr * group["weight_decay"])
+                    p.mul_(1 - group["lr"] * self.decay_factor * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-lr)
 
                     # SGD update

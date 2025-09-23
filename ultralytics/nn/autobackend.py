@@ -249,7 +249,7 @@ class AutoBackend(nn.Module):
                     LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False
-            LOGGER.info(f"Using ONNX Runtime {providers[0]}")
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:

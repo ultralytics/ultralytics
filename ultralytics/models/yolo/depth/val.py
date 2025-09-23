@@ -9,37 +9,36 @@ handling the unique output format with depth estimation.
 
 from __future__ import annotations
 
+import numpy as np
 import torch
-import torch.nn as nn
+
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import LOGGER
-from ultralytics.utils.metrics import DetMetrics
-# from ultralytics.utils.torch_utils import de_parallel  # Not used
-from ultralytics.utils.nms import non_max_suppression
+from ultralytics.utils import ops
+from ultralytics.utils.metrics import DetMetrics, box_iou
 
 
 class MDEValidator(BaseValidator):
     """
     MDE Validator for YOLO models with depth estimation.
-    
+
     This validator handles the unique output format of MDE models that includes
     bounding boxes, class probabilities, and depth values.
-    
+
     Attributes:
         model: The MDE model to validate.
         dataloader: Validation data loader.
         device: Device to run validation on.
         metrics: Detection metrics.
-        
+
     Methods:
         __call__: Run validation on the model.
         postprocess: Post-process MDE model predictions.
     """
-    
+
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
         """
         Initialize MDE validator with necessary variables and settings.
-        
+
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
             save_dir (Path, optional): Directory to save results.
@@ -48,162 +47,143 @@ class MDEValidator(BaseValidator):
         """
         # Initialize base validator
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.args.task = 'detect'  # Ensure task is set for detection metrics
+        self.args.task = "detect"  # Ensure task is set for detection metrics
+        self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
+        self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
-        
-    def __call__(self):
-        """Run validation on the model."""
-        self.model.eval()
-        self.metrics.reset()
-        
-        with torch.no_grad():
-            for batch_idx, batch in enumerate(self.dataloader):
-                # Move batch to device
-                if isinstance(batch, dict):
-                    img = batch['img'].to(self.device)
-                    targets = batch.get('targets', None)
-                else:
-                    img = batch[0].to(self.device)
-                    targets = batch[1] if len(batch) > 1 else None
-                
-                # Forward pass
-                preds = self.model(img)
-                
-                # Post-process predictions
-                preds = self.postprocess(preds)
-                
-                # Update metrics
-                if targets is not None:
-                    self.metrics.update(preds, targets)
-        
-        return self.metrics.results_dict
-    
+        self.seen = 0
+
+    def preprocess(self, batch):
+        """
+        Preprocess batch of images for MDE validation.
+
+        Args:
+            batch (dict): Batch containing images and annotations.
+
+        Returns:
+            (dict): Preprocessed batch.
+        """
+        for k, v in batch.items():
+            if isinstance(v, torch.Tensor):
+                batch[k] = v.to(self.device, non_blocking=True)
+        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
+        return batch
+
     def postprocess(self, preds):
         """
         Post-process MDE model predictions.
-        
+
         Args:
             preds: Raw model predictions.
-            
+
         Returns:
-            Post-processed predictions with NMS applied.
+            List of dictionaries containing processed predictions.
         """
-        if isinstance(preds, (list, tuple)):
-            preds = preds[0]  # Take first element if tuple/list
-        
-        # Handle MDE model outputs (70 features: 4 box + 5 cls + 64 dfl + 1 depth)
-        if preds.shape[-1] == 70:  # MDE format
-            # For MDE models, we need to handle the 70-feature output
-            # Split into components: [4, 5, 64, 1] = [box, cls, dfl, depth]
-            bs = preds.shape[0]
-            outputs = []
-            
-            for i in range(bs):
-                pred = preds[i]  # [num_anchors, 70]
-                
-                # Split into components
-                box_pred = pred[:, :4]  # [num_anchors, 4] - bounding box coordinates
-                cls_pred = pred[:, 4:9]  # [num_anchors, 5] - class probabilities
-                dfl_pred = pred[:, 9:73]  # [num_anchors, 64] - DFL regression
-                depth_pred = pred[:, 73:74]  # [num_anchors, 1] - depth values
-                
-                # Apply NMS with MDE-specific handling
-                # We need to create a standard format for NMS: [num_anchors, 6] = [x1, y1, x2, y2, conf, cls]
-                
-                # Get max class confidence
-                max_conf, max_cls = torch.max(cls_pred, dim=1)
-                
-                # Combine box coordinates with confidence and class
-                # For now, use the raw box coordinates (they should be processed by DFL in training)
-                detections = torch.cat([
-                    box_pred,  # [num_anchors, 4] - x1, y1, x2, y2
-                    max_conf.unsqueeze(1),  # [num_anchors, 1] - confidence
-                    max_cls.unsqueeze(1).float(),  # [num_anchors, 1] - class
-                    depth_pred  # [num_anchors, 1] - depth
-                ], dim=1)  # [num_anchors, 7] = [x1, y1, x2, y2, conf, cls, depth]
-                
-                # Apply NMS (we'll use a simplified version for now)
-                # Filter by confidence threshold
-                conf_thres = 0.25
-                keep = max_conf > conf_thres
-                detections = detections[keep]
-                
-                if len(detections) > 0:
-                    # Simple NMS implementation for MDE
-                    detections = self._simple_nms(detections)
-                
-                outputs.append(detections)
-            
-            return outputs
-        else:
-            # Standard YOLO format - use regular NMS
-            return non_max_suppression(preds)
-    
-    def _simple_nms(self, detections, iou_threshold=0.5):
+        from ultralytics.utils import nms
+
+        # Apply standard NMS like DetectionValidator
+        outputs = nms.non_max_suppression(
+            preds,
+            self.args.conf,
+            self.args.iou,
+            nc=0 if self.args.task == "detect" else self.nc,
+            multi_label=True,
+            agnostic=self.args.single_cls or self.args.agnostic_nms,
+            max_det=self.args.max_det,
+        )
+
+        # Return in the same format as DetectionValidator
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5], "extra": x[:, 6:]} for x in outputs]
+
+    def update_metrics(self, preds, batch):
         """
-        Simple NMS implementation for MDE detections.
-        
+        Update metrics with new predictions and ground truth.
+
         Args:
-            detections: Detection tensor [N, 7] = [x1, y1, x2, y2, conf, cls, depth]
-            iou_threshold: IoU threshold for NMS.
-            
-        Returns:
-            Filtered detections after NMS.
+            preds: List of predictions from the model.
+            batch: Batch data containing ground truth.
         """
-        if len(detections) == 0:
-            return detections
-        
-        # Sort by confidence
-        _, indices = torch.sort(detections[:, 4], descending=True)
-        detections = detections[indices]
-        
-        keep = []
-        while len(detections) > 0:
-            # Take the detection with highest confidence
-            keep.append(detections[0])
-            
-            if len(detections) == 1:
-                break
-            
-            # Calculate IoU with remaining detections
-            ious = self._calculate_iou(detections[0:1, :4], detections[1:, :4])
-            
-            # Keep detections with IoU below threshold
-            keep_mask = ious < iou_threshold
-            detections = detections[1:][keep_mask]
-        
-        if keep:
-            return torch.stack(keep)
-        else:
-            return torch.empty(0, 7, device=detections.device)
-    
-    def _calculate_iou(self, box1, boxes):
+        # For now, use the same update logic as DetectionValidator
+        # This can be extended later for MDE-specific metrics
+        for si, pred in enumerate(preds):
+            self.seen += 1
+            pbatch = self._prepare_batch(si, batch)
+            predn = self._prepare_pred(pred)
+
+            cls = pbatch["cls"].cpu().numpy()
+            no_pred = predn["cls"].shape[0] == 0
+            self.metrics.update_stats(
+                {
+                    **self._process_batch(predn, pbatch),
+                    "target_cls": cls,
+                    "target_img": np.unique(cls),
+                    "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
+                    "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                }
+            )
+
+    def _prepare_batch(self, si, batch):
+        """Prepare a batch of images and annotations for validation."""
+        idx = batch["batch_idx"] == si
+        cls = batch["cls"][idx].squeeze(-1)
+        bbox = batch["bboxes"][idx]
+        ori_shape = batch["ori_shape"][si]
+        imgsz = batch["img"].shape[2:]
+        ratio_pad = batch["ratio_pad"][si]
+        if cls.shape[0]:
+            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]
+        return {
+            "cls": cls,
+            "bboxes": bbox,
+            "ori_shape": ori_shape,
+            "imgsz": imgsz,
+            "ratio_pad": ratio_pad,
+            "im_file": batch["im_file"][si],
+        }
+
+    def _prepare_pred(self, pred):
+        """Prepare predictions for evaluation against ground truth."""
+        if self.args.single_cls:
+            pred["cls"] *= 0
+        return pred
+
+    def _process_batch(self, preds, batch):
+        """Return correct prediction matrix."""
+        if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
+            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
+        iou = box_iou(batch["bboxes"], preds["bboxes"])
+        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+
+    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """
-        Calculate IoU between one box and multiple boxes.
-        
+        Build YOLO Dataset for MDE validation.
+
         Args:
-            box1: Single box [1, 4] = [x1, y1, x2, y2]
-            boxes: Multiple boxes [N, 4] = [x1, y1, x2, y2]
-            
+            img_path (str): Path to the folder containing images.
+            mode (str): 'train' mode or 'val' mode.
+            batch (int, optional): Size of batches, this is for `rect`.
+
         Returns:
-            IoU values [N]
+            (Dataset): YOLO dataset.
         """
-        # Calculate intersection
-        x1 = torch.max(box1[0, 0], boxes[:, 0])
-        y1 = torch.max(box1[0, 1], boxes[:, 1])
-        x2 = torch.min(box1[0, 2], boxes[:, 2])
-        y2 = torch.min(box1[0, 3], boxes[:, 3])
-        
-        intersection = torch.clamp(x2 - x1, min=0) * torch.clamp(y2 - y1, min=0)
-        
-        # Calculate areas
-        area1 = (box1[0, 2] - box1[0, 0]) * (box1[0, 3] - box1[0, 1])
-        area2 = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-        
-        # Calculate union
-        union = area1 + area2 - intersection
-        
-        # Calculate IoU
-        iou = intersection / (union + 1e-6)
-        
-        return iou
+        from ultralytics.data import build_yolo_dataset
+
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride)
+
+    def get_dataloader(self, dataset_path: str, batch_size: int) -> torch.utils.data.DataLoader:
+        """
+        Construct and return dataloader for MDE validation.
+
+        Args:
+            dataset_path (str): Path to the dataset.
+            batch_size (int): Size of each batch.
+
+        Returns:
+            (torch.utils.data.DataLoader): Dataloader for validation.
+        """
+        from ultralytics.data import build_dataloader
+
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        return build_dataloader(
+            dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
+        )

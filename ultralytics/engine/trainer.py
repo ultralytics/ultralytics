@@ -718,7 +718,7 @@ class BaseTrainer:
         """Adds quantization layers to model for QAT training."""
         from ultralytics.utils.checks import check_requirements
 
-        check_requirements("nvidia-modelopt[torch]")
+        check_requirements("nvidia-modelopt")
 
         import modelopt.torch.quantization as mtq
 

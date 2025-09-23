@@ -8,7 +8,6 @@ from pathlib import Path
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.utils.plotting import plot_results
 
 
 class SegmentationTrainer(yolo.detect.DetectionTrainer):
@@ -41,7 +40,6 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
             overrides = {}
         overrides["task"] = "segment"
         super().__init__(cfg, overrides, _callbacks)
-        self.dynamic_tensors = ["batch_idx", "cls", "bboxes", "masks"]
 
     def get_model(self, cfg: dict | str | None = None, weights: str | Path | None = None, verbose: bool = True):
         """
@@ -72,7 +70,3 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         return yolo.segment.SegmentationValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def plot_metrics(self):
-        """Plot training/validation metrics."""
-        plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png

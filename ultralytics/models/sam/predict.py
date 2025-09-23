@@ -423,7 +423,7 @@ class Predictor(BasePredictor):
             pred_masks.append(crop_masks)
             pred_bboxes.append(crop_bboxes)
             pred_scores.append(crop_scores)
-            region_areas.append(area.expand(len(crop_masks)))
+            region_areas.append(area.expand(crop_masks.shape[0]))
 
         pred_masks = torch.cat(pred_masks)
         pred_bboxes = torch.cat(pred_bboxes)
@@ -504,14 +504,14 @@ class Predictor(BasePredictor):
         # (N, 1, H, W), (N, 1)
         pred_masks, pred_scores = preds[:2]
         pred_bboxes = preds[2] if self.segment_all else None
-        names = dict(enumerate(str(i) for i in range(len(pred_masks))))
+        names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
         for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
-            if len(masks) == 0:
+            if masks.shape[0] == 0:
                 masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
@@ -521,7 +521,7 @@ class Predictor(BasePredictor):
                 else:
                     pred_bboxes = batched_mask_to_box(masks)
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-                cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+                cls = torch.arange(pred_masks.shape[0], dtype=torch.int32, device=pred_masks.device)
                 idx = pred_scores > self.args.conf
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)[idx]
                 masks = masks[idx]
@@ -633,7 +633,7 @@ class Predictor(BasePredictor):
         """
         import torchvision  # scope for faster 'import ultralytics'
 
-        if len(masks) == 0:
+        if masks.shape[0] == 0:
             return masks
 
         # Filter small disconnected regions and holes
@@ -693,14 +693,14 @@ class Predictor(BasePredictor):
         dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
         prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         pred_masks, pred_scores = self._inference_features(features, *prompts, multimask_output)
-        if len(pred_masks) == 0:
+        if pred_masks.shape[0] == 0:
             pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
             pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
             pred_masks = pred_masks > self.model.mask_threshold  # to bool
             pred_bboxes = batched_mask_to_box(pred_masks)
             # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-            cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+            cls = torch.arange(pred_masks.shape[0], dtype=torch.int32, device=pred_masks.device)
             pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
         return pred_masks, pred_bboxes
 
@@ -770,7 +770,7 @@ class SAM2Predictor(Predictor):
         bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
-            bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
+            bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(bboxes.shape[0], -1)
             # NOTE: merge "boxes" and "points" into a single "points" input
             # (where boxes are added at the beginning) to model.sam_prompt_encoder
             if points is not None:
@@ -1025,7 +1025,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         pred_masks = current_out["pred_masks"].flatten(0, 1)
         pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
 
-        return pred_masks, torch.ones(len(pred_masks), dtype=pred_masks.dtype, device=pred_masks.device)
+        return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
 
     def postprocess(self, preds, img, orig_imgs):
         """
@@ -1465,7 +1465,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             else:
                 maskmem_pos_enc = model_constants["maskmem_pos_enc"]
             # expand the cached maskmem_pos_enc to the actual batch size
-            batch_size = out_maskmem_pos_enc[0].size(0)
+            batch_size = out_maskmem_pos_enc[0].shape[0]
             if batch_size > 1:
                 out_maskmem_pos_enc = [x.expand(batch_size, -1, -1, -1) for x in maskmem_pos_enc]
         return out_maskmem_pos_enc
@@ -2028,7 +2028,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 point_inputs={"point_coords": point, "point_labels": label} if obj_idx is not None else None,
                 mask_inputs=mask,
                 multimask_output=False,
-                high_res_features=[feat[: pix_feat_with_mem.size(0)] for feat in self.high_res_features],
+                high_res_features=[feat[: pix_feat_with_mem.shape[0]] for feat in self.high_res_features],
             )
         return {
             "pred_masks": low_res_masks,

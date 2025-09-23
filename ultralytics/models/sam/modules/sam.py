@@ -472,7 +472,7 @@ class SAM2Model(torch.nn.Module):
             ...     object_score_logits,
             ... ) = results
         """
-        B = backbone_features.size(0)
+        B = backbone_features.shape[0]
         device = backbone_features.device
         assert backbone_features.size(1) == self.sam_prompt_embed_dim
         assert backbone_features.size(2) == self.sam_image_embedding_size
@@ -482,7 +482,7 @@ class SAM2Model(torch.nn.Module):
         if point_inputs is not None:
             sam_point_coords = point_inputs["point_coords"]
             sam_point_labels = point_inputs["point_labels"]
-            assert sam_point_coords.size(0) == B and sam_point_labels.size(0) == B
+            assert sam_point_coords.shape[0] == B and sam_point_labels.shape[0] == B
         else:
             # If no points are provide, pad with an empty point (with label -1)
             sam_point_coords = torch.zeros(B, 1, 2, device=device, dtype=backbone_features.dtype)
@@ -585,10 +585,10 @@ class SAM2Model(torch.nn.Module):
             antialias=True,  # use antialias for downsampling
         )
         # a dummy IoU prediction of all 1's under mask input
-        ious = mask_inputs.new_ones(mask_inputs.size(0), 1).float()
+        ious = mask_inputs.new_ones(mask_inputs.shape[0], 1).float()
         if not self.use_obj_ptrs_in_encoder or backbone_features is None or high_res_features is None:
             # all zeros as a dummy object pointer (of shape [B, C])
-            obj_ptr = torch.zeros(mask_inputs.size(0), self.hidden_dim, device=mask_inputs.device)
+            obj_ptr = torch.zeros(mask_inputs.shape[0], self.hidden_dim, device=mask_inputs.device)
         else:
             # produce an object pointer using the SAM decoder from the mask input
             _, _, _, _, _, obj_ptr, _ = self._forward_sam_heads(
@@ -1006,7 +1006,7 @@ class SAM2Model(torch.nn.Module):
     @staticmethod
     def _apply_non_overlapping_constraints(pred_masks):
         """Apply non-overlapping constraints to masks, keeping the highest scoring object per location."""
-        batch_size = pred_masks.size(0)
+        batch_size = pred_masks.shape[0]
         if batch_size == 1:
             return pred_masks
 

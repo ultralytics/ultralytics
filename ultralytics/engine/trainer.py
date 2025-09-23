@@ -586,7 +586,14 @@ class BaseTrainer:
         if self.args.int8:
             import modelopt.torch.opt as mto
 
-            extras = {"modelopt_state": mto.modelopt_state(model), "state_dict": model.state_dict()}
+            extras = {
+                "modelopt_state": mto.modelopt_state(model),
+                "state_dict": model.state_dict(),
+                "model_class": model.__class__,
+                "yaml": model.yaml,
+                "names": model.names,
+                "nc": model.nc,
+            }
             del model._modelopt_state
             del model._modelopt_state_version
             del model.model  # model.model can't be pickled
@@ -596,7 +603,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": model if self.args.int8 else model.half(),
+                "ema": None if self.args.int8 else model.half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),

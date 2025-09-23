@@ -229,7 +229,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if not self.is_fused():
+        if not self.is_fused() and not hasattr(self, "_modelopt_state"):
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
@@ -1506,8 +1506,11 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     if "modelopt_state" in ckpt:  # QAT model
         import modelopt.torch.opt as mto
 
-        # model.model absent, rebuild from YAML
-        model.model = parse_model(model.yaml, ch=model.yaml.get("channels", 3), verbose=False)[0]
+        # rebuild from YAML
+        model = ckpt["model_class"](ckpt["yaml"], verbose=False)
+        model.names = ckpt["names"]
+        model.nc = ckpt["nc"]
+        model.yaml = ckpt["yaml"]
         # restore model and QAT weights
         mto.restore_from_modelopt_state(model, ckpt["modelopt_state"])
         model.load_state_dict(ckpt["state_dict"])

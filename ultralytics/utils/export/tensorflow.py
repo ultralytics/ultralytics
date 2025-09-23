@@ -92,7 +92,7 @@ def onnx2saved_model(
         output_integer_quantized_tflite=int8,
         quant_type="per-tensor",  # "per-tensor" (faster) or "per-channel" (slower but more accurate)
         custom_input_op_name_np_data_path=np_data,
-        enable_batchmatmul_unfold=True,  # fix lower no. of detected objects on GPU delegate
+        enable_batchmatmul_unfold=True and not int8,  # fix lower no. of detected objects on GPU delegate
         output_signaturedefs=True,  # fix error with Attention block group convolution
         disable_group_convolution=disable_group_convolution,  # fix error with group convolution
     )

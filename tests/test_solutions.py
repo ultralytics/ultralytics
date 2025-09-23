@@ -12,8 +12,9 @@ import pytest
 
 from tests import MODEL, TMP
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
+from ultralytics.utils.torch_utils import TORCH_2_4
 
 # Pre-defined arguments values
 SHOW = False
@@ -205,15 +206,6 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs):
     )
 
 
-@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-def test_similarity_search():
-    """Test similarity search solution with sample images and text query."""
-    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file
-    searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
-    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
-
-
 def test_left_click_selection():
     """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()
@@ -297,7 +289,16 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
-@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+def test_similarity_search():
+    """Test similarity search solution with sample images and text query."""
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=TMP)  # 4 dog images for testing in a zip file
+    searcher = solutions.VisualAISearch(data=str(TMP / "4-imgs-similaritysearch"))
+    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_app_init():
     """Test SearchApp initializes with required attributes."""
@@ -306,6 +307,7 @@ def test_similarity_search_app_init():
     assert hasattr(app, "run")
 
 
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_complete(tmp_path):
     """Test VisualAISearch end-to-end with sample image and query."""

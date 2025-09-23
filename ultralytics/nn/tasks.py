@@ -1500,6 +1500,19 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     """
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
+    if "modelopt_state" in ckpt:  # QAT model
+        import modelopt.torch.opt as mto
+
+        new_model = parse_model(ckpt["model_yaml"], ch=ckpt["model_yaml"].get("channels", 3))[0]  # rebuild from YAML
+        # restore model and QAT weights
+        for sd in ckpt["modelopt_state"]["modelopt_state_dict"]:
+            sd[1]["metadata"]["quantizer_state"] = {
+                k.replace("model.", ""): v for k, v in sd[1]["metadata"]["quantizer_state"].items()
+            }
+        mto.restore_from_modelopt_state(new_model, ckpt["modelopt_state"])
+        new_model.load_state_dict(ckpt["model_state_dict"])
+
+        (ckpt.get("ema") or ckpt["model"]).model = new_model  # reattach rebuilt model to skeleton with metadata
     model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
 
     # Model compatibility updates

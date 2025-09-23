@@ -264,6 +264,10 @@ class BaseTrainer:
         if hasattr(self.model, "init_criterion"):
             self.model.criterion = self.model.init_criterion()
 
+        # Build model for QAT
+        if self.args.int8 and not self.args.resume:
+            self.build_quantized_model()
+
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
@@ -576,12 +580,19 @@ class BaseTrainer:
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
+        model = deepcopy(unwrap_model(self.ema.ema))
+        if self.args.int8:
+            import modelopt.torch.opt as mto
+
+            extras = {"modelopt_state": mto.modelopt_state(model), "model_state_dict": model.model.state_dict()}
+            del model.model  # model.model can't be pickled
+
         torch.save(
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
+                "ema": model if self.args.int8 else model.half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
@@ -598,6 +609,7 @@ class BaseTrainer:
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
+                **extras,
             },
             buffer,
         )
@@ -693,6 +705,44 @@ class BaseTrainer:
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
+
+    def build_quantized_model(self):
+        """Adds quantization layers to model for QAT training."""
+        from ultralytics.utils.checks import check_requirements
+
+        check_requirements("nvidia-modelopt")
+
+        import modelopt.torch.quantization as mtq
+
+        config = {
+            "quant_cfg": {
+                "*weight_quantizer": {"num_bits": 8, "axis": 0},  # Per-channel weight quantization
+                "*input_quantizer": {"num_bits": 8, "axis": None},  # Per-tensor activation quantization
+                "*output_quantizer": {"num_bits": 8, "axis": None},
+            },
+            "algorithm": "max",  # Calibration algorithm
+        }
+
+        from ultralytics.data.build import build_dataloader
+
+        with torch_distributed_zero_first(RANK):  # init dataset *.cache only once if DDP
+            dataset = self.build_dataset(self.data["val"], "quantize", self.args.batch)
+        calib_loader = build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)
+
+        def forward_loop(model, device=self.device):
+            model.eval()
+            samples_processed = 0
+            num_samples = 512
+            with torch.no_grad():
+                for batch_idx, batch in enumerate(calib_loader):
+                    if samples_processed >= num_samples:
+                        break
+
+                    images = self.preprocess_batch(batch)["img"]
+                    model(images)
+                    samples_processed += images.shape[0]
+
+        self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

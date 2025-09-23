@@ -7,6 +7,7 @@ import random
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import numpy as np
 import torch
@@ -28,6 +29,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
+from ultralytics.utils.torch_utils import TORCH_2_0
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -57,6 +59,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
+        if not TORCH_2_0:
+            kwargs.pop("prefetch_factor", None)  # not supported by earlier versions
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
@@ -209,11 +213,12 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
+        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
         pin_memory=nd > 0,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
-        drop_last=drop_last,
+        drop_last=drop_last and len(dataset) % batch != 0,
     )
 
 
@@ -243,8 +248,10 @@ def check_source(source):
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
+        is_file = (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
+            IMG_FORMATS | VID_FORMATS
+        )
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"
         if is_url and is_file:

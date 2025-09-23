@@ -38,8 +38,11 @@ from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_10 = check_version(TORCH_VERSION, "1.10.0")
+TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
@@ -532,21 +535,6 @@ def copy_attr(a, b, include=(), exclude=()):
             continue
         else:
             setattr(a, k, v)
-
-
-def get_latest_opset():
-    """
-    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
-
-    Returns:
-        (int): The ONNX opset version.
-    """
-    if TORCH_1_13:
-        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
-    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
-    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
-    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
 
 
 def intersect_dicts(da, db, exclude=()):

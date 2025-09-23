@@ -669,6 +669,9 @@ def check_yolo(verbose=True, device=""):
     else:
         s = ""
 
+    if GIT.is_repo:
+        check_multiple_install()  # check conflicting installation if using local clone
+
     select_device(device=device, newline=False)
     LOGGER.info(f"Setup complete ✅ {s}")
 
@@ -805,6 +808,30 @@ def check_amp(model):
         )
         return False
     return True
+
+
+def check_multiple_install():
+    """Check if there are multiple Ultralytics installations."""
+    import sys
+
+    try:
+        result = subprocess.run([sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True)
+        install_msg = (
+            f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
+            "issues. See https://docs.ultralytics.com/quickstart/"
+        )
+        if result.returncode != 0:
+            if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported
+                LOGGER.warning(f"Ultralytics not found via pip but importing from: {ROOT}. {install_msg}")
+            return
+        yolo_path = (Path(re.findall(r"location:\s+(.+)", result.stdout, flags=re.I)[-1]) / "ultralytics").resolve()
+        if not yolo_path.samefile(ROOT.resolve()):
+            LOGGER.warning(
+                f"Multiple Ultralytics installations detected. The `yolo` command uses: {yolo_path}, "
+                f"but current session imports from: {ROOT}. This may cause version conflicts. {install_msg}"
+            )
+    except Exception:
+        return
 
 
 def print_args(args: dict | None = None, show_file=True, show_func=False):

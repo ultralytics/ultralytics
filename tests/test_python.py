@@ -34,7 +34,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
@@ -125,7 +125,9 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg" if ONLINE else SOURCE,  # URI
+        "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg?token=123"
+        if ONLINE
+        else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -246,7 +248,7 @@ def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
         if "rtdetr" in m.name:
-            if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
+            if TORCH_1_11:
                 _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
         else:
             YOLO(m.name)
@@ -634,7 +636,8 @@ def test_yolo_world():
     )
 
 
-@pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -648,16 +651,12 @@ def test_yoloe():
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
 
-    import numpy as np
-
     from ultralytics import YOLOE
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts
     visuals = dict(
-        bboxes=np.array(
-            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
-        ),
+        bboxes=np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),
         cls=np.array([0, 1]),
     )
     model.predict(

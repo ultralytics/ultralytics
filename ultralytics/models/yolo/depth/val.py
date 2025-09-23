@@ -9,12 +9,14 @@ handling the unique output format with depth estimation.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import torch
 
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import ops
-from ultralytics.utils.metrics import DetMetrics, box_iou
+from ultralytics.utils.metrics import ConfusionMatrix, MDEMetrics, box_iou
 
 
 class MDEValidator(BaseValidator):
@@ -47,10 +49,9 @@ class MDEValidator(BaseValidator):
         """
         # Initialize base validator
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.args.task = "detect"  # Ensure task is set for detection metrics
         self.iouv = torch.linspace(0.5, 0.95, 10)  # IoU vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
-        self.metrics = DetMetrics()
+        self.metrics = MDEMetrics()
         self.seen = 0
 
     def preprocess(self, batch):
@@ -103,8 +104,6 @@ class MDEValidator(BaseValidator):
             preds: List of predictions from the model.
             batch: Batch data containing ground truth.
         """
-        # For now, use the same update logic as DetectionValidator
-        # This can be extended later for MDE-specific metrics
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
@@ -112,6 +111,27 @@ class MDEValidator(BaseValidator):
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
+
+            # Extract depth predictions and targets first
+            if hasattr(predn, "extra") and predn["extra"] is not None and predn["extra"].shape[1] > 0:
+                # Extract depth predictions (assuming depth is in the first extra channel)
+                pred_depths = predn["extra"][:, 0]  # First extra channel is depth
+            else:
+                # If no depth predictions, add empty tensor
+                pred_depths = torch.tensor([], device=self.device)
+
+            # Extract depth targets from batch if available
+            if "depths" in batch:
+                idx = batch["batch_idx"] == si
+                if idx.any():
+                    target_depths = batch["depths"][idx]
+                else:
+                    target_depths = torch.tensor([], device=self.device)
+            else:
+                # If no depth targets, add empty tensor
+                target_depths = torch.tensor([], device=self.device)
+
+            # Update all metrics (detection + depth)
             self.metrics.update_stats(
                 {
                     **self._process_batch(predn, pbatch),
@@ -119,6 +139,8 @@ class MDEValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
+                    "pred_depths": pred_depths.cpu().numpy(),
+                    "target_depths": target_depths.cpu().numpy(),
                 }
             )
 
@@ -152,7 +174,8 @@ class MDEValidator(BaseValidator):
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        result = {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        return result
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """
@@ -187,3 +210,119 @@ class MDEValidator(BaseValidator):
         return build_dataloader(
             dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
         )
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """
+        Initialize evaluation metrics for MDE validation.
+
+        Args:
+            model (torch.nn.Module): The model to validate.
+        """
+        from ultralytics.utils.metrics import MDEMetrics
+
+        # Set names from model (same as DetectionValidator)
+        self.names = model.names if hasattr(model, "names") and model.names is not None else {}
+        self.nc = len(self.names)
+
+        self.metrics = MDEMetrics(names=self.names)
+        self.confusion_matrix = ConfusionMatrix(names=self.names, task="detect")
+        self.seen = 0
+        self.jdict = []
+        self.stats = []
+
+    def get_desc(self) -> str:
+        """Return a formatted string summarizing class metrics of MDE model."""
+        return ("%22s" + "%11s" * 10) % (
+            "Class",
+            "Images",
+            "Instances",
+            "Box(P",
+            "R",
+            "mAP50",
+            "mAP50-95",
+            "Depth_Err",
+            "Depth_MAE",
+            "Depth_RMSE",
+            "Depth_Acc",
+        )
+
+    def finalize_metrics(self) -> None:
+        """Set final values for metrics speed and confusion matrix."""
+        if self.args.plots:
+            for normalize in True, False:
+                self.confusion_matrix.plot(save_dir=self.save_dir, normalize=normalize, on_plot=self.on_plot)
+        self.metrics.speed = self.speed
+        self.metrics.confusion_matrix = self.confusion_matrix
+
+    def get_stats(self) -> dict[str, Any]:
+        """Return validation statistics."""
+
+        self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        self.metrics.clear_stats()
+        return self.metrics.results_dict
+
+    def print_results(self) -> None:
+        """Print training/validation set metrics per class for MDE."""
+        import numpy as np
+
+        from ultralytics.utils import LOGGER
+
+        pf = "%22s" + "%11i" * 2 + "%11.3g" * 8  # print format for MDE metrics
+
+        # Get mean results including depth metrics
+        mean_results = self.metrics.mean_results()
+        depth_error = np.mean(self.metrics.depth_errors) if self.metrics.depth_errors else 0.0
+        depth_mae = np.mean(self.metrics.depth_abs_errors) if self.metrics.depth_abs_errors else 0.0
+        depth_rmse = np.sqrt(np.mean(self.metrics.depth_sq_errors)) if self.metrics.depth_sq_errors else 0.0
+        depth_acc = (
+            np.mean(self.metrics.depth_accuracies["δ < 1.250"]) if self.metrics.depth_accuracies["δ < 1.250"] else 0.0
+        )
+
+        # Print overall results
+        LOGGER.info(
+            pf
+            % (
+                "all",
+                self.seen,
+                self.metrics.nt_per_class.sum() if self.metrics.nt_per_class is not None else 0,
+                *mean_results[:4],  # Box metrics: P, R, mAP50, mAP50-95
+                depth_error,
+                depth_mae,
+                depth_rmse,
+                depth_acc,
+            )
+        )
+
+        if self.metrics.nt_per_class is None or self.metrics.nt_per_class.sum() == 0:
+            LOGGER.warning(f"no labels found in {self.args.task} set, can not compute metrics without labels")
+
+        # Print results per class
+        if self.args.verbose and not self.training and self.nc > 1 and len(self.metrics.stats):
+            for i, c in enumerate(self.metrics.ap_class_index):
+                class_results = self.metrics.class_result(i)
+                LOGGER.info(
+                    pf
+                    % (
+                        self.names[c],
+                        self.metrics.nt_per_image[c],
+                        self.metrics.nt_per_class[c],
+                        *class_results[:4],  # Box metrics: P, R, mAP50, mAP50-95
+                        depth_error,
+                        depth_mae,
+                        depth_rmse,
+                        depth_acc,  # Same depth metrics for all classes
+                    )
+                )
+
+        # Print depth statistics if available
+        if self.metrics.depth_errors:
+            LOGGER.info("\n📊 Depth Estimation Metrics:")
+            LOGGER.info(f"   Depth Error Rate: {depth_error:.2f}%")
+            LOGGER.info(f"   Depth MAE: {depth_mae:.2f}m")
+            LOGGER.info(f"   Depth RMSE: {depth_rmse:.2f}m")
+            LOGGER.info(f"   Depth Accuracy (δ<1.25): {depth_acc:.2f}%")
+
+            for key, values in self.metrics.depth_accuracies.items():
+                if values:
+                    acc_value = np.mean(values)
+                    LOGGER.info(f"   Depth Accuracy ({key}): {acc_value:.2f}%")

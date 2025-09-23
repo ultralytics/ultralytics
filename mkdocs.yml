@@ -399,6 +399,7 @@ nav:
       - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - Model Deployment Options: guides/model-deployment-options.md
+      - Model YAML Configuration Guide: guides/model-yaml-config.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
@@ -424,7 +425,6 @@ nav:
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
       - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
-      - Model YAML Configuration Guide: guides/model-yaml-config.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md

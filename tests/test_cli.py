@@ -55,7 +55,7 @@ def test_qat():
 
     check_requirements("nvidia-modelopt[torch,onnx]")  # installation before torch import
     run("yolo train data=coco128.yaml imgsz=32 name=qat int8")
-    run("yolo export model=runs/detect/qat/weights/best.py format=onnx")
+    run("yolo export model=runs/detect/qat/weights/best.pt format=onnx")
 
 
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")

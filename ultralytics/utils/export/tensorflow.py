@@ -7,11 +7,11 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from ultralytics.nn.modules import Detect, Pose
 from ultralytics.utils import LOGGER
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
-from ultralytics.nn.modules import Detect, Pose
 
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:

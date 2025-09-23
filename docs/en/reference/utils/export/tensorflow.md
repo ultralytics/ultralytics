@@ -11,6 +11,10 @@ keywords: Ultralytics, TensorFlow, SavedModel, Protocol Buffer, TensorFlow Lite,
 
 <br>
 
+## ::: ultralytics.utils.export.tensorflow.tf_wrapper
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.tensorflow._tf_inference
 
 <br><br><hr><br>

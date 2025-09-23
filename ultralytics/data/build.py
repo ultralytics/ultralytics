@@ -7,6 +7,7 @@ import random
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import numpy as np
 import torch
@@ -247,8 +248,10 @@ def check_source(source):
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_file = source_lower.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
+        is_file = (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
+            IMG_FORMATS | VID_FORMATS
+        )
         webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
         screenshot = source_lower == "screen"
         if is_url and is_file:

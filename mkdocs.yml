@@ -170,6 +170,9 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
 # Validation settings https://www.mkdocs.org/user-guide/configuration/#validation
 validation:
@@ -396,6 +399,7 @@ nav:
       - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - Model Deployment Options: guides/model-deployment-options.md
+      - Model YAML Configuration Guide: guides/model-yaml-config.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
@@ -531,6 +535,7 @@ nav:
           - hub/api/index.md
 
   - Reference:
+      - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
       - data:
@@ -684,7 +689,9 @@ nav:
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
-          - export: reference/utils/export.md
+          - export:
+              - __init__: reference/utils/export/__init__.md
+              - imx: reference/utils/export/imx.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

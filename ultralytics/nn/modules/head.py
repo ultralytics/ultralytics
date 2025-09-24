@@ -20,7 +20,18 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment", "Detect_MDE"
+__all__ = (
+    "Detect",
+    "Segment",
+    "Pose",
+    "Classify",
+    "OBB",
+    "RTDETRDecoder",
+    "v10Detect",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "Detect_MDE",
+)
 
 
 class Detect(nn.Module):
@@ -1230,14 +1241,14 @@ class v10Detect(Detect):
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
 
 
-class Detect_MDE(nn.Module):
+class Detect_MDE(Detect):
     """
     YOLO Detect head with Monocular Depth Estimation (MDE).
-    
+
     This class extends the standard YOLO detection head to include depth estimation
     for each detected object. It predicts bounding boxes, class probabilities, and
     depth values simultaneously.
-    
+
     Attributes:
         nc (int): Number of classes.
         nl (int): Number of detection layers.
@@ -1248,19 +1259,19 @@ class Detect_MDE(nn.Module):
         cv3 (nn.ModuleList): Convolution layers for classification.
         cv_depth (nn.ModuleList): Convolution layers for depth estimation.
         dfl (nn.Module): Distribution Focal Loss layer.
-        
+
     Methods:
         forward: Perform forward pass and return predictions with depth.
         depth_activation: Apply log-sigmoid activation for depth prediction.
         bias_init: Initialize detection head biases.
-        
+
     Examples:
         Create an MDE detection head for 5 classes (KITTI dataset)
         >>> mde_head = Detect_MDE(nc=5, ch=(256, 512, 1024))
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> outputs = mde_head(x)
     """
-    
+
     # Class attributes for compatibility with YOLO framework
     dynamic = False  # force grid reconstruction
     export = False  # export mode
@@ -1272,89 +1283,92 @@ class Detect_MDE(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
-    
-    def __init__(self, nc: int = 80, ch: tuple = (), reg_max: int = 16):
-        """
-        Initialize MDE detection head.
-        
-        Args:
-            nc (int): Number of classes.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
-            reg_max (int): DFL channels for box regression.
-        """
-        super().__init__()
-        self.nc = nc  # number of classes
-        self.nl = len(ch)  # number of detection layers
-        self.reg_max = reg_max  # DFL channels
-        self.no = nc + self.reg_max * 4 + 1  # number of outputs per anchor (+1 for depth)
-        self.stride = torch.zeros(self.nl)  # strides computed during build
-        
-        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))
-        
-        # Box regression branch
-        self.cv2 = nn.ModuleList(
-            nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) 
-            for x in ch
-        )
-        
-        # Classification branch
-        self.cv3 = nn.ModuleList(
-            nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) 
-            for x in ch
-        )
-        
-        # Depth estimation branch
-        self.cv_depth = nn.ModuleList(
-            nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, 1, 1))
-            for x in ch
-        )
-        
-        # Distribution Focal Loss for box regression
-        self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
-    def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor]:
-        """
-        Forward pass through the MDE head.
-        
-        Args:
-            x (list[torch.Tensor]): List of feature maps from different scales.
-            
-        Returns:
-            list[torch.Tensor]: List of predictions with [box, class, depth] concatenated.
-        """
+    def __init__(self, nc: int = 80, ch: tuple = ()):
+        super().__init__(nc, ch)
+        # number of outputs per anchor (+1 for depth)
+        self.no = self.nc + self.reg_max * 4 + 1  # +1 for depth
+
+        # Replace cv3 to output nc+1 channels
+        c3 = max(ch[0], min(self.nc, 100))
+        self.cv3 = nn.ModuleList(
+            nn.Sequential(
+                nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
+                nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
+                nn.Conv2d(c3, self.nc + 1, 1),  # nc classes + 1 depth
+            )
+            for x in ch
+        )
+
+    def forward(self, x):
+        """Forward with depth in the last channel."""
         for i in range(self.nl):
-            # Box and class predictions
-            box = self.cv2[i](x[i])
-            cls = self.cv3[i](x[i])
-            # Depth prediction with log-sigmoid activation
-            depth = self.cv_depth[i](x[i])
-            depth = self.depth_activation(depth)
-            
-            x[i] = torch.cat((box, cls, depth), 1)
-        
-        return x
+            cls_and_depth = self.cv3[i](x[i])
+            # Separate classes and depth
+            cls = cls_and_depth[:, : self.nc]  # The first nc channels are classes
+            depth_raw = cls_and_depth[:, self.nc :]  # The last channel is depth
+
+            # Apply depth activation function
+            depth = self.depth_activation(depth_raw)
+
+            # Recombine
+            x[i] = torch.cat((self.cv2[i](x[i]), cls, depth), 1)
+
+        if self.training:
+            return x
+        y = self._inference(x)
+        return y if self.export else (y, x)
 
     def depth_activation(self, x: torch.Tensor) -> torch.Tensor:
         """
         Log-sigmoid activation for depth (Equation 3 from paper)
         fd = β * log(sigmoid(Od)) where β = -14.4
-        
+
         Args:
             x (torch.Tensor): Raw depth predictions.
-            
+
         Returns:
             torch.Tensor: Activated depth predictions.
         """
         beta = -14.4
         return beta * torch.log(torch.sigmoid(x) + 1e-7)
-    
-    def bias_init(self):
-        """Initialize Detect() biases, WARNING: requires stride availability."""
-        m = self  # self.model[-1]  # Detect() module
-        for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
-            a[-1].bias.data[:] = 1.0  # box
-            b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
-        
-        # Initialize depth bias to predict reasonable depth values
-        for d in self.cv_depth:
-            d[-1].bias.data[:] = 0.0  # depth (start with neutral prediction)
+
+    def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
+        """
+        Decode predicted bounding boxes, class probabilities, and depth estimates.
+
+        Args:
+            x (list[torch.Tensor]): List of feature maps from different detection layers.
+
+        Returns:
+            (torch.Tensor): Concatenated tensor of decoded bboxes, class probs, and depth.
+        """
+        # Inference path
+        shape = x[0].shape  # BCHW
+        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+
+        if self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+
+        # Split output: box(reg_max*4), cls(nc), depth(1)
+        if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:
+            box = x_cat[:, : self.reg_max * 4]
+            cls = x_cat[:, self.reg_max * 4 : self.reg_max * 4 + self.nc]
+            depth = x_cat[:, self.reg_max * 4 + self.nc :]
+        else:
+            box, cls, depth = x_cat.split((self.reg_max * 4, self.nc, 1), 1)
+
+        # Bounding box decoding
+        if self.export and self.format in {"tflite", "edgetpu"}:
+            grid_h = shape[2]
+            grid_w = shape[3]
+            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
+            norm = self.strides / (self.stride[0] * grid_size)
+            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+        else:
+            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+
+        # Return: [batch, anchors, 4 + nc + 1]
+        # depth is already activated in forward, so we can use it directly
+        return torch.cat((dbox, cls.sigmoid(), depth), 1)

@@ -9,7 +9,7 @@ simultaneous object detection and depth estimation.
 
 from .mde_head import Detect_MDE
 from .mde_model import MDE
-from .train import MDETrainer, MDELoss, train_mde
+from .train import MDETrainer
 from .val import MDEValidator
 
-__all__ = ['Detect_MDE', 'MDE', 'MDETrainer', 'MDELoss', 'train_mde', 'MDEValidator']
+__all__ = ["Detect_MDE", "MDE", "MDETrainer", "MDEValidator"]

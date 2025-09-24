@@ -17,16 +17,16 @@ from ultralytics.nn.modules import (AIFI, C1, C2, C2PSA, C3, C3TR, ELAN1, OBB, P
                                     DWConv, DWConvTranspose2d, Focus, GhostBottleneck, GhostConv, HGBlock, HGStem,
                                     ImagePoolingAttn, Index, LRPCHead, Pose, RepC3, RepConv, RepNCSPELAN4, RepVGGDW,
                                     ResNetLayer, RTDETRDecoder, SCDown, Segment, TorchVision, WorldDetect, YOLOEDetect,
-                                    YOLOESegment, v10Detect)
+                                    YOLOESegment, v10Detect,)
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (E2EDetectLoss, v8ClassificationLoss, v8DetectionLoss, v8OBBLoss, v8PoseLoss,
-                                    v8SegmentationLoss)
+                                    v8SegmentationLoss,)
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights, intersect_dicts,
-                                           model_info, scale_img, smart_inference_mode, time_sync)
+                                           model_info, scale_img, smart_inference_mode, time_sync,)
 
 
 class BaseModel(torch.nn.Module):
@@ -432,17 +432,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        if getattr(self, "end2end", False):
-            return E2EDetectLoss(self)
-
-        # Check if model uses Detect_MDE heads
-        has_mde_head = any(isinstance(m, Detect_MDE) for m in self.model.modules())
-        if has_mde_head:
-            from ultralytics.utils.loss import v11DetectionLoss_MDE
-
-            return v11DetectionLoss_MDE(self)
-
-        return v8DetectionLoss(self)
+        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -554,6 +544,42 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
         return v8PoseLoss(self)
+
+
+class MDEModel(DetectionModel):
+    """
+    YOLO Monocular Depth Estimation (MDE) model.
+
+    This class extends DetectionModel to handle monocular depth estimation tasks, providing specialized
+    loss computation for depth prediction alongside object detection.
+
+    Methods:
+        __init__: Initialize YOLO MDE model.
+        init_criterion: Initialize the loss criterion for MDE detection.
+
+    Examples:
+        Initialize an MDE model
+        >>> model = MDEModel("yolo11-mde.yaml", ch=3, nc=80)
+        >>> results = model.predict(image_tensor)
+    """
+
+    def __init__(self, cfg="yolo11-mde.yaml", ch=3, nc=None, verbose=True):
+        """
+        Initialize YOLO MDE model with given config and parameters.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of classes.
+            verbose (bool): Whether to display model information.
+        """
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the MDEModel."""
+        from ultralytics.utils.loss import v11DetectionLoss_MDE
+
+        return v11DetectionLoss_MDE(self)
 
 
 class ClassificationModel(BaseModel):

@@ -11,125 +11,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torch.cuda.amp import autocast
 
-from ultralytics.engine.trainer import BaseTrainer
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.loss import v8DetectionLoss
+from ultralytics.models.yolo.detect import DetectionTrainer
+from ultralytics.nn.tasks import MDEModel
+from ultralytics.utils import LOGGER, RANK
 
 
-class MDELoss(nn.Module):
-    """
-    MDE Loss combining detection loss and depth estimation loss.
-
-    This loss function combines the standard YOLO detection loss with a depth
-    estimation loss to train the MDE model end-to-end.
-
-    Attributes:
-        det_loss (v8DetectionLoss): Detection loss component.
-        depth_loss_weight (float): Weight for depth loss.
-        depth_loss_type (str): Type of depth loss ('l1', 'l2', 'smooth_l1').
-
-    Methods:
-        forward: Compute combined detection and depth loss.
-        depth_loss: Compute depth estimation loss.
-    """
-
-    def __init__(self, model, depth_loss_weight: float = 1.0, depth_loss_type: str = "l1"):
-        """
-        Initialize MDE loss.
-
-        Args:
-            model: The MDE model.
-            depth_loss_weight (float): Weight for depth loss component.
-            depth_loss_type (str): Type of depth loss ('l1', 'l2', 'smooth_l1').
-        """
-        super().__init__()
-        self.det_loss = v8DetectionLoss(model)
-        self.depth_loss_weight = depth_loss_weight
-        self.depth_loss_type = depth_loss_type
-
-        # Depth loss functions
-        if depth_loss_type == "l1":
-            self.depth_criterion = nn.L1Loss()
-        elif depth_loss_type == "l2":
-            self.depth_criterion = nn.MSELoss()
-        elif depth_loss_type == "smooth_l1":
-            self.depth_criterion = nn.SmoothL1Loss()
-        else:
-            raise ValueError(f"Unsupported depth loss type: {depth_loss_type}")
-
-    @property
-    def loss_names(self):
-        """Return loss component names for MDE model."""
-        return ["box", "cls", "dfl", "depth"]
-
-    def forward(self, preds, targets):
-        """
-        Forward pass to compute combined loss.
-
-        Args:
-            preds: Model predictions.
-            targets: Ground truth targets.
-
-        Returns:
-            tuple: (total_loss, loss_items_tensor)
-        """
-        # Compute detection loss
-        det_loss, det_loss_items = self.det_loss(preds, targets)
-
-        # Compute depth loss
-        depth_loss = self.depth_loss(preds, targets)
-
-        # Combine losses
-        total_loss = det_loss + self.depth_loss_weight * depth_loss
-
-        # Create loss items tensor in the format expected by BaseValidator
-        # Standard format: [box_loss, cls_loss, dfl_loss, depth_loss]
-        loss_items = torch.cat(
-            [det_loss_items, depth_loss.unsqueeze(0)]  # [box_loss, cls_loss, dfl_loss]  # [depth_loss]
-        )
-
-        # Return in the same format as standard YOLO losses: (total_loss, loss_items.detach())
-        return total_loss, loss_items.detach()
-
-    def depth_loss(self, preds, targets):
-        """
-        Compute depth estimation loss.
-
-        Args:
-            preds: Model predictions with depth.
-            targets: Ground truth targets with depth.
-
-        Returns:
-            torch.Tensor: Depth loss.
-        """
-        depth_loss = 0.0
-        num_scales = len(preds)
-
-        for i, pred in enumerate(preds):
-            # Extract depth predictions (last channel)
-            pred_depth = pred[..., -1:]  # [B, H, W, 1]
-
-            # Get corresponding target depth
-            target_depth = targets["depth"][i] if "depth" in targets else None
-
-            if target_depth is not None:
-                # Resize target to match prediction size
-                if target_depth.shape[-2:] != pred_depth.shape[-2:]:
-                    target_depth = F.interpolate(
-                        target_depth, size=pred_depth.shape[-2:], mode="bilinear", align_corners=False
-                    )
-
-                # Compute depth loss
-                depth_loss += self.depth_criterion(pred_depth, target_depth)
-
-        return depth_loss / num_scales if num_scales > 0 else torch.tensor(0.0, device=preds[0].device)
-
-
-class MDETrainer(BaseTrainer):
+class MDETrainer(DetectionTrainer):
     """
     MDE Trainer for training YOLO models with depth estimation.
 
@@ -148,11 +37,7 @@ class MDETrainer(BaseTrainer):
         validate: Validate the model.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize MDE trainer."""
-        super().__init__(cfg, overrides, _callbacks)
-
-    def get_model(self, cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """
         Get MDE model.
 
@@ -164,9 +49,12 @@ class MDETrainer(BaseTrainer):
         Returns:
             DetectionModel with MDE heads.
         """
-        from ultralytics.nn.tasks import DetectionModel
-
-        model = DetectionModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        model = MDEModel(
+            cfg,
+            nc=self.data["nc"],
+            ch=self.data["channels"],
+            verbose=verbose and RANK == -1,
+        )
         if weights:
             model.load(weights)
 
@@ -179,7 +67,12 @@ class MDETrainer(BaseTrainer):
 
         from .val import MDEValidator
 
-        return MDEValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
+        return MDEValidator(
+            self.test_loader,
+            save_dir=self.save_dir,
+            args=copy(self.args),
+            _callbacks=self.callbacks,
+        )
 
     def label_loss_items(self, loss_items: list[float] | None = None, prefix: str = "train"):
         """
@@ -242,10 +135,27 @@ class MDETrainer(BaseTrainer):
         except Exception as e:
             LOGGER.warning(f"Failed to create MDE dataset, falling back to standard dataset: {e}")
             # Fallback to standard YOLO dataset
-            gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)
-            return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
+            gs = max(
+                int(self.model.stride.max() if hasattr(self.model, "stride") else 32),
+                32,
+            )
+            return build_yolo_dataset(
+                self.args,
+                img_path,
+                batch,
+                self.data,
+                mode=mode,
+                rect=mode == "val",
+                stride=gs,
+            )
 
-    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
+    def get_dataloader(
+        self,
+        dataset_path: str,
+        batch_size: int = 16,
+        rank: int = 0,
+        mode: str = "train",
+    ):
         """
         Construct and return MDE dataloader for the specified mode.
 

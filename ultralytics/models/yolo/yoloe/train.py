@@ -280,7 +280,6 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
 
     Methods:
         build_dataset: Build dataset with visual prompt loading transforms.
-        preprocess_batch: Preprocess batches with visual prompts.
     """
 
     def build_dataset(self, img_path: list[str] | str, mode: str = "train", batch: int | None = None):

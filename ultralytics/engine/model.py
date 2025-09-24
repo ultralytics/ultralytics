@@ -107,7 +107,7 @@ class Model(torch.nn.Module):
             >>> assert model2 is model1  # True
         """
         # Return existing Model instance directly instead of copying __dict__
-        if isinstance(model, cls):
+        if isinstance(model, Model):
             return model
 
         # Create new instance for all other cases

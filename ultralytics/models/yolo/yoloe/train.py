@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import itertools
 from copy import copy, deepcopy
 from pathlib import Path
 

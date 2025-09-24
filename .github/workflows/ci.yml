@@ -7,9 +7,6 @@ name: CI
 permissions:
   contents: read
 
-env:
-  PYTHONFAULTHANDLER: 1
-
 on:
   push:
     branches: [main]

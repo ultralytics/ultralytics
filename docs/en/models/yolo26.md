@@ -155,7 +155,9 @@ YOLO26 delivers **state-of-the-art edge performance** with:
 
 ### When will YOLO26 models be available?
 
-YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned shortly after [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).
+YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned in the near future.
+See [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision) for YOLO26 talks.
+
 
 
 

@@ -1,30 +1,52 @@
 ---
 comments: true
-description: Discover YOLO26, the next evolution in real-time object detection with simplified architecture, superior performance, and remarkable efficiency for diverse computer vision tasks.
-keywords: YOLO26, object detection, simplified architecture, YOLO series, Ultralytics, computer vision, AI, machine learning, edge deployment, quantization
+description: Discover YOLO26 — the next generation of real-time object detection models from Ultralytics, purpose-built for edge and low-power devices with simplified architecture, superior performance, and unmatched efficiency across diverse computer vision tasks.
+keywords: YOLO26, object detection, simplified architecture, YOLO series, Ultralytics, computer vision, AI, machine learning, edge deployment, quantization, low power devices
 ---
 
 # Ultralytics YOLO26
 
+!!! note "Preview Only ⚠️"
+
+    🚧 YOLO26 models are still under development and not yet released. Performance numbers shown here are **previews only**.  
+    Final downloads and releases will follow soon — stay updated via [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).
+
 ## Overview
 
-YOLO26 is the next evolution in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, featuring a streamlined architecture that delivers superior performance with remarkable efficiency. By removing architectural complexity while introducing targeted enhancements, YOLO26 achieves the optimal balance of speed, [accuracy](https://www.ultralytics.com/glossary/accuracy), and deployability for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
+YOLO26 is the latest evolution in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
+
+The architecture of YOLO26 is guided by three core principles:
+
+- **Simplicity:** YOLO26 is a **native end-to-end model**, producing predictions directly without the need for non-maximum suppression (NMS). By eliminating this post-processing step, inference becomes faster, lighter, and easier to deploy in real-world systems. This breakthrough approach was first pioneered in [YOLOv10](../models/yolov10.md) by Ao Wang at Tsinghua University and has been further advanced in YOLO26.  
+- **Deployment Efficiency:** The end-to-end design cuts out an entire stage of the pipeline, dramatically simplifying integration, reducing latency, and making deployment more robust across diverse environments.  
+- **Training Innovation:** YOLO26 introduces the MuSGD optimizer, a hybrid of SGD and Muon — inspired by Moonshot AI’s **Kimi K2** breakthroughs in LLM training. This optimizer brings enhanced stability and faster convergence, transferring optimization advances from language models into computer vision.  
+
+Together, these innovations deliver a model family that achieves higher accuracy on small objects, provides seamless deployment, and runs **up to 43% faster on CPUs** — making YOLO26 one of the most practical and deployable YOLO models to date for resource-constrained environments.
 
 ![Ultralytics YOLO26 Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo-comparison-plot.png)
 
 ## Key Features
 
-### Core Innovation: Simplified Excellence
+- **DFL Removal**  
+  The Distribution Focal Loss (DFL) module, while effective, often complicated export and limited hardware compatibility. YOLO26 removes DFL entirely, simplifying inference and broadening support for **edge and low-power devices**.  
 
-- **DFL Removal**: Unlocks higher performance with simpler inference
-- **End-to-End NMS-Free Inference**: Streamlined deployments
-- **ProgLoss + STAL**: Improved accuracy, especially for small objects
-- **MuSGD Optimizer**: Faster, smarter training
-- **43% Faster CPU Inference**: Edge-ready efficiency
+- **End-to-End NMS-Free Inference**  
+  Unlike traditional detectors that rely on NMS as a separate post-processing step, YOLO26 is **natively end-to-end**. Predictions are generated directly, reducing latency and making integration into production systems faster, lighter, and more reliable.  
+
+- **ProgLoss + STAL**  
+  Improved loss functions increase detection accuracy, with notable improvements in **small-object recognition**, a critical requirement for IoT, robotics, aerial imagery, and other edge applications.  
+
+- **MuSGD Optimizer**  
+  A new hybrid optimizer that combines SGD with Muon. Inspired by Moonshot AI’s **Kimi K2**, MuSGD introduces advanced optimization methods from LLM training into computer vision, enabling more stable training and faster convergence.  
+
+- **Up to 43% Faster CPU Inference**  
+  Specifically optimized for edge computing, YOLO26 delivers significantly faster CPU inference, ensuring real-time performance on devices without GPUs.  
+
+---
 
 ## Supported Tasks and Modes
 
-YOLO26 continues the versatile model range tradition, offering enhanced support across various computer vision tasks:
+YOLO26 is designed as a **multi-task model family**, extending YOLO’s versatility across diverse computer vision challenges:
 
 | Model        | Task                                         | Inference | Validation | Training | Export |
 | ------------ | -------------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -34,56 +56,52 @@ YOLO26 continues the versatile model range tradition, offering enhanced support 
 | YOLO26-obb   | [Oriented Detection](../tasks/obb.md)        | ✅        | ✅         | ✅       | ✅     |
 | YOLO26-cls   | [Classification](../tasks/classify.md)       | ✅        | ✅         | ✅       | ✅     |
 
-This table provides an overview of the YOLO26 model variants, showcasing their applicability in specific tasks and compatibility with operational modes such as Inference, Validation, Training, and Export. This flexibility makes YOLO26 suitable for a wide range of applications in computer vision, from real-time detection to complex segmentation tasks.
+This unified framework ensures YOLO26 is applicable across real-time detection, segmentation, classification, pose estimation, and oriented object detection — all with training, validation, inference, and export support.
+
+---
 
 ## Performance Metrics
 
-!!! tip "Performance"
+!!! tip "Performance Preview"
+
+    The following benchmarks are **early previews**. Final numbers and downloadable weights will be released once training is complete.
 
     === "Detection (COCO)"
 
-        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pre-trained classes.
+        Trained on [COCO](../datasets/detect/coco.md) with 80 pre-trained classes.  
+        See [Detection Docs](../tasks/detect.md) for usage once models are released.
 
         | Model   | size<br><sup>(pixels) | mAP<sup>val<br>50-95(e2e) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms)  | Speed<br><sup>T4 TensorRT10<br>(ms)  | params<br><sup>(M) | FLOPs<br><sup>(B) |
         | -----   | --------------------- | --------------------      | -------------------- | ------------------------------- | ------------------------------------ | ------------------ | ----------------- |
         | YOLO26n | 640                   | 39.8                      | 40.3                 | 38.90 ± 0.7                     | 1.7 ± 0.0                            | 2.4                | 5.4               |
-        | YOLO26s | 640                   | 47.2                      | 47.6                 | 87.16 ± 0.9                     | 2.7 ± 0.0                            | 9.5                | 20.7                 |
-        | YOLO26m | 640                   | 51.5                      | 51.7                 | 220.0 ± 1.4                     | 4.9 ± 0.1                            | 20.4               | 68.2                 |
-        | YOLO26l | 640                   | 53.0                      | 53.4                 | 286.17 ± 2.0                    | 6.5 ± 0.2                            | 24.8               | 86.4                 |
+        | YOLO26s | 640                   | 47.2                      | 47.6                 | 87.16 ± 0.9                     | 2.7 ± 0.0                            | 9.5                | 20.7              |
+        | YOLO26m | 640                   | 51.5                      | 51.7                 | 220.0 ± 1.4                     | 4.9 ± 0.1                            | 20.4               | 68.2              |
+        | YOLO26l | 640                   | 53.0*                     | 53.4*                | 286.17 ± 2.0*                   | 6.5 ± 0.2*                           | 24.8               | 86.4              |
         | YOLO26x | 640                   | -                         | -                    | -                               | -                                    | -                  | -                 |
 
+        *Metrics for YOLO26l and YOLO26x are in progress. Final benchmarks will be added here.
+
     === "Segmentation (COCO)"
-
-        See [Segmentation Docs](../tasks/segment.md) for usage examples with these models trained on [COCO](../datasets/segment/coco.md), which include 80 pre-trained classes.
-
-        Performance metrics for segmentation models coming soon.
+        Performance metrics coming soon.
 
     === "Classification (ImageNet)"
-
-        See [Classification Docs](../tasks/classify.md) for usage examples with these models trained on [ImageNet](../datasets/classify/imagenet.md), which include 1000 pre-trained classes.
-
-        Performance metrics for classification models coming soon.
+        Performance metrics coming soon.
 
     === "Pose (COCO)"
-
-        See [Pose Estimation Docs](../tasks/pose.md) for usage examples with these models trained on [COCO](../datasets/pose/coco.md), which include 1 pre-trained class, 'person'.
-
-        Performance metrics for pose models coming soon.
+        Performance metrics coming soon.
 
     === "OBB (DOTAv1)"
+        Performance metrics coming soon.
 
-        See [Oriented Detection Docs](../tasks/obb.md) for usage examples with these models trained on [DOTAv1](../datasets/obb/dota-v2.md#dota-v10), which include 15 pre-trained classes.
-
-        Performance metrics for OBB models coming soon.
-
+---
 
 ## Citations and Acknowledgements
 
 !!! tip "Ultralytics YOLO26 Publication"
 
-    Ultralytics has not published a formal research paper for YOLO26 due to the rapidly evolving nature of the models. We focus on advancing the technology and making it easier to use, rather than producing static documentation. For the most up-to-date information on YOLO architecture, features, and usage, please refer to our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
+    Ultralytics has not published a formal research paper for YOLO26 due to the rapidly evolving nature of the models. Instead, we focus on delivering cutting-edge models and making them easy to use. For the latest updates on YOLO features, architectures, and usage, visit our [GitHub repository](https://github.com/ultralytics/ultralytics) and [documentation](https://docs.ultralytics.com/).
 
-If you use YOLO26 or any other software from this repository in your work, please cite it using the following format:
+If you use YOLO26 or other Ultralytics software in your work, please cite it as:
 
 !!! quote ""
 
@@ -101,41 +119,39 @@ If you use YOLO26 or any other software from this repository in your work, pleas
         }
         ```
 
-Please note that the DOI is pending and will be added to the citation once it is available. YOLO26 models are provided under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+DOI pending. YOLO26 is available under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
+
+---
 
 ## FAQ
 
-### What are the key improvements in Ultralytics YOLO26 compared to YOLO11?
+### What are the key improvements in YOLO26 compared to YOLO11?
 
-Ultralytics YOLO26 introduces several breakthrough improvements:
+- **DFL Removal**: Simplifies export and expands edge compatibility  
+- **End-to-End NMS-Free Inference**: Eliminates NMS for faster, simpler deployment  
+- **ProgLoss + STAL**: Boosts accuracy, especially on small objects  
+- **MuSGD Optimizer**: Combines SGD and Muon (inspired by Moonshot’s Kimi K2) for more stable, efficient training  
+- **Up to 43% Faster CPU Inference**: Major performance gains for CPU-only devices  
 
-- **DFL Removal**: Unlocks higher performance with simpler inference
-- **End-to-End NMS-Free Inference**: Streamlined deployments
-- **ProgLoss + STAL**: Improved accuracy, especially for small objects
-- **MuSGD Optimizer**: Faster, smarter training
-- **43% Faster CPU Inference**: Edge-ready efficiency
+### What tasks will YOLO26 support?
 
-### What tasks can YOLO26 models perform?
+YOLO26 is designed as a **unified model family** supporting:  
+- Object Detection  
+- Instance Segmentation  
+- Image Classification  
+- Pose Estimation  
+- Oriented Object Detection (OBB)  
 
-YOLO26 models are versatile and support multiple computer vision tasks:
+Each size variant (n, s, m, l, x) is planned to support all tasks at release.
 
-- **Object Detection:** Identify and locate objects within images
-- **Instance Segmentation:** Detect objects with pixel-perfect boundaries
-- **Image Classification:** Categorize entire images into predefined classes
-- **Pose Estimation:** Detect human keypoints and poses
-- **Oriented Object Detection (OBB):** Detect rotated objects for aerial/satellite imagery
+### Why is YOLO26 optimized for edge deployment?
 
-Each YOLO26 model size (n, s, m, l, x) supports all these tasks out-of-the-box, making it a unified solution for diverse vision applications.
+YOLO26 delivers **state-of-the-art edge performance** with:  
+- Up to 43% faster CPU inference  
+- Reduced model size and memory footprint  
+- Architecture simplified for compatibility (no DFL, no NMS)  
+- Flexible export formats including TensorRT, ONNX, CoreML, TFLite, and OpenVINO  
 
-### Why is YOLO26 better for edge deployment?
+### When will YOLO26 models be available?
 
-YOLO26 is specifically optimized for edge deployment through several key advantages:
-
-- **Faster CPU Performance:** Up to 43% improvement in CPU inference speed, crucial for devices without GPUs
-- **Smaller Model Size:** 11.5% fewer parameters mean reduced memory footprint
-- **Simplified Architecture:** Removal of complex components like DFL module means fewer deployment issues
-- **Flexible Export Options:** Full support for TensorRT, ONNX, CoreML, TFLite, and OpenVINO
-
-These improvements make YOLO26 ideal for deployment on resource-constrained devices while maintaining high accuracy.
-
-Note that while YOLO26n metrics are final, other model sizes currently show estimated performance values that will be updated with final benchmarks.
+YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned shortly after [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).

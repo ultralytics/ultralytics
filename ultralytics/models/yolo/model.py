@@ -76,7 +76,7 @@ class YOLO(Model):
         # don't reinitialize it. Use __dict__ to avoid triggering __getattr__
         if "_initialized" in self.__dict__:
             return
-            
+
         # Mark as being initialized to prevent re-initialization
         self._initialized = True
         path = Path(model if isinstance(model, (str, Path)) else "")

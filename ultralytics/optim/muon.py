@@ -82,7 +82,7 @@ class MuonWithSGD(optim.Optimizer):
     def update_sgd(self):
         self.updates += 1
         # self.sgd = self.sf(self.updates)
-        self.decay_factor = self.df(self.updates)
+        # self.decay_factor = self.df(self.updates)
 
     def adjust_lr(self, lr, param_shape):
         """Adjust learning rate based on parameter shape."""

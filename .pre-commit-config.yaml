@@ -13,19 +13,19 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
 
-  # Python formatting with Black
+  # Python import sorting - MUST run before Black
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--line-length=120', '--profile=black', '--multi-line=3']
+
+  # Python formatting with Black - runs after isort
   - repo: https://github.com/psf/black
     rev: 24.1.1
     hooks:
       - id: black
         args: ['--line-length=120', '--target-version=py38']
-
-  # Python import sorting
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ['--line-length=120', '--profile=black']
 
   # Fast Python linting
   - repo: https://github.com/astral-sh/ruff-pre-commit

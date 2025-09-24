@@ -10,7 +10,7 @@ keywords: YOLO26, object detection, simplified architecture, YOLO series, Ultral
 
 YOLO26 is the next evolution in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, featuring a streamlined architecture that delivers superior performance with remarkable efficiency. By removing architectural complexity while introducing targeted enhancements, YOLO26 achieves the optimal balance of speed, [accuracy](https://www.ultralytics.com/glossary/accuracy), and deployability for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 
-![Ultralytics YOLO26 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
+![Ultralytics YOLO26 Comparison Plots](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolo-comparison-plot.png)
 
 ## Key Features
 

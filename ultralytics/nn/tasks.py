@@ -224,6 +224,9 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
+                if isinstance(m, Detect) and getattr(m, "end2end", False):
+                    m.fuse()
+
             self.info(verbose=verbose)
 
         return self

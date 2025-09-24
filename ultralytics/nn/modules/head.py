@@ -199,6 +199,9 @@ class Detect(nn.Module):
         i = torch.arange(batch_size)[..., None]  # batch indices
         # return torch.cat([boxes[i, index // nc], ori_scores], dim=-1).permute(0, 2, 1)
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+    def fuse(self):
+        """Remove the one2many head for inference optimization."""
+        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
 
 
 class PSADetect(Detect):

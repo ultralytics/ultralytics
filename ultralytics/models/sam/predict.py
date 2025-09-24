@@ -1126,7 +1126,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             )
 
             if prev_out is not None and prev_out.get("pred_masks") is not None:
-                prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=self.device.type == "cuda")
+                prev_sam_mask_logits = prev_out["pred_masks"].to(
+                    device=self.device, non_blocking=self.device.type == "cuda"
+                )
                 # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
                 prev_sam_mask_logits.clamp_(-32.0, 32.0)
         current_out = self._run_single_frame_inference(
@@ -1636,7 +1638,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(maskmem_pos_enc)
-        return maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"), maskmem_pos_enc
+        return maskmem_features.to(
+            dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
+        ), maskmem_pos_enc
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """

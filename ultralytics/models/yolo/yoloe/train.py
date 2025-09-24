@@ -190,16 +190,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         """
         return WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
 
-    def preprocess_batch(self, batch):
-        """Process batch for training, moving text features to the appropriate device."""
-        batch = DetectionTrainer.preprocess_batch(self, batch)
-
-        texts = list(itertools.chain(*batch["texts"]))
-        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device, non_blocking=True)
-        txt_feats = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
-        batch["txt_feats"] = txt_feats
-        return batch
-
     def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path):
         """
         Generate text embeddings for a list of text samples.

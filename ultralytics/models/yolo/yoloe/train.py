@@ -169,7 +169,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
 
     Methods:
         build_dataset: Build datasets for training with grounding support.
-        preprocess_batch: Process batches with text features.
         generate_text_embeddings: Generate and cache text embeddings for training.
     """
 

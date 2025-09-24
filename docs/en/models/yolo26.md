@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover YOLO26 — the next generation of real-time object detection models from Ultralytics, purpose-built for edge and low-power devices with simplified architecture, superior performance, and unmatched efficiency across diverse computer vision tasks.
-keywords: YOLO26, object detection, simplified architecture, YOLO series, Ultralytics, computer vision, AI, machine learning, edge deployment, quantization, low power devices
+description: YOLO26 from Ultralytics delivers faster, simpler, end-to-end NMS-free object detection optimized for edge and low-power devices.
+keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simplified architecture, computer vision, AI, machine learning, edge AI, low power devices, quantization, real-time inference
 ---
 
 # Ultralytics YOLO26
@@ -135,12 +135,13 @@ DOI pending. YOLO26 is available under [AGPL-3.0](https://github.com/ultralytics
 
 ### What tasks will YOLO26 support?
 
-YOLO26 is designed as a **unified model family** supporting:  
-- Object Detection  
-- Instance Segmentation  
-- Image Classification  
-- Pose Estimation  
-- Oriented Object Detection (OBB)  
+YOLO26 is designed as a **unified model family**, providing end-to-end support for multiple computer vision tasks:
+
+- [Object Detection](../tasks/detect.md)  
+- [Instance Segmentation](../tasks/segment.md)  
+- [Image Classification](../tasks/classify.md)  
+- [Pose Estimation](../tasks/pose.md)  
+- [Oriented Object Detection (OBB)](../tasks/obb.md)  
 
 Each size variant (n, s, m, l, x) is planned to support all tasks at release.
 
@@ -155,3 +156,4 @@ YOLO26 delivers **state-of-the-art edge performance** with:
 ### When will YOLO26 models be available?
 
 YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned shortly after [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).
+

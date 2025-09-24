@@ -73,8 +73,8 @@ class YOLO(Model):
             >>> assert reused is model  # True - same object, not a copy
         """
         # If this instance is already initialized (from __new__ returning existing instance),
-        # don't reinitialize it. Use hasattr for robust attribute checking
-        if hasattr(self, "_initialized"):
+        # don't reinitialize it. Use __dict__ to avoid triggering __getattr__
+        if "_initialized" in self.__dict__:
             return
             
         # Mark as being initialized to prevent re-initialization

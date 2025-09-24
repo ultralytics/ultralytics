@@ -13,7 +13,7 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simpl
 
 ## Overview
 
-YOLO26 is the latest evolution in the [Ultralytics](https://www.ultralytics.com/) YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
+[Ultralytics](https://www.ultralytics.com/) YOLO26 is the latest evolution in the YOLO series of real-time object detectors, engineered from the ground up for **edge and low-power devices**. It introduces a streamlined design that removes unnecessary complexity while integrating targeted innovations to deliver faster, lighter, and more accessible deployment.
 
 The architecture of YOLO26 is guided by three core principles:
 
@@ -156,5 +156,6 @@ YOLO26 delivers **state-of-the-art edge performance** with:
 ### When will YOLO26 models be available?
 
 YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned shortly after [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).
+
 
 

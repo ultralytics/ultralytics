@@ -200,7 +200,7 @@ jobs:
         shell: bash # for Windows compatibility
         run: pytest --cov=ultralytics/ --cov-report=xml tests/
       - name: Upload Coverage Reports to CodeCov
-        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.13'
         uses: codecov/codecov-action@v5
         with:
           flags: Tests

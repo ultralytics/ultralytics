@@ -148,6 +148,7 @@ Each size variant (n, s, m, l, x) is planned to support all tasks at release.
 ### Why is YOLO26 optimized for edge deployment?
 
 YOLO26 delivers **state-of-the-art edge performance** with:  
+
 - Up to 43% faster CPU inference  
 - Reduced model size and memory footprint  
 - Architecture simplified for compatibility (no DFL, no NMS)  
@@ -157,7 +158,3 @@ YOLO26 delivers **state-of-the-art edge performance** with:
 
 YOLO26 models are still in training and not yet open-sourced. Performance previews are shown here, with official downloads and releases planned in the near future.
 See [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision) for YOLO26 talks.
-
-
-
-

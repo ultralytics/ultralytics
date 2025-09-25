@@ -112,7 +112,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, select_device
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, select_device
 
 
 def export_formats():
@@ -152,10 +152,13 @@ def export_formats():
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
 
-def best_onnx_opset(onnx) -> int:
+def best_onnx_opset(onnx, cuda=False) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    if TORCH_1_13:  # not supported by torch<1.13
+    version = ".".join(TORCH_VERSION.split(".")[:2])
+    if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
+        if cuda:
+            opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
     else:
         opset = {
             "1.8": 12,
@@ -164,16 +167,16 @@ def best_onnx_opset(onnx) -> int:
             "1.11": 14,
             "1.12": 15,
             "1.13": 17,
-            "2.0": 18,
-            "2.1": 19,
-            "2.2": 19,
-            "2.3": 19,
+            "2.0": 17,  # reduced from 18 to fix ONNX errors
+            "2.1": 17,  # reduced from 19
+            "2.2": 17,  # reduced from 19
+            "2.3": 17,  # reduced from 19
             "2.4": 20,
             "2.5": 20,
             "2.6": 20,
             "2.7": 20,
             "2.8": 23,
-        }.get(".".join(TORCH_VERSION.split(".")[:2]), 12)
+        }.get(version, 12)
     return min(opset, onnx.defs.onnx_opset_version())
 
 
@@ -380,6 +383,8 @@ class Exporter:
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
+            assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
+            assert not onnx or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
             if getattr(model, "end2end", False):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
@@ -611,8 +616,11 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        opset = self.args.opset or best_onnx_opset(onnx)
+        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
+        if self.args.nms:
+            assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"
+
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if isinstance(self.model, SegmentationModel) else ["output0"]
         dynamic = self.args.dynamic

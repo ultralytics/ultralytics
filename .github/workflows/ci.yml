@@ -55,7 +55,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.12"]
+        python: ["3.13"]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

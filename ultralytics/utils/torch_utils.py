@@ -81,7 +81,7 @@ def smart_inference_mode():
     return decorate
 
 
-def autocast(enabled: bool, device: str = "cuda"):
+def autocast(enabled: bool, device: str = "cuda", dtype: torch.dtype = torch.float16):
     """
     Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
@@ -91,6 +91,7 @@ def autocast(enabled: bool, device: str = "cuda"):
     Args:
         enabled (bool): Whether to enable automatic mixed precision.
         device (str, optional): The device to use for autocast.
+        dtype (torch.dtype, optional): The data type to use for autocast (default is torch.float16).
 
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
@@ -105,7 +106,7 @@ def autocast(enabled: bool, device: str = "cuda"):
         ...     pass
     """
     if TORCH_1_13:
-        return torch.amp.autocast(device, enabled=enabled)
+        return torch.amp.autocast(device, enabled=enabled, dtype=dtype)
     else:
         return torch.cuda.amp.autocast(enabled)
 

@@ -26,7 +26,7 @@ class Colors:
     RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (List[tuple]): List of RGB color tuples for general use.
+        palette (list[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
@@ -176,9 +176,9 @@ class Annotator:
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
-        skeleton (List[List[int]]): Skeleton structure for keypoints.
-        limb_color (List[int]): Color palette for limbs.
-        kpt_color (List[int]): Color palette for keypoints.
+        skeleton (list[list[int]]): Skeleton structure for keypoints.
+        limb_color (list[int]): Color palette for limbs.
+        kpt_color (list[int]): Color palette for keypoints.
         dark_colors (set): Set of colors considered dark for text contrast.
         light_colors (set): Set of colors considered light for text contrast.
 
@@ -369,7 +369,7 @@ class Annotator:
 
         Args:
             masks (torch.Tensor | np.ndarray): Predicted masks with shape: [n, h, w]
-            colors (List[List[int]]): Colors for predicted masks, [[r, g, b] * n]
+            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n]
             im_gpu (torch.Tensor | None): Image is in cuda, shape: [3, h, w], range: [0, 1]
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
@@ -484,7 +484,7 @@ class Annotator:
         Add text to an image using PIL or cv2.
 
         Args:
-            xy (List[int]): Top-left coordinates for text placement.
+            xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color (R, G, B).
             anchor (str, optional): Text anchor position ('top' or 'bottom').
@@ -695,11 +695,11 @@ def plot_images(
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
-        labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
+        labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
         images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (Optional[List[str]]): List of file paths for each image in the batch.
+        paths (Optional[list[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
-        names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.
+        names (Optional[dict[int, str]]): Dictionary mapping class indices to class names.
         on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
@@ -812,14 +812,13 @@ def plot_images(
 
             # Plot masks
             if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_mask=False
+                if idx.shape[0] == masks.shape[0] and masks.max() <= 1:  # overlap_mask=False
                     image_masks = masks[idx]
                 else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
-                    index = np.arange(nl).reshape((nl, 1, 1)) + 1
-                    image_masks = np.repeat(image_masks, nl, axis=0)
-                    image_masks = np.where(image_masks == index, 1.0, 0.0)
+                    index = np.arange(1, nl + 1).reshape((nl, 1, 1))
+                    image_masks = (image_masks == index).astype(np.float32)
 
                 im = np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
@@ -847,14 +846,7 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(
-    file: str = "path/to/results.csv",
-    dir: str = "",
-    segment: bool = False,
-    pose: bool = False,
-    classify: bool = False,
-    on_plot: Callable | None = None,
-):
+def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -862,9 +854,6 @@ def plot_results(
     Args:
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
-        segment (bool, optional): Flag to indicate if the data is for segmentation.
-        pose (bool, optional): Flag to indicate if the data is for pose estimation.
-        classify (bool, optional): Flag to indicate if the data is for classification.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
@@ -876,34 +865,31 @@ def plot_results(
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    if classify:
-        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [2, 5, 3, 4]
-    elif segment:
-        fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
-    elif pose:
-        fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
-    else:
-        fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
-    ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
-    for f in files:
+
+    loss_keys, metric_keys = [], []
+    for i, f in enumerate(files):
         try:
-            data = pl.read_csv(f)
-            s = [x.strip() for x in data.columns]
+            data = pl.read_csv(f, infer_schema_length=None)
+            if i == 0:
+                for c in data.columns:
+                    if "loss" in c:
+                        loss_keys.append(c)
+                    elif "metric" in c:
+                        metric_keys.append(c)
+                loss_mid, metric_mid = len(loss_keys) // 2, len(metric_keys) // 2
+                columns = (
+                    loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
+                )
+                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                ax = ax.ravel()
             x = data.select(data.columns[0]).to_numpy().flatten()
-            for i, j in enumerate(index):
-                y = data.select(data.columns[j]).to_numpy().flatten().astype("float")
-                # y[y == 0] = np.nan  # don't show zero values
+            for i, j in enumerate(columns):
+                y = data.select(j).to_numpy().flatten().astype("float")
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
-                ax[i].set_title(s[j], fontsize=12)
-                # if j in {8, 9, 10}:  # share train and val loss y axes
-                #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
+                ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
     ax[1].legend()
@@ -948,13 +934,14 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
 
 
 @plt_settings()
-def plot_tune_results(csv_file: str = "tune_results.csv"):
+def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_points: bool = True):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results.
+        exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
@@ -971,11 +958,14 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
 
     # Scatter plots for each hyperparameter
     csv_file = Path(csv_file)
-    data = pl.read_csv(csv_file)
+    data = pl.read_csv(csv_file, infer_schema_length=None)
     num_metrics_columns = 1
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
     x = data.to_numpy()
     fitness = x[:, 0]  # fitness
+    if exclude_zero_fitness_points:
+        mask = fitness > 0  # exclude zero-fitness points
+        x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
@@ -1004,6 +994,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
     _save_one_file(csv_file.with_name("tune_fitness.png"))
 
 
+@plt_settings()
 def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
     """
     Visualize feature maps of a given model module during inference.

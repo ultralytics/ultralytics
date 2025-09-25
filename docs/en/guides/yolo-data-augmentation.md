@@ -171,7 +171,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ translate }}`
-- **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within`-0.5` to `0.5` on the x-asis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Shifts images horizontally and vertically by a random fraction of the image size. The `translate` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen twice (once for each axis) within the range `-translate` and `translate`. For example, with `translate=0.5`, the translation is randomly selected within`-0.5` to `0.5` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models learn to detect partially visible objects and improves robustness to object position. For example, in vehicle damage assessment applications, car parts may appear fully or partially in frame depending on the photographer's position and distance, the translation augmentation will teach the model to recognize these features regardless of their completeness or position.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**: For simplicity, the translations applied below are the same each time for both `x` and `y` axes. Values `-1.0` and `1.0`are not shown as they would translate the image completely out of the frame.
@@ -200,7 +200,7 @@ Then launch the training with the Python API:
 
 - **Range**: `-180` to `+180`
 - **Default**: `{{ shear }}`
-- **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within`-10` to `10` on the x-asis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Introduces a geometric transformation that skews the image along both x-axis and y-axis, effectively shifting parts of the image in one direction while maintaining parallel lines. The `shear` hyperparameter defines the shear angle, with the final adjustment randomly chosen between `-shear` and `shear`. For example, with `shear=10.0`, the shear is randomly selected within`-10` to `10` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Helps models generalize to variations in viewing angles caused by slight tilts or oblique viewpoints. For instance, in traffic monitoring, objects like cars and road signs may appear slanted due to non-perpendicular camera placements. Applying shear augmentation ensures the model learns to recognize objects despite such skewed distortions.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 - **Note**:
@@ -215,7 +215,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `0.001`
 - **Default**: `{{ perspective }}`
-- **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within`-0.001` to `0.001` on the x-asis, and another independent random value is selected within the same range on the y-axis.
+- **Usage**: Applies a full perspective transformation along both x-axis and y-axis, simulating how objects appear when viewed from different depths or angles. The `perspective` hyperparameter defines the perspective magnitude, with the final adjustment randomly chosen between `-perspective` and `perspective`. For example, with `perspective=0.001`, the perspective is randomly selected within`-0.001` to `0.001` on the x-axis, and another independent random value is selected within the same range on the y-axis.
 - **Purpose**: Perspective augmentation is crucial for handling extreme viewpoint changes, especially in scenarios where objects appear foreshortened or distorted due to perspective shifts. For example, in drone-based object detection, buildings, roads, and vehicles can appear stretched or compressed depending on the drone's tilt and altitude. By applying perspective transformations, models learn to recognize objects despite these perspective-induced distortions, improving their robustness in real-world deployments.
 - **Ultralytics' implementation**: [RandomPerspective](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomPerspective)
 

@@ -89,7 +89,7 @@ class YOLOEDetectValidator(DetectionValidator):
             for i in range(preds.shape[0]):
                 cls = batch["cls"][batch_idx == i].squeeze(-1).to(torch.int).unique(sorted=True)
                 pad_cls = torch.ones(preds.shape[1], device=self.device) * -1
-                pad_cls[: len(cls)] = cls
+                pad_cls[: cls.shape[0]] = cls
                 for c in cls:
                     visual_pe[c] += preds[i][pad_cls == c].sum(0) / cls_visual_num[c]
 
@@ -97,13 +97,6 @@ class YOLOEDetectValidator(DetectionValidator):
         visual_pe[cls_visual_num != 0] = F.normalize(visual_pe[cls_visual_num != 0], dim=-1, p=2)
         visual_pe[cls_visual_num == 0] = 0
         return visual_pe.unsqueeze(0)
-
-    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
-        """Preprocess batch data, ensuring visuals are on the same device as images."""
-        batch = super().preprocess(batch)
-        if "visuals" in batch:
-            batch["visuals"] = batch["visuals"].to(batch["img"].device)
-        return batch
 
     def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
         """
@@ -186,9 +179,9 @@ class YOLOEDetectValidator(DetectionValidator):
             self.device = select_device(self.args.device, verbose=False)
 
             if isinstance(model, (str, Path)):
-                from ultralytics.nn.tasks import attempt_load_weights
+                from ultralytics.nn.tasks import load_checkpoint
 
-                model = attempt_load_weights(model, device=self.device)
+                model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
             model.eval().to(self.device)
             data = check_det_dataset(refer_data or self.args.data)
             names = [name.split("/", 1)[0] for name in list(data["names"].values())]

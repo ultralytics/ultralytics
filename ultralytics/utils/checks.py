@@ -36,6 +36,7 @@ from ultralytics.utils import (
     PYTHON_VERSION,
     RKNN_CHIPS,
     ROOT,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     WINDOWS,
@@ -59,7 +60,7 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
         package (str, optional): Python package to use instead of requirements.txt file.
 
     Returns:
-        requirements (List[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
+        requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
             `specifier` attributes.
 
     Examples:
@@ -119,14 +120,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int | List[int]): Image size.
+        imgsz (int | list[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         max_dim (int): Maximum number of dimensions.
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        (List[int] | int): Updated image size.
+        (list[int] | int): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -362,8 +363,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Path | str | List[str]): Path to a requirements.txt file, a single package requirement as a
-            string, or a list of package requirements as strings.
+        requirements (Path | str | list[str] | tuple[str]): Path to a requirements.txt file, a single package
+            requirement as a string, or a list of package requirements as strings.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
@@ -451,6 +452,8 @@ def check_torchvision():
     to the compatibility table based on: https://github.com/pytorch/vision#installation.
     """
     compatibility_table = {
+        "2.9": ["0.24"],
+        "2.8": ["0.23"],
         "2.7": ["0.22"],
         "2.6": ["0.21"],
         "2.5": ["0.20"],
@@ -464,7 +467,7 @@ def check_torchvision():
     }
 
     # Check major and minor versions
-    v_torch = ".".join(torch.__version__.split("+", 1)[0].split(".")[:2])
+    v_torch = ".".join(TORCH_VERSION.split("+", 1)[0].split(".")[:2])
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
         v_torchvision = ".".join(TORCHVISION_VERSION.split("+", 1)[0].split(".")[:2])
@@ -482,7 +485,7 @@ def check_suffix(file="yolo11n.pt", suffix=".pt", msg=""):
     Check file(s) for acceptable suffix.
 
     Args:
-        file (str | List[str]): File or list of files to check.
+        file (str | list[str]): File or list of files to check.
         suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
     """
@@ -666,6 +669,9 @@ def check_yolo(verbose=True, device=""):
     else:
         s = ""
 
+    if GIT.is_repo:
+        check_multiple_install()  # check conflicting installation if using local clone
+
     select_device(device=device, newline=False)
     LOGGER.info(f"Setup complete ✅ {s}")
 
@@ -804,6 +810,30 @@ def check_amp(model):
     return True
 
 
+def check_multiple_install():
+    """Check if there are multiple Ultralytics installations."""
+    import sys
+
+    try:
+        result = subprocess.run([sys.executable, "-m", "pip", "show", "ultralytics"], capture_output=True, text=True)
+        install_msg = (
+            f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
+            "issues. See https://docs.ultralytics.com/quickstart/"
+        )
+        if result.returncode != 0:
+            if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported
+                LOGGER.warning(f"Ultralytics not found via pip but importing from: {ROOT}. {install_msg}")
+            return
+        yolo_path = (Path(re.findall(r"location:\s+(.+)", result.stdout, flags=re.I)[-1]) / "ultralytics").resolve()
+        if not yolo_path.samefile(ROOT.resolve()):
+            LOGGER.warning(
+                f"Multiple Ultralytics installations detected. The `yolo` command uses: {yolo_path}, "
+                f"but current session imports from: {ROOT}. This may cause version conflicts. {install_msg}"
+            )
+    except Exception:
+        return
+
+
 def print_args(args: dict | None = None, show_file=True, show_func=False):
     """
     Print function arguments (optional args dict).
@@ -904,7 +934,7 @@ def is_intel():
     try:
         result = subprocess.run(["xpu-smi", "discovery"], capture_output=True, text=True, timeout=5)
         return "intel" in result.stdout.lower()
-    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
+    except Exception:  # broad clause to capture all Intel GPU exception types
         return False
 
 

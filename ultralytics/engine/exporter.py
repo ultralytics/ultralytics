@@ -351,9 +351,9 @@ class Exporter:
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
-            if getattr(model, "end2end", False):
-                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
-                self.args.nms = False
+            # if getattr(model, "end2end", False):
+            #     LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
+            #     self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if (engine or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(

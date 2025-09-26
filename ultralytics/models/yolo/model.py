@@ -125,7 +125,7 @@ class YOLO(Model):
                 "model": SemanticModel,
                 "trainer": yolo.semseg.SemSegTrainer,
                 "validator": yolo.semseg.SemSegValidator,
-                "predictor": null,
+                "predictor": yolo.semseg.SemSegPredictor,
             }
         }
 

@@ -357,7 +357,7 @@ class BasePredictor:
                     LOGGER.info("\n".join(s))
 
                 self.run_callbacks("on_predict_batch_end")
-                #yield from self.results
+                yield from self.results
 
         # Release assets
         for v in self.vid_writer.values():

@@ -232,9 +232,6 @@ class YOLOEDetectValidator(DetectionValidator):
 
 
 
-    def print_results(self) -> None:
-        """Since too much classes in grounding dataset, we disable Print training/validation set metrics per class."""
-        pass
 
 
 

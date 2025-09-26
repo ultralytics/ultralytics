@@ -182,7 +182,7 @@ def mask2polygon(mask, downsample_ratio=1):
     for c in contours:
         area = cv2.contourArea(c)
         if area > 10:
-            polygons.append(c[:, 0, :].astype(np.float_))
+            polygons.append(c[:, 0, :].astype(np.float32))
 
     if downsample_ratio != 1:
         polygons = polygons / downsample_ratio

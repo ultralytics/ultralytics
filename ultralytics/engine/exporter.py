@@ -937,6 +937,7 @@ class Exporter:
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,
+            trt_hardware_compatibility_level=self.args.trt_hardware_compatibility_level,
         )
 
         return f

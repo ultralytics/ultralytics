@@ -428,7 +428,7 @@ class DetectionValidator(BaseValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
-        return self.coco_evaluate(stats, pred_json, anno_json)
+        return self.coco_evaluate(stats, pred_json, anno_json, fixed=True)
 
     def coco_evaluate(
         self,
@@ -437,6 +437,8 @@ class DetectionValidator(BaseValidator):
         anno_json: str,
         iou_types: str | list[str] = "bbox",
         suffix: str | list[str] = "Box",
+        fixed: bool = False,
+        dets_per_cat: int = 10000,
     ) -> dict[str, Any]:
         """
         Evaluate COCO/LVIS metrics using faster-coco-eval library.
@@ -453,6 +455,8 @@ class DetectionValidator(BaseValidator):
                 Common values include "bbox", "segm", "keypoints". Defaults to "bbox".
             suffix (str | List[str]]): Suffix to append to metric names in stats dictionary. Should correspond
                 to iou_types if multiple types provided. Defaults to "Box".
+            fixed (bool): Whether to apply "Fixed AP" logic by limiting detections per category.
+            dets_per_cat (int): Maximum number of detections per category for "Fixed AP".
 
         Returns:
             (Dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
@@ -468,7 +472,27 @@ class DetectionValidator(BaseValidator):
                 from faster_coco_eval import COCO, COCOeval_faster
 
                 anno = COCO(anno_json)
-                pred = anno.loadRes(pred_json)
+
+                if fixed and self.is_lvis:
+                    LOGGER.info(f'Applying "Fixed AP" logic with {dets_per_cat} detections per category...')
+                    from collections import defaultdict
+                    import json
+
+                    with open(pred_json, "r") as f:
+                        predictions = json.load(f)
+
+                    by_cat = defaultdict(list)
+                    for p in predictions:
+                        by_cat[p["category_id"]].append(p)
+
+                    filtered_preds = []
+                    for cat_id, cat_preds in by_cat.items():
+                        sorted_preds = sorted(cat_preds, key=lambda x: x["score"], reverse=True)
+                        filtered_preds.extend(sorted_preds[:dets_per_cat])
+                    pred = anno.loadRes(filtered_preds)
+                else:
+                    pred = anno.loadRes(str(pred_json))
+
                 for i, iou_type in enumerate(iou_types):
                     val = COCOeval_faster(
                         anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=LOGGER.info

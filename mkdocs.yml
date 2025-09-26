@@ -170,6 +170,9 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
 # Validation settings https://www.mkdocs.org/user-guide/configuration/#validation
 validation:
@@ -214,7 +217,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
+      - YOLO26 🚀 Coming soon: models/yolo26.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -301,7 +304,8 @@ nav:
       - YOLOv8: models/yolov8.md
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
-      - YOLO11 🚀 NEW: models/yolo11.md
+      - YOLO11: models/yolo11.md
+      - YOLO26 🚀 Coming soon: models/yolo26.md
       - YOLO12: models/yolo12.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
@@ -396,6 +400,7 @@ nav:
       - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - Model Deployment Options: guides/model-deployment-options.md
+      - Model YAML Configuration Guide: guides/model-yaml-config.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md

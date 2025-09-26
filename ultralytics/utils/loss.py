@@ -769,15 +769,36 @@ class v8OBBLoss(v8DetectionLoss):
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
         return torch.cat((dist2rbox(pred_dist, pred_angle, anchor_points), pred_angle), dim=-1)
 
+"""
 class SemSegLoss:
-    def __init__(self, model):
+    def __init__(self, model, alpha=0.3, beta=0.7):
         self.device = next(model.parameters()).device  # get model device
-        self.bce = nn.BCEWithLogitsLoss(reduction="none")
-        self.mse = nn.MSELoss()
-    def __call__(self,pred, batch):
-        gt_mask = batch["masks"].to(self.device).float()
-        batch_size = pred.shape[0]  # batch size, number of masks, mask height, mask width
-        loss = self.mse(pred.sigmoid(), gt_mask)
+        self.ce_0 = nn.CrossEntropyLoss(reduction="none")
+        self.ce_1 = nn.CrossEntropyLoss(reduction="none")
+        self.alpha = alpha
+        self.beta = beta
+    def __call__(self,preds, batch):
+        gt_mask = batch["masks"].to(self.device)
+        batch_size = preds[0].shape[0]  # batch size, number of masks, mask height, mask width
+        if isinstance(preds, torch.Tensor):
+            loss = self.ce_1(preds, gt_mask).mean()
+        else:
+            loss_0 = self.ce_0(preds[0], gt_mask).mean()
+            loss_1 = self.ce_1(preds[1], gt_mask).mean()
+            loss = self.alpha * loss_0 + self.beta * loss_1
+
+        return loss * batch_size, loss.detach()  # loss
+"""
+class SemSegLoss:
+    def __init__(self, model, alpha=0.3, beta=0.7):
+        self.device = next(model.parameters()).device  # get model device
+        self.ce = nn.CrossEntropyLoss(reduction="none")
+
+    def __call__(self, preds, batch):
+        gt_mask = batch["masks"].to(self.device)
+        batch_size = preds[0].shape[0]  # batch size, number of masks, mask height, mask width
+        loss = self.ce(preds, gt_mask).mean()
+
         return loss * batch_size, loss.detach()  # loss
 
 class E2EDetectLoss:

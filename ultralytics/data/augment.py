@@ -3039,6 +3039,7 @@ class SemSegMosaic(BaseMixTransform):
             assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
             assert n in {4, 9}, "grid must be equal to 4 or 9."
             super().__init__(dataset=dataset, p=p)
+            self.num_classes = dataset.data['nc']
             self.imgsz = imgsz
             self.border = (-imgsz // 2, -imgsz // 2)  # width, height
             self.n = n
@@ -3137,7 +3138,8 @@ class SemSegMosaic(BaseMixTransform):
                 # Place img in img3
                 if i == 0:  # center
                     img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
-                    msk3 = np.full((s * 3, s * 3, msk.shape[2]), 114, dtype=np.uint8)
+                    msk3 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)
+                    msk3[:,:, -1] = 1
                     h0, w0 = h, w
                     c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
                 elif i == 1:  # right
@@ -3198,7 +3200,8 @@ class SemSegMosaic(BaseMixTransform):
                 # Place img in img4
                 if i == 0:  # top left
                     img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-                    msk4 = np.full((s * 2, s * 2, msk.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
+                    msk4 = np.full((s * 2, s * 2, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
+                    msk4[:,:,-1] = 1
                     x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                     x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
                 elif i == 1:  # top right
@@ -3262,7 +3265,8 @@ class SemSegMosaic(BaseMixTransform):
                 # Place img in img9
                 if i == 0:  # center
                     img9 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-                    msk9 = np.full((s * 3, s * 3, msk.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
+                    msk9 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
+                    msk9[:, :, -1] =1
                     h0, w0 = h, w
                     c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
                 elif i == 1:  # top
@@ -3476,8 +3480,9 @@ class SemSegRandomFlip:
         return labels
 
 class SemSegRandomPerspective(RandomPerspective):
-    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None):
+    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None, num_classes=20):
         super().__init__(degrees, translate, scale, shear, perspective, border, pre_transform)
+        self.num_classes = num_classes
 
     def affine_transform(self, img, msk, border):
         """
@@ -3538,11 +3543,24 @@ class SemSegRandomPerspective(RandomPerspective):
         if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
             if self.perspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
-                msk = cv2.warpPerspective(msk, M, dsize=self.size, borderValue=(114, 114, 114))
+                new_msk = np.zeros((self.size[0], self.size[1], self.num_classes), dtype=np.uint8)
+                for i in range(self.num_classes):
+                    if i != self.num_classes - 1:
+                        new_msk[:,:, i] = cv2.warpPerspective(msk[:,:, i], M, dsize=self.size, borderValue=0,
+                                                          flags=cv2.INTER_NEAREST)
+                    else:
+                        new_msk[:, :, i] = cv2.warpPerspective(msk[:,:, i], M, dsize=self.size, borderValue=1,
+                                                           flags=cv2.INTER_NEAREST)
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
-                msk = cv2.warpAffine(msk, M[:2], dsize=self.size, borderValue=(114, 114, 114))
-        return img, msk, M, s
+                new_msk = np.zeros((self.size[0], self.size[1], self.num_classes), dtype=np.uint8)
+                for i in range(self.num_classes):
+                    if i != self.num_classes - 1:
+                        new_msk[:, :, i] = cv2.warpAffine(msk[:,:, i], M[:2], dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST)
+                    else:
+                        new_msk[:, :, i] = cv2.warpAffine(msk[:,:, i], M[:2], dsize=self.size, borderValue=1, flags=cv2.INTER_NEAREST)
+
+        return img, new_msk, M, s
 
     def __call__(self, labels):
         """
@@ -3831,6 +3849,9 @@ class SemSegFormat:
                 torch.Size([3, 100, 100])
             """
 
+            #mask[mask > 1] = 0
+            #ss = np.sum(mask, axis=-1) == 0
+            #mask[ss, -1] = 1
             mask = mask.transpose(2, 0, 1)
             mask = np.ascontiguousarray(mask if random.uniform(0, 1) > self.bgr else mask)
             mask = torch.from_numpy(mask)
@@ -3899,6 +3920,7 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
         shear=hyp.shear,
         perspective=hyp.perspective,
         pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
+        num_classes = dataset.data['nc']
     )
 
     pre_transform = Compose([mosaic, affine])

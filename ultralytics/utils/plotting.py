@@ -862,6 +862,7 @@ def plot_masks(
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
+    one_hot=False
 ) -> Optional[np.ndarray]:
     """
     Plot image grid with labels, bounding boxes, masks, and keypoints.
@@ -898,7 +899,7 @@ def plot_masks(
     if isinstance(bboxes, torch.Tensor):
         bboxes = bboxes.cpu().numpy()
     if isinstance(masks, torch.Tensor):
-        masks = masks.cpu().numpy().astype(int)
+        masks = masks.cpu().numpy()
     if isinstance(kpts, torch.Tensor):
         kpts = kpts.cpu().numpy()
     if isinstance(batch_idx, torch.Tensor):
@@ -919,11 +920,17 @@ def plot_masks(
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
-        mask = masks[i].copy().transpose(1, 2, 0)
-        mask_bgr = np.zeros((h, w, 3), dtype=np.uint8)
-        for j in range(nc):
-            r, g, b = colors[j]
-            mask_bgr[mask[:,:, j] > 125, :] = np.array([b,g,r]).astype(np.uint8)
+        mask_bgr = np.ones((h, w, 3), dtype=np.uint8) * 255
+        if one_hot:
+            mask = masks[i].copy().transpose(1, 2, 0)
+            for j in range(nc):
+                r, g, b = colors[j]
+                mask_bgr[mask[:, :, j] > 125, :] = np.array([b, g, r]).astype(np.uint8)
+        else:
+            for j in range(nc):
+                r, g, b = colors[j]
+                mask_bgr[masks[i] == j,:] = np.array([b, g, r]).astype(np.uint8)
+
         mask_mosaic[y : y + h, x : x + w, :] = mask_bgr
 
     # Resize (optional)
@@ -937,7 +944,7 @@ def plot_masks(
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    mask_annotator = Annotator(mask_mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    mask_annotator = Annotator(cv2.cvtColor(mask_mosaic, cv2.COLOR_BGR2RGB), line_width=round(fs / 10), font_size=fs, pil=True, example=names)
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders

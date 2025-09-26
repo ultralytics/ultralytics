@@ -4,6 +4,7 @@ from copy import copy
 import os
 import random
 import math
+import torch
 import torch.nn as nn
 import numpy as np
 from ultralytics.models import yolo
@@ -54,7 +55,9 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
-        batch["masks"] = batch["masks"].to(self.device, non_blocking=True).float() / 255
+        batch["masks"] = batch["masks"].to(self.device, non_blocking=True).float()
+        batch["masks"] = batch["masks"].argmax(dim=1).long()
+
         if self.args.multi_scale:
             imgs = batch["img"]
             msks = batch["masks"]

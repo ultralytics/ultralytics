@@ -1617,7 +1617,7 @@ def parse_model(d, ch, verbose=True):
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
 
-    modules = d["backbone"] + d["head"] if "backbone" in d.keys() and "head" in d.keys() else d["encoder"] + d["neck"] + d["decoder"]
+    modules = d["backbone"] + d["head"]
 
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
@@ -1764,13 +1764,13 @@ def parse_model(d, ch, verbose=True):
     return torch.nn.Sequential(*layers), sorted(save)
 
 
-def yaml_model_load(path):
+def yaml_model_load(path, with_model_scale=True):
     """
     Load a YOLOv8 model from a YAML file.
 
     Args:
         path (str | Path): Path to the YAML file.
-
+        with_model_scale (bool): Setting to guess the model scale.
     Returns:
         (dict): Model dictionary.
     """
@@ -1783,7 +1783,7 @@ def yaml_model_load(path):
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path)
+    d["scale"] = guess_model_scale(path) if (not with_model_scale) or ("scale" not in d.keys()) else d["scale"]
     d["yaml_file"] = str(path)
     return d
 

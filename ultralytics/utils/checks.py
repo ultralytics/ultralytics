@@ -531,7 +531,7 @@ def check_model_file_from_stem(model="yolo11n"):
     return model
 
 
-def check_file(file, suffix="", download=True, download_dir=".", hard=True):
+def check_file(file, suffix="", download=False, download_dir=".", hard=True):
     """
     Search/download file (if necessary), check suffix (if provided), and return path.
 

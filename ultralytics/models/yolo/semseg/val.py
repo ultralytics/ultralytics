@@ -21,7 +21,7 @@ from ultralytics.data import build_semantic_dataset, build_dataloader
 
 class SemSegValidator(DetectionValidator):
     """
-    A class extending the DetectionValidator class for validation based on a segmentation model.
+    A class extending the DetectionValidator class for validation based on a semantic segmentation model.
 
     Example:
         ```python
@@ -57,6 +57,7 @@ class SemSegValidator(DetectionValidator):
         """Preprocesses batch by converting masks to float and sending to device."""
         batch = super().preprocess(batch)
         batch["masks"] = batch["masks"].to(self.device).float()
+        batch["masks"] = batch["masks"].argmax(dim=1).long()
         return batch
 
     def init_metrics(self, model):
@@ -77,9 +78,8 @@ class SemSegValidator(DetectionValidator):
 
     def get_desc(self):
         """Return a formatted description of evaluation metrics."""
-        return ("%22s" + "%11s" * 6) % (
+        return ("%22s" + "%11s" * 5) % (
             "Class",
-            "Images",
             "Precision",
             "Recall",
             "mIoU",
@@ -97,16 +97,21 @@ class SemSegValidator(DetectionValidator):
         """Prepares a batch for training or inference by processing images and targets."""
         return pred
 
-    def mask_iou_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_ious(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         ious = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
             pred_mask = pred_mask_for_category[i, :]
             gt_mask = gt_mask_for_catgory[i, :]
+            if i == 15:
+                mx = gt_mask.max()
+                vis_gt_mask = (gt_mask.reshape(512,512).cpu().numpy() * 255).astype(np.uint8)
+                cv2.imwrite("E:/afk/mask_gt.png", vis_gt_mask)
+                #cv2.waitKey()
             ious[i] = mask_iou(pred_mask[None,:], gt_mask[None,:])
         return ious
 
-    def mask_precision_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_precisions(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         precisions = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -115,7 +120,7 @@ class SemSegValidator(DetectionValidator):
             precisions[i] = mask_precision(pred_mask[None,:], gt_mask[None,:])
         return precisions
 
-    def mask_recall_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_recalls(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         recalls = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -124,7 +129,7 @@ class SemSegValidator(DetectionValidator):
             recalls[i] = mask_recall(pred_mask[None,:], gt_mask[None,:])
         return recalls
 
-    def mask_accuracy_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_accuracys(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         accuracys = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -133,7 +138,7 @@ class SemSegValidator(DetectionValidator):
             accuracys[i] = mask_accuracy(pred_mask[None,:], gt_mask[None,:])
         return accuracys
 
-    def mask_mcr_for_each_catgoriy(self, pred_mask_for_category, gt_mask_for_catgory):
+    def mask_mcrs(self, pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         mcrs = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -142,7 +147,7 @@ class SemSegValidator(DetectionValidator):
             mcrs[i] = mask_mcr(pred_mask[None,:], gt_mask[None,:])
         return mcrs
 
-    def mask_dice_score_each_catgoriy(self,pred_mask_for_category, gt_mask_for_catgory):
+    def mask_dice_scores(self,pred_mask_for_category, gt_mask_for_catgory):
         nc, length = pred_mask_for_category.shape
         dice_scores = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
         for i in range(nc):
@@ -154,7 +159,8 @@ class SemSegValidator(DetectionValidator):
 
     def update_metrics(self, preds, batch):
         """Metrics."""
-        self.args.plots = False  # no plots
+        #self.args.plots = False  # no plots
+        self.plot_masks = []
         for si, pred in enumerate(preds):
             self.seen += 1
             stat = dict(
@@ -165,60 +171,51 @@ class SemSegValidator(DetectionValidator):
                 mcr=torch.zeros(self.nc, dtype=torch.float, device=self.device)
             )
             pbatch = self._prepare_batch(si, batch)
-            cls, bbox = pbatch.pop("cls"), pbatch.pop("bbox")
+            cls, bbox = pbatch.pop("cls"), pbatch.pop("bboxes")
             stat["target_cls"] = cls
             stat["target_img"] = cls.unique()
 
             # Masks
-            gt_mask = batch["masks"][si] / 255
+            if len(batch["masks"][si].shape) == 2:
+                gt_mask = F.one_hot(batch["masks"][si], num_classes=self.nc).permute(2, 0, 1)
+                pred = F.one_hot(pred.max(dim=0)[1], num_classes=self.nc).permute(2, 0, 1)
+            elif len(batch["masks"][si].shape) == 3 and batch["masks"][si].max() > 1:
+                gt_mask = batch["masks"][si] / 255
 
-            #for k in range(self.nc):
-            #    p = (pred[k,:,:] * 255).cpu().numpy().astype(np.uint8)
-            #    m = (gt_mask[k,:,:] * 255).cpu().numpy().astype(np.uint8)
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + self.names[k] + "_pred.jpg", p)
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + self.names[k] + "_mask.jpg", m)
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + batch['im_file'][si].split(os.sep)[-1], cv2.imread(batch['im_file'][si]))
-            #    cv2.imwrite("/media/yanggang/847C02507C023D84/view/" + batch['msk_file'][si].split(os.sep)[-1],
-            #                cv2.imread(batch['msk_file'][si]))
+
             # Evaluate
-            stat['precision'] = self.mask_precision_for_each_catgoriy(
-                (pred > 0.5).float().view(self.nc, -1),
-                (gt_mask > 0.5).float().view(self.nc, -1)
+            stat['precision'] = self.mask_precisions(
+                (pred > 0.2).float().view(self.nc, -1),
+                (gt_mask > 0.2).float().view(self.nc, -1)
             )
 
-            stat['recall'] = self.mask_recall_for_each_catgoriy(
-                (pred > 0.5).float().view(self.nc, -1),
-                (gt_mask > 0.5).float().view(self.nc, -1)
+            stat['recall'] = self.mask_recalls(
+                (pred > 0.2).float().view(self.nc, -1),
+                (gt_mask > 0.2).float().view(self.nc, -1)
             )
 
-            stat['dice_score'] = self.mask_dice_score_each_catgoriy(
-                (pred > 0.5).float().view(self.nc, -1),
-                (gt_mask > 0.5).float().view(self.nc, -1)
+            stat['dice_score'] = self.mask_dice_scores(
+                (pred > 0.2).float().view(self.nc, -1),
+                (gt_mask > 0.2).float().view(self.nc, -1)
             )
 
-
-            stat['mIoU'] = self.mask_iou_for_each_catgoriy(
-                (pred > 0.5).float().view(self.nc,-1),
-                (gt_mask > 0.5).float().view(self.nc,-1)
+            stat['mIoU'] = self.mask_ious(
+                (pred > 0.2).float().view(self.nc,-1),
+                (gt_mask > 0.2).float().view(self.nc,-1)
             )
 
-
-            stat['mcr'] = self.mask_mcr_for_each_catgoriy(
-                (pred > 0.5).float().view(self.nc,-1),
-                (gt_mask > 0.5).float().view(self.nc,-1)
+            stat['mcr'] = self.mask_mcrs(
+                (pred > 0.2).float().view(self.nc,-1),
+                (gt_mask > 0.2).float().view(self.nc,-1)
             )
-
-            if self.args.plots:
-                self.confusion_matrix.process_batch(pred, bbox, cls)
 
             for k in self.stats.keys():
                 self.stats[k].append(stat[k].unsqueeze(0))
 
-            pred_masks = torch.as_tensor((pred > 0.5).float(), dtype=torch.uint8)
-            if self.args.plots and self.batch_i < 3:
-                self.plot_masks.append(pred_masks.cpu())
-
-
+            #pred_masks = torch.as_tensor((pred > 0.5).float(), dtype=torch.uint8)
+            #_, pred_mask = pred.max(dim=0)
+            if (self.args.plots and self.batch_i < 3) or (not self.training):
+                self.plot_masks.append(pred.cpu().unsqueeze(0))
 
     def finalize_metrics(self, *args, **kwargs):
         """Sets speed and confusion matrix for evaluation metrics."""
@@ -272,24 +269,12 @@ class SemSegValidator(DetectionValidator):
         return self.match_predictions(detections[:, 5], gt_cls, iou)
 
     def plot_val_samples(self, batch, ni):
-        """Plots validation samples with bounding box labels."""
-        plot_images(
-            batch["img"],
-            batch["batch_idx"],
-            batch["cls"].squeeze(-1),
-            batch["bboxes"],
-            masks=batch["masks"],
-            paths=batch["im_file"],
-            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-            names=self.names,
-            on_plot=self.on_plot,
-        )
-
-    def plot_predictions(self, batch, preds, ni):
-        """Plots batch predictions with masks and bounding boxes."""
+        """Plots validation samples with masks."""
+        pred_masks = torch.cat(self.plot_masks)
+        pred_masks = pred_masks * 255 if pred_masks.max() <= 1 else pred_masks
         plot_masks(
             images=batch["img"],
-            masks=batch["masks"],
+            masks=pred_masks,
             batch_idx=batch["batch_idx"],
             cls=batch["cls"].squeeze(-1),
             bboxes=batch["bboxes"],
@@ -297,11 +282,13 @@ class SemSegValidator(DetectionValidator):
             nc=self.data["nc"],
             names=self.data["names"],
             colors=self.data["colors"],
-            fname=self.save_dir / f"train_batch{ni}.jpg",
+            fname=self.save_dir / f"val_batch{ni}.jpg",
             mname=self.save_dir / f"mask_batch{ni}.jpg",
             on_plot=self.on_plot,
+            one_hot=True
         )
-        # pred
+
+    def plot_predictions(self, batch, preds, ni):
         self.plot_masks.clear()
 
     def save_one_txt(self, predn, pred_masks, save_conf, shape, file):
@@ -365,7 +352,7 @@ class SemSegValidator(DetectionValidator):
     def print_results(self):
         """Prints training/validation set metrics per class."""
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ("all",  *self.metrics.mean_results))
+        LOGGER.info(pf % ("all",  *self.metrics.mean_results()))
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
@@ -376,20 +363,7 @@ class SemSegValidator(DetectionValidator):
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
-        bs, cls, h, w = preds.shape
-        processed_preds = []
-
-        for i in range(bs):
-            processed_preds_batch = torch.zeros_like(preds[i,:,:,:])
-            pred_batch_cls_indexes = preds[i,:,:,:].argmax(dim=0)
-
-            for j in range(cls):
-                mask = (pred_batch_cls_indexes == j)
-                processed_preds_batch[j] = mask
-            processed_preds.append(processed_preds_batch)
-
-        processed_preds = torch.stack(processed_preds, dim=0)
-        return preds.sigmoid()
+        return torch.softmax(preds, dim=1)
 
     def eval_json(self, stats):
         """Return COCO-style object detection evaluation metrics."""
@@ -426,15 +400,15 @@ def validate(cfg=DEFAULT_CFG):
     data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
     cfg.name = os.path.join(cfg.name, 'val')
-    data = YAML.load(data)
-    img_path = os.path.join(data['path'], data['val'])
+    #data = YAML.load(data)
+    img_path = os.path.join(YAML.load(data)['path'], YAML.load(data)['val'])
     bs = cfg.batch
-    #args = dict(model=model, data=data, device=device, name=cfg.name, task='skyseg')
+    args = dict(model=model, data=data, device=device, name=cfg.name, task='semseg', plots=True)
     val_dataset = build_semantic_dataset(
         cfg,
         img_path,
         bs,
-        data,
+        YAML.load(data),
         mode='val'
     )
     val_dataloader = build_dataloader(
@@ -444,7 +418,7 @@ def validate(cfg=DEFAULT_CFG):
         shuffle=False,
     )
 
-    validator = SemSegValidator(val_dataloader, Path(cfg.name))
+    validator = SemSegValidator(val_dataloader, None, args)
     validator(model=model)
 
 if __name__ == '__main__':

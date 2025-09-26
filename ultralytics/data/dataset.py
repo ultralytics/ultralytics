@@ -715,7 +715,7 @@ class SemanticDataset(BaseDataset):
                 data: A dataset YAML dictionary, Default for None
                 task: An explicit arg to point current task, Defaults to 'detect'
         """
-        self.use_segment = task in ['segment', 'semseg']
+        self.use_segment = task in ['segment']
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
@@ -858,7 +858,7 @@ class SemanticDataset(BaseDataset):
             batch_idx=True,
             mask_ratio=hyp.mask_ratio,
             mask_overlap=hyp.overlap_mask,
-            bgr=hyp.bgr if self.augment else 0.0,  # only affect training.
+            bgr=hyp.bgr if self.augment else 0.0  # only affect training.
         )
         transforms.append(format)
         return transforms
@@ -887,16 +887,20 @@ class SemanticDataset(BaseDataset):
     def split_mask(self, mask):
         nc, colors = self.data['nc'], self.data['colors']
         h, w, c = mask.shape
-        results = np.zeros((h, w, nc), dtype=np.float32)
+        results = np.zeros((h, w, nc), dtype=np.uint8)
         mask_b = mask[:, :, 0]
         mask_g = mask[:, :, 1]
         mask_r = mask[:, :, 2]
+        fore = np.zeros_like(mask_b).astype(np.bool_)
         for i in range(nc):
             r, g, b = colors[i]
-            mb = mask_b == b
-            mg = mask_g == g
-            mr = mask_r == r
-            results[:, :, i] = (mb * mg * mr).astype(np.uint8) * 255
+            mb = (mask_b == b).astype(np.uint8)
+            mg = (mask_g == g).astype(np.uint8)
+            mr = (mask_r == r).astype(np.uint8)
+            results[:,:, i] =  mb * mg * mr
+            fore = np.logical_or(fore, (mb * mg * mr).astype(np.bool_))
+        bg = np.logical_not(fore)
+        results[bg, -1] = 1
         return results
 
     def update_labels_info(self, label):

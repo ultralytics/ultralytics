@@ -8,11 +8,11 @@
 #     └── coco8-seg  ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: /media/yanggang/847C02507C023D84/CityEscape-YOLO # dataset root dir
+path: E:/data/CityEscape-YOLO-512 # dataset root dir
 train: train/image # train images (relative to 'path') 4 images
 val: val/image # val images (relative to 'path') 4 images
 test: # test images (optional)
-nc: 19
+nc: 20
 
 # Class Names
 names:
@@ -35,6 +35,7 @@ names:
   16: train
   17: motorcycle
   18: bicycle
+  19: background
 
 #Colors:[r, g, b]
 colors:
@@ -57,6 +58,7 @@ colors:
   16: [  0, 80,100]
   17: [  0,  0,230]
   18: [119, 11, 32]
+  19: [  0,  0,  0]
 
 # Download script/URL (optional)
 #download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-seg.zip

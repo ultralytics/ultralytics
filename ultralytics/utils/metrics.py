@@ -160,8 +160,11 @@ def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> tor
         (torch.Tensor): A tensor of shape (N, M) representing masks IoU.
     """
     intersection = torch.matmul(mask1, mask2.T).clamp_(0)
+    mx = mask2.sum(1)[None]
+    mxa = mask1.sum(1)[:, None]
     union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
-    return intersection / (union + eps)
+
+    return (intersection + eps) / (union + eps)
 
 
 def kpt_iou(
@@ -1595,7 +1598,9 @@ class OBBMetrics(DetMetrics):
 def mask_precision(mask1, mask2, eps=1e-7):
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
-    precision = tp / (tp + fp + eps)
+    if tp + fp == 0:
+        return 1
+    precision = (tp + eps) / (tp + fp + eps)
     return precision
 
 def mask_accuracy(mask1, mask2, eps=1e-7):
@@ -1604,12 +1609,14 @@ def mask_accuracy(mask1, mask2, eps=1e-7):
     fn = torch.matmul(mask1, 1 - mask2.T).clamp_(0).sum()
     tn = torch.matmul(1-mask1, (1- mask2).T).clamp_(0).sum()
 
-    return (tp + tn) / (fp + fn + tp + tn + eps)
+    return (tp + tn + eps) / (fp + fn + tp + tn + eps)
 
 def mask_recall(mask1, mask2, eps=1e-7):
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fn = torch.matmul(mask1, 1-mask2.T).clamp_(0).sum()
-    recall = tp / (tp + fn + eps)
+    if tp + fn == 0:
+        return 1
+    recall = (tp + eps) / (tp + fn + eps)
     return recall
 
 def mask_mcr(mask1, mask2, eps=1e-7):
@@ -1624,8 +1631,10 @@ def dice_score(mask1, mask2, eps=1e-7):
     fn = torch.matmul(mask1, 1-mask2.T).clamp_(0).sum()
     precision = tp / (tp + fp + eps)
     recall = tp / (tp + fn + eps)
+    if tp + fp == 0 or tp + fn == 0:
+        return 1
 
-    return 2 * precision * recall / (precision + recall + eps)
+    return (2 * precision * recall + eps) / (precision + recall + eps)
 
 class SemSegMetric(Metric):
     def __init__(self):
@@ -1639,6 +1648,9 @@ class SemSegMetric(Metric):
     def mean_results(self):
         """Mean of results, return mp, mr, map50, map."""
         return [self.Precision, self.Recall, self.mIoU, self.Dice_Score, self.MCR]
+
+    def class_result(self, i: int) -> Tuple[float, float, float, float, float]:
+        return [self.precision[i], self.recall[i], self.iou[i], self.dice_score[i], self.mcr[i]]
 
     @property
     def mIoU(self):
@@ -1656,13 +1668,14 @@ class SemSegMetric(Metric):
     def Dice_Score(self):
         return np.array(self.dice_score).mean() if len(self.dice_score) else 0.0
 
+
     @property
     def MCR(self):
         return np.array(self.mcr).mean() if len(self.mcr) else 0.0
 
     def fitness(self):
         """Model fitness as a weighted combination of metrics."""
-        w = [0.0, 0.0, 0.1, 0.9, 0.0, 0.0,0.0,0.0,0.0,0.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        w = [0.0, 0.0, 0.0, 0.0, 0.0]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):
@@ -1699,23 +1712,25 @@ class SemSegMetrics(SimpleClass):
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
         self.task = "semseg"
 
-    def process(self, precision, recall, mIoU, dice_score, mcr):
+    def process(self, precision: np.ndarray, recall, mIoU, dice_score, mcr):
         """
         Processes the detection and segmentation metrics over the given set of predictions.
 
         Args:
-            tp (list): List of True Positive boxes.
-            tp_m (list): List of True Positive masks.
-            conf (list): List of confidence scores.
-            pred_cls (list): List of predicted classes.
-            target_cls (list): List of target classes.
+            precision (list): List of precision.
+            recall (list): List of recall.
+            mIoU (list): List of mIoU.
+            dice_score (list): List of dice_score.
+            mcr (list): List of mcr.
         """
 
-        results_mask = (precision.mean()[None],
-                        recall.mean()[None],
-                        mIoU.mean()[None],
-                        dice_score.mean()[None],
-                        mcr.mean()[None])
+        results_mask = (precision.mean(axis=0),
+                        recall.mean(axis=0),
+                        mIoU.mean(axis=0),
+                        dice_score.mean(axis=0),
+                        mcr.mean(axis=0))
+
+
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
 

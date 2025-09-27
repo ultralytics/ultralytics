@@ -266,7 +266,7 @@ class BaseTrainer:
             self.model.criterion = self.model.init_criterion()
 
         # Build model for QAT
-        if self.args.int8 and not self.args.resume:
+        if self.args.int8 and not hasattr(self.model, "_modelopt_state"):
             self.build_quantized_model()
 
         # Compile model
@@ -583,7 +583,7 @@ class BaseTrainer:
         buffer = io.BytesIO()
         model = deepcopy(unwrap_model(self.ema.ema))
         extras = {}
-        if self.args.int8:
+        if hasattr(model, "_modelopt_state"):
             import modelopt.torch.opt as mto
 
             extras = {  # model can't be pickled; saving state_dict

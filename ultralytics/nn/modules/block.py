@@ -60,6 +60,9 @@ __all__ = (
     "AdaptiveFeatureFusion",
     "EnhancedC2f",
     "EnhancedC2fConfig",
+    "LightAttn",
+    "LightAttnMemOpt",
+    "LightAttnFinal",
 )
 
 
@@ -345,6 +348,141 @@ class EnhancedC2fConfig:
             'se_reduction': 16
         }
     
+########################################################################
+########################################################################
+
+
+class LightAttn(nn.Module):
+    """Lightweight attention fusion block with configurable attention bottleneck"""
+    
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, attn_ratio=0.25):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        
+        # FIXED: Now uses attn_ratio to control attention bottleneck size
+        attn_hidden = max(1, self.c // int(4/attn_ratio))  # Configurable bottleneck
+        self.attn = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            Conv(self.c, attn_hidden, 1),
+            nn.ReLU(),
+            Conv(attn_hidden, self.c, 1),
+            nn.Sigmoid()
+        )
+        
+        self.m = nn.ModuleList(
+            self._make_bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+        )
+    
+    def _make_bottleneck(self, c1, c2, shortcut, g):
+        return nn.Sequential(
+            Conv(c1, c2, 1, 1),
+            Conv(c2, c2, 3, 1, g=g),
+            Conv(c2, c2, 1, 1, act=False)
+        )
+    
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        for m in self.m:
+            y_next = m(y[-1])
+            attn_map = self.attn(y_next)
+            y_next = y_next * attn_map
+            y.append(y_next)
+        return self.cv2(torch.cat(y, 1))
+
+
+class LightAttnMemOpt(nn.Module):
+    """Memory-optimized lightweight attention block"""
+    
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, attn_ratio=0.25):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        
+        attn_hidden = max(1, self.c // int(4/attn_ratio))
+        self.attn = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            Conv(self.c, attn_hidden, 1),
+            nn.ReLU(),
+            Conv(attn_hidden, self.c, 1),
+            nn.Sigmoid()
+        )
+        
+        self.m = nn.ModuleList(
+            self._make_bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+        )
+    
+    def _make_bottleneck(self, c1, c2, shortcut, g):
+        return nn.Sequential(
+            Conv(c1, c2, 1, 1),
+            Conv(c2, c2, 3, 1, g=g),
+            Conv(c2, c2, 1, 1, act=False)
+        )
+    
+    def forward(self, x):
+        # OPTIMIZED: Process without storing all intermediates
+        x_split = self.cv1(x)
+        y1, y2 = x_split.chunk(2, 1)
+        
+        # Collect outputs efficiently
+        outputs = [y1, y2]
+        current = y2
+        
+        for m in self.m:
+            current = m(current)
+            attn_map = self.attn(current)
+            current = current * attn_map
+            outputs.append(current)
+            
+        return self.cv2(torch.cat(outputs, 1))
+
+
+class LightAttnFinal(nn.Module):
+    """Lightweight attention applied only to final concatenated features"""
+    
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, attn_ratio=0.25):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        
+        # MODIFIED: Attention for concatenated features
+        concat_channels = (2 + n) * self.c
+        attn_hidden = max(1, concat_channels // int(4/attn_ratio))
+        self.attn = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            Conv(concat_channels, attn_hidden, 1),
+            nn.ReLU(),
+            Conv(attn_hidden, concat_channels, 1),
+            nn.Sigmoid()
+        )
+        
+        self.m = nn.ModuleList(
+            self._make_bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+        )
+    
+    def _make_bottleneck(self, c1, c2, shortcut, g):
+        return nn.Sequential(
+            Conv(c1, c2, 1, 1),
+            Conv(c2, c2, 3, 1, g=g),
+            Conv(c2, c2, 1, 1, act=False)
+        )
+    
+    def forward(self, x):
+        y = list(self.cv1(x).chunk(2, 1))
+        # NO attention during bottleneck processing
+        y.extend(m(y[-1]) for m in self.m)
+        
+        # SINGLE attention application on concatenated features
+        concatenated = torch.cat(y, 1)
+        attn_map = self.attn(concatenated)
+        enhanced_features = concatenated * attn_map
+        
+        return self.cv2(enhanced_features)
+
+
 ########################################################################
 ########################################################################
 ########################################################################

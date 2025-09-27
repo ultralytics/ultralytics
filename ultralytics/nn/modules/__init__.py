@@ -67,6 +67,9 @@ from .block import (
     AdaptiveFeatureFusion,
     EnhancedC2fConfig,
     FullEnhancementBlock,
+    LightAttn,
+    LightAttnMemOpt,
+    LightAttnFinal,
 )
 from .conv import (
     CBAM,
@@ -194,4 +197,7 @@ __all__ = (
     "ChannelShuffle",
     "AdaptiveFeatureFusion",
     "EnhancedC2fConfig",
+    "LightAttn",
+    "LightAttnMemOpt",
+    "LightAttnFinal",
 )

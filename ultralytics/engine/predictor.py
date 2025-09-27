@@ -339,6 +339,12 @@ class BasePredictor:
                         continue
 
                 # Postprocess
+                if self.device.type == "mps":
+                    # post-processing much faster on CPU
+                    preds[0] = preds[0].cpu()
+                    if isinstance(preds[1], tuple):
+                        preds[1] = tuple(p.cpu() if isinstance(p, torch.Tensor) else p for p in preds[1])
+
                 with profilers[2]:
                     self.results = self.postprocess(preds, im, im0s)
                 self.run_callbacks("on_predict_postprocess_end")

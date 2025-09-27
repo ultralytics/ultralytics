@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from functools import partial
 from pathlib import Path
 
 import torch
@@ -15,23 +14,22 @@ from .byte_tracker import BYTETracker
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 
 
-def on_predict_start(predictor: object, persist: bool = False) -> None:
+def on_predict_start(predictor: object) -> None:
     """
     Initialize trackers for object tracking during prediction.
 
     Args:
         predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
-        persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:
         Initialize trackers for a predictor object
         >>> predictor = SomePredictorClass()
-        >>> on_predict_start(predictor, persist=True)
+        >>> on_predict_start(predictor)
     """
     if predictor.args.task == "classify":
         raise ValueError("❌ Classification doesn't support 'mode=track'")
 
-    if hasattr(predictor, "trackers") and persist:
+    if hasattr(predictor, "trackers") and getattr(predictor.args, "persist", False):
         return
 
     tracker = check_yaml(predictor.args.tracker)
@@ -40,6 +38,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if cfg.tracker_type not in {"bytetrack", "botsort"}:
         raise AssertionError(f"Only 'bytetrack' and 'botsort' are supported for now, but got '{cfg.tracker_type}'")
 
+    predictor.args.persist = False
     predictor._feats = None  # reset in case used earlier
     if hasattr(predictor, "_hook"):
         predictor._hook.remove()
@@ -69,25 +68,24 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     predictor.vid_path = [None] * predictor.dataset.bs  # for determining when to reset tracker on new video
 
 
-def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
+def on_predict_postprocess_end(predictor: object) -> None:
     """
     Postprocess detected boxes and update with object tracking.
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool, optional): Whether to persist the trackers if they already exist.
 
     Examples:
         Postprocess predictions and update with tracking
         >>> predictor = YourPredictorClass()
-        >>> on_predict_postprocess_end(predictor, persist=True)
+        >>> on_predict_postprocess_end(predictor)
     """
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
     for i, result in enumerate(predictor.results):
         tracker = predictor.trackers[i if is_stream else 0]
         vid_path = predictor.save_dir / Path(result.path).name
-        if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
+        if not predictor.args.persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path
 
@@ -102,18 +100,17 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         predictor.results[i].update(**update_args)
 
 
-def register_tracker(model: object, persist: bool) -> None:
+def register_tracker(model: object) -> None:
     """
     Register tracking callbacks to the model for object tracking during prediction.
 
     Args:
         model (object): The model object to register tracking callbacks for.
-        persist (bool): Whether to persist the trackers if they already exist.
 
     Examples:
         Register tracking callbacks to a YOLO model
         >>> model = YOLOModel()
-        >>> register_tracker(model, persist=True)
+        >>> register_tracker(model)
     """
-    model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
-    model.add_callback("on_predict_postprocess_end", partial(on_predict_postprocess_end, persist=persist))
+    model.add_callback("on_predict_start", on_predict_start)
+    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)

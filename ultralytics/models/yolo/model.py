@@ -442,12 +442,43 @@ class YOLOE(Model):
                 if dataset.mode in {"video", "stream"}:
                     # NOTE: set the first frame as refer image for videos/streams inference
                     refer_image = next(iter(dataset))[1][0]
-            if refer_image is not None:
-                vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
-                self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-                self.predictor = None  # reset predictor
+
+
+            # if refer_image is not None:
+            vpe = self.predictor.get_vpe(source)
+            # self.model.set_classes(self.model.names, vpe)
+            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
+            # self.predictor = None  # reset predictor
+
+            if not  hasattr(self,"memory_bank"):
+                self.memory_bank=dict()
+            for cls,vpe_i in zip(visual_prompts["cls"],vpe):
+                cls=f"object{cls}"
+                if cls not in self.memory_bank.keys(): self.memory_bank[cls]=[]
+                self.memory_bank[cls].append(vpe_i.squeeze())
+            
+            names=list(self.memory_bank.keys())
+
+            # if len(names)>1:
+            #     names=names[1:]
+            memory_vpe=torch.stack([torch.mean(torch.stack(self.memory_bank[cls]),dim=0) for cls in names])
+
+
+
+            # print("~~~~~~~names:",names)
+            if len(memory_vpe.shape)==2:
+                memory_vpe = memory_vpe.unsqueeze(0)
+        
+            self.model.set_classes(names,memory_vpe)
+            # Manually update predictor's names to sync with the memory bank
+            if self.predictor:
+                self.predictor.names = names
+                self.predictor.model.names = names
+
+
+            kwargs["prompts"]=None
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-            self.predictor = None  # reset predictor if no visual prompts
+            # self.predictor = None  # reset predictor if no visual prompts
+            pass
 
         return super().predict(source, stream, **kwargs)

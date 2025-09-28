@@ -19,8 +19,9 @@ def train_yolo_mde():
     """Train YOLO11 MDE model on KITTI dataset."""
 
     # Simple 2-line training as requested
+    # model = YOLO("yolo11.yaml")
     model = YOLO("yolo11-mde.yaml", task="mde")
-    results = model.train(epochs=10)
+    results = model.train(epochs=10, workers=0)
 
     return model, results
 

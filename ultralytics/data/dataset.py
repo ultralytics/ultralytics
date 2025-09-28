@@ -85,6 +85,7 @@ class YOLODataset(BaseDataset):
         self.use_segments = task == "segment"
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
+        self.use_mde = task == "mde"
         self.data = data
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
@@ -130,16 +131,21 @@ class YOLODataset(BaseDataset):
                 ne += ne_f
                 nc += nc_f
                 if im_file:
+                    depths = None
+                    if isinstance(lb, tuple):
+                        lb, depths = lb
                     # Handle both 5-column (standard) and 6-column (MDE) labels
-                    if lb.shape[1] == 6:
-                        # MDE format: class, x_center, y_center, width, height, depth
-                        bboxes = lb[:, 1:5]  # n, 4 (x_center, y_center, width, height)
-                        depths = lb[:, 5:6]  # n, 1 (depth)
+                    if self.use_mde:
+                        assert lb.shape[1] == 5, f"MDE label must provide 5 detection columns, but got {lb.shape[1]}"
+                        if depths is None:
+                            raise ValueError(
+                                "MDE dataset requires depth values in labels. Verify 'verify_image_label' returns depths."
+                            )
+                        bboxes = lb[:, 1:5]
                     else:
-                        # Standard format: class, x_center, y_center, width, height
-                        bboxes = lb[:, 1:]  # n, 4
+                        bboxes = lb[:, 1:]
                         depths = None
-                    
+
                     label_dict = {
                         "im_file": im_file,
                         "shape": shape,
@@ -150,11 +156,11 @@ class YOLODataset(BaseDataset):
                         "normalized": True,
                         "bbox_format": "xywh",
                     }
-                    
+
                     # Add depth information if available
-                    if depths is not None:
+                    if self.use_mde and depths is not None:
                         label_dict["depths"] = depths
-                    
+
                     x["labels"].append(label_dict)
                 if msg:
                     msgs.append(msg)

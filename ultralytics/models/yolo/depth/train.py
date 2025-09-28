@@ -8,14 +8,12 @@ This module provides training functionality for YOLO models with depth estimatio
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import torch
 from torch.cuda.amp import autocast
 
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import MDEModel
-from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils import RANK
 
 
 class MDETrainer(DetectionTrainer):
@@ -92,138 +90,6 @@ class MDETrainer(DetectionTrainer):
         else:
             return keys
 
-    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
-        """
-        Build MDE Dataset for training or validation with depth information.
-
-        Args:
-            img_path (str): Path to the folder containing images.
-            mode (str): 'train' mode or 'val' mode.
-            batch (int, optional): Batch size for dataset.
-
-        Returns:
-            MDEDataset: Dataset object with depth information.
-        """
-        import sys
-
-        from ultralytics.data import build_yolo_dataset
-
-        sys.path.append("/root/ultralytics")
-        from build_mde_dataset import build_mde_dataset
-
-        # For MDE training, use the custom MDE dataset
-        try:
-            # Create data config from current args
-            data_config = {
-                "path": str(
-                    Path(self.data["path"])
-                    if isinstance(self.data.get("path"), str)
-                    else self.data.get("path", img_path)
-                ),
-                "train": self.data.get("train", "images"),
-                "val": self.data.get("val", "images"),
-                "nc": self.data["nc"],
-                "names": self.data["names"],
-                "depth_loss_weight": getattr(self.args, "depth_loss_weight", 1.0),
-                "depth_loss_type": getattr(self.args, "depth_loss_type", "l1"),
-            }
-
-            # Use MDE dataset
-            mde_dataset = build_mde_dataset(data_config, mode=mode, batch=batch)
-            return mde_dataset
-
-        except Exception as e:
-            LOGGER.warning(f"Failed to create MDE dataset, falling back to standard dataset: {e}")
-            # Fallback to standard YOLO dataset
-            gs = max(
-                int(self.model.stride.max() if hasattr(self.model, "stride") else 32),
-                32,
-            )
-            return build_yolo_dataset(
-                self.args,
-                img_path,
-                batch,
-                self.data,
-                mode=mode,
-                rect=mode == "val",
-                stride=gs,
-            )
-
-    def get_dataloader(
-        self,
-        dataset_path: str,
-        batch_size: int = 16,
-        rank: int = 0,
-        mode: str = "train",
-    ):
-        """
-        Construct and return MDE dataloader for the specified mode.
-
-        Args:
-            dataset_path (str): Path to the dataset.
-            batch_size (int): Number of images per batch.
-            rank (int): Process rank for distributed training.
-            mode (str): 'train' for training dataloader, 'val' for validation dataloader.
-
-        Returns:
-            (DataLoader): PyTorch dataloader object with MDE batches.
-        """
-        import sys
-
-        from ultralytics.data import build_dataloader
-        from ultralytics.utils.torch_utils import torch_distributed_zero_first
-
-        sys.path.append("/root/ultralytics")
-        from build_mde_dataset import create_mde_dataloader
-
-        assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
-
-        # Try to use MDE dataloader first
-        try:
-            # Create data config
-            data_config = {
-                "path": str(
-                    Path(self.data["path"])
-                    if isinstance(self.data.get("path"), str)
-                    else self.data.get("path", dataset_path)
-                ),
-                "train": self.data.get("train", "images"),
-                "val": self.data.get("val", "images"),
-                "nc": self.data["nc"],
-                "names": self.data["names"],
-                "depth_loss_weight": getattr(self.args, "depth_loss_weight", 1.0),
-                "depth_loss_type": getattr(self.args, "depth_loss_type", "l1"),
-            }
-
-            # Use MDE dataloader
-            mde_dataloader = create_mde_dataloader(
-                data_config,
-                batch_size=batch_size,
-                mode=mode,
-                workers=self.args.workers if mode == "train" else self.args.workers * 2,
-            )
-            LOGGER.info(f"✅ Created MDE dataloader for {mode} mode")
-            return mde_dataloader
-
-        except Exception as e:
-            LOGGER.warning(f"Failed to create MDE dataloader, falling back to standard dataloader: {e}")
-
-            # Fallback to standard dataloader
-            with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-                dataset = self.build_dataset(dataset_path, mode, batch_size)
-            shuffle = mode == "train"
-            if getattr(dataset, "rect", False) and shuffle:
-                LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
-                shuffle = False
-            return build_dataloader(
-                dataset,
-                batch=batch_size,
-                workers=self.args.workers if mode == "train" else self.args.workers * 2,
-                shuffle=shuffle,
-                rank=rank,
-                drop_last=self.args.compile and mode == "train",
-            )
-
     def preprocess_batch(self, batch: dict) -> dict:
         """
         Preprocess a batch of images by scaling and converting to float.
@@ -241,18 +107,6 @@ class MDETrainer(DetectionTrainer):
         for k, v in batch.items():
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=True)
-
-        # Debug logging
-        if hasattr(self, "_debug_count"):
-            self._debug_count += 1
-        else:
-            self._debug_count = 1
-
-        if self._debug_count <= 3:  # Only log first 3 batches
-            LOGGER.info(f"DEBUG Batch {self._debug_count} keys: {list(batch.keys())}")
-            for k, v in batch.items():
-                if isinstance(v, torch.Tensor):
-                    LOGGER.info(f"  {k}: {v.shape}")
 
         # Normalize images to [0, 1] range (if not already normalized)
         if batch["img"].max() > 1.0:

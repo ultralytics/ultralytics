@@ -661,10 +661,6 @@ class Exporter:
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
-        # Apply INT8 quantization
-        if self.args.format == "onnx" and self.args.int8:
-            model_onnx = self.quantize_nncf(model_onnx, prefix)
-
         # Metadata
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()
@@ -676,6 +672,13 @@ class Exporter:
             model_onnx.ir_version = 10
 
         onnx.save(model_onnx, f)
+
+        # Apply INT8 quantization
+        if self.args.format == "onnx" and self.args.int8:
+            model_onnx = self.quantize_nncf(model_onnx, prefix)  # adds Q/DQ layers
+            from onnxruntime.quantization import quantize_dynamic, QuantType
+
+            quantize_dynamic(f, f, weight_type=QuantType.QUInt8)  # fuses Q/DQ layers
         return f
 
     @try_export

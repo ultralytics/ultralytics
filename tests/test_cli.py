@@ -48,6 +48,7 @@ def test_export(model: str) -> None:
     """Test exporting a YOLO model to TorchScript format."""
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
+
 @pytest.mark.skipif(not TORCH_1_11)
 def test_qat():
     """Test model training and export with QAT."""

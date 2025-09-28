@@ -229,7 +229,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if not self.is_fused():
+        if not self.is_fused() and not hasattr(self, "_modelopt_state"):
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
@@ -288,13 +288,14 @@ class BaseModel(torch.nn.Module):
             (BaseModel): An updated BaseModel object.
         """
         self = super()._apply(fn)
-        m = self.model[-1]  # Detect()
-        if isinstance(
-            m, Detect
-        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
-            m.stride = fn(m.stride)
-            m.anchors = fn(m.anchors)
-            m.strides = fn(m.strides)
+        if hasattr(self, "model"):
+            m = self.model[-1]  # Detect()
+            if isinstance(
+                m, Detect
+            ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
+                m.stride = fn(m.stride)
+                m.anchors = fn(m.anchors)
+                m.strides = fn(m.strides)
         return self
 
     def load(self, weights, verbose=True):
@@ -1500,7 +1501,22 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     """
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **(ckpt.get("train_args", {}))}  # combine model and default args, preferring model args
-    model = (ckpt.get("ema") or ckpt["model"]).float()  # FP32 model
+    model = ckpt.get("ema") or ckpt["model"]
+
+    if "modelopt_state" in ckpt:  # QAT model
+        import modelopt.torch.opt as mto
+
+        # rebuild from YAML
+        model = ckpt["model_class"](ckpt["yaml"], verbose=False)
+        model.names = ckpt["names"]
+        model.nc = ckpt["nc"]
+        model.yaml = ckpt["yaml"]
+        # restore model and QAT weights
+        with torch.no_grad():
+            mto.restore_from_modelopt_state(model, ckpt["modelopt_state"])
+            model.load_state_dict(ckpt["state_dict"])
+
+    model = model.float()  # FP32 model
 
     # Model compatibility updates
     model.args = args  # attach args to model

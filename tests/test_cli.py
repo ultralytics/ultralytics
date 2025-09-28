@@ -49,7 +49,7 @@ def test_export(model: str) -> None:
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
 
-@pytest.mark.skipif(not TORCH_1_11)
+@pytest.mark.skipif(not TORCH_1_11, reason=="QAT requires torch>=1.11")
 def test_qat():
     """Test model training and export with QAT."""
     from ultralytics.utils.checks import check_requirements

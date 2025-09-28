@@ -261,10 +261,6 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
 
-        # Initialize loss criterion before compilation for torch.compile compatibility
-        if hasattr(self.model, "init_criterion"):
-            self.model.criterion = self.model.init_criterion()
-
         # Build model for QAT
         if self.args.int8 and not hasattr(self.model, "_modelopt_state"):
             self.build_quantized_model()

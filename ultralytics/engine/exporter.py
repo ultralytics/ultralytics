@@ -120,7 +120,7 @@ def export_formats():
     x = [
         ["PyTorch", "-", ".pt", True, True, []],
         ["TorchScript", "torchscript", ".torchscript", True, True, ["batch", "optimize", "half", "nms", "dynamic"]],
-        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "opset", "simplify", "nms"]],
+        ["ONNX", "onnx", ".onnx", True, True, ["batch", "dynamic", "half", "int8", "opset", "simplify", "nms"]],
         [
             "OpenVINO",
             "openvino",
@@ -661,6 +661,10 @@ class Exporter:
             except Exception as e:
                 LOGGER.warning(f"{prefix} simplifier failure: {e}")
 
+        # Apply INT8 quantization
+        if self.args.format == "onnx" and self.args.int8:
+            model_onnx = self.quantize_nncf(model_onnx, prefix)
+
         # Metadata
         for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()
@@ -706,40 +710,7 @@ class Exporter:
         if self.args.int8:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
-            # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
-            check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
-            check_requirements("nncf>=2.14.0")
-            import nncf
-
-            def transform_fn(data_item) -> np.ndarray:
-                """Quantization transform function."""
-                data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
-                assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-                im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0-255 to 0.0-1.0
-                return np.expand_dims(im, 0) if im.ndim == 3 else im
-
-            # Generate calibration data for integer quantization
-            ignored_scope = None
-            if isinstance(self.model.model[-1], Detect):
-                # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
-                head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
-                ignored_scope = nncf.IgnoredScope(  # ignore operations
-                    patterns=[
-                        f".*{head_module_name}/.*/Add",
-                        f".*{head_module_name}/.*/Sub*",
-                        f".*{head_module_name}/.*/Mul*",
-                        f".*{head_module_name}/.*/Div*",
-                        f".*{head_module_name}\\.dfl.*",
-                    ],
-                    types=["Sigmoid"],
-                )
-
-            quantized_ov_model = nncf.quantize(
-                model=ov_model,
-                calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
-                preset=nncf.QuantizationPreset.MIXED,
-                ignored_scope=ignored_scope,
-            )
+            quantized_ov_model = self.quantize_nncf(ov_model, prefix)
             serialize(quantized_ov_model, fq_ov)
             return fq
 
@@ -748,6 +719,46 @@ class Exporter:
 
         serialize(ov_model, f_ov)
         return f
+
+    def quantize_nncf(self, model, prefix):
+        # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
+        check_requirements("packaging>=23.2")  # must be installed first to build nncf wheel
+        check_requirements("nncf>=2.14.0")
+        import nncf
+
+        def transform_fn(data_item) -> np.ndarray:
+            """Quantization transform function."""
+            data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+            assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0-255 to 0.0-1.0
+            out = np.expand_dims(im, 0) if im.ndim == 3 else im
+            if self.args.format == "onnx":
+                return dict(images=out)
+            return out
+
+        # Generate calibration data for integer quantization
+        ignored_scope = None
+        if isinstance(self.model.model[-1], Detect):
+            # Includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect
+            head_module_name = ".".join(list(self.model.named_modules())[-1][0].split(".")[:2])
+            ignored_scope = nncf.IgnoredScope(  # ignore operations
+                patterns=[
+                    f".*{head_module_name}.*/Add",
+                    f".*{head_module_name}.*/Sub*",
+                    f".*{head_module_name}.*/Mul*",
+                    f".*{head_module_name}.*/Div*",
+                    f".*{head_module_name}.dfl.*",
+                ],
+                types=["Sigmoid"],
+            )
+
+        quantized_model = nncf.quantize(
+            model=model,
+            calibration_dataset=nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn),
+            preset=nncf.QuantizationPreset.MIXED,
+            ignored_scope=ignored_scope,
+        )
+        return quantized_model
 
     @try_export
     def export_paddle(self, prefix=colorstr("PaddlePaddle:")):

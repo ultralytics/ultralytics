@@ -167,8 +167,8 @@ class Inference:
 
         with self.st.spinner("Model is downloading..."):
             if (
-                selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine", ".rknn"))
-                or "openvino_model" in selected_model
+                selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine"))
+                or any(fmt in selected_model for fmt in ("openvino_model", "rknn_model"))
             ):
                 model_path = selected_model
             else:

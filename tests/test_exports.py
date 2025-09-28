@@ -81,7 +81,7 @@ def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, simplify, nms)
         for task, dynamic, int8, half, batch, simplify, nms in product(
-            TASKS, [True, False], [False], [False], [1, 2], [True, False], [True, False]
+            TASKS, [True, False], [True, False], [False], [1, 2], [True, False], [True, False]
         )
         if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
     ],

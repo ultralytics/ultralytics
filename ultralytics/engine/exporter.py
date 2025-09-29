@@ -323,9 +323,24 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn, executorch) = (
-            flags  # export booleans
-        )
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            mnn,
+            ncnn,
+            imx,
+            rknn,
+            executorch,
+        ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
@@ -1112,18 +1127,17 @@ class Exporter:
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
 
-        sample_inputs = (torch.randn(1, 3, 640, 640), )
+        sample_inputs = (torch.randn(1, 3, 640, 640),)
 
         et_program = to_edge_transform_and_lower(
-            torch.export.export(self.model, sample_inputs),
-            partitioner=[XnnpackPartitioner()]
+            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
         ).to_executorch()
-        
+
         f = self.file.with_suffix(".pte")
 
         with open(f, "wb") as file:
             file.write(et_program.buffer)
-        
+
         return f
 
     @try_export

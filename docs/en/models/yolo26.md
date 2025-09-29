@@ -37,9 +37,9 @@ Together, these innovations deliver a model family that achieves higher accuracy
 - **ProgLoss + STAL**  
   Improved loss functions increase detection accuracy, with notable improvements in **small-object recognition**, a critical requirement for IoT, robotics, aerial imagery, and other edge applications.
 
-- **MuSGD Optimizer**  
+- **MuSGD Optimizer**
 
-  A new hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982). Inspired by Moonshot AI's [Kimi K2](https://kimi.moonshot.cn/), MuSGD introduces advanced optimization methods from LLM training into computer vision, enabling more stable training and faster convergence.
+    A new hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982). Inspired by Moonshot AI's [Kimi K2](https://kimi.moonshot.cn/), MuSGD introduces advanced optimization methods from LLM training into computer vision, enabling more stable training and faster convergence.
 
 - **Up to 43% Faster CPU Inference**  
   Specifically optimized for edge computing, YOLO26 delivers significantly faster CPU inference, ensuring real-time performance on devices without GPUs.
@@ -47,7 +47,6 @@ Together, these innovations deliver a model family that achieves higher accuracy
 ---
 
 ## Supported Tasks and Modes
-
 
 YOLO26 is designed as a **multi-task model family**, extending YOLO's versatility across diverse computer vision challenges:
 

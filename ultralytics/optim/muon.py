@@ -73,7 +73,7 @@ class MuonWithSGD(optim.Optimizer):
         self.muon = muon
         self.sgd = sgd
         self.decay_factor = decay_factor
-        target = 1.0
+        target = 0.9
         self.updates = 0.0
         self.sf = lambda x: max(1 - x / epochs, 0) * (sgd - target) + target
 

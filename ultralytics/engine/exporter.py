@@ -148,6 +148,8 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["Axelera", "axelera", "_axelera_model", False, False, ["batch", "name"]],
+        
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -322,7 +324,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
+        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn, axelera) = (
             flags  # export booleans
         )
 
@@ -541,6 +543,8 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
+        if axelera:
+            f[15] = self.export_axelera()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1102,6 +1106,40 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
+    
+    @try_export
+    def export_axelera(self, prefix=colorstr("Axelera:")):
+        """YOLOv8 Axelera export."""
+        from axelera import compiler
+        from axelera.compiler import CompilerConfig
+        
+        assert not self.args.dynamic, f"Axelera does not support Dynamic tensor")
+        assert not self.args.int8, f("Axelera only support int8 datapath")
+        
+        def transform_fn(data_item) -> np.ndarray:
+            data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
+            assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
+            im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+            return np.expand_dims(im, 0) if im.ndim == 3 else im
+        
+        # this is for YOLO11 series
+        config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False)
+        # this is for YOLOv8
+        # config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True)
+
+        qmodel = compiler.quantize(
+            model=self.model,
+            calibration_dataset=self.get_int8_calibration_dataloader(prefix),
+            config=config,
+            transform_fn=transform_fn
+        )
+        compiler.compile(
+            model=qmodel,
+            config=config,
+            output_dir=Path("axelera_export/")
+        )
+        
+        return "axelera_export"
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

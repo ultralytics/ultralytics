@@ -1129,7 +1129,6 @@ class Exporter:
         Exports a model to Executorch (.pte) format into a dedicated directory
         and saves the required metadata, following Ultralytics conventions.
         """
-        
         LOGGER.info(f"\n{prefix} starting export with Executorch...")
         check_requirements(["executorch>=0.7.0", "setuptools>65"])
 

@@ -17,8 +17,8 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
-from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
-from ultralytics.utils.downloads import attempt_download_asset, is_url
+from ultralytics.utils.checks import check_requirements, check_version, check_yaml, is_rockchip
+from ultralytics.utils.downloads import attempt_download_asset
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:
@@ -891,9 +891,9 @@ class AutoBackend(nn.Module):
             >>> model = AutoBackend(model="path/to/model.onnx")
             >>> model_type = model._model_type()  # returns "onnx"
         """
+        from urllib.parse import urlsplit
 
         from ultralytics.engine.exporter import export_formats
-        from urllib.parse import urlsplit
 
         p_str = str(p)
         sf = export_formats()["Suffix"]

@@ -52,12 +52,11 @@ results1 = model.predict(
 results2 = model.predict(
     "ultralytics/assets/bus.jpg",
     visual_prompts = dict(bboxes=np.array([[120, 425, 160, 445]]),
-    cls=np.array([1])),
+    cls=["glasses"]),
 )
 
 results3 = model.predict(
-    "ultralytics/assets/zidane.jpg",conf=0.01
-)
+    "ultralytics/assets/zidane.jpg",conf=0.1)
 
 
 results1[0].save(filename="yoloe_vp_detect1.jpg")

@@ -21,7 +21,7 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, YAML
-
+import numpy as np 
 
 class YOLO(Model):
     """
@@ -426,57 +426,54 @@ class YOLOE(Model):
                     },
                     _callbacks=self.callbacks,
                 )
+            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
+            
+            # update model head for vpe extraction on the current image and visual prompts
+            # num_cls = (
+            #     max(len(set(c)) for c in visual_prompts["cls"])
+            #     if isinstance(source, list) and refer_image is None  # means multiple images
+            #     else len(set(visual_prompts["cls"]))
+            # )
 
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
+
+           # get the vpe from current image and visual prompts
+            prompts={"bboxes": visual_prompts["bboxes"],
+                     "cls":list( range( len(visual_prompts["cls"])))}
+            num_cls= len(set(prompts["cls"]))
             self.model.model[-1].nc = num_cls
             self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts.copy())
+            self.predictor.set_prompts(prompts.copy())
             self.predictor.setup_model(model=self.model)
-
-            if refer_image is None and source is not None:
-                dataset = load_inference_source(source)
-                if dataset.mode in {"video", "stream"}:
-                    # NOTE: set the first frame as refer image for videos/streams inference
-                    refer_image = next(iter(dataset))[1][0]
-
-
-            # if refer_image is not None:
             vpe = self.predictor.get_vpe(source)
-            # self.model.set_classes(self.model.names, vpe)
-            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-            # self.predictor = None  # reset predictor
 
-            if not  hasattr(self,"memory_bank"):
-                self.memory_bank=dict()
-            for cls,vpe_i in zip(visual_prompts["cls"],vpe):
-                cls=f"object{cls}"
+            # update the memory bank
+            if not hasattr(self, "memory_bank"):self.memory_bank = dict()
+            for cls, cls_vpe in zip(visual_prompts["cls"], vpe):
+                only_visual = isinstance(cls, (np.int64, np.int32, int))               
+                if only_visual: cls=f"object{cls}"
                 if cls not in self.memory_bank.keys(): self.memory_bank[cls]=[]
-                self.memory_bank[cls].append(vpe_i.squeeze())
-            
+                if not only_visual: 
+                    cls_vpe= 0.5*cls_vpe+ 0.5*self.get_text_pe([cls]).squeeze()
+                    cls_vpe=self.get_text_pe([cls]).squeeze()
+                self.memory_bank[cls].append(cls_vpe.squeeze())
+
+
+            # set classes based on the memory bank
+
+            # prototype knn,  multi-model (text)
+            # cls : embeds
+
             names=list(self.memory_bank.keys())
-
-            # if len(names)>1:
-            #     names=names[1:]
             memory_vpe=torch.stack([torch.mean(torch.stack(self.memory_bank[cls]),dim=0) for cls in names])
-
-
-
-            # print("~~~~~~~names:",names)
-            if len(memory_vpe.shape)==2:
-                memory_vpe = memory_vpe.unsqueeze(0)
-        
+            if len(memory_vpe.shape)==2: memory_vpe = memory_vpe.unsqueeze(0)
             self.model.set_classes(names,memory_vpe)
+            
+            
             # Manually update predictor's names to sync with the memory bank
-            if self.predictor:
-                self.predictor.names = names
-                self.predictor.model.names = names
-
-
-            kwargs["prompts"]=None
+            self.predictor.names = names # [ "person","person "]
+            self.predictor.model.names = names
+            kwargs["prompts"]=None # avoid updating the classes again 
+            
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             # self.predictor = None  # reset predictor if no visual prompts
             pass

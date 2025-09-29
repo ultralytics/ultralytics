@@ -159,8 +159,9 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
-            im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            # Transform prompts dict to tensor and preprocess image
+            im = self.pre_transform([im0s])
+            return self.model(im[0], vpe=self.prompts, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

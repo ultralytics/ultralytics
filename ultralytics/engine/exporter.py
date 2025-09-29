@@ -20,6 +20,7 @@ MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
+Executorch              | `executorch`              | yolo11n_executorch_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -48,6 +49,7 @@ Inference:
                          yolo11n_ncnn_model         # NCNN
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
+                         yolo11n_executorch_model   # Executorch
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -1123,22 +1125,34 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("Executorch:")):
+        """
+        Exports a model to Executorch (.pte) format into a dedicated directory
+        and saves the required metadata, following Ultralytics conventions.
+        """
+        
+        LOGGER.info(f"\n{prefix} starting export with Executorch...")
         check_requirements(["executorch>=0.7.0", "setuptools>65"])
+        import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
 
-        sample_inputs = (torch.randn(1, 3, 640, 640),)
+        file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
+        file_directory.mkdir(parents=True, exist_ok=True)
+
+        file_pte = file_directory / self.file.with_suffix(".pte").name
+        sample_inputs = (self.im,)
 
         et_program = to_edge_transform_and_lower(
-            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
+            torch.export.export(self.model, sample_inputs),
+            partitioner=[XnnpackPartitioner()]
         ).to_executorch()
 
-        f = self.file.with_suffix(".pte")
-
-        with open(f, "wb") as file:
+        with open(file_pte, "wb") as file:
             file.write(et_program.buffer)
 
-        return f
+        YAML.save(file_directory / "metadata.yaml", self.metadata)
+
+        return str(file_directory)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

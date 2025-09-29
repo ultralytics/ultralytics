@@ -1125,9 +1125,8 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("Executorch:")):
-        """
-        Exports a model to Executorch (.pte) format into a dedicated directory
-        and saves the required metadata, following Ultralytics conventions.
+        """Exports a model to Executorch (.pte) format into a dedicated directory and saves the required metadata,
+        following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with Executorch...")
         check_requirements(["executorch>=0.7.0", "setuptools>65"])
@@ -1143,8 +1142,7 @@ class Exporter:
         sample_inputs = (self.im,)
 
         et_program = to_edge_transform_and_lower(
-            torch.export.export(self.model, sample_inputs),
-            partitioner=[XnnpackPartitioner()]
+            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
         ).to_executorch()
 
         with open(file_pte, "wb") as file:

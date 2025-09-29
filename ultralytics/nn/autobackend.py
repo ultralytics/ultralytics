@@ -577,6 +577,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f"Loading {w} for Executorch inference...")
             check_requirements("executorch", "setuptools")
             from executorch.runtime import Runtime
+
             w = Path(w)
 
             if w.is_dir():
@@ -898,7 +899,7 @@ class AutoBackend(nn.Module):
         p_str = str(p)
         sf = export_formats()["Suffix"]
         sf_standard = sf[:-1]  # First 16 standard suffixes
-        pte_suffix = sf[-1]    # The '.pte' suffix
+        pte_suffix = sf[-1]  # The '.pte' suffix
 
         types = [p_str.endswith(s) for s in sf_standard]
         types[5] |= p_str.endswith(".mlmodel")

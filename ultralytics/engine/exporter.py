@@ -1132,6 +1132,7 @@ class Exporter:
         
         LOGGER.info(f"\n{prefix} starting export with Executorch...")
         check_requirements(["executorch>=0.7.0", "setuptools>65"])
+
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower

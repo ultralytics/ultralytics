@@ -20,6 +20,7 @@ The architecture of YOLO26 is guided by three core principles:
 - **Simplicity:** YOLO26 is a **native end-to-end model**, producing predictions directly without the need for non-maximum suppression (NMS). By eliminating this post-processing step, inference becomes faster, lighter, and easier to deploy in real-world systems. This breakthrough approach was first pioneered in [YOLOv10](../models/yolov10.md) by Ao Wang at Tsinghua University and has been further advanced in YOLO26.
 - **Deployment Efficiency:** The end-to-end design cuts out an entire stage of the pipeline, dramatically simplifying integration, reducing latency, and making deployment more robust across diverse environments.
 - **Training Innovation:** YOLO26 introduces the **MuSGD optimizer**, a hybrid of [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) and [Muon](https://arxiv.org/abs/2502.16982) — inspired by Moonshot AI’s [Kimi K2](https://kimi.moonshot.cn/) breakthroughs in LLM training. This optimizer brings enhanced stability and faster convergence, transferring optimization advances from language models into computer vision.
+- **Training Innovation:** YOLO26 introduces the **MuSGD optimizer**, a hybrid of [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) and [Muon](https://arxiv.org/abs/2502.16982) — inspired by Moonshot AI's [Kimi K2](https://kimi.moonshot.cn/) breakthroughs in LLM training. This optimizer brings enhanced stability and faster convergence, transferring optimization advances from language models into computer vision.
 
 Together, these innovations deliver a model family that achieves higher accuracy on small objects, provides seamless deployment, and runs **up to 43% faster on CPUs** — making YOLO26 one of the most practical and deployable YOLO models to date for resource-constrained environments.
 
@@ -37,7 +38,8 @@ Together, these innovations deliver a model family that achieves higher accuracy
   Improved loss functions increase detection accuracy, with notable improvements in **small-object recognition**, a critical requirement for IoT, robotics, aerial imagery, and other edge applications.
 
 - **MuSGD Optimizer**  
-  A new hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982). Inspired by Moonshot AI’s [Kimi K2](https://kimi.moonshot.cn/), MuSGD introduces advanced optimization methods from LLM training into computer vision, enabling more stable training and faster convergence.
+
+  A new hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982). Inspired by Moonshot AI's [Kimi K2](https://kimi.moonshot.cn/), MuSGD introduces advanced optimization methods from LLM training into computer vision, enabling more stable training and faster convergence.
 
 - **Up to 43% Faster CPU Inference**  
   Specifically optimized for edge computing, YOLO26 delivers significantly faster CPU inference, ensuring real-time performance on devices without GPUs.
@@ -46,7 +48,8 @@ Together, these innovations deliver a model family that achieves higher accuracy
 
 ## Supported Tasks and Modes
 
-YOLO26 is designed as a **multi-task model family**, extending YOLO’s versatility across diverse computer vision challenges:
+
+YOLO26 is designed as a **multi-task model family**, extending YOLO's versatility across diverse computer vision challenges:
 
 | Model       | Task                                         | Inference | Validation | Training | Export |
 | ----------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
@@ -82,15 +85,19 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
         *Metrics for YOLO26l and YOLO26x are in progress. Final benchmarks will be added here.
 
     === "Segmentation (COCO)"
+
         Performance metrics coming soon.
 
     === "Classification (ImageNet)"
+
         Performance metrics coming soon.
 
     === "Pose (COCO)"
+
         Performance metrics coming soon.
 
     === "OBB (DOTAv1)"
+
         Performance metrics coming soon.
 
 ---
@@ -130,7 +137,7 @@ DOI pending. YOLO26 is available under [AGPL-3.0](https://github.com/ultralytics
 - **DFL Removal**: Simplifies export and expands edge compatibility
 - **End-to-End NMS-Free Inference**: Eliminates NMS for faster, simpler deployment
 - **ProgLoss + STAL**: Boosts accuracy, especially on small objects
-- **MuSGD Optimizer**: Combines SGD and Muon (inspired by Moonshot’s Kimi K2) for more stable, efficient training
+- **MuSGD Optimizer**: Combines SGD and Muon (inspired by Moonshot's Kimi K2) for more stable, efficient training
 - **Up to 43% Faster CPU Inference**: Major performance gains for CPU-only devices
 
 ### What tasks will YOLO26 support?

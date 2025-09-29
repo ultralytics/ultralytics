@@ -454,7 +454,6 @@ class YOLOE(Model):
                 if cls not in self.memory_bank.keys(): self.memory_bank[cls]=[]
                 if not only_visual: 
                     cls_vpe= 0.5*cls_vpe+ 0.5*self.get_text_pe([cls]).squeeze()
-                    cls_vpe=self.get_text_pe([cls]).squeeze()
                 self.memory_bank[cls].append(cls_vpe.squeeze())
 
 

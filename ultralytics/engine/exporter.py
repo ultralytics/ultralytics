@@ -1123,7 +1123,7 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("Executorch:")):
-        check_requirements(["executorch>=0.7.0","setuptools>65"])
+        check_requirements(["executorch>=0.7.0", "setuptools>65"])
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import to_edge_transform_and_lower
 

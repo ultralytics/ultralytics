@@ -148,6 +148,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["Executorch", "executorch", "_executorch_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -322,7 +323,7 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
+        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn, executorch) = (
             flags  # export booleans
         )
 
@@ -541,6 +542,8 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
+        if executorch:
+            f[15] = self.export_executorch()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1102,6 +1105,26 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
+
+    @try_export
+    def export_executorch(self, prefix=colorstr("Executorch:")):
+        check_requirements("executorch>=0.7.0")
+        from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
+        from executorch.exir import to_edge_transform_and_lower
+
+        sample_inputs = (torch.randn(1, 3, 640, 640), )
+
+        et_program = to_edge_transform_and_lower(
+            torch.export.export(self.model, sample_inputs),
+            partitioner=[XnnpackPartitioner()]
+        ).to_executorch()
+        
+        f = self.file.with_suffix(".pte")
+
+        with open(f, "wb") as file:
+            file.write(et_program.buffer)
+        
+        return f
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

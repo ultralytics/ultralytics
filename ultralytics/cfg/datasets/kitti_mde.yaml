@@ -18,5 +18,5 @@ names:
   4: Truck
 
 # Depth range for normalization (in meters)
-depth_min: 0
-depth_max: 100
+depth_loss_weight: 1.0  # weight for depth loss component
+depth_loss_type: 'l1'  # depth loss type ('l1', 'l2', 'smooth_l1')

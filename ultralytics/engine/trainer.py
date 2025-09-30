@@ -216,10 +216,10 @@ class BaseTrainer:
                 LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
             if self.args.batch < 1.0:
-                LOGGER.warning(
-                    "'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting default 'batch=16'"
+                raise ValueError(
+                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                    f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
                 )
-                self.args.batch = 16
 
             # Command
             cmd, file = generate_ddp_command(self)

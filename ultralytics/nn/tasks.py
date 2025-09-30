@@ -63,23 +63,23 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
-    SemanticSegment
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
+    SemSegLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    SemSegLoss
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
@@ -386,7 +386,7 @@ class DetectionModel(BaseModel):
         """
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
-        if  "backbone" in self.yaml.keys() and self.yaml["backbone"][0][2] == "Silence":
+        if "backbone" in self.yaml.keys() and self.yaml["backbone"][0][2] == "Silence":
             LOGGER.warning(
                 "YOLOv9 `Silence` module is deprecated in favor of torch.nn.Identity. "
                 "Please delete local *.pt file and re-download the latest model checkpoint."
@@ -1310,6 +1310,7 @@ class Ensemble(torch.nn.ModuleList):
         y = torch.cat(y, 2)  # nms ensemble, y shape(B, HW, C)
         return y, None  # inference, train output
 
+
 class SemanticModel(DetectionModel):
     """YOLOv8 segmentation model."""
 
@@ -1320,6 +1321,7 @@ class SemanticModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
         return SemSegLoss(self)
+
 
 # Functions ------------------------------------------------------------------------------------------------------------
 
@@ -1678,7 +1680,18 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, SemanticSegment}
+            {
+                Detect,
+                WorldDetect,
+                YOLOEDetect,
+                Segment,
+                YOLOESegment,
+                Pose,
+                OBB,
+                ImagePoolingAttn,
+                v10Detect,
+                SemanticSegment,
+            }
         ):
             args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment or m is SemanticSegment:

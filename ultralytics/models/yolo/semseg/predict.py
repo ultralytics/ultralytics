@@ -82,7 +82,10 @@ class SemSegPredictor(DetectionPredictor):
         result_list = []
         for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
             result_list.append(
-                Results(orig_img, path=img_path, names=self.model.names, masks=torch.softmax(pred, dim=0))
+                Results(orig_img,
+                        path=img_path,
+                        names=self.model.names,
+                        masks=torch.softmax(pred.detach().cpu(), dim=0))
             )
         return result_list
 
@@ -116,14 +119,18 @@ class SemSegPredictor(DetectionPredictor):
         string += f"{result.verbose()}{result.speed['inference']:.1f}ms"
 
         # Add predictions to image
+        imagename = result.path.split(os.sep)[-1]
         if self.args.save or self.args.show:
+            image_dir, mask_dir = os.path.join(self.save_dir,'image'), os.path.join(self.save_dir,'mask')
+            os.mkdir(image_dir) if not os.path.exists(image_dir) else None
+            os.mkdir(mask_dir) if not os.path.exists(mask_dir) else None
             self.plot_predict_samples(
                 result.orig_img,
                 result.masks,
                 nc=YAML.load(self.data)['nc'],
                 colors=YAML.load(self.data)["colors"],
-                fname=self.save_dir / f"predict_batch{i}.jpg",
-                mname=self.save_dir / f"mask_batch{i}.jpg",
+                fname=self.save_dir / 'image' /imagename,
+                mname=self.save_dir / 'mask' / imagename,
                 one_hot=True,
                 overlap=True
             )

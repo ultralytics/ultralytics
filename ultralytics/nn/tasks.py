@@ -1617,8 +1617,7 @@ def parse_model(d, ch, verbose=True):
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
 
-    modules = d["backbone"] + d["head"]
-
+    modules = d["backbone"] + d["head"] if "backbone" in d.keys() else d["encoder"] + d["neck"] + d["decoder"]
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     base_modules = frozenset(

@@ -155,8 +155,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def preprocess_batch(self, batch: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Preprocess a batch of images and classes."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
         return batch
 
     def progress_string(self) -> str:

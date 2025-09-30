@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import itertools
 from copy import copy, deepcopy
 from pathlib import Path
 
@@ -169,7 +168,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
 
     Methods:
         build_dataset: Build datasets for training with grounding support.
-        preprocess_batch: Process batches with text features.
         generate_text_embeddings: Generate and cache text embeddings for training.
     """
 
@@ -189,16 +187,6 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
         return WorldTrainerFromScratch.build_dataset(self, img_path, mode, batch)
-
-    def preprocess_batch(self, batch):
-        """Process batch for training, moving text features to the appropriate device."""
-        batch = DetectionTrainer.preprocess_batch(self, batch)
-
-        texts = list(itertools.chain(*batch["texts"]))
-        txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(self.device, non_blocking=True)
-        txt_feats = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
-        batch["txt_feats"] = txt_feats
-        return batch
 
     def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path):
         """
@@ -280,7 +268,6 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
 
     Methods:
         build_dataset: Build dataset with visual prompt loading transforms.
-        preprocess_batch: Preprocess batches with visual prompts.
     """
 
     def build_dataset(self, img_path: list[str] | str, mode: str = "train", batch: int | None = None):

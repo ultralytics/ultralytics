@@ -17,8 +17,8 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
-from ultralytics.utils.checks import check_requirements, check_version, check_yaml, is_rockchip
-from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
+from ultralytics.utils.downloads import attempt_download_asset, is_url
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:
@@ -892,25 +892,27 @@ class AutoBackend(nn.Module):
             >>> model = AutoBackend(model="path/to/model.onnx")
             >>> model_type = model._model_type()  # returns "onnx"
         """
-        from urllib.parse import urlsplit
-
         from ultralytics.engine.exporter import export_formats
 
-        p_str = str(p)
         sf = export_formats()["Suffix"]
-        sf_standard = sf[:-1]  # First 16 standard suffixes
-        pte_suffix = sf[-1]  # The '.pte' suffix
+        p_path = Path(p)
+        if not is_url(p) and not p_path.is_dir():
+            check_suffix(p, sf)
+
+        p_str = str(p)
+        sf_standard = sf[:-1]  # Standard suffixes from exporter
+        pte_suffix = sf[-1]    # '.pte' suffix
 
         types = [p_str.endswith(s) for s in sf_standard]
-        types[5] |= p_str.endswith(".mlmodel")
-        types[8] &= not types[9]  # tflite &= not edgetpu
+        types[5] |= p_str.endswith(".mlmodel")  # CoreML special case
+        types[8] &= not types[9]                # TFLite vs. EdgeTPU
+        pte = p_str.endswith(pte_suffix)        # Executorch check
 
-        pte = p_str.endswith(pte_suffix)
-
-        url = urlsplit(p_str)
-        triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
-
-        if any(types) or pte:
-            triton = False
+        triton = False
+        if not (any(types) or pte):
+            from urllib.parse import urlsplit
+            
+            url = urlsplit(p_str)
+            triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
         return types + [triton, pte]

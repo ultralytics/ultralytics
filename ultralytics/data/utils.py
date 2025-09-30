@@ -806,6 +806,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")
 
+
 def mask2polygon(mask, downsample_ratio=1):
     mask_gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) if len(mask.shape) == 3 and mask.shape[2] == 3 else mask
     _, mask_gray = cv2.threshold(mask_gray, 125, 255, cv2.THRESH_BINARY)
@@ -820,6 +821,7 @@ def mask2polygon(mask, downsample_ratio=1):
         polygons = polygons / downsample_ratio
 
     return polygons
+
 
 def get_boundingbox_from_polygons(polygons, format="xyxy"):
     bboxes = []
@@ -840,6 +842,7 @@ def get_boundingbox_from_polygons(polygons, format="xyxy"):
         elif format == "ltwh":
             bboxes.append([x_min, y_min, w, h])
     return np.array(bboxes).astype(np.float32)
+
 
 def verify_image_and_mask(args: tuple) -> list:
     im_file, lb_file, colors, prefix, keypoint, num_cls, nkpt, ndim = args

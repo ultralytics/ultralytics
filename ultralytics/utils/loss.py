@@ -856,8 +856,10 @@ class TVPSegmentLoss(TVPDetectLoss):
         cls_loss = vp_loss[0][2]
         return cls_loss, vp_loss[1]
 
+
 class SemSegLoss:
     """Criterion  for computing training losses for semantic segmentation task."""
+
     def __init__(self, model, alpha=0.3, beta=0.7):
         self.device = next(model.parameters()).device  # get model device
         self.ce_0 = nn.CrossEntropyLoss(reduction="none")

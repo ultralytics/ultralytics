@@ -1229,6 +1229,7 @@ class v10Detect(Detect):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
 
+
 class ContextGather(nn.Module):
     def __init__(self, cls_num=0, scale=1):
         super().__init__()
@@ -1244,6 +1245,7 @@ class ContextGather(nn.Module):
         probs = F.softmax(self.scale * probs, dim=2)  # batch x k x hw
         ocr_context = torch.matmul(probs, feats).permute(0, 2, 1).unsqueeze(3)  # batch x k x c
         return ocr_context
+
 
 class _ObjectAttentionBlock(nn.Module):
     """
@@ -1315,6 +1317,7 @@ class ObjectAttentionBlock2D(_ObjectAttentionBlock):
     def __init__(self, in_channels, key_channels, scale=1, use_gt=False, use_bg=False, fetch_attention=False):
         super().__init__(in_channels, key_channels, scale, use_gt, use_bg, fetch_attention)
 
+
 class SpatialOCR(nn.Module):
     """
     Implementation of the OCR module:
@@ -1379,6 +1382,7 @@ class SpatialOCR(nn.Module):
             return output, sim_map
         else:
             return output
+
 
 class SemanticSegment(nn.Module):
     def __init__(self, nc=80, nm=32, npr=256, ch=()):

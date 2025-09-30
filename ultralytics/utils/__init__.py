@@ -649,6 +649,7 @@ for k, v in SEMSEG_CFG_DICT.items():
 SEMSEG_CFG_DICT_KEYS = SEMSEG_CFG_DICT.keys()
 SEMSEG_CFG = IterableSimpleNamespace(**SEMSEG_CFG_DICT)
 
+
 def read_device_model() -> str:
     """
     Read the device model information from the system and cache it for quick access.

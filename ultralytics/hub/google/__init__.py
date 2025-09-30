@@ -73,16 +73,16 @@ class GCPRegions:
             "us-west4": (2, "Las Vegas", "United States"),
         }
 
-    def tier1(self) -> List[str]:
+    def tier1(self) -> list[str]:
         """Return a list of GCP regions classified as tier 1 based on predefined criteria."""
         return [region for region, info in self.regions.items() if info[0] == 1]
 
-    def tier2(self) -> List[str]:
+    def tier2(self) -> list[str]:
         """Return a list of GCP regions classified as tier 2 based on predefined criteria."""
         return [region for region, info in self.regions.items() if info[0] == 2]
 
     @staticmethod
-    def _ping_region(region: str, attempts: int = 1) -> Tuple[str, float, float, float, float]:
+    def _ping_region(region: str, attempts: int = 1) -> tuple[str, float, float, float, float]:
         """
         Ping a specified GCP region and measure network latency statistics.
 
@@ -124,7 +124,7 @@ class GCPRegions:
         verbose: bool = False,
         tier: Optional[int] = None,
         attempts: int = 1,
-    ) -> List[Tuple[str, float, float, float, float]]:
+    ) -> list[tuple[str, float, float, float, float]]:
         """
         Determine the GCP regions with the lowest latency based on ping tests.
 

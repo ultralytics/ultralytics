@@ -3,7 +3,7 @@
 import math
 import random
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Union
 
 import cv2
 import numpy as np
@@ -366,7 +366,7 @@ class BaseMixTransform:
         self.pre_transform = pre_transform
         self.p = p
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply pre-processing transforms and cutmix/mixup/mosaic transforms to labels data.
 
@@ -406,7 +406,7 @@ class BaseMixTransform:
         labels.pop("mix_labels", None)
         return labels
 
-    def _mix_transform(self, labels: Dict[str, Any]):
+    def _mix_transform(self, labels: dict[str, Any]):
         """
         Apply CutMix, MixUp or Mosaic augmentation to the label dictionary.
 
@@ -442,7 +442,7 @@ class BaseMixTransform:
         return random.randint(0, len(self.dataset) - 1)
 
     @staticmethod
-    def _update_label_text(labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _update_label_text(labels: dict[str, Any]) -> dict[str, Any]:
         """
         Update label text and class IDs for mixed labels in image augmentation.
 
@@ -564,7 +564,7 @@ class Mosaic(BaseMixTransform):
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
-    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mix_transform(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply mosaic augmentation to the input image and labels.
 
@@ -593,7 +593,7 @@ class Mosaic(BaseMixTransform):
             self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
         )  # This code is modified for mosaic3 method.
 
-    def _mosaic3(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mosaic3(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Create a 1x3 image mosaic by combining three images.
 
@@ -652,7 +652,7 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
         return final_labels
 
-    def _mosaic4(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mosaic4(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Create a 2x2 image mosaic from four input images.
 
@@ -710,7 +710,7 @@ class Mosaic(BaseMixTransform):
         final_labels["img"] = img4
         return final_labels
 
-    def _mosaic9(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mosaic9(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Create a 3x3 image mosaic from the input image and eight additional images.
 
@@ -783,7 +783,7 @@ class Mosaic(BaseMixTransform):
         return final_labels
 
     @staticmethod
-    def _update_labels(labels, padw: int, padh: int) -> Dict[str, Any]:
+    def _update_labels(labels, padw: int, padh: int) -> dict[str, Any]:
         """
         Update label coordinates with padding values.
 
@@ -809,7 +809,7 @@ class Mosaic(BaseMixTransform):
         labels["instances"].add_padding(padw, padh)
         return labels
 
-    def _cat_labels(self, mosaic_labels: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _cat_labels(self, mosaic_labels: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Concatenate and process labels for mosaic augmentation.
 
@@ -902,7 +902,7 @@ class MixUp(BaseMixTransform):
         """
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
-    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mix_transform(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply MixUp augmentation to the input labels.
 
@@ -967,7 +967,7 @@ class CutMix(BaseMixTransform):
         self.beta = beta
         self.num_areas = num_areas
 
-    def _rand_bbox(self, width: int, height: int) -> Tuple[int, int, int, int]:
+    def _rand_bbox(self, width: int, height: int) -> tuple[int, int, int, int]:
         """
         Generate random bounding box coordinates for the cut region.
 
@@ -997,7 +997,7 @@ class CutMix(BaseMixTransform):
 
         return x1, y1, x2, y2
 
-    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mix_transform(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply CutMix augmentation to the input labels.
 
@@ -1086,7 +1086,7 @@ class RandomPerspective:
         scale: float = 0.5,
         shear: float = 0.0,
         perspective: float = 0.0,
-        border: Tuple[int, int] = (0, 0),
+        border: tuple[int, int] = (0, 0),
         pre_transform=None,
     ):
         """
@@ -1117,7 +1117,7 @@ class RandomPerspective:
         self.border = border  # mosaic border
         self.pre_transform = pre_transform
 
-    def affine_transform(self, img: np.ndarray, border: Tuple[int, int]) -> Tuple[np.ndarray, np.ndarray, float]:
+    def affine_transform(self, img: np.ndarray, border: tuple[int, int]) -> tuple[np.ndarray, np.ndarray, float]:
         """
         Apply a sequence of affine transformations centered around the image center.
 
@@ -1215,7 +1215,7 @@ class RandomPerspective:
         y = xy[:, [1, 3, 5, 7]]
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
-    def apply_segments(self, segments: np.ndarray, M: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def apply_segments(self, segments: np.ndarray, M: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Apply affine transformations to segments and generate new bounding boxes.
 
@@ -1285,7 +1285,7 @@ class RandomPerspective:
         visible[out_mask] = 0
         return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply random perspective and affine transformations to an image and its associated labels.
 
@@ -1453,7 +1453,7 @@ class RandomHSV:
         self.sgain = sgain
         self.vgain = vgain
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply random HSV augmentation to an image within predefined limits.
 
@@ -1515,7 +1515,7 @@ class RandomFlip:
         >>> flipped_instances = result["instances"]
     """
 
-    def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: List[int] = None) -> None:
+    def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: list[int] = None) -> None:
         """
         Initialize the RandomFlip class with probability and direction.
 
@@ -1541,7 +1541,7 @@ class RandomFlip:
         self.direction = direction
         self.flip_idx = flip_idx
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply random flip to an image and update any instances like bounding boxes or keypoints accordingly.
 
@@ -1615,7 +1615,7 @@ class LetterBox:
 
     def __init__(
         self,
-        new_shape: Tuple[int, int] = (640, 640),
+        new_shape: tuple[int, int] = (640, 640),
         auto: bool = False,
         scale_fill: bool = False,
         scaleup: bool = True,
@@ -1662,7 +1662,7 @@ class LetterBox:
         self.padding_value = padding_value
         self.interpolation = interpolation
 
-    def __call__(self, labels: Dict[str, Any] = None, image: np.ndarray = None) -> Union[Dict[str, Any], np.ndarray]:
+    def __call__(self, labels: dict[str, Any] = None, image: np.ndarray = None) -> Union[dict[str, Any], np.ndarray]:
         """
         Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
 
@@ -1741,7 +1741,7 @@ class LetterBox:
             return img
 
     @staticmethod
-    def _update_labels(labels: Dict[str, Any], ratio: Tuple[float, float], padw: float, padh: float) -> Dict[str, Any]:
+    def _update_labels(labels: dict[str, Any], ratio: tuple[float, float], padw: float, padh: float) -> dict[str, Any]:
         """
         Update labels after applying letterboxing to an image.
 
@@ -1801,12 +1801,12 @@ class CopyPaste(BaseMixTransform):
         assert mode in {"flip", "mixup"}, f"Expected `mode` to be `flip` or `mixup`, but got {mode}."
         self.mode = mode
 
-    def _mix_transform(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def _mix_transform(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         labels2 = labels["mix_labels"][0]
         return self._transform(labels, labels2)
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """Apply Copy-Paste augmentation to an image and its labels."""
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
@@ -1833,7 +1833,7 @@ class CopyPaste(BaseMixTransform):
         labels.pop("mix_labels", None)
         return labels
 
-    def _transform(self, labels1: Dict[str, Any], labels2: Dict[str, Any] = {}) -> Dict[str, Any]:
+    def _transform(self, labels1: dict[str, Any], labels2: dict[str, Any] = {}) -> dict[str, Any]:
         """Apply Copy-Paste augmentation to combine objects from another image into the current image."""
         im = labels1["img"]
         if "mosaic_border" not in labels1:
@@ -2011,7 +2011,7 @@ class Albumentations:
         except Exception as e:
             LOGGER.info(f"{prefix}{e}")
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Apply Albumentations transformations to input labels.
 
@@ -2153,7 +2153,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
         self.bgr = bgr
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Format image annotations for object detection, instance segmentation, and pose estimation tasks.
 
@@ -2255,7 +2255,7 @@ class Format:
 
     def _format_segments(
         self, instances: Instances, cls: np.ndarray, w: int, h: int
-    ) -> Tuple[np.ndarray, Instances, np.ndarray]:
+    ) -> tuple[np.ndarray, Instances, np.ndarray]:
         """
         Convert polygon segments to bitmap masks.
 
@@ -2317,7 +2317,7 @@ class LoadVisualPrompt:
 
         return (r >= x1) * (r < x2) * (c >= y1) * (c < y2)
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Process labels to create visual prompts.
 
@@ -2341,7 +2341,7 @@ class LoadVisualPrompt:
     def get_visuals(
         self,
         category: Union[int, np.ndarray, torch.Tensor],
-        shape: Tuple[int, int],
+        shape: tuple[int, int],
         bboxes: Union[np.ndarray, torch.Tensor] = None,
         masks: Union[np.ndarray, torch.Tensor] = None,
     ) -> torch.Tensor:
@@ -2415,10 +2415,10 @@ class RandomLoadText:
     def __init__(
         self,
         prompt_format: str = "{}",
-        neg_samples: Tuple[int, int] = (80, 80),
+        neg_samples: tuple[int, int] = (80, 80),
         max_samples: int = 80,
         padding: bool = False,
-        padding_value: List[str] = [""],
+        padding_value: list[str] = [""],
     ) -> None:
         """
         Initialize the RandomLoadText class for randomly sampling positive and negative texts.
@@ -2459,7 +2459,7 @@ class RandomLoadText:
         self.padding = padding
         self.padding_value = padding_value
 
-    def __call__(self, labels: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, labels: dict[str, Any]) -> dict[str, Any]:
         """
         Randomly sample positive and negative texts and update class indices accordingly.
 
@@ -2592,11 +2592,12 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         ]
     )  # transforms
 
+
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(
-    size: Union[Tuple[int, int], int] = 224,
-    mean: Tuple[float, float, float] = DEFAULT_MEAN,
-    std: Tuple[float, float, float] = DEFAULT_STD,
+    size: Union[tuple[int, int], int] = 224,
+    mean: tuple[float, float, float] = DEFAULT_MEAN,
+    std: tuple[float, float, float] = DEFAULT_STD,
     interpolation: str = "BILINEAR",
     crop_fraction: float = None,
 ):
@@ -2646,10 +2647,10 @@ def classify_transforms(
 # Classification training augmentations --------------------------------------------------------------------------------
 def classify_augmentations(
     size: int = 224,
-    mean: Tuple[float, float, float] = DEFAULT_MEAN,
-    std: Tuple[float, float, float] = DEFAULT_STD,
-    scale: Tuple[float, float] = None,
-    ratio: Tuple[float, float] = None,
+    mean: tuple[float, float, float] = DEFAULT_MEAN,
+    std: tuple[float, float, float] = DEFAULT_STD,
+    scale: tuple[float, float] = None,
+    ratio: tuple[float, float] = None,
     hflip: float = 0.5,
     vflip: float = 0.0,
     auto_augment: str = None,
@@ -2772,7 +2773,7 @@ class ClassifyLetterBox:
         (640, 640, 3)
     """
 
-    def __init__(self, size: Union[int, Tuple[int, int]] = (640, 640), auto: bool = False, stride: int = 32):
+    def __init__(self, size: Union[int, tuple[int, int]] = (640, 640), auto: bool = False, stride: int = 32):
         """
         Initialize the ClassifyLetterBox object for image preprocessing.
 
@@ -2861,7 +2862,7 @@ class CenterCrop:
         (640, 640, 3)
     """
 
-    def __init__(self, size: Union[int, Tuple[int, int]] = (640, 640)):
+    def __init__(self, size: Union[int, tuple[int, int]] = (640, 640)):
         """
         Initialize the CenterCrop object for image preprocessing.
 
@@ -2987,400 +2988,401 @@ class ToTensor:
         im /= 255.0  # 0-255 to 0.0-1.0
         return im
 
-#-------------------------------------------semantic-segmetation--------------------------------------------------------------------#
+
+# -------------------------------------------semantic-segmetation--------------------------------------------------------------------#
 class SemSegMosaic(BaseMixTransform):
+    """
+    SemSegMosaic augmentation for Semantic segment task.
+
+    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
+    The augmentation is applied to a dataset with a given probability.
+
+    Attributes:
+        dataset: The dataset on which the mosaic augmentation is applied.
+        imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
+        p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
+        n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
+        border (Tuple[int, int]): Border size for width and height.
+
+    Methods:
+        get_indexes: Returns a list of random indexes from the dataset.
+        _mix_transform: Applies mixup transformation to the input image and labels.
+        _mosaic3: Creates a 1x3 image mosaic.
+        _mosaic4: Creates a 2x2 image mosaic.
+        _mosaic9: Creates a 3x3 image mosaic.
+        _update_labels: Updates labels with padding.
+        _cat_labels: Concatenates labels and clips mosaic border instances.
+
+    Examples:
+        >>> from ultralytics.data.augment import Mosaic
+        >>> dataset = YourDataset(...)  # Your image dataset
+        >>> mosaic_aug = Mosaic(dataset, imgsz=640, p=0.5, n=4)
+        >>> augmented_labels = mosaic_aug(original_labels)
+    """
+
+    def __init__(self, dataset, imgsz=1024, p=1.0, n=4):
         """
-        SemSegMosaic augmentation for Semantic segment task.
+        Initializes the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
         The augmentation is applied to a dataset with a given probability.
 
-        Attributes:
-            dataset: The dataset on which the mosaic augmentation is applied.
+        Args:
+            dataset (Any): The dataset on which the mosaic augmentation is applied.
             imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
             p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
             n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
-            border (Tuple[int, int]): Border size for width and height.
-
-        Methods:
-            get_indexes: Returns a list of random indexes from the dataset.
-            _mix_transform: Applies mixup transformation to the input image and labels.
-            _mosaic3: Creates a 1x3 image mosaic.
-            _mosaic4: Creates a 2x2 image mosaic.
-            _mosaic9: Creates a 3x3 image mosaic.
-            _update_labels: Updates labels with padding.
-            _cat_labels: Concatenates labels and clips mosaic border instances.
 
         Examples:
             >>> from ultralytics.data.augment import Mosaic
-            >>> dataset = YourDataset(...)  # Your image dataset
+            >>> dataset = YourDataset(...)
             >>> mosaic_aug = Mosaic(dataset, imgsz=640, p=0.5, n=4)
-            >>> augmented_labels = mosaic_aug(original_labels)
         """
+        assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
+        assert n in {4, 9}, "grid must be equal to 4 or 9."
+        super().__init__(dataset=dataset, p=p)
+        self.num_classes = dataset.data["nc"]
+        self.imgsz = imgsz
+        self.border = (-imgsz // 2, -imgsz // 2)  # width, height
+        self.n = n
 
-        def __init__(self, dataset, imgsz=1024, p=1.0, n=4):
-            """
-            Initializes the Mosaic augmentation object.
+    def get_indexes(self, buffer=True):
+        """
+        Returns a list of random indexes from the dataset for mosaic augmentation.
 
-            This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
-            The augmentation is applied to a dataset with a given probability.
+        This method selects random image indexes either from a buffer or from the entire dataset, depending on
+        the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
 
-            Args:
-                dataset (Any): The dataset on which the mosaic augmentation is applied.
-                imgsz (int): Image size (height and width) after mosaic pipeline of a single image.
-                p (float): Probability of applying the mosaic augmentation. Must be in the range 0-1.
-                n (int): The grid size, either 4 (for 2x2) or 9 (for 3x3).
+        Args:
+            buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
+                dataset.
 
-            Examples:
-                >>> from ultralytics.data.augment import Mosaic
-                >>> dataset = YourDataset(...)
-                >>> mosaic_aug = Mosaic(dataset, imgsz=640, p=0.5, n=4)
-            """
-            assert 0 <= p <= 1.0, f"The probability should be in range [0, 1], but got {p}."
-            assert n in {4, 9}, "grid must be equal to 4 or 9."
-            super().__init__(dataset=dataset, p=p)
-            self.num_classes = dataset.data['nc']
-            self.imgsz = imgsz
-            self.border = (-imgsz // 2, -imgsz // 2)  # width, height
-            self.n = n
+        Returns:
+            (List[int]): A list of random image indexes. The length of the list is n-1, where n is the number
+                of images used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
 
-        def get_indexes(self, buffer=True):
-            """
-            Returns a list of random indexes from the dataset for mosaic augmentation.
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
+            >>> indexes = mosaic.get_indexes()
+            >>> print(len(indexes))  # Output: 3
+        """
+        if buffer:  # select images from buffer
+            return random.choices(list(self.dataset.buffer), k=self.n - 1)
+        else:  # select any images
+            return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
-            This method selects random image indexes either from a buffer or from the entire dataset, depending on
-            the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
+    def _mix_transform(self, labels):
+        """
+        Applies mosaic augmentation to the input image and labels.
 
-            Args:
-                buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
-                    dataset.
+        This method combines multiple images (3, 4, or 9) into a single mosaic image based on the 'n' attribute.
+        It ensures that rectangular annotations are not present and that there are other images available for
+        mosaic augmentation.
 
-            Returns:
-                (List[int]): A list of random image indexes. The length of the list is n-1, where n is the number
-                    of images used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
+        Args:
+            labels (Dict): A dictionary containing image data and annotations. Expected keys include:
+                - 'rect_shape': Should be None as rect and mosaic are mutually exclusive.
+                - 'mix_labels': A list of dictionaries containing data for other images to be used in the mosaic.
 
-            Examples:
-                >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
-                >>> indexes = mosaic.get_indexes()
-                >>> print(len(indexes))  # Output: 3
-            """
-            if buffer:  # select images from buffer
-                return random.choices(list(self.dataset.buffer), k=self.n - 1)
-            else:  # select any images
-                return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
+        Returns:
+            (Dict): A dictionary containing the mosaic-augmented image and updated annotations.
 
-        def _mix_transform(self, labels):
-            """
-            Applies mosaic augmentation to the input image and labels.
+        Raises:
+            AssertionError: If 'rect_shape' is not None or if 'mix_labels' is empty.
 
-            This method combines multiple images (3, 4, or 9) into a single mosaic image based on the 'n' attribute.
-            It ensures that rectangular annotations are not present and that there are other images available for
-            mosaic augmentation.
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
+            >>> augmented_data = mosaic._mix_transform(labels)
+        """
+        assert labels.get("rect_shape", None) is None, "rect and mosaic are mutually exclusive."
+        assert len(labels.get("mix_labels", [])), "There are no other images for mosaic augment."
+        return (
+            self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
+        )  # This code is modified for mosaic3 method.
 
-            Args:
-                labels (Dict): A dictionary containing image data and annotations. Expected keys include:
-                    - 'rect_shape': Should be None as rect and mosaic are mutually exclusive.
-                    - 'mix_labels': A list of dictionaries containing data for other images to be used in the mosaic.
+    def _mosaic3(self, labels):
+        """
+        Creates a 1x3 image mosaic by combining three images.
 
-            Returns:
-                (Dict): A dictionary containing the mosaic-augmented image and updated annotations.
+        This method arranges three images in a horizontal layout, with the main image in the center and two
+        additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
 
-            Raises:
-                AssertionError: If 'rect_shape' is not None or if 'mix_labels' is empty.
+        Args:
+            labels (Dict): A dictionary containing image and label information for the main (center) image.
+                Must include 'img' key with the image array, and 'mix_labels' key with a list of two
+                dictionaries containing information for the side images.
 
-            Examples:
-                >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
-                >>> augmented_data = mosaic._mix_transform(labels)
-            """
-            assert labels.get("rect_shape", None) is None, "rect and mosaic are mutually exclusive."
-            assert len(labels.get("mix_labels", [])), "There are no other images for mosaic augment."
-            return (
-                self._mosaic3(labels) if self.n == 3 else self._mosaic4(labels) if self.n == 4 else self._mosaic9(
-                    labels)
-            )  # This code is modified for mosaic3 method.
+        Returns:
+            (Dict): A dictionary with the mosaic image and updated labels. Keys include:
+                - 'img' (np.ndarray): The mosaic image array with shape (H, W, C).
+                - Other keys from the input labels, updated to reflect the new image dimensions.
 
-        def _mosaic3(self, labels):
-            """
-            Creates a 1x3 image mosaic by combining three images.
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=3)
+            >>> labels = {
+            ...     "img": np.random.rand(480, 640, 3),
+            ...     "mix_labels": [{"img": np.random.rand(480, 640, 3)} for _ in range(2)],
+            ... }
+            >>> result = mosaic._mosaic3(labels)
+            >>> print(result["img"].shape)
+            (640, 640, 3)
+        """
+        mosaic_labels = []
+        s = self.imgsz
+        for i in range(3):
+            labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
+            # Load image
+            img = labels_patch["img"]
+            msk = labels_patch["mask"]
+            h, w = labels_patch.pop("resized_shape")
 
-            This method arranges three images in a horizontal layout, with the main image in the center and two
-            additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
+            # Place img in img3
+            if i == 0:  # center
+                img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
+                msk3 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)
+                msk3[:, :, -1] = 1
+                h0, w0 = h, w
+                c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
+            elif i == 1:  # right
+                c = s + w0, s, s + w0 + w, s + h
+            elif i == 2:  # left
+                c = s - w, s + h0 - h, s, s + h0
 
-            Args:
-                labels (Dict): A dictionary containing image and label information for the main (center) image.
-                    Must include 'img' key with the image array, and 'mix_labels' key with a list of two
-                    dictionaries containing information for the side images.
+            padw, padh = c[:2]
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
 
-            Returns:
-                (Dict): A dictionary with the mosaic image and updated labels. Keys include:
-                    - 'img' (np.ndarray): The mosaic image array with shape (H, W, C).
-                    - Other keys from the input labels, updated to reflect the new image dimensions.
+            img3[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img3[ymin:ymax, xmin:xmax]
+            msk3[y1:y2, x1:x2] = msk[y1 - padh :, x1 - padw :]  # img4[ymin:ymax, xmin:xmax]
+            # hp, wp = h, w  # height, width previous for next iteration
 
-            Examples:
-                >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=3)
-                >>> labels = {
-                ...     "img": np.random.rand(480, 640, 3),
-                ...     "mix_labels": [{"img": np.random.rand(480, 640, 3)} for _ in range(2)],
-                ... }
-                >>> result = mosaic._mosaic3(labels)
-                >>> print(result["img"].shape)
-                (640, 640, 3)
-            """
-            mosaic_labels = []
-            s = self.imgsz
-            for i in range(3):
-                labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
-                # Load image
-                img = labels_patch["img"]
-                msk = labels_patch["mask"]
-                h, w = labels_patch.pop("resized_shape")
+            # Labels assuming imgsz*2 mosaic size
+            labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
+            mosaic_labels.append(labels_patch)
+        final_labels = self._cat_labels(mosaic_labels)
 
-                # Place img in img3
-                if i == 0:  # center
-                    img3 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 3 tiles
-                    msk3 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)
-                    msk3[:,:, -1] = 1
-                    h0, w0 = h, w
-                    c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
-                elif i == 1:  # right
-                    c = s + w0, s, s + w0 + w, s + h
-                elif i == 2:  # left
-                    c = s - w, s + h0 - h, s, s + h0
+        final_labels["img"] = img3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        final_labels["mask"] = msk3[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        return final_labels
 
-                padw, padh = c[:2]
-                x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+    def _mosaic4(self, labels):
+        """
+        Creates a 2x2 image mosaic from four input images.
 
-                img3[y1:y2, x1:x2] = img[y1 - padh:, x1 - padw:]  # img3[ymin:ymax, xmin:xmax]
-                msk3[y1:y2, x1:x2] = msk[y1 - padh:, x1 - padw:]  # img4[ymin:ymax, xmin:xmax]
-                # hp, wp = h, w  # height, width previous for next iteration
+        This method combines four images into a single mosaic image by placing them in a 2x2 grid. It also
+        updates the corresponding labels for each image in the mosaic.
 
-                # Labels assuming imgsz*2 mosaic size
-                labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
-                mosaic_labels.append(labels_patch)
-            final_labels = self._cat_labels(mosaic_labels)
+        Args:
+            labels (Dict): A dictionary containing image data and labels for the base image (index 0) and three
+                additional images (indices 1-3) in the 'mix_labels' key.
 
-            final_labels["img"] = img3[-self.border[0]: self.border[0], -self.border[1]: self.border[1]]
-            final_labels["mask"] = msk3[-self.border[0]: self.border[0], -self.border[1]: self.border[1]]
-            return final_labels
+        Returns:
+            (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
+                image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
 
-        def _mosaic4(self, labels):
-            """
-            Creates a 2x2 image mosaic from four input images.
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
+            >>> labels = {
+            ...     "img": np.random.rand(480, 640, 3),
+            ...     "mix_labels": [{"img": np.random.rand(480, 640, 3)} for _ in range(3)],
+            ... }
+            >>> result = mosaic._mosaic4(labels)
+            >>> assert result["img"].shape == (1280, 1280, 3)
+        """
+        mosaic_labels = []
+        s = self.imgsz
+        yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
+        for i in range(4):
+            labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
+            # Load image
+            img = labels_patch["img"]
+            msk = labels_patch["mask"]
+            h, w = labels_patch.pop("resized_shape")
 
-            This method combines four images into a single mosaic image by placing them in a 2x2 grid. It also
-            updates the corresponding labels for each image in the mosaic.
+            # Place img in img4
+            if i == 0:  # top left
+                img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
+                msk4 = np.full((s * 2, s * 2, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
+                msk4[:, :, -1] = 1
+                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
+            elif i == 1:  # top right
+                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
+                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+            elif i == 2:  # bottom left
+                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, w, min(y2a - y1a, h)
+            elif i == 3:  # bottom right
+                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
 
-            Args:
-                labels (Dict): A dictionary containing image data and labels for the base image (index 0) and three
-                    additional images (indices 1-3) in the 'mix_labels' key.
+            img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
+            msk4[y1a:y2a, x1a:x2a] = msk[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
+            padw = x1a - x1b
+            padh = y1a - y1b
 
-            Returns:
-                (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
-                    image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
+            labels_patch = self._update_labels(labels_patch, padw, padh)
+            mosaic_labels.append(labels_patch)
+        final_labels = self._cat_labels(mosaic_labels)
+        final_labels["img"] = img4
+        final_labels["mask"] = msk4
+        return final_labels
 
-            Examples:
-                >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
-                >>> labels = {
-                ...     "img": np.random.rand(480, 640, 3),
-                ...     "mix_labels": [{"img": np.random.rand(480, 640, 3)} for _ in range(3)],
-                ... }
-                >>> result = mosaic._mosaic4(labels)
-                >>> assert result["img"].shape == (1280, 1280, 3)
-            """
-            mosaic_labels = []
-            s = self.imgsz
-            yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
-            for i in range(4):
-                labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
-                # Load image
-                img = labels_patch["img"]
-                msk = labels_patch["mask"]
-                h, w = labels_patch.pop("resized_shape")
+    def _mosaic9(self, labels):
+        """
+        Creates a 3x3 image mosaic from the input image and eight additional images.
 
-                # Place img in img4
-                if i == 0:  # top left
-                    img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-                    msk4 = np.full((s * 2, s * 2, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
-                    msk4[:,:,-1] = 1
-                    x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
-                    x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
-                elif i == 1:  # top right
-                    x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
-                    x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
-                elif i == 2:  # bottom left
-                    x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
-                    x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, w, min(y2a - y1a, h)
-                elif i == 3:  # bottom right
-                    x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
-                    x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+        This method combines nine images into a single mosaic image. The input image is placed at the center,
+        and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
 
-                img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
-                msk4[y1a:y2a, x1a:x2a] = msk[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
-                padw = x1a - x1b
-                padh = y1a - y1b
+        Args:
+            labels (Dict): A dictionary containing the input image and its associated labels. It should have
+                the following keys:
+                - 'img' (numpy.ndarray): The input image.
+                - 'resized_shape' (Tuple[int, int]): The shape of the resized image (height, width).
+                - 'mix_labels' (List[Dict]): A list of dictionaries containing information for the additional
+                  eight images, each with the same structure as the input labels.
 
-                labels_patch = self._update_labels(labels_patch, padw, padh)
-                mosaic_labels.append(labels_patch)
-            final_labels = self._cat_labels(mosaic_labels)
-            final_labels["img"] = img4
-            final_labels["mask"] = msk4
-            return final_labels
+        Returns:
+            (Dict): A dictionary containing the mosaic image and updated labels. It includes the following keys:
+                - 'img' (numpy.ndarray): The final mosaic image.
+                - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
-        def _mosaic9(self, labels):
-            """
-            Creates a 3x3 image mosaic from the input image and eight additional images.
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=9)
+            >>> input_labels = dataset[0]
+            >>> mosaic_result = mosaic._mosaic9(input_labels)
+            >>> mosaic_image = mosaic_result["img"]
+        """
+        mosaic_labels = []
+        s = self.imgsz
+        hp, wp = -1, -1  # height, width previous
+        for i in range(9):
+            labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
+            # Load image
+            img = labels_patch["img"]
+            msk = labels_patch["mask"]
+            h, w = labels_patch.pop("resized_shape")
 
-            This method combines nine images into a single mosaic image. The input image is placed at the center,
-            and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
+            # Place img in img9
+            if i == 0:  # center
+                img9 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
+                msk9 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
+                msk9[:, :, -1] = 1
+                h0, w0 = h, w
+                c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
+            elif i == 1:  # top
+                c = s, s - h, s + w, s
+            elif i == 2:  # top right
+                c = s + wp, s - h, s + wp + w, s
+            elif i == 3:  # right
+                c = s + w0, s, s + w0 + w, s + h
+            elif i == 4:  # bottom right
+                c = s + w0, s + hp, s + w0 + w, s + hp + h
+            elif i == 5:  # bottom
+                c = s + w0 - w, s + h0, s + w0, s + h0 + h
+            elif i == 6:  # bottom left
+                c = s + w0 - wp - w, s + h0, s + w0 - wp, s + h0 + h
+            elif i == 7:  # left
+                c = s - w, s + h0 - h, s, s + h0
+            elif i == 8:  # top left
+                c = s - w, s + h0 - hp - h, s, s + h0 - hp
 
-            Args:
-                labels (Dict): A dictionary containing the input image and its associated labels. It should have
-                    the following keys:
-                    - 'img' (numpy.ndarray): The input image.
-                    - 'resized_shape' (Tuple[int, int]): The shape of the resized image (height, width).
-                    - 'mix_labels' (List[Dict]): A list of dictionaries containing information for the additional
-                      eight images, each with the same structure as the input labels.
+            padw, padh = c[:2]
+            x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
 
-            Returns:
-                (Dict): A dictionary containing the mosaic image and updated labels. It includes the following keys:
-                    - 'img' (numpy.ndarray): The final mosaic image.
-                    - Other keys from the input labels, updated to reflect the new mosaic arrangement.
+            # Image
+            img9[y1:y2, x1:x2] = img[y1 - padh :, x1 - padw :]  # img9[ymin:ymax, xmin:xmax]
+            msk9[y1:y2, x1:x2] = msk[y1 - padh :, x1 - padw :]
+            hp, wp = h, w  # height, width previous for next iteration
 
-            Examples:
-                >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=9)
-                >>> input_labels = dataset[0]
-                >>> mosaic_result = mosaic._mosaic9(input_labels)
-                >>> mosaic_image = mosaic_result["img"]
-            """
-            mosaic_labels = []
-            s = self.imgsz
-            hp, wp = -1, -1  # height, width previous
-            for i in range(9):
-                labels_patch = labels if i == 0 else labels["mix_labels"][i - 1]
-                # Load image
-                img = labels_patch["img"]
-                msk = labels_patch["mask"]
-                h, w = labels_patch.pop("resized_shape")
+            # Labels assuming imgsz*2 mosaic size
+            labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
+            mosaic_labels.append(labels_patch)
+        final_labels = self._cat_labels(mosaic_labels)
 
-                # Place img in img9
-                if i == 0:  # center
-                    img9 = np.full((s * 3, s * 3, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
-                    msk9 = np.full((s * 3, s * 3, msk.shape[2]), 0, dtype=np.uint8)  # base image with 4 tiles
-                    msk9[:, :, -1] =1
-                    h0, w0 = h, w
-                    c = s, s, s + w, s + h  # xmin, ymin, xmax, ymax (base) coordinates
-                elif i == 1:  # top
-                    c = s, s - h, s + w, s
-                elif i == 2:  # top right
-                    c = s + wp, s - h, s + wp + w, s
-                elif i == 3:  # right
-                    c = s + w0, s, s + w0 + w, s + h
-                elif i == 4:  # bottom right
-                    c = s + w0, s + hp, s + w0 + w, s + hp + h
-                elif i == 5:  # bottom
-                    c = s + w0 - w, s + h0, s + w0, s + h0 + h
-                elif i == 6:  # bottom left
-                    c = s + w0 - wp - w, s + h0, s + w0 - wp, s + h0 + h
-                elif i == 7:  # left
-                    c = s - w, s + h0 - h, s, s + h0
-                elif i == 8:  # top left
-                    c = s - w, s + h0 - hp - h, s, s + h0 - hp
+        final_labels["img"] = img9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        final_labels["mask"] = msk9[-self.border[0] : self.border[0], -self.border[1] : self.border[1]]
+        return final_labels
 
-                padw, padh = c[:2]
-                x1, y1, x2, y2 = (max(x, 0) for x in c)  # allocate coords
+    @staticmethod
+    def _update_labels(labels, padw, padh):
+        """
+        Updates label coordinates with padding values.
 
-                # Image
-                img9[y1:y2, x1:x2] = img[y1 - padh:, x1 - padw:]  # img9[ymin:ymax, xmin:xmax]
-                msk9[y1:y2, x1:x2] = msk[y1 - padh:, x1 - padw:]
-                hp, wp = h, w  # height, width previous for next iteration
+        This method adjusts the bounding box coordinates of object instances in the labels by adding padding
+        values. It also denormalizes the coordinates if they were previously normalized.
 
-                # Labels assuming imgsz*2 mosaic size
-                labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
-                mosaic_labels.append(labels_patch)
-            final_labels = self._cat_labels(mosaic_labels)
+        Args:
+            labels (Dict): A dictionary containing image and instance information.
+            padw (int): Padding width to be added to the x-coordinates.
+            padh (int): Padding height to be added to the y-coordinates.
 
-            final_labels["img"] = img9[-self.border[0]: self.border[0], -self.border[1]: self.border[1]]
-            final_labels["mask"] = msk9[-self.border[0]: self.border[0], -self.border[1]: self.border[1]]
-            return final_labels
+        Returns:
+            (Dict): Updated labels dictionary with adjusted instance coordinates.
 
-        @staticmethod
-        def _update_labels(labels, padw, padh):
-            """
-            Updates label coordinates with padding values.
+        Examples:
+            >>> labels = {"img": np.zeros((100, 100, 3)), "instances": Instances(...)}
+            >>> padw, padh = 50, 50
+            >>> updated_labels = Mosaic._update_labels(labels, padw, padh)
+        """
+        nh, nw = labels["img"].shape[:2]
+        labels["instances"].convert_bbox(format="xyxy")
+        labels["instances"].denormalize(nw, nh)
+        labels["instances"].add_padding(padw, padh)
+        return labels
 
-            This method adjusts the bounding box coordinates of object instances in the labels by adding padding
-            values. It also denormalizes the coordinates if they were previously normalized.
+    def _cat_labels(self, mosaic_labels):
+        """
+        Concatenates and processes labels for mosaic augmentation.
 
-            Args:
-                labels (Dict): A dictionary containing image and instance information.
-                padw (int): Padding width to be added to the x-coordinates.
-                padh (int): Padding height to be added to the y-coordinates.
+        This method combines labels from multiple images used in mosaic augmentation, clips instances to the
+        mosaic border, and removes zero-area boxes.
 
-            Returns:
-                (Dict): Updated labels dictionary with adjusted instance coordinates.
+        Args:
+            mosaic_labels (List[Dict]): A list of label dictionaries for each image in the mosaic.
 
-            Examples:
-                >>> labels = {"img": np.zeros((100, 100, 3)), "instances": Instances(...)}
-                >>> padw, padh = 50, 50
-                >>> updated_labels = Mosaic._update_labels(labels, padw, padh)
-            """
-            nh, nw = labels["img"].shape[:2]
-            labels["instances"].convert_bbox(format="xyxy")
-            labels["instances"].denormalize(nw, nh)
-            labels["instances"].add_padding(padw, padh)
-            return labels
+        Returns:
+            (Dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
+                - im_file (str): File path of the first image in the mosaic.
+                - ori_shape (Tuple[int, int]): Original shape of the first image.
+                - resized_shape (Tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
+                - cls (np.ndarray): Concatenated class labels.
+                - instances (Instances): Concatenated instance annotations.
+                - mosaic_border (Tuple[int, int]): Mosaic border size.
+                - texts (List[str], optional): Text labels if present in the original labels.
 
-        def _cat_labels(self, mosaic_labels):
-            """
-            Concatenates and processes labels for mosaic augmentation.
+        Examples:
+            >>> mosaic = Mosaic(dataset, imgsz=640)
+            >>> mosaic_labels = [{"cls": np.array([0, 1]), "instances": Instances(...)} for _ in range(4)]
+            >>> result = mosaic._cat_labels(mosaic_labels)
+            >>> print(result.keys())
+            dict_keys(['im_file', 'ori_shape', 'resized_shape', 'cls', 'instances', 'mosaic_border'])
+        """
+        if len(mosaic_labels) == 0:
+            return {}
+        cls = []
+        instances = []
+        imgsz = self.imgsz * 2  # mosaic imgsz
+        for labels in mosaic_labels:
+            cls.append(labels["cls"])
+            instances.append(labels["instances"])
+        # Final labels
+        final_labels = {
+            "im_file": mosaic_labels[0]["im_file"],
+            "msk_file": mosaic_labels[0]["msk_file"],
+            "ori_shape": mosaic_labels[0]["ori_shape"],
+            "resized_shape": (imgsz, imgsz),
+            "cls": np.concatenate(cls, 0),
+            "instances": Instances.concatenate(instances, axis=0),
+            "mosaic_border": self.border,
+        }
+        final_labels["instances"].clip(imgsz, imgsz)
+        good = final_labels["instances"].remove_zero_area_boxes()
+        final_labels["cls"] = final_labels["cls"][good]
+        if "texts" in mosaic_labels[0]:
+            final_labels["texts"] = mosaic_labels[0]["texts"]
+        return final_labels
 
-            This method combines labels from multiple images used in mosaic augmentation, clips instances to the
-            mosaic border, and removes zero-area boxes.
-
-            Args:
-                mosaic_labels (List[Dict]): A list of label dictionaries for each image in the mosaic.
-
-            Returns:
-                (Dict): A dictionary containing concatenated and processed labels for the mosaic image, including:
-                    - im_file (str): File path of the first image in the mosaic.
-                    - ori_shape (Tuple[int, int]): Original shape of the first image.
-                    - resized_shape (Tuple[int, int]): Shape of the mosaic image (imgsz * 2, imgsz * 2).
-                    - cls (np.ndarray): Concatenated class labels.
-                    - instances (Instances): Concatenated instance annotations.
-                    - mosaic_border (Tuple[int, int]): Mosaic border size.
-                    - texts (List[str], optional): Text labels if present in the original labels.
-
-            Examples:
-                >>> mosaic = Mosaic(dataset, imgsz=640)
-                >>> mosaic_labels = [{"cls": np.array([0, 1]), "instances": Instances(...)} for _ in range(4)]
-                >>> result = mosaic._cat_labels(mosaic_labels)
-                >>> print(result.keys())
-                dict_keys(['im_file', 'ori_shape', 'resized_shape', 'cls', 'instances', 'mosaic_border'])
-            """
-            if len(mosaic_labels) == 0:
-                return {}
-            cls = []
-            instances = []
-            imgsz = self.imgsz * 2  # mosaic imgsz
-            for labels in mosaic_labels:
-                cls.append(labels["cls"])
-                instances.append(labels["instances"])
-            # Final labels
-            final_labels = {
-                "im_file": mosaic_labels[0]["im_file"],
-                "msk_file": mosaic_labels[0]["msk_file"],
-                "ori_shape": mosaic_labels[0]["ori_shape"],
-                "resized_shape": (imgsz, imgsz),
-                "cls": np.concatenate(cls, 0),
-                "instances": Instances.concatenate(instances, axis=0),
-                "mosaic_border": self.border,
-            }
-            final_labels["instances"].clip(imgsz, imgsz)
-            good = final_labels["instances"].remove_zero_area_boxes()
-            final_labels["cls"] = final_labels["cls"][good]
-            if "texts" in mosaic_labels[0]:
-                final_labels["texts"] = mosaic_labels[0]["texts"]
-            return final_labels
 
 class SemSegRandomFlip:
     """
@@ -3479,8 +3481,19 @@ class SemSegRandomFlip:
         labels["instances"] = instances
         return labels
 
+
 class SemSegRandomPerspective(RandomPerspective):
-    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None, num_classes=20):
+    def __init__(
+        self,
+        degrees=0.0,
+        translate=0.1,
+        scale=0.5,
+        shear=0.0,
+        perspective=0.0,
+        border=(0, 0),
+        pre_transform=None,
+        num_classes=20,
+    ):
         super().__init__(degrees, translate, scale, shear, perspective, border, pre_transform)
         self.num_classes = num_classes
 
@@ -3546,19 +3559,25 @@ class SemSegRandomPerspective(RandomPerspective):
                 new_msk = np.zeros((self.size[0], self.size[1], self.num_classes), dtype=np.uint8)
                 for i in range(self.num_classes):
                     if i != self.num_classes - 1:
-                        new_msk[:,:, i] = cv2.warpPerspective(msk[:,:, i], M, dsize=self.size, borderValue=0,
-                                                          flags=cv2.INTER_NEAREST)
+                        new_msk[:, :, i] = cv2.warpPerspective(
+                            msk[:, :, i], M, dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST
+                        )
                     else:
-                        new_msk[:, :, i] = cv2.warpPerspective(msk[:,:, i], M, dsize=self.size, borderValue=1,
-                                                           flags=cv2.INTER_NEAREST)
+                        new_msk[:, :, i] = cv2.warpPerspective(
+                            msk[:, :, i], M, dsize=self.size, borderValue=1, flags=cv2.INTER_NEAREST
+                        )
             else:  # affine
                 img = cv2.warpAffine(img, M[:2], dsize=self.size, borderValue=(114, 114, 114))
                 new_msk = np.zeros((self.size[0], self.size[1], self.num_classes), dtype=np.uint8)
                 for i in range(self.num_classes):
                     if i != self.num_classes - 1:
-                        new_msk[:, :, i] = cv2.warpAffine(msk[:,:, i], M[:2], dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST)
+                        new_msk[:, :, i] = cv2.warpAffine(
+                            msk[:, :, i], M[:2], dsize=self.size, borderValue=0, flags=cv2.INTER_NEAREST
+                        )
                     else:
-                        new_msk[:, :, i] = cv2.warpAffine(msk[:,:, i], M[:2], dsize=self.size, borderValue=1, flags=cv2.INTER_NEAREST)
+                        new_msk[:, :, i] = cv2.warpAffine(
+                            msk[:, :, i], M[:2], dsize=self.size, borderValue=1, flags=cv2.INTER_NEAREST
+                        )
 
         return img, new_msk, M, s
 
@@ -3641,253 +3660,253 @@ class SemSegRandomPerspective(RandomPerspective):
         labels["resized_shape"] = img.shape[:2]
         return labels
 
-class SemSegFormat:
-        """
-        A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
 
-        This class standardizes image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
+class SemSegFormat:
+    """
+    A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
+
+    This class standardizes image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
+
+    Attributes:
+        bbox_format (str): Format for bounding boxes. Options are 'xywh' or 'xyxy'.
+        normalize (bool): Whether to normalize bounding boxes.
+        return_mask (bool): Whether to return instance masks for segmentation.
+        return_keypoint (bool): Whether to return keypoints for pose estimation.
+        return_obb (bool): Whether to return oriented bounding boxes.
+        mask_ratio (int): Downsample ratio for masks.
+        mask_overlap (bool): Whether to overlap masks.
+        batch_idx (bool): Whether to keep batch indexes.
+        bgr (float): The probability to return BGR images.
+
+    Methods:
+        __call__: Formats labels dictionary with image, classes, bounding boxes, and optionally masks and keypoints.
+        _format_img: Converts image from Numpy array to PyTorch tensor.
+        _format_segments: Converts polygon points to bitmap masks.
+
+    Examples:
+        >>> formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
+        >>> formatted_labels = formatter(labels)
+        >>> img = formatted_labels["img"]
+        >>> bboxes = formatted_labels["bboxes"]
+        >>> masks = formatted_labels["masks"]
+    """
+
+    def __init__(
+        self,
+        bbox_format="xywh",
+        normalize=True,
+        return_mask=False,
+        return_keypoint=False,
+        return_obb=False,
+        mask_ratio=4,
+        mask_overlap=True,
+        batch_idx=True,
+        bgr=0.0,
+    ):
+        """
+        Initializes the Format class with given parameters for image and instance annotation formatting.
+
+        This class standardizes image and instance annotations for object detection, instance segmentation, and pose
+        estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
+
+        Args:
+            bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
+            normalize (bool): Whether to normalize bounding boxes to [0,1].
+            return_mask (bool): If True, returns instance masks for segmentation tasks.
+            return_keypoint (bool): If True, returns keypoints for pose estimation tasks.
+            return_obb (bool): If True, returns oriented bounding boxes.
+            mask_ratio (int): Downsample ratio for masks.
+            mask_overlap (bool): If True, allows mask overlap.
+            batch_idx (bool): If True, keeps batch indexes.
+            bgr (float): Probability of returning BGR images instead of RGB.
 
         Attributes:
-            bbox_format (str): Format for bounding boxes. Options are 'xywh' or 'xyxy'.
-            normalize (bool): Whether to normalize bounding boxes.
-            return_mask (bool): Whether to return instance masks for segmentation.
-            return_keypoint (bool): Whether to return keypoints for pose estimation.
+            bbox_format (str): Format for bounding boxes.
+            normalize (bool): Whether bounding boxes are normalized.
+            return_mask (bool): Whether to return instance masks.
+            return_keypoint (bool): Whether to return keypoints.
             return_obb (bool): Whether to return oriented bounding boxes.
             mask_ratio (int): Downsample ratio for masks.
-            mask_overlap (bool): Whether to overlap masks.
+            mask_overlap (bool): Whether masks can overlap.
             batch_idx (bool): Whether to keep batch indexes.
             bgr (float): The probability to return BGR images.
 
-        Methods:
-            __call__: Formats labels dictionary with image, classes, bounding boxes, and optionally masks and keypoints.
-            _format_img: Converts image from Numpy array to PyTorch tensor.
-            _format_segments: Converts polygon points to bitmap masks.
+        Examples:
+            >>> format = Format(bbox_format="xyxy", return_mask=True, return_keypoint=False)
+            >>> print(format.bbox_format)
+            xyxy
+        """
+        self.bbox_format = bbox_format
+        self.normalize = normalize
+        self.return_mask = return_mask  # set False when training detection only
+        self.return_keypoint = return_keypoint
+        self.return_obb = return_obb
+        self.mask_ratio = mask_ratio
+        self.mask_overlap = mask_overlap
+        self.batch_idx = batch_idx  # keep the batch indexes
+        self.bgr = bgr
+
+    def __call__(self, labels):
+        """
+        Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
+
+        This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
+        DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
+        applying normalization if required.
+
+        Args:
+            labels (Dict): A dictionary containing image and annotation data with the following keys:
+                - 'img': The input image as a numpy array.
+                - 'cls': Class labels for instances.
+                - 'instances': An Instances object containing bounding boxes, segments, and keypoints.
+
+        Returns:
+            (Dict): A dictionary with formatted data, including:
+                - 'img': Formatted image tensor.
+                - 'cls': Class labels tensor.
+                - 'bboxes': Bounding boxes tensor in the specified format.
+                - 'masks': Instance masks tensor (if return_mask is True).
+                - 'keypoints': Keypoints tensor (if return_keypoint is True).
+                - 'batch_idx': Batch index tensor (if batch_idx is True).
 
         Examples:
             >>> formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
+            >>> labels = {"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1]), "instances": Instances(...)}
             >>> formatted_labels = formatter(labels)
-            >>> img = formatted_labels["img"]
-            >>> bboxes = formatted_labels["bboxes"]
-            >>> masks = formatted_labels["masks"]
+            >>> print(formatted_labels.keys())
         """
-
-        def __init__(
-                self,
-                bbox_format="xywh",
-                normalize=True,
-                return_mask=False,
-                return_keypoint=False,
-                return_obb=False,
-                mask_ratio=4,
-                mask_overlap=True,
-                batch_idx=True,
-                bgr=0.0,
-        ):
-            """
-            Initializes the Format class with given parameters for image and instance annotation formatting.
-
-            This class standardizes image and instance annotations for object detection, instance segmentation, and pose
-            estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
-
-            Args:
-                bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
-                normalize (bool): Whether to normalize bounding boxes to [0,1].
-                return_mask (bool): If True, returns instance masks for segmentation tasks.
-                return_keypoint (bool): If True, returns keypoints for pose estimation tasks.
-                return_obb (bool): If True, returns oriented bounding boxes.
-                mask_ratio (int): Downsample ratio for masks.
-                mask_overlap (bool): If True, allows mask overlap.
-                batch_idx (bool): If True, keeps batch indexes.
-                bgr (float): Probability of returning BGR images instead of RGB.
-
-            Attributes:
-                bbox_format (str): Format for bounding boxes.
-                normalize (bool): Whether bounding boxes are normalized.
-                return_mask (bool): Whether to return instance masks.
-                return_keypoint (bool): Whether to return keypoints.
-                return_obb (bool): Whether to return oriented bounding boxes.
-                mask_ratio (int): Downsample ratio for masks.
-                mask_overlap (bool): Whether masks can overlap.
-                batch_idx (bool): Whether to keep batch indexes.
-                bgr (float): The probability to return BGR images.
-
-            Examples:
-                >>> format = Format(bbox_format="xyxy", return_mask=True, return_keypoint=False)
-                >>> print(format.bbox_format)
-                xyxy
-            """
-            self.bbox_format = bbox_format
-            self.normalize = normalize
-            self.return_mask = return_mask  # set False when training detection only
-            self.return_keypoint = return_keypoint
-            self.return_obb = return_obb
-            self.mask_ratio = mask_ratio
-            self.mask_overlap = mask_overlap
-            self.batch_idx = batch_idx  # keep the batch indexes
-            self.bgr = bgr
-
-        def __call__(self, labels):
-            """
-            Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
-
-            This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
-            DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
-            applying normalization if required.
-
-            Args:
-                labels (Dict): A dictionary containing image and annotation data with the following keys:
-                    - 'img': The input image as a numpy array.
-                    - 'cls': Class labels for instances.
-                    - 'instances': An Instances object containing bounding boxes, segments, and keypoints.
-
-            Returns:
-                (Dict): A dictionary with formatted data, including:
-                    - 'img': Formatted image tensor.
-                    - 'cls': Class labels tensor.
-                    - 'bboxes': Bounding boxes tensor in the specified format.
-                    - 'masks': Instance masks tensor (if return_mask is True).
-                    - 'keypoints': Keypoints tensor (if return_keypoint is True).
-                    - 'batch_idx': Batch index tensor (if batch_idx is True).
-
-            Examples:
-                >>> formatter = Format(bbox_format="xywh", normalize=True, return_mask=True)
-                >>> labels = {"img": np.random.rand(640, 640, 3), "cls": np.array([0, 1]), "instances": Instances(...)}
-                >>> formatted_labels = formatter(labels)
-                >>> print(formatted_labels.keys())
-            """
-            img = labels.pop("img")
-            h, w = img.shape[:2]
-            cls = labels.pop("cls")
-            instances = labels.pop("instances")
-            instances.convert_bbox(format=self.bbox_format)
-            instances.denormalize(w, h)
-            nl = len(instances)
-            mask = labels.pop("mask")
-            if self.return_mask:
-                if nl:
-                    _, instances, cls = self._format_segments(instances, cls, w, h)
-                else:
-                    masks = torch.zeros(
-                        1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
-                    )
-            labels["img"] = self._format_img(img)
-            labels["masks"] = self._format_mask(mask)
-            labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
-            labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
-            if self.return_keypoint:
-                labels["keypoints"] = torch.from_numpy(instances.keypoints)
-                if self.normalize:
-                    labels["keypoints"][..., 0] /= w
-                    labels["keypoints"][..., 1] /= h
-            if self.return_obb:
-                labels["bboxes"] = (
-                    xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros(
-                        (0, 5))
-                )
-            # NOTE: need to normalize obb in xywhr format for width-height consistency
-            if self.normalize:
-                labels["bboxes"][:, [0, 2]] /= w
-                labels["bboxes"][:, [1, 3]] /= h
-            # Then we can use collate_fn
-            if self.batch_idx:
-                labels["batch_idx"] = torch.zeros(nl)
-            return labels
-
-        def _format_img(self, img):
-            """
-            Formats an image for YOLO from a Numpy array to a PyTorch tensor.
-
-            This function performs the following operations:
-            1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
-            2. Transposes the image from HWC to CHW format.
-            3. Optionally flips the color channels from RGB to BGR.
-            4. Converts the image to a contiguous array.
-            5. Converts the Numpy array to a PyTorch tensor.
-
-            Args:
-                img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
-
-            Returns:
-                (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
-
-            Examples:
-                >>> import numpy as np
-                >>> img = np.random.rand(100, 100, 3)
-                >>> formatted_img = self._format_img(img)
-                >>> print(formatted_img.shape)
-                torch.Size([3, 100, 100])
-            """
-            if len(img.shape) < 3:
-                img = np.expand_dims(img, -1)
-            img = img.transpose(2, 0, 1)
-            img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
-            img = torch.from_numpy(img)
-            return img
-
-        def _format_mask(self, mask):
-            """
-            Formats an image for YOLO from a Numpy array to a PyTorch tensor.
-
-            This function performs the following operations:
-            1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
-            2. Transposes the image from HWC to CHW format.
-            3. Optionally flips the color channels from RGB to BGR.
-            4. Converts the image to a contiguous array.
-            5. Converts the Numpy array to a PyTorch tensor.
-
-            Args:
-                img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
-
-            Returns:
-                (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
-
-            Examples:
-                >>> import numpy as np
-                >>> img = np.random.rand(100, 100, 3)
-                >>> formatted_img = self._format_img(img)
-                >>> print(formatted_img.shape)
-                torch.Size([3, 100, 100])
-            """
-
-            #mask[mask > 1] = 0
-            #ss = np.sum(mask, axis=-1) == 0
-            #mask[ss, -1] = 1
-            mask = mask.transpose(2, 0, 1)
-            mask = np.ascontiguousarray(mask if random.uniform(0, 1) > self.bgr else mask)
-            mask = torch.from_numpy(mask)
-            return mask
-
-        def _format_segments(self, instances, cls, w, h):
-            """
-            Converts polygon segments to bitmap masks.
-
-            Args:
-                instances (Instances): Object containing segment information.
-                cls (numpy.ndarray): Class labels for each instance.
-                w (int): Width of the image.
-                h (int): Height of the image.
-
-            Returns:
-                (tuple): Tuple containing:
-                    masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
-                    instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
-                    cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
-
-            Notes:
-                - If self.mask_overlap is True, masks are overlapped and sorted by area.
-                - If self.mask_overlap is False, each mask is represented separately.
-                - Masks are downsampled according to self.mask_ratio.
-            """
-            segments = instances.segments
-            if self.mask_overlap:
-                masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
-                masks = masks[None]  # (640, 640) -> (1, 640, 640)
-                instances = instances[sorted_idx]
-                cls = cls[sorted_idx]
+        img = labels.pop("img")
+        h, w = img.shape[:2]
+        cls = labels.pop("cls")
+        instances = labels.pop("instances")
+        instances.convert_bbox(format=self.bbox_format)
+        instances.denormalize(w, h)
+        nl = len(instances)
+        mask = labels.pop("mask")
+        if self.return_mask:
+            if nl:
+                _, instances, cls = self._format_segments(instances, cls, w, h)
             else:
-                masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
+                torch.zeros(
+                    1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio
+                )
+        labels["img"] = self._format_img(img)
+        labels["masks"] = self._format_mask(mask)
+        labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
+        labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
+        if self.return_keypoint:
+            labels["keypoints"] = torch.from_numpy(instances.keypoints)
+            if self.normalize:
+                labels["keypoints"][..., 0] /= w
+                labels["keypoints"][..., 1] /= h
+        if self.return_obb:
+            labels["bboxes"] = (
+                xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
+            )
+        # NOTE: need to normalize obb in xywhr format for width-height consistency
+        if self.normalize:
+            labels["bboxes"][:, [0, 2]] /= w
+            labels["bboxes"][:, [1, 3]] /= h
+        # Then we can use collate_fn
+        if self.batch_idx:
+            labels["batch_idx"] = torch.zeros(nl)
+        return labels
 
-            return masks, instances, cls
+    def _format_img(self, img):
+        """
+        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+
+        This function performs the following operations:
+        1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
+        2. Transposes the image from HWC to CHW format.
+        3. Optionally flips the color channels from RGB to BGR.
+        4. Converts the image to a contiguous array.
+        5. Converts the Numpy array to a PyTorch tensor.
+
+        Args:
+            img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+
+        Returns:
+            (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
+
+        Examples:
+            >>> import numpy as np
+            >>> img = np.random.rand(100, 100, 3)
+            >>> formatted_img = self._format_img(img)
+            >>> print(formatted_img.shape)
+            torch.Size([3, 100, 100])
+        """
+        if len(img.shape) < 3:
+            img = np.expand_dims(img, -1)
+        img = img.transpose(2, 0, 1)
+        img = np.ascontiguousarray(img[::-1] if random.uniform(0, 1) > self.bgr else img)
+        img = torch.from_numpy(img)
+        return img
+
+    def _format_mask(self, mask):
+        """
+        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+
+        This function performs the following operations:
+        1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
+        2. Transposes the image from HWC to CHW format.
+        3. Optionally flips the color channels from RGB to BGR.
+        4. Converts the image to a contiguous array.
+        5. Converts the Numpy array to a PyTorch tensor.
+
+        Args:
+            img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+
+        Returns:
+            (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).
+
+        Examples:
+            >>> import numpy as np
+            >>> img = np.random.rand(100, 100, 3)
+            >>> formatted_img = self._format_img(img)
+            >>> print(formatted_img.shape)
+            torch.Size([3, 100, 100])
+        """
+        # mask[mask > 1] = 0
+        # ss = np.sum(mask, axis=-1) == 0
+        # mask[ss, -1] = 1
+        mask = mask.transpose(2, 0, 1)
+        mask = np.ascontiguousarray(mask if random.uniform(0, 1) > self.bgr else mask)
+        mask = torch.from_numpy(mask)
+        return mask
+
+    def _format_segments(self, instances, cls, w, h):
+        """
+        Converts polygon segments to bitmap masks.
+
+        Args:
+            instances (Instances): Object containing segment information.
+            cls (numpy.ndarray): Class labels for each instance.
+            w (int): Width of the image.
+            h (int): Height of the image.
+
+        Returns:
+            (tuple): Tuple containing:
+                masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+                instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
+                cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+
+        Notes:
+            - If self.mask_overlap is True, masks are overlapped and sorted by area.
+            - If self.mask_overlap is False, each mask is represented separately.
+            - Masks are downsampled according to self.mask_ratio.
+        """
+        segments = instances.segments
+        if self.mask_overlap:
+            masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
+            masks = masks[None]  # (640, 640) -> (1, 640, 640)
+            instances = instances[sorted_idx]
+            cls = cls[sorted_idx]
+        else:
+            masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
+
+        return masks, instances, cls
+
 
 def semseg_transforms(dataset, imgsz, hyp, stretch=False):
     """
@@ -3920,7 +3939,7 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
         shear=hyp.shear,
         perspective=hyp.perspective,
         pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
-        num_classes = dataset.data['nc']
+        num_classes=dataset.data["nc"],
     )
 
     pre_transform = Compose([mosaic, affine])
@@ -3942,4 +3961,3 @@ def semseg_transforms(dataset, imgsz, hyp, stretch=False):
             SemSegRandomFlip(direction="horizontal", p=hyp.fliplr, flip_idx=flip_idx),
         ]
     )  # transforms
-

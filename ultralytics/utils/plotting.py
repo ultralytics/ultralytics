@@ -3,7 +3,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import cv2
 import numpy as np
@@ -11,7 +11,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings, threaded
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, TryExcept, ops, plt_settings
 from ultralytics.utils.checks import check_font, check_version, is_ascii
 from ultralytics.utils.files import increment_path
 
@@ -677,11 +677,11 @@ def save_one_box(
 
 
 def plot_images(
-    labels: Dict[str, Any],
+    labels: dict[str, Any],
     images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
-    paths: Optional[List[str]] = None,
+    paths: Optional[list[str]] = None,
     fname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
+    names: Optional[dict[int, str]] = None,
     on_plot: Optional[Callable] = None,
     max_size: int = 1920,
     max_subplots: int = 16,
@@ -851,18 +851,18 @@ def plot_masks(
     bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
     confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
     kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),
-    paths: Optional[List[str]] = None,
+    paths: Optional[list[str]] = None,
     nc: int = -1,
     fname: str = "images.jpg",
     mname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
-    colors: Optional[Dict[int, list]] = None,
+    names: Optional[dict[int, str]] = None,
+    colors: Optional[dict[int, list]] = None,
     on_plot: Optional[Callable] = None,
     max_size: int = 1920,
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
-    one_hot=False
+    one_hot=False,
 ) -> Optional[np.ndarray]:
     """
     Plot image grid with labels, bounding boxes, masks, and keypoints.
@@ -929,7 +929,7 @@ def plot_masks(
         else:
             for j in range(nc):
                 r, g, b = colors[j]
-                mask_bgr[masks[i] == j,:] = np.array([b, g, r]).astype(np.uint8)
+                mask_bgr[masks[i] == j, :] = np.array([b, g, r]).astype(np.uint8)
 
         mask_mosaic[y : y + h, x : x + w, :] = mask_bgr
 
@@ -944,7 +944,9 @@ def plot_masks(
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
     annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
-    mask_annotator = Annotator(cv2.cvtColor(mask_mosaic, cv2.COLOR_BGR2RGB), line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    mask_annotator = Annotator(
+        cv2.cvtColor(mask_mosaic, cv2.COLOR_BGR2RGB), line_width=round(fs / 10), font_size=fs, pil=True, example=names
+    )
     for i in range(bs):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
@@ -959,6 +961,7 @@ def plot_masks(
     mask_annotator.im.save(mname)
     if on_plot:
         on_plot(fname)
+
 
 @plt_settings()
 def plot_results(

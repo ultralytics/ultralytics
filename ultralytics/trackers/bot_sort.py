@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import deque
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -124,7 +124,7 @@ class BOTrack(STrack):
         return ret
 
     @staticmethod
-    def multi_predict(stracks: List["BOTrack"]) -> None:
+    def multi_predict(stracks: list["BOTrack"]) -> None:
         """Predict the mean and covariance for multiple object tracks using a shared Kalman filter."""
         if len(stracks) <= 0:
             return
@@ -210,7 +210,7 @@ class BOTSORT(BYTETracker):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
         return KalmanFilterXYWH()
 
-    def init_track(self, results, img: Optional[np.ndarray] = None) -> List[BOTrack]:
+    def init_track(self, results, img: Optional[np.ndarray] = None) -> list[BOTrack]:
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
         if len(results) == 0:
             return []
@@ -222,7 +222,7 @@ class BOTSORT(BYTETracker):
         else:
             return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
-    def get_dists(self, tracks: List[BOTrack], detections: List[BOTrack]) -> np.ndarray:
+    def get_dists(self, tracks: list[BOTrack], detections: list[BOTrack]) -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
         dists = matching.iou_distance(tracks, detections)
         dists_mask = dists > (1 - self.proximity_thresh)
@@ -237,7 +237,7 @@ class BOTSORT(BYTETracker):
             dists = np.minimum(dists, emb_dists)
         return dists
 
-    def multi_predict(self, tracks: List[BOTrack]) -> None:
+    def multi_predict(self, tracks: list[BOTrack]) -> None:
         """Predict the mean and covariance of multiple object tracks using a shared Kalman filter."""
         BOTrack.multi_predict(tracks)
 
@@ -262,7 +262,7 @@ class ReID:
         self.model = YOLO(model)
         self.model(embed=[len(self.model.model.model) - 2 if ".pt" in model else -1], verbose=False, save=False)  # init
 
-    def __call__(self, img: np.ndarray, dets: np.ndarray) -> List[np.ndarray]:
+    def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
         """Extract embeddings for detected objects."""
         feats = self.model.predictor(
             [save_one_box(det, img, save=False) for det in xywh2xyxy(torch.from_numpy(dets[:, :4]))]

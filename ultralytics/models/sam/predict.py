@@ -9,7 +9,7 @@ segmentation tasks.
 """
 
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import cv2
 import numpy as np
@@ -1717,9 +1717,9 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     def __init__(
         self,
         cfg: Any = DEFAULT_CFG,
-        overrides: Optional[Dict[str, Any]] = None,
+        overrides: Optional[dict[str, Any]] = None,
         max_obj_num: int = 3,
-        _callbacks: Optional[Dict[str, Any]] = None,
+        _callbacks: Optional[dict[str, Any]] = None,
     ) -> None:
         """
         Initialize the predictor with configuration and optional overrides.
@@ -1760,13 +1760,13 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     def inference(
         self,
         img: Union[torch.Tensor, np.ndarray],
-        bboxes: Optional[List[List[float]]] = None,
+        bboxes: Optional[list[list[float]]] = None,
         masks: Optional[Union[torch.Tensor, np.ndarray]] = None,
-        points: Optional[List[List[float]]] = None,
-        labels: Optional[List[int]] = None,
-        obj_ids: Optional[List[int]] = None,
+        points: Optional[list[list[float]]] = None,
+        labels: Optional[list[int]] = None,
+        obj_ids: Optional[list[int]] = None,
         update_memory: bool = False,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Perform inference on a single image with optional bounding boxes, masks, points and object IDs.
         It has two modes: one is to run inference on a single image without updating the memory,
@@ -1844,7 +1844,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def update_memory(
         self,
-        obj_ids: List[int] = None,
+        obj_ids: list[int] = None,
         points: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None,
         masks: Optional[torch.Tensor] = None,
@@ -1958,7 +1958,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             *self.feat_sizes[-1],
         )
 
-    def get_maskmem_enc(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_maskmem_enc(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Get the memory and positional encoding from the memory, which is used to condition the current image
         features.
         """
@@ -1991,7 +1991,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         point: Optional[torch.Tensor] = None,
         label: Optional[torch.Tensor] = None,
         mask: Optional[torch.Tensor] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Tracking step for the current image state to predict masks.
 

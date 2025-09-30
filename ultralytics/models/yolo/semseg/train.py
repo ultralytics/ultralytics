@@ -1,19 +1,19 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from copy import copy
+import math
 import os
 import random
-import math
-import torch
+from copy import copy
+
 import torch.nn as nn
-import numpy as np
+
+from ultralytics.data import build_semantic_dataset
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SemanticModel
 from ultralytics.utils import DEFAULT_CFG, RANK, SEMSEG_CFG
-from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.plotting import plot_masks, plot_results
 from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.data import build_semantic_dataset
-from ultralytics.utils.plotting import plot_masks
+
 
 class SemSegTrainer(yolo.detect.DetectionTrainer):
     """
@@ -37,12 +37,12 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         self.loss_names = ["Loss"]
 
-    #def plot_training_labels(self):
+    # def plot_training_labels(self):
     #    """Create a labeled training plot of the YOLO model."""
     #    images = np.concatenate([lb["images"] for lb in self.train_loader.dataset.labels], 0)
-     #   masks = np.concatenate([lb["masks"] for lb in self.train_loader.dataset.labels], 0)
+    #   masks = np.concatenate([lb["masks"] for lb in self.train_loader.dataset.labels], 0)
 
-     #   plot_masks(images, masks, self.data["nc"], names=self.data["names"],colors=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)
+    #   plot_masks(images, masks, self.data["nc"], names=self.data["names"],colors=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return SegmentationModel initialized with specified config and weights."""
@@ -79,12 +79,12 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
 
     def build_dataset(self, img_path, mode="train", batch=None):
         """
-            Build RSI Dataset.
+        Build RSI Dataset.
 
-            Args:
-                img_path (str): Path to the folder containing images.
-                mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
-                batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
+        Args:
+            img_path (str): Path to the folder containing images.
+            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
+            batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs)
@@ -130,21 +130,23 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
         """Plots training/val metrics."""
         plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png
 
+
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or 'yolov11n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
-    cfg.name = os.path.join(cfg.name, 'train')
+    model = cfg.model or "yolov11n-seg.pt"
+    data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ""
+    cfg.name = os.path.join(cfg.name, "train")
 
     args = dict(model=model, data=data, device=device, task="semseg")
     if use_python:
         from ultralytics import YOLO
+
         YOLO(model).train(**args)
     else:
         trainer = SemSegTrainer(cfg=cfg, overrides=args)
         trainer.train()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     train(cfg=SEMSEG_CFG)

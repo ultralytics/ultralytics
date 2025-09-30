@@ -3,7 +3,7 @@
 import itertools
 from copy import copy, deepcopy
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import torch
 
@@ -34,7 +34,7 @@ class YOLOETrainer(DetectionTrainer):
         build_dataset: Build YOLO dataset with multi-modal support for training.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict] = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks=None):
         """
         Initialize the YOLOE Trainer with specified configurations.
 
@@ -174,7 +174,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         generate_text_embeddings: Generate and cache text embeddings for training.
     """
 
-    def build_dataset(self, img_path: Union[List[str], str], mode: str = "train", batch: Optional[int] = None):
+    def build_dataset(self, img_path: Union[list[str], str], mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation.
 
@@ -201,7 +201,7 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         batch["txt_feats"] = txt_feats
         return batch
 
-    def generate_text_embeddings(self, texts: List[str], batch: int, cache_dir: Path):
+    def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path):
         """
         Generate text embeddings for a list of text samples.
 
@@ -285,7 +285,7 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         preprocess_batch: Preprocess batches with visual prompts.
     """
 
-    def build_dataset(self, img_path: Union[List[str], str], mode: str = "train", batch: Optional[int] = None):
+    def build_dataset(self, img_path: Union[list[str], str], mode: str = "train", batch: Optional[int] = None):
         """
         Build YOLO Dataset for training or validation with visual prompts.
 

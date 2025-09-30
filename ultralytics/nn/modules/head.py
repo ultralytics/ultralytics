@@ -3,7 +3,7 @@
 
 import copy
 import math
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import torch
 import torch.nn as nn
@@ -18,7 +18,18 @@ from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
-__all__ = "Detect", "Segment", "Pose", "Classify", "OBB", "RTDETRDecoder", "v10Detect", "YOLOEDetect", "YOLOESegment", "SemanticSegment"
+__all__ = (
+    "Detect",
+    "Segment",
+    "Pose",
+    "Classify",
+    "OBB",
+    "RTDETRDecoder",
+    "v10Detect",
+    "YOLOEDetect",
+    "YOLOESegment",
+    "SemanticSegment",
+)
 
 
 class Detect(nn.Module):
@@ -75,7 +86,7 @@ class Detect(nn.Module):
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
 
-    def __init__(self, nc: int = 80, ch: Tuple = ()):
+    def __init__(self, nc: int = 80, ch: tuple = ()):
         """
         Initialize the YOLO detection layer with specified number of classes and channels.
 
@@ -111,7 +122,7 @@ class Detect(nn.Module):
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
-    def forward(self, x: List[torch.Tensor]) -> Union[List[torch.Tensor], Tuple]:
+    def forward(self, x: list[torch.Tensor]) -> Union[list[torch.Tensor], tuple]:
         """Concatenate and return predicted bounding boxes and class probabilities."""
         if self.end2end:
             return self.forward_end2end(x)
@@ -123,7 +134,7 @@ class Detect(nn.Module):
         y = self._inference(x)
         return y if self.export else (y, x)
 
-    def forward_end2end(self, x: List[torch.Tensor]) -> Union[dict, Tuple]:
+    def forward_end2end(self, x: list[torch.Tensor]) -> Union[dict, tuple]:
         """
         Perform forward pass of the v10Detect module.
 
@@ -147,7 +158,7 @@ class Detect(nn.Module):
         y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, {"one2many": x, "one2one": one2one})
 
-    def _inference(self, x: List[torch.Tensor]) -> torch.Tensor:
+    def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
         """
         Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.
 
@@ -248,7 +259,7 @@ class Segment(Detect):
         >>> outputs = segment(x)
     """
 
-    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: Tuple = ()):
+    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, ch: tuple = ()):
         """
         Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
 
@@ -266,7 +277,7 @@ class Segment(Detect):
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
-    def forward(self, x: List[torch.Tensor]) -> Union[Tuple, List[torch.Tensor]]:
+    def forward(self, x: list[torch.Tensor]) -> Union[tuple, list[torch.Tensor]]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size
@@ -300,7 +311,7 @@ class OBB(Detect):
         >>> outputs = obb(x)
     """
 
-    def __init__(self, nc: int = 80, ne: int = 1, ch: Tuple = ()):
+    def __init__(self, nc: int = 80, ne: int = 1, ch: tuple = ()):
         """
         Initialize OBB with number of classes `nc` and layer channels `ch`.
 
@@ -315,7 +326,7 @@ class OBB(Detect):
         c4 = max(ch[0] // 4, self.ne)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.ne, 1)) for x in ch)
 
-    def forward(self, x: List[torch.Tensor]) -> Union[torch.Tensor, Tuple]:
+    def forward(self, x: list[torch.Tensor]) -> Union[torch.Tensor, tuple]:
         """Concatenate and return predicted bounding boxes and class probabilities."""
         bs = x[0].shape[0]  # batch size
         angle = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
@@ -356,7 +367,7 @@ class Pose(Detect):
         >>> outputs = pose(x)
     """
 
-    def __init__(self, nc: int = 80, kpt_shape: Tuple = (17, 3), ch: Tuple = ()):
+    def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), ch: tuple = ()):
         """
         Initialize YOLO network with default parameters and Convolutional Layers.
 
@@ -372,7 +383,7 @@ class Pose(Detect):
         c4 = max(ch[0] // 4, self.nk)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
 
-    def forward(self, x: List[torch.Tensor]) -> Union[torch.Tensor, Tuple]:
+    def forward(self, x: list[torch.Tensor]) -> Union[torch.Tensor, tuple]:
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
         kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
@@ -458,7 +469,7 @@ class Classify(nn.Module):
         self.drop = nn.Dropout(p=0.0, inplace=True)
         self.linear = nn.Linear(c_, c2)  # to x(b,c2)
 
-    def forward(self, x: Union[List[torch.Tensor], torch.Tensor]) -> Union[torch.Tensor, Tuple]:
+    def forward(self, x: Union[list[torch.Tensor], torch.Tensor]) -> Union[torch.Tensor, tuple]:
         """Perform forward pass of the YOLO model on input image data."""
         if isinstance(x, list):
             x = torch.cat(x, 1)
@@ -492,7 +503,7 @@ class WorldDetect(Detect):
         >>> outputs = world_detect(x, text)
     """
 
-    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: Tuple = ()):
+    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: tuple = ()):
         """
         Initialize YOLO detection layer with nc classes and layer channels ch.
 
@@ -507,7 +518,7 @@ class WorldDetect(Detect):
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
-    def forward(self, x: List[torch.Tensor], text: torch.Tensor) -> Union[List[torch.Tensor], Tuple]:
+    def forward(self, x: list[torch.Tensor], text: torch.Tensor) -> Union[list[torch.Tensor], tuple]:
         """Concatenate and return predicted bounding boxes and class probabilities."""
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), text)), 1)
@@ -576,7 +587,7 @@ class LRPCHead(nn.Module):
         linear.bias.data = conv.bias.data
         return linear
 
-    def forward(self, cls_feat: torch.Tensor, loc_feat: torch.Tensor, conf: float) -> Tuple[Tuple, torch.Tensor]:
+    def forward(self, cls_feat: torch.Tensor, loc_feat: torch.Tensor, conf: float) -> tuple[tuple, torch.Tensor]:
         """Process classification and localization features to generate detection proposals."""
         if self.enabled:
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
@@ -625,7 +636,7 @@ class YOLOEDetect(Detect):
 
     is_fused = False
 
-    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: Tuple = ()):
+    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: tuple = ()):
         """
         Initialize YOLO detection layer with nc classes and layer channels ch.
 
@@ -709,7 +720,7 @@ class YOLOEDetect(Detect):
         """Get text prompt embeddings with normalization."""
         return None if tpe is None else F.normalize(self.reprta(tpe), dim=-1, p=2)
 
-    def get_vpe(self, x: List[torch.Tensor], vpe: torch.Tensor) -> torch.Tensor:
+    def get_vpe(self, x: list[torch.Tensor], vpe: torch.Tensor) -> torch.Tensor:
         """Get visual prompt embeddings with spatial awareness."""
         if vpe.shape[1] == 0:  # no visual prompt embeddings
             return torch.zeros(x[0].shape[0], 0, self.embed, device=x[0].device)
@@ -718,7 +729,7 @@ class YOLOEDetect(Detect):
         assert vpe.ndim == 3  # (B, N, D)
         return vpe
 
-    def forward_lrpc(self, x: List[torch.Tensor], return_mask: bool = False) -> Union[torch.Tensor, Tuple]:
+    def forward_lrpc(self, x: list[torch.Tensor], return_mask: bool = False) -> Union[torch.Tensor, tuple]:
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         masks = []
         assert self.is_fused, "Prompt-free inference requires model to be fused!"
@@ -757,8 +768,8 @@ class YOLOEDetect(Detect):
             return y if self.export else (y, x)
 
     def forward(
-        self, x: List[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False
-    ) -> Union[torch.Tensor, Tuple]:
+        self, x: list[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False
+    ) -> Union[torch.Tensor, tuple]:
         """Process features with class prompt embeddings to generate detections."""
         if hasattr(self, "lrpc"):  # for prompt-free inference
             return self.forward_lrpc(x, return_mask)
@@ -807,7 +818,7 @@ class YOLOESegment(YOLOEDetect):
     """
 
     def __init__(
-        self, nc: int = 80, nm: int = 32, npr: int = 256, embed: int = 512, with_bn: bool = False, ch: Tuple = ()
+        self, nc: int = 80, nm: int = 32, npr: int = 256, embed: int = 512, with_bn: bool = False, ch: tuple = ()
     ):
         """
         Initialize YOLOESegment with class count, mask parameters, and embedding dimensions.
@@ -828,7 +839,7 @@ class YOLOESegment(YOLOEDetect):
         c5 = max(ch[0] // 4, self.nm)
         self.cv5 = nn.ModuleList(nn.Sequential(Conv(x, c5, 3), Conv(c5, c5, 3), nn.Conv2d(c5, self.nm, 1)) for x in ch)
 
-    def forward(self, x: List[torch.Tensor], text: torch.Tensor) -> Union[Tuple, torch.Tensor]:
+    def forward(self, x: list[torch.Tensor], text: torch.Tensor) -> Union[tuple, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
         p = self.proto(x[0])  # mask protos
         bs = p.shape[0]  # batch size
@@ -896,7 +907,7 @@ class RTDETRDecoder(nn.Module):
     def __init__(
         self,
         nc: int = 80,
-        ch: Tuple = (512, 1024, 2048),
+        ch: tuple = (512, 1024, 2048),
         hd: int = 256,  # hidden dim
         nq: int = 300,  # num queries
         ndp: int = 4,  # num decoder points
@@ -972,7 +983,7 @@ class RTDETRDecoder(nn.Module):
 
         self._reset_parameters()
 
-    def forward(self, x: List[torch.Tensor], batch: Optional[dict] = None) -> Union[Tuple, torch.Tensor]:
+    def forward(self, x: list[torch.Tensor], batch: Optional[dict] = None) -> Union[tuple, torch.Tensor]:
         """
         Run the forward pass of the module, returning bounding box and classification scores for the input.
 
@@ -1024,12 +1035,12 @@ class RTDETRDecoder(nn.Module):
 
     def _generate_anchors(
         self,
-        shapes: List[List[int]],
+        shapes: list[list[int]],
         grid_size: float = 0.05,
         dtype: torch.dtype = torch.float32,
         device: str = "cpu",
         eps: float = 1e-2,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Generate anchor bounding boxes for given shapes with specific grid size and validate them.
 
@@ -1062,7 +1073,7 @@ class RTDETRDecoder(nn.Module):
         anchors = anchors.masked_fill(~valid_mask, float("inf"))
         return anchors, valid_mask
 
-    def _get_encoder_input(self, x: List[torch.Tensor]) -> Tuple[torch.Tensor, List[List[int]]]:
+    def _get_encoder_input(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, list[list[int]]]:
         """
         Process and return encoder inputs by getting projection features from input and concatenating them.
 
@@ -1092,10 +1103,10 @@ class RTDETRDecoder(nn.Module):
     def _get_decoder_input(
         self,
         feats: torch.Tensor,
-        shapes: List[List[int]],
+        shapes: list[list[int]],
         dn_embed: Optional[torch.Tensor] = None,
         dn_bbox: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Generate and prepare the input required for the decoder from the provided features and shapes.
 
@@ -1200,7 +1211,7 @@ class v10Detect(Detect):
 
     end2end = True
 
-    def __init__(self, nc: int = 80, ch: Tuple = ()):
+    def __init__(self, nc: int = 80, ch: tuple = ()):
         """
         Initialize the v10Detect object with the specified number of classes and input channels.
 
@@ -1225,15 +1236,16 @@ class v10Detect(Detect):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
 
+
 class ContextGather(nn.Module):
     def __init__(self, cls_num=0, scale=1):
-        super(ContextGather, self).__init__()
+        super().__init__()
         self.cls_num = cls_num
         self.scale = scale
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, feats, probs):
-        batch_size, c, h, w = probs.size(0), probs.size(1), probs.size(2), probs.size(3)
+        batch_size, c, _h, _w = probs.size(0), probs.size(1), probs.size(2), probs.size(3)
         probs = probs.view(batch_size, c, -1)
         feats = feats.view(batch_size, feats.size(1), -1)
         feats = feats.permute(0, 2, 1)  # batch x hw x c
@@ -1241,8 +1253,9 @@ class ContextGather(nn.Module):
         ocr_context = torch.matmul(probs, feats).permute(0, 2, 1).unsqueeze(3)  # batch x k x c
         return ocr_context
 
+
 class _ObjectAttentionBlock(nn.Module):
-    '''
+    """
     The basic implementation for object context block
     Input:
         N X C X H X W
@@ -1254,16 +1267,11 @@ class _ObjectAttentionBlock(nn.Module):
         fetch_attention   : whether return the estimated similarity map
         bn_type           : specify the bn type
     Return:
-        N X C X H X W
-    '''
-    def __init__(self,
-                 in_channels,
-                 key_channels,
-                 scale=1,
-                 use_gt=False,
-                 use_bg=False,
-                 fetch_attention=False):
-        super(_ObjectAttentionBlock, self).__init__()
+        N X C X H X W.
+    """
+
+    def __init__(self, in_channels, key_channels, scale=1, use_gt=False, use_bg=False, fetch_attention=False):
+        super().__init__()
         self.scale = scale
         self.in_channels = in_channels
         self.key_channels = key_channels
@@ -1272,24 +1280,18 @@ class _ObjectAttentionBlock(nn.Module):
         self.fetch_attention = fetch_attention
         self.pool = nn.MaxPool2d(kernel_size=(scale, scale))
         self.f_pixel = nn.Sequential(
-            Conv(c1=self.in_channels, c2=self.key_channels,
-                k=1, s=1, p=0, act=False),
-            Conv(c1=self.key_channels, c2=self.key_channels,
-                k=1, s=1, p=0, act=False),
+            Conv(c1=self.in_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+            Conv(c1=self.key_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
         )
         self.f_object = nn.Sequential(
-            Conv(c1=self.in_channels, c2=self.key_channels,
-                k=1, s=1, p=0, act=False),
-            Conv(c1=self.key_channels, c2=self.key_channels,
-                k=1, s=1, p=0, act=False),
+            Conv(c1=self.in_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+            Conv(c1=self.key_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
         )
         self.f_down = nn.Sequential(
-            Conv(c1=self.in_channels, c2=self.key_channels,
-                k=1, s=1, p=0, act=False),
+            Conv(c1=self.in_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
         )
         self.f_up = nn.Sequential(
-            Conv(c1=self.key_channels, c2=self.in_channels,
-                k=1, s=1, p=0, act=False),
+            Conv(c1=self.key_channels, c2=self.in_channels, k=1, s=1, p=0, act=False),
         )
 
     def forward(self, x, proxy, gt_label=None):
@@ -1304,34 +1306,24 @@ class _ObjectAttentionBlock(nn.Module):
         value = value.permute(0, 2, 1)
 
         sim_map = torch.matmul(query, key)
-        sim_map = (self.key_channels**-.5) * sim_map
+        sim_map = (self.key_channels**-0.5) * sim_map
         sim_map = F.softmax(sim_map, dim=-1)
 
         # add bg context ...
-        context = torch.matmul(sim_map, value) # hw x k x k x c
+        context = torch.matmul(sim_map, value)  # hw x k x k x c
         context = context.permute(0, 2, 1).contiguous()
         context = context.view(batch_size, self.key_channels, *x.size()[2:])
         context = self.f_up(context)
 
         if self.scale > 1:
-            context = F.interpolate(input=context, size=(h, w), mode='bilinear', align_corners=True)
+            context = F.interpolate(input=context, size=(h, w), mode="bilinear", align_corners=True)
         return context
 
 
 class ObjectAttentionBlock2D(_ObjectAttentionBlock):
-    def __init__(self,
-                 in_channels,
-                 key_channels,
-                 scale=1,
-                 use_gt=False,
-                 use_bg=False,
-                 fetch_attention=False):
-        super(ObjectAttentionBlock2D, self).__init__(in_channels,
-                                                     key_channels,
-                                                     scale,
-                                                     use_gt,
-                                                     use_bg,
-                                                     fetch_attention)
+    def __init__(self, in_channels, key_channels, scale=1, use_gt=False, use_bg=False, fetch_attention=False):
+        super().__init__(in_channels, key_channels, scale, use_gt, use_bg, fetch_attention)
+
 
 class SpatialOCR(nn.Module):
     """
@@ -1342,27 +1334,27 @@ class SpatialOCR(nn.Module):
     use_bg=True: use the ground-truth label to compute the ideal background context to augment the representations.
     use_oc=True: use object context or not.
     """
-    def __init__(self,
-                 in_channels,
-                 key_channels,
-                 out_channels,
-                 scale=1,
-                 dropout=0.1,
-                 use_gt=False,
-                 use_bg=False,
-                 use_oc=True,
-                 fetch_attention=False):
-        super(SpatialOCR, self).__init__()
+
+    def __init__(
+        self,
+        in_channels,
+        key_channels,
+        out_channels,
+        scale=1,
+        dropout=0.1,
+        use_gt=False,
+        use_bg=False,
+        use_oc=True,
+        fetch_attention=False,
+    ):
+        super().__init__()
         self.use_gt = use_gt
         self.use_bg = use_bg
         self.use_oc = use_oc
         self.fetch_attention = fetch_attention
-        self.object_context_block = ObjectAttentionBlock2D(in_channels,
-                                                           key_channels,
-                                                           scale,
-                                                           use_gt,
-                                                           use_bg,
-                                                           fetch_attention)
+        self.object_context_block = ObjectAttentionBlock2D(
+            in_channels, key_channels, scale, use_gt, use_bg, fetch_attention
+        )
         if self.use_bg:
             if self.use_oc:
                 _in_channels = 3 * in_channels
@@ -1371,10 +1363,7 @@ class SpatialOCR(nn.Module):
         else:
             _in_channels = 2 * in_channels
 
-        self.conv_bn_dropout = nn.Sequential(
-            Conv(_in_channels, out_channels, k=1, p=0),
-            nn.Dropout2d(dropout)
-        )
+        self.conv_bn_dropout = nn.Sequential(Conv(_in_channels, out_channels, k=1, p=0), nn.Dropout2d(dropout))
 
     def forward(self, feats, proxy_feats, gt_label=None):
         if self.use_gt and gt_label is not None:
@@ -1403,7 +1392,6 @@ class SpatialOCR(nn.Module):
 
 
 class SemanticSegment(nn.Module):
-
     def __init__(self, nc=80, nm=32, npr=256, ch=()):
         super().__init__()
         self.nc = nc
@@ -1417,22 +1405,17 @@ class SemanticSegment(nn.Module):
         self.cls_head = nn.Conv2d(512, self.nc, kernel_size=3, stride=1, padding=1)
 
         self.norm_head = nn.Sequential(
-            Conv(self.chs, self.chs, k=3, s=1, p=1),
-            nn.Conv2d(self.chs, self.nc, kernel_size=1, stride=1, padding=0)
+            Conv(self.chs, self.chs, k=3, s=1, p=1), nn.Conv2d(self.chs, self.nc, kernel_size=1, stride=1, padding=0)
         )
 
         self.context_gather = ContextGather(self.nc)
-        self.context_ocr = SpatialOCR(in_channels=512,
-                                      key_channels=256,
-                                      out_channels=512,
-                                      scale=1,
-                                      dropout=0.05)
+        self.context_ocr = SpatialOCR(in_channels=512, key_channels=256, out_channels=512, scale=1, dropout=0.05)
 
     def forward(self, x):
-        _,_,h,w = x[0].shape
+        _, _, h, w = x[0].shape
         f1 = x[0]
-        f2 = F.interpolate(x[1], size=(h, w), mode='bilinear', align_corners=True)
-        f3 = F.interpolate(x[2], size=(h, w), mode='bilinear', align_corners=True)
+        f2 = F.interpolate(x[1], size=(h, w), mode="bilinear", align_corners=True)
+        f3 = F.interpolate(x[2], size=(h, w), mode="bilinear", align_corners=True)
         fs = torch.cat([f1, f2, f3], dim=1)
         out_0 = self.norm_head(fs)
 
@@ -1440,10 +1423,9 @@ class SemanticSegment(nn.Module):
         context = self.context_gather(fs, out_0)
         feats = self.context_ocr(fs, context)
         out = self.cls_head(feats)
-        out_0 = F.interpolate(out_0, size=(h * 8, w * 8), mode='bilinear', align_corners=True)
-        out = F.interpolate(out, size=(h * 8, w * 8), mode='bilinear', align_corners=True)
+        out_0 = F.interpolate(out_0, size=(h * 8, w * 8), mode="bilinear", align_corners=True)
+        out = F.interpolate(out, size=(h * 8, w * 8), mode="bilinear", align_corners=True)
         if self.training:
             return out_0, out
-        else :
+        else:
             return out
-

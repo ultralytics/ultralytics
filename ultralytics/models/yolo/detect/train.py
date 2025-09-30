@@ -3,7 +3,7 @@
 import math
 import random
 from copy import copy
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 import torch.nn as nn
@@ -89,7 +89,7 @@ class DetectionTrainer(BaseTrainer):
         workers = self.args.workers if mode == "train" else self.args.workers * 2
         return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
-    def preprocess_batch(self, batch: Dict) -> Dict:
+    def preprocess_batch(self, batch: dict) -> dict:
         """
         Preprocess a batch of images by scaling and converting to float.
 
@@ -151,7 +151,7 @@ class DetectionTrainer(BaseTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
-    def label_loss_items(self, loss_items: Optional[List[float]] = None, prefix: str = "train"):
+    def label_loss_items(self, loss_items: Optional[list[float]] = None, prefix: str = "train"):
         """
         Return a loss dict with labeled training loss items tensor.
 
@@ -179,7 +179,7 @@ class DetectionTrainer(BaseTrainer):
             "Size",
         )
 
-    def plot_training_samples(self, batch: Dict[str, Any], ni: int) -> None:
+    def plot_training_samples(self, batch: dict[str, Any], ni: int) -> None:
         """
         Plot training samples with their annotations.
 

@@ -174,7 +174,7 @@ class BaseValidator:
                 "segment",
                 "pose",
                 "obb",
-                "semseg"
+                "semseg",
             }:
                 self.data = check_det_dataset(self.args.data)
             elif self.args.task == "classify":

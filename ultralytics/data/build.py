@@ -2,8 +2,9 @@
 
 import os
 import random
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Dict, Iterator
+from typing import Any
 
 import numpy as np
 import torch
@@ -11,7 +12,7 @@ from PIL import Image
 from torch.utils.data import dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset, SemanticDataset
+from ultralytics.data.dataset import GroundingDataset, SemanticDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -116,7 +117,7 @@ def build_yolo_dataset(
     cfg: IterableSimpleNamespace,
     img_path: str,
     batch: int,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     mode: str = "train",
     rect: bool = False,
     stride: int = 32,
@@ -304,11 +305,12 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
 
     return dataset
 
+
 def build_semantic_dataset(
     cfg: IterableSimpleNamespace,
     img_path: str,
     batch: int,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     mode: str = "train",
     rect: bool = False,
     stride: int = 32,

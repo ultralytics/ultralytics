@@ -63,23 +63,23 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
-    SemanticSegment
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
+    SemSegLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    SemSegLoss
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
@@ -1309,6 +1309,7 @@ class Ensemble(torch.nn.ModuleList):
         y = torch.cat(y, 2)  # nms ensemble, y shape(B, HW, C)
         return y, None  # inference, train output
 
+
 class SemanticModel(DetectionModel):
     """YOLOv8 segmentation model."""
 
@@ -1319,6 +1320,7 @@ class SemanticModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
         return SemSegLoss(self)
+
 
 # Functions ------------------------------------------------------------------------------------------------------------
 
@@ -1727,7 +1729,18 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, SemanticSegment}
+            {
+                Detect,
+                WorldDetect,
+                YOLOEDetect,
+                Segment,
+                YOLOESegment,
+                Pose,
+                OBB,
+                ImagePoolingAttn,
+                v10Detect,
+                SemanticSegment,
+            }
         ):
             args.append([ch[x] for x in f])
             if m in [Segment, YOLOESegment, SemanticSegment]:
@@ -1770,6 +1783,7 @@ def yaml_model_load(path, with_model_scale=True):
     Args:
         path (str | Path): Path to the YAML file.
         with_model_scale (bool): Setting to guess the model scale.
+
     Returns:
         (dict): Model dictionary.
     """

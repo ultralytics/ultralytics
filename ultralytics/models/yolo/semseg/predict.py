@@ -1,51 +1,43 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from multiprocessing.pool import ThreadPool
-from pathlib import Path
 import os
+import re
+from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
-from ultralytics.utils import DEFAULT_CFG, YAML, SEMSEG_CFG
 
-from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.engine.results import Results
-import re
-from typing import Any, Dict, List, Optional, Union
-from ultralytics.utils import LOGGER, NUM_THREADS, ops
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.metrics import (SegmentMetrics, box_iou, mask_iou, mask_mcr, SemSegMetrics,
-                                       mask_precision, dice_score, mask_recall, mask_accuracy)
-from ultralytics.utils.plotting import plot_images, plot_masks
-from ultralytics.utils.torch_utils import de_parallel
-from ultralytics.data import build_semantic_dataset, build_dataloader
+from ultralytics.models.yolo.detect import DetectionPredictor
+from ultralytics.utils import DEFAULT_CFG, SEMSEG_CFG, YAML
+
 
 class SemSegPredictor(DetectionPredictor):
     """
-        A class extending the DetectionPredictor class for prediction based on a segmentation model.
+    A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
-        This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
-        prediction results.
+    This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
+    prediction results.
 
-        Attributes:
-            args (dict): Configuration arguments for the predictor.
-            model (torch.nn.Module): The loaded YOLO segmentation model.
-            batch (list): Current batch of images being processed.
+    Attributes:
+        args (dict): Configuration arguments for the predictor.
+        model (torch.nn.Module): The loaded YOLO segmentation model.
+        batch (list): Current batch of images being processed.
 
-        Methods:
-            postprocess: Apply non-max suppression and process segmentation detections.
-            construct_results: Construct a list of result objects from predictions.
-            construct_result: Construct a single result object from a prediction.
+    Methods:
+        postprocess: Apply non-max suppression and process segmentation detections.
+        construct_results: Construct a list of result objects from predictions.
+        construct_result: Construct a single result object from a prediction.
 
-        Examples:
-            >>> from ultralytics.utils import ASSETS
-            >>> from ultralytics.models.yolo.segment import SegmentationPredictor
-            >>> args = dict(model="yolo11n-seg.pt", source=ASSETS)
-            >>> predictor = SegmentationPredictor(overrides=args)
-            >>> predictor.predict_cli()
-        """
+    Examples:
+        >>> from ultralytics.utils import ASSETS
+        >>> from ultralytics.models.yolo.segment import SegmentationPredictor
+        >>> args = dict(model="yolo11n-seg.pt", source=ASSETS)
+        >>> predictor = SegmentationPredictor(overrides=args)
+        >>> predictor.predict_cli()
+    """
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
@@ -82,26 +74,25 @@ class SemSegPredictor(DetectionPredictor):
         result_list = []
         for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
             result_list.append(
-                Results(orig_img,
-                        path=img_path,
-                        names=self.model.names,
-                        masks=torch.softmax(pred.detach().cpu(), dim=0))
+                Results(
+                    orig_img, path=img_path, names=self.model.names, masks=torch.softmax(pred.detach().cpu(), dim=0)
+                )
             )
         return result_list
 
-    def write_results(self, i: int, p: Path, im: torch.Tensor, s: List[str]) -> str:
+    def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
         """
-                Write inference results to a file or directory.
+        Write inference results to a file or directory.
 
-                Args:
-                    i (int): Index of the current image in the batch.
-                    p (Path): Path to the current image.
-                    im (torch.Tensor): Preprocessed image tensor.
-                    s (List[str]): List of result strings.
+        Args:
+            i (int): Index of the current image in the batch.
+            p (Path): Path to the current image.
+            im (torch.Tensor): Preprocessed image tensor.
+            s (List[str]): List of result strings.
 
-                Returns:
-                    (str): String with result information.
-                """
+        Returns:
+            (str): String with result information.
+        """
         string = ""  # print string
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
@@ -121,20 +112,19 @@ class SemSegPredictor(DetectionPredictor):
         # Add predictions to image
         imagename = result.path.split(os.sep)[-1]
         if self.args.save or self.args.show:
-            image_dir, mask_dir = os.path.join(self.save_dir,'image'), os.path.join(self.save_dir,'mask')
+            image_dir, mask_dir = os.path.join(self.save_dir, "image"), os.path.join(self.save_dir, "mask")
             os.mkdir(image_dir) if not os.path.exists(image_dir) else None
             os.mkdir(mask_dir) if not os.path.exists(mask_dir) else None
             self.plot_predict_samples(
                 result.orig_img,
                 result.masks,
-                nc=YAML.load(self.data)['nc'],
+                nc=YAML.load(self.data)["nc"],
                 colors=YAML.load(self.data)["colors"],
-                fname=self.save_dir / 'image' /imagename,
-                mname=self.save_dir / 'mask' / imagename,
+                fname=self.save_dir / "image" / imagename,
+                mname=self.save_dir / "mask" / imagename,
                 one_hot=True,
-                overlap=True
+                overlap=True,
             )
-
 
         # Save results
         if self.args.save_txt:
@@ -155,14 +145,13 @@ class SemSegPredictor(DetectionPredictor):
         if isinstance(masks.data, torch.Tensor):
             masks = masks.data.cpu().numpy()
 
-
         if np.max(image) <= 1:
             image *= 255  # de-normalise (optional)
 
         if np.max(masks.data) <= 1:
             masks *= 255
 
-        h, w,_ = image.shape  # batch size, _, height, width
+        h, w, _ = image.shape  # batch size, _, height, width
         _, hm, wm = masks.shape
         mask_bgr = np.ones((hm, wm, 3), dtype=np.uint8) * 255
         if one_hot:
@@ -173,7 +162,7 @@ class SemSegPredictor(DetectionPredictor):
         else:
             for j in range(nc):
                 r, g, b = colors[j]
-                mask_bgr[masks == j,:] = np.array([b, g, r]).astype(np.uint8)
+                mask_bgr[masks == j, :] = np.array([b, g, r]).astype(np.uint8)
 
         msk = cv2.resize(mask_bgr, dsize=(w, h), interpolation=cv2.INTER_NEAREST)
 
@@ -184,16 +173,18 @@ class SemSegPredictor(DetectionPredictor):
             cv2.imwrite(fname, image)
             cv2.imwrite(mname, msk)
 
+
 def predict(cfg=DEFAULT_CFG):
     """Train a YOLO segmentation model based on passed arguments."""
-    model = cfg.model or 'yolov11n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
-    device = cfg.device if cfg.device is not None else ''
-    cfg.name = os.path.join(cfg.name, 'predict')
-    args = dict(model=model, data=data, device=device, name=cfg.name, task='semseg', plots=True)
+    model = cfg.model or "yolov11n-seg.pt"
+    data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ""
+    cfg.name = os.path.join(cfg.name, "predict")
+    args = dict(model=model, data=data, device=device, name=cfg.name, task="semseg", plots=True)
 
     predictor = SemSegPredictor(cfg, args)
     predictor(model=model)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     predict(cfg=SEMSEG_CFG)

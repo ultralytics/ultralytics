@@ -1,12 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Model validation metrics."""
+
 from __future__ import annotations
 
 import math
 import warnings
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -256,9 +257,7 @@ def probiou(obb1: torch.Tensor, obb2: torch.Tensor, CIoU: bool = False, eps: flo
     return iou
 
 
-def batch_probiou(
-    obb1: Union[torch.Tensor, np.ndarray], obb2: Union[torch.Tensor, np.ndarray], eps: float = 1e-7
-) -> torch.Tensor:
+def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarray, eps: float = 1e-7) -> torch.Tensor:
     """
     Calculate the probabilistic IoU between oriented bounding boxes.
 
@@ -895,7 +894,7 @@ class Metric(SimpleClass):
         self.nc = 0
 
     @property
-    def ap50(self) -> Union[np.ndarray, list]:
+    def ap50(self) -> np.ndarray | list:
         """
         Return the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
 
@@ -905,7 +904,7 @@ class Metric(SimpleClass):
         return self.all_ap[:, 0] if len(self.all_ap) else []
 
     @property
-    def ap(self) -> Union[np.ndarray, list]:
+    def ap(self) -> np.ndarray | list:
         """
         Return the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
 

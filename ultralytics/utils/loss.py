@@ -855,3 +855,24 @@ class TVPSegmentLoss(TVPDetectLoss):
         vp_loss = self.vp_criterion((vp_feats, pred_masks, proto), batch)
         cls_loss = vp_loss[0][2]
         return cls_loss, vp_loss[1]
+
+class SemSegLoss:
+    """Criterion  for computing training losses for semantic segmentation task."""
+    def __init__(self, model, alpha=0.3, beta=0.7):
+        self.device = next(model.parameters()).device  # get model device
+        self.ce_0 = nn.CrossEntropyLoss(reduction="none")
+        self.ce_1 = nn.CrossEntropyLoss(reduction="none")
+        self.alpha = alpha
+        self.beta = beta
+
+    def __call__(self, preds, batch):
+        gt_mask = batch["masks"].to(self.device)
+        batch_size = preds[0].shape[0]  # batch size, number of masks, mask height, mask width
+        if isinstance(preds, torch.Tensor):
+            loss = self.ce_1(preds, gt_mask).mean()
+        else:
+            loss_0 = self.ce_0(preds[0], gt_mask).mean()
+            loss_1 = self.ce_1(preds[1], gt_mask).mean()
+            loss = self.alpha * loss_0 + self.beta * loss_1
+
+        return loss * batch_size, loss.detach()  # loss

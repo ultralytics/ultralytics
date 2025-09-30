@@ -1228,3 +1228,193 @@ class v10Detect(Detect):
     def fuse(self):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
+
+class ContextGather(nn.Module):
+    def __init__(self, cls_num=0, scale=1):
+        super().__init__()
+        self.cls_num = cls_num
+        self.scale = scale
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, feats, probs):
+        batch_size, c, _h, _w = probs.size(0), probs.size(1), probs.size(2), probs.size(3)
+        probs = probs.view(batch_size, c, -1)
+        feats = feats.view(batch_size, feats.size(1), -1)
+        feats = feats.permute(0, 2, 1)  # batch x hw x c
+        probs = F.softmax(self.scale * probs, dim=2)  # batch x k x hw
+        ocr_context = torch.matmul(probs, feats).permute(0, 2, 1).unsqueeze(3)  # batch x k x c
+        return ocr_context
+
+class _ObjectAttentionBlock(nn.Module):
+    """
+    The basic implementation for object context block
+    Input:
+        N X C X H X W
+    Parameters:
+        in_channels       : the dimension of the input feature map
+        key_channels      : the dimension after the key/query transform
+        scale             : choose the scale to downsample the input feature maps (save memory cost)
+        use_gt            : whether use the ground truth label map to compute the similarity map
+        fetch_attention   : whether return the estimated similarity map
+        bn_type           : specify the bn type
+    Return:
+        N X C X H X W.
+    """
+
+    def __init__(self, in_channels, key_channels, scale=1, use_gt=False, use_bg=False, fetch_attention=False):
+        super().__init__()
+        self.scale = scale
+        self.in_channels = in_channels
+        self.key_channels = key_channels
+        self.use_gt = use_gt
+        self.use_bg = use_bg
+        self.fetch_attention = fetch_attention
+        self.pool = nn.MaxPool2d(kernel_size=(scale, scale))
+        self.f_pixel = nn.Sequential(
+            Conv(c1=self.in_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+            Conv(c1=self.key_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+        )
+        self.f_object = nn.Sequential(
+            Conv(c1=self.in_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+            Conv(c1=self.key_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+        )
+        self.f_down = nn.Sequential(
+            Conv(c1=self.in_channels, c2=self.key_channels, k=1, s=1, p=0, act=False),
+        )
+        self.f_up = nn.Sequential(
+            Conv(c1=self.key_channels, c2=self.in_channels, k=1, s=1, p=0, act=False),
+        )
+
+    def forward(self, x, proxy, gt_label=None):
+        batch_size, h, w = x.size(0), x.size(2), x.size(3)
+        if self.scale > 1:
+            x = self.pool(x)
+
+        query = self.f_pixel(x).view(batch_size, self.key_channels, -1)
+        query = query.permute(0, 2, 1)
+        key = self.f_object(proxy).view(batch_size, self.key_channels, -1)
+        value = self.f_down(proxy).view(batch_size, self.key_channels, -1)
+        value = value.permute(0, 2, 1)
+
+        sim_map = torch.matmul(query, key)
+        sim_map = (self.key_channels**-0.5) * sim_map
+        sim_map = F.softmax(sim_map, dim=-1)
+
+        # add bg context ...
+        context = torch.matmul(sim_map, value)  # hw x k x k x c
+        context = context.permute(0, 2, 1).contiguous()
+        context = context.view(batch_size, self.key_channels, *x.size()[2:])
+        context = self.f_up(context)
+
+        if self.scale > 1:
+            context = F.interpolate(input=context, size=(h, w), mode="bilinear", align_corners=True)
+        return context
+
+
+class ObjectAttentionBlock2D(_ObjectAttentionBlock):
+    def __init__(self, in_channels, key_channels, scale=1, use_gt=False, use_bg=False, fetch_attention=False):
+        super().__init__(in_channels, key_channels, scale, use_gt, use_bg, fetch_attention)
+
+class SpatialOCR(nn.Module):
+    """
+    Implementation of the OCR module:
+    We aggregate the global object representation to update the representation for each pixel.
+
+    use_gt=True: whether use the ground-truth label to compute the ideal object contextual representations.
+    use_bg=True: use the ground-truth label to compute the ideal background context to augment the representations.
+    use_oc=True: use object context or not.
+    """
+
+    def __init__(
+        self,
+        in_channels,
+        key_channels,
+        out_channels,
+        scale=1,
+        dropout=0.1,
+        use_gt=False,
+        use_bg=False,
+        use_oc=True,
+        fetch_attention=False,
+    ):
+        super().__init__()
+        self.use_gt = use_gt
+        self.use_bg = use_bg
+        self.use_oc = use_oc
+        self.fetch_attention = fetch_attention
+        self.object_context_block = ObjectAttentionBlock2D(
+            in_channels, key_channels, scale, use_gt, use_bg, fetch_attention
+        )
+        if self.use_bg:
+            if self.use_oc:
+                _in_channels = 3 * in_channels
+            else:
+                _in_channels = 2 * in_channels
+        else:
+            _in_channels = 2 * in_channels
+
+        self.conv_bn_dropout = nn.Sequential(Conv(_in_channels, out_channels, k=1, p=0), nn.Dropout2d(dropout))
+
+    def forward(self, feats, proxy_feats, gt_label=None):
+        if self.use_gt and gt_label is not None:
+            if self.use_bg:
+                context, bg_context = self.object_context_block(feats, proxy_feats, gt_label)
+            else:
+                context = self.object_context_block(feats, proxy_feats, gt_label)
+        else:
+            if self.fetch_attention:
+                context, sim_map = self.object_context_block(feats, proxy_feats)
+            else:
+                context = self.object_context_block(feats, proxy_feats)
+
+        if self.use_bg:
+            if self.use_oc:
+                output = self.conv_bn_dropout(torch.cat([context, bg_context, feats], 1))
+            else:
+                output = self.conv_bn_dropout(torch.cat([bg_context, feats], 1))
+        else:
+            output = self.conv_bn_dropout(torch.cat([context, feats], 1))
+
+        if self.fetch_attention:
+            return output, sim_map
+        else:
+            return output
+
+class SemanticSegment(nn.Module):
+    def __init__(self, nc=80, nm=32, npr=256, ch=()):
+        super().__init__()
+        self.nc = nc
+        self.nm = nm  # number of masks
+        self.npr = npr  # number of protos
+
+        self.chs = torch.tensor(ch).sum().item()
+
+        self.conv = nn.Conv2d(self.chs, 512, kernel_size=3, stride=1, padding=1)
+
+        self.cls_head = nn.Conv2d(512, self.nc, kernel_size=3, stride=1, padding=1)
+
+        self.norm_head = nn.Sequential(
+            Conv(self.chs, self.chs, k=3, s=1, p=1), nn.Conv2d(self.chs, self.nc, kernel_size=1, stride=1, padding=0)
+        )
+
+        self.context_gather = ContextGather(self.nc)
+        self.context_ocr = SpatialOCR(in_channels=512, key_channels=256, out_channels=512, scale=1, dropout=0.05)
+
+    def forward(self, x):
+        _, _, h, w = x[0].shape
+        f1 = x[0]
+        f2 = F.interpolate(x[1], size=(h, w), mode="bilinear", align_corners=True)
+        f3 = F.interpolate(x[2], size=(h, w), mode="bilinear", align_corners=True)
+        fs = torch.cat([f1, f2, f3], dim=1)
+        out_0 = self.norm_head(fs)
+
+        fs = self.conv(fs)
+        context = self.context_gather(fs, out_0)
+        feats = self.context_ocr(fs, context)
+        out = self.cls_head(feats)
+        out_0 = F.interpolate(out_0, size=(h * 8, w * 8), mode="bilinear", align_corners=True)
+        out = F.interpolate(out, size=(h * 8, w * 8), mode="bilinear", align_corners=True)
+        if self.training:
+            return out_0, out
+        else:
+            return out

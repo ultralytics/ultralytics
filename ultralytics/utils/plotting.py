@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import warnings
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Optional, Union
 
 import cv2
 import numpy as np
@@ -26,7 +26,7 @@ class Colors:
     RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (list[tuple]): List of RGB color tuples for general use.
+        palette (List[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
@@ -144,12 +144,12 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
+    def __call__(self, i: int, bgr: bool = False) -> tuple:
         """
         Convert hex color codes to RGB values.
 
         Args:
-            i (int | torch.Tensor): Color index.
+            i (int): Color index.
             bgr (bool, optional): Whether to return BGR format instead of RGB.
 
         Returns:
@@ -176,9 +176,9 @@ class Annotator:
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
-        skeleton (list[list[int]]): Skeleton structure for keypoints.
-        limb_color (list[int]): Color palette for limbs.
-        kpt_color (list[int]): Color palette for keypoints.
+        skeleton (List[List[int]]): Skeleton structure for keypoints.
+        limb_color (List[int]): Color palette for limbs.
+        kpt_color (List[int]): Color palette for keypoints.
         dark_colors (set): Set of colors considered dark for text contrast.
         light_colors (set): Set of colors considered light for text contrast.
 
@@ -192,8 +192,8 @@ class Annotator:
     def __init__(
         self,
         im,
-        line_width: int | None = None,
-        font_size: int | None = None,
+        line_width: Optional[int] = None,
+        font_size: Optional[int] = None,
         font: str = "Arial.ttf",
         pil: bool = False,
         example: str = "abc",
@@ -369,7 +369,7 @@ class Annotator:
 
         Args:
             masks (torch.Tensor | np.ndarray): Predicted masks with shape: [n, h, w]
-            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n]
+            colors (List[List[int]]): Colors for predicted masks, [[r, g, b] * n]
             im_gpu (torch.Tensor | None): Image is in cuda, shape: [3, h, w], range: [0, 1]
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
@@ -411,10 +411,10 @@ class Annotator:
         self,
         kpts,
         shape: tuple = (640, 640),
-        radius: int | None = None,
+        radius: Optional[int] = None,
         kpt_line: bool = True,
         conf_thres: float = 0.25,
-        kpt_color: tuple | None = None,
+        kpt_color: Optional[tuple] = None,
     ):
         """
         Plot keypoints on the image.
@@ -484,7 +484,7 @@ class Annotator:
         Add text to an image using PIL or cv2.
 
         Args:
-            xy (list[int]): Top-left coordinates for text placement.
+            xy (List[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color (R, G, B).
             anchor (str, optional): Text anchor position ('top' or 'bottom').
@@ -519,7 +519,7 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    def show(self, title: str | None = None):
+    def show(self, title: Optional[str] = None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
@@ -535,7 +535,7 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox: tuple | None = None):
+    def get_bbox_dimension(bbox: Optional[tuple] = None):
         """
         Calculate the dimensions and area of a bounding box.
 
@@ -681,25 +681,25 @@ def save_one_box(
 @threaded
 def plot_images(
     labels: dict[str, Any],
-    images: torch.Tensor | np.ndarray = np.zeros((0, 3, 640, 640), dtype=np.float32),
-    paths: list[str] | None = None,
+    images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
+    paths: Optional[list[str]] = None,
     fname: str = "images.jpg",
-    names: dict[int, str] | None = None,
-    on_plot: Callable | None = None,
+    names: Optional[dict[int, str]] = None,
+    on_plot: Optional[Callable] = None,
     max_size: int = 1920,
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
-) -> np.ndarray | None:
+) -> Optional[np.ndarray]:
     """
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
-        labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
+        labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
         images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (Optional[list[str]]): List of file paths for each image in the batch.
+        paths (Optional[List[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
-        names (Optional[dict[int, str]]): Dictionary mapping class indices to class names.
+        names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.
         on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
@@ -846,7 +846,7 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
+def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Optional[Callable] = None):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -1029,3 +1029,122 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
             plt.savefig(f, dpi=300, bbox_inches="tight")
             plt.close()
             np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+
+def plot_masks(
+    images: Union[torch.Tensor, np.ndarray],
+    masks: Union[torch.Tensor, np.ndarray],
+    batch_idx: Union[torch.Tensor, np.ndarray],
+    cls: Union[torch.Tensor, np.ndarray],
+    bboxes: Union[torch.Tensor, np.ndarray] = np.zeros(0, dtype=np.float32),
+    confs: Optional[Union[torch.Tensor, np.ndarray]] = None,
+    kpts: Union[torch.Tensor, np.ndarray] = np.zeros((0, 51), dtype=np.float32),
+    paths: Optional[list[str]] = None,
+    nc: int = -1,
+    fname: str = "images.jpg",
+    mname: str = "images.jpg",
+    names: Optional[dict[int, str]] = None,
+    colors: Optional[dict[int, list]] = None,
+    on_plot: Optional[Callable] = None,
+    max_size: int = 1920,
+    max_subplots: int = 16,
+    save: bool = True,
+    conf_thres: float = 0.25,
+    one_hot=False,
+) -> Optional[np.ndarray]:
+    """
+    Plot image and mask for semseg task.
+
+    Args:
+        images: Batch of images to plot. Shape: (batch_size, channels, height, width).
+        batch_idx: Batch indices for each detection. Shape: (num_detections,).
+        cls: Class labels for each detection. Shape: (num_detections,).
+        bboxes: Bounding boxes for each detection. Shape: (num_detections, 4) or (num_detections, 5) for rotated boxes.
+        confs: Confidence scores for each detection. Shape: (num_detections,).
+        masks: Instance segmentation masks. Shape: (num_detections, height, width) or (1, height, width).
+        kpts: Keypoints for each detection. Shape: (num_detections, 51).
+        paths: List of file paths for each image in the batch.
+        fname: Output image filename for the plotted image grid.
+        mname: Output mask filename for the plotted image grid.
+        names: Dictionary mapping class indices to class names.
+        on_plot: Optional callback function to be called after saving the plot.
+        max_size: Maximum size of the output image grid.
+        max_subplots: Maximum number of subplots in the image grid.
+        save: Whether to save the plotted image grid to a file.
+        conf_thres: Confidence threshold for displaying detections.
+
+    Returns:
+        np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
+
+    Note:
+        This function supports both tensor and numpy array inputs. It will automatically
+        convert tensor inputs to numpy arrays for processing.
+    """
+    if isinstance(images, torch.Tensor):
+        images = images.cpu().float().numpy()
+    if isinstance(cls, torch.Tensor):
+        cls = cls.cpu().numpy()
+    if isinstance(bboxes, torch.Tensor):
+        bboxes = bboxes.cpu().numpy()
+    if isinstance(masks, torch.Tensor):
+        masks = masks.cpu().numpy()
+    if isinstance(kpts, torch.Tensor):
+        kpts = kpts.cpu().numpy()
+    if isinstance(batch_idx, torch.Tensor):
+        batch_idx = batch_idx.cpu().numpy()
+
+    bs, _, h, w = images.shape  # batch size, _, height, width
+    bs = min(bs, max_subplots)  # limit plot images
+    ns = np.ceil(bs**0.5)  # number of subplots (square)
+    if np.max(images[0]) <= 1:
+        images *= 255  # de-normalise (optional)
+
+    if np.max(masks[0]) <= 1:
+        masks *= 255
+
+    # Build Image
+    mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
+    mask_mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)
+    for i in range(bs):
+        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+        mosaic[y : y + h, x : x + w, :] = images[i].transpose(1, 2, 0)
+        mask_bgr = np.ones((h, w, 3), dtype=np.uint8) * 255
+        if one_hot:
+            mask = masks[i].copy().transpose(1, 2, 0)
+            for j in range(nc):
+                r, g, b = colors[j]
+                mask_bgr[mask[:, :, j] > 125, :] = np.array([b, g, r]).astype(np.uint8)
+        else:
+            for j in range(nc):
+                r, g, b = colors[j]
+                mask_bgr[masks[i] == j, :] = np.array([b, g, r]).astype(np.uint8)
+
+        mask_mosaic[y : y + h, x : x + w, :] = mask_bgr
+
+    # Resize (optional)
+    scale = max_size / ns / max(h, w)
+    if scale < 1:
+        h = math.ceil(scale * h)
+        w = math.ceil(scale * w)
+        mosaic = cv2.resize(mosaic, tuple(int(x * ns) for x in (w, h)))
+        mask_mosaic = cv2.resize(mask_mosaic, tuple(int(x * ns) for x in (w, h)), interpolation=cv2.INTER_NEAREST)
+
+    # Annotate
+    fs = int((h + w) * ns * 0.01)  # font size
+    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    mask_annotator = Annotator(
+        cv2.cvtColor(mask_mosaic, cv2.COLOR_BGR2RGB), line_width=round(fs / 10), font_size=fs, pil=True, example=names
+    )
+    for i in range(bs):
+        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+        annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
+        mask_annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
+        if paths:
+            annotator.text([x + 5, y + 5], text=Path(paths[i]).name, txt_color=(220, 220, 220))  # filenames
+            mask_annotator.text([x + 5, y + 5], text=Path(paths[i]).name, txt_color=(220, 220, 220))
+
+    if not save:
+        return np.asarray(annotator.im), np.asarray(mask_annotator.im)
+    annotator.im.save(fname)  # save
+    mask_annotator.im.save(mname)
+    if on_plot:
+        on_plot(fname)

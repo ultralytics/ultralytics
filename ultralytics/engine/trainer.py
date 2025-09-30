@@ -300,11 +300,6 @@ class BaseTrainer:
         )
         if self.world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
-            if self.batch_size % self.world_size != 0:
-                raise ValueError(
-                    f"'batch={self.batch}' must be a multiple of GPU count {self.world_size}. Try 'batch={self.batch // self.world_size * self.world_size}' or "
-                    f"'batch={self.batch // self.world_size * self.world_size + self.world_size}', the nearest batch sizes evenly divisible by {self.world_size}."
-                )
 
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)

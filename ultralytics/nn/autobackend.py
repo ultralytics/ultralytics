@@ -901,17 +901,17 @@ class AutoBackend(nn.Module):
 
         p_str = str(p)
         sf_standard = sf[:-1]  # Standard suffixes from exporter
-        pte_suffix = sf[-1]    # '.pte' suffix
+        pte_suffix = sf[-1]  # '.pte' suffix
 
         types = [p_str.endswith(s) for s in sf_standard]
         types[5] |= p_str.endswith(".mlmodel")  # CoreML special case
-        types[8] &= not types[9]                # TFLite vs. EdgeTPU
-        pte = p_str.endswith(pte_suffix)        # Executorch check
+        types[8] &= not types[9]  # TFLite vs. EdgeTPU
+        pte = p_str.endswith(pte_suffix)  # Executorch check
 
         triton = False
         if not (any(types) or pte):
             from urllib.parse import urlsplit
-            
+
             url = urlsplit(p_str)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 

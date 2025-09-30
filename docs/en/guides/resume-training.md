@@ -1,6 +1,6 @@
 # Resume Training from Checkpoints
 
-Training large models can take hours or even days, and interruptions (system restarts, crashes, or early stops) are common. 
+Training large models can take hours or even days, and interruptions (system restarts, crashes, or early stops) are common.
 Ultralytics provides built-in support to **resume training** from a previously saved checkpoint so you don’t have to start over.
 This guide explains how to continue training from the last saved checkpoint using both the **CLI** and **Python API**.
 
@@ -13,6 +13,7 @@ To resume training from the **last checkpoint** in your `runs/` directory:
 ```bash
 yolo detect train resume model=runs/detect/train/weights/last.pt
 ```
+
 Or for segmentation/classification tasks:
 
 ```bash
@@ -46,21 +47,21 @@ model.train(resume=True, epochs=50)
 
 ### Additional Parameters
 
-* `epochs`: Specify how many more epochs to run.
-* `device`: Control GPU/CPU placement if needed.
-* All other training arguments (`batch`, `imgsz`, `data`, etc.) can still be used.
+- `epochs`: Specify how many more epochs to run.
+- `device`: Control GPU/CPU placement if needed.
+- All other training arguments (`batch`, `imgsz`, `data`, etc.) can still be used.
 
 ---
 
 ## 3. Best Practices
 
-* **Save regularly**: Ultralytics automatically saves `last.pt` and `best.pt`.
-* **Use `resume=True`**: This restores optimizer state, learning rate, and scheduler so training continues smoothly.
-* **Monitor logs**: Training will append to the same run folder (e.g., `runs/detect/train`).
+- **Save regularly**: Ultralytics automatically saves `last.pt` and `best.pt`.
+- **Use `resume=True`**: This restores optimizer state, learning rate, and scheduler so training continues smoothly.
+- **Monitor logs**: Training will append to the same run folder (e.g., `runs/detect/train`).
 
 ---
 
-  ## 4. Troubleshooting
+## 4. Troubleshooting
 
 | Problem                                            | Solution                                                                                      |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -73,10 +74,10 @@ model.train(resume=True, epochs=50)
 
 ## 5. Related Documentation
 
-* [Checkpoints and Weights](https://github.com/ultralytics/ultralytics/blob/main/docs/en/reference/engine/results.md)
-* [Python API Reference](https://github.com/ultralytics/ultralytics/blob/main/docs/en/reference/engine/model.md)
+- [Checkpoints and Weights](https://github.com/ultralytics/ultralytics/blob/main/docs/en/reference/engine/results.md)
+- [Python API Reference](https://github.com/ultralytics/ultralytics/blob/main/docs/en/reference/engine/model.md)
 
-  ---
+    ***
 
 ## 6. Example Workflow
 

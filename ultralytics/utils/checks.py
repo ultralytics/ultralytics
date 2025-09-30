@@ -394,10 +394,31 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
-        try:
-            assert check_version(metadata.version(name), required)  # exception if requirements not met
-        except (AssertionError, metadata.PackageNotFoundError):
-            pkgs.append(r)
+        # Additional processing onnxruntime check
+        if name == "onnxruntime":
+            # Check if onnxruntime or onnxruntime-gpu is available
+            onnxruntime_available = False
+            try:
+                import onnxruntime
+                onnxruntime_available = check_version(onnxruntime.__version__, required)
+            except ImportError:
+                try:
+                    import onnxruntime_gpu as onnxruntime
+                    onnxruntime_available = check_version(onnxruntime.__version__, required)
+                except ImportError:
+                    pass
+
+            if onnxruntime_available:
+                LOGGER.debug(f"{prefix} ONNX Runtime is available, skipping requirement")
+                continue
+            else:
+                pkgs.append(r)
+        else:
+            # Normal check logic for other packages
+            try:
+                assert check_version(metadata.version(name), required)  # exception if requirements not met
+            except (AssertionError, metadata.PackageNotFoundError):
+                pkgs.append(r)
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):

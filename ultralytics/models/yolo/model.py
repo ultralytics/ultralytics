@@ -21,7 +21,7 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, YAML
-
+import numpy as np 
 
 class YOLO(Model):
     """
@@ -369,12 +369,12 @@ class YOLOE(Model):
         source=None,
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
-        refer_image=None,
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        vp_weight: float=0.5,
         **kwargs,
     ):
         """
-        Run prediction on images, videos, directories, streams, etc.
+        Run prediction on images, videos, directories, streams, etc. when visual prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no visual prompts are given, the model do prediction based on the memory bank if exists. 
 
         Args:
             source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
@@ -383,9 +383,9 @@ class YOLOE(Model):
                 generator as they are computed.
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
-            refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
                 loaded based on the task.
+            vp_weight (float): Weight for visual prompt embeddings when merging with text embeddings. Default is 0.5.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -412,7 +412,7 @@ class YOLOE(Model):
                         "task": self.model.task,
                         "mode": "predict",
                         "save": False,
-                        "verbose": refer_image is None,
+                        "verbose": True,
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
@@ -420,28 +420,50 @@ class YOLOE(Model):
                     },
                     _callbacks=self.callbacks,
                 )
-
-            num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
-                else len(set(visual_prompts["cls"]))
-            )
+            self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
+                       # get the vpe from current image and visual prompts
+            prompts={"bboxes": visual_prompts["bboxes"],
+                     "cls":list( range( len(visual_prompts["cls"])))}
+            num_cls= len(set(prompts["cls"]))
             self.model.model[-1].nc = num_cls
+            self.model.model[-1].no = num_cls + self.model.model[-1].reg_max * 4
             self.model.names = [f"object{i}" for i in range(num_cls)]
-            self.predictor.set_prompts(visual_prompts.copy())
+            self.predictor.set_prompts(prompts.copy())
             self.predictor.setup_model(model=self.model)
+            vpe = self.predictor.get_vpe(source).squeeze(0)
+            assert vpe.ndim==2 , vpe.shape
 
-            if refer_image is None and source is not None:
-                dataset = load_inference_source(source)
-                if dataset.mode in {"video", "stream"}:
-                    # NOTE: set the first frame as refer image for videos/streams inference
-                    refer_image = next(iter(dataset))[1][0]
-            if refer_image is not None:
-                vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
-                self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-                self.predictor = None  # reset predictor
+
+            if visual_prompts is None and not hasattr(self, "memory_bank"):
+                raise ValueError("No visual prompts provided for the first prediction, and memory bank is empty.")
+
+            # update the memory bank
+            if not hasattr(self, "memory_bank"):self.memory_bank = dict()
+            assert len(visual_prompts["cls"])==vpe.shape[0]
+            for cls, cls_vpe in zip(visual_prompts["cls"], vpe):
+                cls_vpe=cls_vpe.clone()
+                only_visual = isinstance(cls, (np.int64, np.int32, int))            
+                if only_visual: cls=f"object{cls}"
+                if cls not in self.memory_bank.keys(): self.memory_bank[cls]=[]
+                if not only_visual: 
+                    cls_vpe= vp_weight*cls_vpe+(1-vp_weight)*self.get_text_pe([cls]).squeeze()
+                self.memory_bank[cls].append(cls_vpe)
+
+
+            # set classes based on the memory bank
+            names=list(self.memory_bank.keys())
+            memory_vpe=torch.stack([torch.mean(torch.stack(self.memory_bank[cls]),dim=0) for cls in names])
+            if len(memory_vpe.shape)==2: memory_vpe = memory_vpe.unsqueeze(0)
+            self.model.set_classes(names,memory_vpe)
+            
+            
+            # Manually update predictor's names to sync with the memory bank
+            self.predictor.names = names # 
+            self.predictor.model.names = names
+            kwargs["prompts"]=None # avoid updating the classes again 
+            
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-            self.predictor = None  # reset predictor if no visual prompts
+            # self.predictor = None  # reset predictor if no visual prompts
+            pass
 
         return super().predict(source, stream, **kwargs)

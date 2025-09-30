@@ -49,6 +49,22 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         self.prompts = prompts
 
+    def preprocess(self, im):
+        """Preprocess images, ensuring prompts dict is converted to tensor for inference."""
+        if isinstance(im, torch.Tensor) and isinstance(self.prompts, dict):
+            _, _, h, w = im.shape
+            self._convert_tensor_prompts((h, w))
+        return super().preprocess(im)
+
+    def _convert_tensor_prompts(self, src_shape):
+        """Convert prompts dict to tensor when source is already a tensor."""
+        bboxes = self.prompts.get("bboxes", None)
+        masks = self.prompts.get("masks", None)
+        category = self.prompts["cls"]
+        visuals = self._process_single_image(src_shape, src_shape, category, bboxes, masks)
+        prompts = visuals.unsqueeze(0).to(self.device)
+        self.prompts = prompts.half() if self.model.fp16 else prompts.float()
+
     def pre_transform(self, im):
         """
         Preprocess images and prompts before inference.
@@ -66,8 +82,10 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
-        bboxes = self.prompts.pop("bboxes", None)
-        masks = self.prompts.pop("masks", None)
+        if not isinstance(self.prompts, dict):
+            return img
+        bboxes = self.prompts.get("bboxes", None)
+        masks = self.prompts.get("masks", None)
         category = self.prompts["cls"]
         if len(img) == 1:
             visuals = self._process_single_image(img[0].shape[:2], im[0].shape[:2], category, bboxes, masks)
@@ -159,9 +177,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
-            # Transform prompts dict to tensor and preprocess image
-            im = self.pre_transform([im0s])
-            return self.model(im[0], vpe=self.prompts, return_vpe=True)
+            im = self.preprocess(im0s)
+            return self.model(im, vpe=self.prompts, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

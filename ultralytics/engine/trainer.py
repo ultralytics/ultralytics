@@ -123,7 +123,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
-        self.device = select_device(self.args.device, self.args.batch)
+        self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
@@ -216,10 +216,10 @@ class BaseTrainer:
                 LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
             if self.args.batch < 1.0:
-                LOGGER.warning(
-                    "'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting default 'batch=16'"
+                raise ValueError(
+                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                    f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
                 )
-                self.args.batch = 16
 
             # Command
             cmd, file = generate_ddp_command(self)

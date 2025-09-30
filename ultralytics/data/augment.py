@@ -273,9 +273,9 @@ class Compose:
         """
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         if isinstance(index, list):
-            assert isinstance(value, list), (
-                f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
-            )
+            assert isinstance(
+                value, list
+            ), f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
         if isinstance(index, int):
             index, value = [index], [value]
         for i, v in zip(index, value):
@@ -1343,13 +1343,14 @@ class RandomPerspective:
 
         segments = instances.segments
         keypoints = instances.keypoints
+        depths = instances.depths
         # Update bboxes if there are segments.
         if len(segments):
             bboxes, segments = self.apply_segments(segments, M)
 
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        new_instances = Instances(bboxes, segments, keypoints, depths, bbox_format="xyxy", normalized=False)
         # Clip
         new_instances.clip(*self.size)
 
@@ -1361,6 +1362,12 @@ class RandomPerspective:
         )
         labels["instances"] = new_instances[i]
         labels["cls"] = cls[i]
+
+        if hasattr(new_instances, "depths") and new_instances.depths is not None:
+            filtered_depths = new_instances[i].depths
+            if filtered_depths is not None:
+                labels["depths"] = filtered_depths
+
         labels["img"] = img
         labels["resized_shape"] = img.shape[:2]
         return labels
@@ -2107,6 +2114,7 @@ class Format:
         return_mask: bool = False,
         return_keypoint: bool = False,
         return_obb: bool = False,
+        return_mde: bool = False,
         mask_ratio: int = 4,
         mask_overlap: bool = True,
         batch_idx: bool = True,
@@ -2150,6 +2158,7 @@ class Format:
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
         self.return_obb = return_obb
+        self.return_mde = return_mde
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -2215,6 +2224,24 @@ class Format:
             labels["bboxes"] = (
                 xyxyxyxy2xywhr(torch.from_numpy(instances.segments)) if len(instances.segments) else torch.zeros((0, 5))
             )
+        if self.return_mde:
+            if instances.depths is not None:
+                depths = instances.depths
+            elif "depths" in labels:
+                depths = labels.pop("depths")
+            else:
+                depths = np.zeros((nl, 1))
+
+            if isinstance(depths, np.ndarray):
+                labels["depths"] = torch.from_numpy(depths)
+            elif isinstance(depths, torch.Tensor):
+                labels["depths"] = depths
+            else:
+                labels["depths"] = torch.zeros(nl, 1)
+
+            if labels["depths"].dim() == 1:
+                labels["depths"] = labels["depths"].unsqueeze(-1)
+
         # NOTE: need to normalize obb in xywhr format for width-height consistency
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w

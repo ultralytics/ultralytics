@@ -196,6 +196,7 @@ class Instances:
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
         keypoints (np.ndarray): Keypoints with shape (N, 17, 3) in format (x, y, visible).
+        depths (np.ndarray, optional): Depths with shape (N, 1) in meters.
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
         segments (np.ndarray): Segments array with shape (N, M, 2) after resampling.
 
@@ -226,6 +227,7 @@ class Instances:
         bboxes: np.ndarray,
         segments: np.ndarray = None,
         keypoints: np.ndarray = None,
+        depths: np.ndarray = None,
         bbox_format: str = "xywh",
         normalized: bool = True,
     ) -> None:
@@ -243,6 +245,7 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments
+        self.depths = depths  # Store depths
 
     def convert_bbox(self, format: str) -> None:
         """
@@ -344,12 +347,14 @@ class Instances:
         """
         segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
+        depths = self.depths[index] if self.depths is not None else None  # Index depths
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
         return Instances(
             bboxes=bboxes,
             segments=segments,
             keypoints=keypoints,
+            depths=depths,  # Include depths in subset
             bbox_format=bbox_format,
             normalized=self.normalized,
         )
@@ -431,9 +436,13 @@ class Instances:
                 self.segments = self.segments[good]
             if self.keypoints is not None:
                 self.keypoints = self.keypoints[good]
+            if self.depths is not None:
+                self.depths = self.depths[good]
         return good
 
-    def update(self, bboxes: np.ndarray, segments: np.ndarray = None, keypoints: np.ndarray = None):
+    def update(
+        self, bboxes: np.ndarray, segments: np.ndarray = None, keypoints: np.ndarray = None, depths: np.ndarray = None
+    ) -> None:
         """
         Update instance variables.
 
@@ -447,6 +456,8 @@ class Instances:
             self.segments = segments
         if keypoints is not None:
             self.keypoints = keypoints
+        if depths is not None:
+            self.depths = depths
 
     def __len__(self) -> int:
         """Return the number of instances."""
@@ -478,6 +489,7 @@ class Instances:
             return instances_list[0]
 
         use_keypoint = instances_list[0].keypoints is not None
+        use_depth = instances_list[0].depths is not None
         bbox_format = instances_list[0]._bboxes.format
         normalized = instances_list[0].normalized
 
@@ -487,9 +499,11 @@ class Instances:
             max_len = max(seg_len)
             cat_segments = np.concatenate(
                 [
-                    resample_segments(list(b.segments), max_len)
-                    if len(b.segments)
-                    else np.zeros((0, max_len, 2), dtype=np.float32)  # re-generating empty segments
+                    (
+                        resample_segments(list(b.segments), max_len)
+                        if len(b.segments)
+                        else np.zeros((0, max_len, 2), dtype=np.float32)
+                    )  # re-generating empty segments
                     for b in instances_list
                 ],
                 axis=axis,
@@ -497,7 +511,9 @@ class Instances:
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        cat_depths = np.concatenate([b.depths for b in instances_list], axis=axis) if use_depth else None
+
+        return cls(cat_boxes, cat_segments, cat_keypoints, cat_depths, bbox_format, normalized)
 
     @property
     def bboxes(self) -> np.ndarray:

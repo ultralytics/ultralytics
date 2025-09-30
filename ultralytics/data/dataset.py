@@ -251,6 +251,7 @@ class YOLODataset(BaseDataset):
                 return_mask=self.use_segments,
                 return_keypoint=self.use_keypoints,
                 return_obb=self.use_obb,
+                return_mde=self.use_mde,
                 batch_idx=True,
                 mask_ratio=hyp.mask_ratio,
                 mask_overlap=hyp.overlap_mask,
@@ -289,6 +290,7 @@ class YOLODataset(BaseDataset):
         bboxes = label.pop("bboxes")
         segments = label.pop("segments", [])
         keypoints = label.pop("keypoints", None)
+        depths = label.pop("depths", None)
         bbox_format = label.pop("bbox_format")
         normalized = label.pop("normalized")
 
@@ -302,7 +304,9 @@ class YOLODataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
-        label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        label["instances"] = Instances(
+            bboxes, segments, keypoints, depths=depths, bbox_format=bbox_format, normalized=normalized
+        )
         return label
 
     @staticmethod
@@ -326,7 +330,7 @@ class YOLODataset(BaseDataset):
                 value = torch.stack(value, 0)
             elif k == "visuals":
                 value = torch.nn.utils.rnn.pad_sequence(value, batch_first=True)
-            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb"}:
+            if k in {"masks", "keypoints", "bboxes", "cls", "segments", "obb", "depths"}:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch["batch_idx"] = list(new_batch["batch_idx"])

@@ -130,10 +130,7 @@ def build_yolo_dataset(
     multi_modal: bool = False,
 ):
     """Build and return a YOLO dataset based on configuration parameters."""
-    if cfg.task == "depth":
-        dataset = NYUDepthV2
-    else:
-        dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
+    dataset = YOLOMultiModalDataset if multi_modal else YOLODataset
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,

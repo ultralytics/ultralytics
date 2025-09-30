@@ -928,8 +928,6 @@ class v11DetectionLoss_MDE(v8DetectionLoss):
         """
         super().__init__(model, tal_topk)
         self.depth_loss = DepthLoss()
-        self.depth_weight = depth_weight
-
         # Update number of outputs to include depth channel
         self.no = self.nc + self.reg_max * 4 + 1  # +1 for depth
 
@@ -949,8 +947,6 @@ class v11DetectionLoss_MDE(v8DetectionLoss):
         Returns:
             tuple: (total_loss, loss_components)
         """
-        # debug
-        assert batch["depths"][0].shape[1] != 0
         loss = torch.zeros(4, device=self.device)  # box, cls, dfl, depth
         feats = preds[1] if isinstance(preds, tuple) else preds
 
@@ -976,20 +972,19 @@ class v11DetectionLoss_MDE(v8DetectionLoss):
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]
         anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
 
-        # Targets - handle both standard format and MDE format
-        assert "depths" in batch and batch["depths"] is not None, "❌ CRITICAL: No depth in batch!"
         # MDE format: batch contains depth information
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-        depth_targets = batch["depths"]  # [batch_size, 1, H, W] or similar format
+        target_depths_fg = batch["depths"]  # [batch_size, 1, H, W] or similar format
 
+        targets = torch.cat((targets, target_depths_fg), dim=1)
         targets = self.preprocess(targets, batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
-        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+        gt_labels, gt_bboxes, gt_depths = targets.split((1, 4, 1), 2)  # cls, xyxy, depth
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0.0)
 
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
-        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor,
@@ -1016,37 +1011,75 @@ class v11DetectionLoss_MDE(v8DetectionLoss):
             )
 
         # Depth loss - only compute if we have depth targets and foreground anchors
-        if depth_targets is not None:
-            # Reshape pred_depths to match spatial dimensions
-            # pred_depths comes from concatenated features, so it has multiple scales
-            # We need to handle the multi-scale prediction properly
-            # total_spatial_elements = sum(f.shape[2] * f.shape[3] for f in feats)  # Sum of all spatial elements
+        if gt_depths is not None and fg_mask.sum():
+            target_depths_fg = self.get_target_depths(gt_depths, target_gt_idx, fg_mask)
 
-            # For now, let's use only the first scale (largest resolution)
-            pred_depths_spatial = pred_depths[:, : feats[0].shape[2] * feats[0].shape[3]].view(
-                batch_size, 1, feats[0].shape[2], feats[0].shape[3]
-            )
+            pred_depths_fg = pred_depths[fg_mask]  # [N_foreground_anchors]
+            target_depths_fg = target_depths_fg.to(pred_depths_fg.dtype)
 
-            # For now, use a simple L1 loss between predicted depth and target depth
-            # This is a simplified approach - you may want to implement more sophisticated depth loss
-            if len(depth_targets) != pred_depths_spatial.shape[0]:
-                # Resize target to match prediction size
-                depth_targets_resized = torch.nn.functional.interpolate(
-                    depth_targets, size=pred_depths_spatial.shape[-2:], mode="bilinear", align_corners=False
-                )
-            else:
-                depth_targets_resized = torch.as_tensor(
-                    depth_targets, device=pred_depths_spatial.device, dtype=pred_depths_spatial.dtype
-                )
-
-            # Compute depth loss (simple L1 for now)
-            depth_loss = torch.nn.functional.l1_loss(pred_depths_spatial, depth_targets_resized)
-            loss[3] = depth_loss * self.depth_weight
+            loss[3] = self.compute_depth_loss(pred_depths_fg, target_depths_fg)
 
         # Apply loss weights (moved before final computation)
         loss[0] *= getattr(self.hyp, "box", 7.5)  # box gain
         loss[1] *= getattr(self.hyp, "cls", 0.5)  # cls gain
         loss[2] *= getattr(self.hyp, "dfl", 1.5)  # dfl gain
+        loss[3] *= getattr(self.hyp, "depth", 1.0)  # depth gain
         # depth_weight already applied above
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl, depth)
+
+    def get_target_depths(
+        self, gt_depths: torch.Tensor, target_gt_idx: torch.Tensor, fg_mask: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Extract target depths for foreground anchors based on ground truth indices.
+
+        Args:
+            gt_depths (torch.Tensor): Ground truth depths [batch_size, 1, H, W].
+            target_gt_idx (torch.Tensor): Indices of ground truth objects for each anchor [batch_size, N_anchors].
+            fg_mask (torch.Tensor): Binary mask indicating foreground anchors [batch_size, N_anchors].
+        Returns:
+            torch.Tensor: Target depths for foreground anchors [N_foreground_anchors].
+        """
+        bs = gt_depths.shape[0]
+        batch_ind = torch.arange(bs, device=self.device)[:, None]
+
+        max_idx = gt_depths.shape[1] - 1
+        target_gt_idx_clamped = target_gt_idx.clamp(0, max_idx)
+
+        target_depths = gt_depths[batch_ind, target_gt_idx_clamped]
+
+        target_depths_fg = target_depths[fg_mask]
+
+        return target_depths_fg
+
+    def compute_depth_loss(self, pred_depths, target_depths):
+        """
+        Compute depth loss following YOLO MDE paper.
+
+        Args:
+            pred_depths: Predicted depths for positive anchors
+            target_depths: Target depths for positive anchors
+
+        Returns:
+            Combined depth loss (Huber + relative)
+        """
+        # Remove zero targets (invalid depths)
+        valid_mask = target_depths > 0
+        if not valid_mask.any():
+            return torch.tensor(0.0, device=pred_depths.device)
+
+        pred = pred_depths[valid_mask]
+        target = target_depths[valid_mask]
+
+        # Huber loss (L_abs from paper)
+        diff = target - pred
+        huber_loss = torch.where(diff.abs() <= 1.0, 0.5 * diff.pow(2), diff.abs() - 0.5).mean()
+
+        # Relative error loss (L_rel from paper)
+        relative_loss = (diff.abs() / (target + 1e-6)).mean()
+
+        # Sum loss and average by positive number
+
+        # Combined loss
+        return huber_loss + relative_loss

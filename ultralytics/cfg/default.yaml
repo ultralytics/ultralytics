@@ -102,6 +102,7 @@ box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
+depth: 1.0 # (float) depth loss gain (MDE tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization
 hsv_h: 0.015 # (float) HSV hue augmentation fraction

@@ -400,10 +400,12 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             onnxruntime_available = False
             try:
                 import onnxruntime
+
                 onnxruntime_available = check_version(onnxruntime.__version__, required)
             except ImportError:
                 try:
                     import onnxruntime_gpu as onnxruntime
+
                     onnxruntime_available = check_version(onnxruntime.__version__, required)
                 except ImportError:
                     pass

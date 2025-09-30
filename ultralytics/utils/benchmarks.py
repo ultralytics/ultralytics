@@ -628,7 +628,7 @@ class ProfileModels:
                         input_shape = (1, *input_tensor.shape[1:])
             else:
                 input_shape = input_tensor.shape
-            print(input_shape)
+
             # Mapping ONNX datatype to numpy datatype
             if "float16" in input_type:
                 input_dtype = np.float16

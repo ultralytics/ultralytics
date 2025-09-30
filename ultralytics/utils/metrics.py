@@ -1236,7 +1236,7 @@ class SegmentMetrics(DetMetrics):
             names (Dict[int, str], optional): Dictionary of class names.
         """
         DetMetrics.__init__(self, names)
-        self.seg = SemSegMetric()
+        self.seg = Metric()
         self.task = "segment"
         self.stats["tp_m"] = []  # add additional stats for masks
 

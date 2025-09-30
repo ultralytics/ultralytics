@@ -144,7 +144,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        res= super().inference(im, vpe=self.prompts, *args, **kwargs)
+        res = super().inference(im, vpe=self.prompts, *args, **kwargs)
         self.prompts = None  # clear prompts after inference
         return res
 
@@ -164,7 +164,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            res= self.model(im, vpe=self.prompts, return_vpe=True)
+            res = self.model(im, vpe=self.prompts, return_vpe=True)
             self.prompts = None  # clear prompts after getting vpe
             return res
 

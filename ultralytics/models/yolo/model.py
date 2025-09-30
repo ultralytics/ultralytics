@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import torch
 
-from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import (
@@ -21,7 +21,7 @@ from ultralytics.nn.tasks import (
     YOLOESegModel,
 )
 from ultralytics.utils import ROOT, YAML
-import numpy as np 
+
 
 class YOLO(Model):
     """
@@ -370,11 +370,13 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        vp_weight: float=0.5,
+        vp_weight: float = 0.5,
         **kwargs,
     ):
         """
-        Run prediction on images, videos, directories, streams, etc. when visual prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no visual prompts are given, the model do prediction based on the memory bank if exists. 
+        Run prediction on images, videos, directories, streams, etc. when visual prompts are given, the prompt
+        embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings.
+        when no visual prompts are given, the model do prediction based on the memory bank if exists.
 
         Args:
             source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
@@ -421,47 +423,47 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
             self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
-                       # get the vpe from current image and visual prompts
-            prompts={"bboxes": visual_prompts["bboxes"],
-                     "cls":list( range( len(visual_prompts["cls"])))}
-            num_cls= len(set(prompts["cls"]))
+            # get the vpe from current image and visual prompts
+            prompts = {"bboxes": visual_prompts["bboxes"], "cls": list(range(len(visual_prompts["cls"])))}
+            num_cls = len(set(prompts["cls"]))
             self.model.model[-1].nc = num_cls
             self.model.model[-1].no = num_cls + self.model.model[-1].reg_max * 4
             self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(prompts.copy())
             self.predictor.setup_model(model=self.model)
             vpe = self.predictor.get_vpe(source).squeeze(0)
-            assert vpe.ndim==2 , vpe.shape
-
+            assert vpe.ndim == 2, vpe.shape
 
             if visual_prompts is None and not hasattr(self, "memory_bank"):
                 raise ValueError("No visual prompts provided for the first prediction, and memory bank is empty.")
 
             # update the memory bank
-            if not hasattr(self, "memory_bank"):self.memory_bank = dict()
-            assert len(visual_prompts["cls"])==vpe.shape[0]
+            if not hasattr(self, "memory_bank"):
+                self.memory_bank = dict()
+            assert len(visual_prompts["cls"]) == vpe.shape[0]
             for cls, cls_vpe in zip(visual_prompts["cls"], vpe):
-                cls_vpe=cls_vpe.clone()
-                only_visual = isinstance(cls, (np.int64, np.int32, int))            
-                if only_visual: cls=f"object{cls}"
-                if cls not in self.memory_bank.keys(): self.memory_bank[cls]=[]
-                if not only_visual: 
-                    cls_vpe= vp_weight*cls_vpe+(1-vp_weight)*self.get_text_pe([cls]).squeeze()
+                cls_vpe = cls_vpe.clone()
+                only_visual = isinstance(cls, (np.int64, np.int32, int))
+                if only_visual:
+                    cls = f"object{cls}"
+                if cls not in self.memory_bank.keys():
+                    self.memory_bank[cls] = []
+                if not only_visual:
+                    cls_vpe = vp_weight * cls_vpe + (1 - vp_weight) * self.get_text_pe([cls]).squeeze()
                 self.memory_bank[cls].append(cls_vpe)
 
-
             # set classes based on the memory bank
-            names=list(self.memory_bank.keys())
-            memory_vpe=torch.stack([torch.mean(torch.stack(self.memory_bank[cls]),dim=0) for cls in names])
-            if len(memory_vpe.shape)==2: memory_vpe = memory_vpe.unsqueeze(0)
-            self.model.set_classes(names,memory_vpe)
-            
-            
+            names = list(self.memory_bank.keys())
+            memory_vpe = torch.stack([torch.mean(torch.stack(self.memory_bank[cls]), dim=0) for cls in names])
+            if len(memory_vpe.shape) == 2:
+                memory_vpe = memory_vpe.unsqueeze(0)
+            self.model.set_classes(names, memory_vpe)
+
             # Manually update predictor's names to sync with the memory bank
-            self.predictor.names = names # 
+            self.predictor.names = names  #
             self.predictor.model.names = names
-            kwargs["prompts"]=None # avoid updating the classes again 
-            
+            kwargs["prompts"] = None  # avoid updating the classes again
+
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             # self.predictor = None  # reset predictor if no visual prompts
             pass

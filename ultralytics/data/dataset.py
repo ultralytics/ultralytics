@@ -24,13 +24,13 @@ from ultralytics.utils.torch_utils import TORCHVISION_0_18
 from .augment import (
     Compose,
     Format,
-    SemSegFormat,
     LetterBox,
     RandomLoadText,
+    SemSegFormat,
     classify_augmentations,
     classify_transforms,
+    semseg_transforms,
     v8_transforms,
-    semseg_transforms
 )
 from .base import BaseDataset
 from .converter import merge_multi_segment
@@ -42,8 +42,8 @@ from .utils import (
     load_dataset_cache_file,
     save_dataset_cache_file,
     verify_image,
+    verify_image_and_mask,
     verify_image_label,
-    verify_image_and_mask
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
@@ -825,7 +825,9 @@ class SemanticDataset(BaseDataset):
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
         if not labels:
-            LOGGER.warning(f"WARNING тЪая╕П No images found in {cache_path}, training may not work correctly. {HELP_URL}")
+            LOGGER.warning(
+                f"WARNING тЪая╕П No images found in {cache_path}, training may not work correctly. {HELP_URL}"
+            )
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
@@ -841,7 +843,9 @@ class SemanticDataset(BaseDataset):
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            LOGGER.warning(f"WARNING тЪая╕П No labels found in {cache_path}, training may not work correctly. {HELP_URL}")
+            LOGGER.warning(
+                f"WARNING тЪая╕П No labels found in {cache_path}, training may not work correctly. {HELP_URL}"
+            )
         return labels
 
     def build_transforms(self, hyp=None):

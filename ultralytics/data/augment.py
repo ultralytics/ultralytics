@@ -2990,7 +2990,8 @@ class ToTensor:
         im /= 255.0  # 0-255 to 0.0-1.0
         return im
 
-#---------------------------------------------------------semantic-segmetation---------------------------------------------------#
+
+# ---------------------------------------------------------semantic-segmetation---------------------------------------------------#
 class SemSegMosaic(BaseMixTransform):
     """
     SemSegMosaic augmentation for Semantic segment task.

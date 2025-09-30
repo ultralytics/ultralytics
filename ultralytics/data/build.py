@@ -15,7 +15,7 @@ from PIL import Image
 from torch.utils.data import dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
-from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset, SemanticDataset
+from ultralytics.data.dataset import GroundingDataset, SemanticDataset, YOLODataset, YOLOMultiModalDataset
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
@@ -313,6 +313,7 @@ def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buff
     setattr(dataset, "source_type", source_type)
 
     return dataset
+
 
 def build_semantic_dataset(
     cfg: IterableSimpleNamespace,

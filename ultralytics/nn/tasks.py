@@ -1505,16 +1505,17 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
 
     if "modelopt_state" in ckpt:  # QAT model
         check_requirements("nvidia-modelopt")
+        import logging
+        import warnings
+
         import modelopt.torch.opt as mto
         import modelopt.torch.quantization as mtq
         import modelopt.torch.utils as mtu
-        import warnings
-        import logging
 
         # suppress logs
         mtu.cpp_extension.print = mtq.conversion.print = lambda str: None
         warnings.filterwarnings("ignore", module="modelopt")
-        logging.getLogger('torch.utils.cpp_extension').setLevel(logging.ERROR)
+        logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
 
         # rebuild from YAML
         model = ckpt["model_class"](ckpt["yaml"], verbose=False)

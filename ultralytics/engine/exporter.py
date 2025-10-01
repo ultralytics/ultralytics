@@ -639,6 +639,7 @@ class Exporter:
             self.args.opset = opset  # for NMSModel
         if self.qat:
             self.model.cpu()  # crashes if CUDA toolkit is not available on GPU export
+            self.im = self.im.cpu()
 
         with arange_patch(self.args):
             torch2onnx(

@@ -712,22 +712,11 @@ class BaseTrainer:
 
     def build_quantized_model(self):
         """Adds quantization layers to model for QAT training."""
-        from ultralytics.utils.checks import check_requirements
-
-        check_requirements("nvidia-modelopt")
-
-        import logging
-        import warnings
-
-        import modelopt.torch.quantization as mtq
-        import modelopt.torch.utils as mtu
-
-        # suppress logs
-        mtu.cpp_extension.print = mtq.conversion.print = lambda str: None
-        warnings.filterwarnings("ignore", module="modelopt")
-        logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
-
         from ultralytics.data.build import build_dataloader
+        from ultralytics.utils.export import setup_modelopt
+
+        setup_modelopt()
+        import modelopt.torch.quantization as mtq
 
         config = {
             "quant_cfg": {

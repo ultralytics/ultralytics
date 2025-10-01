@@ -238,3 +238,20 @@ def onnx2engine(
             t.write(meta.encode())
         # Model
         t.write(engine if is_trt10 else engine.serialize())
+
+
+def setup_modelopt():
+    """Sets up NVIDIA Model Optimizer and disables logs."""
+    from ultralytics.utils.checks import check_requirements
+
+    check_requirements("nvidia-modelopt")
+
+    import modelopt.torch.quantization as mtq
+    import modelopt.torch.utils as mtu
+    import warnings
+    import logging
+
+    # suppress logs
+    mtu.cpp_extension.print = mtq.conversion.print = lambda str: None
+    warnings.filterwarnings("ignore", module="modelopt")
+    logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)

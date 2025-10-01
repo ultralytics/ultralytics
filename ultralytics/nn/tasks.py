@@ -1504,18 +1504,10 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model = ckpt.get("ema") or ckpt["model"]
 
     if "modelopt_state" in ckpt:  # QAT model
-        check_requirements("nvidia-modelopt")
-        import logging
-        import warnings
+        from ultralytics.utils.export import setup_modelopt
 
+        setup_modelopt()
         import modelopt.torch.opt as mto
-        import modelopt.torch.quantization as mtq
-        import modelopt.torch.utils as mtu
-
-        # suppress logs
-        mtu.cpp_extension.print = mtq.conversion.print = lambda str: None
-        warnings.filterwarnings("ignore", module="modelopt")
-        logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
 
         # rebuild from YAML
         model = ckpt["model_class"](ckpt["yaml"], verbose=False)

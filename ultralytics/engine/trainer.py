@@ -53,6 +53,7 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     select_device,
+    smart_inference_mode,
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
@@ -259,6 +260,10 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+
+        # Build model for QAT
+        if self.args.int8 and not hasattr(self.model, "_modelopt_state"):
+            self.build_quantized_model()
 
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
@@ -572,12 +577,26 @@ class BaseTrainer:
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
+        model = deepcopy(unwrap_model(self.ema.ema))
+        extras = {}
+        if hasattr(model, "_modelopt_state"):
+            import modelopt.torch.opt as mto
+
+            extras = {  # model can't be pickled; saving state_dict
+                "modelopt_state": mto.modelopt_state(model),
+                "state_dict": model.state_dict(),
+                "model_class": model.__class__,
+                "yaml": model.yaml,
+                "names": model.names,
+                "nc": model.nc,
+            }
+
         torch.save(
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": deepcopy(unwrap_model(self.ema.ema)).half(),
+                "ema": None if extras else model.half(),
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
@@ -594,6 +613,7 @@ class BaseTrainer:
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
+                **extras,
             },
             buffer,
         )
@@ -689,6 +709,48 @@ class BaseTrainer:
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
+
+    def build_quantized_model(self):
+        """Adds quantization layers to model for QAT training."""
+        from ultralytics.data.build import build_dataloader
+        from ultralytics.utils.export import setup_modelopt
+
+        setup_modelopt()
+        import modelopt.torch.quantization as mtq
+
+        config = {
+            "quant_cfg": {
+                "*weight_quantizer": {"num_bits": 8, "axis": 0},  # Per-channel weight quantization
+                "*input_quantizer": {"num_bits": 8, "axis": None},  # Per-tensor activation quantization
+                "*output_quantizer": {"num_bits": 8, "axis": None},
+                # Exclude DFL layers if present
+                "*.dfl*weight_quantizer": {"enable": False},
+                "*.dfl*input_quantizer": {"enable": False},
+                "*.dfl*output_quantizer": {"enable": False},
+            },
+            "algorithm": "max",  # Calibration algorithm
+        }
+
+        with torch_distributed_zero_first(LOCAL_RANK):  # init dataset *.cache only once if DDP
+            dataset = self.build_dataset(self.data["val"], "QAT", self.args.batch)
+        calib_loader = build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)
+
+        @smart_inference_mode()
+        def forward_loop(model):
+            model.eval()
+            count, num_samples = 0, 512  # max calibration samples
+            for batch in calib_loader:
+                if count >= num_samples:
+                    break
+                images = self.preprocess_batch(batch)["img"]
+                model(images)
+                count += images.shape[0]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
+
+        LOGGER.info(f"{colorstr('QAT:')} Inserted Q/DQ layers for QAT")
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

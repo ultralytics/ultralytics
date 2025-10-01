@@ -460,6 +460,8 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
+        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
+
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
@@ -635,6 +637,9 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
+        if self.qat:
+            self.model.cpu()  # crashes if CUDA toolkit is not available on GPU export
+            self.im = self.im.cpu()
 
         with arange_patch(self.args):
             torch2onnx(
@@ -683,8 +688,12 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"
+        if self.qat:
+            model = self.export_onnx()
+        else:
+            model = NMSModel(self.model, self.args) if self.args.nms else self.model
         ov_model = ov.convert_model(
-            NMSModel(self.model, self.args) if self.args.nms else self.model,
+            model,
             input=None if self.args.dynamic else [self.im.shape],
             example_input=self.im,
         )
@@ -703,7 +712,7 @@ class Exporter:
             ov.save_model(ov_model, file, compress_to_fp16=self.args.half)
             YAML.save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        if self.args.int8:
+        if self.args.int8 and not self.qat:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463
@@ -975,7 +984,7 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 and not self.qat else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,

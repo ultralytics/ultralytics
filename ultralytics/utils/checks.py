@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import functools
 import glob
+import importlib
+import importlib.util
 import inspect
 import math
 import os
@@ -19,9 +21,6 @@ from types import SimpleNamespace
 import cv2
 import numpy as np
 import torch
-
-import importlib
-import importlib.util
 
 from ultralytics.utils import (
     ARM64,
@@ -362,9 +361,9 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
 
 # Package to module name mapping for packages with different install names vs import names
 PACKAGE_MODULE_MAPPING = {
-    'onnxruntime': ['onnxruntime', 'onnxruntime_gpu'],
-    'opencv-python': ['cv2'],
-    'Pillow': ['PIL'],
+    "onnxruntime": ["onnxruntime", "onnxruntime_gpu"],
+    "opencv-python": ["cv2"],
+    "Pillow": ["PIL"],
 }
 
 
@@ -391,7 +390,7 @@ def check_module_availability(package_name, required_version=None):
             try:
                 # Module exists, import it to get version information
                 module = importlib.import_module(module_name)
-                version = getattr(module, '__version__', None)
+                version = getattr(module, "__version__", None)
 
                 # Check version requirement if specified
                 if required_version and version:
@@ -450,8 +449,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
             # Use generic module availability check for mapped packages
             available, used_module, version = check_module_availability(name, required)
             if available:
-                LOGGER.debug(f"{prefix} {name} requirement satisfied by module {used_module}" +
-                             (f" (version {version})" if version else ""))
+                LOGGER.debug(
+                    f"{prefix} {name} requirement satisfied by module {used_module}"
+                    + (f" (version {version})" if version else "")
+                )
                 continue
             else:
                 pkgs.append(r)

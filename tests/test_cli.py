@@ -8,7 +8,8 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA, TMP
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_10
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_6
 
 
 def run(cmd: str) -> None:
@@ -49,7 +50,8 @@ def test_export(model: str) -> None:
     run(f"yolo export model={model} format=torchscript imgsz=32")
 
 
-@pytest.mark.skipif(not TORCH_1_11, reason="QAT requires torch>=1.11")
+@pytest.mark.skipif(not TORCH_2_6, reason="QAT requires torch>=2.6")
+@pytest.mark.skipif(not IS_PYTHON_MINIMUM_3_10, reason="QAT requires Pythob>=3.10")
 def test_qat():
     """Test model training and export with QAT."""
     from ultralytics.utils.checks import check_requirements

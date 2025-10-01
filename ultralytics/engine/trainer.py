@@ -710,13 +710,21 @@ class BaseTrainer:
             self.best_fitness = fitness
         return metrics, fitness
 
-    def build_quantized_model(self):
+    def build_quantized_model(self, prefix="quantize"):
         """Adds quantization layers to model for QAT training."""
         from ultralytics.utils.checks import check_requirements
 
         check_requirements("nvidia-modelopt")
 
         import modelopt.torch.quantization as mtq
+        import modelopt.torch.utils as mtu
+        import warnings
+        import logging
+
+        # suppress logs
+        mtu.cpp_extension.print = mtq.conversion.print = lambda str: None
+        warnings.filterwarnings("ignore", module="modelopt")
+        logging.getLogger('torch.utils.cpp_extension').setLevel(logging.ERROR)
 
         from ultralytics.data.build import build_dataloader
 
@@ -734,7 +742,7 @@ class BaseTrainer:
         }
 
         with torch_distributed_zero_first(LOCAL_RANK):  # init dataset *.cache only once if DDP
-            dataset = self.build_dataset(self.data["val"], "quantize", self.args.batch)
+            dataset = self.build_dataset(self.data["val"], prefix, self.args.batch)
         calib_loader = build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)
 
         @smart_inference_mode()
@@ -748,7 +756,11 @@ class BaseTrainer:
                 model(images)
                 count += images.shape[0]
 
-        self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
+        
+        LOGGER.info(f"{colorstr('quantize:')} Inserted Q/DQ layers for QAT")
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

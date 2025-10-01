@@ -219,10 +219,11 @@ def onnx2engine(
                 _ = self.cache.write_bytes(cache)
 
         # Load dataset w/ builder (for batching) and calibrate
-        config.int8_calibrator = EngineCalibrator(
-            dataset=dataset,
-            cache=str(Path(onnx_file).with_suffix(".cache")),
-        )
+        if dataset is not None:
+            config.int8_calibrator = EngineCalibrator(
+                dataset=dataset,
+                cache=str(Path(onnx_file).with_suffix(".cache")),
+            )
 
     elif half:
         config.set_flag(trt.BuilderFlag.FP16)

@@ -460,6 +460,10 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
+        self.qat = False
+        if hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize":
+            self.qat = True
+
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
@@ -635,6 +639,8 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
+        if self.qat:
+            self.model.cpu()  # crashes if CUDA toolkit is not available on GPU export
 
         with arange_patch(self.args):
             torch2onnx(
@@ -683,11 +689,15 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"
-        ov_model = ov.convert_model(
-            NMSModel(self.model, self.args) if self.args.nms else self.model,
-            input=None if self.args.dynamic else [self.im.shape],
-            example_input=self.im,
-        )
+        if self.qat:
+            onnx_f = self.export_onnx()
+            ov_model = ov.convert_model(onnx_f)
+        else:
+            ov_model = ov.convert_model(
+                NMSModel(self.model, self.args) if self.args.nms else self.model,
+                input=None if self.args.dynamic else [self.im.shape],
+                example_input=self.im,
+            )
 
         def serialize(ov_model, file):
             """Set RT info, serialize, and save metadata YAML."""
@@ -975,7 +985,7 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 and not self.qat else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,

@@ -725,6 +725,10 @@ class BaseTrainer:
                 "*weight_quantizer": {"num_bits": 8, "axis": 0},  # Per-channel weight quantization
                 "*input_quantizer": {"num_bits": 8, "axis": None},  # Per-tensor activation quantization
                 "*output_quantizer": {"num_bits": 8, "axis": None},
+                # Exclude DFL layers if present
+                "*.dfl*weight_quantizer": {"enable": False},
+                "*.dfl*input_quantizer": {"enable": False},
+                "*.dfl*output_quantizer": {"enable": False},
             },
             "algorithm": "max",  # Calibration algorithm
         }

@@ -1114,7 +1114,9 @@ class Exporter:
         from axelera import compiler
         from axelera.compiler import CompilerConfig
         
-        export_path = Path(f"{Path(f).stem}_axelera_model")
+        self.args.opset = 17
+        onnx_path = self.export_onnx()
+        export_path = Path(f"{Path(onnx_path).stem}_axelera_model")
         export_path.mkdir(exist_ok=True)
                 
         # assert not self.args.dynamic, f"Axelera does not support Dynamic tensor")
@@ -1132,9 +1134,7 @@ class Exporter:
         # this is for YOLOv8
         config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True)
         
-        self.args.opset = 17
-        
-        onnx_path = self.export_onnx()
+    
         
         qmodel = compiler.quantize(
             model=onnx_path,

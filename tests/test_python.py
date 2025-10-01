@@ -673,7 +673,7 @@ def test_yoloe():
     model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
 
     # Train, fine-tune
-    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
     model = YOLOE("yoloe-11s-seg.pt")
     model.train(
@@ -681,6 +681,15 @@ def test_yoloe():
         epochs=1,
         close_mosaic=1,
         trainer=YOLOEPESegTrainer,
+        imgsz=32,
+    )
+    # Train, from scratch
+    model = YOLOE("yoloe-11s-seg.yaml")
+    model.train(
+        data=dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"])),
+        epochs=1,
+        close_mosaic=1,
+        trainer=YOLOESegTrainerFromScratch,
         imgsz=32,
     )
 

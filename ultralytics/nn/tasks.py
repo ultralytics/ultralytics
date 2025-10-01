@@ -1504,6 +1504,7 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model = ckpt.get("ema") or ckpt["model"]
 
     if "modelopt_state" in ckpt:  # QAT model
+        check_requirements("nvidia-modelopt")
         import modelopt.torch.opt as mto
 
         # rebuild from YAML

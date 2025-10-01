@@ -688,14 +688,14 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"
         if self.qat:
-            onnx_f = self.export_onnx()
-            ov_model = ov.convert_model(onnx_f)
+            model = self.export_onnx()
         else:
-            ov_model = ov.convert_model(
-                NMSModel(self.model, self.args) if self.args.nms else self.model,
-                input=None if self.args.dynamic else [self.im.shape],
-                example_input=self.im,
-            )
+            model = NMSModel(self.model, self.args) if self.args.nms else self.model
+        ov_model = ov.convert_model(
+            model,
+            input=None if self.args.dynamic else [self.im.shape],
+            example_input=self.im,
+        )
 
         def serialize(ov_model, file):
             """Set RT info, serialize, and save metadata YAML."""
@@ -711,7 +711,7 @@ class Exporter:
             ov.save_model(ov_model, file, compress_to_fp16=self.args.half)
             YAML.save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        if self.args.int8:
+        if self.args.int8 and not self.qat:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463

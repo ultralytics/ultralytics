@@ -710,7 +710,7 @@ class BaseTrainer:
             self.best_fitness = fitness
         return metrics, fitness
 
-    def build_quantized_model(self, prefix="quantize"):
+    def build_quantized_model(self):
         """Adds quantization layers to model for QAT training."""
         from ultralytics.utils.checks import check_requirements
 
@@ -743,7 +743,7 @@ class BaseTrainer:
         }
 
         with torch_distributed_zero_first(LOCAL_RANK):  # init dataset *.cache only once if DDP
-            dataset = self.build_dataset(self.data["val"], prefix, self.args.batch)
+            dataset = self.build_dataset(self.data["val"], "QAT", self.args.batch)
         calib_loader = build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)
 
         @smart_inference_mode()
@@ -761,7 +761,7 @@ class BaseTrainer:
             warnings.simplefilter("ignore")
             self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
 
-        LOGGER.info(f"{colorstr('quantize:')} Inserted Q/DQ layers for QAT")
+        LOGGER.info(f"{colorstr('QAT:')} Inserted Q/DQ layers for QAT")
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

@@ -1117,8 +1117,8 @@ class Exporter:
         export_path = Path(f"{Path(f).stem}_axelera_model")
         export_path.mkdir(exist_ok=True)
                 
-        assert not self.args.dynamic, f"Axelera does not support Dynamic tensor")
-        assert not self.args.int8, f("Axelera only support int8 datapath")
+        # assert not self.args.dynamic, f"Axelera does not support Dynamic tensor")
+        # assert not self.args.int8, f("Axelera only support int8 datapath")
         
         
         def transform_fn(data_item) -> np.ndarray:

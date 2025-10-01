@@ -416,6 +416,11 @@ class Exporter:
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
+
+        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
+        if self.qat:
+            assert onnx or engine, "QAT models can only be exported to TensorRT or ONNX."
+
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
             if is_intel():
@@ -459,8 +464,6 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
-
-        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
 
         y = None
         for _ in range(2):  # dry runs
@@ -688,12 +691,8 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with openvino {ov.__version__}...")
         assert TORCH_2_1, f"OpenVINO export requires torch>=2.1 but torch=={TORCH_VERSION} is installed"
-        if self.qat:
-            model = self.export_onnx()
-        else:
-            model = NMSModel(self.model, self.args) if self.args.nms else self.model
         ov_model = ov.convert_model(
-            model,
+            NMSModel(self.model, self.args) if self.args.nms else self.model,
             input=None if self.args.dynamic else [self.im.shape],
             example_input=self.im,
         )
@@ -712,7 +711,7 @@ class Exporter:
             ov.save_model(ov_model, file, compress_to_fp16=self.args.half)
             YAML.save(Path(file).parent / "metadata.yaml", self.metadata)  # add metadata.yaml
 
-        if self.args.int8 and not self.qat:
+        if self.args.int8:
             fq = str(self.file).replace(self.file.suffix, f"_int8_openvino_model{os.sep}")
             fq_ov = str(Path(fq) / self.file.with_suffix(".xml").name)
             # INT8 requires nncf, nncf requires packaging>=23.2 https://github.com/openvinotoolkit/nncf/issues/3463

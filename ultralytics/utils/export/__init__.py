@@ -244,6 +244,7 @@ def setup_modelopt():
     """Sets up NVIDIA Model Optimizer and disables logs."""
     from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_10
     from ultralytics.utils.torch_utils import TORCH_2_6
+
     assert TORCH_2_6, "QAT requires PyTorch>=2.6"
     assert IS_PYTHON_MINIMUM_3_10, "QAT requires Python>=3.10"
 

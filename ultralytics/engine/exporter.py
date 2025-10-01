@@ -460,9 +460,7 @@ class Exporter:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
 
-        self.qat = False
-        if hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize":
-            self.qat = True
+        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
 
         y = None
         for _ in range(2):  # dry runs

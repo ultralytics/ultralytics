@@ -246,10 +246,11 @@ def setup_modelopt():
 
     check_requirements("nvidia-modelopt")
 
+    import logging
+    import warnings
+
     import modelopt.torch.quantization as mtq
     import modelopt.torch.utils as mtu
-    import warnings
-    import logging
 
     # suppress logs
     mtu.cpp_extension.print = mtq.conversion.print = lambda str: None

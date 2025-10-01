@@ -1110,11 +1110,16 @@ class Exporter:
     @try_export
     def export_axelera(self, prefix=colorstr("Axelera:")):
         """YOLOv8 Axelera export."""
+
         from axelera import compiler
         from axelera.compiler import CompilerConfig
         
+        export_path = Path(f"{Path(f).stem}_axelera_model")
+        export_path.mkdir(exist_ok=True)
+                
         assert not self.args.dynamic, f"Axelera does not support Dynamic tensor")
         assert not self.args.int8, f("Axelera only support int8 datapath")
+        
         
         def transform_fn(data_item) -> np.ndarray:
             data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
@@ -1123,23 +1128,28 @@ class Exporter:
             return np.expand_dims(im, 0) if im.ndim == 3 else im
         
         # this is for YOLO11 series
-        config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False)
+        # config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False)
         # this is for YOLOv8
-        # config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True)
-
+        config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True)
+        
+        self.args.opset = 17
+        
+        onnx_path = self.export_onnx()
+        
         qmodel = compiler.quantize(
-            model=self.model,
+            model=onnx_path,
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             config=config,
             transform_fn=transform_fn
         )
+        
         compiler.compile(
             model=qmodel,
             config=config,
-            output_dir=Path("axelera_export/")
+            output_dir=str(export_path)
         )
         
-        return "axelera_export"
+        return str(export_path)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

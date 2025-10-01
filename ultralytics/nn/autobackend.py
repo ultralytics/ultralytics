@@ -96,7 +96,7 @@ class AutoBackend(nn.Module):
             | IMX                   | *_imx_model/      |
             | RKNN                  | *_rknn_model/     |
             | Triton Inference      | triton://model    |
-            | Executorch            | *.pte             |
+            | ExecuTorch            | *.pte             |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -123,7 +123,7 @@ class AutoBackend(nn.Module):
         imx (bool): Whether the model is an IMX model.
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
-        pte (bool): Whether the model is a PyTorch Executorch model.
+        pte (bool): Whether the model is a PyTorch ExecuTorch model.
 
     Methods:
         forward: Run inference on an input image.
@@ -572,9 +572,9 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
-        # Executorch
+        # ExecuTorch
         elif pte:
-            LOGGER.info(f"Loading {w} for Executorch inference...")
+            LOGGER.info(f"Loading {w} for ExecuTorch inference...")
             check_requirements("executorch", "setuptools")
             from executorch.runtime import Runtime
 
@@ -789,7 +789,7 @@ class AutoBackend(nn.Module):
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
 
-        # Executorch
+        # ExecuTorch
         elif self.pte:
             y = self.model.execute([im])
 
@@ -906,7 +906,7 @@ class AutoBackend(nn.Module):
         types = [p_str.endswith(s) for s in sf_standard]
         types[5] |= p_str.endswith(".mlmodel")  # CoreML special case
         types[8] &= not types[9]  # TFLite vs. EdgeTPU
-        pte = p_str.endswith(pte_suffix)  # Executorch check
+        pte = p_str.endswith(pte_suffix)  # ExecuTorch check
 
         triton = False
         if not (any(types) or pte):

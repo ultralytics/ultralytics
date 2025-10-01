@@ -20,7 +20,7 @@ MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
-Executorch              | `executorch`              | yolo11n_executorch_model/
+ExecuTorch              | `executorch`              | yolo11n_executorch_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -49,7 +49,7 @@ Inference:
                          yolo11n_ncnn_model         # NCNN
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
-                         yolo11n_executorch_model   # Executorch
+                         yolo11n_executorch_model   # ExecuTorch
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -150,7 +150,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["Executorch", "executorch", "_executorch_model", False, False, ["batch", "name"]],
+        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -1124,11 +1124,11 @@ class Exporter:
         return str(f)
 
     @try_export
-    def export_executorch(self, prefix=colorstr("Executorch:")):
-        """Exports a model to Executorch (.pte) format into a dedicated directory and saves the required metadata,
+    def export_executorch(self, prefix=colorstr("ExecuTorch:")):
+        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
         following Ultralytics conventions.
         """
-        LOGGER.info(f"\n{prefix} starting export with Executorch...")
+        LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         check_requirements(["executorch>=0.7.0", "setuptools>65"])
 
         import torch

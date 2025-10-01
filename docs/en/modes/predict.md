@@ -397,7 +397,7 @@ Below are code examples for using each source type:
 
 !!! note
 
-    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way up to the full `imgsz`. When running inference on a batch, however, minimal padding only works if all images are of same size. Otherwise, they are uniformly padded to a square shape with both sides equal to `imgsz`.
+    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images with different sizes, minimal padding only works if all images have the same dimensions. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
 
 !!! example
 

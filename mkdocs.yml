@@ -729,6 +729,7 @@ plugins:
   - macros:
       include_yaml:
         - ultralytics/cfg/default.yaml
+        - ultralytics/cfg/semseg.yaml
   # - search:
   #     lang: en
   - mkdocstrings:

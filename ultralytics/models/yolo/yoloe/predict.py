@@ -157,10 +157,28 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
         """
         self.setup_source(source)
-        assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
-            im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            if len(im0s) > 1:  # multiple refer_image
+                categories = self.prompts["cls"]
+                prompts = self.prompts  # original prompts
+                vpes = []
+                for i, im in enumerate(im0s):
+                    self.prompts = {k: prompts[k][i] for k in ["bboxes", "cls"]}  # extract prompt for current image
+                    im = self.preprocess([im])
+                    vpes += [self.model(im, vpe=self.prompts, return_vpe=True)]
+                vpe_stack = []  # vpe for each class processed separately
+                for cls_id in range(len(self.model.names)):  # merge embeddings classwise
+                    cls_stack = []  # collect embeddings for same class
+                    for vpe, cat in zip(vpes, categories):
+                        if cls_id in cat:  # image may not have prompts for current class
+                            cls_stack += [
+                                vpe[0, np.unique(cat).tolist().index(cls_id)]
+                            ]  # index of cls_id in unique list
+                    vpe_stack += [torch.nn.functional.normalize(torch.stack(cls_stack).mean(0), p=2, dim=-1)]
+                return torch.stack(vpe_stack)[None]
+            else:
+                im = self.preprocess(im0s)
+                return self.model(im, vpe=self.prompts, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

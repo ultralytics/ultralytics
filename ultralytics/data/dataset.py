@@ -715,8 +715,10 @@ class SemanticDataset(BaseDataset):
         Initialize a SemanticDataset object.
 
         Args:
+            args: arguments with list
             data: A dataset YAML dictionary, Default for None
             task: An explicit arg to point current task, Defaults to 'detect'.
+            **kwargs: arguments with dict format
         """
         self.use_segment = task in ["segment"]
         self.use_keypoints = task == "pose"

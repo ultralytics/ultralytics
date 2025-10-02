@@ -3537,6 +3537,7 @@ class SemSegRandomPerspective(RandomPerspective):
                 border (tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
                 pre_transform (Callable | None): Function/transform to apply to the image before starting the random
                     transformation.
+                num_classes: number of categories
 
             Examples:
                 >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
@@ -3902,7 +3903,7 @@ class SemSegFormat:
         5. Converts the Numpy array to a PyTorch tensor.
 
         Args:
-            img (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
+            mask (np.ndarray): Input image as a Numpy array with shape (H, W, C) or (H, W).
 
         Returns:
             (torch.Tensor): Formatted image as a PyTorch tensor with shape (C, H, W).

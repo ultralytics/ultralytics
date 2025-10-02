@@ -137,6 +137,7 @@ def test_classify():
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
 
+
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
@@ -146,9 +147,10 @@ def test_semseg():
         "epochs": 1,
         "save": False,
         "mask_ratio": 1,
+        "device": -1
     }
     cfg = get_cfg(SEMSEG_CFG)
-
+    cfg.device = -1
     # Trainer
     trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
     trainer.add_callback("on_train_start", test_func)

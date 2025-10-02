@@ -3526,9 +3526,11 @@ class SemSegRandomPerspective(RandomPerspective):
         num_classes=20,
     ):
         """
-        Initialize RandomPerspective object with transformation parameters.
-        This class implements random perspective and affine transformations on images and masks. Transformations include rotation, translation, scaling, and shearing.
-            Args:
+        Initialize RandomPerspective object with transformation parameters. This class implements random perspective and
+        affine transformations on images and masks. Transformations include rotation, translation, scaling, and
+        shearing.
+
+        Args:
                 degrees (float): Degree range for random rotations.
                 translate (float): Fraction of total width and height for random translation.
                 scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
@@ -3540,7 +3542,7 @@ class SemSegRandomPerspective(RandomPerspective):
                 num_classes: number of categories
         Examples:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
-            >>> result = transform(labels)  # Apply random perspective to labels
+            >>> result = transform(labels)  # Apply random perspective to labels.
         """
         super().__init__(degrees, translate, scale, shear, perspective, border, pre_transform)
         self.num_classes = num_classes

@@ -1723,6 +1723,7 @@ class SemSegMetric(Metric):
 
     @property
     def Dice_Score(self):
+        """mean of Dice Score"""
         return np.array(self.dice_score).mean() if len(self.dice_score) else 0.0
 
     @property

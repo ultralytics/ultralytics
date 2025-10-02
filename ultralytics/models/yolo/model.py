@@ -51,7 +51,13 @@ class YOLO(Model):
         >>> model = YOLO("yolo11n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo11n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(
+        self,
+        model: str | Path = "yolo11n.pt",
+        task: str | None = None,
+        verbose: bool = False,
+        scale: str | None = None,
+    ):
         """
         Initialize a YOLO model.
 
@@ -63,13 +69,33 @@ class YOLO(Model):
             task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
                 Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
+            scale (str, optional): Override model scale when loading from a .yaml config.
+                If provided, this value takes precedence over the scale inferred from the YAML
+                filename (via `guess_model_scale`). Useful for choosing between variants like
+                'n', 's', 'm', 'l', 'x'. Ignored when loading .pt files.
 
         Examples:
             >>> from ultralytics import YOLO
             >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
             >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
+            >>> model = YOLO("yolo11.yaml", scale="s")  # Build a YOLOv11s model from a config with 's' variant
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
+
+        # Decide if scale is user-overridable or not
+        if path.suffix in {".yaml", ".yml"}:
+            self._scale = scale  # User-specified or passed to builder
+        elif path.suffix == ".pt":
+            if scale:
+                from ultralytics.utils import LOGGER
+
+                LOGGER.warning(
+                    f"Ignoring user-specified scale='{scale}' for pretrained .pt file '{path.name}' — scale is inferred from filename."
+                )
+            self._scale = None  # Will be inferred internally
+        else:
+            self._scale = scale  # For safety fallback
+
         if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
@@ -80,7 +106,7 @@ class YOLO(Model):
             self.__dict__ = new_instance.__dict__
         else:
             # Continue with default YOLO initialization
-            super().__init__(model=model, task=task, verbose=verbose)
+            super().__init__(model=model, task=task, verbose=verbose, scale=self._scale)
             if hasattr(self.model, "model") and "RTDETR" in self.model.model[-1]._get_name():  # if RTDETR head
                 from ultralytics import RTDETR
 

@@ -207,6 +207,7 @@ nav:
           - Detect: tasks/detect.md
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
+          - Semseg: tasks/semseg.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
       - Models:
@@ -253,6 +254,7 @@ nav:
           - tasks/index.md
           - Detect: tasks/detect.md
           - Segment: tasks/segment.md
+          - Semseg: tasks/semseg.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
@@ -283,6 +285,7 @@ nav:
       - tasks/index.md
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
+      - Semseg: tasks/semseg.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md

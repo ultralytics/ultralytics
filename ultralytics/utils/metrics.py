@@ -1596,11 +1596,11 @@ class OBBMetrics(DetMetrics):
 # ----------------------------------------------Semantic Segment Metrics----------------------------------------------------------------#
 def mask_precision(mask1, mask2, eps=1e-7):
     """
-    compute precison for semantic segmentation task
+    Compute precision for semantic segmentation task
     Args:
         mask1(torch.Tensor[height, width]): prediction mask, which is output from model
-        mask2(torch.Tensor[height, width]): groundtruth mask, whcih is provided by dataset
-        eps: a tiny number
+        mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
+        eps: a tiny number.
 
     Returns: precision(torch.Tensor)
     """
@@ -1614,13 +1614,13 @@ def mask_precision(mask1, mask2, eps=1e-7):
 
 def mask_accuracy(mask1, mask2, eps=1e-7):
     """
-        compute accuracy for semantic segmentation task
-        Args:
-            mask1(torch.Tensor[height, width]): prediction mask, which is output from model
-            mask2(torch.Tensor[height, width]): groundtruth mask, whcih is provided by dataset
-            eps: a tiny number
+    Compute accuracy for semantic segmentation task
+    Args:
+        mask1(torch.Tensor[height, width]): prediction mask, which is output from model
+        mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
+        eps: a tiny number.
 
-        Returns: accuracy(torch.Tensor)
+    Returns: accuracy(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
@@ -1632,13 +1632,13 @@ def mask_accuracy(mask1, mask2, eps=1e-7):
 
 def mask_recall(mask1, mask2, eps=1e-7):
     """
-        compute recall for semantic segmentation task
-        Args:
-            mask1(torch.Tensor[height, width]): prediction mask, which is output from model
-            mask2(torch.Tensor[height, width]): groundtruth mask, whcih is provided by dataset
-            eps: a tiny number
+    Compute recall for semantic segmentation task
+    Args:
+        mask1(torch.Tensor[height, width]): prediction mask, which is output from model
+        mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
+        eps: a tiny number.
 
-        Returns: recall(torch.Tensor)
+    Returns: recall(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fn = torch.matmul(mask1, 1 - mask2.T).clamp_(0).sum()
@@ -1650,13 +1650,13 @@ def mask_recall(mask1, mask2, eps=1e-7):
 
 def mask_mcr(mask1, mask2, eps=1e-7):
     """
-        compute MCR for semantic segmentation task
-        Args:
-            mask1(torch.Tensor[height, width]): prediction mask, which is output from model
-            mask2(torch.Tensor[height, width]): groundtruth mask, whcih is provided by dataset
-            eps: a tiny number
+    Compute MCR for semantic segmentation task
+    Args:
+        mask1(torch.Tensor[height, width]): prediction mask, which is output from model
+        mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
+        eps: a tiny number.
 
-        Returns: MCR(torch.Tensor)
+    Returns: MCR(torch.Tensor)
     """
     fp = torch.matmul(mask1, 1 - mask2.T).clamp_(0)
     fn = torch.matmul(1 - mask1, mask2.T).clamp_(0)
@@ -1666,13 +1666,13 @@ def mask_mcr(mask1, mask2, eps=1e-7):
 
 def dice_score(mask1, mask2, eps=1e-7):
     """
-        compute DICE-SCORE for semantic segmentation task
-        Args:
-            mask1(torch.Tensor[height, width]): prediction mask, which is output from model
-            mask2(torch.Tensor[height, width]): groundtruth mask, whcih is provided by dataset
-            eps: a tiny number
+    Compute DICE-SCORE for semantic segmentation task
+    Args:
+        mask1(torch.Tensor[height, width]): prediction mask, which is output from model
+        mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
+        eps: a tiny number.
 
-        Returns: DICE-SCORE(torch.Tensor)
+    Returns: DICE-SCORE(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
@@ -1686,11 +1686,10 @@ def dice_score(mask1, mask2, eps=1e-7):
 
 
 class SemSegMetric(Metric):
-    """
-    Metrics class for semantic segmentation task, including Dice-Score, Precision, Recall, IoU, MCR"
-    """
+    """Metrics class for semantic segmentation task, including Dice-Score, Precision, Recall, IoU, MCR"."""
+
     def __init__(self):
-        """init for semantic segment metric instance"""
+        """Init for semantic segment metric instance."""
         super().__init__()
         self.dice_score = []
         self.precision = []
@@ -1708,17 +1707,17 @@ class SemSegMetric(Metric):
 
     @property
     def mIoU(self):
-        """mean of IoU"""
+        """Mean of IoU."""
         return np.array(self.iou).mean() if len(self.iou) else 0.0
 
     @property
     def Precision(self):
-        """mean of precision"""
+        """Mean of precision."""
         return np.array(self.precision).mean() if len(self.precision) else 0.0
 
     @property
     def Recall(self):
-        """mean of recall"""
+        """Mean of recall."""
         return np.array(self.recall).mean() if len(self.recall) else 0.0
 
     @property
@@ -1728,7 +1727,7 @@ class SemSegMetric(Metric):
 
     @property
     def MCR(self):
-        """mean of MCR"""
+        """Mean of MCR."""
         return np.array(self.mcr).mean() if len(self.mcr) else 0.0
 
     def fitness(self):
@@ -1776,8 +1775,9 @@ class SemSegMetrics(SimpleClass):
         curves: Return a list of curves for accessing specific metrics curves.
         curves_results: Return a list of computed performance metrics and statistics.
     """
+
     def __init__(self, save_dir=Path("."), plot=False, on_plot=None, names=()):
-        """init for semantic segment metric instance with speed, plot, etc"""
+        """Init for semantic segment metric instance with speed, plot, etc."""
         self.save_dir = save_dir
         self.plot = plot
         self.on_plot = on_plot

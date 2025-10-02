@@ -141,7 +141,7 @@ class SemSegPredictor(DetectionPredictor):
 
     def plot_predict_samples(self, image, masks, nc, colors, fname, mname, one_hot=True, overlap=False):
         """
-        plot and visualize the predicting results
+        Plot and visualize the predicting results
         Args:
             image(torch.Tensor| numpy.ndarray): input image
             masks: (torch.Tensor| numpy.ndarray): predict mask

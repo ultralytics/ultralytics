@@ -58,8 +58,7 @@ class SemSegValidator(DetectionValidator):
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs)
+        return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False)
 
     def preprocess(self, batch):
         """Preprocesses batch by converting masks to float and sending to device."""

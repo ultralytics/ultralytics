@@ -101,12 +101,12 @@ class SemSegValidator(DetectionValidator):
 
     def mask_ious(self, pred_mask_for_category, gt_mask_for_catgory):
         """
-            compute mIoU for each categories
-            Args:
-                pred_mask_for_category(torch.Tensor): predict mask of each category
-                gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
-            Returns:
-                iou(torch.Tensor): IoU of each category
+        Compute mIoU for each categories
+        Args:
+            pred_mask_for_category(torch.Tensor): predict mask of each category
+            gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
+        Returns:
+            iou(torch.Tensor): IoU of each category.
         """
         nc, length = pred_mask_for_category.shape
         ious = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
@@ -123,12 +123,12 @@ class SemSegValidator(DetectionValidator):
 
     def mask_precisions(self, pred_mask_for_category, gt_mask_for_catgory):
         """
-            compute precisions for each categories
-            Args:
-                pred_mask_for_category(torch.Tensor): predict mask of each category
-                gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
-            Returns:
-                precisions(torch.Tensor): precisions of each category
+        Compute precisions for each categories
+        Args:
+            pred_mask_for_category(torch.Tensor): predict mask of each category
+            gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
+        Returns:
+            precisions(torch.Tensor): precisions of each category.
         """
         nc, length = pred_mask_for_category.shape
         precisions = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
@@ -140,12 +140,12 @@ class SemSegValidator(DetectionValidator):
 
     def mask_recalls(self, pred_mask_for_category, gt_mask_for_catgory):
         """
-            compute recalls for each categories
-            Args:
-                pred_mask_for_category(torch.Tensor): predict mask of each category
-                gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
-            Returns:
-                recall(torch.Tensor): recalls of each category
+        Compute recalls for each categories
+        Args:
+            pred_mask_for_category(torch.Tensor): predict mask of each category
+            gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
+        Returns:
+            recall(torch.Tensor): recalls of each category.
         """
         nc, length = pred_mask_for_category.shape
         recalls = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
@@ -157,12 +157,12 @@ class SemSegValidator(DetectionValidator):
 
     def mask_accuracys(self, pred_mask_for_category, gt_mask_for_catgory):
         """
-            compute accuracys for each categories
-            Args:
-                pred_mask_for_category(torch.Tensor): predict mask of each category
-                gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
-            Returns:
-                accuracys(torch.Tensor): accuracys of each category
+        Compute accuracys for each categories
+        Args:
+            pred_mask_for_category(torch.Tensor): predict mask of each category
+            gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
+        Returns:
+            accuracys(torch.Tensor): accuracys of each category.
         """
         nc, length = pred_mask_for_category.shape
         accuracys = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
@@ -174,12 +174,12 @@ class SemSegValidator(DetectionValidator):
 
     def mask_mcrs(self, pred_mask_for_category, gt_mask_for_catgory):
         """
-            compute MCR for each categories
-            Args:
-                pred_mask_for_category(torch.Tensor): predict mask of each category
-                gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
-            Returns:
-                MCR(torch.Tensor): MCR of each category
+        Compute MCR for each categories
+        Args:
+            pred_mask_for_category(torch.Tensor): predict mask of each category
+            gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
+        Returns:
+            MCR(torch.Tensor): MCR of each category.
         """
         nc, length = pred_mask_for_category.shape
         mcrs = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
@@ -191,12 +191,12 @@ class SemSegValidator(DetectionValidator):
 
     def mask_dice_scores(self, pred_mask_for_category, gt_mask_for_catgory):
         """
-            compute Dice Score for each categories
-            Args:
-                pred_mask_for_category(torch.Tensor): predict mask of each category
-                gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
-            Returns:
-                Dice Score(torch.Tensor): Dice Score of each category
+        Compute Dice Score for each categories
+        Args:
+            pred_mask_for_category(torch.Tensor): predict mask of each category
+            gt_mask_for_catgory(torch.Tensor): groundtruth mask of each category
+        Returns:
+            Dice Score(torch.Tensor): Dice Score of each category.
         """
         nc, length = pred_mask_for_category.shape
         dice_scores = torch.zeros([nc], dtype=pred_mask_for_category.dtype, device=self.device)
@@ -332,7 +332,7 @@ class SemSegValidator(DetectionValidator):
         )
 
     def plot_predictions(self, batch, preds, ni):
-        """clear plot predictions"""
+        """Clear plot predictions."""
         self.plot_masks.clear()
 
     def save_one_txt(self, predn, pred_masks, save_conf, shape, file):

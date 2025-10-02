@@ -728,7 +728,7 @@ class SemanticDataset(BaseDataset):
         super().__init__(*args, **kwargs)
 
     def img2label_paths(self, im_files):
-        """find annotated RGB mask file correspond image file"""
+        """Find annotated RGB mask file correspond image file."""
         return [im_file.replace("image", "annotation") for im_file in im_files]
 
     def cache_labels(self, path=Path("./labels.cache")):
@@ -802,7 +802,7 @@ class SemanticDataset(BaseDataset):
         return x
 
     def get_labels(self):
-        """load annotation for semantic segmentation"""
+        """Load annotation for semantic segmentation."""
         self.label_files = self.img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:

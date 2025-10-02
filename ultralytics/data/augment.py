@@ -3485,6 +3485,34 @@ class SemSegRandomFlip:
 
 
 class SemSegRandomPerspective(RandomPerspective):
+    """
+        Implement random perspective and affine transformations on images and corresponding annotations.
+
+        This class applies random rotations, translations, scaling, shearing, and perspective transformations
+        to images and their associated bounding boxes, segments, and keypoints. It can be used as part of an
+        augmentation pipeline for object detection and instance segmentation tasks.
+
+        Attributes:
+            degrees (float): Maximum absolute degree range for random rotations.
+            translate (float): Maximum translation as a fraction of the image size.
+            scale (float): Scaling factor range, e.g., scale=0.1 means 0.9-1.1.
+            shear (float): Maximum shear angle in degrees.
+            perspective (float): Perspective distortion factor.
+            border (tuple[int, int]): Mosaic border size as (x, y).
+            pre_transform (Callable | None): Optional transform to apply before the random perspective.
+
+        Methods:
+            affine_transform: Apply affine transformations to the input image.
+            __call__: Apply the random perspective transformation to images and annotations.
+
+        Examples:
+            >>> transform = RandomPerspective(degrees=10, translate=0.1, scale=0.1, shear=10)
+            >>> image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
+            >>> mask = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
+            >>> result = transform(labels)
+            >>> transformed_image = result["img"]
+            >>> transformed_instances = result["instances"]
+        """
     def __init__(
         self,
         degrees=0.0,
@@ -3496,6 +3524,24 @@ class SemSegRandomPerspective(RandomPerspective):
         pre_transform=None,
         num_classes=20,
     ):
+        """
+            Initialize RandomPerspective object with transformation parameters.
+
+            This class implements random perspective and affine transformations on images and masks. Transformations include rotation, translation, scaling, and shearing.
+            Args:
+                degrees (float): Degree range for random rotations.
+                translate (float): Fraction of total width and height for random translation.
+                scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
+                shear (float): Shear intensity (angle in degrees).
+                perspective (float): Perspective distortion factor.
+                border (tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
+                pre_transform (Callable | None): Function/transform to apply to the image before starting the random
+                    transformation.
+
+            Examples:
+                >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
+                >>> result = transform(labels)  # Apply random perspective to labels
+        """
         super().__init__(degrees, translate, scale, shear, perspective, border, pre_transform)
         self.num_classes = num_classes
 
@@ -3509,6 +3555,7 @@ class SemSegRandomPerspective(RandomPerspective):
 
         Args:
             img (np.ndarray): Input image to be transformed.
+            msk (np.ndarray): Input mask to be transformed
             border (Tuple[int, int]): Border dimensions for the transformed image.
 
         Returns:
@@ -3588,8 +3635,7 @@ class SemSegRandomPerspective(RandomPerspective):
         Applies random perspective and affine transformations to an image and its associated labels.
 
         This method performs a series of transformations including rotation, translation, scaling, shearing,
-        and perspective distortion on the input image and adjusts the corresponding bounding boxes, segments,
-        and keypoints accordingly.
+        and perspective distortion on the input image and adjusts the corresponding masks.
 
         Args:
             labels (Dict): A dictionary containing image data and annotations.
@@ -3674,7 +3720,6 @@ class SemSegFormat:
         normalize (bool): Whether to normalize bounding boxes.
         return_mask (bool): Whether to return instance masks for segmentation.
         return_keypoint (bool): Whether to return keypoints for pose estimation.
-        return_obb (bool): Whether to return oriented bounding boxes.
         mask_ratio (int): Downsample ratio for masks.
         mask_overlap (bool): Whether to overlap masks.
         batch_idx (bool): Whether to keep batch indexes.

@@ -725,25 +725,20 @@ class SemanticDataset(BaseDataset):
         assert not (self.use_segment and self.use_keypoints)
         super().__init__(*args, **kwargs)
 
-    def get_image_and_label(self, index):
-        """Get and return label information from dataset."""
-        label = deepcopy(self.labels[index])
-        label["mask"] = cv2.imread(label["msk_file"])
-        label.pop("shape", None)
-        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
-        label["ratio_pad"] = (
-            label["resized_shape"][0] / label["ori_shape"][0],
-            label["resized_shape"][1] / label["ori_shape"][1],
-        )
-        if self.rect:
-            label["rect_shape"] = self.batch_shapes[self.batch[index]]
-
-        return self.update_labels_info(label)
-
     def img2label_paths(self, im_files):
+        """find annotated RGB mask file correspond image file"""
         return [im_file.replace("image", "annotation") for im_file in im_files]
 
     def cache_labels(self, path=Path("./labels.cache")):
+        """
+        Load annotations mask from a JSON file each image.
+
+        Args:
+            path (Path): Path where to save the cache file.
+
+        Returns:
+            (dict[str, Any]): Dictionary containing cached labels and related information.
+        """
         x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
@@ -805,6 +800,7 @@ class SemanticDataset(BaseDataset):
         return x
 
     def get_labels(self):
+        """load annotation for semantic segmentation"""
         self.label_files = self.img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:
@@ -892,6 +888,7 @@ class SemanticDataset(BaseDataset):
         return self.update_labels_info(label)
 
     def split_mask(self, mask):
+        """Split RGB mask from the dataset into one-hot mask by channel."""
         nc, colors = self.data["nc"], self.data["colors"]
         h, w, c = mask.shape
         results = np.zeros((h, w, nc), dtype=np.uint8)

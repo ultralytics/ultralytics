@@ -861,6 +861,7 @@ class SemSegLoss:
     """Criterion  for computing training losses for semantic segmentation task."""
 
     def __init__(self, model, alpha=0.3, beta=0.7):
+        """Initialize Segment Loss and criteria using the provided model."""
         self.device = next(model.parameters()).device  # get model device
         self.ce_0 = nn.CrossEntropyLoss(reduction="none")
         self.ce_1 = nn.CrossEntropyLoss(reduction="none")
@@ -868,6 +869,7 @@ class SemSegLoss:
         self.beta = beta
 
     def __call__(self, preds, batch):
+        """Calculate the loss for semantic segmentation."""
         gt_mask = batch["masks"].to(self.device)
         batch_size = preds[0].shape[0]  # batch size, number of masks, mask height, mask width
         if isinstance(preds, torch.Tensor):

@@ -1075,6 +1075,7 @@ def plot_masks(
         save: Whether to save the plotted image grid to a file.
         conf_thres: Confidence threshold for displaying detections.
         one_hot: the format of masks, which values range [0, 255].
+
     Returns:
         np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
 

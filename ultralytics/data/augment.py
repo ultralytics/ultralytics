@@ -1155,7 +1155,10 @@ class RandomPerspective:
 
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
-        a = random.uniform(-self.degrees, self.degrees)
+        if isinstance(self.degrees, list):
+            a = random.choice(self.degrees)
+        else:
+            a = random.uniform(-self.degrees, self.degrees)
         # a += random.choice([-180, -90, 0, 90])  # add 90deg rotations to small rotations
         s = random.uniform(1 - self.scale, 1 + self.scale)
         # s = 2 ** random.uniform(-scale, scale)

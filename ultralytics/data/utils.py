@@ -808,7 +808,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
 
 
 def mask2polygon(mask, downsample_ratio=1):
-    """get polygon from mask"""
+    """Get polygon from mask."""
     mask_gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) if len(mask.shape) == 3 and mask.shape[2] == 3 else mask
     _, mask_gray = cv2.threshold(mask_gray, 125, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(mask_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -825,7 +825,7 @@ def mask2polygon(mask, downsample_ratio=1):
 
 
 def get_boundingbox_from_polygons(polygons, format="xyxy"):
-    """get bounding box of polygons"""
+    """Get bounding box of polygons."""
     bboxes = []
     for polygon in polygons:
         x_min, y_min, x_max, y_max = polygon[:, 0].min(), polygon[:, 1].min(), polygon[:, 0].max(), polygon[:, 1].max()
@@ -847,7 +847,7 @@ def get_boundingbox_from_polygons(polygons, format="xyxy"):
 
 
 def verify_image_and_mask(args: tuple) -> list:
-    """verfify image and its mask"""
+    """Verify image and its mask."""
     im_file, lb_file, colors, prefix, keypoint, num_cls, nkpt, ndim = args
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:

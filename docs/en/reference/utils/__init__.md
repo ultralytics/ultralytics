@@ -47,6 +47,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.ThreadedImporter
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.plt_settings
 
 <br><br><hr><br>
@@ -140,6 +144,10 @@ keywords: Ultralytics, utils, TQDM, Python, ML, Machine Learning utilities, YOLO
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.set_sentry
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.preload
 
 <br><br><hr><br>
 

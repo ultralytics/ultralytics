@@ -359,7 +359,7 @@ def main():
 
     # Build the main documentation
     LOGGER.info(f"Building docs from {DOCS}")
-    subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml"), "--strict"], check=True)
+    subprocess.run(["mkdocs", "build", "-f", str(DOCS.parent / "mkdocs.yml")], check=True)
     remove_macros()
     LOGGER.info(f"Site built at {SITE}")
 

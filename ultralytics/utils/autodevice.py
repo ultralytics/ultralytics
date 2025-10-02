@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from ultralytics.utils import LOGGER
@@ -186,6 +187,142 @@ class GPUInfo:
             )
 
         return selected
+
+
+class NPUInfo:
+    def __init__(self):
+        self.npu_available = False
+        self.device_count = 0
+        self.device_stats = []
+
+        try:
+            import torch_npu
+            from torch_npu.contrib import transfer_to_npu
+
+            self.npu_available = torch_npu.is_available()
+            if self.npu_available:
+                self.device_count = torch_npu.npu.device_count()
+                self.refresh_stats()
+                LOGGER.info(f"Detected {self.device_count} NPU devices.")
+            else:
+                LOGGER.warning("NPU is not available.")
+        except ImportError:
+            LOGGER.warning("torch_npu is not installed. NPU stats disabled.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to initialize NPU info: {e}")
+
+    def refresh_stats(self):
+        """刷新NPU设备状态信息."""
+        self.device_stats = []
+        if not self.npu_available:
+            return
+
+        try:
+            for i in range(self.device_count):
+                device_info = self._get_device_stats(i)
+                self.device_stats.append(device_info)
+        except Exception as e:
+            LOGGER.warning(f"Error during NPU device query: {e}")
+            self.device_stats = []
+
+    def _get_npu_device_stats(self, index: int) -> Dict[str, Any]:
+        try:
+            import torch_npu
+
+            device = f"npu:{index}"
+            device_name = f"Ascend {torch_npu.npu.get_device_name(index)}"
+
+            return {"index": index, "name": device_name, "device": device, "available": True}
+        except Exception as e:
+            LOGGER.warning(f"Error getting stats for NPU device {index}: {e}")
+            return {"index": index, "name": "N/A", "device": f"npu:{index}", "available": False}
+
+    def print_status(self):
+        if not self.npu_available:
+            LOGGER.warning("NPU stats unavailable.")
+            return
+        LOGGER.info("\n--- Ascend NPU Status ---")
+        LOGGER.info(f"{'Idx':<3} {'Name':<15} {'Device':<8} {'Status':<10}")
+        LOGGER.info("-" * 40)
+
+        for npu in self.device_stats:
+            status = "Available" if npu["available"] else "Unavailable"
+            LOGGER.info(f"{npu['index']:<3} {npu['name']:<15} {npu['device']:<8} {status:<10}")
+
+        LOGGER.info("-" * 40)
+
+    def tranfer_model_to_npu(self, model, device_id: int = 0):
+        if not self.npu_available:
+            LOGGER.warning("NPU is not available. Cannot transfer model.")
+            return model
+        try:
+            LOGGER.info(f"Transferring model to {target_device} using transfer_to_npu")
+            npu_model = transfer_to_npu(model, target_device)
+
+            LOGGER.info(f"Model successfully transferred to {target_device}")
+            return npu_model
+        except Exception as e:
+            LOGGER.warning(f"Failed to transfer model to NPU: {e}")
+            return model
+
+    def get_available_devices(self) -> List[str]:
+        """获取可用的NPU设备列表."""
+        if not self.npu_available:
+            return []
+
+        devices = []
+        for i in range(self.device_count):
+            devices.append(f"npu:{i}")
+        return devices
+
+    def select_npu_device(self, device_id: int = 0) -> str:
+        if not self.npu_available:
+            LOGGER.warning("NPU not available, returning CPU device")
+            return "cpu"
+
+        if device_id >= self.device_count:
+            LOGGER.warning(f"NPU device {device_id} not available, using device 0")
+            device_id = 0
+
+        return f"npu:{device_id}"
+
+
+def setup_ascend_environment():
+    try:
+        # 设置Ascend环境变量
+        os.environ.setdefault("ASCEND_RT_VISIBLE_DEVICES", "0")
+        os.environ.setdefault("ASCEND_VISIBLE_DEVICES", "0")
+
+        # 检查torch_npu是否可用
+        import torch_npu
+
+        if torch_npu.is_available():
+            LOGGER.info("Ascend environment setup successful")
+            return True
+        else:
+            LOGGER.warning("torch_npu installed but NPU not available")
+            return False
+
+    except ImportError:
+        LOGGER.warning("torch_npu not installed")
+        return False
+    except Exception as e:
+        LOGGER.error(f"Failed to setup Ascend environment: {e}")
+        return False
+
+
+def get_ascend_device(device_id: int = 0) -> str:
+    """
+    获取Ascend设备字符串.
+
+    Args:
+        device_id (int): NPU设备ID
+
+    Returns:
+        str: 设备字符串
+    """
+    npu_info = NPUInfo()
+    return npu_info.select_npu_device(device_id)
 
 
 if __name__ == "__main__":

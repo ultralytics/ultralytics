@@ -1112,7 +1112,7 @@ class Exporter:
         """YOLOv8 Axelera export."""
 
         from axelera import compiler
-        from axelera.compiler import CompilerConfig
+        from axelera.compiler import CompilerConfig, top_level
         
         self.args.opset = 17
         onnx_path = self.export_onnx()
@@ -1143,10 +1143,18 @@ class Exporter:
             transform_fn=transform_fn
         )
         
-        compiler.compile(
-            model=qmodel,
+        # TODO: Enable the below in the future when `top_level` is dropped
+        # compiler.compile(
+        #     model=qmodel,
+        #     config=config,
+        #     output_dir=str(export_path)
+        # )
+        
+        # Use the internal lower function directly with correct parameter name
+        manifest = top_level.lower(
+            quantized_model=qmodel,
             config=config,
-            output_dir=str(export_path)
+            output_dir=export_path,
         )
         
         return str(export_path)

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import functools
 import glob
+import importlib
+import importlib.util
 import inspect
 import math
 import os
@@ -357,6 +359,55 @@ def check_python(minimum: str = "3.8.0", hard: bool = True, verbose: bool = Fals
     return check_version(PYTHON_VERSION, minimum, name="Python", hard=hard, verbose=verbose)
 
 
+# Package to module name mapping for packages with different install names vs import names
+PACKAGE_MODULE_MAPPING = {
+    "onnxruntime": ["onnxruntime", "onnxruntime_gpu"],
+    "opencv-python": ["cv2"],
+    "Pillow": ["PIL"],
+}
+
+
+def check_module_availability(package_name, required_version=None):
+    """
+    Check if a package is available through any of its possible module names.
+
+    This function handles cases where the package name (used in pip install)
+    differs from the module name (used in import statements).
+
+    Args:
+        package_name (str): The package name as used in pip install
+        required_version (str, optional): Version requirement string
+
+    Returns:
+        tuple: (is_available, module_name_used, version_found)
+    """
+    # Get possible module names for this package
+    module_names = PACKAGE_MODULE_MAPPING.get(package_name, [package_name])
+
+    for module_name in module_names:
+        # Check if module exists without importing it
+        if importlib.util.find_spec(module_name) is not None:
+            try:
+                # Module exists, import it to get version information
+                module = importlib.import_module(module_name)
+                version = getattr(module, "__version__", None)
+
+                # Check version requirement if specified
+                if required_version and version:
+                    if check_version(version, required_version):
+                        return True, module_name, version
+                    else:
+                        continue  # Version doesn't match, try next module name
+                else:
+                    # No version requirement or can't get version
+                    return True, module_name, version
+            except ImportError:
+                # Import failed even though find_spec said it exists, try next
+                continue
+
+    return False, None, None
+
+
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=(), install=True, cmds=""):
     """
@@ -394,10 +445,23 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
         match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
         name, required = match[1], match[2].strip() if match[2] else ""
-        try:
-            assert check_version(metadata.version(name), required)  # exception if requirements not met
-        except (AssertionError, metadata.PackageNotFoundError):
-            pkgs.append(r)
+        if name in PACKAGE_MODULE_MAPPING:
+            # Use generic module availability check for mapped packages
+            available, used_module, version = check_module_availability(name, required)
+            if available:
+                LOGGER.debug(
+                    f"{prefix} {name} requirement satisfied by module {used_module}"
+                    + (f" (version {version})" if version else "")
+                )
+                continue
+            else:
+                pkgs.append(r)
+        else:
+            # Normal check logic for other packages
+            try:
+                assert check_version(metadata.version(name), required)  # exception if requirements not met
+            except (AssertionError, metadata.PackageNotFoundError):
+                pkgs.append(r)
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):

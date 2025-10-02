@@ -217,7 +217,7 @@ class BaseTrainer:
         if self.args.cos_lr:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
         else:
-            self.lf = lambda x: max(1 - x / self.epochs, 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
+            self.lf = lambda x: max(1 - x / (self.epochs // 2), 0) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
     def _setup_ddp(self, world_size):
@@ -352,7 +352,8 @@ class BaseTrainer:
             self.run_callbacks("on_train_epoch_start")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
-                self.scheduler.step()
+                if epoch > self.epochs // 2:
+                    self.scheduler.step()
 
             self._model_train()
             if RANK != -1:
@@ -438,6 +439,7 @@ class BaseTrainer:
             # exit()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+            print(epoch, self.lr)
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
                 final_epoch = epoch + 1 >= self.epochs

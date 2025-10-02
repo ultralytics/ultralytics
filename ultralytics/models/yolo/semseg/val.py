@@ -24,7 +24,6 @@ from ultralytics.utils.metrics import (
     mask_recall,
 )
 from ultralytics.utils.plotting import plot_masks
-from ultralytics.utils.torch_utils import de_parallel
 
 
 class SemSegValidator(DetectionValidator):

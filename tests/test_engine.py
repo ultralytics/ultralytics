@@ -8,7 +8,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment, semseg
-from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR, SEMSEG_CFG
+from ultralytics.utils import ASSETS, DEFAULT_CFG, SEMSEG_CFG, WEIGHTS_DIR
 
 
 def test_func(*args):  # noqa
@@ -137,6 +137,7 @@ def test_classify():
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
 
+
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
@@ -156,7 +157,15 @@ def test_semseg():
     trainer.train()
 
     # Validator
-    args = dict(model=trainer.best, data="CityEscapeYOLO.yaml", imgsz=512, device=cfg.device, name=cfg.name, task="semseg", plots=False)
+    args = dict(
+        model=trainer.best,
+        data="CityEscapeYOLO.yaml",
+        imgsz=512,
+        device=cfg.device,
+        name=cfg.name,
+        task="semseg",
+        plots=False,
+    )
     val = semseg.SemSegValidator(args=args)
     val.add_callback("on_val_start", test_func)
     assert test_func in val.callbacks["on_val_start"], "callback test failed"

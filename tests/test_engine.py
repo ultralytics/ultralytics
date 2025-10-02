@@ -147,7 +147,7 @@ def test_semseg():
         "epochs": 1,
         "save": False,
         "mask_ratio": 1,
-        "device": -1
+        "device": -1,
     }
     cfg = get_cfg(SEMSEG_CFG)
     cfg.device = -1

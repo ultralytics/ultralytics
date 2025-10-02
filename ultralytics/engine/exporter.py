@@ -416,6 +416,11 @@ class Exporter:
             )
         if tfjs and (ARM64 and LINUX):
             raise SystemError("TF.js exports are not currently supported on ARM64 Linux")
+
+        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
+        if self.qat:
+            assert onnx or engine, "QAT models can only be exported to TensorRT or ONNX."
+
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):
             if is_intel():
@@ -635,6 +640,9 @@ class Exporter:
                 dynamic["output0"].pop(2)
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
+        if self.qat:
+            self.model.cpu()  # crashes if CUDA toolkit is not available on GPU export
+            self.im = self.im.cpu()
 
         with arange_patch(self.args):
             torch2onnx(
@@ -975,7 +983,7 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 and not self.qat else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,

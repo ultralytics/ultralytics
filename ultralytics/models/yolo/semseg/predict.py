@@ -140,6 +140,21 @@ class SemSegPredictor(DetectionPredictor):
         return string
 
     def plot_predict_samples(self, image, masks, nc, colors, fname, mname, one_hot=True, overlap=False):
+        """
+        plot and visualize the predicting results
+        Args:
+            image(torch.Tensor| numpy.ndarray): input image
+            masks: (torch.Tensor| numpy.ndarray): predict mask
+            nc(int): number of categories
+            colors(List): colors for each categories
+            fname(str): saved image path
+            mname(str): save mask path
+            one_hot(bool): is the format of mask one-hot
+            overlap(bool): plot mask on image.
+
+        Returns:
+            None
+        """
         if isinstance(image, torch.Tensor):
             image = image.cpu().float().numpy()
 

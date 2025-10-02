@@ -1064,15 +1064,17 @@ def plot_masks(
         masks: Instance segmentation masks. Shape: (num_detections, height, width) or (1, height, width).
         kpts: Keypoints for each detection. Shape: (num_detections, 51).
         paths: List of file paths for each image in the batch.
+        nc: Count of categories.
         fname: Output image filename for the plotted image grid.
         mname: Output mask filename for the plotted image grid.
         names: Dictionary mapping class indices to class names.
+        colors: Dictionary mapping class indices to class color.
         on_plot: Optional callback function to be called after saving the plot.
         max_size: Maximum size of the output image grid.
         max_subplots: Maximum number of subplots in the image grid.
         save: Whether to save the plotted image grid to a file.
         conf_thres: Confidence threshold for displaying detections.
-
+        one_hot: the format of masks, which values range [0, 255].
     Returns:
         np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
 

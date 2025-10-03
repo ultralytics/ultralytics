@@ -4,41 +4,6 @@
 #include <vector>
 #include <string.h>
 
-#define CHECK_RETURN_W_MSG(status, val, errMsg)                                                                        \
-    do {                                                                                                                  \
-        if (!(status)) {                                                                                                              \
-            sample::gLogError << errMsg << " Error in " << __FILE__ << ", function " << FN_NAME << "(), line "         \
-                              << __LINE__ << std::endl;                                                                \
-            return val;                                                                                                \
-        }                                                                                                              \
-    } while (0)
-
-#undef ASSERT
-#define ASSERT(condition)                                                                                              \
-    do {                                                                                                                  \
-        if (!(condition))                                                                                              \
-        {                                                                                                              \
-            sample::gLogError << "Assertion failure: " << #condition << std::endl;                                     \
-            exit(EXIT_FAILURE);                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#define CHECK_RETURN(status, val) CHECK_RETURN_W_MSG(status, val, "")
-
-#undef CHECK_WITH_STREAM
-#define CHECK_WITH_STREAM(status, stream)                                                                              \
-    do {                                                                                                                  \
-        if ((status) != cudaSuccess)                                                                                   \
-        {                                                                                                              \
-            stream << "Cuda failure at " << __FILE__ << ":" << __LINE__ << ": " << cudaGetErrorString(status)          \
-                   << std::endl;                                                                                       \
-            exit(EXIT_FAILURE);                                                                                        \
-        }                                                                                                              \
-    } while (0)
-
-#undef CHECK
-#define CHECK(status) CHECK_WITH_STREAM(status, std::cerr)
-
 
 using namespace nvinfer1;
 

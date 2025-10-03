@@ -712,7 +712,7 @@ def plot_images(
     Note:
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
-        
+
         Channel Support:
         - 1 channel: Converted to RGB by repeating the grayscale channel 3 times
         - 2 channels: Third channel added as zeros
@@ -737,7 +737,7 @@ def plot_images(
 
     if len(images) and isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
-    
+
     # Handle different number of channels
     bs, c, h, w = images.shape  # batch size, channels, height, width
     if c == 1:
@@ -750,7 +750,7 @@ def plot_images(
         # Crop multispectral images to first 3 channels
         images = images[:, :3]
     # If c == 3, no conversion needed (standard RGB)
-    
+
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs**0.5)  # number of subplots (square)

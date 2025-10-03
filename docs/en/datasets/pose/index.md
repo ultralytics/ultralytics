@@ -40,9 +40,11 @@ In this format, `<class-index>` is the index of the class for the object,`<x> <y
 
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training pose estimation models. Here is an example of the YAML format used for defining a pose dataset:
 
-```yaml
---8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
-```
+!!! example "ultralytics/cfg/datasets/coco8-pose.yaml"
+
+    ```yaml
+    --8<-- "ultralytics/cfg/datasets/coco8-pose.yaml"
+    ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
 

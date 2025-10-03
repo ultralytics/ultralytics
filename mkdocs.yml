@@ -170,6 +170,9 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.tabbed:
       alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
 # Validation settings https://www.mkdocs.org/user-guide/configuration/#validation
 validation:
@@ -214,7 +217,7 @@ nav:
           - solutions/index.md
       - Guides:
           - guides/index.md
-      - YOLO11 🚀 NEW: models/yolo11.md # for promotion of new pages
+      - YOLO26 🚀 Coming soon: models/yolo26.md # for promotion of new pages
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs/
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh/
@@ -301,7 +304,8 @@ nav:
       - YOLOv8: models/yolov8.md
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
-      - YOLO11 🚀 NEW: models/yolo11.md
+      - YOLO11: models/yolo11.md
+      - YOLO26 🚀 Coming soon: models/yolo26.md
       - YOLO12: models/yolo12.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
@@ -327,6 +331,7 @@ nav:
           - OpenImagesV7: datasets/detect/open-images-v7.md
           - SKU-110K: datasets/detect/sku-110k.md
           - HomeObjects-3K: datasets/detect/homeobjects-3k.md
+          - Construction-PPE: datasets/detect/construction-ppe.md
           - VisDrone: datasets/detect/visdrone.md
           - VOC: datasets/detect/voc.md
           - xView: datasets/detect/xview.md
@@ -339,6 +344,7 @@ nav:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
           - COCO8-seg: datasets/segment/coco8-seg.md
+          - COCO128-seg: datasets/segment/coco128-seg.md
           - Crack-seg: datasets/segment/crack-seg.md
           - Carparts-seg: datasets/segment/carparts-seg.md
           - Package-seg: datasets/segment/package-seg.md
@@ -394,6 +400,7 @@ nav:
       - YOLO Thread-Safe Inference: guides/yolo-thread-safe-inference.md
       - YOLO Data Augmentation: guides/yolo-data-augmentation.md
       - Model Deployment Options: guides/model-deployment-options.md
+      - Model YAML Configuration Guide: guides/model-yaml-config.md
       - K-Fold Cross Validation: guides/kfold-cross-validation.md
       - Hyperparameter Tuning: guides/hyperparameter-tuning.md
       - SAHI Tiled Inference: guides/sahi-tiled-inference.md
@@ -418,6 +425,7 @@ nav:
       - A Guide on Model Testing: guides/model-testing.md
       - Best Practices for Model Deployment: guides/model-deployment-practices.md
       - Maintaining Your Computer Vision Model: guides/model-monitoring-and-maintenance.md
+      - Deploying YOLO on Vertex AI in Docker container: guides/vertex-ai-deployment-with-docker.md
       - Explorer:
           - datasets/explorer/index.md
           - Explorer API: datasets/explorer/api.md
@@ -528,6 +536,7 @@ nav:
           - hub/api/index.md
 
   - Reference:
+      - __init__: reference/__init__.md
       - cfg:
           - __init__: reference/cfg/__init__.md
       - data:
@@ -671,23 +680,32 @@ nav:
               - hub: reference/utils/callbacks/hub.md
               - mlflow: reference/utils/callbacks/mlflow.md
               - neptune: reference/utils/callbacks/neptune.md
+              - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
               - wb: reference/utils/callbacks/wb.md
           - checks: reference/utils/checks.md
+          - cpu: reference/utils/cpu.md
           - dist: reference/utils/dist.md
           - downloads: reference/utils/downloads.md
           - errors: reference/utils/errors.md
-          - export: reference/utils/export.md
+          - events: reference/utils/events.md
+          - export:
+              - __init__: reference/utils/export/__init__.md
+              - imx: reference/utils/export/imx.md
           - files: reference/utils/files.md
+          - git: reference/utils/git.md
           - instance: reference/utils/instance.md
+          - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md
+          - nms: reference/utils/nms.md
           - ops: reference/utils/ops.md
           - patches: reference/utils/patches.md
           - plotting: reference/utils/plotting.md
           - tal: reference/utils/tal.md
           - torch_utils: reference/utils/torch_utils.md
+          - tqdm: reference/utils/tqdm.md
           - triton: reference/utils/triton.md
           - tuner: reference/utils/tuner.md
 
@@ -719,6 +737,7 @@ plugins:
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
+            ignore_init_summary: true
             docstring_style: google
             show_root_heading: true
             show_source: true

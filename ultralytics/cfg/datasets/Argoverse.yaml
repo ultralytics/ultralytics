@@ -30,14 +30,14 @@ download: |
   import json
   from pathlib import Path
 
-  from tqdm import tqdm
+  from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
 
   def argoverse2yolo(set):
       """Convert Argoverse dataset annotations to YOLO format for object detection tasks."""
       labels = {}
       a = json.load(open(set, "rb"))
-      for annot in tqdm(a["annotations"], desc=f"Converting {set} to YOLOv5 format..."):
+      for annot in TQDM(a["annotations"], desc=f"Converting {set} to YOLOv5 format..."):
           img_id = annot["image_id"]
           img_name = a["images"][img_id]["name"]
           img_label_name = f"{img_name[:-3]}txt"

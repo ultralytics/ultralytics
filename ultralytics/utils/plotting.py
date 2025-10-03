@@ -1,9 +1,11 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import math
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable
 
 import cv2
 import numpy as np
@@ -24,7 +26,7 @@ class Colors:
     RGB values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
-        palette (List[tuple]): List of RGB color tuples for general use.
+        palette (list[tuple]): List of RGB color tuples for general use.
         n (int): The number of colors in the palette.
         pose_palette (np.ndarray): A specific color palette array for pose estimation with dtype np.uint8.
 
@@ -142,12 +144,12 @@ class Colors:
             dtype=np.uint8,
         )
 
-    def __call__(self, i: int, bgr: bool = False) -> tuple:
+    def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
         """
         Convert hex color codes to RGB values.
 
         Args:
-            i (int): Color index.
+            i (int | torch.Tensor): Color index.
             bgr (bool, optional): Whether to return BGR format instead of RGB.
 
         Returns:
@@ -174,9 +176,9 @@ class Annotator:
         pil (bool): Whether to use PIL or cv2 for drawing annotations.
         font (ImageFont.truetype | ImageFont.load_default): Font used for text annotations.
         lw (float): Line width for drawing.
-        skeleton (List[List[int]]): Skeleton structure for keypoints.
-        limb_color (List[int]): Color palette for limbs.
-        kpt_color (List[int]): Color palette for keypoints.
+        skeleton (list[list[int]]): Skeleton structure for keypoints.
+        limb_color (list[int]): Color palette for limbs.
+        kpt_color (list[int]): Color palette for keypoints.
         dark_colors (set): Set of colors considered dark for text contrast.
         light_colors (set): Set of colors considered light for text contrast.
 
@@ -190,8 +192,8 @@ class Annotator:
     def __init__(
         self,
         im,
-        line_width: Optional[int] = None,
-        font_size: Optional[int] = None,
+        line_width: int | None = None,
+        font_size: int | None = None,
         font: str = "Arial.ttf",
         pil: bool = False,
         example: str = "abc",
@@ -361,38 +363,46 @@ class Annotator:
                     lineType=cv2.LINE_AA,
                 )
 
-    def masks(self, masks, colors, im_gpu, alpha: float = 0.5, retina_masks: bool = False):
+    def masks(self, masks, colors, im_gpu: torch.Tensor = None, alpha: float = 0.5, retina_masks: bool = False):
         """
         Plot masks on image.
 
         Args:
-            masks (torch.Tensor): Predicted masks on cuda, shape: [n, h, w]
-            colors (List[List[int]]): Colors for predicted masks, [[r, g, b] * n]
-            im_gpu (torch.Tensor): Image is in cuda, shape: [3, h, w], range: [0, 1]
+            masks (torch.Tensor | np.ndarray): Predicted masks with shape: [n, h, w]
+            colors (list[list[int]]): Colors for predicted masks, [[r, g, b] * n]
+            im_gpu (torch.Tensor | None): Image is in cuda, shape: [3, h, w], range: [0, 1]
             alpha (float, optional): Mask transparency: 0.0 fully transparent, 1.0 opaque.
             retina_masks (bool, optional): Whether to use high resolution masks or not.
         """
         if self.pil:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
-        if len(masks) == 0:
-            self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
-        if im_gpu.device != masks.device:
-            im_gpu = im_gpu.to(masks.device)
-        colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
-        colors = colors[:, None, None]  # shape(n,1,1,3)
-        masks = masks.unsqueeze(3)  # shape(n,h,w,1)
-        masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
+        if im_gpu is None:
+            assert isinstance(masks, np.ndarray), "`masks` must be a np.ndarray if `im_gpu` is not provided."
+            overlay = self.im.copy()
+            for i, mask in enumerate(masks):
+                overlay[mask.astype(bool)] = colors[i]
+            self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
+        else:
+            assert isinstance(masks, torch.Tensor), "`masks` must be a torch.Tensor if `im_gpu` is provided."
+            if len(masks) == 0:
+                self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
+            if im_gpu.device != masks.device:
+                im_gpu = im_gpu.to(masks.device)
+            colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
+            colors = colors[:, None, None]  # shape(n,1,1,3)
+            masks = masks.unsqueeze(3)  # shape(n,h,w,1)
+            masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
 
-        inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
-        mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
+            inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
+            mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
-        im_gpu = im_gpu.flip(dims=[0])  # flip channel
-        im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
-        im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
-        im_mask = im_gpu * 255
-        im_mask_np = im_mask.byte().cpu().numpy()
-        self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
+            im_gpu = im_gpu.flip(dims=[0])  # flip channel
+            im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
+            im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
+            im_mask = im_gpu * 255
+            im_mask_np = im_mask.byte().cpu().numpy()
+            self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
@@ -401,10 +411,10 @@ class Annotator:
         self,
         kpts,
         shape: tuple = (640, 640),
-        radius: Optional[int] = None,
+        radius: int | None = None,
         kpt_line: bool = True,
         conf_thres: float = 0.25,
-        kpt_color: Optional[tuple] = None,
+        kpt_color: tuple | None = None,
     ):
         """
         Plot keypoints on the image.
@@ -474,7 +484,7 @@ class Annotator:
         Add text to an image using PIL or cv2.
 
         Args:
-            xy (List[int]): Top-left coordinates for text placement.
+            xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color (R, G, B).
             anchor (str, optional): Text anchor position ('top' or 'bottom').
@@ -509,7 +519,7 @@ class Annotator:
         """Return annotated image as array."""
         return np.asarray(self.im)
 
-    def show(self, title: Optional[str] = None):
+    def show(self, title: str | None = None):
         """Show the annotated image."""
         im = Image.fromarray(np.asarray(self.im)[..., ::-1])  # Convert numpy array to PIL Image with RGB to BGR
         if IS_COLAB or IS_KAGGLE:  # can not use IS_JUPYTER as will run for all ipython environments
@@ -525,7 +535,7 @@ class Annotator:
         cv2.imwrite(filename, np.asarray(self.im))
 
     @staticmethod
-    def get_bbox_dimension(bbox: Optional[tuple] = None):
+    def get_bbox_dimension(bbox: tuple | None = None):
         """
         Calculate the dimensions and area of a bounding box.
 
@@ -549,7 +559,7 @@ class Annotator:
         return width, height, width * height
 
 
-@TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
+@TryExcept()
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     """
@@ -563,7 +573,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
         on_plot (Callable, optional): Function to call after plot is saved.
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas
+    import polars
     from matplotlib.colors import LinearSegmentedColormap
 
     # Filter matplotlib>=3.7.2 warning
@@ -574,16 +584,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
     nc = int(cls.max() + 1)  # number of classes
     boxes = boxes[:1000000]  # limit to 1M boxes
-    x = pandas.DataFrame(boxes, columns=["x", "y", "width", "height"])
-
-    try:  # Seaborn correlogram
-        import seaborn
-
-        seaborn.pairplot(x, corner=True, diag_kind="auto", kind="hist", diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
-        plt.savefig(save_dir / "labels_correlogram.jpg", dpi=200)
-        plt.close()
-    except ImportError:
-        pass  # Skip if seaborn is not installed
+    x = polars.DataFrame(boxes, schema=["x", "y", "width", "height"])
 
     # Matplotlib labels
     subplot_3_4_color = LinearSegmentedColormap.from_list("white_blue", ["white", "blue"])
@@ -595,12 +596,13 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     if 0 < len(names) < 30:
         ax[0].set_xticks(range(len(names)))
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
+        ax[0].bar_label(y[2])
     else:
         ax[0].set_xlabel("classes")
     boxes = np.column_stack([0.5 - boxes[:, 2:4] / 2, 0.5 + boxes[:, 2:4] / 2]) * 1000
     img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
     for cls, box in zip(cls[:500], boxes[:500]):
-        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+        ImageDraw.Draw(img).rectangle(box.tolist(), width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis("off")
 
@@ -678,26 +680,26 @@ def save_one_box(
 
 @threaded
 def plot_images(
-    labels: Dict[str, Any],
-    images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
-    paths: Optional[List[str]] = None,
+    labels: dict[str, Any],
+    images: torch.Tensor | np.ndarray = np.zeros((0, 3, 640, 640), dtype=np.float32),
+    paths: list[str] | None = None,
     fname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
-    on_plot: Optional[Callable] = None,
+    names: dict[int, str] | None = None,
+    on_plot: Callable | None = None,
     max_size: int = 1920,
     max_subplots: int = 16,
     save: bool = True,
     conf_thres: float = 0.25,
-) -> Optional[np.ndarray]:
+) -> np.ndarray | None:
     """
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
-        labels (Dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
+        labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
         images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
-        paths (Optional[List[str]]): List of file paths for each image in the batch.
+        paths (Optional[list[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
-        names (Optional[Dict[int, str]]): Dictionary mapping class indices to class names.
+        names (Optional[dict[int, str]]): Dictionary mapping class indices to class names.
         on_plot (Optional[Callable]): Optional callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
         max_subplots (int): Maximum number of subplots in the image grid.
@@ -810,14 +812,13 @@ def plot_images(
 
             # Plot masks
             if len(masks):
-                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                if idx.shape[0] == masks.shape[0] and masks.max() <= 1:  # overlap_mask=False
                     image_masks = masks[idx]
-                else:  # overlap_masks=True
+                else:  # overlap_mask=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
-                    index = np.arange(nl).reshape((nl, 1, 1)) + 1
-                    image_masks = np.repeat(image_masks, nl, axis=0)
-                    image_masks = np.where(image_masks == index, 1.0, 0.0)
+                    index = np.arange(1, nl + 1).reshape((nl, 1, 1))
+                    image_masks = (image_masks == index).astype(np.float32)
 
                 im = np.asarray(annotator.im).copy()
                 for j in range(len(image_masks)):
@@ -845,14 +846,7 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(
-    file: str = "path/to/results.csv",
-    dir: str = "",
-    segment: bool = False,
-    pose: bool = False,
-    classify: bool = False,
-    on_plot: Optional[Callable] = None,
-):
+def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
     """
     Plot training results from a results CSV file. The function supports various types of data including segmentation,
     pose estimation, and classification. Plots are saved as 'results.png' in the directory where the CSV is located.
@@ -860,9 +854,6 @@ def plot_results(
     Args:
         file (str, optional): Path to the CSV file containing the training results.
         dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
-        segment (bool, optional): Flag to indicate if the data is for segmentation.
-        pose (bool, optional): Flag to indicate if the data is for pose estimation.
-        classify (bool, optional): Flag to indicate if the data is for classification.
         on_plot (callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:
@@ -870,38 +861,35 @@ def plot_results(
         >>> plot_results("path/to/results.csv", segment=True)
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas as pd
+    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     save_dir = Path(file).parent if file else Path(dir)
-    if classify:
-        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
-        index = [2, 5, 3, 4]
-    elif segment:
-        fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 10, 11, 14, 15, 16, 17, 8, 9, 12, 13]
-    elif pose:
-        fig, ax = plt.subplots(2, 9, figsize=(21, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 9, 10, 13, 14]
-    else:
-        fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
-        index = [2, 3, 4, 5, 6, 9, 10, 11, 7, 8]
-    ax = ax.ravel()
     files = list(save_dir.glob("results*.csv"))
     assert len(files), f"No results.csv files found in {save_dir.resolve()}, nothing to plot."
-    for f in files:
+
+    loss_keys, metric_keys = [], []
+    for i, f in enumerate(files):
         try:
-            data = pd.read_csv(f)
-            s = [x.strip() for x in data.columns]
-            x = data.values[:, 0]
-            for i, j in enumerate(index):
-                y = data.values[:, j].astype("float")
-                # y[y == 0] = np.nan  # don't show zero values
+            data = pl.read_csv(f, infer_schema_length=None)
+            if i == 0:
+                for c in data.columns:
+                    if "loss" in c:
+                        loss_keys.append(c)
+                    elif "metric" in c:
+                        metric_keys.append(c)
+                loss_mid, metric_mid = len(loss_keys) // 2, len(metric_keys) // 2
+                columns = (
+                    loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
+                )
+                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                ax = ax.ravel()
+            x = data.select(data.columns[0]).to_numpy().flatten()
+            for i, j in enumerate(columns):
+                y = data.select(j).to_numpy().flatten().astype("float")
                 ax[i].plot(x, y, marker=".", label=f.stem, linewidth=2, markersize=8)  # actual results
                 ax[i].plot(x, gaussian_filter1d(y, sigma=3), ":", label="smooth", linewidth=2)  # smoothing line
-                ax[i].set_title(s[j], fontsize=12)
-                # if j in {8, 9, 10}:  # share train and val loss y axes
-                #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
+                ax[i].set_title(j, fontsize=12)
         except Exception as e:
             LOGGER.error(f"Plotting error for {f}: {e}")
     ax[1].legend()
@@ -945,19 +933,21 @@ def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float 
     plt.scatter(v, f, c=colors, cmap=cmap, alpha=alpha, edgecolors=edgecolors)
 
 
-def plot_tune_results(csv_file: str = "tune_results.csv"):
+@plt_settings()
+def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_points: bool = True):
     """
     Plot the evolution results stored in a 'tune_results.csv' file. The function generates a scatter plot for each key
     in the CSV, color-coded based on fitness scores. The best-performing configurations are highlighted on the plots.
 
     Args:
         csv_file (str, optional): Path to the CSV file containing the tuning results.
+        exclude_zero_fitness_points (bool, optional): Don't include points with zero fitness in tuning plots.
 
     Examples:
         >>> plot_tune_results("path/to/tune_results.csv")
     """
     import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-    import pandas as pd
+    import polars as pl
     from scipy.ndimage import gaussian_filter1d
 
     def _save_one_file(file):
@@ -968,11 +958,14 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
 
     # Scatter plots for each hyperparameter
     csv_file = Path(csv_file)
-    data = pd.read_csv(csv_file)
+    data = pl.read_csv(csv_file, infer_schema_length=None)
     num_metrics_columns = 1
     keys = [x.strip() for x in data.columns][num_metrics_columns:]
-    x = data.values
+    x = data.to_numpy()
     fitness = x[:, 0]  # fitness
+    if exclude_zero_fitness_points:
+        mask = fitness > 0  # exclude zero-fitness points
+        x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)
@@ -1001,6 +994,7 @@ def plot_tune_results(csv_file: str = "tune_results.csv"):
     _save_one_file(csv_file.with_name("tune_fitness.png"))
 
 
+@plt_settings()
 def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir: Path = Path("runs/detect/exp")):
     """
     Visualize feature maps of a given model module during inference.

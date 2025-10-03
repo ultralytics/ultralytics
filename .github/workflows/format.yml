@@ -11,7 +11,6 @@ on:
   discussion:
     types: [created]
   pull_request:
-    branches: [main]
     types: [opened, closed, synchronize, review_requested]
 
 permissions:

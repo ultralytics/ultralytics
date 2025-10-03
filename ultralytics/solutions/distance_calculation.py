@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
-from typing import Any, Dict, List
+from typing import Any
 
 import cv2
 
@@ -18,8 +18,8 @@ class DistanceCalculation(BaseSolution):
 
     Attributes:
         left_mouse_count (int): Counter for left mouse button clicks.
-        selected_boxes (Dict[int, List[float]]): Dictionary to store selected bounding boxes and their track IDs.
-        centroids (List[List[int]]): List to store centroids of selected bounding boxes.
+        selected_boxes (dict[int, list[float]]): Dictionary to store selected bounding boxes and their track IDs.
+        centroids (list[list[int]]): List to store centroids of selected bounding boxes.
 
     Methods:
         mouse_event_for_distance: Handle mouse events for selecting objects in the video stream.
@@ -39,8 +39,8 @@ class DistanceCalculation(BaseSolution):
 
         # Mouse event information
         self.left_mouse_count = 0
-        self.selected_boxes: Dict[int, List[float]] = {}
-        self.centroids: List[List[int]] = []  # Store centroids of selected objects
+        self.selected_boxes: dict[int, list[float]] = {}
+        self.centroids: list[list[int]] = []  # Store centroids of selected objects
 
     def mouse_event_for_distance(self, event: int, x: int, y: int, flags: int, param: Any) -> None:
         """

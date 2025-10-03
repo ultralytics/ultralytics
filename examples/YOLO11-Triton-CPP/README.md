@@ -57,7 +57,7 @@ For additional guidance on integrating Ultralytics YOLO models with various plat
 
 ## 🚀 Usage
 
-1. **Deploy your FP16 (half-precision) YOLO11 model on a Triton Inference Server.**  
+1. **Deploy your FP16 (half-precision) YOLO11 model on a Triton Inference Server.**
    Learn more about deploying models with [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/).
 
 2. **Run the YOLO11-Triton-CPP application:**

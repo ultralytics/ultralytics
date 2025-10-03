@@ -273,7 +273,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 3. You can also use [Ultralytics data.utils.autosplit](https://docs.ultralytics.com/reference/data/utils/) function for automatic dataset splitting:
 
     ```python
-    from ultralytics.data.utils import autosplit
+    from ultralytics.data.split import autosplit
 
     # Automatically split dataset into train/val/test
     autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)

@@ -1,17 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 import numpy as np
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.nn.text_model import build_text_model
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, TORCH_VERSION
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.torch_utils import select_device
+from ultralytics.utils.torch_utils import TORCH_2_4, select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
@@ -32,7 +33,7 @@ class VisualAISearch:
         data_dir (Path): Path object for the data directory.
         model: Loaded CLIP model.
         index: FAISS index for similarity search.
-        image_paths (List[str]): List of image file paths.
+        image_paths (list[str]): List of image file paths.
 
     Methods:
         extract_image_feature: Extract CLIP embedding from an image.
@@ -48,6 +49,9 @@ class VisualAISearch:
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
+        assert TORCH_2_4, f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})"
+        from ultralytics.nn.text_model import build_text_model
+
         check_requirements("faiss-cpu")
 
         self.faiss = __import__("faiss")
@@ -125,7 +129,7 @@ class VisualAISearch:
 
         LOGGER.info(f"Indexed {len(self.image_paths)} images.")
 
-    def search(self, query: str, k: int = 30, similarity_thresh: float = 0.1) -> List[str]:
+    def search(self, query: str, k: int = 30, similarity_thresh: float = 0.1) -> list[str]:
         """
         Return top-k semantically similar images to the given query.
 
@@ -135,7 +139,7 @@ class VisualAISearch:
             similarity_thresh (float, optional): Minimum similarity threshold for filtering results.
 
         Returns:
-            (List[str]): List of image filenames ranked by similarity score.
+            (list[str]): List of image filenames ranked by similarity score.
 
         Examples:
             Search for images matching a query
@@ -157,7 +161,7 @@ class VisualAISearch:
 
         return [r[0] for r in results]
 
-    def __call__(self, query: str) -> List[str]:
+    def __call__(self, query: str) -> list[str]:
         """Direct call interface for the search function."""
         return self.search(query)
 

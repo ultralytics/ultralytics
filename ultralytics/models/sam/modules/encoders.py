@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import List, Optional, Tuple, Type
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
@@ -56,13 +56,13 @@ class ImageEncoderViT(nn.Module):
         mlp_ratio: float = 4.0,
         out_chans: int = 256,
         qkv_bias: bool = True,
-        norm_layer: Type[nn.Module] = nn.LayerNorm,
-        act_layer: Type[nn.Module] = nn.GELU,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
+        act_layer: type[nn.Module] = nn.GELU,
         use_abs_pos: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         window_size: int = 0,
-        global_attn_indexes: Tuple[int, ...] = (),
+        global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
         """
         Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
@@ -83,7 +83,7 @@ class ImageEncoderViT(nn.Module):
             use_rel_pos (bool): If True, adds relative positional embeddings to attention maps.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window for windowed attention blocks.
-            global_attn_indexes (Tuple[int, ...]): Indices of blocks that use global attention.
+            global_attn_indexes (tuple[int, ...]): Indices of blocks that use global attention.
 
         Examples:
             >>> encoder = ImageEncoderViT(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12)
@@ -101,7 +101,7 @@ class ImageEncoderViT(nn.Module):
             embed_dim=embed_dim,
         )
 
-        self.pos_embed: Optional[nn.Parameter] = None
+        self.pos_embed: nn.Parameter | None = None
         if use_abs_pos:
             # Initialize absolute positional embedding with pretrain image size
             self.pos_embed = nn.Parameter(torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim))
@@ -161,13 +161,13 @@ class PromptEncoder(nn.Module):
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
-        input_image_size (Tuple[int, int]): Size of the input image as (H, W).
-        image_embedding_size (Tuple[int, int]): Spatial size of the image embedding as (H, W).
+        input_image_size (tuple[int, int]): Size of the input image as (H, W).
+        image_embedding_size (tuple[int, int]): Spatial size of the image embedding as (H, W).
         pe_layer (PositionEmbeddingRandom): Module for random position embedding.
         num_point_embeddings (int): Number of point embeddings for different types of points.
         point_embeddings (nn.ModuleList): List of point embeddings.
         not_a_point_embed (nn.Embedding): Embedding for points that are not part of any label.
-        mask_input_size (Tuple[int, int]): Size of the input mask.
+        mask_input_size (tuple[int, int]): Size of the input mask.
         mask_downscaling (nn.Sequential): Neural network for downscaling the mask.
         no_mask_embed (nn.Embedding): Embedding for cases where no mask is provided.
 
@@ -188,18 +188,18 @@ class PromptEncoder(nn.Module):
     def __init__(
         self,
         embed_dim: int,
-        image_embedding_size: Tuple[int, int],
-        input_image_size: Tuple[int, int],
+        image_embedding_size: tuple[int, int],
+        input_image_size: tuple[int, int],
         mask_in_chans: int,
-        activation: Type[nn.Module] = nn.GELU,
+        activation: type[nn.Module] = nn.GELU,
     ) -> None:
         """
         Initialize the PromptEncoder module for encoding various types of prompts.
 
         Args:
             embed_dim (int): The dimension of the embeddings.
-            image_embedding_size (Tuple[int, int]): The spatial size of the image embedding as (H, W).
-            input_image_size (Tuple[int, int]): The padded size of the input image as (H, W).
+            image_embedding_size (tuple[int, int]): The spatial size of the image embedding as (H, W).
+            input_image_size (tuple[int, int]): The padded size of the input image as (H, W).
             mask_in_chans (int): The number of hidden channels used for encoding input masks.
             activation (Type[nn.Module]): The activation function to use when encoding input masks.
 
@@ -258,8 +258,8 @@ class PromptEncoder(nn.Module):
         """Embed point prompts by applying positional encoding and label-specific embeddings."""
         points = points + 0.5  # Shift to center of pixel
         if pad:
-            padding_point = torch.zeros((points.shape[0], 1, 2), device=points.device)
-            padding_label = -torch.ones((labels.shape[0], 1), device=labels.device)
+            padding_point = torch.zeros((points.shape[0], 1, 2), dtype=points.dtype, device=points.device)
+            padding_label = -torch.ones((labels.shape[0], 1), dtype=labels.dtype, device=labels.device)
             points = torch.cat([points, padding_point], dim=1)
             labels = torch.cat([labels, padding_label], dim=1)
         point_embedding = self.pe_layer.forward_with_coords(points, self.input_image_size)
@@ -286,9 +286,9 @@ class PromptEncoder(nn.Module):
 
     @staticmethod
     def _get_batch_size(
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
-        boxes: Optional[torch.Tensor],
-        masks: Optional[torch.Tensor],
+        points: tuple[torch.Tensor, torch.Tensor] | None,
+        boxes: torch.Tensor | None,
+        masks: torch.Tensor | None,
     ) -> int:
         """Get the batch size of the output given the batch size of the input prompts."""
         if points is not None:
@@ -300,21 +300,17 @@ class PromptEncoder(nn.Module):
         else:
             return 1
 
-    def _get_device(self) -> torch.device:
-        """Return the device of the first point embedding's weight tensor."""
-        return self.point_embeddings[0].weight.device
-
     def forward(
         self,
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
-        boxes: Optional[torch.Tensor],
-        masks: Optional[torch.Tensor],
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        points: tuple[torch.Tensor, torch.Tensor] | None,
+        boxes: torch.Tensor | None,
+        masks: torch.Tensor | None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Embed different types of prompts, returning both sparse and dense embeddings.
 
         Args:
-            points (Tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
+            points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
                 tensor contains coordinates with shape (B, N, 2), and the second tensor contains labels with
                 shape (B, N).
             boxes (torch.Tensor | None): Boxes to embed with shape (B, M, 2, 2), where M is the number of boxes.
@@ -334,7 +330,11 @@ class PromptEncoder(nn.Module):
             torch.Size([1, 7, 256]) torch.Size([1, 256, 64, 64])
         """
         bs = self._get_batch_size(points, boxes, masks)
-        sparse_embeddings = torch.empty((bs, 0, self.embed_dim), device=self._get_device())
+        sparse_embeddings = torch.empty(
+            (bs, 0, self.embed_dim),
+            dtype=self.point_embeddings[0].weight.dtype,
+            device=self.point_embeddings[0].weight.device,
+        )
         if points is not None:
             coords, labels = points
             point_embeddings = self._embed_points(coords, labels, pad=(boxes is None))
@@ -522,10 +522,10 @@ class FpnNeck(nn.Module):
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
         convs (nn.ModuleList): List of convolutional layers for each backbone level.
-        backbone_channel_list (List[int]): List of channel dimensions from the backbone.
+        backbone_channel_list (list[int]): List of channel dimensions from the backbone.
         fpn_interp_model (str): Interpolation mode for FPN feature resizing.
         fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
-        fpn_top_down_levels (List[int]): Levels to have top-down features in outputs.
+        fpn_top_down_levels (list[int]): Levels to have top-down features in outputs.
 
     Methods:
         forward: Perform forward pass through the FPN neck.
@@ -542,13 +542,13 @@ class FpnNeck(nn.Module):
     def __init__(
         self,
         d_model: int,
-        backbone_channel_list: List[int],
+        backbone_channel_list: list[int],
         kernel_size: int = 1,
         stride: int = 1,
         padding: int = 0,
         fpn_interp_model: str = "bilinear",
         fuse_type: str = "sum",
-        fpn_top_down_levels: Optional[List[int]] = None,
+        fpn_top_down_levels: list[int] | None = None,
     ):
         """
         Initialize a modified Feature Pyramid Network (FPN) neck.
@@ -558,13 +558,13 @@ class FpnNeck(nn.Module):
 
         Args:
             d_model (int): Dimension of the model.
-            backbone_channel_list (List[int]): List of channel dimensions from the backbone.
+            backbone_channel_list (list[int]): List of channel dimensions from the backbone.
             kernel_size (int): Kernel size for the convolutional layers.
             stride (int): Stride for the convolutional layers.
             padding (int): Padding for the convolutional layers.
             fpn_interp_model (str): Interpolation mode for FPN feature resizing.
             fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
-            fpn_top_down_levels (Optional[List[int]]): Levels to have top-down features in outputs.
+            fpn_top_down_levels (Optional[list[int]]): Levels to have top-down features in outputs.
 
         Examples:
             >>> backbone_channels = [64, 128, 256, 512]
@@ -602,7 +602,7 @@ class FpnNeck(nn.Module):
             fpn_top_down_levels = range(len(self.convs))
         self.fpn_top_down_levels = list(fpn_top_down_levels)
 
-    def forward(self, xs: List[torch.Tensor]):
+    def forward(self, xs: list[torch.Tensor]):
         """
         Perform forward pass through the Feature Pyramid Network (FPN) neck.
 
@@ -610,12 +610,12 @@ class FpnNeck(nn.Module):
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
 
         Args:
-            xs (List[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
+            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
 
         Returns:
-            out (List[torch.Tensor]): List of output feature maps after FPN processing, each with shape
+            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape
                 (B, d_model, H, W).
-            pos (List[torch.Tensor]): List of positional encodings corresponding to each output feature map.
+            pos (list[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:
             >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
@@ -637,7 +637,7 @@ class FpnNeck(nn.Module):
             lateral_features = self.convs[n - i](x)
             if i in self.fpn_top_down_levels and prev_features is not None:
                 top_down_features = F.interpolate(
-                    prev_features.to(dtype=torch.float32),
+                    prev_features.to(dtype=x.dtype),
                     scale_factor=2.0,
                     mode=self.fpn_interp_model,
                     align_corners=(None if self.fpn_interp_model == "nearest" else False),
@@ -664,18 +664,18 @@ class Hiera(nn.Module):
     with optional pooling and global attention mechanisms.
 
     Attributes:
-        window_spec (Tuple[int, ...]): Window sizes for each stage.
-        q_stride (Tuple[int, int]): Downsampling stride between stages.
-        stage_ends (List[int]): Indices of the last block in each stage.
-        q_pool_blocks (List[int]): Indices of blocks where pooling is applied.
+        window_spec (tuple[int, ...]): Window sizes for each stage.
+        q_stride (tuple[int, int]): Downsampling stride between stages.
+        stage_ends (list[int]): Indices of the last block in each stage.
+        q_pool_blocks (list[int]): Indices of blocks where pooling is applied.
         return_interm_layers (bool): Whether to return intermediate layer outputs.
         patch_embed (PatchEmbed): Module for patch embedding.
-        global_att_blocks (Tuple[int, ...]): Indices of blocks with global attention.
-        window_pos_embed_bkg_spatial_size (Tuple[int, int]): Spatial size for window positional embedding background.
+        global_att_blocks (tuple[int, ...]): Indices of blocks with global attention.
+        window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
         pos_embed (nn.Parameter): Positional embedding for the background.
         pos_embed_window (nn.Parameter): Positional embedding for the window.
         blocks (nn.ModuleList): List of MultiScaleBlock modules.
-        channel_list (List[int]): List of output channel dimensions for each stage.
+        channel_list (list[int]): List of output channel dimensions for each stage.
 
     Methods:
         _get_pos_embed: Generate positional embeddings by interpolating and combining window and background embeddings.
@@ -695,20 +695,20 @@ class Hiera(nn.Module):
         num_heads: int = 1,  # initial number of heads
         drop_path_rate: float = 0.0,  # stochastic depth
         q_pool: int = 3,  # number of q_pool stages
-        q_stride: Tuple[int, int] = (2, 2),  # downsample stride bet. stages
-        stages: Tuple[int, ...] = (2, 3, 16, 3),  # blocks per stage
+        q_stride: tuple[int, int] = (2, 2),  # downsample stride bet. stages
+        stages: tuple[int, ...] = (2, 3, 16, 3),  # blocks per stage
         dim_mul: float = 2.0,  # dim_mul factor at stage shift
         head_mul: float = 2.0,  # head_mul factor at stage shift
-        window_pos_embed_bkg_spatial_size: Tuple[int, int] = (14, 14),
+        window_pos_embed_bkg_spatial_size: tuple[int, int] = (14, 14),
         # window size per stage, when not using global att.
-        window_spec: Tuple[int, ...] = (
+        window_spec: tuple[int, ...] = (
             8,
             4,
             14,
             7,
         ),
         # global attn in these blocks
-        global_att_blocks: Tuple[int, ...] = (
+        global_att_blocks: tuple[int, ...] = (
             12,
             16,
             20,
@@ -727,13 +727,13 @@ class Hiera(nn.Module):
             num_heads (int): Initial number of attention heads.
             drop_path_rate (float): Stochastic depth rate.
             q_pool (int): Number of query pooling stages.
-            q_stride (Tuple[int, int]): Downsampling stride between stages.
-            stages (Tuple[int, ...]): Number of blocks per stage.
+            q_stride (tuple[int, int]): Downsampling stride between stages.
+            stages (tuple[int, ...]): Number of blocks per stage.
             dim_mul (float): Dimension multiplier factor at stage transitions.
             head_mul (float): Head multiplier factor at stage transitions.
-            window_pos_embed_bkg_spatial_size (Tuple[int, int]): Spatial size for window positional embedding background.
-            window_spec (Tuple[int, ...]): Window sizes for each stage when not using global attention.
-            global_att_blocks (Tuple[int, ...]): Indices of blocks that use global attention.
+            window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
+            window_spec (tuple[int, ...]): Window sizes for each stage when not using global attention.
+            global_att_blocks (tuple[int, ...]): Indices of blocks that use global attention.
             return_interm_layers (bool): Whether to return intermediate layer outputs.
 
         Examples:
@@ -806,7 +806,7 @@ class Hiera(nn.Module):
             else [self.blocks[-1].dim_out]
         )
 
-    def _get_pos_embed(self, hw: Tuple[int, int]) -> torch.Tensor:
+    def _get_pos_embed(self, hw: tuple[int, int]) -> torch.Tensor:
         """Generate positional embeddings by interpolating and combining window and background embeddings."""
         h, w = hw
         window_embed = self.pos_embed_window
@@ -815,7 +815,7 @@ class Hiera(nn.Module):
         pos_embed = pos_embed.permute(0, 2, 3, 1)
         return pos_embed
 
-    def forward(self, x: torch.Tensor) -> List[torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         """
         Perform forward pass through Hiera model, extracting multiscale features from input images.
 
@@ -823,7 +823,7 @@ class Hiera(nn.Module):
             x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.
 
         Returns:
-            (List[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
+            (list[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
                 C_i is the channel dimension and H_i, W_i are the spatial dimensions at scale i. The list is ordered
                 from highest resolution (fine features) to lowest resolution (coarse features) if return_interm_layers
                 is True, otherwise contains only the final output.

@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ultralytics.engine.model import Model
 
@@ -45,10 +47,10 @@ class FastSAM(Model):
         self,
         source,
         stream: bool = False,
-        bboxes: Optional[List] = None,
-        points: Optional[List] = None,
-        labels: Optional[List] = None,
-        texts: Optional[List] = None,
+        bboxes: list | None = None,
+        points: list | None = None,
+        labels: list | None = None,
+        texts: list | None = None,
         **kwargs: Any,
     ):
         """
@@ -61,19 +63,19 @@ class FastSAM(Model):
             source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image,
                 or numpy array.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
-            bboxes (List, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
-            points (List, optional): Point coordinates for prompted segmentation in format [[x, y]].
-            labels (List, optional): Class labels for prompted segmentation.
-            texts (List, optional): Text prompts for segmentation guidance.
+            bboxes (list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
+            points (list, optional): Point coordinates for prompted segmentation in format [[x, y]].
+            labels (list, optional): Class labels for prompted segmentation.
+            texts (list, optional): Text prompts for segmentation guidance.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (List): List of Results objects containing the prediction results.
+            (list): List of Results objects containing the prediction results.
         """
         prompts = dict(bboxes=bboxes, points=points, labels=labels, texts=texts)
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     @property
-    def task_map(self) -> Dict[str, Dict[str, Any]]:
+    def task_map(self) -> dict[str, dict[str, Any]]:
         """Returns a dictionary mapping segment task to corresponding predictor and validator classes."""
         return {"segment": {"predictor": FastSAMPredictor, "validator": FastSAMValidator}}

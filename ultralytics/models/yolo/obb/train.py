@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from copy import copy
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -31,25 +33,16 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks: Optional[List[Any]] = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: list[Any] | None = None):
         """
         Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
-
-        This trainer extends the DetectionTrainer class to specialize in training models that detect oriented
-        bounding boxes. It automatically sets the task to 'obb' in the configuration.
 
         Args:
             cfg (dict, optional): Configuration dictionary for the trainer. Contains training parameters and
                 model configuration.
             overrides (dict, optional): Dictionary of parameter overrides for the configuration. Any values here
                 will take precedence over those in cfg.
-            _callbacks (List[Any], optional): List of callback functions to be invoked during training.
-
-        Examples:
-            >>> from ultralytics.models.yolo.obb import OBBTrainer
-            >>> args = dict(model="yolo11n-obb.pt", data="dota8.yaml", epochs=3)
-            >>> trainer = OBBTrainer(overrides=args)
-            >>> trainer.train()
+            _callbacks (list[Any], optional): List of callback functions to be invoked during training.
         """
         if overrides is None:
             overrides = {}
@@ -57,7 +50,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(
-        self, cfg: Optional[Union[str, dict]] = None, weights: Optional[Union[str, Path]] = None, verbose: bool = True
+        self, cfg: str | dict | None = None, weights: str | Path | None = None, verbose: bool = True
     ) -> OBBModel:
         """
         Return OBBModel initialized with specified config and weights.

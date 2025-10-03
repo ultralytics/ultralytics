@@ -16,6 +16,17 @@ The [Ultralytics](https://www.ultralytics.com/) COCO8-Multispectral dataset is a
 
 COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](../../models/yolo11.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/yw2Fo6qjJU4"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on Multispectral Datasets | Multi-Channel VisionAI 🚀
+</p>
+
 ## Dataset Generation
 
 The multispectral images in COCO8-Multispectral were created by interpolating the original RGB images across 10 evenly spaced spectral channels within the visible spectrum. The process includes:

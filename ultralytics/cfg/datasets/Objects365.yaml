@@ -387,8 +387,8 @@ download: |
   from pathlib import Path
 
   import numpy as np
-  from tqdm import tqdm
 
+  from ultralytics.utils import TQDM
   from ultralytics.utils.checks import check_requirements
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywhn
@@ -419,7 +419,7 @@ download: |
           download([f"{url}images/v2/patch{i}.tar.gz" for i in range(16, patches)], dir=images, curl=True, threads=8)
 
       # Move
-      for f in tqdm(images.rglob("*.jpg"), desc=f"Moving {split} images"):
+      for f in TQDM(images.rglob("*.jpg"), desc=f"Moving {split} images"):
           f.rename(images / f.name)  # move to /images/{split}
 
       # Labels
@@ -428,7 +428,7 @@ download: |
       for cid, cat in enumerate(names):
           catIds = coco.getCatIds(catNms=[cat])
           imgIds = coco.getImgIds(catIds=catIds)
-          for im in tqdm(coco.loadImgs(imgIds), desc=f"Class {cid + 1}/{len(names)} {cat}"):
+          for im in TQDM(coco.loadImgs(imgIds), desc=f"Class {cid + 1}/{len(names)} {cat}"):
               width, height = im["width"], im["height"]
               path = Path(im["file_name"])  # image filename
               try:

@@ -99,7 +99,7 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.checks.git_describe
+## ::: ultralytics.utils.checks.check_multiple_install
 
 <br><br><hr><br>
 

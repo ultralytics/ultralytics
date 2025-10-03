@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import torch
 
@@ -20,8 +22,8 @@ class ClassificationValidator(BaseValidator):
     confusion matrix generation, and visualization of results.
 
     Attributes:
-        targets (List[torch.Tensor]): Ground truth class labels.
-        pred (List[torch.Tensor]): Model predictions.
+        targets (list[torch.Tensor]): Ground truth class labels.
+        pred (list[torch.Tensor]): Model predictions.
         metrics (ClassifyMetrics): Object to calculate and store classification metrics.
         names (dict): Mapping of class indices to class names.
         nc (int): Number of classes.
@@ -83,16 +85,16 @@ class ClassificationValidator(BaseValidator):
         self.nc = len(model.names)
         self.pred = []
         self.targets = []
-        self.confusion_matrix = ConfusionMatrix(names=list(model.names.values()))
+        self.confusion_matrix = ConfusionMatrix(names=model.names)
 
-    def preprocess(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
         batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
-        batch["cls"] = batch["cls"].to(self.device)
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
         return batch
 
-    def update_metrics(self, preds: torch.Tensor, batch: Dict[str, Any]) -> None:
+    def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
         """
         Update running metrics with model predictions and batch targets.
 
@@ -131,11 +133,11 @@ class ClassificationValidator(BaseValidator):
         self.metrics.save_dir = self.save_dir
         self.metrics.confusion_matrix = self.confusion_matrix
 
-    def postprocess(self, preds: Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor]]) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]) -> torch.Tensor:
         """Extract the primary prediction from model output if it's in a list or tuple format."""
         return preds[0] if isinstance(preds, (list, tuple)) else preds
 
-    def get_stats(self) -> Dict[str, float]:
+    def get_stats(self) -> dict[str, float]:
         """Calculate and return a dictionary of metrics by processing targets and predictions."""
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
@@ -144,7 +146,7 @@ class ClassificationValidator(BaseValidator):
         """Create a ClassificationDataset instance for validation."""
         return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
-    def get_dataloader(self, dataset_path: Union[Path, str], batch_size: int) -> torch.utils.data.DataLoader:
+    def get_dataloader(self, dataset_path: Path | str, batch_size: int) -> torch.utils.data.DataLoader:
         """
         Build and return a data loader for classification validation.
 
@@ -163,12 +165,12 @@ class ClassificationValidator(BaseValidator):
         pf = "%22s" + "%11.3g" * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
-    def plot_val_samples(self, batch: Dict[str, Any], ni: int) -> None:
+    def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:
         """
         Plot validation image samples with their ground truth labels.
 
         Args:
-            batch (Dict[str, Any]): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
+            batch (dict[str, Any]): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
             ni (int): Batch index used for naming the output file.
 
         Examples:
@@ -176,7 +178,7 @@ class ClassificationValidator(BaseValidator):
             >>> batch = {"img": torch.rand(16, 3, 224, 224), "cls": torch.randint(0, 10, (16,))}
             >>> validator.plot_val_samples(batch, 0)
         """
-        batch["batch_idx"] = torch.arange(len(batch["img"]))  # add batch index for plotting
+        batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
         plot_images(
             labels=batch,
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
@@ -184,12 +186,12 @@ class ClassificationValidator(BaseValidator):
             on_plot=self.on_plot,
         )
 
-    def plot_predictions(self, batch: Dict[str, Any], preds: torch.Tensor, ni: int) -> None:
+    def plot_predictions(self, batch: dict[str, Any], preds: torch.Tensor, ni: int) -> None:
         """
         Plot images with their predicted class labels and save the visualization.
 
         Args:
-            batch (Dict[str, Any]): Batch data containing images and other information.
+            batch (dict[str, Any]): Batch data containing images and other information.
             preds (torch.Tensor): Model predictions with shape (batch_size, num_classes).
             ni (int): Batch index used for naming the output file.
 
@@ -201,7 +203,7 @@ class ClassificationValidator(BaseValidator):
         """
         batched_preds = dict(
             img=batch["img"],
-            batch_idx=torch.arange(len(batch["img"])),
+            batch_idx=torch.arange(batch["img"].shape[0]),
             cls=torch.argmax(preds, dim=1),
         )
         plot_images(

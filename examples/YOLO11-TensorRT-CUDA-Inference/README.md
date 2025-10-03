@@ -1,6 +1,6 @@
-# YOLOv11 TensorRT CUDA Inference C++
+# YOLO11 TensorRT CUDA Inference C++
 
-This example demonstrates how to perform inference using [Ultralytics YOLOv11](https://docs.ultralytics.com/models/yolov11/) models in CUDA with the [TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/latest/index.html).
+This example demonstrates how to perform inference using [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/) models in CUDA with the [TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/latest/index.html).
 
 ## ⚙️ Dependencies
 
@@ -50,23 +50,23 @@ Follow these steps to run the TensorRT inference example:
     ```
 
 5.  **Run the Inference:**
-    Execute the compiled binary. The application will load the exported YOLOv11 model and perform inference on a sample image (`zidane.jpg` included in the root `ultralytics` directory) or video.
+    Execute the compiled binary. The application will load the exported YOLO11 model and perform inference on a sample image (`zidane.jpg` included in the root `ultralytics` directory) or video.
     ```bash
-    ./YOLOTensorRTInference -input "zidane.jpg" -model "/path/to/yolov11s.engine"
+    ./YOLOTensorRTInference -input "zidane.jpg" -model "/path/to/yolo11s.engine"
     ```
 
-## ✨ Exporting Ultralytics YOLOv11
+## ✨ Exporting Ultralytics YOLO11
 
-To use an Ultralytics YOLOv11 model with TensorRT, you first need to convert it to the Engine format.
+To use an Ultralytics YOLO11 model with TensorRT, you first need to convert it to the Engine format.
 
-Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) provided by the `ultralytics` package to export the model to ONNX format first. For example, to export the `yolov11s.pt` model:
+Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) provided by the `ultralytics` package to export the model to ONNX format first. For example, to export the `yolo11s.pt` model:
 
 ```bash
-yolo export model=yolov11s.pt format=onnx nms=True
+yolo export model=yolo11s.pt format=onnx nms=True
 ```
 
-This command will generate a `yolov11s.onnx` file in the model's directory. After this you need to convert it to TensorRT Engine which can be done using `trtexec` program that can be found in the `bin` folder of `TensorRT-10.12.0.36` which you must have downloaded in the previous steps.
+This command will generate a `yolo11s.onnx` file in the model's directory. After this you need to convert it to TensorRT Engine which can be done using `trtexec` program that can be found in the `bin` folder of `TensorRT-10.12.0.36` which you must have downloaded in the previous steps.
 
 ```bash
-./trtexec --onnx=/path/to/yolov11s.onnx --saveEngine=yolov11s.engine --fp16 --device=0 --verbose
+./trtexec --onnx=/path/to/yolo11s.onnx --saveEngine=yolo11s.engine --fp16 --device=0 --verbose
 ```

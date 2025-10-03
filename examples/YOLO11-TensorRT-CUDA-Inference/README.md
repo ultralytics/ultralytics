@@ -1,18 +1,17 @@
 # YOLOv11 TensorRT CUDA Inference C++
 
-This example demonstrates how to perform inference using [Ultralytics YOLOv11](https://docs.ultralytics.com/models/yolov11/) models in CUDA with the [TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/latest/index.html). 
+This example demonstrates how to perform inference using [Ultralytics YOLOv11](https://docs.ultralytics.com/models/yolov11/) models in CUDA with the [TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/latest/index.html).
 
 ## ⚙️ Dependencies
 
 Ensure you have the following dependencies installed before proceeding:
 
-| Dependency   | Version  | Resource                                     |
-| :----------- | :------- | :------------------------------------------- |
-| OpenCV       | >=4.0.0  | [https://opencv.org/](https://opencv.org/)   |
-| C++ Standard | >=17     | [https://isocpp.org/](https://isocpp.org/)   |
-| CMake        | >=3.18   | [https://cmake.org/](https://cmake.org/)     |
+| Dependency   | Version      | Resource                                                                       |
+| :----------- | :----------- | :----------------------------------------------------------------------------- |
+| OpenCV       | >=4.0.0      | [https://opencv.org/](https://opencv.org/)                                     |
+| C++ Standard | >=17         | [https://isocpp.org/](https://isocpp.org/)                                     |
+| CMake        | >=3.18       | [https://cmake.org/](https://cmake.org/)                                       |
 | TensorRT     | >=10.12.0.36 | [https://developer.nvidia.com/tensorrt](https://developer.nvidia.com/tensorrt) |
-
 
 ## 🚀 Usage
 

@@ -548,6 +548,19 @@ def is_parallel(model):
     return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
+def de_parallel(model):
+    """
+    De-parallelize a model: return single-GPU model if model is of type DP or DDP.
+
+    Args:
+        model (nn.Module): Model to de-parallelize.
+
+    Returns:
+        (nn.Module): De-parallelized model.
+    """
+    return model.module if is_parallel(model) else model
+
+
 def unwrap_model(m: nn.Module) -> nn.Module:
     """
     Unwrap compiled and parallel models to get the base model.

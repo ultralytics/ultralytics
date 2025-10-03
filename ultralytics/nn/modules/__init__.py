@@ -84,6 +84,7 @@ from .head import (
     Pose,
     RTDETRDecoder,
     Segment,
+    SemanticSegment,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -179,4 +180,5 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "SemanticSegment",
 )

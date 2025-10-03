@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,6 +15,7 @@ from ultralytics.nn.tasks import (
     OBBModel,
     PoseModel,
     SegmentationModel,
+    SemanticModel,
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
@@ -122,6 +122,12 @@ class YOLO(Model):
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
             },
+            "semseg": {
+                "model": SemanticModel,
+                "trainer": yolo.semseg.SemSegTrainer,
+                "validator": yolo.semseg.SemSegValidator,
+                "predictor": yolo.semseg.SemSegPredictor,
+            },
         }
 
 
@@ -185,7 +191,7 @@ class YOLOWorld(Model):
         Set the model's class names for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (List[str]): A list of categories i.e. ["person"].
         """
         self.model.set_classes(classes)
         # Remove background if it's given
@@ -299,8 +305,8 @@ class YOLOE(Model):
         classification tasks. The model must be an instance of YOLOEModel.
 
         Args:
-            vocab (list[str]): Vocabulary list containing tokens or words used by the model for text processing.
-            names (list[str]): List of class names that the model can detect or classify.
+            vocab (List[str]): Vocabulary list containing tokens or words used by the model for text processing.
+            names (List[str]): List of class names that the model can detect or classify.
 
         Raises:
             AssertionError: If the model is not an instance of YOLOEModel.
@@ -322,7 +328,7 @@ class YOLOE(Model):
         Set the model's class names and embeddings for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (List[str]): A list of categories i.e. ["person"].
             embeddings (torch.Tensor): Embeddings corresponding to the classes.
         """
         assert isinstance(self.model, YOLOEModel)
@@ -381,7 +387,7 @@ class YOLOE(Model):
                 directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a
                 generator as they are computed.
-            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
+            visual_prompts (Dict[str, List]): Dictionary containing visual prompts for the model. Must include
                 'bboxes' and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
@@ -389,7 +395,7 @@ class YOLOE(Model):
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
-            (list | generator): List of Results objects or generator of Results objects if stream=True.
+            (List | generator): List of Results objects or generator of Results objects if stream=True.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")
@@ -416,7 +422,6 @@ class YOLOE(Model):
                         "batch": 1,
                         "device": kwargs.get("device", None),
                         "half": kwargs.get("half", False),
-                        "imgsz": kwargs.get("imgsz", self.overrides["imgsz"]),
                     },
                     _callbacks=self.callbacks,
                 )

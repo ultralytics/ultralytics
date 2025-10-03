@@ -5,9 +5,53 @@
 #include <string>
 
 
+float generate_scale(cv::Mat& image, const std::vector<int>& target_size) {
+    int origin_w = image.cols;
+    int origin_h = image.rows;
+
+    int target_h = target_size[0];
+    int target_w = target_size[1];
+
+    float ratio_h = static_cast<float>(target_h) / static_cast<float>(origin_h);
+    float ratio_w = static_cast<float>(target_w) / static_cast<float>(origin_w);
+    float resize_scale = std::min(ratio_h, ratio_w);
+    return resize_scale;
+}
+
+
+float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<int> &target_size) {
+    if (input_image.cols == target_size[1] && input_image.rows == target_size[0]) {
+        if (input_image.data == output_image.data) {
+            return 1.;
+        } else {
+            output_image = input_image.clone();
+            return 1.;
+        }
+    }
+
+    float resize_scale = generate_scale(input_image, target_size);
+    int new_shape_w = std::round(input_image.cols * resize_scale);
+    int new_shape_h = std::round(input_image.rows * resize_scale);
+    float padw = (target_size[1] - new_shape_w) / 2.;
+    float padh = (target_size[0] - new_shape_h) / 2.;
+
+    int top = std::round(padh - 0.1);
+    int bottom = std::round(padh + 0.1);
+    int left = std::round(padw - 0.1);
+    int right = std::round(padw + 0.1);
+
+    cv::resize(input_image, output_image,
+               cv::Size(new_shape_w, new_shape_h),
+               0, 0, cv::INTER_AREA);
+
+    cv::copyMakeBorder(output_image, output_image, top, bottom, left, right,
+                       cv::BORDER_CONSTANT, cv::Scalar(114., 114., 114));
+    return resize_scale;
+}
+
 int main(int argc, char **argv) {
     if (argc < 5) {
-        std::cerr << "Usage: " << argv[0] << " -input <path_to_input_image> -model <path_to_yolo11_engine> -scale widthxheight" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " -input <path_to_input_image> -model <path_to_yolo11_engine>" << std::endl;
         return 1;
     }
     std::string image_path;
@@ -19,19 +63,15 @@ int main(int argc, char **argv) {
             image_path = argv[++i];
         } else if (std::string(argv[i]) == "-model") {
             model_path = argv[++i];
-        } else if (std::string(argv[i]) == "-scale") {
-            std::string scale_str = argv[++i];
-            size_t x_pos = scale_str.find('x');
-            if (x_pos != std::string::npos) {
-                width = std::stoi(scale_str.substr(0, x_pos));
-                height = std::stoi(scale_str.substr(x_pos + 1));
-            }
         }
     }
 
-    cv::Mat input_image = cv::imread(image_path);
+    cv::Mat image = cv::imread(image_path);
+    cv::Mat input_image;
+    
+    letterbox(image, input_image, {640, 640});
     if (input_image.empty()) {
-        std::cerr << "Error: Could not open or find the image!" << std::endl;
+        std::cerr << "Error: Something went wrong during letterboxing!" << std::endl;
         return 1;
     }
 
@@ -129,32 +169,28 @@ int main(int argc, char **argv) {
 
     checkCudaErrorCode(cudaStreamSynchronize(stream));
 
-    // Fetch the output tensor
-    cv::cuda::GpuMat output_tensor(outputLength, 1, CV_32FC1);
-    checkCudaErrorCode(cudaMemcpyAsync(output_tensor.data, buffersVec[1], outputLength * sizeof(float), cudaMemcpyDeviceToHost, stream));
-    std::cout << "Output tensor copied to host" << std::endl;
-
-    checkCudaErrorCode(cudaStreamSynchronize(stream));
-
-    // Get the output to the CPU
+    // Fetch the output from the GPU
     std::vector<float> output_data(outputLength);
-    checkCudaErrorCode(cudaMemcpy(output_data.data(), buffersVec[1], outputLength * sizeof(float), cudaMemcpyDeviceToHost));
+    checkCudaErrorCode(cudaMemcpyAsync(output_data.data(), buffersVec[1], outputLength * sizeof(float), cudaMemcpyDeviceToHost, stream));
+    std::cout << "Output tensor copied to CPU" << std::endl;
+    checkCudaErrorCode(cudaStreamSynchronize(stream));
 
     // draw bounding boxes on the input image
     for (size_t i = 0; i < output_data.size(); i += 6) {
-        float confidence = output_data[i + 4];
+        auto confidence = output_data[i + 4];
         if (confidence > 0.5) { // Threshold for confidence
-            int x1 = static_cast<int>(output_data[i] * input_image.cols);
-            int y1 = static_cast<int>(output_data[i + 1] * input_image.rows);
-            int x2 = static_cast<int>(output_data[i + 2] * input_image.cols);
-            int y2 = static_cast<int>(output_data[i + 3] * input_image.rows);
+            // The coordinates are supposed to be normalized for the original image size
+            int x1 = static_cast<int>(output_data[i]);
+            int y1 = static_cast<int>(output_data[i + 1]);
+            int x2 = static_cast<int>(output_data[i + 2]);
+            int y2 = static_cast<int>(output_data[i + 3]);
+            std::cout << "Detection: [" << x1 << ", " << y1 << ", " << x2 << ", " << y2 << "] with confidence " << confidence << std::endl;
             cv::rectangle(input_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
             std::string label = "Confidence: " + std::to_string(confidence);
             cv::putText(input_image, label, cv::Point(x1, y1 - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 2);
         }
     }
 
-    // Display the output image
     cv::imshow("Output", input_image);
     cv::waitKey(0);
 

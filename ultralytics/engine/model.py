@@ -802,7 +802,7 @@ class Model(torch.nn.Module):
         if RANK in {-1, 0}:
             ckpt = self.trainer.best if self.trainer.best.exists() else self.trainer.last
             self.model, self.ckpt = load_checkpoint(ckpt)
-            self.overrides = self.model.args
+            self.overrides = self._reset_ckpt_args(self.model.args)
             self.metrics = getattr(self.trainer.validator, "metrics", None)  # TODO: no metrics returned by DDP
         return self.metrics
 

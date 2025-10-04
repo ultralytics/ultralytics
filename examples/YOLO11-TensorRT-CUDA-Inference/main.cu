@@ -49,6 +49,24 @@ float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<i
     return resize_scale;
 }
 
+// Undo letterbox for xyxy boxes produced at net_w x net_h (e.g., 640x640)
+void undo_letterbox_xyxy(float& x1, float& y1, float& x2, float& y2, int img_w, int img_h, int net_w, int net_h) {
+    const float r = std::min(net_w / static_cast<float>(img_w),
+        net_h / static_cast<float>(img_h));
+    const float new_w = img_w * r, new_h = img_h * r;
+    const float dw = (net_w - new_w) * 0.5f;
+    const float dh = (net_h - new_h) * 0.5f;
+
+    x1 = (x1 - dw) / r;  y1 = (y1 - dh) / r;
+    x2 = (x2 - dw) / r;  y2 = (y2 - dh) / r;
+
+    x1 = std::max(0.f, std::min(x1, static_cast<float>(img_w)));
+    y1 = std::max(0.f, std::min(y1, static_cast<float>(img_h)));
+    x2 = std::max(0.f, std::min(x2, static_cast<float>(img_w)));
+    y2 = std::max(0.f, std::min(y2, static_cast<float>(img_h)));
+}
+
+
 int main(int argc, char **argv) {
     if (argc < 5) {
         std::cerr << "Usage: " << argv[0] << " -input <path_to_input_image> -model <path_to_yolo11_engine>" << std::endl;
@@ -178,20 +196,22 @@ int main(int argc, char **argv) {
     // draw bounding boxes on the input image
     for (size_t i = 0; i < output_data.size(); i += 6) {
         auto confidence = output_data[i + 4];
-        if (confidence > 0.5) { // Threshold for confidence
+        if (confidence > 0.5 && confidence < 1.0) { // Threshold for confidence
             // The coordinates are supposed to be normalized for the original image size
             int x1 = static_cast<int>(output_data[i]);
             int y1 = static_cast<int>(output_data[i + 1]);
             int x2 = static_cast<int>(output_data[i + 2]);
             int y2 = static_cast<int>(output_data[i + 3]);
+            undo_letterbox_xyxy((float&)x1, (float&)y1, (float&)x2, (float&)y2,
+				image.cols, image.rows, width, height);
             std::cout << "Detection: [" << x1 << ", " << y1 << ", " << x2 << ", " << y2 << "] with confidence " << confidence << std::endl;
-            cv::rectangle(input_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
+            cv::rectangle(image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
             std::string label = "Confidence: " + std::to_string(confidence);
-            cv::putText(input_image, label, cv::Point(x1, y1 - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 2);
+            cv::putText(image, label, cv::Point(x1, y1 - 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 2);
         }
     }
 
-    cv::imshow("Output", input_image);
+    cv::imshow("Output", image);
     cv::waitKey(0);
 
     // Cleanup

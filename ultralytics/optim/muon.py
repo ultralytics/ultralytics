@@ -114,7 +114,7 @@ class MuonWithSGD(optim.Optimizer):
                     state = self.state[p]
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
-                        # state["momentum_buffer_SGD"] = torch.zeros_like(p)
+                        state["momentum_buffer_SGD"] = torch.zeros_like(p)
                     # state["momentum_buffer"].lerp_(grad, 1 - group["momentum"])
                     # update = (
                     #     grad.lerp_(state["momentum_buffer"], group["momentum"])
@@ -123,41 +123,41 @@ class MuonWithSGD(optim.Optimizer):
                     # )
 
                     # Muon update
-                    if group["weight_decay"] != 0:
-                        grad = grad.add(p, alpha=group["weight_decay"])
-                    state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
-                    update = (
-                        grad.add(state["momentum_buffer"], alpha=group["momentum"])
-                        if group["nesterov"]
-                        else state["momentum_buffer"]
-                    )
-                    # sgd_update = update.clone()
-                    if update.ndim == 4:  # for the case of conv filters
-                        update = update.view(len(update), -1)
-                    update = zeropower_via_newtonschulz5(update)
-                    update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
-                    p.add_(update.reshape(p.shape), alpha=-group["lr"])
-
-                    # update = muon_update(
-                    #     grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
-                    # )
-                    # # TODO
-                    # lr = group["lr"] * self.muon
-                    # # lr = self.adjust_lr(lr, p.shape)
-                    # if self.decay_factor:
-                    #     p.mul_(1 - group["lr"] * self.decay_factor * group["weight_decay"])
-                    # p.add_(update.reshape(p.shape), alpha=-lr)
-                    #
-                    # # SGD update
                     # if group["weight_decay"] != 0:
                     #     grad = grad.add(p, alpha=group["weight_decay"])
-                    # state["momentum_buffer_SGD"].mul_(group["momentum"]).add_(grad)
-                    # sgd_update = (
-                    #     grad.add(state["momentum_buffer_SGD"], alpha=group["momentum"])
+                    # state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
+                    # update = (
+                    #     grad.add(state["momentum_buffer"], alpha=group["momentum"])
                     #     if group["nesterov"]
-                    #     else state["momentum_buffer_SGD"]
+                    #     else state["momentum_buffer"]
                     # )
-                    # p.add_(sgd_update, alpha=-group["lr"] * self.sgd)
+                    # # sgd_update = update.clone()
+                    # if update.ndim == 4:  # for the case of conv filters
+                    #     update = update.view(len(update), -1)
+                    # update = zeropower_via_newtonschulz5(update)
+                    # update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
+                    # p.add_(update.reshape(p.shape), alpha=-group["lr"])
+
+                    update = muon_update(
+                        grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
+                    )
+                    # TODO
+                    lr = group["lr"] * self.muon
+                    # lr = self.adjust_lr(lr, p.shape)
+                    if self.decay_factor:
+                        p.mul_(1 - group["lr"] * self.decay_factor * group["weight_decay"])
+                    p.add_(update.reshape(p.shape), alpha=-lr)
+
+                    # SGD update
+                    if group["weight_decay"] != 0:
+                        grad = grad.add(p, alpha=group["weight_decay"])
+                    state["momentum_buffer_SGD"].mul_(group["momentum"]).add_(grad)
+                    sgd_update = (
+                        grad.add(state["momentum_buffer_SGD"], alpha=group["momentum"])
+                        if group["nesterov"]
+                        else state["momentum_buffer_SGD"]
+                    )
+                    p.add_(sgd_update, alpha=-group["lr"] * self.sgd)
             else:  # SGD
                 for p in group["params"]:
                     if p.grad is None:

@@ -395,6 +395,13 @@ Below are code examples for using each source type:
 
 `model.predict()` accepts multiple arguments that can be passed at inference time to override defaults:
 
+!!! note
+
+    Ultralytics uses minimal padding during inference by default (`rect=True`). In this mode, the shorter side of each image is padded only as much as needed to make it divisible by the model's maximum stride, rather than padding it all the way to the full `imgsz`. When running inference on a batch of images, minimal padding only works if all images have identical size. Otherwise, images are uniformly padded to a square shape with both sides equal to `imgsz`.
+
+    - `batch=1`, using `rect` padding by default.
+    - `batch>1`, using `rect` padding only if all the images in one batch have identical size, otherwise using square padding to `imgsz`.
+
 !!! example
 
     ```python

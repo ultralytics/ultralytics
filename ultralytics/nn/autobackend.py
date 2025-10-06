@@ -95,6 +95,8 @@ class AutoBackend(nn.Module):
             | NCNN                  | *_ncnn_model/     |
             | IMX                   | *_imx_model/      |
             | RKNN                  | *_rknn_model/     |
+            | Triton Inference      | triton://model    |
+            | ExecuTorch            | *.pte             |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -121,6 +123,7 @@ class AutoBackend(nn.Module):
         imx (bool): Whether the model is an IMX model.
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
+        pte (bool): Whether the model is a PyTorch ExecuTorch model.
 
     Methods:
         forward: Run inference on an input image.
@@ -176,6 +179,7 @@ class AutoBackend(nn.Module):
             imx,
             rknn,
             triton,
+            pte,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
@@ -568,6 +572,24 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # ExecuTorch
+        elif pte:
+            LOGGER.info(f"Loading {w} for ExecuTorch inference...")
+            check_requirements("executorch", "setuptools")
+            from executorch.runtime import Runtime
+
+            w = Path(w)
+
+            if w.is_dir():
+                model_file = next(w.rglob("*.pte"))
+                metadata = w / "metadata.yaml"
+            else:
+                model_file = w
+                metadata = w.parent / "metadata.yaml"
+
+            program = Runtime.get().load_program(str(model_file))
+            model = program.load_method("forward")
+
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
@@ -767,6 +789,10 @@ class AutoBackend(nn.Module):
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
 
+        # ExecuTorch
+        elif self.pte:
+            y = self.model.execute([im])
+
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:
             im = im.cpu().numpy()
@@ -868,19 +894,25 @@ class AutoBackend(nn.Module):
         """
         from ultralytics.engine.exporter import export_formats
 
-        sf = export_formats()["Suffix"]  # export suffixes
-        if not is_url(p) and not isinstance(p, str):
-            check_suffix(p, sf)  # checks
-        name = Path(p).name
-        types = [s in name for s in sf]
-        types[5] |= name.endswith(".mlmodel")  # retain support for older Apple CoreML *.mlmodel formats
-        types[8] &= not types[9]  # tflite &= not edgetpu
-        if any(types):
-            triton = False
-        else:
+        sf = export_formats()["Suffix"]
+        p_path = Path(p)
+        if not is_url(p) and not p_path.is_dir():
+            check_suffix(p, sf)
+
+        p_str = str(p)
+        sf_standard = sf[:-1]  # Standard suffixes from exporter
+        pte_suffix = sf[-1]  # '.pte' suffix
+
+        types = [p_str.endswith(s) for s in sf_standard]
+        types[5] |= p_str.endswith(".mlmodel")  # CoreML special case
+        types[8] &= not types[9]  # TFLite vs. EdgeTPU
+        pte = p_str.endswith(pte_suffix)  # ExecuTorch check
+
+        triton = False
+        if not (any(types) or pte):
             from urllib.parse import urlsplit
 
-            url = urlsplit(p)
+            url = urlsplit(p_str)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
-        return types + [triton]
+        return types + [triton, pte]

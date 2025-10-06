@@ -912,8 +912,7 @@ class Exporter:
             )
             inputs = [ct.TensorType("image", shape=input_shape)]
         else:
-            input_shape = self.im.shape
-            inputs = [ct.ImageType("image", shape=input_shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
+            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
 
         # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
         # Internally based on the model conversion and output type.

@@ -877,9 +877,13 @@ class Exporter:
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         if self.args.batch > 1:
-            assert self.args.dynamic, "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
+            assert self.args.dynamic, (
+                "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
+            )
         if self.args.nms:
-            assert not self.args.dynamic, "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
+            assert not self.args.dynamic, (
+                "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
+            )
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)

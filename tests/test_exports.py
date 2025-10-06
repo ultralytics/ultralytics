@@ -264,7 +264,6 @@ def test_export_imx():
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
 def test_export_executorch():
     """Test YOLO model export to ExecuTorch format."""
-    
     file = YOLO(MODEL).export(format="executorch", imgsz=32)
     assert Path(file).exists(), f"ExecuTorch export failed, directory not found: {file}"
     # Check that .pte file exists in the exported directory
@@ -282,7 +281,6 @@ def test_export_executorch():
 @pytest.mark.parametrize("task", TASKS)
 def test_export_executorch_matrix(task):
     """Test YOLO export to ExecuTorch format for various task types."""
-    
     file = YOLO(TASK2MODEL[task]).export(format="executorch", imgsz=32)
     assert Path(file).exists(), f"ExecuTorch export failed for task '{task}', directory not found: {file}"
     # Check that .pte file exists in the exported directory

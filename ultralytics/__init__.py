@@ -28,7 +28,7 @@ __all__ = (
 )
 
 if TYPE_CHECKING:
-    # enable hints for type checkers
+    # Enable hints for type checkers
     from ultralytics.models import YOLO, YOLOWorld, YOLOE, NAS, SAM, FastSAM, RTDETR  # noqa
 
 

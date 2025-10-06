@@ -3,8 +3,8 @@
 __version__ = "8.3.205"
 
 import importlib
-from typing import TYPE_CHECKING
 import os
+from typing import TYPE_CHECKING
 
 # Set ENV variables (place before imports)
 if not os.environ.get("OMP_NUM_THREADS"):

@@ -391,7 +391,7 @@ class Exporter:
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if (engine or coreml or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
-                f"'dynamic=True' model with '{'nms=True' if self.args.nms else 'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
+                f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
             )
         if edgetpu:
             if not LINUX or ARM64:

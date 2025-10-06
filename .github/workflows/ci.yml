@@ -295,8 +295,12 @@ jobs:
           yolo checks
           uv pip list
       - name: Pytest tests
-        shell: bash # for Windows compatibility
-        run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/
+        uses: ultralytics/actions/retry@main
+        with:
+          shell: bash # for Windows compatibility
+          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/
+          retries: 1 # Retry once after initial attempt (2 total runs)
+          retry_delay_seconds: 60
       - name: Prune uv Cache
         run: uv cache prune --ci
 

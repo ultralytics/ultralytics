@@ -966,6 +966,14 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     if exclude_zero_fitness_points:
         mask = fitness > 0  # exclude zero-fitness points
         x, fitness = x[mask], fitness[mask]
+    # Iterative sigma rejection on lower bound only
+    for _ in range(3):  # max 3 iterations
+        mean, std = fitness.mean(), fitness.std()
+        lower_bound = mean - 3 * std
+        mask = fitness >= lower_bound
+        if mask.all():  # no more outliers
+            break
+        x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot
     plt.figure(figsize=(10, 10), tight_layout=True)

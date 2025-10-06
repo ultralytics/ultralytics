@@ -388,9 +388,9 @@ To initiate your contribution, please refer to our [Contributing Guide](../help/
 
 Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosystem 🙏!
 
-[fish track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/a5146d0f-bfa8-4e0a-b7df-3c1446cd8142
-[people track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/93bb4ee2-77a0-4e4e-8eb6-eb8f527f0527
-[vehicle track]: https://github.com/RizwanMunawar/ultralytics/assets/62513924/ee6e6038-383b-4f21-ac29-b2a1c7d386ab
+[fish track]: https://github.com/ultralytics/docs/releases/download/0/fish-tracking.avif
+[people track]: https://github.com/ultralytics/docs/releases/download/0/people-tracking.avif
+[vehicle track]: https://github.com/ultralytics/docs/releases/download/0/vehicle-tracking.avif
 
 ## FAQ
 

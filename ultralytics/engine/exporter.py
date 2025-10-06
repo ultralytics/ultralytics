@@ -880,10 +880,11 @@ class Exporter:
             assert self.args.dynamic, (
                 "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
             )
-        if self.args.nms:
-            assert not self.args.dynamic, (
+        if self.args.dynamic:
+            assert not self.args.nms, (
                 "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
             )
+            assert self.model.task != "classify", "'dynamic=True' is not supported for CoreML classification models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)

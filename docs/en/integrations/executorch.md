@@ -67,7 +67,7 @@ ExecuTorch export requires Python 3.10 or higher and specific dependencies:
         ```bash
         # Install Ultralytics package
         pip install ultralytics
-        
+
         # Install ExecuTorch (includes dependencies)
         pip install executorch
         ```
@@ -90,7 +90,7 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
 
         # Export the model to ExecuTorch format
         model.export(format="executorch")  # creates 'yolo11n_executorch_model' directory
-        
+
         # The exported directory contains:
         # - yolo11n.pte (model file)
         # - metadata.yaml (model metadata)
@@ -100,17 +100,17 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
 
         ```bash
         # Export a YOLO11n PyTorch model to ExecuTorch format
-        yolo export model=yolo11n.pt format=executorch  # creates 'yolo11n_executorch_model' directory
+        yolo export model=yolo11n.pt format=executorch # creates 'yolo11n_executorch_model' directory
         ```
 
 ### Export Arguments
 
 When exporting to ExecuTorch format, you can specify the following arguments:
 
-| Argument   | Type           | Default | Description                                                      |
-|------------|----------------|---------|------------------------------------------------------------------|
-| `imgsz`    | `int` or `list`| `640`   | Image size for model input (height, width)                       |
-| `device`   | `str`          | `'cpu'` | Device to use for export (`'cpu'`)                               |
+| Argument | Type            | Default | Description                                |
+| -------- | --------------- | ------- | ------------------------------------------ |
+| `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
+| `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`)         |
 
 !!! example "Export with Custom Arguments"
 
@@ -206,7 +206,7 @@ auto module = torch::executor::Module("yolo11n.pte");
 std::vector<float> input_data = preprocessImage(image);
 auto input_tensor = torch::executor::Tensor(input_data, {1, 3, 640, 640});
 
-// Run inference  
+// Run inference
 auto outputs = module.forward({input_tensor});
 ```
 
@@ -234,14 +234,14 @@ For faster inference:
 
 When choosing an export format, consider the following comparison:
 
-| Format       | Model Size | CPU Speed | Mobile Support | Hardware Accel | Ease of Use |
-|--------------|------------|-----------|----------------|----------------|-------------|
-| PyTorch      | Large      | Baseline  | ❌             | ✅             | ⭐⭐⭐⭐⭐   |
-| TorchScript  | Large      | Good      | ✅             | Limited        | ⭐⭐⭐⭐    |
-| ONNX         | Medium     | Fast      | ✅             | ✅             | ⭐⭐⭐⭐    |
-| CoreML       | Small      | Fast      | iOS Only       | ✅             | ⭐⭐⭐      |
-| TFLite       | Small      | Fast      | ✅             | ✅             | ⭐⭐⭐      |
-| **ExecuTorch** | **Small** | **Fast**  | ✅             | ✅             | ⭐⭐⭐⭐    |
+| Format         | Model Size | CPU Speed | Mobile Support | Hardware Accel | Ease of Use |
+| -------------- | ---------- | --------- | -------------- | -------------- | ----------- |
+| PyTorch        | Large      | Baseline  | ❌             | ✅             | ⭐⭐⭐⭐⭐  |
+| TorchScript    | Large      | Good      | ✅             | Limited        | ⭐⭐⭐⭐    |
+| ONNX           | Medium     | Fast      | ✅             | ✅             | ⭐⭐⭐⭐    |
+| CoreML         | Small      | Fast      | iOS Only       | ✅             | ⭐⭐⭐      |
+| TFLite         | Small      | Fast      | ✅             | ✅             | ⭐⭐⭐      |
+| **ExecuTorch** | **Small**  | **Fast**  | ✅             | ✅             | ⭐⭐⭐⭐    |
 
 ExecuTorch offers an excellent balance of model size, performance, and ease of use, especially for applications already using PyTorch.
 
@@ -297,6 +297,7 @@ Export a YOLO11 model to ExecuTorch using either Python or CLI:
 
     ```python
     from ultralytics import YOLO
+
     model = YOLO("yolo11n.pt")
     model.export(format="executorch")
     ```

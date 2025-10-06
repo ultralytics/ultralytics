@@ -3,6 +3,7 @@
 __version__ = "8.3.205"
 
 import importlib
+from typing import TYPE_CHECKING
 import os
 
 # Set ENV variables (place before imports)
@@ -25,6 +26,10 @@ __all__ = (
     "download",
     "settings",
 )
+
+if TYPE_CHECKING:
+    # enable hints for type checkers
+    from ultralytics.models import YOLO, YOLOWorld, YOLOE, NAS, SAM, FastSAM, RTDETR  # noqa
 
 
 def __getattr__(name: str):

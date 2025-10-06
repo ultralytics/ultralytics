@@ -1129,7 +1129,7 @@ class Exporter:
         following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
-        check_requirements(["executorch>=0.7.0", "setuptools>65"])
+        check_requirements(["executorch>=0.7.0", "setuptools>65", "torchao"])
 
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner

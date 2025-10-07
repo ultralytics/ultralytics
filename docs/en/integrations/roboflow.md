@@ -81,11 +81,6 @@ After uploading, you'll be directed to the Annotate page. Select the batch of up
 ### Annotation Tools
 
 - **Bounding Box Annotation**: Press `B` or click the box icon. Click and drag to create the [bounding box](https://www.ultralytics.com/glossary/bounding-box). A pop-up will prompt you to select a class for the annotation.
-
-<p align="center">
-<img src="https://github.com/ultralytics/docs/releases/download/0/annotating-an-image-in-roboflow.avif" alt="Annotating an image in Roboflow with bounding boxes" width="800">
-</p>
-
 - **Polygon Annotation**: Used for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation). Press `P` or click the polygon icon. Click points around the object to draw the polygon.
 
 ### Label Assistant (SAM Integration)
@@ -94,19 +89,11 @@ Roboflow integrates a [Segment Anything Model (SAM)](../models/sam.md)-based lab
 
 To use the label assistant, click the cursor icon in the sidebar. SAM will be enabled for your project.
 
-<p align="center">
-<img src="https://github.com/ultralytics/docs/releases/download/0/annotating-image-roboflow-sam-powered-label-assist.avif" alt="Annotating an image in Roboflow with SAM-powered label assist" width="800">
-</p>
-
 Hover over an object, and SAM may suggest an annotation. Click to accept the annotation. You can refine the annotation's specificity by clicking inside or outside the suggested area.
 
 ### Tagging
 
 You can add tags to images using the Tags panel in the sidebar. Tags can represent attributes like location, camera source, etc. These tags allow you to search for specific images and generate dataset versions containing images with particular tags.
-
-<p align="center">
-<img src="https://github.com/ultralytics/docs/releases/download/0/adding-tags-to-image.avif" alt="Adding tags to an image in Roboflow" width="300">
-</p>
 
 ### Label Assist (Model-Based)
 

@@ -20,6 +20,7 @@ MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
+ExecuTorch              | `executorch`              | yolo11n_executorch_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -48,6 +49,7 @@ Inference:
                          yolo11n_ncnn_model         # NCNN
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
+                         yolo11n_executorch_model   # ExecuTorch
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -148,6 +150,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch", "name"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -322,9 +325,24 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
-            flags  # export booleans
-        )
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            mnn,
+            ncnn,
+            imx,
+            rknn,
+            executorch,
+        ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
@@ -541,6 +559,8 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
+        if executorch:
+            f[15] = self.export_executorch()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -1121,6 +1141,38 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
+
+    @try_export
+    def export_executorch(self, prefix=colorstr("ExecuTorch:")):
+        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
+        following Ultralytics conventions.
+        """
+        LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
+        check_requirements(
+            ("executorch", "setuptools>65", "torchao", "flatbuffers"),
+            cmds="--extra-index-url https://download.pytorch.org/whl/nightly/cpu",
+        )
+
+        import torch
+        from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
+        from executorch.exir import to_edge_transform_and_lower
+
+        file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
+        file_directory.mkdir(parents=True, exist_ok=True)
+
+        file_pte = file_directory / self.file.with_suffix(".pte").name
+        sample_inputs = (self.im,)
+
+        et_program = to_edge_transform_and_lower(
+            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
+        ).to_executorch()
+
+        with open(file_pte, "wb") as file:
+            file.write(et_program.buffer)
+
+        YAML.save(file_directory / "metadata.yaml", self.metadata)
+
+        return str(file_directory)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

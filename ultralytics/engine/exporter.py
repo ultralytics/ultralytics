@@ -1150,7 +1150,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         check_requirements(
             ("executorch", "setuptools>65", "torchao", "flatbuffers"),
-            cmds="--extra-index-url https://download.pytorch.org/whl/nightly/cpu",
+            cmds="--extra-index-url https://download.pytorch.org/whl/nightly",
         )
 
         import torch

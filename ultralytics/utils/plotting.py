@@ -714,7 +714,7 @@ def plot_images(
         convert tensor inputs to numpy arrays for processing.
 
         Channel Support:
-        - 1 channel: Converted to RGB by repeating the grayscale channel 3 times
+        - 1 channel: Greyscale
         - 2 channels: Third channel added as zeros
         - 3 channels: Used as-is (standard RGB)
         - 4+ channels: Cropped to first 3 channels

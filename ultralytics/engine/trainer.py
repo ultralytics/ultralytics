@@ -884,7 +884,7 @@ class BaseTrainer:
                 nesterov=True,
                 use_muon=True,
             ),
-            dict(params=g[2], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
+            dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
             dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
             dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
         ]

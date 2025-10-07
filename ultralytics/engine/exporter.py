@@ -1150,7 +1150,7 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         check_requirements(
             (
-                "executorch==1.1.0.dev20251001" if ARM64 and LINUX else "executorch",
+                "executorch==1.1.0.dev20251007" if ARM64 and LINUX else "executorch",
                 "setuptools>65",
                 "torchao",
                 "flatbuffers",

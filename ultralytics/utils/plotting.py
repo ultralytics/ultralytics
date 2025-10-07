@@ -739,17 +739,12 @@ def plot_images(
         images = images.cpu().float().numpy()
 
     # Handle different number of channels
-    bs, c, h, w = images.shape  # batch size, channels, height, width
-    if c == 1:
-        # Convert grayscale to RGB by repeating the channel 3 times
-        images = np.repeat(images, 3, axis=1)
-    elif c == 2:
-        # For 2-channel images, add a zero channel as the third channel
-        images = np.concatenate([images, np.zeros((bs, 1, h, w), dtype=images.dtype)], axis=1)
+    c = images.shape[1]
+    if c == 2:
+        zero = np.zeros_like(images[:, :1])
+        images = np.concatenate((images, zero), axis=1)
     elif c > 3:
-        # Crop multispectral images to first 3 channels
         images = images[:, :3]
-    # If c == 3, no conversion needed (standard RGB)
 
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images

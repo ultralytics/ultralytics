@@ -405,22 +405,23 @@ Below are code examples for using each source type:
 !!! example
 
     === "Python"
-    ```python
-    from ultralytics import YOLO
 
-    # Load a pretrained YOLO11n model
-    model = YOLO("yolo11n.pt")
-
-    # Run inference on 'bus.jpg' with arguments
-    model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.5)
-    ```
+        ```python
+        from ultralytics import YOLO
+    
+        # Load a pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
+    
+        # Run inference on 'bus.jpg' with arguments
+        model.predict("https://ultralytics.com/images/bus.jpg", save=True, imgsz=320, conf=0.5)
+        ```
 
     === "CLI"
 
-    ```bash
-    # Run inference on 'bus.jpg'
-    yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
-    ```
+        ```bash
+        # Run inference on 'bus.jpg'
+        yolo predict model=yolo11n.pt source='https://ultralytics.com/images/bus.jpg'
+        ```
 
 Inference arguments:
 

@@ -738,13 +738,13 @@ def plot_images(
     if len(images) and isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
 
-    # Handle different number of channels
+    # Handle 2-ch and n-ch images
     c = images.shape[1]
     if c == 2:
         zero = np.zeros_like(images[:, :1])
-        images = np.concatenate((images, zero), axis=1)
+        images = np.concatenate((images, zero), axis=1)  # pad 2-ch with a black channel
     elif c > 3:
-        images = images[:, :3]
+        images = images[:, :3] # crop multispectral images to first 3 channels
 
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images

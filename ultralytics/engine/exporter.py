@@ -1151,7 +1151,7 @@ class Exporter:
         check_requirements(
             (
                 "executorch==1.1.0.dev20251007" if ARM64 and LINUX else "executorch",
-                "setuptools==66.1.1", # for ARM64 compatibility
+                "setuptools==66.1.1",  # for ARM64 compatibility
                 "torchao",
                 "flatbuffers",
             ),

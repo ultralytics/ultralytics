@@ -744,7 +744,7 @@ def plot_images(
         zero = np.zeros_like(images[:, :1])
         images = np.concatenate((images, zero), axis=1)  # pad 2-ch with a black channel
     elif c > 3:
-        images = images[:, :3] # crop multispectral images to first 3 channels
+        images = images[:, :3]  # crop multispectral images to first 3 channels
 
     bs, _, h, w = images.shape  # batch size, _, height, width
     bs = min(bs, max_subplots)  # limit plot images

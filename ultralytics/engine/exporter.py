@@ -150,7 +150,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch", "name"]],
+        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -1144,15 +1144,14 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
-        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
-        following Ultralytics conventions.
+        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata, following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")
         check_requirements(
             (
-                "executorch==1.1.0.dev20251007",
+                "executorch==1.1.0.dev20251007", # TODO: To change with stable release 
                 "torchao",
                 "flatbuffers",
             ),

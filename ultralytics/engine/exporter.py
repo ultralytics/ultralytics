@@ -137,7 +137,7 @@ def export_formats():
             True,
             ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
         ],
-        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "half", "int8", "nms"]],
+        ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "half", "int8", "nms"]],
         ["TensorFlow SavedModel", "saved_model", "_saved_model", True, True, ["batch", "int8", "keras", "nms"]],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch"]],
         ["TensorFlow Lite", "tflite", ".tflite", True, False, ["batch", "half", "int8", "nms", "fraction"]],
@@ -389,9 +389,9 @@ class Exporter:
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
-        if (engine or self.args.nms) and self.args.dynamic and self.args.batch == 1:
+        if (engine or coreml or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning(
-                f"'dynamic=True' model with '{'nms=True' if self.args.nms else 'format=engine'}' requires max batch size, i.e. 'batch=16'"
+                f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
             )
         if edgetpu:
             if not LINUX or ARM64:
@@ -876,19 +876,25 @@ class Exporter:
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
-        assert self.args.batch == 1, "CoreML batch sizes > 1 are not supported. Please retry at 'batch=1'."
+        if self.args.batch > 1:
+            assert self.args.dynamic, (
+                "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
+            )
+        if self.args.dynamic:
+            assert not self.args.nms, (
+                "'nms=True' cannot be used together with 'dynamic=True' for CoreML export. Please disable one of them."
+            )
+            assert self.model.task != "classify", "'dynamic=True' is not supported for CoreML classification models."
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
         if f.is_dir():
             shutil.rmtree(f)
 
-        bias = [0.0, 0.0, 0.0]
-        scale = 1 / 255
         classifier_config = None
         if self.model.task == "classify":
             classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
             model = self.model
         elif self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im) if self.args.nms else self.model
+            model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
@@ -896,13 +902,26 @@ class Exporter:
             model = self.model
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
 
+        if self.args.dynamic:
+            input_shape = ct.Shape(
+                shape=(
+                    ct.RangeDim(lower_bound=1, upper_bound=self.args.batch, default=1),
+                    self.im.shape[1],
+                    ct.RangeDim(lower_bound=32, upper_bound=self.imgsz[0] * 2, default=self.imgsz[0]),
+                    ct.RangeDim(lower_bound=32, upper_bound=self.imgsz[1] * 2, default=self.imgsz[1]),
+                )
+            )
+            inputs = [ct.TensorType("image", shape=input_shape)]
+        else:
+            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
+
         # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
         # Internally based on the model conversion and output type.
         # Setting minimum_depoloyment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
         # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
         ct_model = ct.convert(
             ts,
-            inputs=[ct.ImageType("image", shape=self.im.shape, scale=scale, bias=bias)],  # expects ct.TensorType
+            inputs=inputs,
             classifier_config=classifier_config,
             convert_to="neuralnetwork" if mlmodel else "mlprogram",
         )
@@ -919,12 +938,7 @@ class Exporter:
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == "detect":
-            if mlmodel:
-                weights_dir = None
-            else:
-                ct_model.save(str(f))  # save otherwise weights_dir does not exist
-                weights_dir = str(f / "Data/com.apple.CoreML/weights")
-            ct_model = self._pipeline_coreml(ct_model, weights_dir=weights_dir)
+            ct_model = self._pipeline_coreml(ct_model, weights_dir=None if mlmodel else ct_model.weights_dir)
 
         m = self.metadata  # metadata dict
         ct_model.short_description = m.pop("description")
@@ -1260,7 +1274,8 @@ class Exporter:
         names = self.metadata["names"]
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
         nc = outs[0].type.multiArrayType.shape[-1]
-        assert len(names) == nc, f"{len(names)} names found for nc={nc}"  # check
+        if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
+            names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
         # Model from spec
         model = ct.models.MLModel(spec, weights_dir=weights_dir)
@@ -1350,18 +1365,20 @@ class Exporter:
 class IOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
-    def __init__(self, model, im):
+    def __init__(self, model, im, mlprogram=True):
         """
         Initialize the IOSDetectModel class with a YOLO model and example image.
 
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
+            mlprogram (bool): Whether exporting to MLProgram format to fix NMS bug.
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width
         self.model = model
         self.nc = len(model.names)  # number of classes
+        self.mlprogram = mlprogram
         if w == h:
             self.normalize = 1.0 / w  # scalar
         else:
@@ -1373,7 +1390,11 @@ class IOSDetectModel(torch.nn.Module):
     def forward(self, x):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
-        return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
+        if self.mlprogram and self.nc % 80 != 0:  # NMS bug https://github.com/ultralytics/ultralytics/issues/22309
+            pad_length = int(((self.nc + 79) // 80) * 80) - self.nc  # pad class length to multiple of 80
+            cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
+
+        return cls, xywh * self.normalize
 
 
 class NMSModel(torch.nn.Module):

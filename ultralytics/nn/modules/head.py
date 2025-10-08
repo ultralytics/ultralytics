@@ -896,6 +896,10 @@ class RTDETRDecoder(nn.Module):
     """
 
     export = False  # export mode
+    shapes = []
+    anchors = torch.empty(0)
+    valid_mask = torch.empty(0)
+    dynamic = False
 
     def __init__(
         self,
@@ -1116,10 +1120,12 @@ class RTDETRDecoder(nn.Module):
             enc_scores (torch.Tensor): Encoded scores.
         """
         bs = feats.shape[0]
-        # Prepare input for decoder
-        anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
-        features = self.enc_output(valid_mask * feats)  # bs, h*w, 256
+        if self.dynamic or self.shapes != shapes:
+            self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+            self.shapes = shapes
 
+        # Prepare input for decoder
+        features = self.enc_output(self.valid_mask * feats)  # bs, h*w, 256
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
 
         # Query selection
@@ -1131,7 +1137,7 @@ class RTDETRDecoder(nn.Module):
         # (bs, num_queries, 256)
         top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         # (bs, num_queries, 4)
-        top_k_anchors = anchors[:, topk_ind].view(bs, self.num_queries, -1)
+        top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)
 
         # Dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors

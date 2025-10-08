@@ -1144,13 +1144,15 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
-        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata, following Ultralytics conventions."""
+        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
+        following Ultralytics conventions.
+        """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")
         check_requirements(
             (
-                "executorch==1.1.0.dev20251007", # TODO: To change with stable release 
+                "executorch==1.1.0.dev20251007",  # TODO: To change with stable release
                 "torchao",
                 "flatbuffers",
             ),

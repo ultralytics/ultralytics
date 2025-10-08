@@ -510,11 +510,11 @@ class Exporter:
         self.run_callbacks("on_export_start")
         # Exports
         f = [""] * len(fmts)  # exported filenames
-        if jit or ncnn:  # TorchScript
+        if jit:  # TorchScript
             f[0] = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1] = self.export_engine(dla=dla)
-        if onnx:  # ONNX
+        if onnx or ncnn:  # ONNX
             f[2] = self.export_onnx()
         if xml:  # OpenVINO
             f[3] = self.export_openvino()
@@ -806,7 +806,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
-        f_ts = self.file.with_suffix(".torchscript")
+        f_onnx = self.file.with_suffix(".onnx")
 
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
         pnnx = name if name.is_file() else (ROOT / name)
@@ -823,7 +823,7 @@ class Exporter:
                 assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
             except Exception as e:
-                release = "20240410"
+                release = "20250930"
                 asset = f"pnnx-{release}-{system}.zip"
                 LOGGER.warning(f"{prefix} PNNX GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
@@ -847,7 +847,7 @@ class Exporter:
 
         cmd = [
             str(pnnx),
-            str(f_ts),
+            str(f_onnx),
             *ncnn_args,
             *pnnx_args,
             f"fp16={int(self.args.half)}",

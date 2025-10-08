@@ -328,7 +328,8 @@ class Exporter:
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
-        support_fp16_export = any((jit, onnx, xml, engine, coreml, tflite, tfjs, mnn, ncnn))
+        # Only needed for torchscript/jit and onnx, other formats handle it internally
+        convert_fp16_export = any((jit, onnx))
 
         # Device
         dla = None
@@ -362,7 +363,7 @@ class Exporter:
         if self.args.half and self.args.int8:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
-        if self.args.half and support_fp16_export and self.device.type == "cpu":
+        if self.args.half and convert_fp16_export and self.device.type == "cpu":
             LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0, setting half=False.")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
@@ -465,7 +466,7 @@ class Exporter:
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
-        if self.args.half and support_fp16_export and self.device.type != "cpu":
+        if self.args.half and convert_fp16_export and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Filter warnings

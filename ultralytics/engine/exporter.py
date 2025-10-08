@@ -894,7 +894,7 @@ class Exporter:
             classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
             model = self.model
         elif self.model.task == "detect":
-            model = IOSDetectModel(self.model, self.im, not mlmodel) if self.args.nms else self.model
+            model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
         else:
             if self.args.nms:
                 LOGGER.warning(f"{prefix} 'nms=True' is only available for Detect models like 'yolo11n.pt'.")
@@ -1363,20 +1363,20 @@ class Exporter:
 class IOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for Apple iOS CoreML export."""
 
-    def __init__(self, model, im, coreml=True):
+    def __init__(self, model, im, mlprogram=True):
         """
         Initialize the IOSDetectModel class with a YOLO model and example image.
 
         Args:
             model (torch.nn.Module): The YOLO model to wrap.
             im (torch.Tensor): Example input tensor with shape (B, C, H, W).
-            coreml (bool): Whether exporting to CoreML/MLProgram format.
+            mlprogram (bool): Whether exporting to MLProgram format to fix NMS bug.
         """
         super().__init__()
         _, _, h, w = im.shape  # batch, channel, height, width
         self.model = model
         self.nc = len(model.names)  # number of classes
-        self.coreml = coreml
+        self.mlprogram = mlprogram
         if w == h:
             self.normalize = 1.0 / w  # scalar
         else:
@@ -1388,7 +1388,7 @@ class IOSDetectModel(torch.nn.Module):
     def forward(self, x):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
-        if self.coreml and self.nc % 80 != 0:  # CoreML NMS bug https://github.com/ultralytics/ultralytics/issues/22309
+        if self.mlprogram and self.nc % 80 != 0:  # NMS bug https://github.com/ultralytics/ultralytics/issues/22309
             pad_length = int(((self.nc + 79) // 80) * 80) - self.nc  # pad class length to multiple of 80
             cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
 

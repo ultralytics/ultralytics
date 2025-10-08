@@ -364,7 +364,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     Args:
         requirements (Path | str | list[str] | tuple[str]): Path to a requirements.txt file, a single package
-            requirement as a string, or a list of package requirements as strings.
+            requirement as a string, a list of package requirements as strings, or a list containing strings and
+            tuples of interchangeable packages.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
@@ -379,7 +380,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")
 
         Check multiple packages
-        >>> check_requirements(["numpy", "ultralytics>=8.3.200"])
+        >>> check_requirements(["numpy", "ultralytics"])
+
+        Check with interchangeable packages
+        >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
     """
     prefix = colorstr("red", "bold", "requirements:")
     if isinstance(requirements, Path):  # requirements.txt file
@@ -391,13 +395,22 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     pkgs = []
     for r in requirements:
-        r_stripped = r.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-        match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
-        name, required = match[1], match[2].strip() if match[2] else ""
-        try:
-            assert check_version(metadata.version(name), required)  # exception if requirements not met
-        except (AssertionError, metadata.PackageNotFoundError):
-            pkgs.append(r)
+        candidates = r if isinstance(r, (list, tuple)) else [r]
+        satisfied = False
+
+        for candidate in candidates:
+            r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
+            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
+            name, required = match[1], match[2].strip() if match[2] else ""
+            try:
+                if check_version(metadata.version(name), required):
+                    satisfied = True
+                    break
+            except (AssertionError, metadata.PackageNotFoundError):
+                continue
+
+        if not satisfied:
+            pkgs.append(candidates[0])
 
     @Retry(times=2, delay=1)
     def attempt_install(packages, commands, use_uv):

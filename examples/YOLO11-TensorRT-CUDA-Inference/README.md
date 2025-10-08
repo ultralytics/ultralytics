@@ -61,11 +61,13 @@ To use an Ultralytics YOLO11 model with TensorRT, you first need to convert it t
 Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) provided by the `ultralytics` package to export the model as follows:
 
 ### Recommended exporting method (embeds NMS, handles profiles automatically)
+
 ```bash
 yolo export model=yolo11s.pt format=engine nms=True
 ```
 
 ### Alternative: ONNX -> TensorRT with trtexec (ensure EfficientNMS_TRT is available)
+
 Convert the model to ONNX format first and then to engine using `trtexec`. For example, to export the `yolo11s.pt` model:
 
 ```bash

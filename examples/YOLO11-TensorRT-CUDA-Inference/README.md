@@ -58,8 +58,15 @@ Follow these steps to run the TensorRT inference example:
 ## ✨ Exporting Ultralytics YOLO11
 
 To use an Ultralytics YOLO11 model with TensorRT, you first need to convert it to the Engine format.
+Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) provided by the `ultralytics` package to export the model as follows:
 
-Use the `yolo` [Command Line Interface (CLI)](https://docs.ultralytics.com/usage/cli/) provided by the `ultralytics` package to export the model to ONNX format first. For example, to export the `yolo11s.pt` model:
+### Recommended exporting method (embeds NMS, handles profiles automatically)
+```bash
+yolo export model=yolo11s.pt format=engine nms=True
+```
+
+### Alternative: ONNX -> TensorRT with trtexec (ensure EfficientNMS_TRT is available)
+Convert the model to ONNX format first and then to engine using `trtexec`. For example, to export the `yolo11s.pt` model:
 
 ```bash
 yolo export model=yolo11s.pt format=onnx nms=True
@@ -68,5 +75,5 @@ yolo export model=yolo11s.pt format=onnx nms=True
 This command will generate a `yolo11s.onnx` file in the model's directory. After this you need to convert it to TensorRT Engine which can be done using `trtexec` program that can be found in the `bin` folder of `TensorRT-10.12.0.36` which you must have downloaded in the previous steps.
 
 ```bash
-./trtexec --onnx=/path/to/yolo11s.onnx --saveEngine=yolo11s.engine --fp16 --device=0 --verbose
+trtexec --onnx=yolo11s.onnx --saveEngine=yolo11s.engine --fp16 --shapes=images:1x3x640x640
 ```

@@ -1272,7 +1272,7 @@ class Exporter:
         names = self.metadata["names"]
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
         nc = outs[0].type.multiArrayType.shape[-1]
-        if len(names) != nc: # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
+        if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
             names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
         # Model from spec

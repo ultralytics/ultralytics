@@ -1273,7 +1273,7 @@ class Exporter:
         nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
         nc = outs[0].type.multiArrayType.shape[-1]
         if len(names) != nc:
-            self.metadata["names"] = names = {**names, **{i: str(i) for i in range(len(names), nc)}}
+            names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
         # Model from spec
         model = ct.models.MLModel(spec, weights_dir=weights_dir)

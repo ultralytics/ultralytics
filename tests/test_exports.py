@@ -101,7 +101,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms)
         for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [False, True], [False], [False], [1, 2], [True, False]
+            TASKS, [False, True], [False], [False, True], [1, 2], [True, False]
         )
         if not (task == "classify" and nms)
     ],

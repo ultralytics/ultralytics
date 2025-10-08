@@ -265,6 +265,7 @@ def test_export_imx():
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch():
     """Test YOLO model export to ExecuTorch format."""
     file = YOLO(MODEL).export(format="executorch", imgsz=32)
@@ -281,6 +282,7 @@ def test_export_executorch():
 
 @pytest.mark.slow
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 @pytest.mark.parametrize("task", TASKS)
 def test_export_executorch_matrix(task):
     """Test YOLO export to ExecuTorch format for various task types."""

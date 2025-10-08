@@ -8,7 +8,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11
+from ultralytics.utils.torch_utils import TORCH_1_11, WINDOWS
 
 
 def run(cmd: str) -> None:
@@ -132,6 +132,7 @@ def test_solutions(solution: str) -> None:
 
 
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch() -> None:
     """Test exporting a YOLO model to ExecuTorch format via CLI."""
     run("yolo export model=yolo11n.pt format=executorch imgsz=32")

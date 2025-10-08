@@ -1148,10 +1148,11 @@ class Exporter:
         following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
+        # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+        check_requirements("setuptools<71.0.0")
         check_requirements(
             (
-                "executorch==1.1.0.dev20251007" if ARM64 and LINUX else "executorch",
-                "setuptools==66.1.1",  # for ARM64 compatibility
+                "executorch==1.1.0.dev20251007",
                 "torchao",
                 "flatbuffers",
             ),

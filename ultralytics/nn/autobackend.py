@@ -576,7 +576,17 @@ class AutoBackend(nn.Module):
         # ExecuTorch
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
-            check_requirements("executorch", "setuptools")
+            # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+            check_requirements("setuptools<71.0.0")
+            check_requirements(
+                (
+                    "executorch==1.1.0.dev20251007",
+                    "torchao",
+                    "flatbuffers",
+                ),
+                cmds="--extra-index-url https://download.pytorch.org/whl/nightly",
+            )
+
             from executorch.runtime import Runtime
 
             w = Path(w)

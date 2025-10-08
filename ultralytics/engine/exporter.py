@@ -823,7 +823,7 @@ class Exporter:
                 assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
             except Exception as e:
-                release = "20240410"
+                release = "20250930"
                 asset = f"pnnx-{release}-{system}.zip"
                 LOGGER.warning(f"{prefix} PNNX GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)

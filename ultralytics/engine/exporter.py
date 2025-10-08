@@ -938,11 +938,7 @@ class Exporter:
                 config = cto.OptimizationConfig(global_config=op_config)
                 ct_model = cto.palettize_weights(ct_model, config=config)
         if self.args.nms and self.model.task == "detect":
-            if mlmodel:
-                weights_dir = None
-            else:
-                weights_dir = ct_model.weights_dir
-            ct_model = self._pipeline_coreml(ct_model, weights_dir=weights_dir)
+            ct_model = self._pipeline_coreml(ct_model, weights_dir=None if mlmodel else ct_model.weights_dir)
 
         m = self.metadata  # metadata dict
         ct_model.short_description = m.pop("description")

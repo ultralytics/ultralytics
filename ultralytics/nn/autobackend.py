@@ -406,6 +406,7 @@ class AutoBackend(nn.Module):
             import coremltools as ct
 
             model = ct.models.MLModel(w)
+            dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
             metadata = dict(model.user_defined_metadata)
 
         # TF SavedModel
@@ -720,10 +721,13 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif self.coreml:
-            im = im[0].cpu().numpy()
-            im_pil = Image.fromarray((im * 255).astype("uint8"))
+            im = im.cpu().numpy()
+            if self.dynamic:
+                im = im.transpose(0, 3, 1, 2)
+            else:
+                im = Image.fromarray((im[0] * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
-            y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
+            y = self.model.predict({"image": im})  # coordinates are xywh normalized
             if "confidence" in y:  # NMS included
                 from ultralytics.utils.ops import xywh2xyxy
 

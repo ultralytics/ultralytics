@@ -115,7 +115,9 @@ def test_train():
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+        results = YOLO(MODEL).train(
+            data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15
+        )  # requires imgsz>=64
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
         assert (

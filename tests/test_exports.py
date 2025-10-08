@@ -124,9 +124,12 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, nms, batch)
         for task, dynamic, int8, half, nms, batch in product(
-            TASKS, [False], [True, False], [True, False], [True, False], [1]
+            TASKS, [True, False], [True, False], [True, False], [True, False], [1]
         )
-        if not (int8 and half) and not (task != "detect" and nms)
+        if not (int8 and half)
+        and not (task != "detect" and nms)
+        and not (dynamic and nms)
+        and not (task == "classify" and dynamic)
     ],
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):

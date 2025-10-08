@@ -1393,7 +1393,7 @@ class IOSDetectModel(torch.nn.Module):
         """Normalize predictions of object detection model with input size-dependent factors."""
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         if self.coreml and self.nc % 80 != 0:  # CoreML NMS bug https://github.com/ultralytics/ultralytics/issues/22309
-            pad_length = int(((self.nc + 79) // 80) * 80)  # pad class length to multiple of 80
+            pad_length = int(((self.nc + 79) // 80) * 80) - self.nc  # pad class length to multiple of 80
             cls = torch.nn.functional.pad(cls, (0, pad_length, 0, 0), "constant", 0)
 
         return cls, xywh * self.normalize

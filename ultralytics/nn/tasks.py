@@ -1181,6 +1181,17 @@ class YOLOEModel(DetectionModel):
                     assert vpe is not None
                     assert not self.training
                     return vpe
+
+                # vpe [batch,num_visual,dim]
+                # random shuffle the visual prompt dim 1 during training
+                # if self.training and vpe is not None:
+                #     # 在dim=1上shuffle每个batch的visual prompts
+                #     batch_size, num_visual, dim = vpe.shape
+                #     shuffled_indices = torch.randperm(num_visual) #[:num_visual//2]
+                #     vpe_shuffle = vpe[:, shuffled_indices, :].detach()  # 保持batch维度，shuffle visual prompt维度
+
+                #     vpe = torch.concat([vpe, vpe_shuffle], dim=1)
+                #     tpe=None
                 cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
                 if cls_pe.shape[0] != b or m.export:
                     cls_pe = cls_pe.expand(b, -1, -1)

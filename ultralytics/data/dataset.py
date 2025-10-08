@@ -437,6 +437,8 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
+    cache_suffix=".merged.cache"
+
     def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
         """
         Initialize a GroundingDataset for object detection.
@@ -452,6 +454,8 @@ class GroundingDataset(YOLODataset):
         self.json_file = json_file
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
+
+        assert self.cache_suffix in {".cache", ".merged.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {self.cache_suffix}"
 
     def get_img_files(self, img_path: str) -> list:
         """
@@ -588,8 +592,100 @@ class GroundingDataset(YOLODataset):
                 }
             )
         x["hash"] = get_hash(self.json_file)
+
+
+        if self.cache_suffix == ".merged.cache":
+            x["labels"] = self.run_merge_labels(x["labels"])
+
+
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
+
+    def run_merge_labels(self, all_labels: list[dict]) -> list[dict]:
+
+                # merge samples share the same ig_file 
+        
+        def merge_labels_func(labels: list[dict]) -> dict:
+            """Merge labels for the same image file."""
+            if len(labels) == 1:
+                return labels[0]    
+
+            im_file = labels[0]["im_file"]
+            shape = labels[0]["shape"]
+            shape = labels[0]["shape"]
+
+            merge_cls=[]
+            merge_bboxes=[]
+            merge_segments=[]
+            merge_texts=[]
+            
+
+            for label in labels:
+                assert label["im_file"] == im_file, "Image files do not match."
+                assert label["shape"] == shape, "Image shapes do not match."
+                cls= label["cls"]
+                bboxes= label["bboxes"]
+                segments= label["segments"]
+                assert len(cls) == len(bboxes) == len(segments), "Number of classes, boxes, and segments do not match."
+                texts = label["texts"]
+                for bbox, cls_, segment in zip(bboxes, cls, segments):
+                    # if iou is lareger than 0.95, then ignore the new one.
+                    ignore = False
+                    for i, exist_bbox in enumerate(merge_bboxes):
+                        
+                        # check if the bbox are same
+                        if np.equal(bbox, exist_bbox).all():
+                            ignore = True
+                            break
+
+                    if not ignore:
+                        merge_bboxes.append(bbox)
+
+                        merge_segments.append(segment)
+                        text=texts[int(cls_)]
+                        
+                        # Check if text already exists in merge_texts
+                        if text in merge_texts:
+                            new_cls = merge_texts.index(text)
+                        else:
+                            merge_texts.append(text)
+                            new_cls = len(merge_texts) - 1
+                        
+                        merge_cls.append(np.array([new_cls]))
+                    else:
+                        continue
+            print("merge_bboxes:", len(merge_bboxes), "original bboxes:", sum([len(label["bboxes"]) for label in labels]))
+            cls = np.stack(merge_cls, axis=0)
+            bboxes = np.stack(merge_bboxes, axis=0)
+            segments = merge_segments
+            texts = merge_texts
+            return {
+                "im_file": im_file,
+                "shape": shape,
+                "cls": cls,
+                "bboxes": bboxes,
+                "segments": segments,
+                "normalized": True,
+                "bbox_format": "xywh",
+                "texts": texts,
+            }
+        
+        merged_labels = defaultdict(list)
+        for label in all_labels:
+            im_file = label["im_file"]
+            merged_labels[im_file].append(label)
+        print(len(merged_labels), "unique images with annotations, original images:", len(all_labels))
+
+   
+        for k, v in merged_labels.items():
+            print(k, "has", len(v), "samples to merge")
+
+            v =merge_labels_func(v)
+            merged_labels[k] = v
+
+        return list(merged_labels.values())
+
+        
 
     def get_labels(self) -> list[dict]:
         """
@@ -598,7 +694,7 @@ class GroundingDataset(YOLODataset):
         Returns:
             (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
-        cache_path = Path(self.json_file).with_suffix(".cache")
+        cache_path = Path(self.json_file).with_suffix(self.cache_suffix)
         try:
             cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
@@ -607,7 +703,10 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        self.verify_labels(labels)
+
+        if self.cache_suffix == ".cache":
+            self.verify_labels(labels)
+
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")

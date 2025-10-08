@@ -125,3 +125,6 @@ cfg: # (str, optional) for overriding defaults.yaml
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
 tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yaml]
+
+
+vp_weight: 1.0 # (float) weight for visual prompt class embed  for multi-model val and infer

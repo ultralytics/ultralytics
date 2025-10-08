@@ -66,6 +66,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
             ValueError: If neither valid bounding boxes nor masks are provided in the prompts.
         """
         img = super().pre_transform(im)
+        if self.prompts is None:
+            return img
         bboxes = self.prompts.pop("bboxes", None)
         masks = self.prompts.pop("masks", None)
         category = self.prompts["cls"]
@@ -142,7 +144,9 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): Model prediction results.
         """
-        return super().inference(im, vpe=self.prompts, *args, **kwargs)
+        res= super().inference(im, vpe=self.prompts, *args, **kwargs)
+        self.prompts = None  # clear prompts after inference
+        return res
 
     def get_vpe(self, source):
         """
@@ -160,7 +164,9 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            return self.model(im, vpe=self.prompts, return_vpe=True)
+            res= self.model(im, vpe=self.prompts, return_vpe=True)
+            self.prompts = None  # clear prompts after getting vpe
+            return res
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

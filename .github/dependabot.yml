@@ -21,4 +21,4 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 5
     labels:
-      - CI
+      - dependencies

@@ -128,3 +128,4 @@ tracker: botsort.yaml # (str) tracker type, choices=[botsort.yaml, bytetrack.yam
 
 
 vp_weight: 1.0 # (float) weight for visual prompt class embed  for multi-model val and infer
+refer_data:  #  data for visual prompt val at the end of each epoch

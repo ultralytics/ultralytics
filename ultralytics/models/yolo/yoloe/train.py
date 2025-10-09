@@ -102,6 +102,7 @@ class YOLOETrainer(DetectionTrainer):
         Returns:
             (Dataset): YOLO dataset configured for training or validation.
         """
+        self.load_vp = False
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
@@ -297,6 +298,8 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         Returns:
             (Dataset): YOLO dataset configured for training or validation, with visual prompts for training mode.
         """
+        self.load_vp = True
+        self.refer_data=self.args.refer_data
         dataset = super().build_dataset(img_path, mode, batch)
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
@@ -319,3 +322,4 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         batch = super().preprocess_batch(batch)
         batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
         return batch
+

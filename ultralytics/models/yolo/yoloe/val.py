@@ -169,15 +169,23 @@ class YOLOEDetectValidator(DetectionValidator):
         if trainer is not None:
             self.device = trainer.device
             model = trainer.ema.ema
-            names = [name.split("/", 1)[0] for name in list(self.dataloader.dataset.data["names"].values())]
-
+            load_vp=trainer.load_vp
             if load_vp:
+
+                refer_data=trainer.refer_data
+                
+                if refer_data is not None:
+                    assert load_vp, "Refer data is only used for visual prompt validation."
+
                 LOGGER.info("Validate using the visual prompt.")
                 if vp_weight<1:
                     LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
                 self.args.half = False
                 # Directly use the same dataloader for visual embeddings extracted during training
-                vpe = self.get_visual_pe(self.dataloader, model)
+                vp_data  = check_det_dataset(trainer.refer_data)
+                names = [name.split("/", 1)[0] for name in list(vp_data["names"].values())]
+                dataloader = self.get_vpe_dataloader(vp_data)
+                vpe = self.get_visual_pe(dataloader, model)
 
                 if vp_weight<1:
                     vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)

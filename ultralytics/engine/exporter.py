@@ -1039,6 +1039,8 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
+        if "rtdetr" in self.model.model[-1]._get_name().lower():
+            self.args.opset = 19  # RTDETR export doesn't work with higher opsets
         self.args.simplify = True
         f_onnx = self.export_onnx()
 

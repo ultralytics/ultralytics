@@ -93,6 +93,7 @@ from .head import (
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
+    SemanticSegment
 )
 from .transformer import (
     AIFI,
@@ -210,4 +211,25 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
+    "LRPCHead",
+    "ImagePoolingAttn",
+    "MaxSigmoidAttnBlock",
+    "ContrastiveHead",
+    "BNContrastiveHead",
+    "RepNCSPELAN4",
+    "ADown",
+    "SPPELAN",
+    "CBFuse",
+    "CBLinear",
+    "AConv",
+    "ELAN1",
+    "RepVGGDW",
+    "CIB",
+    "C2fCIB",
+    "Attention",
+    "PSA",
+    "TorchVision",
+    "Index",
+    "A2C2f",
+    "SemanticSegment"
 )

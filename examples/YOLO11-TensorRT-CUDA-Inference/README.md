@@ -79,3 +79,9 @@ This command will generate a `yolo11s.onnx` file in the model's directory. After
 ```bash
 trtexec --onnx=yolo11s.onnx --saveEngine=yolo11s.engine --fp16 --shapes=images:1x3x640x640
 ```
+
+**NOTE:** For INT8 model calibration you will need a calibrator, which is handled by exporting as follows
+```bash
+yolo export model=path/to/best.pt format=engine int8=True data=path/to/data.yaml batch=8 workspace=4
+```
+For more details please refer to the Ultralytics documentation for [Exporting TensorRT with INT8 quantization](https://docs.ultralytics.com/integrations/tensorrt/#exporting-tensorrt-with-int8-quantization) and the full list of [TensorRT export arguments](https://docs.ultralytics.com/integrations/tensorrt/#export-arguments).

@@ -63,23 +63,23 @@ from ultralytics.nn.modules import (
     RTDETRDecoder,
     SCDown,
     Segment,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
-    SemanticSegment
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
+    SemSegLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    SemSegLoss
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
@@ -1232,6 +1232,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
             preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
         return self.criterion(preds, batch)
 
+
 class SemanticModel(DetectionModel):
     """YOLOv8 segmentation model."""
 
@@ -1242,6 +1243,7 @@ class SemanticModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
         return SemSegLoss(self)
+
 
 class Ensemble(torch.nn.ModuleList):
     """Ensemble of models.
@@ -1637,7 +1639,18 @@ def parse_model(d, ch, verbose=True):
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
-            {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect, SemanticSegment}
+            {
+                Detect,
+                WorldDetect,
+                YOLOEDetect,
+                Segment,
+                YOLOESegment,
+                Pose,
+                OBB,
+                ImagePoolingAttn,
+                v10Detect,
+                SemanticSegment,
+            }
         ):
             args.append([ch[x] for x in f])
             if m is Segment or m is YOLOESegment or m is SemanticSegment:

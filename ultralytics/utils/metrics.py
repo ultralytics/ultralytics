@@ -1556,6 +1556,7 @@ class OBBMetrics(DetMetrics):
         # TODO: probably remove task as well
         self.task = "obb"
 
+
 # ----------------------------------------------Semantic Segment Metrics----------------------------------------------------------------#
 def mask_precision(mask1, mask2, eps=1e-7):
     """

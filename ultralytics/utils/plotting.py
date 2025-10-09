@@ -1046,6 +1046,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
             plt.close()
             np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
 
+
 def plot_masks(
     images: torch.Tensor | np.ndarray,
     masks: torch.Tensor | np.ndarray,

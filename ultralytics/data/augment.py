@@ -511,7 +511,7 @@ class Mosaic(BaseMixTransform):
         'buffer' parameter. It is used to choose images for creating mosaic augmentations.
 
         Returns:
-            (list[int]): A list of random image indexes. The length of the list is n-1, where n is the number of images
+            (list[int]): A List of random image indexes. The length of the List is n-1, where n is the number of images
                 used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
 
         Examples:
@@ -1946,7 +1946,7 @@ class Albumentations:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
                 if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
                     labels["img"] = new["image"]
-                    labels["cls"] = np.array(new["class_labels"]).reshape(-1, 1)
+                    labels["cls"] = np.array(new["class_labels"])
                     bboxes = np.array(new["bboxes"], dtype=np.float32)
                 labels["instances"].update(bboxes=bboxes)
         else:

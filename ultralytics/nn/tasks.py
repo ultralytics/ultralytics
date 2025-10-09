@@ -66,17 +66,19 @@ from ultralytics.nn.modules import (
     SCDown,
     Segment,
     Segment26,
+    SemanticSegment,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
-    SemanticSegment
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
+    E2EDetectLoss,
+    SemSegLoss,
     E2ELoss,
     PoseLoss26,
     v8ClassificationLoss,
@@ -84,7 +86,6 @@ from ultralytics.utils.loss import (
     v8OBBLoss,
     v8PoseLoss,
     v8SegmentationLoss,
-    SemSegLoss
 )
 from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load

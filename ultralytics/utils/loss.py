@@ -19,7 +19,8 @@ from .tal import bbox2dist, rbox2dist
 
 
 class VarifocalLoss(nn.Module):
-    """Varifocal loss by Zhang et al.
+    """
+    Varifocal loss by Zhang et al.
 
     Implements the Varifocal Loss function for addressing class imbalance in object detection by focusing on
     hard-to-classify examples and balancing positive/negative samples.

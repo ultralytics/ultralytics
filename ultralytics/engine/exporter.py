@@ -1040,7 +1040,7 @@ class Exporter:
 
         # Export to ONNX
         if "rtdetr" in self.model.model[-1]._get_name().lower():
-            self.args.opset = 19  # RTDETR export doesn't work with higher opsets
+            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()
 

@@ -435,6 +435,7 @@ def load_inference_source(
 
     return dataset
 
+
 def build_semantic_dataset(
     cfg: IterableSimpleNamespace,
     img_path: str,

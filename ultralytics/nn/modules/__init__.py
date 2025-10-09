@@ -89,7 +89,6 @@ from .head import (
     YOLOEDetect,
     YOLOESegment,
     v10Detect,
-    SemanticSegment
 )
 from .transformer import (
     AIFI,
@@ -209,5 +208,5 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
-    "SemanticSegment"
+    "SemanticSegment",
 )

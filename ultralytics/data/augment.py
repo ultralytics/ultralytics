@@ -84,10 +84,10 @@ class BaseTransform:
         logic.
 
         Args:
-            labels (Dict): A dictionary containing label information, including object instances.
+            labels (dict): A dictionary containing label information, including object instances.
 
         Returns:
-            (Dict): The modified labels dictionary with transformed object instances.
+            (dict): The modified labels dictionary with transformed object instances.
 
         Examples:
             >>> transform = BaseTransform()
@@ -123,11 +123,11 @@ class BaseTransform:
         instances, respectively.
 
         Args:
-            labels (Dict): A dictionary containing image data and annotations. Expected keys include 'img' for the image
+            labels (dict): A dictionary containing image data and annotations. Expected keys include 'img' for the image
                 data, and 'instances' for object instances.
 
         Returns:
-            (Dict): The input labels dictionary with transformed image and instances.
+            (dict): The input labels dictionary with transformed image and instances.
 
         Examples:
             >>> transform = BaseTransform()
@@ -172,7 +172,7 @@ class Compose:
             >>> transforms = [RandomHSV(), RandomFlip()]
             >>> compose = Compose(transforms)
         """
-        self.transforms = transforms if isinstance(transforms, list) else [transforms]
+        self.transforms = transforms if isinstance(transforms, List) else [transforms]
 
     def __call__(self, data):
         """Apply a series of transformations to input data.
@@ -240,8 +240,8 @@ class Compose:
             >>> single_transform = compose[1]  # Returns a Compose object with only RandomPerspective
             >>> multiple_transforms = compose[0:2]  # Returns a Compose object with RandomFlip and RandomPerspective
         """
-        assert isinstance(index, (int, list)), f"The indices should be either List or int type but got {type(index)}"
-        return Compose([self.transforms[i] for i in index]) if isinstance(index, list) else self.transforms[index]
+        assert isinstance(index, (int, List)), f"The indices should be either List or int type but got {type(index)}"
+        return Compose([self.transforms[i] for i in index]) if isinstance(index, List) else self.transforms[index]
 
     def __setitem__(self, index: list | int, value: list | int) -> None:
         """Set one or more transforms in the composition using indexing.
@@ -258,9 +258,9 @@ class Compose:
             >>> compose[1] = NewTransform()  # Replace second transform
             >>> compose[0:2] = [NewTransform1(), NewTransform2()]  # Replace first two transforms
         """
-        assert isinstance(index, (int, list)), f"The indices should be either List or int type but got {type(index)}"
-        if isinstance(index, list):
-            assert isinstance(value, list), (
+        assert isinstance(index, (int, List)), f"The indices should be either List or int type but got {type(index)}"
+        if isinstance(index, List):
+            assert isinstance(value, List), (
                 f"The indices should be the same type as values, but got {type(index)} and {type(value)}"
             )
         if isinstance(index, int):
@@ -457,13 +457,13 @@ class BaseMixTransform:
             return labels
 
         mix_texts = [*labels["texts"], *(item for x in labels["mix_labels"] for item in x["texts"])]
-        mix_texts = list({tuple(x) for x in mix_texts})
+        mix_texts = List({Tuple(x) for x in mix_texts})
         text2id = {text: i for i, text in enumerate(mix_texts)}
 
         for label in [labels] + labels["mix_labels"]:
             for i, cls in enumerate(label["cls"].squeeze(-1).tolist()):
                 text = label["texts"][int(cls)]
-                label["cls"][i] = text2id[tuple(text)]
+                label["cls"][i] = text2id[Tuple(text)]
             label["texts"] = mix_texts
         return labels
 
@@ -538,7 +538,7 @@ class Mosaic(BaseMixTransform):
             >>> print(len(indexes))  # Output: 3
         """
         if self.buffer_enabled:  # select images from buffer
-            return random.choices(list(self.dataset.buffer), k=self.n - 1)
+            return random.choices(List(self.dataset.buffer), k=self.n - 1)
         else:  # select any images
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
@@ -2576,7 +2576,7 @@ def classify_transforms(
     """
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-    scale_size = size if isinstance(size, (tuple, list)) and len(size) == 2 else (size, size)
+    scale_size = size if isinstance(size, (Tuple, List)) and len(size) == 2 else (size, size)
 
     if crop_fraction:
         raise DeprecationWarning(

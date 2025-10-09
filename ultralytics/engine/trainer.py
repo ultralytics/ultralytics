@@ -724,6 +724,8 @@ class BaseTrainer:
                     ckpt = strip_optimizer(f)
                 elif f is self.best:
                     k = "train_results"  # update best.pt train_metrics from last.pt
+                    best_ckpt = torch.load(f, map_location=torch.device("cpu"))
+                    print(f"best epoch: {best_ckpt['epoch']}")
                     strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots

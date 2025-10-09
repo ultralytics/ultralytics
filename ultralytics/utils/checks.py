@@ -376,10 +376,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> check_requirements("path/to/requirements.txt")
 
         Check a single package
-        >>> check_requirements("ultralytics>=8.0.0")
+        >>> check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")
 
         Check multiple packages
-        >>> check_requirements(["numpy", "ultralytics>=8.0.0"])
+        >>> check_requirements(["numpy", "ultralytics>=8.3.200"])
     """
     prefix = colorstr("red", "bold", "requirements:")
     if isinstance(requirements, Path):  # requirements.txt file

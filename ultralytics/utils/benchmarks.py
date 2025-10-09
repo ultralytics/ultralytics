@@ -595,7 +595,7 @@ class ProfileModels:
             mean_time (float): Mean inference time in milliseconds.
             std_time (float): Standard deviation of inference time in milliseconds.
         """
-        check_requirements("onnxruntime")
+        check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort
 
         # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'

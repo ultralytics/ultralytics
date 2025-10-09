@@ -16,10 +16,10 @@ from ultralytics.nn.tasks import (
     OBBModel,
     PoseModel,
     SegmentationModel,
+    SemanticModel,
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
-    SemanticModel
 )
 from ultralytics.utils import ROOT, YAML
 

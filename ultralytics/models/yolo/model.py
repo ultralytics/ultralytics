@@ -20,6 +20,7 @@ from ultralytics.nn.tasks import (
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
+    SemanticModel
 )
 from ultralytics.utils import ROOT, YAML
 

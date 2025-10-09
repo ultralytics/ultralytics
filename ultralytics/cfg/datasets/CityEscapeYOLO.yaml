@@ -61,4 +61,4 @@ colors:
   19: [0, 0, 0]
 
 # Download script/URL (optional)
-download: https://objects.githubusercontent.com/github-production-repository-file-5c1aeb/1046723287/22789131?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20251009%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251009T045231Z&X-Amz-Expires=300&X-Amz-Signature=e3d711504de015863ed20d7d4ff971e9b4fb060aa560380b476390b397938399&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3Bfilename%3DCityEcapse-YOLO-512-small.zip&response-content-type=application%2Fx-zip-compressed
+download: https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/releases/download/v1.0/CityEcapse-YOLO-512-small.zip

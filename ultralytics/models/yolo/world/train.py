@@ -2,7 +2,7 @@
 
 import itertools
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import torch
 
@@ -51,7 +51,7 @@ class WorldTrainer(DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict[str, Any]] = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict[str, Any]] = None, _callbacks=None):
         """
         Initialize a WorldTrainer object with given arguments.
 
@@ -111,7 +111,7 @@ class WorldTrainer(DetectionTrainer):
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
 
-    def set_text_embeddings(self, datasets: List[Any], batch: Optional[int]) -> None:
+    def set_text_embeddings(self, datasets: list[Any], batch: Optional[int]) -> None:
         """
         Set text embeddings for datasets to accelerate training by caching category names.
 
@@ -137,7 +137,7 @@ class WorldTrainer(DetectionTrainer):
             )
         self.text_embeddings = text_embeddings
 
-    def generate_text_embeddings(self, texts: List[str], batch: int, cache_dir: Path) -> Dict[str, torch.Tensor]:
+    def generate_text_embeddings(self, texts: list[str], batch: int, cache_dir: Path) -> dict[str, torch.Tensor]:
         """
         Generate text embeddings for a list of text samples.
 
@@ -163,7 +163,7 @@ class WorldTrainer(DetectionTrainer):
         torch.save(txt_map, cache_path)
         return txt_map
 
-    def preprocess_batch(self, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def preprocess_batch(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess a batch of images and text for YOLOWorld training."""
         batch = DetectionTrainer.preprocess_batch(self, batch)
 

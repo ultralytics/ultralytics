@@ -2,7 +2,7 @@
 
 from copy import copy
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SegmentationModel
@@ -27,7 +27,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[Dict] = None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks=None):
         """
         Initialize a SegmentationTrainer object.
 
@@ -51,7 +51,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(
-        self, cfg: Optional[Union[Dict, str]] = None, weights: Optional[Union[str, Path]] = None, verbose: bool = True
+        self, cfg: Optional[Union[dict, str]] = None, weights: Optional[Union[str, Path]] = None, verbose: bool = True
     ):
         """
         Initialize and return a SegmentationModel with specified configuration and weights.

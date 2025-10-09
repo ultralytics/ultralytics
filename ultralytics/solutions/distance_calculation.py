@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import math
-from typing import Any, Dict, List
+from typing import Any
 
 import cv2
 
@@ -39,8 +39,8 @@ class DistanceCalculation(BaseSolution):
 
         # Mouse event information
         self.left_mouse_count = 0
-        self.selected_boxes: Dict[int, List[float]] = {}
-        self.centroids: List[List[int]] = []  # Store centroids of selected objects
+        self.selected_boxes: dict[int, list[float]] = {}
+        self.centroids: list[list[int]] = []  # Store centroids of selected objects
 
     def mouse_event_for_distance(self, event: int, x: int, y: int, flags: int, param: Any) -> None:
         """

@@ -8,7 +8,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment, semseg
-from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR, SEMSEG_CFG
+from ultralytics.utils import ASSETS, DEFAULT_CFG, SEMSEG_CFG, WEIGHTS_DIR
 
 
 def test_func(*args):  # noqa
@@ -128,6 +128,7 @@ def test_classify():
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
+
 
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""

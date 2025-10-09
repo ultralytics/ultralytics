@@ -2,7 +2,7 @@
 
 import io
 import os
-from typing import Any, List
+from typing import Any
 
 import cv2
 import torch
@@ -72,7 +72,7 @@ class Inference:
         self.org_frame = None  # Container for the original frame display
         self.ann_frame = None  # Container for the annotated frame display
         self.vid_file_name = None  # Video file name or webcam index
-        self.selected_ind: List[int] = []  # List of selected class indices for detection
+        self.selected_ind: list[int] = []  # List of selected class indices for detection
         self.model = None  # YOLO model instance
 
         self.temp_dict = {"model": None, **kwargs}

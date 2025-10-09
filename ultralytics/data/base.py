@@ -7,7 +7,7 @@ import random
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import cv2
 import numpy as np
@@ -69,18 +69,18 @@ class BaseDataset(Dataset):
 
     def __init__(
         self,
-        img_path: Union[str, List[str]],
+        img_path: Union[str, list[str]],
         imgsz: int = 640,
         cache: Union[bool, str] = False,
         augment: bool = True,
-        hyp: Dict[str, Any] = DEFAULT_CFG,
+        hyp: dict[str, Any] = DEFAULT_CFG,
         prefix: str = "",
         rect: bool = False,
         batch_size: int = 16,
         stride: int = 32,
         pad: float = 0.5,
         single_cls: bool = False,
-        classes: Optional[List[int]] = None,
+        classes: Optional[list[int]] = None,
         fraction: float = 1.0,
         channels: int = 3,
     ):
@@ -145,7 +145,7 @@ class BaseDataset(Dataset):
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
-    def get_img_files(self, img_path: Union[str, List[str]]) -> List[str]:
+    def get_img_files(self, img_path: Union[str, list[str]]) -> list[str]:
         """
         Read image files from the specified path.
 
@@ -183,7 +183,7 @@ class BaseDataset(Dataset):
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
-    def update_labels(self, include_class: Optional[List[int]]) -> None:
+    def update_labels(self, include_class: Optional[list[int]]) -> None:
         """
         Update labels to include only specified classes.
 
@@ -207,7 +207,7 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
-    def load_image(self, i: int, rect_mode: bool = True) -> Tuple[np.ndarray, Tuple[int, int], Tuple[int, int]]:
+    def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """
         Load an image from dataset index 'i'.
 
@@ -374,11 +374,11 @@ class BaseDataset(Dataset):
         self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
-    def __getitem__(self, index: int) -> Dict[str, Any]:
+    def __getitem__(self, index: int) -> dict[str, Any]:
         """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
 
-    def get_image_and_label(self, index: int) -> Dict[str, Any]:
+    def get_image_and_label(self, index: int) -> dict[str, Any]:
         """
         Get and return label information from the dataset.
 
@@ -403,11 +403,11 @@ class BaseDataset(Dataset):
         """Return the length of the labels list for the dataset."""
         return len(self.labels)
 
-    def update_labels_info(self, label: Dict[str, Any]) -> Dict[str, Any]:
+    def update_labels_info(self, label: dict[str, Any]) -> dict[str, Any]:
         """Custom your label format here."""
         return label
 
-    def build_transforms(self, hyp: Optional[Dict[str, Any]] = None):
+    def build_transforms(self, hyp: Optional[dict[str, Any]] = None):
         """
         Users can customize augmentations here.
 
@@ -421,7 +421,7 @@ class BaseDataset(Dataset):
         """
         raise NotImplementedError
 
-    def get_labels(self) -> List[Dict[str, Any]]:
+    def get_labels(self) -> list[dict[str, Any]]:
         """
         Users can customize their own format here.
 

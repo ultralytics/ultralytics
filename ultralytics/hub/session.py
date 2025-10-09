@@ -5,7 +5,7 @@ import threading
 import time
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from urllib.parse import parse_qs, urlparse
 
 import requests
@@ -92,7 +92,7 @@ class HUBTrainingSession:
                 )
 
     @classmethod
-    def create_session(cls, identifier: str, args: Optional[Dict[str, Any]] = None):
+    def create_session(cls, identifier: str, args: Optional[dict[str, Any]] = None):
         """
         Create an authenticated HUBTrainingSession or return None.
 
@@ -139,7 +139,7 @@ class HUBTrainingSession:
         self.model.start_heartbeat(self.rate_limits["heartbeat"])
         LOGGER.info(f"{PREFIX}View model at {self.model_url} 🚀")
 
-    def create_model(self, model_args: Dict[str, Any]):
+    def create_model(self, model_args: dict[str, Any]):
         """
         Initialize a HUB training session with the specified model arguments.
 

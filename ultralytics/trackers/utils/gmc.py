@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import copy
-from typing import List, Optional
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -89,7 +89,7 @@ class GMC:
         self.prevDescriptors = None
         self.initializedFirstFrame = False
 
-    def apply(self, raw_frame: np.ndarray, detections: Optional[List] = None) -> np.ndarray:
+    def apply(self, raw_frame: np.ndarray, detections: Optional[list] = None) -> np.ndarray:
         """
         Apply object detection on a raw frame using the specified method.
 
@@ -156,7 +156,7 @@ class GMC:
 
         return H
 
-    def apply_features(self, raw_frame: np.ndarray, detections: Optional[List] = None) -> np.ndarray:
+    def apply_features(self, raw_frame: np.ndarray, detections: Optional[list] = None) -> np.ndarray:
         """
         Apply feature-based methods like ORB or SIFT to a raw frame.
 

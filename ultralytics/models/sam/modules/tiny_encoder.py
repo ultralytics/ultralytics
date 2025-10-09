@@ -10,7 +10,7 @@
 # --------------------------------------------------------
 
 import itertools
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import torch
 import torch.nn as nn
@@ -106,7 +106,7 @@ class PatchEmbed(nn.Module):
             activation (nn.Module): Activation function to use between convolutions.
         """
         super().__init__()
-        img_size: Tuple[int, int] = to_2tuple(resolution)
+        img_size: tuple[int, int] = to_2tuple(resolution)
         self.patches_resolution = (img_size[0] // 4, img_size[1] // 4)
         self.num_patches = self.patches_resolution[0] * self.patches_resolution[1]
         self.in_chans = in_chans
@@ -219,7 +219,7 @@ class PatchMerging(nn.Module):
         torch.Size([4, 3136, 128])
     """
 
-    def __init__(self, input_resolution: Tuple[int, int], dim: int, out_dim: int, activation):
+    def __init__(self, input_resolution: tuple[int, int], dim: int, out_dim: int, activation):
         """
         Initialize the PatchMerging module for merging and projecting neighboring patches in feature maps.
 
@@ -283,10 +283,10 @@ class ConvLayer(nn.Module):
     def __init__(
         self,
         dim: int,
-        input_resolution: Tuple[int, int],
+        input_resolution: tuple[int, int],
         depth: int,
         activation,
-        drop_path: Union[float, List[float]] = 0.0,
+        drop_path: Union[float, list[float]] = 0.0,
         downsample: Optional[nn.Module] = None,
         use_checkpoint: bool = False,
         out_dim: Optional[int] = None,
@@ -441,7 +441,7 @@ class Attention(torch.nn.Module):
         key_dim: int,
         num_heads: int = 8,
         attn_ratio: float = 4,
-        resolution: Tuple[int, int] = (14, 14),
+        resolution: tuple[int, int] = (14, 14),
     ):
         """
         Initialize the Attention module for multi-head attention with spatial awareness.
@@ -549,7 +549,7 @@ class TinyViTBlock(nn.Module):
     def __init__(
         self,
         dim: int,
-        input_resolution: Tuple[int, int],
+        input_resolution: tuple[int, int],
         num_heads: int,
         window_size: int = 7,
         mlp_ratio: float = 4.0,
@@ -690,13 +690,13 @@ class BasicLayer(nn.Module):
     def __init__(
         self,
         dim: int,
-        input_resolution: Tuple[int, int],
+        input_resolution: tuple[int, int],
         depth: int,
         num_heads: int,
         window_size: int,
         mlp_ratio: float = 4.0,
         drop: float = 0.0,
-        drop_path: Union[float, List[float]] = 0.0,
+        drop_path: Union[float, list[float]] = 0.0,
         downsample: Optional[nn.Module] = None,
         use_checkpoint: bool = False,
         local_conv_size: int = 3,
@@ -800,10 +800,10 @@ class TinyViT(nn.Module):
         img_size: int = 224,
         in_chans: int = 3,
         num_classes: int = 1000,
-        embed_dims: Tuple[int, int, int, int] = (96, 192, 384, 768),
-        depths: Tuple[int, int, int, int] = (2, 2, 6, 2),
-        num_heads: Tuple[int, int, int, int] = (3, 6, 12, 24),
-        window_sizes: Tuple[int, int, int, int] = (7, 7, 14, 7),
+        embed_dims: tuple[int, int, int, int] = (96, 192, 384, 768),
+        depths: tuple[int, int, int, int] = (2, 2, 6, 2),
+        num_heads: tuple[int, int, int, int] = (3, 6, 12, 24),
+        window_sizes: tuple[int, int, int, int] = (7, 7, 14, 7),
         mlp_ratio: float = 4.0,
         drop_rate: float = 0.0,
         drop_path_rate: float = 0.1,
@@ -980,7 +980,7 @@ class TinyViT(nn.Module):
         """Perform the forward pass through the TinyViT model, extracting features from the input image."""
         return self.forward_features(x)
 
-    def set_imgsz(self, imgsz: List[int] = [1024, 1024]):
+    def set_imgsz(self, imgsz: list[int] = [1024, 1024]):
         """Set image size to make model compatible with different image sizes."""
         imgsz = [s // 4 for s in imgsz]
         self.patches_resolution = imgsz

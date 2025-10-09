@@ -2,7 +2,7 @@
 """Transformer modules."""
 
 import math
-from typing import List, Optional
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -533,7 +533,7 @@ class MSDeformAttn(nn.Module):
         query: torch.Tensor,
         refer_bbox: torch.Tensor,
         value: torch.Tensor,
-        value_shapes: List,
+        value_shapes: list,
         value_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
@@ -672,7 +672,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         embed: torch.Tensor,
         refer_bbox: torch.Tensor,
         feats: torch.Tensor,
-        shapes: List,
+        shapes: list,
         padding_mask: Optional[torch.Tensor] = None,
         attn_mask: Optional[torch.Tensor] = None,
         query_pos: Optional[torch.Tensor] = None,
@@ -749,7 +749,7 @@ class DeformableTransformerDecoder(nn.Module):
         embed: torch.Tensor,  # decoder embeddings
         refer_bbox: torch.Tensor,  # anchor
         feats: torch.Tensor,  # image features
-        shapes: List,  # feature shapes
+        shapes: list,  # feature shapes
         bbox_head: nn.Module,
         score_head: nn.Module,
         pos_mlp: nn.Module,

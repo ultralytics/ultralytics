@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from ultralytics import SAM, YOLO
 
@@ -15,7 +15,7 @@ def auto_annotate(
     iou: float = 0.45,
     imgsz: int = 640,
     max_det: int = 300,
-    classes: Optional[List[int]] = None,
+    classes: Optional[list[int]] = None,
     output_dir: Optional[Union[str, Path]] = None,
 ) -> None:
     """

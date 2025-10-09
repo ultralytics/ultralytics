@@ -3,7 +3,7 @@
 import random
 import shutil
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Union
 
 from ultralytics.data.utils import IMG_FORMATS, img2label_paths
 from ultralytics.utils import DATASETS_DIR, LOGGER, TQDM
@@ -97,7 +97,7 @@ def split_classify_dataset(source_dir: Union[str, Path], train_ratio: float = 0.
 
 def autosplit(
     path: Path = DATASETS_DIR / "coco8/images",
-    weights: Tuple[float, float, float] = (0.9, 0.1, 0.0),
+    weights: tuple[float, float, float] = (0.9, 0.1, 0.0),
     annotated_only: bool = False,
 ) -> None:
     """

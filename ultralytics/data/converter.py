@@ -7,7 +7,7 @@ import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import cv2
 import numpy as np
@@ -19,7 +19,7 @@ from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
-def coco91_to_coco80_class() -> List[int]:
+def coco91_to_coco80_class() -> list[int]:
     """
     Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
@@ -122,7 +122,7 @@ def coco91_to_coco80_class() -> List[int]:
     ]
 
 
-def coco80_to_coco91_class() -> List[int]:
+def coco80_to_coco91_class() -> list[int]:
     r"""
     Convert 80-index (val2014) to 91-index (paper).
 
@@ -531,7 +531,7 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
 
 
-def merge_multi_segment(segments: List[List]):
+def merge_multi_segment(segments: list[list]):
     """
     Merge multiple segments into one list by connecting the coordinates with the minimum distance between each segment.
 

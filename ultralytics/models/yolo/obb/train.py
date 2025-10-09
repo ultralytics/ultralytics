@@ -2,7 +2,7 @@
 
 from copy import copy
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import OBBModel
@@ -31,7 +31,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         >>> trainer.train()
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks: Optional[List[Any]] = None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides: Optional[dict] = None, _callbacks: Optional[list[Any]] = None):
         """
         Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 

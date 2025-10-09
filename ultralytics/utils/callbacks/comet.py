@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -147,7 +147,7 @@ def _fetch_trainer_metadata(trainer) -> dict:
 
 def _scale_bounding_box_to_original_image_shape(
     box, resized_image_shape, original_image_shape, ratio_pad
-) -> List[float]:
+) -> list[float]:
     """
     Scale bounding box from resized image coordinates to original image coordinates.
 
@@ -286,7 +286,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     return {"name": "prediction", "data": data}
 
 
-def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
+def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[list[list[Any]]]:
     """
     Extract segmentation annotation from compressed segmentations as list of polygons.
 
@@ -309,7 +309,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
 
 def _fetch_annotations(
     img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map
-) -> Optional[List]:
+) -> Optional[list]:
     """
     Join the ground truth and prediction annotations if they exist.
 

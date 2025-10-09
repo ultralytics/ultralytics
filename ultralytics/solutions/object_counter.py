@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from collections import defaultdict
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -52,9 +52,9 @@ class ObjectCounter(BaseSolution):
 
     def count_objects(
         self,
-        current_centroid: Tuple[float, float],
+        current_centroid: tuple[float, float],
         track_id: int,
-        prev_position: Optional[Tuple[float, float]],
+        prev_position: Optional[tuple[float, float]],
         cls: int,
     ) -> None:
         """

@@ -3,7 +3,7 @@
 import math
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 import cv2
 import numpy as np
@@ -678,11 +678,11 @@ def save_one_box(
 
 @threaded
 def plot_images(
-    labels: Dict[str, Any],
+    labels: dict[str, Any],
     images: Union[torch.Tensor, np.ndarray] = np.zeros((0, 3, 640, 640), dtype=np.float32),
-    paths: Optional[List[str]] = None,
+    paths: Optional[list[str]] = None,
     fname: str = "images.jpg",
-    names: Optional[Dict[int, str]] = None,
+    names: Optional[dict[int, str]] = None,
     on_plot: Optional[Callable] = None,
     max_size: int = 1920,
     max_subplots: int = 16,
@@ -1036,6 +1036,7 @@ def feature_visualization(x, module_type: str, stage: int, n: int = 32, save_dir
             plt.savefig(f, dpi=300, bbox_inches="tight")
             plt.close()
             np.save(str(f.with_suffix(".npy")), x[0].cpu().numpy())  # npy save
+
 
 def plot_masks(
     images: torch.Tensor | np.ndarray,

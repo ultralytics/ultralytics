@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import torch
 
@@ -14,9 +14,9 @@ def export_onnx(
     im: torch.Tensor,
     onnx_file: str,
     opset: int = 14,
-    input_names: List[str] = ["images"],
-    output_names: List[str] = ["output0"],
-    dynamic: Union[bool, Dict] = False,
+    input_names: list[str] = ["images"],
+    output_names: list[str] = ["output0"],
+    dynamic: Union[bool, dict] = False,
 ) -> None:
     """
     Export a PyTorch model to ONNX format.
@@ -53,10 +53,10 @@ def export_engine(
     half: bool = False,
     int8: bool = False,
     dynamic: bool = False,
-    shape: Tuple[int, int, int, int] = (1, 3, 640, 640),
+    shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dla: Optional[int] = None,
     dataset=None,
-    metadata: Optional[Dict] = None,
+    metadata: Optional[dict] = None,
     verbose: bool = False,
     prefix: str = "",
 ) -> None:
@@ -196,7 +196,7 @@ def export_engine(
                 """Get the batch size to use for calibration."""
                 return self.batch or 1
 
-            def get_batch(self, names) -> Optional[List[int]]:
+            def get_batch(self, names) -> Optional[list[int]]:
                 """Get the next batch to use for calibration, as a list of device memory pointers."""
                 try:
                     im0s = next(self.data_iter)["img"] / 255.0

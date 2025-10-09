@@ -9,8 +9,8 @@ from tests import MODEL
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
-from ultralytics.models.yolo import classify, detect, segment
-from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR
+from ultralytics.models.yolo import classify, detect, segment, semseg
+from ultralytics.utils import ASSETS, DEFAULT_CFG, WEIGHTS_DIR, SEMSEG_CFG
 
 
 def test_func(*args):
@@ -155,3 +155,44 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
+def test_semseg():
+    """Test semantic segment including training, validation, and prediction phases."""
+    overrides = {
+        "data": "CityEscapeYOLO.yaml",
+        "model": "yolo11-semseg.yaml",
+        "imgsz": 512,
+        "epochs": 1,
+        "save": False,
+        "mask_ratio": 1,
+        "device": -1,
+    }
+    cfg = get_cfg(SEMSEG_CFG)
+    cfg.device = -1
+    # Trainer
+    trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
+    trainer.add_callback("on_train_start", test_func)
+    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
+    trainer.train()
+
+    # Validator
+    args = dict(
+        model=trainer.best,
+        data="CityEscapeYOLO.yaml",
+        imgsz=512,
+        device=cfg.device,
+        name=cfg.name,
+        task="semseg",
+        plots=False,
+    )
+    val = semseg.SemSegValidator(args=args)
+    val.add_callback("on_val_start", test_func)
+    assert test_func in val.callbacks["on_val_start"], "callback test failed"
+    val(model=trainer.best)
+
+    # Predictor
+    pred = semseg.SemSegPredictor(cfg=cfg)
+    pred.add_callback("on_predict_start", test_func)
+    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    result = pred(source=ASSETS, model=trainer.best)
+    assert len(result), "predictor test failed"

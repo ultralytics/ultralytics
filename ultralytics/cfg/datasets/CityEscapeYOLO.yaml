@@ -8,7 +8,7 @@
 #     └── coco8-seg  ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: D:/data/CityEcapse-YOLO-512-small # dataset root dir
+path: CityEcapse-YOLO-512-small # dataset root dir
 train: train/image # train images (relative to 'path') 4 images
 val: val/image # val images (relative to 'path') 4 images
 test: # test images (optional)
@@ -59,5 +59,6 @@ colors:
   17: [0, 0, 230]
   18: [119, 11, 32]
   19: [0, 0, 0]
+
 # Download script/URL (optional)
-#download: https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-seg.zip
+download: https://objects.githubusercontent.com/github-production-repository-file-5c1aeb/1046723287/22789131?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20251009%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251009T030734Z&X-Amz-Expires=300&X-Amz-Signature=a237c4d706e61297b78724d2ce9cae0571102b5895c663c798be304f0ec26a38&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3Bfilename%3DCityEcapse-YOLO-512-small.zip&response-content-type=application%2Fx-zip-compressed

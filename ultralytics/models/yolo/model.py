@@ -19,6 +19,7 @@ from ultralytics.nn.tasks import (
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
+    SemanticModel
 )
 from ultralytics.utils import ROOT, YAML
 
@@ -119,6 +120,12 @@ class YOLO(Model):
                 "trainer": yolo.obb.OBBTrainer,
                 "validator": yolo.obb.OBBValidator,
                 "predictor": yolo.obb.OBBPredictor,
+            },
+            "semseg": {
+                "model": SemanticModel,
+                "trainer": yolo.semseg.SemSegTrainer,
+                "validator": yolo.semseg.SemSegValidator,
+                "predictor": yolo.semseg.SemSegPredictor,
             },
         }
 

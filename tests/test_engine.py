@@ -8,7 +8,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models.yolo import classify, detect, segment, semseg
-from ultralytics.utils import ASSETS, DEFAULT_CFG, SEMSEG_CFG, WEIGHTS_DIR, YAML
+from ultralytics.utils import ASSETS, DEFAULT_CFG, SEMSEG_CFG, WEIGHTS_DIR
 
 
 def test_func(*args):

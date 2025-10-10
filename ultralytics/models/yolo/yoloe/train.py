@@ -15,7 +15,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
 from ..world.train_world import WorldTrainerFromScratch
-from .val import YOLOEDetectValidator
+from .val import YOLOEDetectValidator,YOLOEDetectVpValidator
 
 
 class YOLOETrainer(DetectionTrainer):
@@ -308,3 +308,9 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
         batch["visuals"] = batch["visuals"].to(self.device, non_blocking=True)
         return batch
 
+    def get_validator(self):
+        """Return a YOLOEDetectValidator for YOLOE model validation."""
+        self.loss_names = "box", "cls", "dfl"
+        return YOLOEDetectVpValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )

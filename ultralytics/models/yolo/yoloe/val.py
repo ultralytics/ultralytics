@@ -232,6 +232,86 @@ class YOLOEDetectValidator(DetectionValidator):
         return stats
 
 
+class YOLOEDetectVpValidator(YOLOEDetectValidator):
+    """YOLOE detection validator that supports both text and visual prompt embeddings."""
+    @smart_inference_mode()
+    def __call__(
+        self,
+        trainer: Any | None = None,
+        model: YOLOEModel | str | None = None,
+        vp_weight: float= 1.0,
+    ) -> dict[str, Any]:
+        """
+        Run validation on the model using either text or visual prompt embeddings.
+
+        This method validates the model using either text prompts or visual prompts, depending on the load_vp flag.
+        It supports validation during training (using a trainer object) or standalone validation with a provided
+        model. For visual prompts, reference data can be specified to extract embeddings from a different dataset.
+
+        Args:
+            trainer (object, optional): Trainer object containing the model and device.
+            model (YOLOEModel | str, optional): Model to validate. Required if trainer is not provided.
+            refer_data (str, optional): Path to reference data for visual prompts.
+            load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
+            vp_weight (float): Weight for visual prompt embeddings when combining with text embeddings. Default is 1.0.
+
+        Returns:
+            (dict): Validation statistics containing metrics computed during validation.
+        """
+        if trainer is not None:
+            self.device = trainer.device
+            model = trainer.ema.ema
+            refer_data=self.args.refer_data
+            if refer_data:
+                LOGGER.info("Validate using the visual prompt.")
+                if vp_weight<1:
+                    LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
+                self.args.half = False
+                # Directly use the same dataloader for visual embeddings extracted during training
+                vp_data  = check_det_dataset(trainer.refer_data)
+                names = [name.split("/", 1)[0] for name in list(vp_data["names"].values())]
+                dataloader = self.get_vpe_dataloader(vp_data)
+                vpe = self.get_visual_pe(dataloader, model)
+                if vp_weight<1:
+                    vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)
+                model.set_classes(names, vpe)
+
+            stats = DetectionValidator.__call__(self,trainer, model)
+        else:
+            self.device = select_device(self.args.device, verbose=False)
+
+            if isinstance(model, (str, Path)):
+                from ultralytics.nn.tasks import load_checkpoint
+
+                model, _ = load_checkpoint(model, device=self.device)  # model, ckpt
+            model.eval().to(self.device)
+            refer_data=self.args.refer_data
+            vp_data  = check_det_dataset(refer_data)
+            names = [name.split("/", 1)[0] for name in list(vp_data["names"].values())]
+
+
+            LOGGER.info("Validate using the visual prompt.")
+            if vp_weight<1:
+                LOGGER.info(f"Using vp_weight {vp_weight} to combine visual and text prompt embeddings.")
+                
+                    
+            self.args.half = False
+
+            dataloader = self.get_vpe_dataloader(vp_data)
+            vpe = self.get_visual_pe(dataloader, model)
+
+            if vp_weight<1:
+                vpe= vpe*vp_weight + (1-vp_weight)*model.get_text_pe(names)
+
+
+
+            model.set_classes(names, vpe)
+            stats = DetectionValidator.__call__(self,model=deepcopy(model))
+            
+        return stats
+
+
+
 
 
 

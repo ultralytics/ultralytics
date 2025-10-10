@@ -1387,25 +1387,29 @@ class SemanticSegment(nn.Module):
         >>> outputs = SemanticSegment(x)
     """
 
-    def __init__(self, nc=80, ch=()):
+    def __init__(self, nc=80, ns=8, npr=256, ch=()):
         """
         Initialize for semantic segment modular
         Args:
-            nc: number of classes
-            ch: channels of features.
+            nc(int): number of classes
+            ns(int): stride
+            npr(int): number of feature
+            ch(list[int]): channels of features.
         """
         super().__init__()
         self.nc = nc
+        self.ns = ns
+        self.npr = npr
         self.chs = torch.tensor(ch).sum().item()
-        self.conv = nn.Conv2d(self.chs, 512, kernel_size=3, stride=1, padding=1)
-        self.cls_head = nn.Conv2d(512, self.nc, kernel_size=3, stride=1, padding=1)
+        self.conv = nn.Conv2d(self.chs, self.npr * 2, kernel_size=3, stride=1, padding=1)
+        self.cls_head = nn.Conv2d(self.npr * 2, self.nc, kernel_size=3, stride=1, padding=1)
 
         self.norm_head = nn.Sequential(
             Conv(self.chs, self.chs, k=3, s=1, p=1), nn.Conv2d(self.chs, self.nc, kernel_size=1, stride=1, padding=0)
         )
 
         self.context_gather = ContextGather(self.nc)
-        self.context_ocr = SpatialOCR(in_channels=512, key_channels=256, out_channels=512, scale=1, dropout=0.05)
+        self.context_ocr = SpatialOCR(in_channels=self.npr * 2, key_channels=self.npr, out_channels=self.npr * 2, scale=1, dropout=0.05)
 
     def forward(self, x):
         """
@@ -1427,8 +1431,8 @@ class SemanticSegment(nn.Module):
         context = self.context_gather(fs, out_0)
         feats = self.context_ocr(fs, context)
         out = self.cls_head(feats)
-        out_0 = F.interpolate(out_0, size=(h * 8, w * 8), mode="bilinear", align_corners=True)
-        out = F.interpolate(out, size=(h * 8, w * 8), mode="bilinear", align_corners=True)
+        out_0 = F.interpolate(out_0, size=(h * self.ns, w * self.ns), mode="bilinear", align_corners=True)
+        out = F.interpolate(out, size=(h * self.ns, w * self.ns), mode="bilinear", align_corners=True)
         if self.training:
             return out_0, out
         else:

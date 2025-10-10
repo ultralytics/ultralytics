@@ -1200,10 +1200,11 @@ class ContextGather(nn.Module):
         N X C X H X W
     Parameters:
         cls_num       : the number of classes
-        scale         : the scale factor for probility map
+        scale         : the scale factor for probability map
     Return:
         N X C X H X W.
     """
+
     def __init__(self, cls_num=0, scale=1):
         super().__init__()
         self.cls_num = cls_num
@@ -1212,10 +1213,10 @@ class ContextGather(nn.Module):
 
     def forward(self, feats, probs):
         """
-        forward methods of context attention module
+        Forward methods of context attention module
         Args:
             feats: feature map
-            probs: probility map
+            probs: probability map.
 
         Returns:
             attention (torch.Tensor): Attention of context
@@ -1368,23 +1369,24 @@ class SpatialOCR(nn.Module):
 
 class SemanticSegment(nn.Module):
     """
-       YOLO Semseg head for senmantic models.
+    YOLO Semseg head for senmantic models.
 
-       This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
+    This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
 
-       Attributes:
-           nc (int): Number of classes.
-           ch (int): Number of channels.
+    Attributes:
+        nc (int): Number of classes.
+        ch (int): Number of channels.
 
-       Methods:
-           forward: Return mask.
+    Methods:
+        forward: Return mask.
 
-       Examples:
-           Create a segmentation head
-           >>> SemanticSegment = SemanticSegment(nc=80, ch=(256, 512, 1024))
-           >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
-           >>> outputs = SemanticSegment(x)
-       """
+    Examples:
+        Create a segmentation head
+        >>> SemanticSegment = SemanticSegment(nc=80, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = SemanticSegment(x)
+    """
+
     def __init__(self, nc=80, ch=()):
         super().__init__()
         self.nc = nc

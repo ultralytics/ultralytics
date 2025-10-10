@@ -1389,10 +1389,10 @@ class SemanticSegment(nn.Module):
 
     def __init__(self, nc=80, ch=()):
         """
-        initialize for semantic segment modular
+        Initialize for semantic segment modular
         Args:
             nc: number of classes
-            ch: channels of features
+            ch: channels of features.
         """
         super().__init__()
         self.nc = nc
@@ -1409,9 +1409,9 @@ class SemanticSegment(nn.Module):
 
     def forward(self, x):
         """
-        model forward fucntion of semantic segment modular
+        Model forward function of semantic segment modular
         Args:
-            x(list): features from backbone or neck
+            x(list): features from backbone or neck.
 
         Returns:
             mask(torch.Tensor): output for semantic segment task

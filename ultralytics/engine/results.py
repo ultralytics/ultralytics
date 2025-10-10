@@ -30,7 +30,7 @@ class BaseTensor(SimpleClass):
 
     Attributes:
         data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
-        orig_shape (Tuple[int, int]): Original shape of the image, typically in the format (height, width).
+        orig_shape (tuple[int, int]): Original shape of the image, typically in the format (height, width).
 
     Methods:
         cpu: Return a copy of the tensor stored in CPU memory.
@@ -54,7 +54,7 @@ class BaseTensor(SimpleClass):
 
         Args:
             data (torch.Tensor | np.ndarray): Prediction data such as bounding boxes, masks, or keypoints.
-            orig_shape (Tuple[int, int]): Original shape of the image in (height, width) format.
+            orig_shape (tuple[int, int]): Original shape of the image in (height, width) format.
 
         Examples:
             >>> import torch
@@ -72,7 +72,7 @@ class BaseTensor(SimpleClass):
         Return the shape of the underlying data tensor.
 
         Returns:
-            (Tuple[int, ...]): The shape of the data tensor.
+            (tuple[int, ...]): The shape of the data tensor.
 
         Examples:
             >>> data = torch.rand(100, 4)
@@ -174,7 +174,7 @@ class BaseTensor(SimpleClass):
         Return a new BaseTensor instance containing the specified indexed elements of the data tensor.
 
         Args:
-            idx (int | List[int] | torch.Tensor): Index or indices to select from the data tensor.
+            idx (int | list[int] | torch.Tensor): Index or indices to select from the data tensor.
 
         Returns:
             (BaseTensor): A new BaseTensor instance containing the indexed data.
@@ -199,7 +199,7 @@ class Results(SimpleClass, DataExportMixin):
 
     Attributes:
         orig_img (np.ndarray): The original image as a numpy array.
-        orig_shape (Tuple[int, int]): Original image shape in (height, width) format.
+        orig_shape (tuple[int, int]): Original image shape in (height, width) format.
         boxes (Boxes | None): Detected bounding boxes.
         masks (Masks | None): Segmentation masks.
         probs (Probs | None): Classification probabilities.
@@ -261,7 +261,7 @@ class Results(SimpleClass, DataExportMixin):
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
-            speed (Dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Examples:
             >>> results = model("path/to/image.jpg")
@@ -799,7 +799,7 @@ class Results(SimpleClass, DataExportMixin):
             decimals (int): Number of decimal places to round the output values to.
 
         Returns:
-            (List[Dict[str, Any]]): A list of dictionaries, each containing summarized information for a single detection
+            (list[dict[str, Any]]): A list of dictionaries, each containing summarized information for a single detection
                 or classification result. The structure of each dictionary varies based on the task type
                 (classification or detection) and available information (boxes, masks, keypoints).
 
@@ -862,7 +862,7 @@ class Boxes(BaseTensor):
 
     Attributes:
         data (torch.Tensor | np.ndarray): The raw tensor containing detection boxes and associated data.
-        orig_shape (Tuple[int, int]): The original image dimensions (height, width).
+        orig_shape (tuple[int, int]): The original image dimensions (height, width).
         is_track (bool): Indicates whether tracking IDs are included in the box data.
         xyxy (torch.Tensor | np.ndarray): Boxes in [x1, y1, x2, y2] format.
         conf (torch.Tensor | np.ndarray): Confidence scores for each box.
@@ -900,12 +900,12 @@ class Boxes(BaseTensor):
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
                 (num_boxes, 6) or (num_boxes, 7). Columns should contain
-                [x1, y1, x2, y2, confidence, class, (optional) track_id].
-            orig_shape (Tuple[int, int]): The original image shape as (height, width). Used for normalization.
+                [x1, y1, x2, y2, (optional) track_id, confidence, class].
+            orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
 
         Attributes:
             data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
-            orig_shape (Tuple[int, int]): The original image size, used for normalization.
+            orig_shape (tuple[int, int]): The original image size, used for normalization.
             is_track (bool): Indicates whether tracking IDs are included in the box data.
 
         Examples:
@@ -1081,8 +1081,8 @@ class Masks(BaseTensor):
     Attributes:
         data (torch.Tensor | np.ndarray): The raw tensor or array containing mask data.
         orig_shape (tuple): Original image shape in (height, width) format.
-        xy (List[np.ndarray]): A list of segments in pixel coordinates.
-        xyn (List[np.ndarray]): A list of normalized segments.
+        xy (list[np.ndarray]): A list of segments in pixel coordinates.
+        xyn (list[np.ndarray]): A list of normalized segments.
 
     Methods:
         cpu: Return a copy of the Masks object with the mask tensor on CPU memory.
@@ -1127,7 +1127,7 @@ class Masks(BaseTensor):
         are normalized relative to the original image shape.
 
         Returns:
-            (List[np.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
+            (list[np.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
                 of a single segmentation mask. Each array has shape (N, 2), where N is the number of points in the
                 mask contour.
 
@@ -1152,7 +1152,7 @@ class Masks(BaseTensor):
         Masks object. The coordinates are scaled to match the original image dimensions.
 
         Returns:
-            (List[np.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel
+            (list[np.ndarray]): A list of numpy arrays, where each array contains the [x, y] pixel
                 coordinates for a single segmentation mask. Each array has shape (N, 2), where N is the
                 number of points in the segment.
 
@@ -1179,7 +1179,7 @@ class Keypoints(BaseTensor):
 
     Attributes:
         data (torch.Tensor): The raw tensor containing keypoint data.
-        orig_shape (Tuple[int, int]): The original image dimensions (height, width).
+        orig_shape (tuple[int, int]): The original image dimensions (height, width).
         has_visible (bool): Indicates whether visibility information is available for keypoints.
         xy (torch.Tensor): Keypoint coordinates in [x, y] format.
         xyn (torch.Tensor): Normalized keypoint coordinates in [x, y] format, relative to orig_shape.
@@ -1213,7 +1213,7 @@ class Keypoints(BaseTensor):
             keypoints (torch.Tensor): A tensor containing keypoint data. Shape can be either:
                 - (num_objects, num_keypoints, 2) for x, y coordinates only
                 - (num_objects, num_keypoints, 3) for x, y coordinates and confidence scores
-            orig_shape (Tuple[int, int]): The original image dimensions (height, width).
+            orig_shape (tuple[int, int]): The original image dimensions (height, width).
 
         Examples:
             >>> kpts = torch.rand(1, 17, 3)  # 1 object, 17 keypoints (COCO format), x,y,conf
@@ -1301,7 +1301,7 @@ class Probs(BaseTensor):
         data (torch.Tensor | np.ndarray): The raw tensor or array containing classification probabilities.
         orig_shape (tuple | None): The original image shape as (height, width). Not used in this class.
         top1 (int): Index of the class with the highest probability.
-        top5 (List[int]): Indices of the top 5 classes by probability.
+        top5 (list[int]): Indices of the top 5 classes by probability.
         top1conf (torch.Tensor | np.ndarray): Confidence score of the top 1 class.
         top5conf (torch.Tensor | np.ndarray): Confidence scores of the top 5 classes.
 
@@ -1339,7 +1339,7 @@ class Probs(BaseTensor):
         Attributes:
             data (torch.Tensor | np.ndarray): The raw tensor or array containing classification probabilities.
             top1 (int): Index of the top 1 class.
-            top5 (List[int]): Indices of the top 5 classes.
+            top5 (list[int]): Indices of the top 5 classes.
             top1conf (torch.Tensor | np.ndarray): Confidence of the top 1 class.
             top5conf (torch.Tensor | np.ndarray): Confidences of the top 5 classes.
 
@@ -1379,7 +1379,7 @@ class Probs(BaseTensor):
         Return the indices of the top 5 class probabilities.
 
         Returns:
-            (List[int]): A list containing the indices of the top 5 class probabilities, sorted in descending order.
+            (list[int]): A list containing the indices of the top 5 class probabilities, sorted in descending order.
 
         Examples:
             >>> probs = Probs(torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5]))
@@ -1476,11 +1476,11 @@ class OBB(BaseTensor):
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array containing the detection boxes,
                 with shape (num_boxes, 7) or (num_boxes, 8). The last two columns contain confidence and class values.
                 If present, the third last column contains track IDs, and the fifth column contains rotation.
-            orig_shape (Tuple[int, int]): Original image size, in the format (height, width).
+            orig_shape (tuple[int, int]): Original image size, in the format (height, width).
 
         Attributes:
             data (torch.Tensor | np.ndarray): The raw OBB tensor.
-            orig_shape (Tuple[int, int]): The original image shape.
+            orig_shape (tuple[int, int]): The original image shape.
             is_track (bool): Whether the boxes include tracking IDs.
 
         Raises:

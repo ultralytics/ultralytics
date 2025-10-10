@@ -89,7 +89,7 @@ class YOLOEDetectValidator(DetectionValidator):
             for i in range(preds.shape[0]):
                 cls = batch["cls"][batch_idx == i].squeeze(-1).to(torch.int).unique(sorted=True)
                 pad_cls = torch.ones(preds.shape[1], device=self.device) * -1
-                pad_cls[: len(cls)] = cls
+                pad_cls[: cls.shape[0]] = cls
                 for c in cls:
                     visual_pe[c] += preds[i][pad_cls == c].sum(0) / cls_visual_num[c]
 
@@ -97,13 +97,6 @@ class YOLOEDetectValidator(DetectionValidator):
         visual_pe[cls_visual_num != 0] = F.normalize(visual_pe[cls_visual_num != 0], dim=-1, p=2)
         visual_pe[cls_visual_num == 0] = 0
         return visual_pe.unsqueeze(0)
-
-    def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
-        """Preprocess batch data, ensuring visuals are on the same device as images."""
-        batch = super().preprocess(batch)
-        if "visuals" in batch:
-            batch["visuals"] = batch["visuals"].to(batch["img"].device, non_blocking=True)
-        return batch
 
     def get_vpe_dataloader(self, data: dict[str, Any]) -> torch.utils.data.DataLoader:
         """

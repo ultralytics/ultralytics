@@ -51,7 +51,7 @@ class Predictor(BasePredictor):
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         im (torch.Tensor): The preprocessed input image.
         features (torch.Tensor): Extracted image features.
-        prompts (Dict[str, Any]): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
+        prompts (dict[str, Any]): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
         segment_all (bool): Flag to indicate if full image segmentation should be performed.
         mean (torch.Tensor): Mean values for image normalization.
         std (torch.Tensor): Standard deviation values for image normalization.
@@ -116,7 +116,7 @@ class Predictor(BasePredictor):
         torch.Tensor and list of np.ndarray as input formats.
 
         Args:
-            im (torch.Tensor | List[np.ndarray]): Input image(s) in BCHW tensor format or list of HWC numpy arrays.
+            im (torch.Tensor | list[np.ndarray]): Input image(s) in BCHW tensor format or list of HWC numpy arrays.
 
         Returns:
             (torch.Tensor): The preprocessed image tensor, normalized and converted to the appropriate dtype.
@@ -149,10 +149,10 @@ class Predictor(BasePredictor):
         Currently, batched inference is not supported; hence the list length should be 1.
 
         Args:
-            im (List[np.ndarray]): List containing a single image in HWC numpy array format.
+            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
 
         Returns:
-            (List[np.ndarray]): List containing the transformed image.
+            (list[np.ndarray]): List containing the transformed image.
 
         Raises:
             AssertionError: If the input list contains more than one image.
@@ -177,9 +177,9 @@ class Predictor(BasePredictor):
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
-            bboxes (np.ndarray | List | None): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List | None): Labels for point prompts, shape (N,). 1 = foreground, 0 = background.
+            bboxes (np.ndarray | list | None): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list | None): Labels for point prompts, shape (N,). 1 = foreground, 0 = background.
             masks (np.ndarray | None): Low-resolution masks from previous predictions, shape (N, H, W). For SAM H=W=256.
             multimask_output (bool): Flag to return multiple masks. Helpful for ambiguous prompts.
             *args (Any): Additional positional arguments.
@@ -215,9 +215,9 @@ class Predictor(BasePredictor):
 
         Args:
             im (torch.Tensor): Preprocessed input image tensor with shape (N, C, H, W).
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
+            bboxes (np.ndarray | list | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | list | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
@@ -250,10 +250,10 @@ class Predictor(BasePredictor):
 
         Args:
             features (torch.Tensor): Extracted image features with shape (B, C, H, W) from the SAM model image encoder.
-            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
-            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
-            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            bboxes (np.ndarray | list[list[float]] | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list[list[float]] | None): Object location points with shape (N, 2), in pixels.
+            labels (np.ndarray | list[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
+            masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
         Returns:
@@ -282,12 +282,12 @@ class Predictor(BasePredictor):
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
-            dst_shape (Tuple[int, int]): The target shape (height, width) for the prompts.
-            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
-            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array with shape (H, W).
+            dst_shape (tuple[int, int]): The target shape (height, width) for the prompts.
+            src_shape (tuple[int, int]): The source shape (height, width) of the input image.
+            bboxes (np.ndarray | list | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | list | None): Point prompt labels with shape (N) or (N, num_points). 1 for foreground, 0 for background.
+            masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array with shape (H, W).
 
         Returns:
             bboxes (torch.Tensor | None): Transformed bounding boxes.
@@ -351,7 +351,7 @@ class Predictor(BasePredictor):
             crop_n_layers (int): Number of layers for additional mask predictions on image crops.
             crop_overlap_ratio (float): Overlap between crops, scaled down in subsequent layers.
             crop_downscale_factor (int): Scaling factor for sampled points-per-side in each layer.
-            point_grids (List[np.ndarray] | None): Custom grids for point sampling normalized to [0,1].
+            point_grids (list[np.ndarray] | None): Custom grids for point sampling normalized to [0,1].
             points_stride (int): Number of points to sample along each side of the image.
             points_batch_size (int): Batch size for the number of points processed simultaneously.
             conf_thres (float): Confidence threshold [0,1] for filtering based on mask quality prediction.
@@ -423,7 +423,7 @@ class Predictor(BasePredictor):
             pred_masks.append(crop_masks)
             pred_bboxes.append(crop_bboxes)
             pred_scores.append(crop_scores)
-            region_areas.append(area.expand(len(crop_masks)))
+            region_areas.append(area.expand(crop_masks.shape[0]))
 
         pred_masks = torch.cat(pred_masks)
         pred_bboxes = torch.cat(pred_bboxes)
@@ -490,10 +490,10 @@ class Predictor(BasePredictor):
                 - pred_scores (torch.Tensor): Confidence scores for each mask with shape (N, 1).
                 - pred_bboxes (torch.Tensor, optional): Predicted bounding boxes if segment_all is True.
             img (torch.Tensor): The processed input image tensor with shape (C, H, W).
-            orig_imgs (List[np.ndarray] | torch.Tensor): The original, unprocessed images.
+            orig_imgs (list[np.ndarray] | torch.Tensor): The original, unprocessed images.
 
         Returns:
-            (List[Results]): List of Results objects containing detection masks, bounding boxes, and other
+            (list[Results]): List of Results objects containing detection masks, bounding boxes, and other
                 metadata for each processed image.
 
         Examples:
@@ -504,14 +504,14 @@ class Predictor(BasePredictor):
         # (N, 1, H, W), (N, 1)
         pred_masks, pred_scores = preds[:2]
         pred_bboxes = preds[2] if self.segment_all else None
-        names = dict(enumerate(str(i) for i in range(len(pred_masks))))
+        names = dict(enumerate(str(i) for i in range(pred_masks.shape[0])))
 
         if not isinstance(orig_imgs, list):  # input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)
 
         results = []
         for masks, orig_img, img_path in zip([pred_masks], orig_imgs, self.batch[0]):
-            if len(masks) == 0:
+            if masks.shape[0] == 0:
                 masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
                 masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
@@ -521,7 +521,7 @@ class Predictor(BasePredictor):
                 else:
                     pred_bboxes = batched_mask_to_box(masks)
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-                cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+                cls = torch.arange(pred_masks.shape[0], dtype=torch.int32, device=pred_masks.device)
                 idx = pred_scores > self.args.conf
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)[idx]
                 masks = masks[idx]
@@ -623,7 +623,7 @@ class Predictor(BasePredictor):
 
         Returns:
             new_masks (torch.Tensor): Processed masks with small regions removed, shape (N, H, W).
-            keep (List[int]): Indices of remaining masks after NMS, for filtering corresponding boxes.
+            keep (list[int]): Indices of remaining masks after NMS, for filtering corresponding boxes.
 
         Examples:
             >>> masks = torch.rand(5, 640, 640) > 0.5  # 5 random binary masks
@@ -633,7 +633,7 @@ class Predictor(BasePredictor):
         """
         import torchvision  # scope for faster 'import ultralytics'
 
-        if len(masks) == 0:
+        if masks.shape[0] == 0:
             return masks
 
         # Filter small disconnected regions and holes
@@ -673,13 +673,13 @@ class Predictor(BasePredictor):
         Perform prompts preprocessing and inference on provided image features using the SAM model.
 
         Args:
-            features (torch.Tensor | Dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.
-            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
-            dst_shape (Tuple[int, int] | None): The target shape (height, width) for the prompts. If None, defaults to (imgsz, imgsz).
-            bboxes (np.ndarray | List[List[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
-            points (np.ndarray | List[List[float]] | None): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N, ).
-            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            features (torch.Tensor | dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.
+            src_shape (tuple[int, int]): The source shape (height, width) of the input image.
+            dst_shape (tuple[int, int] | None): The target shape (height, width) for the prompts. If None, defaults to (imgsz, imgsz).
+            bboxes (np.ndarray | list[list[float]] | None): Bounding boxes in xyxy format with shape (N, 4).
+            points (np.ndarray | list[list[float]] | None): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list[int] | None): Point prompt labels with shape (N, ).
+            masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
 
         Returns:
@@ -688,19 +688,19 @@ class Predictor(BasePredictor):
                 Each box is in xyxy format with additional columns for score and class.
 
         Notes:
-            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a Dict[str, Any] if performing on SAM2.
+            - The input features is a torch.Tensor of shape (B, C, H, W) if performing on SAM, or a dict[str, Any] if performing on SAM2.
         """
         dst_shape = dst_shape or (self.args.imgsz, self.args.imgsz)
         prompts = self._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         pred_masks, pred_scores = self._inference_features(features, *prompts, multimask_output)
-        if len(pred_masks) == 0:
+        if pred_masks.shape[0] == 0:
             pred_masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
             pred_masks = ops.scale_masks(pred_masks[None].float(), src_shape, padding=False)[0]
             pred_masks = pred_masks > self.model.mask_threshold  # to bool
             pred_bboxes = batched_mask_to_box(pred_masks)
             # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-            cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+            cls = torch.arange(pred_masks.shape[0], dtype=torch.int32, device=pred_masks.device)
             pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
         return pred_masks, pred_bboxes
 
@@ -714,12 +714,12 @@ class SAM2Predictor(Predictor):
     prompt-based inference.
 
     Attributes:
-        _bb_feat_sizes (List[tuple]): Feature sizes for different backbone levels.
+        _bb_feat_sizes (list[tuple]): Feature sizes for different backbone levels.
         model (torch.nn.Module): The loaded SAM2 model.
         device (torch.device): The device (CPU or GPU) on which the model is loaded.
         features (dict): Cached image features for efficient inference.
         segment_all (bool): Flag to indicate if all segments should be predicted.
-        prompts (Dict[str, Any]): Dictionary to store various types of prompts for inference.
+        prompts (dict[str, Any]): Dictionary to store various types of prompts for inference.
 
     Methods:
         get_model: Retrieve and initialize the SAM2 model.
@@ -752,12 +752,12 @@ class SAM2Predictor(Predictor):
         Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
-            dst_shape (Tuple[int, int]): The target shape (height, width) for the prompts.
-            src_shape (Tuple[int, int]): The source shape (height, width) of the input image.
-            bboxes (np.ndarray | List | None): Bounding boxes in XYXY format with shape (N, 4).
-            points (np.ndarray | List | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
-            labels (np.ndarray | List | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
-            masks (List | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+            dst_shape (tuple[int, int]): The target shape (height, width) for the prompts.
+            src_shape (tuple[int, int]): The source shape (height, width) of the input image.
+            bboxes (np.ndarray | list | None): Bounding boxes in XYXY format with shape (N, 4).
+            points (np.ndarray | list | None): Points indicating object locations with shape (N, 2) or (N, num_points, 2), in pixels.
+            labels (np.ndarray | list | None): Point prompt labels with shape (N,) or (N, num_points). 1 for foreground, 0 for background.
+            masks (list | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
 
         Returns:
             points (torch.Tensor | None): Transformed points.
@@ -770,7 +770,7 @@ class SAM2Predictor(Predictor):
         bboxes, points, labels, masks = super()._prepare_prompts(dst_shape, src_shape, bboxes, points, labels, masks)
         if bboxes is not None:
             bboxes = bboxes.view(-1, 2, 2)
-            bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(len(bboxes), -1)
+            bbox_labels = torch.tensor([[2, 3]], dtype=torch.int32, device=bboxes.device).expand(bboxes.shape[0], -1)
             # NOTE: merge "boxes" and "points" into a single "points" input
             # (where boxes are added at the beginning) to model.sam_prompt_encoder
             if points is not None:
@@ -842,13 +842,13 @@ class SAM2Predictor(Predictor):
         Perform inference on image features using the SAM2 model.
 
         Args:
-            features (torch.Tensor | Dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
+            features (torch.Tensor | dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
                 could also be a dictionary including:
                 - image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
-                - high_res_feats (List[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
-            points (np.ndarray | List[List[float]] | None): Object location points with shape (N, 2), in pixels.
-            labels (np.ndarray | List[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
-            masks (List[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
+                - high_res_feats (list[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
+            points (np.ndarray | list[list[float]] | None): Object location points with shape (N, 2), in pixels.
+            labels (np.ndarray | list[int] | None): Point prompt labels with shape (N,). 1 = foreground, 0 = background.
+            masks (list[np.ndarray] | np.ndarray | None): Masks for the objects, where each mask is a 2D array.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
             img_idx (int): Index of the image in the batch to process.
 
@@ -962,9 +962,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
-            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            bboxes (np.ndarray | list, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
             masks (np.ndarray, optional): Low-resolution masks from previous predictions shape (N,H,W). For SAM H=W=256.
 
         Returns:
@@ -1025,7 +1025,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         pred_masks = current_out["pred_masks"].flatten(0, 1)
         pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
 
-        return pred_masks, torch.ones(len(pred_masks), dtype=pred_masks.dtype, device=pred_masks.device)
+        return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
 
     def postprocess(self, preds, img, orig_imgs):
         """
@@ -1036,9 +1036,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         the masks do not overlap, which can be useful for certain applications.
 
         Args:
-            preds (Tuple[torch.Tensor, torch.Tensor]): The predicted masks and scores from the model.
+            preds (tuple[torch.Tensor, torch.Tensor]): The predicted masks and scores from the model.
             img (torch.Tensor): The processed image tensor.
-            orig_imgs (List[np.ndarray]): The original images before processing.
+            orig_imgs (list[np.ndarray]): The original images before processing.
 
         Returns:
             (list): The post-processed predictions.
@@ -1126,7 +1126,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             )
 
             if prev_out is not None and prev_out.get("pred_masks") is not None:
-                prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
+                prev_sam_mask_logits = prev_out["pred_masks"].to(
+                    device=self.device, non_blocking=self.device.type == "cuda"
+                )
                 # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
                 prev_sam_mask_logits.clamp_(-32.0, 32.0)
         current_out = self._run_single_frame_inference(
@@ -1286,7 +1288,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         Returns:
             vis_feats (torch.Tensor): The visual features extracted from the image.
             vis_pos_embed (torch.Tensor): The positional embeddings for the visual features.
-            feat_sizes (List[tuple]): A list containing the sizes of the extracted features.
+            feat_sizes (list[tuple]): A list containing the sizes of the extracted features.
 
         Note:
             - If `batch` is greater than 1, the features are expanded to fit the batch size.
@@ -1418,12 +1420,12 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
             current_out["maskmem_features"] = maskmem_features.to(
-                dtype=torch.float16, device=self.device, non_blocking=True
+                dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
             )
         # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
         # potentially fill holes in the predicted masks
         # if self.fill_hole_area > 0:
-        #     pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
+        #     pred_masks = current_out["pred_masks"].to(self.device, non_blocking=self.device.type == "cuda")
         #     pred_masks = fill_holes_in_mask_scores(pred_masks, self.fill_hole_area)
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
@@ -1442,11 +1444,11 @@ class SAM2VideoPredictor(SAM2Predictor):
         the current batch size.
 
         Args:
-            out_maskmem_pos_enc (List[torch.Tensor] | None): The positional encoding for mask memory.
+            out_maskmem_pos_enc (list[torch.Tensor] | None): The positional encoding for mask memory.
                 Should be a list of tensors or None.
 
         Returns:
-            (List[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
+            (list[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
 
         Note:
             - The method assumes that `out_maskmem_pos_enc` is a list of tensors or None.
@@ -1465,7 +1467,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             else:
                 maskmem_pos_enc = model_constants["maskmem_pos_enc"]
             # expand the cached maskmem_pos_enc to the actual batch size
-            batch_size = out_maskmem_pos_enc[0].size(0)
+            batch_size = out_maskmem_pos_enc[0].shape[0]
             if batch_size > 1:
                 out_maskmem_pos_enc = [x.expand(batch_size, -1, -1, -1) for x in maskmem_pos_enc]
         return out_maskmem_pos_enc
@@ -1636,7 +1638,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(maskmem_pos_enc)
-        return maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=True), maskmem_pos_enc
+        return maskmem_features.to(
+            dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
+        ), maskmem_pos_enc
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """
@@ -1730,10 +1734,10 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         specified overrides
 
         Args:
-            cfg (Dict[str, Any]): Configuration dictionary containing default settings.
-            overrides (Dict[str, Any] | None): Dictionary of values to override default configuration.
+            cfg (dict[str, Any]): Configuration dictionary containing default settings.
+            overrides (dict[str, Any] | None): Dictionary of values to override default configuration.
             max_obj_num (int): Maximum number of objects to track. Default is 3. this is set to keep fix feature size for the model.
-            _callbacks (Dict[str, Any] | None): Dictionary of callback functions to customize behavior.
+            _callbacks (dict[str, Any] | None): Dictionary of callback functions to customize behavior.
 
         Examples:
             >>> predictor = SAM2DynamicInteractivePredictor(cfg=DEFAULT_CFG)
@@ -1778,11 +1782,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         Args:
             im (torch.Tensor | np.ndarray): The input image tensor or numpy array.
-            bboxes (List[List[float]] | None): Optional list of bounding boxes to update the memory.
-            masks (List[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
-            points (List[List[float]] | None): Optional list of points to update the memory, each point is [x, y].
-            labels (List[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for negative).
-            obj_ids (List[int] | None): Optional list of object IDs corresponding to the prompts.
+            bboxes (list[list[float]] | None): Optional list of bounding boxes to update the memory.
+            masks (list[torch.Tensor | np.ndarray] | None): Optional masks to update the memory.
+            points (list[list[float]] | None): Optional list of points to update the memory, each point is [x, y].
+            labels (list[int] | None): Optional list of object IDs corresponding to the points (>0 for positive, 0 for negative).
+            obj_ids (list[int] | None): Optional list of object IDs corresponding to the prompts.
             update_memory (bool): Flag to indicate whether to update the memory with new objects.
 
         Returns:
@@ -1855,7 +1859,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         Append the imgState to the memory_bank and update the memory for the model.
 
         Args:
-            obj_ids (List[int]): List of object IDs corresponding to the prompts.
+            obj_ids (list[int]): List of object IDs corresponding to the prompts.
             points (torch.Tensor | None): Tensor of shape (B, N, 2) representing the input points for N objects.
             labels (torch.Tensor | None): Tensor of shape (B, N) representing the labels for the input points.
             masks (torch.Tensor | None): Optional tensor of shape (N, H, W) representing the input masks for N objects.
@@ -1906,7 +1910,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(
-            consolidated_out["pred_masks"].to(self.device, non_blocking=True),
+            consolidated_out["pred_masks"].to(self.device, non_blocking=self.device.type == "cuda"),
             size=self.imgsz,
             mode="bilinear",
             align_corners=False,
@@ -2009,7 +2013,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
             mask (torch.Tensor | None): The mask input for the object with shape (H, W).
 
         Returns:
-            current_out (Dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
+            current_out (dict[str, Any]): A dictionary containing the current output with mask predictions and object pointers.
                 Keys include 'point_inputs', 'mask_inputs', 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'object_score_logits'.
         """
         if mask is not None and self.model.use_mask_input_as_output_without_sam:
@@ -2028,7 +2032,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                 point_inputs={"point_coords": point, "point_labels": label} if obj_idx is not None else None,
                 mask_inputs=mask,
                 multimask_output=False,
-                high_res_features=[feat[: pix_feat_with_mem.size(0)] for feat in self.high_res_features],
+                high_res_features=[feat[: pix_feat_with_mem.shape[0]] for feat in self.high_res_features],
             )
         return {
             "pred_masks": low_res_masks,

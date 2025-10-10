@@ -23,7 +23,7 @@ class GPUInfo:
         pynvml (module | None): The `pynvml` module if successfully imported and initialized, otherwise `None`.
         nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded,
             False otherwise.
-        gpu_stats (List[Dict[str, Any]]): A list of dictionaries, each holding stats for one GPU. Populated on
+        gpu_stats (list[dict[str, Any]]): A list of dictionaries, each holding stats for one GPU. Populated on
             initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%),
             'memory_used' (MiB), 'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W),
             'power_limit' (W or 'N/A'). Empty if NVML is unavailable or queries fail.
@@ -146,7 +146,7 @@ class GPUInfo:
             min_util_fraction (float): Minimum free utilization rate required from 0.0 - 1.0.
 
         Returns:
-            (List[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
+            (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
 
         Notes:
              Returns fewer than 'count' if not enough qualify or exist.

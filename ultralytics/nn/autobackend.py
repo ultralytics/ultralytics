@@ -249,7 +249,7 @@ class AutoBackend(nn.Module):
                     LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False
-            LOGGER.info(f"Using ONNX Runtime {providers[0]}")
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
@@ -406,6 +406,7 @@ class AutoBackend(nn.Module):
             import coremltools as ct
 
             model = ct.models.MLModel(w)
+            dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
             metadata = dict(model.user_defined_metadata)
 
         # TF SavedModel
@@ -624,7 +625,7 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
+            (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
         """
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
@@ -720,10 +721,13 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif self.coreml:
-            im = im[0].cpu().numpy()
-            im_pil = Image.fromarray((im * 255).astype("uint8"))
+            im = im.cpu().numpy()
+            if self.dynamic:
+                im = im.transpose(0, 3, 1, 2)
+            else:
+                im = Image.fromarray((im[0] * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
-            y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
+            y = self.model.predict({"image": im})  # coordinates are xywh normalized
             if "confidence" in y:  # NMS included
                 from ultralytics.utils.ops import xywh2xyxy
 
@@ -860,7 +864,7 @@ class AutoBackend(nn.Module):
             p (str): Path to the model file.
 
         Returns:
-            (List[bool]): List of booleans indicating the model type.
+            (list[bool]): List of booleans indicating the model type.
 
         Examples:
             >>> model = AutoBackend(model="path/to/model.onnx")

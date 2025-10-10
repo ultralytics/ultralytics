@@ -68,15 +68,15 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
         half=half,
         batch=batch,
         simplify=simplify,
-        nms=nms and task != "obb",  # disable NMS for OBB task for now on T4 instance
+        nms=nms,
         device=DEVICES[0],
+        # opset=20 if nms else None,  # fix ONNX Runtime errors with NMS
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(True, reason="CUDA export tests disabled pending additional Ultralytics GPU server availability")
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize(
     "task, dynamic, int8, half, batch",
@@ -115,7 +115,9 @@ def test_train():
     device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
     # NVIDIA Jetson only has one GPU and therefore skipping checks
     if not IS_JETSON:
-        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device)  # requires imgsz>=64
+        results = YOLO(MODEL).train(
+            data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15
+        )  # requires imgsz>=64
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
         assert (
@@ -164,7 +166,7 @@ def test_autobatch():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(True, reason="Skip for now since T4 instance does not support TensorRT > 10.0")
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_utils_benchmarks():
     """Profile YOLO models for performance benchmarks."""
     from ultralytics.utils.benchmarks import ProfileModels

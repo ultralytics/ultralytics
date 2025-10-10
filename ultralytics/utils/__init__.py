@@ -460,8 +460,7 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
 # Set logger
 LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
-for logger in "sentry_sdk", "urllib3.connectionpool":
-    logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
+logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
 def emojis(string=""):
@@ -858,7 +857,7 @@ def get_ubuntu_version():
 
 def get_user_config_dir(sub_dir="Ultralytics"):
     """
-    Return the appropriate config directory based on the environment operating system.
+    Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -866,27 +865,38 @@ def get_user_config_dir(sub_dir="Ultralytics"):
     Returns:
         (Path): The path to the user config directory.
     """
-    if WINDOWS:
-        path = Path.home() / "AppData" / "Roaming" / sub_dir
-    elif MACOS:  # macOS
-        path = Path.home() / "Library" / "Application Support" / sub_dir
+    if env_dir := os.getenv("YOLO_CONFIG_DIR"):
+        p = Path(env_dir).expanduser() / sub_dir
     elif LINUX:
-        path = Path.home() / ".config" / sub_dir
+        p = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config")) / sub_dir
+    elif WINDOWS:
+        p = Path.home() / "AppData" / "Roaming" / sub_dir
+    elif MACOS:
+        p = Path.home() / "Library" / "Application Support" / sub_dir
     else:
         raise ValueError(f"Unsupported operating system: {platform.system()}")
 
-    # GCP and AWS lambda fix, only /tmp is writeable
-    if not is_dir_writeable(path.parent):
-        LOGGER.warning(
-            f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD. "
-            "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
-        )
-        path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
+    if p.exists():  # already created → trust it
+        return p
+    if is_dir_writeable(p.parent):  # create if possible
+        p.mkdir(parents=True, exist_ok=True)
+        return p
 
-    # Create the subdirectory if it does not exist
-    path.mkdir(parents=True, exist_ok=True)
+    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writeable
+    for alt in [Path("/tmp") / sub_dir, Path.cwd() / sub_dir]:
+        if alt.exists():
+            return alt
+        if is_dir_writeable(alt.parent):
+            alt.mkdir(parents=True, exist_ok=True)
+            LOGGER.warning(
+                f"user config directory '{p}' is not writeable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
+            )
+            return alt
 
-    return path
+    # Last fallback → CWD
+    p = Path.cwd() / sub_dir
+    p.mkdir(parents=True, exist_ok=True)
+    return p
 
 
 # Define constants (required below)
@@ -900,7 +910,7 @@ IS_JUPYTER = is_jupyter()
 IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
 GIT = GitRepo()
-USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
+USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
@@ -1384,7 +1394,7 @@ class SettingsManager(JSONDict):
 
 def deprecation_warn(arg, new_arg=None):
     """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
-    msg = f"'{arg}' is deprecated and will be removed in in the future."
+    msg = f"'{arg}' is deprecated and will be removed in the future."
     if new_arg is not None:
         msg += f" Use '{new_arg}' instead."
     LOGGER.warning(msg)

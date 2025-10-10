@@ -61,7 +61,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -116,7 +116,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -182,7 +182,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -281,7 +281,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -305,12 +305,14 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    # Disabled temporarily due to GPU availability issues
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    if: false
     timeout-minutes: 60
     runs-on: gpu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           activate-environment: true
       - name: Install requirements
@@ -349,7 +351,7 @@ jobs:
           python3.11 -m venv env-tests
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install requirements
         run: |
           uv pip install -e ".[export]" pytest mlflow faster-coco-eval --extra-index-url https://download.pytorch.org/whl/cpu --index-strategy unsafe-best-match
@@ -418,7 +420,7 @@ jobs:
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Activate virtual environment
         run: |
           python${{ matrix.python }} -m venv env --system-site-packages
@@ -452,7 +454,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python }}

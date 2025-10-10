@@ -294,7 +294,7 @@ class Model(torch.nn.Module):
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo11n -> yolo11n.pt
 
         if str(weights).rpartition(".")[-1] == "pt":
-            self.model, self.ckpt = attempt_load_one_weight(weights)
+            self.model, self.ckpt = load_checkpoint(weights)
             self.task = self.model.task
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path

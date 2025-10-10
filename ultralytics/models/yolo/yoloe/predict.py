@@ -75,12 +75,12 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         else:
             # NOTE: only supports bboxes as prompts for now
             assert bboxes is not None, f"Expected bboxes, but got {bboxes}!"
-            # NOTE: needs List[np.ndarray]
+            # NOTE: needs list[np.ndarray]
             assert isinstance(bboxes, list) and all(isinstance(b, np.ndarray) for b in bboxes), (
-                f"Expected List[np.ndarray], but got {bboxes}!"
+                f"Expected list[np.ndarray], but got {bboxes}!"
             )
             assert isinstance(category, list) and all(isinstance(b, np.ndarray) for b in category), (
-                f"Expected List[np.ndarray], but got {category}!"
+                f"Expected list[np.ndarray], but got {category}!"
             )
             assert len(im) == len(category) == len(bboxes), (
                 f"Expected same length for all inputs, but got {len(im)}vs{len(category)}vs{len(bboxes)}!"
@@ -149,7 +149,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Process the source to get the visual prompt embeddings (VPE).
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | List | Tuple): The source
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
                 of the image to make predictions on. Accepts various types including file paths, URLs, PIL
                 images, numpy arrays, and torch tensors.
 

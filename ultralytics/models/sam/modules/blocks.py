@@ -1,9 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import copy
 import math
 from functools import partial
-from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -227,7 +227,7 @@ class Fuser(nn.Module):
         torch.Size([1, 256, 32, 32])
     """
 
-    def __init__(self, layer: nn.Module, num_layers: int, dim: Optional[int] = None, input_projection: bool = False):
+    def __init__(self, layer: nn.Module, num_layers: int, dim: int | None = None, input_projection: bool = False):
         """
         Initialize the Fuser module for feature fusion through multiple layers.
 
@@ -593,7 +593,7 @@ class MultiScaleBlock(nn.Module):
         norm1 (nn.Module): First normalization layer.
         window_size (int): Size of the window for partitioning.
         pool (nn.Module | None): Pooling layer for query downsampling.
-        q_stride (Tuple[int, int] | None): Stride for query pooling.
+        q_stride (tuple[int, int] | None): Stride for query pooling.
         attn (MultiScaleAttention): Multi-scale attention module.
         drop_path (nn.Module): Drop path layer for regularization.
         norm2 (nn.Module): Second normalization layer.
@@ -618,7 +618,7 @@ class MultiScaleBlock(nn.Module):
         num_heads: int,
         mlp_ratio: float = 4.0,
         drop_path: float = 0.0,
-        norm_layer: Union[nn.Module, str] = "LayerNorm",
+        norm_layer: nn.Module | str = "LayerNorm",
         q_stride: tuple[int, int] = None,
         act_layer: type[nn.Module] = nn.GELU,
         window_size: int = 0,
@@ -728,7 +728,7 @@ class PositionEmbeddingSine(nn.Module):
         num_pos_feats: int,
         temperature: int = 10000,
         normalize: bool = True,
-        scale: Optional[float] = None,
+        scale: float | None = None,
     ):
         """Initialize sinusoidal position embeddings for 2D image inputs."""
         super().__init__()
@@ -833,7 +833,7 @@ class PositionEmbeddingRandom(nn.Module):
         torch.Size([128, 32, 32])
     """
 
-    def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
+    def __init__(self, num_pos_feats: int = 64, scale: float | None = None) -> None:
         """Initialize random spatial frequency position embedding for transformers."""
         super().__init__()
         if scale is None or scale <= 0.0:
@@ -915,7 +915,7 @@ class Block(nn.Module):
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         window_size: int = 0,
-        input_size: Optional[tuple[int, int]] = None,
+        input_size: tuple[int, int] | None = None,
     ) -> None:
         """
         Initialize a transformer block with optional window attention and relative positional embeddings.
@@ -934,7 +934,7 @@ class Block(nn.Module):
             use_rel_pos (bool): If True, uses relative positional embeddings in attention.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
-            input_size (Tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
+            input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
 
         Examples:
             >>> block = Block(dim=256, num_heads=8, window_size=7)
@@ -1012,7 +1012,7 @@ class REAttention(nn.Module):
         qkv_bias: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
-        input_size: Optional[tuple[int, int]] = None,
+        input_size: tuple[int, int] | None = None,
     ) -> None:
         """
         Initialize a Relative Position Attention module for transformer-based architectures.
@@ -1026,7 +1026,7 @@ class REAttention(nn.Module):
             qkv_bias (bool): If True, adds a learnable bias to query, key, value projections.
             use_rel_pos (bool): If True, uses relative positional encodings.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
-            input_size (Tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
+            input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
                 Required if use_rel_pos is True.
 
         Examples:
@@ -1106,9 +1106,9 @@ class PatchEmbed(nn.Module):
         image data into a suitable format for subsequent transformer blocks.
 
         Args:
-            kernel_size (Tuple[int, int]): Size of the convolutional kernel for patch extraction.
-            stride (Tuple[int, int]): Stride of the convolutional operation.
-            padding (Tuple[int, int]): Padding applied to the input before convolution.
+            kernel_size (tuple[int, int]): Size of the convolutional kernel for patch extraction.
+            stride (tuple[int, int]): Stride of the convolutional operation.
+            padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
 

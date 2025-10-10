@@ -1,11 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import concurrent.futures
 import statistics
 import time
-from typing import List, Optional, Tuple
-
-import requests
 
 
 class GCPRegions:
@@ -16,7 +15,7 @@ class GCPRegions:
     geographical location, tier classification, and network latency.
 
     Attributes:
-        regions (Dict[str, Tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
+        regions (dict[str, tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
 
     Methods:
         tier1: Returns a list of tier 1 GCP regions.
@@ -101,6 +100,8 @@ class GCPRegions:
             >>> region, mean, std, min_lat, max_lat = GCPRegions._ping_region("us-central1", attempts=3)
             >>> print(f"Region {region} has mean latency: {mean:.2f}ms")
         """
+        import requests  # scoped as slow import
+
         url = f"https://{region}-docker.pkg.dev"
         latencies = []
         for _ in range(attempts):
@@ -122,7 +123,7 @@ class GCPRegions:
         self,
         top: int = 1,
         verbose: bool = False,
-        tier: Optional[int] = None,
+        tier: int | None = None,
         attempts: int = 1,
     ) -> list[tuple[str, float, float, float, float]]:
         """
@@ -135,7 +136,7 @@ class GCPRegions:
             attempts (int, optional): Number of ping attempts per region.
 
         Returns:
-            (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and
+            (list[tuple[str, float, float, float, float]]): List of tuples containing region information and
                 latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:

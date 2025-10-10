@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import copy
-from typing import Optional
 
 import torch
 from torch import nn
@@ -103,7 +104,7 @@ class MemoryAttentionLayer(nn.Module):
         self.pos_enc_at_cross_attn_queries = pos_enc_at_cross_attn_queries
         self.pos_enc_at_cross_attn_keys = pos_enc_at_cross_attn_keys
 
-    def _forward_sa(self, tgt: torch.Tensor, query_pos: Optional[torch.Tensor]) -> torch.Tensor:
+    def _forward_sa(self, tgt: torch.Tensor, query_pos: torch.Tensor | None) -> torch.Tensor:
         """Perform self-attention on input tensor using positional encoding and RoPE attention mechanism."""
         tgt2 = self.norm1(tgt)
         q = k = tgt2 + query_pos if self.pos_enc_at_attn else tgt2
@@ -115,8 +116,8 @@ class MemoryAttentionLayer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        query_pos: Optional[torch.Tensor],
-        pos: Optional[torch.Tensor],
+        query_pos: torch.Tensor | None,
+        pos: torch.Tensor | None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
         """Perform cross-attention between target and memory tensors using RoPEAttention mechanism."""
@@ -140,8 +141,8 @@ class MemoryAttentionLayer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        pos: Optional[torch.Tensor] = None,
-        query_pos: Optional[torch.Tensor] = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
         num_k_exclude_rope: int = 0,
     ) -> torch.Tensor:
         """
@@ -242,8 +243,8 @@ class MemoryAttention(nn.Module):
         self,
         curr: torch.Tensor,  # self-attention inputs
         memory: torch.Tensor,  # cross-attention inputs
-        curr_pos: Optional[torch.Tensor] = None,  # pos_enc for self-attention inputs
-        memory_pos: Optional[torch.Tensor] = None,  # pos_enc for cross-attention inputs
+        curr_pos: torch.Tensor | None = None,  # pos_enc for self-attention inputs
+        memory_pos: torch.Tensor | None = None,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
     ) -> torch.Tensor:
         """

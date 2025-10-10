@@ -38,7 +38,7 @@ Before you start to follow this guide:
 - Install [DeepStream SDK](https://developer.nvidia.com/deepstream-getting-started) according to the JetPack version
     - For JetPack 4.6.4, install [DeepStream 6.0.1](https://docs.nvidia.com/metropolis/deepstream/6.0.1/dev-guide/text/DS_Quickstart.html)
     - For JetPack 5.1.3, install [DeepStream 6.3](https://docs.nvidia.com/metropolis/deepstream/6.3/dev-guide/text/DS_Quickstart.html)
-    - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html)
+    - For JetPack 6.1, install [DeepStream 7.1](https://docs.nvidia.com/metropolis/deepstream/7.0/dev-guide/text/DS_Overview.html)
 
 !!! tip
 

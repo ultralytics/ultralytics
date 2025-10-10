@@ -11,10 +11,6 @@ keywords: Ultralytics, HUB, Utilities, YOLO, smart_request, request_with_credent
 
 <br>
 
-## ::: ultralytics.hub.utils.Events
-
-<br><br><hr><br>
-
 ## ::: ultralytics.hub.utils.request_with_credentials
 
 <br><br><hr><br>

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Block modules."""
 
-from typing import Optional
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
@@ -1026,7 +1026,7 @@ class SPPELAN(nn.Module):
 class CBLinear(nn.Module):
     """CBLinear."""
 
-    def __init__(self, c1: int, c2s: list[int], k: int = 1, s: int = 1, p: Optional[int] = None, g: int = 1):
+    def __init__(self, c1: int, c2s: list[int], k: int = 1, s: int = 1, p: int|None = None, g: int = 1):
         """
         Initialize CBLinear module.
 

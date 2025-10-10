@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from abc import abstractmethod
 from pathlib import Path
-from typing import Union
 
 import torch
 import torch.nn as nn
@@ -91,12 +92,12 @@ class CLIP(TextModel):
         self.device = device
         self.eval()
 
-    def tokenize(self, texts: Union[str, list[str]]) -> torch.Tensor:
+    def tokenize(self, texts: str | list[str]) -> torch.Tensor:
         """
         Convert input texts to CLIP tokens.
 
         Args:
-            texts (str | List[str]): Input text or list of texts to tokenize.
+            texts (str | list[str]): Input text or list of texts to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text tensor with shape (batch_size, context_length) ready for model processing.
@@ -135,7 +136,7 @@ class CLIP(TextModel):
         return txt_feats
 
     @smart_inference_mode()
-    def encode_image(self, image: Union[Image.Image, torch.Tensor], dtype: torch.dtype = torch.float32) -> torch.Tensor:
+    def encode_image(self, image: Image.Image | torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """
         Encode preprocessed images into normalized feature vectors.
 
@@ -239,7 +240,7 @@ class MobileCLIP(TextModel):
         Convert input texts to MobileCLIP tokens.
 
         Args:
-            texts (List[str]): List of text strings to tokenize.
+            texts (list[str]): List of text strings to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).
@@ -324,7 +325,7 @@ class MobileCLIPTS(TextModel):
         Convert input texts to MobileCLIP tokens.
 
         Args:
-            texts (List[str]): List of text strings to tokenize.
+            texts (list[str]): List of text strings to tokenize.
 
         Returns:
             (torch.Tensor): Tokenized text inputs with shape (batch_size, sequence_length).

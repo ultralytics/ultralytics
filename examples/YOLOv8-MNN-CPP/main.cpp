@@ -6,7 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <regex>
-#include <sstream> 
+#include <sstream>
 #include <MNN/ImageProcess.hpp>
 #include <MNN/expr/Module.hpp>
 #include <MNN/expr/Executor.hpp>
@@ -31,7 +31,7 @@ public:
         BackendConfig bConfig;
         bConfig.precision = static_cast<BackendConfig::PrecisionMode>(precision);
         sConfig.backendConfig = &bConfig;
-        
+
         std::shared_ptr<Executor::RuntimeManager> rtmgr(
             Executor::RuntimeManager::createRuntimeManager(sConfig)
         );
@@ -40,7 +40,7 @@ public:
             return false;
         }
         rtmgr->setCache(".cachefile");
-        net = std::shared_ptr<Module>(Module::load(std::vector<std::string>{}, 
+        net = std::shared_ptr<Module>(Module::load(std::vector<std::string>{},
                               std::vector<std::string>{}, modelPath.c_str(), rtmgr));
         if (net == nullptr) {
             return false;
@@ -151,7 +151,7 @@ public:
         auto cy = _Gather(output, _Scalar<int>(1));
         auto w  = _Gather(output, _Scalar<int>(2));
         auto h  = _Gather(output, _Scalar<int>(3));
-        
+
         std::vector<int> startvals { 4, 0 };
     auto start = _Const(static_cast<void*>(startvals.data()), {2}, NCHW, halide_type_of<int>());
     std::vector<int> sizevals { -1, -1 };
@@ -187,13 +187,13 @@ public:
             MNN_PRINT("Result image write to `mnn_yolov8_cpp.jpg`.\n");
         }
     }
-    
+
     // Update runtime cache.
     void updateCache() {
         if (runtimeManager)
             runtimeManager->updateCache();
     }
-    
+
     private:
     std::shared_ptr<Module> net;
     VARP mOutput;
@@ -219,28 +219,28 @@ int main(int argc, const char* argv[]) {
     if (argc >= 6) {
         thread = atoi(argv[5]);
     }
-    
+
     Inference infer;
     if (!infer.loadModel(argv[1], forwardType, precision, thread))
         return 1;
-    
+
     const clock_t t0 = clock();
     float scale = 1.0f;
     VARP originalImage = imread(argv[2]);
     VARP input = infer.preprocess(originalImage, scale);
     double preprocess_time = 1000.0 * (clock() - t0) / CLOCKS_PER_SEC;
-    
+
     const clock_t t1 = clock();
     infer.runInference(input);
     double inference_time = 1000.0 * (clock() - t1) / CLOCKS_PER_SEC;
-    
+
     const clock_t t2 = clock();
     infer.postprocess(scale, originalImage);
     double postprocess_time = 1000.0 * (clock() - t2) / CLOCKS_PER_SEC;
-    
+
     printf("Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess\n",
            preprocess_time, inference_time, postprocess_time);
-    
+
     infer.updateCache();
     return 0;
 }

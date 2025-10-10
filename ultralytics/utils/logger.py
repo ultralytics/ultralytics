@@ -9,9 +9,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import psutil
-import requests
-
 from ultralytics.utils import MACOS, RANK
 from ultralytics.utils.checks import check_requirements
 
@@ -189,8 +186,10 @@ class ConsoleLogger:
         """Write log to API endpoint or local file destination."""
         try:
             if self.is_api:
+                import requests  # scoped as slow import
+
                 payload = {"timestamp": datetime.now().isoformat(), "message": text.strip()}
-                requests.post(self.destination, json=payload, timeout=5)
+                requests.post(str(self.destination), json=payload, timeout=5)
             else:
                 self.destination.parent.mkdir(parents=True, exist_ok=True)
                 with self.destination.open("a", encoding="utf-8") as f:
@@ -237,7 +236,6 @@ class SystemLogger:
     Attributes:
         pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        process (psutil.Process): Current psutil.Process instance for process-specific metrics.
         net_start: Initial network I/O counters for calculating cumulative usage.
         disk_start: Initial disk I/O counters for calculating cumulative usage.
 
@@ -260,9 +258,10 @@ class SystemLogger:
 
     def __init__(self):
         """Initialize the system logger."""
+        import psutil  # scoped as slow import
+
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
-        self.process = psutil.Process()
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
 
@@ -315,6 +314,8 @@ class SystemLogger:
         Returns:
             metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
         """
+        import psutil  # scoped as slow import
+
         net = psutil.net_io_counters()
         disk = psutil.disk_io_counters()
         memory = psutil.virtual_memory()

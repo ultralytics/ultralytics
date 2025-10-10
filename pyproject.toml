@@ -72,7 +72,6 @@ dependencies = [
     "torch>=1.8.0,!=2.4.0; sys_platform == 'win32'", # Windows CPU errors w/ 2.4.0 https://github.com/ultralytics/ultralytics/issues/15049
     "torchvision>=0.9.0",
     "psutil", # system utilization
-    "py-cpuinfo", # display CPU info
     "polars",
     "ultralytics-thop>=2.0.0", # FLOPs computation https://github.com/ultralytics/thop
 ]

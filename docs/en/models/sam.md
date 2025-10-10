@@ -25,7 +25,7 @@ SAM's advanced design allows it to adapt to new image distributions and tasks wi
 - **The SA-1B Dataset:** Introduced by the Segment Anything project, the SA-1B dataset features over 1 billion masks on 11 million images. As the largest segmentation dataset to date, it provides SAM with a diverse and large-scale training data source.
 - **Zero-Shot Performance:** SAM displays outstanding zero-shot performance across various segmentation tasks, making it a ready-to-use tool for diverse applications with minimal need for [prompt engineering](https://www.ultralytics.com/glossary/prompt-engineering).
 
-For an in-depth look at the Segment Anything Model and the SA-1B dataset, please visit the [Segment Anything website](https://segment-anything.com/) and check out the research paper [Segment Anything](https://arxiv.org/abs/2304.02643).
+For an in-depth look at the Segment Anything Model and the SA-1B dataset, please visit the [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything) and check out the research paper [Segment Anything](https://arxiv.org/abs/2304.02643).
 
 ## Available Models, Supported Tasks, and Operating Modes
 

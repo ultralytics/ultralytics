@@ -68,7 +68,7 @@ def check_file_speeds(
         >>> image_files = list(Path("dataset/images").glob("*.jpg"))
         >>> check_file_speeds(image_files, threshold_ms=15)
     """
-    if not files or len(files) == 0:
+    if not files:
         LOGGER.warning(f"{prefix}Image speed checks: No files to check")
         return
 

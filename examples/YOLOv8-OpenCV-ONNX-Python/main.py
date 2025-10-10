@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
 from typing import Any
 
@@ -43,7 +45,7 @@ def main(onnx_model: str, input_image: str) -> list[dict[str, Any]]:
         input_image (str): Path to the input image.
 
     Returns:
-        (List[Dict[str, Any]]): List of dictionaries containing detection information such as class_id, class_name,
+        (list[dict[str, Any]]): List of dictionaries containing detection information such as class_id, class_name,
             confidence, box coordinates, and scale factor.
     """
     # Load the ONNX model

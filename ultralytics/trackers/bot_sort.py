@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections import deque
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import torch
@@ -53,7 +55,7 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(
-        self, xywh: np.ndarray, score: float, cls: int, feat: Optional[np.ndarray] = None, feat_history: int = 50
+        self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
     ):
         """
         Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
@@ -102,13 +104,13 @@ class BOTrack(STrack):
 
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
-    def re_activate(self, new_track: "BOTrack", frame_id: int, new_id: bool = False) -> None:
+    def re_activate(self, new_track: BOTrack, frame_id: int, new_id: bool = False) -> None:
         """Reactivate a track with updated features and optionally assign a new ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().re_activate(new_track, frame_id, new_id)
 
-    def update(self, new_track: "BOTrack", frame_id: int) -> None:
+    def update(self, new_track: BOTrack, frame_id: int) -> None:
         """Update the track with new detection information and the current frame ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
@@ -124,7 +126,7 @@ class BOTrack(STrack):
         return ret
 
     @staticmethod
-    def multi_predict(stracks: list["BOTrack"]) -> None:
+    def multi_predict(stracks: list[BOTrack]) -> None:
         """Predict the mean and covariance for multiple object tracks using a shared Kalman filter."""
         if len(stracks) <= 0:
             return
@@ -210,7 +212,7 @@ class BOTSORT(BYTETracker):
         """Return an instance of KalmanFilterXYWH for predicting and updating object states in the tracking process."""
         return KalmanFilterXYWH()
 
-    def init_track(self, results, img: Optional[np.ndarray] = None) -> list[BOTrack]:
+    def init_track(self, results, img: np.ndarray | None = None) -> list[BOTrack]:
         """Initialize object tracks using detection bounding boxes, scores, class labels, and optional ReID features."""
         if len(results) == 0:
             return []

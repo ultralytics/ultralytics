@@ -25,10 +25,10 @@ jobs:
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system --no-cache ultralytics-actions
       - id: check_pypi
         shell: python
@@ -64,10 +64,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system --no-cache build
       - run: python -m build
       - uses: actions/upload-artifact@v4
@@ -100,10 +100,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - run: |
           uv venv sbom-env
           uv pip install -e .

@@ -14,13 +14,13 @@ Queue management using [Ultralytics YOLO11](https://github.com/ultralytics/ultra
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/gX5kSRD56Gs"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/Gxr9SpYPLh0"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Implement Queue Management with Ultralytics YOLO11 | Airport and Metro Station
+  <strong>Watch:</strong> How to Build a Queue Management System with Ultralytics YOLO | Retail, Bank & Crowd Use Cases 🚀
 </p>
 
 ## Advantages of Queue Management

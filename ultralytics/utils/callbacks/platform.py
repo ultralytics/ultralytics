@@ -1,12 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.utils import RANK, SETTINGS
-from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger, SystemLogger
 
 
 def on_pretrain_routine_start(trainer):
     """Initialize and start console logging immediately at the very beginning."""
     if RANK in {-1, 0}:
+        from ultralytics.utils.logger import DEFAULT_LOG_PATH, ConsoleLogger, SystemLogger
+
         trainer.system_logger = SystemLogger()
         trainer.console_logger = ConsoleLogger(DEFAULT_LOG_PATH)
         trainer.console_logger.start_capture()

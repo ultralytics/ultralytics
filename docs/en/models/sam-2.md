@@ -71,7 +71,7 @@ SAM 2 sets a new benchmark in the field, outperforming previous models on variou
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent [object tracking](https://www.ultralytics.com/glossary/object-tracking) over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://raw.githubusercontent.com/facebookresearch/sam2/refs/heads/main/assets/model_diagram.png)
+![SAM 2 Architecture Diagram](https://github.com/ultralytics/docs/releases/download/0/sam2-architecture-diagram.avif)
 
 ### Memory Mechanism and Occlusion Handling
 
@@ -260,7 +260,7 @@ It offers three significant enhancements:
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt
-        predictor.inference(img="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
 
         # Detect this particular object in a new image
         results = predictor(source="image2.jpg")
@@ -273,7 +273,7 @@ It offers three significant enhancements:
             update_memory=True,  # Add to memory
         )
         # Perform inference
-        results = predictor.inference(img="image5.jpg")
+        results = predictor(source="image5.jpg")
 
         # Add refinement prompts to the same category to boost performance
         # This helps when object appearance changes significantly

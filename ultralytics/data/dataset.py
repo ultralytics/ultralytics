@@ -168,7 +168,7 @@ class YOLODataset(BaseDataset):
         This method loads labels from disk or cache, verifies their integrity, and prepares them for training.
 
         Returns:
-            (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
+            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         self.label_files = img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
@@ -176,7 +176,7 @@ class YOLODataset(BaseDataset):
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, AttributeError):
+        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
 
         # Display cache
@@ -256,7 +256,7 @@ class YOLODataset(BaseDataset):
         hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
-    def update_labels_info(self, label: dict) -> dict:
+    def update_labels_info(self, label: Dict) -> Dict:
         """
         Update label format for different tasks.
 
@@ -295,7 +295,7 @@ class YOLODataset(BaseDataset):
         Collate data samples into batches.
 
         Args:
-            batch (List[dict]): List of dictionaries containing sample data.
+            batch (list[dict]): List of dictionaries containing sample data.
 
         Returns:
             (dict): Collated batch with stacked tensors.
@@ -396,7 +396,7 @@ class YOLOMultiModalDataset(YOLODataset):
         Return category names for the dataset.
 
         Returns:
-            (Set[str]): List of class names.
+            (set[str]): List of class names.
         """
         names = self.data["names"].values()
         return {n.strip() for name in names for n in name.split("/")}  # category names
@@ -478,7 +478,7 @@ class GroundingDataset(YOLODataset):
         against a predefined set of datasets with known instance counts.
 
         Args:
-            labels (List[Dict[str, Any]]): List of label dictionaries, where each dictionary
+            labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary
                 contains dataset annotations. Each label dict must have a 'bboxes' key with
                 a numpy array or tensor containing bounding box coordinates.
 
@@ -512,7 +512,7 @@ class GroundingDataset(YOLODataset):
             path (Path): Path where to save the cache file.
 
         Returns:
-            (Dict[str, Any]): Dictionary containing cached labels and related information.
+            (dict[str, Any]): Dictionary containing cached labels and related information.
         """
         x = {"labels": []}
         LOGGER.info("Loading annotation file...")
@@ -600,7 +600,7 @@ class GroundingDataset(YOLODataset):
         Load labels from cache or generate them from JSON file.
 
         Returns:
-            (List[dict]): List of label dictionaries, each containing information about an image and its annotations.
+            (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         cache_path = Path(self.json_file).with_suffix(".cache")
         try:
@@ -686,7 +686,7 @@ class YOLOConcatDataset(ConcatDataset):
         Collate data samples into batches.
 
         Args:
-            batch (List[dict]): List of dictionaries containing sample data.
+            batch (list[dict]): List of dictionaries containing sample data.
 
         Returns:
             (dict): Collated batch with stacked tensors.

@@ -11,6 +11,7 @@ References:
 
 from ultralytics.engine.model import Model
 from ultralytics.nn.tasks import RTDETRDetectionModel
+from ultralytics.utils.torch_utils import TORCH_1_11
 
 from .predict import RTDETRPredictor
 from .train import RTDETRTrainer
@@ -44,6 +45,7 @@ class RTDETR(Model):
         Args:
             model (str): Path to the pre-trained model. Supports .pt, .yaml, and .yml formats.
         """
+        assert TORCH_1_11, "RTDETR requires torch>=1.11"
         super().__init__(model=model, task="detect")
 
     @property

@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import glob
 import math
 import os
@@ -7,7 +9,7 @@ import random
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -34,8 +36,8 @@ class BaseDataset(Dataset):
         fraction (float): Fraction of dataset to utilize.
         channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         cv2_flag (int): OpenCV flag for reading images.
-        im_files (List[str]): List of image file paths.
-        labels (List[Dict]): List of label data dictionaries.
+        im_files (list[str]): List of image file paths.
+        labels (list[dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
         rect (bool): Whether to use rectangular training.
         batch_size (int): Size of batches.
@@ -46,7 +48,7 @@ class BaseDataset(Dataset):
         ims (list): List of loaded images.
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
-        npy_files (List[Path]): List of numpy file paths.
+        npy_files (list[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
@@ -69,9 +71,9 @@ class BaseDataset(Dataset):
 
     def __init__(
         self,
-        img_path: Union[str, list[str]],
+        img_path: str | list[str],
         imgsz: int = 640,
-        cache: Union[bool, str] = False,
+        cache: bool | str = False,
         augment: bool = True,
         hyp: dict[str, Any] = DEFAULT_CFG,
         prefix: str = "",
@@ -80,7 +82,7 @@ class BaseDataset(Dataset):
         stride: int = 32,
         pad: float = 0.5,
         single_cls: bool = False,
-        classes: Optional[list[int]] = None,
+        classes: list[int] | None = None,
         fraction: float = 1.0,
         channels: int = 3,
     ):
@@ -88,18 +90,18 @@ class BaseDataset(Dataset):
         Initialize BaseDataset with given configuration and options.
 
         Args:
-            img_path (str | List[str]): Path to the folder containing images or list of image paths.
+            img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
             cache (bool | str): Cache images to RAM or disk during training.
             augment (bool): If True, data augmentation is applied.
-            hyp (Dict[str, Any]): Hyperparameters to apply data augmentation.
+            hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
             rect (bool): If True, rectangular training is used.
             batch_size (int): Size of batches.
             stride (int): Stride used in the model.
             pad (float): Padding value.
             single_cls (bool): If True, single class training is used.
-            classes (List[int], optional): List of included classes.
+            classes (list[int], optional): List of included classes.
             fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
@@ -145,15 +147,15 @@ class BaseDataset(Dataset):
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
-    def get_img_files(self, img_path: Union[str, list[str]]) -> list[str]:
+    def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """
         Read image files from the specified path.
 
         Args:
-            img_path (str | List[str]): Path or list of paths to image directories or files.
+            img_path (str | list[str]): Path or list of paths to image directories or files.
 
         Returns:
-            (List[str]): List of image file paths.
+            (list[str]): List of image file paths.
 
         Raises:
             FileNotFoundError: If no images are found or the path doesn't exist.
@@ -183,12 +185,12 @@ class BaseDataset(Dataset):
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 
-    def update_labels(self, include_class: Optional[list[int]]) -> None:
+    def update_labels(self, include_class: list[int] | None) -> None:
         """
         Update labels to include only specified classes.
 
         Args:
-            include_class (List[int], optional): List of classes to include. If None, all classes are included.
+            include_class (list[int], optional): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
@@ -217,8 +219,8 @@ class BaseDataset(Dataset):
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
-            hw_original (Tuple[int, int]): Original image dimensions in (height, width) format.
-            hw_resized (Tuple[int, int]): Resized image dimensions in (height, width) format.
+            hw_original (tuple[int, int]): Original image dimensions in (height, width) format.
+            hw_resized (tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.
@@ -386,7 +388,7 @@ class BaseDataset(Dataset):
             index (int): Index of the image to retrieve.
 
         Returns:
-            (Dict[str, Any]): Label dictionary with image and metadata.
+            (dict[str, Any]): Label dictionary with image and metadata.
         """
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
@@ -407,7 +409,7 @@ class BaseDataset(Dataset):
         """Custom your label format here."""
         return label
 
-    def build_transforms(self, hyp: Optional[dict[str, Any]] = None):
+    def build_transforms(self, hyp: dict[str, Any] | None = None):
         """
         Users can customize augmentations here.
 

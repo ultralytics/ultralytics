@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from typing import Any
 
 import numpy as np
@@ -62,12 +64,12 @@ class RegionCounter(BaseSolution):
 
         Args:
             name (str): Name assigned to the new region.
-            polygon_points (List[Tuple]): List of (x, y) coordinates defining the region's polygon.
-            region_color (Tuple[int, int, int]): BGR color for region visualization.
-            text_color (Tuple[int, int, int]): BGR color for the text within the region.
+            polygon_points (list[tuple]): List of (x, y) coordinates defining the region's polygon.
+            region_color (tuple[int, int, int]): BGR color for region visualization.
+            text_color (tuple[int, int, int]): BGR color for the text within the region.
 
         Returns:
-            (Dict[str, any]): Returns a dictionary including the region information i.e. name, region_color etc.
+            (dict[str, any]): Returns a dictionary including the region information i.e. name, region_color etc.
         """
         region = self.region_template.copy()
         region.update(

@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import torch
 
@@ -155,7 +157,7 @@ class RTDETRValidator(DetectionValidator):
         )
 
     def postprocess(
-        self, preds: Union[torch.Tensor, list[torch.Tensor], tuple[torch.Tensor]]
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
@@ -192,9 +194,9 @@ class RTDETRValidator(DetectionValidator):
         Serialize YOLO predictions to COCO json format.
 
         Args:
-            predn (Dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
+            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
                 with bounding box coordinates, confidence scores, and class predictions.
-            pbatch (Dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
+            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
         path = Path(pbatch["im_file"])
         stem = path.stem

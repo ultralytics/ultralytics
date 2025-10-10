@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import time
 
 import cv2
@@ -77,7 +79,7 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tup
         mid_x (int): X-coordinate of the midpoint.
         mid_y (int): Y-coordinate of the midpoint.
         direction (str): Direction to extend ('left', 'right', 'up', 'down').
-        img_shape (Tuple[int, int, int]): Image shape in (height, width, channels).
+        img_shape (tuple[int, int, int]): Image shape in (height, width, channels).
 
     Returns:
         end_x (int): X-coordinate of the endpoint.
@@ -86,13 +88,14 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tup
     h, w = img_shape[:2]
     if direction == "left":
         return 0, mid_y
-    if direction == "right":
+    elif direction == "right":
         return w - 1, mid_y
-    if direction == "up":
+    elif direction == "up":
         return mid_x, 0
-    if direction == "down":
+    elif direction == "down":
         return mid_x, h - 1
-    return mid_x, mid_y
+    else:
+        return mid_x, mid_y
 
 
 def draw_tracking_scope(im, bbox: tuple, color: tuple) -> None:

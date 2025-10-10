@@ -7,6 +7,7 @@ from typing import Any
 
 import numpy as np
 import torch
+
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo

@@ -391,10 +391,14 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         # Run inference on an image, using the provided visual prompts as guidance
         results1 = model.predict_memory(
             "ultralytics/assets/bus.jpg",
-            visual_prompts = dict(bboxes=np.array([
-                [221.52, 405.8, 344.98, 857.54],
-            ]),
-            cls=["person"]), # string cls to extract text embeddings and combine with visual prompt embeddings in memory bank
+            visual_prompts=dict(
+                bboxes=np.array(
+                    [
+                        [221.52, 405.8, 344.98, 857.54],
+                    ]
+                ),
+                cls=["person"],
+            ),  # string cls to extract text embeddings and combine with visual prompt embeddings in memory bank
             vp_weight=0.5,  # weight for visual prompt embeddings when combining with text embeddings
             predictor=YOLOEVPDetectPredictor,
         )
@@ -402,19 +406,22 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         # add another visual prompt on the same image
         results2 = model.predict_memory(
             "ultralytics/assets/bus.jpg",
-            visual_prompts = dict(bboxes=np.array([
-                [120, 425, 160, 445],  # Box enclosing glasses
-            ]),
-            cls=[0]),
+            visual_prompts=dict(
+                bboxes=np.array(
+                    [
+                        [120, 425, 160, 445],  # Box enclosing glasses
+                    ]
+                ),
+                cls=[0],
+            ),
             predictor=YOLOEVPDetectPredictor,
         )
 
         # predict without visual prompt
-        results3= model.predict_memory(
+        results3 = model.predict_memory(
             "ultralytics/assets/zidane.jpg",
             conf=0.1,
         )
-
         ```
 
     === "Prompt free"

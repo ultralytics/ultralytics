@@ -169,6 +169,7 @@ def test_semseg():
     }
     cfg = get_cfg(SEMSEG_CFG)
     cfg.device = -1
+    cfg.data = cfg.data or "CityEscapeYOLO.yaml"
     # Trainer
     trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
     trainer.add_callback("on_train_start", test_func)

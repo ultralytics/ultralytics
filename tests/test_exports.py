@@ -101,7 +101,7 @@ def test_export_onnx_matrix(task, dynamic, int8, half, batch, simplify, nms):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, batch, nms)
         for task, dynamic, int8, half, batch, nms in product(
-            TASKS, [False, True], [False], [False], [1, 2], [True, False]
+            TASKS, [False, True], [False], [False, True], [1, 2], [True, False]
         )
         if not (task == "classify" and nms)
     ],
@@ -124,9 +124,12 @@ def test_export_torchscript_matrix(task, dynamic, int8, half, batch, nms):
     [  # generate all combinations except for exclusion cases
         (task, dynamic, int8, half, nms, batch)
         for task, dynamic, int8, half, nms, batch in product(
-            TASKS, [False], [True, False], [True, False], [True, False], [1]
+            TASKS, [True, False], [True, False], [True, False], [True, False], [1]
         )
-        if not (int8 and half) and not (task != "detect" and nms)
+        if not (int8 and half)
+        and not (task != "detect" and nms)
+        and not (dynamic and nms)
+        and not (task == "classify" and dynamic)
     ],
 )
 def test_export_coreml_matrix(task, dynamic, int8, half, nms, batch):

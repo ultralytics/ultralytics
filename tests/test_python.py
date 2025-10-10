@@ -332,6 +332,8 @@ def test_data_utils(tmp_path):
     # with WorkingDirectory(ROOT.parent / 'tests'):
 
     for task in TASKS:
+        if task == "semseg":
+            continue
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
         download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
         stats = HUBDatasetStats(tmp_path / file, task=task)

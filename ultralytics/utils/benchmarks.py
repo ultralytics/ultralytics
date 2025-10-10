@@ -615,12 +615,7 @@ class ProfileModels:
             dynamic = self.check_dynamic(input_tensor.shape)
             if dynamic:
                 if len(input_tensor.shape) == 4:
-                    in_shape = [0] * 4
-                    in_shape[0] = 1 if self.check_dynamic([input_tensor.shape[0]]) else input_tensor.shape[0]
-                    in_shape[1] = 3 if self.check_dynamic([input_tensor.shape[1]]) else input_tensor.shape[1]
-                    in_shape[2] = self.imgsz if self.check_dynamic([input_tensor.shape[2]]) else input_tensor.shape[2]
-                    in_shape[3] = self.imgsz if self.check_dynamic([input_tensor.shape[3]]) else input_tensor.shape[3]
-                    input_shape = tuple(in_shape)
+                    input_shape = (1, 3, self.imgsz, self.imgsz)
                 else:
                     if self.check_dynamic(input_tensor.shape[1:]):
                         raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")

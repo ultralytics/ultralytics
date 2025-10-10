@@ -287,6 +287,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
 
     return {"name": "prediction", "data": data}
 
+
 def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> list[list[Any]] | None:
     """
     Extract segmentation annotation from compressed segmentations as list of polygons.
@@ -306,7 +307,6 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
     except Exception as e:
         LOGGER.warning(f"Comet Failed to extract segmentation annotation: {e}")
     return None
-
 
 
 def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map) -> list | None:

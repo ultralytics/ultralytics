@@ -1194,6 +1194,16 @@ class v10Detect(Detect):
 
 
 class ContextGather(nn.Module):
+    """
+    The implementation for context gather block
+    Input:
+        N X C X H X W
+    Parameters:
+        cls_num       : the number of classes
+        scale         : the scale factor for probility map
+    Return:
+        N X C X H X W.
+    """
     def __init__(self, cls_num=0, scale=1):
         super().__init__()
         self.cls_num = cls_num
@@ -1201,6 +1211,15 @@ class ContextGather(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, feats, probs):
+        """
+        forward methods of context attention module
+        Args:
+            feats: feature map
+            probs: probility map
+
+        Returns:
+            attention (torch.Tensor): Attention of context
+        """
         batch_size, c, _h, _w = probs.size(0), probs.size(1), probs.size(2), probs.size(3)
         probs = probs.view(batch_size, c, -1)
         feats = feats.view(batch_size, feats.size(1), -1)
@@ -1348,16 +1367,29 @@ class SpatialOCR(nn.Module):
 
 
 class SemanticSegment(nn.Module):
-    def __init__(self, nc=80, nm=32, npr=256, ch=()):
+    """
+       YOLO Semseg head for senmantic models.
+
+       This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
+
+       Attributes:
+           nc (int): Number of classes.
+           ch (int): Number of channels.
+
+       Methods:
+           forward: Return mask.
+
+       Examples:
+           Create a segmentation head
+           >>> SemanticSegment = SemanticSegment(nc=80, ch=(256, 512, 1024))
+           >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+           >>> outputs = SemanticSegment(x)
+       """
+    def __init__(self, nc=80, ch=()):
         super().__init__()
         self.nc = nc
-        self.nm = nm  # number of masks
-        self.npr = npr  # number of protos
-
         self.chs = torch.tensor(ch).sum().item()
-
         self.conv = nn.Conv2d(self.chs, 512, kernel_size=3, stride=1, padding=1)
-
         self.cls_head = nn.Conv2d(512, self.nc, kernel_size=3, stride=1, padding=1)
 
         self.norm_head = nn.Sequential(

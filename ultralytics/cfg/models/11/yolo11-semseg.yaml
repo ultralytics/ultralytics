@@ -46,4 +46,4 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 2, C3k2, [1024, False]] # 22 (P5/32-large)
 
-  - [[16, 19, 22], 1, SemanticSegment, [nc]] # Detect(P3, P4, P5)
+  - [[16, 19, 22], 1, SemanticSegment, [nc, 8, 256]] # Detect(P3, P4, P5)

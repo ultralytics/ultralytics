@@ -124,7 +124,6 @@ class Detect(nn.Module):
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
-
     def forward(self, x: list[torch.Tensor]) -> list[torch.Tensor] | tuple:
         """Concatenate and return predicted bounding boxes and class probabilities."""
         if self.end2end:
@@ -773,7 +772,6 @@ class YOLOEDetect(Detect):
             return (y, mask) if self.export else ((y, x), mask)
         else:
             return y if self.export else (y, x)
-
 
     def forward(self, x: list[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False) -> torch.Tensor | tuple:
         """Process features with class prompt embeddings to generate detections."""

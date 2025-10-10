@@ -684,6 +684,7 @@ class ModelEMA:
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
 
+
 def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, Any] = None) -> dict[str, Any]:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.

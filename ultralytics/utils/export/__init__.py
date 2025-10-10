@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
 
 from .imx import torch2imx  # noqa
+
 
 def torch2onnx(
     torch_model: torch.nn.Module,

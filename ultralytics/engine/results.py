@@ -1558,7 +1558,7 @@ class OBB(BaseTensor):
         return self.data[:, -1]
 
     @property
-    def id(self) -> torch.Tensor|np.ndarray|None:
+    def id(self) -> torch.Tensor | np.ndarray | None:
         """
         Return the tracking IDs of the oriented bounding boxes (if available).
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import abc
 from itertools import repeat
 from numbers import Number
+
 import numpy as np
 
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
@@ -141,7 +142,6 @@ class Bboxes:
 
     @classmethod
     def concatenate(cls, boxes_list: list[Bboxes], axis: int = 0) -> Bboxes:
-
         """
         Concatenate a list of Bboxes objects into a single Bboxes object.
 

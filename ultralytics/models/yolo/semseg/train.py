@@ -12,7 +12,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.tasks import SemanticModel
 from ultralytics.utils import DEFAULT_CFG, RANK, SEMSEG_CFG
 from ultralytics.utils.plotting import plot_masks, plot_results
-
+from ultralytics.utils.torch_utils import unwrap_model
 
 class SemSegTrainer(yolo.detect.DetectionTrainer):
     """
@@ -78,7 +78,8 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
-        return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
+        return build_semantic_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs)
 
     def get_validator(self):
         """Return an instance of SegmentationValidator for validation of YOLO model."""

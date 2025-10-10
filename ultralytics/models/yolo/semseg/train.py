@@ -14,6 +14,7 @@ from ultralytics.utils import DEFAULT_CFG, RANK, SEMSEG_CFG
 from ultralytics.utils.plotting import plot_masks, plot_results
 from ultralytics.utils.torch_utils import unwrap_model
 
+
 class SemSegTrainer(yolo.detect.DetectionTrainer):
     """
     A class extending the DetectionTrainer class for training based on a segmentation model.

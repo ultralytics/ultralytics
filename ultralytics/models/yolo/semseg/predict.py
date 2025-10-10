@@ -9,10 +9,11 @@ import cv2
 import numpy as np
 import torch
 
+from ultralytics.data.utils import check_det_dataset
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, SEMSEG_CFG, YAML
-from ultralytics.data.utils import check_det_dataset
+
 
 class SemSegPredictor(DetectionPredictor):
     """A class extending the DetectionPredictor class for prediction based on a segmentation model.

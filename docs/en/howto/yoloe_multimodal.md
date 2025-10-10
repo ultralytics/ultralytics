@@ -45,6 +45,7 @@ visual_prompts = dict(
 results = model.predict(
     "ultralytics/assets/zidane.jpg",
     visual_prompts=visual_prompts,
+    refer_image="ultralytics/assets/bus.jpg",
     predictor=YOLOEVPSegPredictor,
     fuse_prompts="concat",
 )

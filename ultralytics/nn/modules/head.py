@@ -1409,7 +1409,9 @@ class SemanticSegment(nn.Module):
         )
 
         self.context_gather = ContextGather(self.nc)
-        self.context_ocr = SpatialOCR(in_channels=self.npr * 2, key_channels=self.npr, out_channels=self.npr * 2, scale=1, dropout=0.05)
+        self.context_ocr = SpatialOCR(
+            in_channels=self.npr * 2, key_channels=self.npr, out_channels=self.npr * 2, scale=1, dropout=0.05
+        )
 
     def forward(self, x):
         """

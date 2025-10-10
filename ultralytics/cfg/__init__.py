@@ -24,7 +24,6 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
-    STR_OR_PATH,
     TESTS_RUNNING,
     YAML,
     IterableSimpleNamespace,

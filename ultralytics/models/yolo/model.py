@@ -221,6 +221,7 @@ class YOLOE(Model):
         set_classes: Set the model's class names and embeddings for detection.
         val: Validate the model using text or visual prompts.
         predict: Run prediction on images, videos, directories, streams, etc.
+        predict_memory: Run prediction with memory bank for multi-model prompts.
 
     Examples:
         Load a YOLOE detection model

@@ -12,7 +12,7 @@ import torch
 from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, SEMSEG_CFG, YAML
-
+from ultralytics.data.utils import check_det_dataset
 
 class SemSegPredictor(DetectionPredictor):
     """
@@ -53,6 +53,8 @@ class SemSegPredictor(DetectionPredictor):
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "semseg"
+        self.data = check_det_dataset(self.args.data)["yaml_file"]
+
 
     def postprocess(self, preds, img, orig_imgs):
         """

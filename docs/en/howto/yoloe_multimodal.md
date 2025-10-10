@@ -36,8 +36,8 @@ model.set_classes(names, model.get_text_pe(names))
 
 # 2) Build visual prompts (same as existing API)
 visual_prompts = dict(
-    bboxes=[np.array([[221.5, 405.8, 344.9, 857.5]])],
-    cls=[np.array([0])],  # map prompt to class 0 ("person")
+    bboxes=np.array([[221.5, 405.8, 344.9, 857.5]]),
+    cls=np.array([0]),  # map prompt to class 0 ("person")
 )
 
 # 3) Run with both prompts - Concatenation Mode

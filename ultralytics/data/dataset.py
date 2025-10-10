@@ -256,7 +256,7 @@ class YOLODataset(BaseDataset):
         hyp.cutmix = 0.0
         self.transforms = self.build_transforms(hyp)
 
-    def update_labels_info(self, label: Dict) -> Dict:
+    def update_labels_info(self, label: dict) -> dict:
         """
         Update label format for different tasks.
 

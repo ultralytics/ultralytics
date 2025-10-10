@@ -53,8 +53,6 @@ class SemSegPredictor(DetectionPredictor):
         """
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "semseg"
-        self.data = check_det_dataset(self.args.data)["yaml_file"]
-
 
     def postprocess(self, preds, img, orig_imgs):
         """

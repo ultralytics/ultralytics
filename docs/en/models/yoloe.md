@@ -379,6 +379,44 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         results[0].show()
         ```
 
+    === "Memory Bank and Multi-model Prompt"
+        when visual prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no visual prompts are given, the model do prediction based on the memory bank if exists. when cls is string, the text embeddings are extracted and combined with the visual prompt embeddings in the memory bank, where vp_weight controls the weight of visual prompt embeddings when combining with text embeddings.
+
+        ```python
+        import numpy as np
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-v8l-seg.pt")
+
+        # Run inference on an image, using the provided visual prompts as guidance
+        results1 = model.predict_memory(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts = dict(bboxes=np.array([
+                [221.52, 405.8, 344.98, 857.54],
+            ]),
+            cls=["person"]), # string cls to extract text embeddings and combine with visual prompt embeddings in memory bank
+            vp_weight=0.5,  # weight for visual prompt embeddings when combining with text embeddings
+            predictor=YOLOEVPDetectPredictor,
+        )
+
+        # add another visual prompt on the same image
+        results2 = model.predict_memory(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts = dict(bboxes=np.array([
+                [120, 425, 160, 445],  # Box enclosing glasses
+            ]),
+            cls=[0]),
+            predictor=YOLOEVPDetectPredictor,
+        )
+
+        # predict without visual prompt
+        results3= model.predict_memory(
+            "ultralytics/assets/zidane.jpg",
+            conf=0.1,
+        )
+
+        ```
+
     === "Prompt free"
 
         YOLOE also includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).

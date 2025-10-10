@@ -1388,6 +1388,12 @@ class SemanticSegment(nn.Module):
     """
 
     def __init__(self, nc=80, ch=()):
+        """
+        initialize for semantic segment modular
+        Args:
+            nc: number of classes
+            ch: channels of features
+        """
         super().__init__()
         self.nc = nc
         self.chs = torch.tensor(ch).sum().item()
@@ -1402,6 +1408,14 @@ class SemanticSegment(nn.Module):
         self.context_ocr = SpatialOCR(in_channels=512, key_channels=256, out_channels=512, scale=1, dropout=0.05)
 
     def forward(self, x):
+        """
+        model forward fucntion of semantic segment modular
+        Args:
+            x(list): features from backbone or neck
+
+        Returns:
+            mask(torch.Tensor): output for semantic segment task
+        """
         _, _, h, w = x[0].shape
         f1 = x[0]
         f2 = F.interpolate(x[1], size=(h, w), mode="bilinear", align_corners=True)

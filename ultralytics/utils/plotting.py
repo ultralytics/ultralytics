@@ -324,9 +324,11 @@ class Annotator:
         multi_points = isinstance(box[0], list)  # multiple points with shape (n, 2)
         p1 = [int(b) for b in box[0]] if multi_points else (int(box[0]), int(box[1]))
         if self.pil:
-            self.draw.polygon(
-                [tuple(b) for b in box], width=self.lw, outline=color
-            ) if multi_points else self.draw.rectangle(box, width=self.lw, outline=color)
+            (
+                self.draw.polygon([tuple(b) for b in box], width=self.lw, outline=color)
+                if multi_points
+                else self.draw.rectangle(box, width=self.lw, outline=color)
+            )
             if label:
                 w, h = self.font.getsize(label)  # text width, height
                 outside = p1[1] >= h  # label fits outside box
@@ -339,10 +341,12 @@ class Annotator:
                 # self.draw.text([box[0], box[1]], label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((p1[0], p1[1] - h if outside else p1[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            cv2.polylines(
-                self.im, [np.asarray(box, dtype=int)], True, color, self.lw
-            ) if multi_points else cv2.rectangle(
-                self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+            (
+                cv2.polylines(self.im, [np.asarray(box, dtype=int)], True, color, self.lw)
+                if multi_points
+                else cv2.rectangle(
+                    self.im, p1, (int(box[2]), int(box[3])), color, thickness=self.lw, lineType=cv2.LINE_AA
+                )
             )
             if label:
                 w, h = cv2.getTextSize(label, 0, fontScale=self.sf, thickness=self.tf)[0]  # text width, height
@@ -713,10 +717,12 @@ def plot_images(
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
     """
-    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
+    for k in {"cls", "bboxes", "conf", "masks", "keypoints", "depths", "batch_idx", "images"}:
         if k not in labels:
             continue
         if k == "cls" and labels[k].ndim == 2:
+            labels[k] = labels[k].squeeze(1)  # squeeze if shape is (n, 1)
+        if k == "depths" and labels[k].ndim == 2:
             labels[k] = labels[k].squeeze(1)  # squeeze if shape is (n, 1)
         if isinstance(labels[k], torch.Tensor):
             labels[k] = labels[k].cpu().numpy()
@@ -727,6 +733,7 @@ def plot_images(
     confs = labels.get("conf", None)
     masks = labels.get("masks", np.zeros(0, dtype=np.uint8))
     kpts = labels.get("keypoints", np.zeros(0, dtype=np.float32))
+    depths = labels.get("depths", np.zeros(0, dtype=np.float32))
     images = labels.get("img", images)  # default to input images
 
     if len(images) and isinstance(images, torch.Tensor):
@@ -787,6 +794,8 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
+                        if depths[j]:
+                            label += f" {depths[j]:.3f}"
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):

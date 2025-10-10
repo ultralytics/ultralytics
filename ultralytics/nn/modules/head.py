@@ -1377,7 +1377,6 @@ class SemanticSegment(nn.Module):
 
     def __init__(self, nc=80, ns=8, npr=256, ch=()):
         """Initialize for semantic segment modular.
-
         Args:
             nc(int): number of classes
             ns(int): stride
@@ -1403,7 +1402,6 @@ class SemanticSegment(nn.Module):
 
     def forward(self, x):
         """Model forward function of semantic segment modular.
-
         Args:
             x(list): features from backbone or neck.
 

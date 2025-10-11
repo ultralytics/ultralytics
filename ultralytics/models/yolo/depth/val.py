@@ -112,24 +112,8 @@ class MDEValidator(BaseValidator):
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
 
-            # Extract depth predictions and targets first
-            if hasattr(predn, "extra") and predn["extra"] is not None and predn["extra"].shape[1] > 0:
-                # Extract depth predictions (assuming depth is in the first extra channel)
-                pred_depths = predn["extra"][:, 0]  # First extra channel is depth
-            else:
-                # If no depth predictions, add empty tensor
-                pred_depths = torch.tensor([], device=self.device)
-
-            # Extract depth targets from batch if available
-            if "depths" in batch:
-                idx = batch["batch_idx"] == si
-                if idx.any():
-                    target_depths = batch["depths"][idx]
-                else:
-                    target_depths = torch.tensor([], device=self.device)
-            else:
-                # If no depth targets, add empty tensor
-                target_depths = torch.tensor([], device=self.device)
+            # Match predictions to ground truth and extract matched depth pairs
+            matched_pred_depths, matched_target_depths = self._match_depth_pairs(predn, pbatch, batch, si)
 
             # Update all metrics (detection + depth)
             self.metrics.update_stats(
@@ -139,8 +123,8 @@ class MDEValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "pred_depths": pred_depths.cpu().numpy(),
-                    "target_depths": target_depths.cpu().numpy(),
+                    "pred_depths": matched_pred_depths,
+                    "target_depths": matched_target_depths,
                 }
             )
 
@@ -176,6 +160,70 @@ class MDEValidator(BaseValidator):
         iou = box_iou(batch["bboxes"], preds["bboxes"])
         result = {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
         return result
+
+    def _match_depth_pairs(self, predn, pbatch, batch, si):
+        """
+        Match predictions to ground truth and extract depth pairs for matched detections.
+
+        Args:
+            predn: Prepared predictions dictionary
+            pbatch: Prepared batch dictionary
+            batch: Original batch data
+            si: Sample index in batch
+
+        Returns:
+            tuple: (matched_pred_depths, matched_target_depths) as numpy arrays
+        """
+        # Extract depth predictions
+        if "extra" in predn and predn["extra"] is not None and predn["extra"].shape[1] > 0:
+            pred_depths = predn["extra"][:, 0]  # First extra channel is depth
+        else:
+            return np.array([]), np.array([])
+
+        # Extract depth targets
+        if "depths" not in batch:
+            return np.array([]), np.array([])
+
+        idx = batch["batch_idx"] == si
+        if not idx.any():
+            return np.array([]), np.array([])
+
+        target_depths = batch["depths"][idx]
+
+        # If no predictions or no targets, return empty
+        if pbatch["cls"].shape[0] == 0 or predn["cls"].shape[0] == 0:
+            return np.array([]), np.array([])
+
+        # Calculate IoU between predictions and ground truth
+        iou = box_iou(pbatch["bboxes"], predn["bboxes"])
+
+        # Match predictions to ground truth
+        # Use IoU threshold of 0.5 (could be made configurable)
+        iou_threshold = 0.5
+        matched_pred_depths_list = []
+        matched_target_depths_list = []
+
+        # For each ground truth, find the best matching prediction
+        for gt_idx in range(pbatch["cls"].shape[0]):
+            # Find predictions that match this ground truth class
+            class_match = predn["cls"] == pbatch["cls"][gt_idx]
+
+            # Get IoU values for this ground truth with all predictions
+            iou_values = iou[gt_idx, :]
+
+            # Apply class matching constraint
+            iou_values = iou_values * class_match.float()
+
+            # Find best matching prediction
+            if iou_values.max() >= iou_threshold:
+                best_pred_idx = iou_values.argmax()
+                matched_pred_depths_list.append(pred_depths[best_pred_idx].item())
+                matched_target_depths_list.append(target_depths[gt_idx].item())
+
+        # Convert to numpy arrays
+        matched_pred_depths = np.array(matched_pred_depths_list)
+        matched_target_depths = np.array(matched_target_depths_list)
+        return matched_pred_depths, matched_target_depths
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """
@@ -256,7 +304,6 @@ class MDEValidator(BaseValidator):
 
     def get_stats(self) -> dict[str, Any]:
         """Return validation statistics."""
-
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.clear_stats()
         return self.metrics.results_dict

@@ -761,7 +761,7 @@ class BaseTrainer:
         n = len(metrics) + 2  # number of cols
         s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
-        if not self.csv.parent.exists():  # user may accidentally delete save_dir
+        if not self.csv.parent.is_dir():  # user may accidentally delete save_dir
             self.csv.parent.mkdir()
         with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")

@@ -376,3 +376,59 @@ class MDEValidator(BaseValidator):
                 if values:
                     acc_value = np.mean(values)
                     LOGGER.info(f"   Depth Accuracy ({key}): {acc_value:.2f}%")
+
+    def plot_val_samples(self, batch, ni):
+        """
+        Plot validation image samples with ground truth labels and depth values.
+
+        Args:
+            batch (dict): Batch containing images and annotations.
+            ni (int): Batch index.
+        """
+        from ultralytics.utils.plotting import plot_images
+
+        plot_images(
+            labels=batch,
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )
+
+    def plot_predictions(self, batch, preds, ni):
+        """
+        Plot predicted bounding boxes with depth values on input images and save the result.
+
+        Args:
+            batch (dict): Batch containing images and annotations.
+            preds (list[dict]): List of predictions from the model.
+            ni (int): Batch index.
+        """
+        from ultralytics.utils.plotting import plot_images
+
+        # Add batch index to predictions
+        for i, pred in enumerate(preds):
+            pred["batch_idx"] = torch.ones_like(pred["conf"]) * i
+
+        # Get keys from predictions
+        keys = preds[0].keys()
+        max_det = self.args.max_det
+
+        # Concatenate all predictions into single batch
+        batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
+
+        # Convert bboxes to xywh format for plotting
+        batched_preds["bboxes"][:, :4] = ops.xyxy2xywh(batched_preds["bboxes"][:, :4])
+
+        # Extract depth values from extra channel if available
+        if "extra" in batched_preds and batched_preds["extra"].shape[1] > 0:
+            batched_preds["depths"] = batched_preds["extra"][:, 0]  # First extra channel is depth
+
+        plot_images(
+            images=batch["img"],
+            labels=batched_preds,
+            paths=batch["im_file"],
+            fname=self.save_dir / f"val_batch{ni}_pred.jpg",
+            names=self.names,
+            on_plot=self.on_plot,
+        )

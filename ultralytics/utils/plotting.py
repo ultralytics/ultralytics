@@ -777,6 +777,7 @@ def plot_images(
             if len(bboxes):
                 boxes = bboxes[idx]
                 conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
+                depths_img = depths[idx] if len(depths) else np.zeros(len(boxes))  # filter depths by image index
                 if len(boxes):
                     if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
                         boxes[..., [0, 2]] *= w  # scale to pixels
@@ -794,8 +795,8 @@ def plot_images(
                     c = names.get(c, c) if names else c
                     if labels or conf[j] > conf_thres:
                         label = f"{c}" if labels else f"{c} {conf[j]:.1f}"
-                        if depths[j]:
-                            label += f" {depths[j]:.3f}"
+                        if len(depths_img) and depths_img[j]:
+                            label += f" {depths_img[j]:.3f}"
                         annotator.box_label(box, label, color=color)
 
             elif len(classes):

@@ -428,7 +428,7 @@ class BaseTrainer:
                     if ni - last_opt_step >= self.accumulate:
                         self.optimizer_step()
                         last_opt_step = ni
-    
+
                         # Timed stopping
                         if self.args.time:
                             self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)

@@ -424,6 +424,16 @@ class BaseTrainer:
                         (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None else self.loss_items
                     )
 
+                    # NaN detection and recovery
+                    if torch.isnan(self.tloss).any():
+                        LOGGER.warning(f"NaN loss detected, attempting recovery from last checkpoint...")
+                        if not self.last.exists():
+                            raise RuntimeError(f"Cannot recover from NaN: checkpoint {self.last} not found")
+                        ckpt = load_checkpoint(self.last)[0]
+                        unwrap_model(self.model).load_state_dict(ckpt["ema"].float().state_dict())
+                        self._load_checkpoint_state(ckpt)
+                        break
+
                 # Backward
                 self.scaler.scale(self.loss).backward()
 
@@ -803,20 +813,22 @@ class BaseTrainer:
                 ) from e
         self.resume = resume
 
+    def _load_checkpoint_state(self, ckpt):
+        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        if ckpt.get("optimizer") is not None:
+            self.optimizer.load_state_dict(ckpt["optimizer"])
+        if ckpt.get("scaler") is not None:
+            self.scaler.load_state_dict(ckpt["scaler"])
+        if self.ema and ckpt.get("ema"):
+            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
+            self.ema.updates = ckpt["updates"]
+        self.best_fitness = ckpt.get("best_fitness", 0.0)
+
     def resume_training(self, ckpt):
         """Resume YOLO training from given epoch and best fitness."""
         if ckpt is None or not self.resume:
             return
-        best_fitness = 0.0
         start_epoch = ckpt.get("epoch", -1) + 1
-        if ckpt.get("optimizer") is not None:
-            self.optimizer.load_state_dict(ckpt["optimizer"])  # optimizer
-            best_fitness = ckpt["best_fitness"]
-        if ckpt.get("scaler") is not None:
-            self.scaler.load_state_dict(ckpt["scaler"])
-        if self.ema and ckpt.get("ema"):
-            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())  # EMA
-            self.ema.updates = ckpt["updates"]
         assert start_epoch > 0, (
             f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
@@ -827,7 +839,7 @@ class BaseTrainer:
                 f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
-        self.best_fitness = best_fitness
+        self._load_checkpoint_state(ckpt)
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()

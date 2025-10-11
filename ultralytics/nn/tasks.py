@@ -743,6 +743,22 @@ class RTDETRDetectionModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
+    def _apply(self, fn):
+        """
+        Apply a function to all tensors in the model that are not parameters or registered buffers.
+
+        Args:
+            fn (function): The function to apply to the model.
+
+        Returns:
+            (RTDETRDetectionModel): An updated BaseModel object.
+        """
+        self = super()._apply(fn)
+        m = self.model[-1]
+        m.anchors = fn(m.anchors)
+        m.valid_mask = fn(m.valid_mask)
+        return self
+
     def init_criterion(self):
         """Initialize the loss criterion for the RTDETRDetectionModel."""
         from ultralytics.models.utils.loss import RTDETRDetectionLoss

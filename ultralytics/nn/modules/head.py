@@ -1120,7 +1120,7 @@ class RTDETRDecoder(nn.Module):
             enc_scores (torch.Tensor): Encoded scores.
         """
         bs = feats.shape[0]
-        if self.dynamic or self.shapes != shapes or self.anchors.device != feats.device:
+        if self.dynamic or self.shapes != shapes:
             self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
             self.shapes = shapes
 

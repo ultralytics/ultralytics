@@ -30,6 +30,7 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     is_dir_writeable,
+    ASSETS_URL,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
@@ -523,8 +524,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         if str(dataset) == "imagenet":
             subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
         else:
-            url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
-            download(url, dir=data_dir.parent)
+            download(f"{ASSETS_URL}/{dataset}.zip", dir=data_dir.parent)
         LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
     train_set = data_dir / "train"
     if not train_set.is_dir():

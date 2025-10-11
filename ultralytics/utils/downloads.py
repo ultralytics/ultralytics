@@ -10,7 +10,7 @@ from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
 
-from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file, ASSETS_URL
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
@@ -323,10 +323,7 @@ def safe_download(
     if "://" not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     elif not f.is_file():  # URL and file do not exist
-        uri = (url if gdrive else clean_url(url)).replace(  # cleaned and aliased url
-            "https://github.com/ultralytics/assets/releases/download/v0.0.0/",
-            "https://ultralytics.com/assets/",  # assets alias
-        )
+        uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
         desc = f"Downloading {uri} to '{f}'"
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         curl_installed = shutil.which("curl")

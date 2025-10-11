@@ -356,8 +356,7 @@ def test_data_converter():
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
-    file = "instances_val2017.json"
-    download(f"{ASSETS_URL}/{file}", dir=TMP)
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=TMP)
     convert_coco(labels_dir=TMP, save_dir=TMP / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 

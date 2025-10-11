@@ -668,8 +668,10 @@ class BaseTrainer:
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         self.scaler.unscale_(self.optimizer2)  # unscale gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
-        self.scaler.step(self.optimizer)
-        self.scaler.step(self.optimizer2)
+        # if all(torch.isfinite(p.grad).all() for p in self.model.parameters() if p.grad is not None):
+        if not all(torch.isnan(p.grad).all() for p in self.model.parameters() if p.grad is not None):
+            self.scaler.step(self.optimizer)
+            self.scaler.step(self.optimizer2)
         self.scaler.update()
         self.optimizer.zero_grad()
         self.optimizer2.zero_grad()

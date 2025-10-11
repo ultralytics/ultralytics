@@ -820,7 +820,15 @@ class Exporter:
         )
 
         f.mkdir(exist_ok=True)  # make ncnn_model directory
-        pnnx.export(self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type)
+        try:
+            pnnx.export(
+                self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type
+            )
+        except FileNotFoundError:
+            if self.model.task == "classify":
+                pass  # classify shows FileNotFound exception but export works
+            else:
+                raise
 
         # Remove debug files
         pnnx_files = pnnx_args.values()

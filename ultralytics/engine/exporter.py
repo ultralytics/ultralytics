@@ -360,8 +360,8 @@ class Exporter:
         if self.args.half and self.args.int8:
             LOGGER.warning("half=True and int8=True are mutually exclusive, setting half=False.")
             self.args.half = False
-        if self.args.half and onnx and self.device.type == "cpu":
-            LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0")
+        if self.args.half and (onnx or jit) and self.device.type == "cpu":
+            LOGGER.warning("half=True only compatible with GPU export, i.e. use device=0, setting half=False.")
             self.args.half = False
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
@@ -463,7 +463,7 @@ class Exporter:
         y = None
         for _ in range(2):  # dry runs
             y = NMSModel(model, self.args)(im) if self.args.nms and not coreml and not imx else model(im)
-        if self.args.half and onnx and self.device.type != "cpu":
+        if self.args.half and (onnx or jit) and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
         # Filter warnings
@@ -510,11 +510,11 @@ class Exporter:
         self.run_callbacks("on_export_start")
         # Exports
         f = [""] * len(fmts)  # exported filenames
-        if jit or ncnn:  # TorchScript
+        if jit:  # TorchScript
             f[0] = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1] = self.export_engine(dla=dla)
-        if onnx:  # ONNX
+        if onnx or ncnn:  # ONNX
             f[2] = self.export_onnx()
         if xml:  # OpenVINO
             f[3] = self.export_openvino()
@@ -612,7 +612,7 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.67", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -806,7 +806,7 @@ class Exporter:
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
-        f_ts = self.file.with_suffix(".torchscript")
+        f_onnx = self.file.with_suffix(".onnx")
 
         name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
         pnnx = name if name.is_file() else (ROOT / name)
@@ -820,10 +820,10 @@ class Exporter:
             try:
                 release, assets = get_github_assets(repo="pnnx/pnnx")
                 asset = [x for x in assets if f"{system}.zip" in x][0]
-                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
+                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20250930-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
             except Exception as e:
-                release = "20240410"
+                release = "20250930"
                 asset = f"pnnx-{release}-{system}.zip"
                 LOGGER.warning(f"{prefix} PNNX GitHub assets not found: {e}, using default {asset}")
             unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
@@ -847,7 +847,7 @@ class Exporter:
 
         cmd = [
             str(pnnx),
-            str(f_ts),
+            str(f_onnx),
             *ncnn_args,
             *pnnx_args,
             f"fp16={int(self.args.half)}",
@@ -1014,7 +1014,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.67",
+                "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
@@ -1039,6 +1039,9 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
+        if "rtdetr" in self.model.model[-1]._get_name().lower():
+            self.args.opset = self.args.opset or 19
+            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()
 

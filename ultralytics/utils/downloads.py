@@ -374,7 +374,7 @@ def safe_download(
                 raise  # Re-raise immediately - no point retrying if insufficient disk space
             except Exception as e:
                 if i == 0 and not is_online():
-                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment is not online.")) from e
+                    raise ConnectionError(emojis(f"❌  Download failure for {uri}. Environment may be offline.")) from e
                 elif i >= retry:
                     raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")) from e
                 LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} {uri}... {e}")

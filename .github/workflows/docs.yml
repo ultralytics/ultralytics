@@ -48,7 +48,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.x"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Install Dependencies
         run: uv pip install --system -e ".[dev]" ruff black --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Ruff fixes

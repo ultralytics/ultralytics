@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, ASSETS_URL
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path

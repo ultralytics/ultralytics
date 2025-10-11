@@ -674,8 +674,7 @@ class BaseTrainer:
                 self.scaler.update()
                 self.optimizer.zero_grad()
                 return
-            else:
-                raise
+            raise
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:

@@ -1658,91 +1658,144 @@ class MDEMetrics(DetMetrics):
         self.depth_sq_errors = []
         self.depth_accuracies = {f"δ < {th:.3f}": [] for th in [1.25, 1.25**2, 1.25**3]}
 
-    def calculate_depth_error(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor) -> torch.Tensor:
+    def calculate_depth_error(
+        self, pred_depths: np.ndarray | torch.Tensor, gt_depths: np.ndarray | torch.Tensor
+    ) -> float:
         """
-        Calculate depth error rate (Equation 8 from paper).
+        Calculate depth error rate.
+
+        This metric measures the relative error between predicted and ground truth depths.
+        Error = (gt - pred) / gt, averaged over all valid samples.
 
         Args:
-            pred_depths: Predicted depth values [N]
-            gt_depths: Ground truth depth values [N]
+            pred_depths (np.ndarray | torch.Tensor): Predicted depth values [N]
+            gt_depths (np.ndarray | torch.Tensor): Ground truth depth values [N]
 
         Returns:
-            torch.Tensor: Depth error rate as percentage
+            (float): Mean depth error rate as percentage
+
+        Examples:
+            >>> metrics = MDEMetrics()
+            >>> pred = np.array([10.0, 20.0, 30.0])
+            >>> gt = np.array([11.0, 22.0, 28.0])
+            >>> error = metrics.calculate_depth_error(pred, gt)
         """
+        # Convert to tensors if numpy arrays
+        if isinstance(pred_depths, np.ndarray):
+            pred_depths = torch.from_numpy(pred_depths).float()
+        if isinstance(gt_depths, np.ndarray):
+            gt_depths = torch.from_numpy(gt_depths).float()
+
         # Avoid division by zero
         mask = gt_depths > 1e-6
         if not mask.any():
-            return torch.tensor(0.0, device=pred_depths.device)
+            return 0.0
 
         pred_depths = pred_depths[mask]
         gt_depths = gt_depths[mask]
 
-        errors = torch.abs(gt_depths - pred_depths) / gt_depths
-        return errors.mean() * 100  # Percentage
+        errors = (gt_depths - pred_depths) / gt_depths
+        return (errors.mean() * 100).item()  # Percentage
 
-    def calculate_absolute_depth_error(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor) -> torch.Tensor:
+    def calculate_absolute_depth_error(
+        self, pred_depths: np.ndarray | torch.Tensor, gt_depths: np.ndarray | torch.Tensor
+    ) -> float:
         """
-        Calculate absolute depth error in meters.
+        Calculate mean absolute depth error (MAE) in meters.
+
+        This metric measures the average signed difference between predicted and ground truth depths.
+        MAE = mean(pred - gt)
 
         Args:
-            pred_depths: Predicted depth values [N]
-            gt_depths: Ground truth depth values [N]
+            pred_depths (np.ndarray | torch.Tensor): Predicted depth values [N]
+            gt_depths (np.ndarray | torch.Tensor): Ground truth depth values [N]
 
         Returns:
-            torch.Tensor: Mean absolute depth error in meters
-        """
-        return torch.abs(pred_depths - gt_depths).mean()
+            (float): Mean absolute depth error in meters
 
-    def calculate_squared_depth_error(self, pred_depths: torch.Tensor, gt_depths: torch.Tensor) -> torch.Tensor:
+        Examples:
+            >>> metrics = MDEMetrics()
+            >>> pred = np.array([10.0, 20.0, 30.0])
+            >>> gt = np.array([11.0, 22.0, 28.0])
+            >>> mae = metrics.calculate_absolute_depth_error(pred, gt)
         """
-        Calculate squared depth error (RMSE).
+        # Convert to tensors if numpy arrays
+        if isinstance(pred_depths, np.ndarray):
+            pred_depths = torch.from_numpy(pred_depths).float()
+        if isinstance(gt_depths, np.ndarray):
+            gt_depths = torch.from_numpy(gt_depths).float()
+
+        return (pred_depths - gt_depths).mean().item()
+
+    def calculate_squared_depth_error(self, pred_depths: np.ndarray, gt_depths: np.ndarray) -> float:
+        """
+        Calculate root mean squared error (RMSE) in meters.
+
+        This metric measures the square root of the average squared difference between
+        predicted and ground truth depths. RMSE = sqrt(mean((pred - gt)^2))
 
         Args:
-            pred_depths: Predicted depth values [N]
-            gt_depths: Ground truth depth values [N]
+            pred_depths (np.ndarray): Predicted depth values [N]
+            gt_depths (np.ndarray): Ground truth depth values [N]
 
         Returns:
-            torch.Tensor: Root mean squared depth error in meters
+            (float): Root mean squared depth error in meters
+
+        Examples:
+            >>> metrics = MDEMetrics()
+            >>> pred = np.array([10.0, 20.0, 30.0])
+            >>> gt = np.array([11.0, 22.0, 28.0])
+            >>> rmse = metrics.calculate_squared_depth_error(pred, gt)
         """
-        return torch.sqrt(torch.mean((pred_depths - gt_depths) ** 2))
+        return np.sqrt(np.mean((pred_depths - gt_depths) ** 2))
 
     def calculate_depth_accuracy(
-        self, pred_depths: torch.Tensor, gt_depths: torch.Tensor, thresholds: list[float] = [1.25, 1.25**2, 1.25**3]
+        self, pred_depths: np.ndarray, gt_depths: np.ndarray, thresholds: list[float] = [1.25, 1.25**2, 1.25**3]
     ) -> dict[str, float]:
         """
-        Calculate depth accuracy metrics (δ < threshold).
+        Calculate depth accuracy metrics at multiple thresholds.
+
+        This metric calculates the percentage of predictions where max(pred/gt, gt/pred) < threshold.
+        Common thresholds are 1.25, 1.25^2, and 1.25^3, following standard depth estimation evaluation.
 
         Args:
-            pred_depths: Predicted depth values [N]
-            gt_depths: Ground truth depth values [N]
-            thresholds: List of accuracy thresholds
+            pred_depths (np.ndarray): Predicted depth values [N]
+            gt_depths (np.ndarray): Ground truth depth values [N]
+            thresholds (list[float]): List of accuracy thresholds [default: [1.25, 1.5625, 1.953125]]
 
         Returns:
-            Dict[str, float]: Accuracy metrics for each threshold
+            (dict[str, float]): Accuracy percentages for each threshold
+
+        Examples:
+            >>> metrics = MDEMetrics()
+            >>> pred = np.array([10.0, 20.0, 30.0])
+            >>> gt = np.array([11.0, 22.0, 28.0])
+            >>> acc = metrics.calculate_depth_accuracy(pred, gt)
+            >>> print(acc)  # {'δ < 1.250': 100.0, 'δ < 1.562': 100.0, 'δ < 1.953': 100.0}
         """
-        # Avoid division by zero
-        mask = gt_depths > 1e-6
+        # Avoid division by zero - filter out invalid depths
+        mask = (gt_depths > 1e-6) & (pred_depths > 1e-6)
         if not mask.any():
             return {f"δ < {th:.3f}": 0.0 for th in thresholds}
 
         pred_depths = pred_depths[mask]
         gt_depths = gt_depths[mask]
 
-        # Calculate ratios
+        # Calculate ratios with safe division
         ratio1 = pred_depths / gt_depths
         ratio2 = gt_depths / pred_depths
-        ratio = torch.max(ratio1, ratio2)
+        ratio = np.maximum(ratio1, ratio2)
 
         accuracies = {}
         for th in thresholds:
-            acc = (ratio < th).float().mean().item()
+            acc = (ratio < th).mean()
             accuracies[f"δ < {th:.3f}"] = acc * 100  # Percentage
 
         return accuracies
 
     def match_predictions(
         self, preds: list[torch.Tensor], gt_labels: list[dict], iou_threshold: float = 0.5
-    ) -> list[tuple[torch.Tensor, torch.Tensor]]:
+    ) -> list[tuple[np.ndarray, np.ndarray]]:
         """
         Match predictions with ground truth labels for depth evaluation.
 
@@ -1752,7 +1805,7 @@ class MDEMetrics(DetMetrics):
             iou_threshold: IoU threshold for matching
 
         Returns:
-            List[Tuple[torch.Tensor, torch.Tensor]]: List of (pred_depth, gt_depth) pairs
+            List[Tuple[np.ndarray, np.ndarray]]: List of (pred_depth, gt_depth) pairs
         """
         matched_pairs = []
 
@@ -1791,33 +1844,43 @@ class MDEMetrics(DetMetrics):
 
         return matched_pairs
 
-    def _calculate_iou(self, boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
+    def _calculate_iou(self, boxes1: np.ndarray, boxes2: np.ndarray) -> np.ndarray:
         """
-        Calculate IoU between two sets of boxes.
+        Calculate Intersection over Union (IoU) between two sets of bounding boxes.
+
+        This method computes the IoU matrix where each element [i, j] represents
+        the IoU between boxes1[i] and boxes2[j].
 
         Args:
-            boxes1: First set of boxes [N, 4] (x1, y1, x2, y2)
-            boxes2: Second set of boxes [M, 4] (x1, y1, x2, y2)
+            boxes1 (np.ndarray): First set of boxes [N, 4] in format (x1, y1, x2, y2)
+            boxes2 (np.ndarray): Second set of boxes [M, 4] in format (x1, y1, x2, y2)
 
         Returns:
-            torch.Tensor: IoU matrix [N, M]
+            (np.ndarray): IoU matrix of shape [N, M]
+
+        Examples:
+            >>> metrics = MDEMetrics()
+            >>> boxes1 = np.array([[0, 0, 10, 10], [20, 20, 30, 30]])
+            >>> boxes2 = np.array([[5, 5, 15, 15]])
+            >>> iou = metrics._calculate_iou(boxes1, boxes2)
         """
-        # Calculate intersection
-        x1 = torch.max(boxes1[:, None, 0], boxes2[:, 0])
-        y1 = torch.max(boxes1[:, None, 1], boxes2[:, 1])
-        x2 = torch.min(boxes1[:, None, 2], boxes2[:, 2])
-        y2 = torch.min(boxes1[:, None, 3], boxes2[:, 3])
+        # Calculate intersection coordinates
+        x1 = np.maximum(boxes1[:, None, 0], boxes2[:, 0])
+        y1 = np.maximum(boxes1[:, None, 1], boxes2[:, 1])
+        x2 = np.minimum(boxes1[:, None, 2], boxes2[:, 2])
+        y2 = np.minimum(boxes1[:, None, 3], boxes2[:, 3])
 
-        intersection = torch.clamp(x2 - x1, min=0) * torch.clamp(y2 - y1, min=0)
+        # Calculate intersection area
+        intersection = np.maximum(x2 - x1, 0) * np.maximum(y2 - y1, 0)
 
-        # Calculate areas
+        # Calculate areas of boxes
         area1 = (boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1])
         area2 = (boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1])
 
-        # Calculate union
+        # Calculate union area
         union = area1[:, None] + area2 - intersection
 
-        # Calculate IoU
+        # Calculate IoU with small epsilon to avoid division by zero
         iou = intersection / (union + 1e-6)
 
         return iou
@@ -1846,19 +1909,37 @@ class MDEMetrics(DetMetrics):
             pred_depths = np.concatenate(self.stats["pred_depths"])
             target_depths = np.concatenate(self.stats["target_depths"])
 
-            # Calculate depth metrics
+            # Validate depth data
+            if len(pred_depths) != len(target_depths):
+                LOGGER.warning(
+                    f"Depth mismatch: {len(pred_depths)} predictions vs {len(target_depths)} targets. Skipping depth metrics."
+                )
+                return stats
+
+            # Filter out invalid depths (nan, inf, or negative)
+            valid_mask = (
+                ~np.isnan(pred_depths)
+                & ~np.isnan(target_depths)
+                & ~np.isinf(pred_depths)
+                & ~np.isinf(target_depths)
+                & (pred_depths > 0)
+                & (target_depths > 0)
+            )
+            pred_depths = pred_depths[valid_mask]
+            target_depths = target_depths[valid_mask]
+
             if len(pred_depths) > 0 and len(target_depths) > 0:
                 # Depth error rate
                 error_rate = self.calculate_depth_error(pred_depths, target_depths)
-                self.depth_errors.append(error_rate.item())
+                self.depth_errors.append(error_rate)
 
                 # Absolute error
                 abs_error = self.calculate_absolute_depth_error(pred_depths, target_depths)
-                self.depth_abs_errors.append(abs_error.item())
+                self.depth_abs_errors.append(abs_error)
 
                 # Squared error (RMSE)
                 sq_error = self.calculate_squared_depth_error(pred_depths, target_depths)
-                self.depth_sq_errors.append(sq_error.item())
+                self.depth_sq_errors.append(sq_error)
 
                 # Accuracy metrics
                 acc_metrics = self.calculate_depth_accuracy(pred_depths, target_depths)

@@ -88,7 +88,6 @@ from ultralytics.utils import (
     MACOS,
     MACOS_VERSION,
     RKNN_CHIPS,
-    ROOT,
     SETTINGS,
     TORCH_VERSION,
     WINDOWS,
@@ -99,13 +98,12 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import (
     check_imgsz,
-    check_is_path_safe,
     check_requirements,
     check_version,
     is_intel,
     is_sudo_available,
 )
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
+from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx
 from ultralytics.utils.files import file_size, spaces_in_path
 from ultralytics.utils.metrics import batch_probiou

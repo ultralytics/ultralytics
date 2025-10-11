@@ -34,7 +34,7 @@ from ultralytics.utils import (
     is_dir_writeable,
     is_github_action_running,
 )
-from ultralytics.utils.downloads import download
+from ultralytics.utils.downloads import download, is_url
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
@@ -287,7 +287,8 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
-    im = f"{ASSETS_URL}/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    im_obb = f"{ASSETS_URL}/boats.jpg"
+    im = im_obb if (model == "yolo11n-obb.pt" and is_url(im_obb, check=True)) else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
         assert len(r), f"'{model}' results should not be empty!"

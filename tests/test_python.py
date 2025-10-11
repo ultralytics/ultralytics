@@ -20,6 +20,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
+    ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
     LINUX,
@@ -32,7 +33,6 @@ from ultralytics.utils import (
     checks,
     is_dir_writeable,
     is_github_action_running,
-    ASSETS_URL
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13

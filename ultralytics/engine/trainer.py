@@ -421,7 +421,7 @@ class BaseTrainer:
                     if RANK != -1:
                         self.loss *= self.world_size
                     if not self.loss.isfinite():
-                        LOGGER.warning(f"Non-finite batch loss detected, skipping batch...")
+                        LOGGER.warning("Non-finite batch loss detected, skipping batch...")
                         continue
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 

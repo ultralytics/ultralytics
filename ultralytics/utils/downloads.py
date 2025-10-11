@@ -60,10 +60,11 @@ def is_url(url: str | Path, check: bool = False) -> bool:
     try:
         url = str(url)
         result = parse.urlparse(url)
-        assert all([result.scheme, result.netloc])  # check if is url
+        if not (result.scheme and result.netloc):
+            return False
         if check:
-            with request.urlopen(url) as response:
-                return response.getcode() == 200  # check if exists online
+            r = request.urlopen(request.Request(url, method='HEAD'), timeout=3)
+            return 200 <= r.getcode() < 400
         return True
     except Exception:
         return False

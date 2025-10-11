@@ -832,7 +832,8 @@ class Exporter:
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
 
         # Restore filename with hyphens for guess_model_task
-        shutil.rmtree(f_orig)
+        if Path(f_orig).exists():
+            shutil.rmtree(f_orig)
         shutil.move(f, f_orig)
         return f_orig
 

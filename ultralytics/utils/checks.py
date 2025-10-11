@@ -23,6 +23,7 @@ import torch
 from ultralytics.utils import (
     ARM64,
     ASSETS,
+    ASSETS_URL,
     AUTOINSTALL,
     GIT,
     IS_COLAB,
@@ -336,7 +337,7 @@ def check_font(font="Arial.ttf"):
         return matches[0]
 
     # Download to USER_CONFIG_DIR if missing
-    url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{name}"
+    url = f"{ASSETS_URL}/{name}"
     if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file

@@ -670,7 +670,7 @@ class BaseTrainer:
             self.scaler.step(self.optimizer)
         except RuntimeError as e:
             if "finite" in str(e).lower():
-                LOGGER.warning(f"Non-finite gradients detected, skipping optimizer step")
+                LOGGER.warning("Non-finite gradients detected, skipping optimizer step")
             else:
                 raise
         self.scaler.update()

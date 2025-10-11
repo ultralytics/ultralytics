@@ -44,6 +44,7 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
+    TORCH_1_9,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
@@ -56,7 +57,7 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
-    unwrap_model, TORCH_1_9,
+    unwrap_model,
 )
 
 

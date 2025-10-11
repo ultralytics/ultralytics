@@ -805,7 +805,7 @@ class Exporter:
         import pnnx
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__} and PNNX {pnnx.__version__}...")
-        f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
+        f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}").replace("-", "_"))  # avoid hyphens
 
         ncnn_args = dict(
             ncnnparam=str(f / "model.ncnn.param"), ncnnbin=str(f / "model.ncnn.bin"), ncnnpy=str(f / "model_ncnn.py")
@@ -820,15 +820,7 @@ class Exporter:
         )
 
         f.mkdir(exist_ok=True)  # make ncnn_model directory
-        try:
-            pnnx.export(
-                self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type
-            )
-        except FileNotFoundError as e:
-            if self.model.task == "classify" and "model_pnnx.py" in str(e):
-                pass  # classify shows FileNotFound exception but export works
-            else:
-                raise
+        pnnx.export(self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type)
 
         # Remove debug files
         pnnx_files = pnnx_args.values()

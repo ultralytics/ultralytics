@@ -10,7 +10,7 @@ import pytest
 
 from tests import MODEL, SOURCE, TMP
 from ultralytics import YOLO, download
-from ultralytics.utils import DATASETS_DIR, SETTINGS
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
 

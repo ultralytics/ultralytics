@@ -56,7 +56,7 @@ from ultralytics.utils.torch_utils import (
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
-    unwrap_model,
+    unwrap_model, TORCH_1_9,
 )
 
 
@@ -665,8 +665,17 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
-        self.scaler.step(self.optimizer)
+        try:
+            if TORCH_1_9:
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, error_if_nonfinite=True)
+            self.scaler.step(self.optimizer)
+        except RuntimeError as e:
+            if "finite" in str(e).lower():
+                LOGGER.warning("Non-finite gradients detected, skipping optimizer step")
+                self.scaler.update()
+                self.optimizer.zero_grad()
+                return
+            raise
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:

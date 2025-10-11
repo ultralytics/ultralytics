@@ -824,8 +824,8 @@ class Exporter:
             pnnx.export(
                 self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type
             )
-        except FileNotFoundError:
-            if self.model.task == "classify":
+        except FileNotFoundError as e:
+            if self.model.task == "classify"  and "model_pnnx.py" in str(e):
                 pass  # classify shows FileNotFound exception but export works
             else:
                 raise

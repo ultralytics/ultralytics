@@ -47,7 +47,7 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     is_github_action_running,
-    url2file,
+    url2file, ASSETS_URL,
 )
 
 
@@ -336,7 +336,7 @@ def check_font(font="Arial.ttf"):
         return matches[0]
 
     # Download to USER_CONFIG_DIR if missing
-    url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{name}"
+    url = f"{ASSETS_URL}/{name}"
     if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file

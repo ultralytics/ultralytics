@@ -43,7 +43,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
+from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML, ASSETS_URL
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
@@ -281,7 +281,7 @@ class RF100Benchmark:
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-        safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
+        safe_download(f"{ASSETS_URL}/datasets_links.txt")
 
         with open(ds_link_txt, encoding="utf-8") as file:
             for line in file:

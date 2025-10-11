@@ -23,6 +23,7 @@ import torch
 from ultralytics.utils import (
     ARM64,
     ASSETS,
+    ASSETS_URL,
     AUTOINSTALL,
     GIT,
     IS_COLAB,
@@ -47,7 +48,7 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     is_github_action_running,
-    url2file, ASSETS_URL,
+    url2file,
 )
 
 

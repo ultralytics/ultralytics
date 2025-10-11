@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -678,9 +678,7 @@ def create_synthetic_coco_dataset():
 
     # Download labels
     dir = DATASETS_DIR / "coco"
-    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
-    label_zip = "coco2017labels-segments.zip"
-    download([url + label_zip], dir=dir.parent)
+    download([f"{ASSETS_URL}/coco2017labels-segments.zip"], dir=dir.parent)
 
     # Create synthetic images
     shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed

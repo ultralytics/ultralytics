@@ -421,9 +421,10 @@ class BaseTrainer:
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size
-                    self.tloss = (
-                        (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None else self.loss_items
-                    )
+                    if not self.loss.isfinite():
+                        LOGGER.warning("Non-finite forward pass, skipping batch...")
+                        continue
+                    self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
                 # Backward
                 self.scaler.scale(self.loss).backward()

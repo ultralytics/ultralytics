@@ -20,6 +20,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
+    ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
     LINUX,
@@ -125,9 +126,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg?token=123"
-        if ONLINE
-        else SOURCE,  # URI
+        f"{ASSETS_URL}/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -190,7 +189,7 @@ def test_track_stream(model):
     """
     if model == "yolo11n-cls.pt":  # classification model not supported for tracking
         return
-    video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
+    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
@@ -229,9 +228,7 @@ def test_train_scratch():
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
-    model.train(
-        data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson", epochs=1, imgsz=32
-    )
+    model.train(data=f"{ASSETS_URL}/coco8-ndjson.ndjson", epochs=1, imgsz=32)
 
 
 @pytest.mark.parametrize("scls", [False, True])
@@ -290,8 +287,8 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
-    temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
-    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
+    im = f"{ASSETS_URL}/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
         assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
@@ -357,8 +354,7 @@ def test_data_converter():
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
-    file = "instances_val2017.json"
-    download(f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{file}", dir=TMP)
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=TMP)
     convert_coco(labels_dir=TMP, save_dir=TMP / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 

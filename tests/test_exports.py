@@ -234,7 +234,7 @@ def test_export_mnn():
         if not (int8 and half) and not (task == "classify" and nms)
     ],
 )
-def test_export_mnn_matrix(task, int8, half, batch, dynamic, nms):
+def test_export_mnn_matrix(task, dynamic, int8, half, nms, batch):
     """Test YOLO export to MNN format considering various export configurations."""
     file = YOLO(TASK2MODEL[task]).export(
         format="mnn", imgsz=32, int8=int8, half=half, batch=batch, dynamic=dynamic, nms=nms

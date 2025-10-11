@@ -112,8 +112,10 @@ class MDEValidator(BaseValidator):
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
 
-            # Match predictions to ground truth and extract matched depth pairs
-            matched_pred_depths, matched_target_depths = self._match_depth_pairs(predn, pbatch, batch, si)
+            # Match predictions to ground truth and extract matched depth pairs with class labels
+            matched_pred_depths, matched_target_depths, matched_pred_cls = self._match_depth_pairs(
+                predn, pbatch, batch, si
+            )
 
             # Update all metrics (detection + depth)
             self.metrics.update_stats(
@@ -125,6 +127,7 @@ class MDEValidator(BaseValidator):
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
                     "pred_depths": matched_pred_depths,
                     "target_depths": matched_target_depths,
+                    "depth_pred_cls": matched_pred_cls,  # Add matched class labels for depth pairs
                 }
             )
 
@@ -172,27 +175,27 @@ class MDEValidator(BaseValidator):
             si: Sample index in batch
 
         Returns:
-            tuple: (matched_pred_depths, matched_target_depths) as numpy arrays
+            tuple: (matched_pred_depths, matched_target_depths, matched_pred_cls) as numpy arrays
         """
         # Extract depth predictions
         if "extra" in predn and predn["extra"] is not None and predn["extra"].shape[1] > 0:
             pred_depths = predn["extra"][:, 0]  # First extra channel is depth
         else:
-            return np.array([]), np.array([])
+            return np.array([]), np.array([]), np.array([])
 
         # Extract depth targets
         if "depths" not in batch:
-            return np.array([]), np.array([])
+            return np.array([]), np.array([]), np.array([])
 
         idx = batch["batch_idx"] == si
         if not idx.any():
-            return np.array([]), np.array([])
+            return np.array([]), np.array([]), np.array([])
 
         target_depths = batch["depths"][idx]
 
         # If no predictions or no targets, return empty
         if pbatch["cls"].shape[0] == 0 or predn["cls"].shape[0] == 0:
-            return np.array([]), np.array([])
+            return np.array([]), np.array([]), np.array([])
 
         # Calculate IoU between predictions and ground truth
         iou = box_iou(pbatch["bboxes"], predn["bboxes"])
@@ -202,6 +205,7 @@ class MDEValidator(BaseValidator):
         iou_threshold = 0.5
         matched_pred_depths_list = []
         matched_target_depths_list = []
+        matched_pred_cls_list = []
 
         # For each ground truth, find the best matching prediction
         for gt_idx in range(pbatch["cls"].shape[0]):
@@ -219,11 +223,13 @@ class MDEValidator(BaseValidator):
                 best_pred_idx = iou_values.argmax()
                 matched_pred_depths_list.append(pred_depths[best_pred_idx].item())
                 matched_target_depths_list.append(target_depths[gt_idx].item())
+                matched_pred_cls_list.append(predn["cls"][best_pred_idx].item())
 
         # Convert to numpy arrays
         matched_pred_depths = np.array(matched_pred_depths_list)
         matched_target_depths = np.array(matched_target_depths_list)
-        return matched_pred_depths, matched_target_depths
+        matched_pred_cls = np.array(matched_pred_cls_list)
+        return matched_pred_depths, matched_target_depths, matched_pred_cls
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """
@@ -354,10 +360,7 @@ class MDEValidator(BaseValidator):
                         self.metrics.nt_per_image[c],
                         self.metrics.nt_per_class[c],
                         *class_results[:4],  # Box metrics: P, R, mAP50, mAP50-95
-                        depth_error,
-                        depth_mae,
-                        depth_rmse,
-                        depth_acc,  # Same depth metrics for all classes
+                        *class_results[4:8],  # Per-class depth metrics: Depth_Err, Depth_MAE, Depth_RMSE, Depth_Acc
                     )
                 )
 

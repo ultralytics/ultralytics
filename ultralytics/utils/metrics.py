@@ -1651,12 +1651,19 @@ class MDEMetrics(DetMetrics):
         # Add depth-specific stats to existing stats dictionary
         self.stats["pred_depths"] = []  # add additional stats for depth predictions
         self.stats["target_depths"] = []  # add additional stats for depth targets
+        self.stats["depth_pred_cls"] = []  # track class labels for matched depth predictions
 
-        # Depth-specific metrics
+        # Depth-specific metrics (global)
         self.depth_errors = []
         self.depth_abs_errors = []
         self.depth_sq_errors = []
         self.depth_accuracies = {f"δ < {th:.3f}": [] for th in [1.25, 1.25**2, 1.25**3]}
+
+        # Per-class depth metrics
+        self.per_class_depth_errors = {}
+        self.per_class_depth_abs_errors = {}
+        self.per_class_depth_sq_errors = {}
+        self.per_class_depth_accuracies = {}
 
     def calculate_depth_error(
         self, pred_depths: np.ndarray | torch.Tensor, gt_depths: np.ndarray | torch.Tensor
@@ -1898,7 +1905,9 @@ class MDEMetrics(DetMetrics):
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         # Process detection metrics first (only if we have detection stats)
-        detection_stats = {k: v for k, v in self.stats.items() if k not in ["pred_depths", "target_depths"]}
+        detection_stats = {
+            k: v for k, v in self.stats.items() if k not in ["pred_depths", "target_depths", "depth_pred_cls"]
+        }
         if any(len(v) > 0 for v in detection_stats.values()):
             stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)
         else:
@@ -1908,6 +1917,11 @@ class MDEMetrics(DetMetrics):
         if self.stats["pred_depths"] and self.stats["target_depths"]:
             pred_depths = np.concatenate(self.stats["pred_depths"])
             target_depths = np.concatenate(self.stats["target_depths"])
+
+            # Concatenate class labels for depth predictions
+            depth_pred_cls = (
+                np.concatenate(self.stats["depth_pred_cls"]) if self.stats["depth_pred_cls"] else np.array([])
+            )
 
             # Validate depth data
             if len(pred_depths) != len(target_depths):
@@ -1928,23 +1942,59 @@ class MDEMetrics(DetMetrics):
             pred_depths = pred_depths[valid_mask]
             target_depths = target_depths[valid_mask]
 
+            # Apply valid mask to class labels as well
+            if len(depth_pred_cls) > 0:
+                depth_pred_cls = depth_pred_cls[valid_mask]
+
             if len(pred_depths) > 0 and len(target_depths) > 0:
-                # Depth error rate
+                # Calculate global depth metrics
                 error_rate = self.calculate_depth_error(pred_depths, target_depths)
                 self.depth_errors.append(error_rate)
 
-                # Absolute error
                 abs_error = self.calculate_absolute_depth_error(pred_depths, target_depths)
                 self.depth_abs_errors.append(abs_error)
 
-                # Squared error (RMSE)
                 sq_error = self.calculate_squared_depth_error(pred_depths, target_depths)
                 self.depth_sq_errors.append(sq_error)
 
-                # Accuracy metrics
                 acc_metrics = self.calculate_depth_accuracy(pred_depths, target_depths)
                 for key, value in acc_metrics.items():
                     self.depth_accuracies[key].append(value)
+
+                # Calculate per-class depth metrics
+                if len(depth_pred_cls) > 0 and len(depth_pred_cls) == len(pred_depths):
+                    unique_classes = np.unique(depth_pred_cls)
+
+                    for cls_id in unique_classes:
+                        # Convert to int to avoid type mismatch issues
+                        cls_id_int = int(cls_id)
+
+                        # Get mask for this class
+                        cls_mask = depth_pred_cls == cls_id
+                        cls_pred_depths = pred_depths[cls_mask]
+                        cls_target_depths = target_depths[cls_mask]
+
+                        if len(cls_pred_depths) > 0:
+                            # Calculate metrics for this class
+                            cls_error_rate = self.calculate_depth_error(cls_pred_depths, cls_target_depths)
+                            cls_abs_error = self.calculate_absolute_depth_error(cls_pred_depths, cls_target_depths)
+                            cls_sq_error = self.calculate_squared_depth_error(cls_pred_depths, cls_target_depths)
+                            cls_acc_metrics = self.calculate_depth_accuracy(cls_pred_depths, cls_target_depths)
+
+                            # Store per-class metrics using integer class ID
+                            if cls_id_int not in self.per_class_depth_errors:
+                                self.per_class_depth_errors[cls_id_int] = []
+                                self.per_class_depth_abs_errors[cls_id_int] = []
+                                self.per_class_depth_sq_errors[cls_id_int] = []
+                                self.per_class_depth_accuracies[cls_id_int] = {
+                                    key: [] for key in cls_acc_metrics.keys()
+                                }
+
+                            self.per_class_depth_errors[cls_id_int].append(cls_error_rate)
+                            self.per_class_depth_abs_errors[cls_id_int].append(cls_abs_error)
+                            self.per_class_depth_sq_errors[cls_id_int].append(cls_sq_error)
+                            for key, value in cls_acc_metrics.items():
+                                self.per_class_depth_accuracies[cls_id_int][key].append(value)
 
         return stats
 
@@ -1992,29 +2042,50 @@ class MDEMetrics(DetMetrics):
 
     def class_result(self, i: int) -> list[float]:
         """Return the class-wise detection results for a specific class i."""
-        # For MDE, we don't have per-class depth metrics, so we return the same depth metrics for all classes
         base_results = DetMetrics.class_result(self, i)
 
-        # Add depth metrics (same for all classes)
+        # Get the actual class ID from ap_class_index
+        if i < len(self.ap_class_index):
+            cls_id = self.ap_class_index[i]
+        else:
+            cls_id = i
+
+        # Add per-class depth metrics if available, otherwise use global metrics
         depth_results = []
-        if self.depth_errors:
+
+        # Depth error rate
+        if cls_id in self.per_class_depth_errors and self.per_class_depth_errors[cls_id]:
+            depth_results.append(np.mean(self.per_class_depth_errors[cls_id]))
+        elif self.depth_errors:
             depth_results.append(np.mean(self.depth_errors))
         else:
             depth_results.append(0.0)
 
-        if self.depth_abs_errors:
+        # Absolute error (MAE)
+        if cls_id in self.per_class_depth_abs_errors and self.per_class_depth_abs_errors[cls_id]:
+            depth_results.append(np.mean(self.per_class_depth_abs_errors[cls_id]))
+        elif self.depth_abs_errors:
             depth_results.append(np.mean(self.depth_abs_errors))
         else:
             depth_results.append(0.0)
 
-        if self.depth_sq_errors:
+        # Squared error (RMSE)
+        if cls_id in self.per_class_depth_sq_errors and self.per_class_depth_sq_errors[cls_id]:
+            depth_results.append(np.sqrt(np.mean(self.per_class_depth_sq_errors[cls_id])))
+        elif self.depth_sq_errors:
             depth_results.append(np.sqrt(np.mean(self.depth_sq_errors)))
         else:
             depth_results.append(0.0)
 
-        # Add accuracy metrics
+        # Accuracy metrics at different thresholds
         for key in ["δ < 1.250", "δ < 1.562", "δ < 1.953"]:
-            if self.depth_accuracies[key]:
+            if (
+                cls_id in self.per_class_depth_accuracies
+                and key in self.per_class_depth_accuracies[cls_id]
+                and self.per_class_depth_accuracies[cls_id][key]
+            ):
+                depth_results.append(np.mean(self.per_class_depth_accuracies[cls_id][key]))
+            elif self.depth_accuracies[key]:
                 depth_results.append(np.mean(self.depth_accuracies[key]))
             else:
                 depth_results.append(0.0)

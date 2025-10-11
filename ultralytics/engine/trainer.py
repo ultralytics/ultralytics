@@ -372,7 +372,7 @@ class BaseTrainer:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
-        self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
+        self.optimizer.zero_grad(set_to_none=True)  # zero any resumed gradients to ensure stability on train start
         while True:
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
@@ -668,7 +668,7 @@ class BaseTrainer:
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
         self.scaler.update()
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         if self.ema:
             self.ema.update(self.model)
 

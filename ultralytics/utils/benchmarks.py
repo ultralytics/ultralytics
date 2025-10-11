@@ -612,15 +612,12 @@ class ProfileModels:
         input_data_dict = dict()
         for input_tensor in sess.get_inputs():
             input_type = input_tensor.type
-            dynamic = self.check_dynamic(input_tensor.shape)
-            if dynamic:
-                if len(input_tensor.shape) == 4:
-                    input_shape = (1, 3, self.imgsz, self.imgsz)
-                else:
-                    if self.check_dynamic(input_tensor.shape[1:]):
-                        raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
-                    else:
-                        input_shape = (1, *input_tensor.shape[1:])
+            if self.check_dynamic(input_tensor.shape):
+                if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
+                    raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
+                input_shape = (
+                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
+                )
             else:
                 input_shape = input_tensor.shape
 

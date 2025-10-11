@@ -19,6 +19,7 @@ from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
+    ASSETS_URL,
     DATASETS_DIR,
     LOGGER,
     NUM_THREADS,
@@ -30,7 +31,6 @@ from ultralytics.utils import (
     colorstr,
     emojis,
     is_dir_writeable,
-    ASSETS_URL,
 )
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file

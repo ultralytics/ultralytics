@@ -751,6 +751,8 @@ class AutoBackend(nn.Module):
             input_var = self.torch_to_mnn(im)
             output_var = self.net.onForward([input_var])
             y = [x.read() for x in output_var]
+            if not y:
+                y = [np.empty((1, 0, 6))]
 
         # NCNN
         elif self.ncnn:

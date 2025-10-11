@@ -423,16 +423,6 @@ class BaseTrainer:
                         self.loss *= self.world_size
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
-                    # NaN detection and recovery
-                    if torch.isnan(self.tloss).any():
-                        LOGGER.warning("NaN loss detected, attempting recovery from last checkpoint...")
-                        if not self.last.exists():
-                            raise RuntimeError(f"Cannot recover from NaN: checkpoint {self.last} not found")
-                        ckpt = load_checkpoint(self.last)[0]
-                        unwrap_model(self.model).load_state_dict(ckpt["ema"].float().state_dict())
-                        self._load_checkpoint_state(ckpt)
-                        break
-
                 # Backward
                 if self.loss.isfinite():
                     self.scaler.scale(self.loss).backward()
@@ -485,6 +475,16 @@ class BaseTrainer:
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
+
+                # NaN detection and recovery at epoch end
+                if torch.isnan(self.tloss).any():
+                    LOGGER.warning("NaN loss detected at epoch end, attempting recovery from last checkpoint...")
+                    if not self.last.exists():
+                        raise RuntimeError(f"Cannot recover from NaN: checkpoint {self.last} not found")
+                    ckpt = load_checkpoint(self.last)[0]
+                    unwrap_model(self.model).load_state_dict(ckpt["ema"].float().state_dict())
+                    self._load_checkpoint_state(ckpt)
+                    continue  # Skip checkpoint save and redo epoch
 
                 # Save model
                 if self.args.save or final_epoch:

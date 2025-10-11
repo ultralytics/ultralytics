@@ -19,6 +19,7 @@ from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
+    ASSETS_URL,
     DATASETS_DIR,
     LOGGER,
     NUM_THREADS,
@@ -523,8 +524,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         if str(dataset) == "imagenet":
             subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
         else:
-            url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
-            download(url, dir=data_dir.parent)
+            download(f"{ASSETS_URL}/{dataset}.zip", dir=data_dir.parent)
         LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
     train_set = data_dir / "train"
     if not train_set.is_dir():

@@ -63,7 +63,7 @@ def is_url(url: str | Path, check: bool = False) -> bool:
         if not (result.scheme and result.netloc):
             return False
         if check:
-            r = request.urlopen(request.Request(url, method='HEAD'), timeout=3)
+            r = request.urlopen(request.Request(url, method="HEAD"), timeout=3)
             return 200 <= r.getcode() < 400
         return True
     except Exception:

@@ -426,7 +426,7 @@ class BaseTrainer:
 
                     # NaN detection and recovery
                     if torch.isnan(self.tloss).any():
-                        LOGGER.warning(f"NaN loss detected, attempting recovery from last checkpoint...")
+                        LOGGER.warning("NaN loss detected, attempting recovery from last checkpoint...")
                         if not self.last.exists():
                             raise RuntimeError(f"Cannot recover from NaN: checkpoint {self.last} not found")
                         ckpt = load_checkpoint(self.last)[0]

@@ -112,53 +112,35 @@ class MDEValidator(BaseValidator):
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
 
-            # Process batch to get matching info
-            batch_stats = self._process_batch(predn, pbatch)
+            # Extract depth predictions and targets first
+            if hasattr(predn, "extra") and predn["extra"] is not None and predn["extra"].shape[1] > 0:
+                # Extract depth predictions (assuming depth is in the first extra channel)
+                pred_depths = predn["extra"][:, 0]  # First extra channel is depth
+            else:
+                # If no depth predictions, add empty tensor
+                pred_depths = torch.tensor([], device=self.device)
 
-            # Extract matched depth predictions and targets
-            matched_pred_depths = []
-            matched_target_depths = []
-
-            if not no_pred and pbatch["cls"].shape[0] > 0:
-                # Extract depth predictions if available
-                if (
-                    "extra" in predn
-                    and predn["extra"] is not None
-                    and predn["extra"].shape[0] > 0
-                    and predn["extra"].shape[1] > 0
-                ):
-                    pred_depths = predn["extra"][:, 0]  # First extra channel is depth
-
-                    # Extract depth targets from batch if available
-                    if "depths" in batch:
-                        idx = batch["batch_idx"] == si
-                        if idx.any():
-                            target_depths = batch["depths"][idx]
-
-                            # Match predictions to targets using IoU
-                            iou = box_iou(pbatch["bboxes"], predn["bboxes"])
-
-                            # For each prediction, find the best matching target
-                            if iou.numel() > 0:
-                                max_iou, max_idx = iou.max(dim=0)
-
-                                # Only consider matches with IoU > 0.5
-                                valid_matches = max_iou > 0.5
-
-                                if valid_matches.any():
-                                    matched_pred_depths = pred_depths[valid_matches].cpu().numpy()
-                                    matched_target_depths = target_depths[max_idx[valid_matches]].cpu().numpy()
+            # Extract depth targets from batch if available
+            if "depths" in batch:
+                idx = batch["batch_idx"] == si
+                if idx.any():
+                    target_depths = batch["depths"][idx]
+                else:
+                    target_depths = torch.tensor([], device=self.device)
+            else:
+                # If no depth targets, add empty tensor
+                target_depths = torch.tensor([], device=self.device)
 
             # Update all metrics (detection + depth)
             self.metrics.update_stats(
                 {
-                    **batch_stats,
+                    **self._process_batch(predn, pbatch),
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "pred_depths": matched_pred_depths if len(matched_pred_depths) > 0 else np.array([]),
-                    "target_depths": matched_target_depths if len(matched_target_depths) > 0 else np.array([]),
+                    "pred_depths": pred_depths.cpu().numpy(),
+                    "target_depths": target_depths.cpu().numpy(),
                 }
             )
 

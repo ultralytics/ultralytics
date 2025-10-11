@@ -1843,36 +1843,27 @@ class MDEMetrics(DetMetrics):
 
         # Process depth metrics
         if self.stats["pred_depths"] and self.stats["target_depths"]:
-            # Filter out empty arrays before concatenating
-            non_empty_pred = [d for d in self.stats["pred_depths"] if len(d) > 0]
-            non_empty_target = [d for d in self.stats["target_depths"] if len(d) > 0]
+            pred_depths = np.concatenate(self.stats["pred_depths"])
+            target_depths = np.concatenate(self.stats["target_depths"])
 
-            if non_empty_pred and non_empty_target:
-                pred_depths = np.concatenate(non_empty_pred)
-                target_depths = np.concatenate(non_empty_target)
+            # Calculate depth metrics
+            if len(pred_depths) > 0 and len(target_depths) > 0:
+                # Depth error rate
+                error_rate = self.calculate_depth_error(pred_depths, target_depths)
+                self.depth_errors.append(error_rate.item())
 
-                # Calculate depth metrics
-                if len(pred_depths) > 0 and len(target_depths) > 0 and len(pred_depths) == len(target_depths):
-                    # Convert to torch tensors for calculation
-                    pred_depths_torch = torch.from_numpy(pred_depths).float()
-                    target_depths_torch = torch.from_numpy(target_depths).float()
+                # Absolute error
+                abs_error = self.calculate_absolute_depth_error(pred_depths, target_depths)
+                self.depth_abs_errors.append(abs_error.item())
 
-                    # Depth error rate
-                    error_rate = self.calculate_depth_error(pred_depths_torch, target_depths_torch)
-                    self.depth_errors.append(error_rate.item())
+                # Squared error (RMSE)
+                sq_error = self.calculate_squared_depth_error(pred_depths, target_depths)
+                self.depth_sq_errors.append(sq_error.item())
 
-                    # Absolute error
-                    abs_error = self.calculate_absolute_depth_error(pred_depths_torch, target_depths_torch)
-                    self.depth_abs_errors.append(abs_error.item())
-
-                    # Squared error (RMSE)
-                    sq_error = self.calculate_squared_depth_error(pred_depths_torch, target_depths_torch)
-                    self.depth_sq_errors.append(sq_error.item())
-
-                    # Accuracy metrics
-                    acc_metrics = self.calculate_depth_accuracy(pred_depths_torch, target_depths_torch)
-                    for key, value in acc_metrics.items():
-                        self.depth_accuracies[key].append(value)
+                # Accuracy metrics
+                acc_metrics = self.calculate_depth_accuracy(pred_depths, target_depths)
+                for key, value in acc_metrics.items():
+                    self.depth_accuracies[key].append(value)
 
         return stats
 

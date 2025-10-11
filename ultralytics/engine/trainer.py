@@ -421,7 +421,7 @@ class BaseTrainer:
                     if RANK != -1:
                         self.loss *= self.world_size
                     if not self.loss.isfinite():
-                        LOGGER.warning("Non-finite forward pass, skipping batch...")
+                        LOGGER.warning(f"Non-finite forward pass with loss {self.loss}, skipping batch...")
                         continue
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 

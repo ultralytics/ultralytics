@@ -488,7 +488,9 @@ class BaseTrainer:
                 self.nan_recovery_attempts += 1
                 if self.nan_recovery_attempts > 3:
                     raise RuntimeError(f"Training failed: corruption persisted for {self.nan_recovery_attempts} epochs")
-                LOGGER.warning(f"Corruption detected (attempt {self.nan_recovery_attempts}/3), recovering from checkpoint...")
+                LOGGER.warning(
+                    f"Corruption detected (attempt {self.nan_recovery_attempts}/3), recovering from checkpoint..."
+                )
                 if epoch == self.start_epoch or not self.last.exists():
                     raise RuntimeError(f"Cannot recover: no valid checkpoint at epoch {epoch}")
                 ckpt = load_checkpoint(self.last)[0]

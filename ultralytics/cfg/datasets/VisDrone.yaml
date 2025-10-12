@@ -34,7 +34,7 @@ download: |
   import shutil
 
   from ultralytics.utils.downloads import download
-  from ultralytics.utils import TQDM
+  from ultralytics.utils import ASSETS_URL, TQDM
 
 
   def visdrone2yolo(dir, split, source_name=None):
@@ -73,10 +73,10 @@ download: |
   # Download (ignores test-challenge split)
   dir = Path(yaml["path"])  # dataset root dir
   urls = [
-      "https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-train.zip",
-      "https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-val.zip",
-      "https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-test-dev.zip",
-      # "https://github.com/ultralytics/assets/releases/download/v0.0.0/VisDrone2019-DET-test-challenge.zip",
+      f"{ASSETS_URL}/VisDrone2019-DET-train.zip",
+      f"{ASSETS_URL}/VisDrone2019-DET-val.zip",
+      f"{ASSETS_URL}/VisDrone2019-DET-test-dev.zip",
+      # f"{ASSETS_URL}/VisDrone2019-DET-test-challenge.zip",
   ]
   download(urls, dir=dir, threads=4)
 

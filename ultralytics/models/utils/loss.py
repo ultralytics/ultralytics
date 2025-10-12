@@ -23,7 +23,7 @@ class DETRLoss(nn.Module):
 
     Attributes:
         nc (int): Number of classes.
-        loss_gain (dict[str, float]): Coefficients for different loss components.
+        loss_gain (Dict[str, float]): Coefficients for different loss components.
         aux_loss (bool): Whether to compute auxiliary losses.
         use_fl (bool): Whether to use FocalLoss.
         use_vfl (bool): Whether to use VarifocalLoss.

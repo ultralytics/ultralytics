@@ -59,17 +59,17 @@ class LoadStreams:
     streams simultaneously, making it suitable for real-time video analysis tasks.
 
     Attributes:
-        sources (list[str]): The source input paths or URLs for the video streams.
+        sources (List[str]): The source input paths or URLs for the video streams.
         vid_stride (int): Video frame-rate stride.
         buffer (bool): Whether to buffer input streams.
         running (bool): Flag to indicate if the streaming thread is running.
         mode (str): Set to 'stream' indicating real-time capture.
-        imgs (list[list[np.ndarray]]): List of image frames for each stream.
-        fps (list[float]): List of FPS for each stream.
-        frames (list[int]): List of total frames for each stream.
-        threads (list[Thread]): List of threads for each stream.
-        shape (list[tuple[int, int, int]]): List of shapes for each stream.
-        caps (list[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
+        imgs (List[List[np.ndarray]]): List of image frames for each stream.
+        fps (List[float]): List of FPS for each stream.
+        frames (List[int]): List of total frames for each stream.
+        threads (List[Thread]): List of threads for each stream.
+        shape (List[Tuple[int, int, int]]): List of shapes for each stream.
+        caps (List[cv2.VideoCapture]): List of cv2.VideoCapture objects for each stream.
         bs (int): Batch size for processing.
         cv2_flag (int): OpenCV flag for image reading (grayscale or RGB).
 
@@ -574,7 +574,7 @@ class LoadTensor:
         im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W).
         bs (int): Batch size, inferred from the shape of `im0`.
         mode (str): Current processing mode, set to 'image'.
-        paths (list[str]): List of image paths or auto-generated filenames.
+        paths (List[str]): List of image paths or auto-generated filenames.
 
     Methods:
         _single_check: Validates and formats an input tensor.

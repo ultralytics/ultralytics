@@ -543,7 +543,7 @@ def merge_multi_segment(segments: list[list]):
                                Each element is a list of coordinates, like [segmentation1, segmentation2,...].
 
     Returns:
-        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        s (List[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]

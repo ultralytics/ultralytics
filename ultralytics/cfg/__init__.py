@@ -23,7 +23,6 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
-    STR_OR_PATH,
     TESTS_RUNNING,
     YAML,
     IterableSimpleNamespace,
@@ -52,10 +51,11 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes
 MODES = frozenset({"train", "val", "predict", "export", "track", "benchmark"})
-TASKS = frozenset({"detect", "segment", "classify", "pose", "obb"})
+TASKS = frozenset({"detect", "segment", "semseg", "classify", "pose", "obb"})
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
+    "semseg": "CityEscapeYOLO.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
@@ -63,6 +63,7 @@ TASK2DATA = {
 TASK2MODEL = {
     "detect": "yolo11n.pt",
     "segment": "yolo11n-seg.pt",
+    "semseg": "yolo11n.pt",
     "classify": "yolo11n-cls.pt",
     "pose": "yolo11n-pose.pt",
     "obb": "yolo11n-obb.pt",
@@ -70,6 +71,7 @@ TASK2MODEL = {
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
     "segment": "metrics/mAP50-95(M)",
+    "semseg": "metrics/mIoU",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
@@ -82,9 +84,9 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions SOLUTION ARGS
 
         Where SOLUTION (optional) is one of {list(SOLUTION_MAP.keys())[:-1]}
-              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults
+              ARGS (optional) are any number of custom 'arg=value' pairs like 'show_in=True' that override defaults 
                   at https://docs.ultralytics.com/usage/cfg
-
+                
     1. Call object counting solution
         yolo solutions count source="path/to/video.mp4" region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
 
@@ -246,7 +248,7 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     Convert a configuration object to a dictionary.
 
     Args:
-        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
+        cfg (str | Path | Dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
             a string, a dictionary, or a SimpleNamespace object.
 
     Returns:
@@ -269,7 +271,7 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
         - If cfg is a SimpleNamespace object, it's converted to a dictionary using vars().
         - If cfg is already a dictionary, it's returned unchanged.
     """
-    if isinstance(cfg, STR_OR_PATH):
+    if isinstance(cfg, (str, Path)):
         cfg = YAML.load(cfg)  # load dict
     elif isinstance(cfg, SimpleNamespace):
         cfg = vars(cfg)  # convert to dict
@@ -354,7 +356,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
-            if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
+            if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
                 if hard:
                     raise TypeError(
                         f"'{k}={v}' is of invalid type {type(v).__name__}. "

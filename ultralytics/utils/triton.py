@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 from __future__ import annotations
 
 from urllib.parse import urlsplit
@@ -20,10 +19,10 @@ class TritonRemoteModel:
         triton_client: The Triton client (either HTTP or gRPC).
         InferInput: The input class for the Triton client.
         InferRequestedOutput: The output request class for the Triton client.
-        input_formats (list[str]): The data types of the model inputs.
-        np_input_formats (list[type]): The numpy data types of the model inputs.
-        input_names (list[str]): The names of the model inputs.
-        output_names (list[str]): The names of the model outputs.
+        input_formats (List[str]): The data types of the model inputs.
+        np_input_formats (List[type]): The numpy data types of the model inputs.
+        input_names (List[str]): The names of the model inputs.
+        output_names (List[str]): The names of the model outputs.
         metadata: The metadata associated with the model.
 
     Methods:
@@ -96,7 +95,7 @@ class TritonRemoteModel:
                 for the corresponding model input.
 
         Returns:
-            (list[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list
+            (List[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list
                 corresponds to one of the model's output tensors.
 
         Examples:

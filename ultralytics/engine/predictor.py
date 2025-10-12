@@ -154,7 +154,7 @@ class BasePredictor:
         Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | List[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
@@ -237,7 +237,7 @@ class BasePredictor:
         generator without storing results.
 
         Args:
-            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor, optional):
+            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor, optional):
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
 
@@ -254,7 +254,7 @@ class BasePredictor:
         Set up source and inference mode.
 
         Args:
-            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor):
+            source (str | Path | List[str] | List[Path] | List[np.ndarray] | np.ndarray | torch.Tensor):
                 Source for inference.
         """
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size

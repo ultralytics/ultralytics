@@ -32,7 +32,7 @@ from ultralytics.utils import (
     YAML,
     checks,
     is_dir_writeable,
-    is_github_action_running,
+    is_github_action_running, IS_JETSON, IS_RASPBERRYPI,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
@@ -217,6 +217,7 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""
     model = YOLO(CFG)

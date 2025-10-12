@@ -473,7 +473,9 @@ class BaseTrainer:
             # NaN recovery
             loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
             fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-            fitness_collapse = self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+            fitness_collapse = (
+                self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+            )
             if self._handle_nan_recovery(epoch, loss_nan, fitness_nan, fitness_collapse):
                 continue
 

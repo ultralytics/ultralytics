@@ -839,7 +839,7 @@ class BaseTrainer:
         if not corrupted:
             return False
         if epoch == self.start_epoch or not self.last.exists():
-            LOGGER.warning(f"Training corrupted but can not recover from last.pt...")
+            LOGGER.warning("Training corrupted but can not recover from last.pt...")
             return False  # Cannot recover on first epoch, let training continue
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:

@@ -422,31 +422,115 @@ class C3Ghost(C3):
 
 
 class GhostBottleneck(nn.Module):
-    """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
-
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1):
-        """Initialize Ghost Bottleneck module.
-
+    """
+    GhostNetV2 Bottleneck with attention mechanism.
+    
+    Enhanced version of Ghost Bottleneck with optional SE and attention-based ghost modules.
+    
+    Attributes:
+        stride (int): Stride for downsampling.
+        ghost1 (GhostConvV2): First ghost convolution (expansion).
+        conv_dw (nn.Conv2d | None): Depthwise convolution for stride > 1.
+        bn_dw (nn.BatchNorm2d | None): Batch normalization for depthwise conv.
+        se (SqueezeExcite | None): Squeeze-and-excitation module.
+        ghost2 (GhostConvV2): Second ghost convolution (projection).
+        shortcut (nn.Sequential): Shortcut connection.
+    
+    References:
+        https://github.com/huawei-noah/Efficient-AI-Backbones
+    """
+    
+    def __init__(self, c1, c2, mid_c=None, k=3, s=1, se_ratio=0., layer_id=0):
+        """
+        Initialize GhostNetV2 Bottleneck.
+        
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            k (int): Kernel size.
+            mid_c (int | None): Middle channels. If None, uses c2.
+            k (int): Kernel size for depthwise convolution.
             s (int): Stride.
+            se_ratio (float): Squeeze-excitation ratio (0 to disable).
+            layer_id (int): Layer index (determines attention mode).
         """
         super().__init__()
-        c_ = c2 // 2
-        self.conv = nn.Sequential(
-            GhostConv(c1, c_, 1, 1),  # pw
-            DWConv(c_, c_, k, s, act=False) if s == 2 else nn.Identity(),  # dw
-            GhostConv(c_, c2, 1, 1, act=False),  # pw-linear
-        )
-        self.shortcut = (
-            nn.Sequential(DWConv(c1, c1, k, s, act=False), Conv(c1, c2, 1, 1, act=False)) if s == 2 else nn.Identity()
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply skip connection and concatenation to input tensor."""
-        return self.conv(x) + self.shortcut(x)
+        if mid_c is None:
+            mid_c = c2
+        
+        has_se = se_ratio is not None and se_ratio > 0.
+        self.stride = s
+        
+        # Determine mode based on layer_id
+        mode = 'original' if layer_id <= 1 else 'attn'
+        
+        # Point-wise expansion with GhostConvV2
+        self.ghost1 = GhostConv(c1, mid_c, k=1, s=1, act=True, mode=mode)
+        
+        # Depth-wise convolution
+        if self.stride > 1:
+            self.conv_dw = nn.Conv2d(
+                mid_c, mid_c, k, stride=s,
+                padding=(k - 1) // 2, groups=mid_c, bias=False
+            )
+            self.bn_dw = nn.BatchNorm2d(mid_c)
+        else:
+            self.conv_dw = None
+            self.bn_dw = None
+        
+        # Squeeze-and-excitation
+        if has_se:
+            from ultralytics.nn.modules.conv import ChannelAttention
+            # Use a simplified SE - you can also use the full SqueezeExcite from ghostnetv2_torch.py
+            self.se = ChannelAttention(mid_c)
+        else:
+            self.se = None
+        
+        # Point-wise projection
+        self.ghost2 = GhostConv(mid_c, c2, k=1, s=1, act=False, mode='original')
+        
+        # Shortcut
+        if c1 == c2 and self.stride == 1:
+            self.shortcut = nn.Identity()
+        else:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(c1, c1, k, stride=s, padding=(k - 1) // 2, 
+                         groups=c1, bias=False),
+                nn.BatchNorm2d(c1),
+                nn.Conv2d(c1, c2, 1, stride=1, padding=0, bias=False),
+                nn.BatchNorm2d(c2),
+            )
+    
+    def forward(self, x):
+        """
+        Forward pass through GhostNetV2 Bottleneck.
+        
+        Args:
+            x (torch.Tensor): Input tensor.
+        
+        Returns:
+            (torch.Tensor): Output tensor with residual connection.
+        """
+        residual = x
+        
+        # Expansion
+        x = self.ghost1(x)
+        
+        # Depthwise
+        if self.stride > 1:
+            x = self.conv_dw(x)
+            x = self.bn_dw(x)
+        
+        # Squeeze-and-excitation
+        if self.se is not None:
+            x = self.se(x)
+        
+        # Projection
+        x = self.ghost2(x)
+        
+        # Residual
+        x += self.shortcut(residual)
+        
+        return x
 
 
 class Bottleneck(nn.Module):

@@ -309,46 +309,102 @@ class Focus(nn.Module):
 
 
 class GhostConv(nn.Module):
-    """Ghost Convolution module.
-
-    Generates more features with fewer parameters by using cheap operations.
-
+    """
+    GhostNetV2 Convolution module with attention mechanism.
+    
+    Generates more features with fewer parameters using cheap operations and optional attention.
+    
     Attributes:
-        cv1 (Conv): Primary convolution.
-        cv2 (Conv): Cheap operation convolution.
-
+        mode (str): Operation mode ('original' or 'attn').
+        oup (int): Output channels.
+        primary_conv (nn.Sequential): Primary convolution path.
+        cheap_operation (nn.Sequential): Cheap operation path.
+        short_conv (nn.Sequential | None): Short convolution for attention mode.
+        gate_fn (nn.Module): Gate activation function.
+    
     References:
         https://github.com/huawei-noah/Efficient-AI-Backbones
     """
-
-    def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
-        """Initialize Ghost Convolution module with given parameters.
-
+    
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, mode='original', dw_size=3, ratio=2):
+        """
+        Initialize GhostNetV2 Convolution module.
+        
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
             k (int): Kernel size.
             s (int): Stride.
-            g (int): Groups.
+            g (int): Groups (not used in GhostNetV2).
             act (bool | nn.Module): Activation function.
+            mode (str): Mode 'original' or 'attn'.
+            dw_size (int): Depthwise convolution kernel size.
+            ratio (int): Channel expansion ratio.
         """
         super().__init__()
-        c_ = c2 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
-        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
-
+        self.mode = mode
+        self.gate_fn = nn.Sigmoid()
+        self.oup = c2
+        
+        init_channels = math.ceil(c2 / ratio)
+        new_channels = init_channels * (ratio - 1)
+        
+        # Primary convolution
+        self.primary_conv = nn.Sequential(
+            nn.Conv2d(c1, init_channels, k, s, k // 2, bias=False),
+            nn.BatchNorm2d(init_channels),
+            nn.ReLU(inplace=True) if act else nn.Identity(),
+        )
+        
+        # Cheap operation
+        self.cheap_operation = nn.Sequential(
+            nn.Conv2d(init_channels, new_channels, dw_size, 1, dw_size // 2, 
+                     groups=init_channels, bias=False),
+            nn.BatchNorm2d(new_channels),
+            nn.ReLU(inplace=True) if act else nn.Identity(),
+        )
+        
+        # Short convolution for attention mode
+        if self.mode == 'attn':
+            self.short_conv = nn.Sequential(
+                nn.Conv2d(c1, c2, k, s, k // 2, bias=False),
+                nn.BatchNorm2d(c2),
+                nn.Conv2d(c2, c2, kernel_size=(1, 5), stride=1, padding=(0, 2), 
+                         groups=c2, bias=False),
+                nn.BatchNorm2d(c2),
+                nn.Conv2d(c2, c2, kernel_size=(5, 1), stride=1, padding=(2, 0), 
+                         groups=c2, bias=False),
+                nn.BatchNorm2d(c2),
+            )
+        else:
+            self.short_conv = None
+    
     def forward(self, x):
-        """Apply Ghost Convolution to input tensor.
-
+        """
+        Apply GhostNetV2 Convolution to input tensor.
+        
         Args:
             x (torch.Tensor): Input tensor.
-
+        
         Returns:
-            (torch.Tensor): Output tensor with concatenated features.
+            (torch.Tensor): Output tensor with ghosted features.
         """
-        y = self.cv1(x)
-        return torch.cat((y, self.cv2(y)), 1)
-
+        if self.mode == 'original':
+            x1 = self.primary_conv(x)
+            x2 = self.cheap_operation(x1)
+            out = torch.cat([x1, x2], dim=1)
+            return out[:, :self.oup, :, :]
+        elif self.mode == 'attn':
+            res = self.short_conv(torch.nn.functional.avg_pool2d(x, kernel_size=2, stride=2))
+            x1 = self.primary_conv(x)
+            x2 = self.cheap_operation(x1)
+            out = torch.cat([x1, x2], dim=1)
+            out = out[:, :self.oup, :, :]
+            return out * torch.nn.functional.interpolate(
+                self.gate_fn(res), 
+                size=(out.shape[-2], out.shape[-1]), 
+                mode='nearest'
+            )
 
 class RepConv(nn.Module):
     """RepConv module with training and deploy modes.

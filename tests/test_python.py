@@ -23,6 +23,8 @@ from ultralytics.utils import (
     ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    IS_JETSON,
+    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     ONLINE,
@@ -32,7 +34,7 @@ from ultralytics.utils import (
     YAML,
     checks,
     is_dir_writeable,
-    is_github_action_running, IS_JETSON, IS_RASPBERRYPI,
+    is_github_action_running,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13

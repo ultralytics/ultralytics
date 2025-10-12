@@ -844,7 +844,7 @@ class BaseTrainer:
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
-        ckpt = load_checkpoint(self.last)[0]
+        _, ckpt = load_checkpoint(self.last)
         ema_state = ckpt["ema"].float().state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")

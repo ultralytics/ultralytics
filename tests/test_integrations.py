@@ -10,7 +10,7 @@ import pytest
 
 from tests import MODEL, SOURCE, TMP
 from ultralytics import YOLO, download
-from ultralytics.utils import DATASETS_DIR, SETTINGS
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
 
 
@@ -129,26 +129,23 @@ def test_faster_coco_eval():
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
-    # Download annotations after each dataset downloads first
-    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
-
     args = {"model": "yolo11n.pt", "data": "coco8.yaml", "save_json": True, "imgsz": 64}
     validator = DetectionValidator(args=args)
     validator()
     validator.is_coco = True
-    download(f"{url}instances_val2017.json", dir=DATASETS_DIR / "coco8/annotations")
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8/annotations")
     _ = validator.eval_json(validator.stats)
 
     args = {"model": "yolo11n-seg.pt", "data": "coco8-seg.yaml", "save_json": True, "imgsz": 64}
     validator = SegmentationValidator(args=args)
     validator()
     validator.is_coco = True
-    download(f"{url}instances_val2017.json", dir=DATASETS_DIR / "coco8-seg/annotations")
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8-seg/annotations")
     _ = validator.eval_json(validator.stats)
 
     args = {"model": "yolo11n-pose.pt", "data": "coco8-pose.yaml", "save_json": True, "imgsz": 64}
     validator = PoseValidator(args=args)
     validator()
     validator.is_coco = True
-    download(f"{url}person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
+    download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
     _ = validator.eval_json(validator.stats)

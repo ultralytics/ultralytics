@@ -384,6 +384,7 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
+  from concurrent.futures import ThreadPoolExecutor
   from pathlib import Path
 
   import numpy as np
@@ -396,31 +397,28 @@ download: |
   check_requirements("faster-coco-eval")
   from faster_coco_eval import COCO
 
-  # Make Directories
-  dir = Path(yaml["path"])  # dataset root dir
-  for p in "images", "labels":
-      (dir / p).mkdir(parents=True, exist_ok=True)
-      for q in "train", "val":
-          (dir / p / q).mkdir(parents=True, exist_ok=True)
-
   # Train, Val Splits
+  dir = Path(yaml["path"])
   for split, patches in [("train", 50 + 1), ("val", 43 + 1)]:
       print(f"Processing {split} in {patches} patches ...")
       images, labels = dir / "images" / split, dir / "labels" / split
+      images.mkdir(parents=True, exist_ok=True)
+      labels.mkdir(parents=True, exist_ok=True)
 
       # Download
       url = f"https://dorc.ks3-cn-beijing.ksyun.com/data-set/2020Objects365%E6%95%B0%E6%8D%AE%E9%9B%86/{split}/"
       if split == "train":
           download([f"{url}zhiyuan_objv2_{split}.tar.gz"], dir=dir)  # annotations json
-          download([f"{url}patch{i}.tar.gz" for i in range(patches)], dir=images, curl=True, threads=8)
+          download([f"{url}patch{i}.tar.gz" for i in range(patches)], dir=images, threads=17)  # 51 patches / 17 threads = 3
       elif split == "val":
           download([f"{url}zhiyuan_objv2_{split}.json"], dir=dir)  # annotations json
-          download([f"{url}images/v1/patch{i}.tar.gz" for i in range(15 + 1)], dir=images, curl=True, threads=8)
-          download([f"{url}images/v2/patch{i}.tar.gz" for i in range(16, patches)], dir=images, curl=True, threads=8)
+          download([f"{url}images/v1/patch{i}.tar.gz" for i in range(15 + 1)], dir=images, threads=16)
+          download([f"{url}images/v2/patch{i}.tar.gz" for i in range(16, patches)], dir=images, threads=16)
 
       # Move
-      for f in TQDM(images.rglob("*.jpg"), desc=f"Moving {split} images"):
-          f.rename(images / f.name)  # move to /images/{split}
+      files = list(images.rglob("*.jpg"))
+      with ThreadPoolExecutor(max_workers=16) as executor:
+          list(TQDM(executor.map(lambda f: f.rename(images / f.name), files), total=len(files), desc=f"Moving {split} images"))
 
       # Labels
       coco = COCO(dir / f"zhiyuan_objv2_{split}.json")
@@ -428,10 +426,12 @@ download: |
       for cid, cat in enumerate(names):
           catIds = coco.getCatIds(catNms=[cat])
           imgIds = coco.getImgIds(catIds=catIds)
-          for im in TQDM(coco.loadImgs(imgIds), desc=f"Class {cid + 1}/{len(names)} {cat}"):
-              width, height = im["width"], im["height"]
-              path = Path(im["file_name"])  # image filename
+
+          def process_annotation(im):
+              """Process and write annotations for a single image."""
               try:
+                  width, height = im["width"], im["height"]
+                  path = Path(im["file_name"])
                   with open(labels / path.with_suffix(".txt").name, "a", encoding="utf-8") as file:
                       annIds = coco.getAnnIds(imgIds=im["id"], catIds=catIds, iscrowd=None)
                       for a in coco.loadAnns(annIds):
@@ -441,3 +441,7 @@ download: |
                           file.write(f"{cid} {x:.5f} {y:.5f} {w:.5f} {h:.5f}\n")
               except Exception as e:
                   print(e)
+
+          images_list = coco.loadImgs(imgIds)
+          with ThreadPoolExecutor(max_workers=16) as executor:
+              list(TQDM(executor.map(process_annotation, images_list), total=len(images_list), desc=f"Class {cid + 1}/{len(names)} {cat}"))

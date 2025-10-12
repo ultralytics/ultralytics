@@ -49,7 +49,7 @@ download: |
   from pathlib import Path
 
   from ultralytics.utils.downloads import download
-  from ultralytics.utils import TQDM
+  from ultralytics.utils import ASSETS_URL, TQDM
 
   def convert_label(path, lb_path, year, image_id):
       """Converts XML annotations from VOC format to YOLO format by extracting bounding boxes and class IDs."""
@@ -79,11 +79,10 @@ download: |
 
   # Download
   dir = Path(yaml["path"])  # dataset root dir
-  url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
   urls = [
-      f"{url}VOCtrainval_06-Nov-2007.zip",  # 446MB, 5012 images
-      f"{url}VOCtest_06-Nov-2007.zip",  # 438MB, 4953 images
-      f"{url}VOCtrainval_11-May-2012.zip",  # 1.95GB, 17126 images
+      f"{ASSETS_URL}/VOCtrainval_06-Nov-2007.zip",  # 446MB, 5012 images
+      f"{ASSETS_URL}/VOCtest_06-Nov-2007.zip",  # 438MB, 4953 images
+      f"{ASSETS_URL}/VOCtrainval_11-May-2012.zip",  # 1.95GB, 17126 images
   ]
   download(urls, dir=dir / "images", threads=3, exist_ok=True)  # download and unzip over existing (required)
 

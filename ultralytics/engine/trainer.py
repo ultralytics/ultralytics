@@ -473,7 +473,9 @@ class BaseTrainer:
             # NaN recovery: detect nonfinite loss or fitness collapse, resume from last checkpoint
             loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
             fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-            fitness_collapse = self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+            fitness_collapse = (
+                self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+            )
             corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
             if RANK != -1:  # DDP: broadcast to all ranks
                 broadcast_list = [corrupted if RANK == 0 else None]
@@ -487,7 +489,9 @@ class BaseTrainer:
                 if epoch == self.start_epoch or not self.last.exists():
                     raise RuntimeError(f"Cannot recover: no checkpoint at epoch {epoch}")
                 reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
-                LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
+                LOGGER.warning(
+                    f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt..."
+                )
                 ckpt = load_checkpoint(self.last)[0]
                 ema_state = ckpt["ema"].float().state_dict()
                 if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):

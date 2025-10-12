@@ -556,7 +556,10 @@ class BaseTrainer:
         """Read results.csv into a dictionary using polars."""
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+        try:
+            return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+        except Exception:
+            return {}
 
     def _model_train(self):
         """Set model in training mode."""
@@ -600,6 +603,7 @@ class BaseTrainer:
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
         # Save checkpoints
+        self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
@@ -749,8 +753,9 @@ class BaseTrainer:
         """Save training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 2  # number of cols
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
+        self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 

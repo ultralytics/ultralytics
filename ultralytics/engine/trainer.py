@@ -877,30 +877,30 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
         # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
-        param_groups = [
-            dict(
-                params=g[3],
-                lr=lr,
-                weight_decay=decay,  # need to update for DDP
-                momentum=momentum,
-                nesterov=True,
-                use_muon=True,
-            ),
-            dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
-            dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
-            dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
-        ]
-        optimizer = MuonWithSGD(
-            param_groups,
-            muon=self.args.muon_w,
-            sgd=self.args.sgd_w,
-            decay_factor=self.args.decay_factor,
-            epochs=self.args.epochs,
-        )
+        # param_groups = [
+        #     dict(
+        #         params=g[3],
+        #         lr=lr,
+        #         weight_decay=decay,  # need to update for DDP
+        #         momentum=momentum,
+        #         nesterov=True,
+        #         use_muon=True,
+        #     ),
+        #     dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
+        #     dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
+        #     dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
+        # ]
+        # optimizer = MuonWithSGD(
+        #     param_groups,
+        #     muon=self.args.muon_w,
+        #     sgd=self.args.sgd_w,
+        #     decay_factor=self.args.decay_factor,
+        #     epochs=self.args.epochs,
+        # )
 
-        # if len(g[0]):
-        #     optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
-        # optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
+        if len(g[0]):
+            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"

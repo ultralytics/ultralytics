@@ -636,6 +636,8 @@ class BaseTrainer:
 
         if not all_nan_grads:
             self.scaler.step(self.optimizer)
+        else:
+            LOGGER.warning("WARNING ⚠️ All gradients are NaN, skipping optimizer step")
         # self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()

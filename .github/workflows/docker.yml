@@ -78,11 +78,12 @@ jobs:
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""
-          - dockerfile: "Dockerfile-jetson-jetpack5"
-            tags: "latest-jetson-jetpack5"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
-            derivatives: ""
+          # Disabled due to NaN training errors in https://github.com/ultralytics/ultralytics/pull/22352
+          # - dockerfile: "Dockerfile-jetson-jetpack5"
+          #   tags: "latest-jetson-jetpack5"
+          #   platforms: "linux/arm64"
+          #   runs_on: "ubuntu-24.04-arm"
+          #   derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
@@ -91,7 +92,7 @@ jobs:
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
-          #   derivatives: []
+          #   derivatives: ""
 
     runs-on: ${{ matrix.runs_on }}
     outputs:

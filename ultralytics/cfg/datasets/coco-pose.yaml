@@ -26,12 +26,13 @@ names:
 download: |
   from pathlib import Path
 
+  from ultralytics.utils import ASSETS_URL
   from ultralytics.utils.downloads import download
 
   # Download labels
   dir = Path(yaml["path"])  # dataset root dir
-  url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
-  urls = [f"{url}coco2017labels-pose.zip"]
+
+  urls = [f"{ASSETS_URL}/coco2017labels-pose.zip"]
   download(urls, dir=dir.parent)
   # Download data
   urls = [

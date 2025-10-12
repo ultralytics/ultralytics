@@ -470,34 +470,36 @@ class BaseTrainer:
                     self._clear_memory(threshold=0.5)  # prevent VRAM spike
                     self.metrics, self.fitness = self.validate()
 
-            # NaN/corruption detection after validation (before saving metrics/checkpoints)
-            nan_detected = RANK in {-1, 0} and (
-                torch.isnan(self.tloss).any()
-                or (self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness <= 0)
-            )
-            if RANK != -1:  # DDP: broadcast corruption detection to all ranks
-                broadcast_list = [nan_detected if RANK == 0 else None]
+            # NaN recovery: detect nonfinite loss or fitness collapse, resume from last checkpoint
+            loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
+            fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
+            fitness_collapse = self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+            corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
+            if RANK != -1:  # DDP: broadcast to all ranks
+                broadcast_list = [corrupted if RANK == 0 else None]
                 dist.broadcast_object_list(broadcast_list, 0)
-                nan_detected = broadcast_list[0]
+                corrupted = broadcast_list[0]
 
-            if nan_detected:
+            if corrupted:
                 self.nan_recovery_attempts += 1
                 if self.nan_recovery_attempts > 3:
-                    raise RuntimeError(f"Training failed: corruption persisted for {self.nan_recovery_attempts} epochs")
-                LOGGER.warning(
-                    f"Corruption detected (attempt {self.nan_recovery_attempts}/3), recovering from checkpoint..."
-                )
+                    raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
                 if epoch == self.start_epoch or not self.last.exists():
-                    raise RuntimeError(f"Cannot recover: no valid checkpoint at epoch {epoch}")
+                    raise RuntimeError(f"Cannot recover: no checkpoint at epoch {epoch}")
+                reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
+                LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
                 ckpt = load_checkpoint(self.last)[0]
+                ema_state = ckpt["ema"].float().state_dict()
+                if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
+                    raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
                 if RANK in {-1, 0}:
-                    unwrap_model(self.ema.ema).load_state_dict(ckpt["ema"].float().state_dict())
-                unwrap_model(self.model).load_state_dict(ckpt["ema"].float().state_dict())
+                    unwrap_model(self.ema.ema).load_state_dict(ema_state)
+                unwrap_model(self.model).load_state_dict(ema_state)
                 self._load_checkpoint_state(ckpt)
-                self.scheduler.last_epoch = epoch - 1  # Reset scheduler to redo this epoch
-                continue  # Skip metrics/checkpoint save and redo epoch
+                self.scheduler.last_epoch = epoch - 1
+                continue
 
-            self.nan_recovery_attempts = 0  # Reset counter on successful epoch
+            self.nan_recovery_attempts = 0
             if RANK in {-1, 0}:
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch

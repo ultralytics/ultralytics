@@ -496,6 +496,7 @@ class BaseTrainer:
                     unwrap_model(self.ema.ema).load_state_dict(ema_state)
                 unwrap_model(self.model).load_state_dict(ema_state)
                 self._load_checkpoint_state(ckpt)
+                del ckpt, ema_state  # free memory
                 self.scheduler.last_epoch = epoch - 1
                 continue
 

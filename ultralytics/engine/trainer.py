@@ -838,21 +838,20 @@ class BaseTrainer:
             corrupted = broadcast_list[0]
         if not corrupted:
             return False
+        if epoch == self.start_epoch or not self.last.exists():
+            LOGGER.warning(f"Training corrupted but can not recover from last.pt...")
+            return False  # Cannot recover on first epoch, let training continue
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
-        if epoch == self.start_epoch or not self.last.exists():
-            raise RuntimeError(f"Cannot recover: no checkpoint at epoch {epoch}")
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         ckpt = load_checkpoint(self.last)[0]
         ema_state = ckpt["ema"].float().state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
-        if RANK in {-1, 0}:
-            unwrap_model(self.ema.ema).load_state_dict(ema_state)
-        unwrap_model(self.model).load_state_dict(ema_state)
-        self._load_checkpoint_state(ckpt)
+        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
         del ckpt, ema_state
         self.scheduler.last_epoch = epoch - 1
         return True

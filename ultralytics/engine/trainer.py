@@ -44,7 +44,6 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
-    TORCH_1_9,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
@@ -425,23 +424,20 @@ class BaseTrainer:
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
                 # Backward
-                if self.loss.isfinite():
-                    self.scaler.scale(self.loss).backward()
-                    if ni - last_opt_step >= self.accumulate:
-                        self.optimizer_step()
-                        last_opt_step = ni
+                self.scaler.scale(self.loss).backward()
+                if ni - last_opt_step >= self.accumulate:
+                    self.optimizer_step()
+                    last_opt_step = ni
 
-                        # Timed stopping
-                        if self.args.time:
-                            self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
-                            if RANK != -1:  # if DDP training
-                                broadcast_list = [self.stop if RANK == 0 else None]
-                                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                                self.stop = broadcast_list[0]
-                            if self.stop:  # training time exceeded
-                                break
-                else:
-                    LOGGER.warning(f"Non-finite forward pass (loss={self.loss}), skipping backwards pass...")
+                    # Timed stopping
+                    if self.args.time:
+                        self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
+                        if RANK != -1:  # if DDP training
+                            broadcast_list = [self.stop if RANK == 0 else None]
+                            dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
+                            self.stop = broadcast_list[0]
+                        if self.stop:  # training time exceeded
+                            break
 
                 # Log
                 if RANK in {-1, 0}:
@@ -588,7 +584,10 @@ class BaseTrainer:
         """Read results.csv into a dictionary using polars."""
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+        try:
+            return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+        except Exception:
+            return {}
 
     def _model_train(self):
         """Set model in training mode."""
@@ -632,6 +631,7 @@ class BaseTrainer:
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
         # Save checkpoints
+        self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
@@ -697,17 +697,8 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        try:
-            if TORCH_1_9:
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, error_if_nonfinite=True)
-            self.scaler.step(self.optimizer)
-        except RuntimeError as e:
-            if "finite" in str(e).lower():
-                LOGGER.warning("Non-finite gradients, skipping optimizer updates")
-                self.scaler.update()
-                self.optimizer.zero_grad()
-                return
-            raise
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
@@ -781,10 +772,9 @@ class BaseTrainer:
         """Save training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 2  # number of cols
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
-        if not self.csv.parent.is_dir():  # user may accidentally delete save_dir
-            self.csv.parent.mkdir()
+        self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 

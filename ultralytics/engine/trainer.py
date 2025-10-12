@@ -470,38 +470,11 @@ class BaseTrainer:
                     self._clear_memory(threshold=0.5)  # prevent VRAM spike
                     self.metrics, self.fitness = self.validate()
 
-            # NaN recovery: detect nonfinite loss or fitness collapse, resume from last checkpoint
+            # NaN recovery
             loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
             fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-            fitness_collapse = (
-                self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
-            )
-            corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
-            if RANK != -1:  # DDP: broadcast to all ranks
-                broadcast_list = [corrupted if RANK == 0 else None]
-                dist.broadcast_object_list(broadcast_list, 0)
-                corrupted = broadcast_list[0]
-
-            if corrupted:
-                self.nan_recovery_attempts += 1
-                if self.nan_recovery_attempts > 3:
-                    raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
-                if epoch == self.start_epoch or not self.last.exists():
-                    raise RuntimeError(f"Cannot recover: no checkpoint at epoch {epoch}")
-                reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
-                LOGGER.warning(
-                    f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt..."
-                )
-                ckpt = load_checkpoint(self.last)[0]
-                ema_state = ckpt["ema"].float().state_dict()
-                if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
-                    raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
-                if RANK in {-1, 0}:
-                    unwrap_model(self.ema.ema).load_state_dict(ema_state)
-                unwrap_model(self.model).load_state_dict(ema_state)
-                self._load_checkpoint_state(ckpt)
-                del ckpt, ema_state  # free memory
-                self.scheduler.last_epoch = epoch - 1
+            fitness_collapse = self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+            if self._handle_nan_recovery(epoch, loss_nan, fitness_nan, fitness_collapse):
                 continue
 
             self.nan_recovery_attempts = 0
@@ -853,6 +826,34 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness", 0.0)
+
+    def _handle_nan_recovery(self, epoch, loss_nan, fitness_nan, fitness_collapse):
+        """Detect and recover from NaN/Inf loss or fitness collapse by loading last checkpoint."""
+        corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
+        if RANK != -1:  # DDP: broadcast to all ranks
+            broadcast_list = [corrupted if RANK == 0 else None]
+            dist.broadcast_object_list(broadcast_list, 0)
+            corrupted = broadcast_list[0]
+        if not corrupted:
+            return False
+        self.nan_recovery_attempts += 1
+        if self.nan_recovery_attempts > 3:
+            raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
+        if epoch == self.start_epoch or not self.last.exists():
+            raise RuntimeError(f"Cannot recover: no checkpoint at epoch {epoch}")
+        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
+        LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
+        ckpt = load_checkpoint(self.last)[0]
+        ema_state = ckpt["ema"].float().state_dict()
+        if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
+            raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
+        if RANK in {-1, 0}:
+            unwrap_model(self.ema.ema).load_state_dict(ema_state)
+        unwrap_model(self.model).load_state_dict(ema_state)
+        self._load_checkpoint_state(ckpt)
+        del ckpt, ema_state
+        self.scheduler.last_epoch = epoch - 1
+        return True
 
     def resume_training(self, ckpt):
         """Resume YOLO training from given epoch and best fitness."""

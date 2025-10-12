@@ -44,7 +44,6 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
-    TORCH_1_9,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
@@ -669,17 +668,8 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        try:
-            if TORCH_1_9:
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, error_if_nonfinite=True)
-            self.scaler.step(self.optimizer)
-        except RuntimeError as e:
-            if "finite" in str(e).lower():
-                LOGGER.warning("Non-finite gradients, skipping optimizer updates")
-                self.scaler.update()
-                self.optimizer.zero_grad()
-                return
-            raise
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:

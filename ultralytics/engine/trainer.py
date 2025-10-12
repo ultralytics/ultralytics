@@ -171,6 +171,7 @@ class BaseTrainer:
         self.loss_names = ["Loss"]
         self.csv = self.save_dir / "results.csv"
         self.plot_idx = [0, 1, 2]
+        self.nan_recovery_attempts = 0
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -458,6 +459,7 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_end")
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
                 final_epoch = epoch + 1 >= self.epochs
@@ -467,6 +469,13 @@ class BaseTrainer:
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                     self._clear_memory(threshold=0.5)  # prevent VRAM spike
                     self.metrics, self.fitness = self.validate()
+
+            # NaN recovery
+            if self._handle_nan_recovery(epoch):
+                continue
+
+            self.nan_recovery_attempts = 0
+            if RANK in {-1, 0}:
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
@@ -804,20 +813,54 @@ class BaseTrainer:
                 ) from e
         self.resume = resume
 
+    def _load_checkpoint_state(self, ckpt):
+        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        if ckpt.get("optimizer") is not None:
+            self.optimizer.load_state_dict(ckpt["optimizer"])
+        if ckpt.get("scaler") is not None:
+            self.scaler.load_state_dict(ckpt["scaler"])
+        if self.ema and ckpt.get("ema"):
+            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
+            self.ema.updates = ckpt["updates"]
+        self.best_fitness = ckpt.get("best_fitness", 0.0)
+
+    def _handle_nan_recovery(self, epoch):
+        """Detect and recover from NaN/Inf loss or fitness collapse by loading last checkpoint."""
+        loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
+        fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
+        fitness_collapse = (
+            self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+        )
+        corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
+        if RANK != -1:  # DDP: broadcast to all ranks
+            broadcast_list = [corrupted if RANK == 0 else None]
+            dist.broadcast_object_list(broadcast_list, 0)
+            corrupted = broadcast_list[0]
+        if not corrupted:
+            return False
+        if epoch == self.start_epoch or not self.last.exists():
+            LOGGER.warning(f"Training corrupted but can not recover from last.pt...")
+            return False  # Cannot recover on first epoch, let training continue
+        self.nan_recovery_attempts += 1
+        if self.nan_recovery_attempts > 3:
+            raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
+        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
+        LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
+        ckpt = load_checkpoint(self.last)[0]
+        ema_state = ckpt["ema"].float().state_dict()
+        if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
+            raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
+        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
+        del ckpt, ema_state
+        self.scheduler.last_epoch = epoch - 1
+        return True
+
     def resume_training(self, ckpt):
         """Resume YOLO training from given epoch and best fitness."""
         if ckpt is None or not self.resume:
             return
-        best_fitness = 0.0
         start_epoch = ckpt.get("epoch", -1) + 1
-        if ckpt.get("optimizer") is not None:
-            self.optimizer.load_state_dict(ckpt["optimizer"])  # optimizer
-            best_fitness = ckpt["best_fitness"]
-        if ckpt.get("scaler") is not None:
-            self.scaler.load_state_dict(ckpt["scaler"])
-        if self.ema and ckpt.get("ema"):
-            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())  # EMA
-            self.ema.updates = ckpt["updates"]
         assert start_epoch > 0, (
             f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
@@ -828,7 +871,7 @@ class BaseTrainer:
                 f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
-        self.best_fitness = best_fitness
+        self._load_checkpoint_state(ckpt)
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()

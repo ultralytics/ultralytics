@@ -667,19 +667,16 @@ class BaseTrainer:
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         self.scaler.unscale_(self.optimizer2)  # unscale gradients
-        try:
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, error_if_nonfinite=True)
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        all_nan_grads = all(torch.isnan(p.grad).all() for p in self.model.parameters() if p.grad is not None)
+        if RANK != -1:  # DDP model
+            all_nan_grads = torch.tensor(all_nan_grads, dtype=torch.bool, device=next(self.model.parameters()).device)
+            dist.all_reduce(all_nan_grads, op=dist.ReduceOp.MAX)
+            all_nan_grads = all_nan_grads.item()
+
+        if not all_nan_grads:
             self.scaler.step(self.optimizer)
             self.scaler.step(self.optimizer2)
-        except RuntimeError as e:
-            if "finite" in str(e).lower():
-                LOGGER.warning("Non-finite gradients detected, skipping optimizer step")
-                self.scaler.update()
-                self.optimizer.zero_grad()
-                self.optimizer2.zero_grad()
-                return
-            else:
-                raise
         self.scaler.update()
         self.optimizer.zero_grad()
         self.optimizer2.zero_grad()

@@ -426,7 +426,7 @@ download: |
       for cid, cat in enumerate(names):
           catIds = coco.getCatIds(catNms=[cat])
           imgIds = coco.getImgIds(catIds=catIds)
-  
+
           def process_annotation(im):
               """Process and write annotations for a single image."""
               try:
@@ -441,7 +441,7 @@ download: |
                           file.write(f"{cid} {x:.5f} {y:.5f} {w:.5f} {h:.5f}\n")
               except Exception as e:
                   print(e)
-  
+
           images_list = coco.loadImgs(imgIds)
           with ThreadPoolExecutor(max_workers=16) as executor:
               list(TQDM(executor.map(process_annotation, images_list), total=len(images_list), desc=f"Class {cid + 1}/{len(names)} {cat}"))

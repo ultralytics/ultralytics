@@ -409,7 +409,7 @@ download: |
       url = f"https://dorc.ks3-cn-beijing.ksyun.com/data-set/2020Objects365%E6%95%B0%E6%8D%AE%E9%9B%86/{split}/"
       if split == "train":
           download([f"{url}zhiyuan_objv2_{split}.tar.gz"], dir=dir)  # annotations json
-          download([f"{url}patch{i}.tar.gz" for i in range(patches)], dir=images, threads=16)
+          download([f"{url}patch{i}.tar.gz" for i in range(patches)], dir=images, threads=17)  # 51 patches / 17 threads = 3
       elif split == "val":
           download([f"{url}zhiyuan_objv2_{split}.json"], dir=dir)  # annotations json
           download([f"{url}images/v1/patch{i}.tar.gz" for i in range(15 + 1)], dir=images, threads=16)

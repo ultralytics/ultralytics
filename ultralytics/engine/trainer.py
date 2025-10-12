@@ -828,7 +828,9 @@ class BaseTrainer:
         """Detect and recover from NaN/Inf loss or fitness collapse by loading last checkpoint."""
         loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
         fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-        fitness_collapse = self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+        fitness_collapse = (
+            self.fitness is not None and self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+        )
         corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
         if RANK != -1:  # DDP: broadcast to all ranks
             broadcast_list = [corrupted if RANK == 0 else None]

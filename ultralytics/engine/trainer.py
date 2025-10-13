@@ -628,17 +628,17 @@ class BaseTrainer:
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         # torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=0.5)  # clip gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
-        all_nan_grads = all(torch.isnan(p.grad).all() for p in self.model.parameters() if p.grad is not None)
-        if RANK != -1:  # DDP model
-            all_nan_grads = torch.tensor(all_nan_grads, dtype=torch.bool, device=next(self.model.parameters()).device)
-            dist.all_reduce(all_nan_grads, op=dist.ReduceOp.MAX)
-            all_nan_grads = all_nan_grads.item()
-
-        if not all_nan_grads:
-            self.scaler.step(self.optimizer)
-        else:
-            LOGGER.warning("WARNING ⚠️ All gradients are NaN, skipping optimizer step")
-        # self.scaler.step(self.optimizer)
+        # all_nan_grads = all(torch.isnan(p.grad).all() for p in self.model.parameters() if p.grad is not None)
+        # if RANK != -1:  # DDP model
+        #     all_nan_grads = torch.tensor(all_nan_grads, dtype=torch.bool, device=next(self.model.parameters()).device)
+        #     dist.all_reduce(all_nan_grads, op=dist.ReduceOp.MAX)
+        #     all_nan_grads = all_nan_grads.item()
+        #
+        # if not all_nan_grads:
+        #     self.scaler.step(self.optimizer)
+        # else:
+        #     LOGGER.warning("WARNING ⚠️ All gradients are NaN, skipping optimizer step")
+        self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
@@ -887,30 +887,30 @@ class BaseTrainer:
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
         # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
-        # param_groups = [
-        #     dict(
-        #         params=g[3],
-        #         lr=lr,
-        #         weight_decay=decay,  # need to update for DDP
-        #         momentum=momentum,
-        #         nesterov=True,
-        #         use_muon=True,
-        #     ),
-        #     dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
-        #     dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
-        #     dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
-        # ]
-        # optimizer = MuonWithSGD(
-        #     param_groups,
-        #     muon=self.args.muon_w,
-        #     sgd=self.args.sgd_w,
-        #     decay_factor=self.args.decay_factor,
-        #     epochs=self.args.epochs,
-        # )
+        param_groups = [
+            dict(
+                params=g[3],
+                lr=lr,
+                weight_decay=decay,  # need to update for DDP
+                momentum=momentum,
+                nesterov=True,
+                use_muon=True,
+            ),
+            dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
+            dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
+            dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
+        ]
+        optimizer = MuonWithSGD(
+            param_groups,
+            muon=self.args.muon_w,
+            sgd=self.args.sgd_w,
+            decay_factor=self.args.decay_factor,
+            epochs=self.args.epochs,
+        )
 
-        if len(g[0]):
-            optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
-        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
+        # if len(g[0]):
+        #     optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+        # optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"

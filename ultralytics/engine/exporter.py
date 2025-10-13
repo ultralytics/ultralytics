@@ -1047,6 +1047,9 @@ class Exporter:
                 .astype(np.float32)
             )
 
+        if "rtdetr" in self.model.model[-1]._get_name().lower():
+            self.args.opset = self.args.opset or 19
+            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()  # ensure ONNX is available
         keras_model = onnx2saved_model(

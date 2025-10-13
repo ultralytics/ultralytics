@@ -636,6 +636,49 @@ class YAML:
         LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
+class TypeValidator:
+    """Validates data types against predefined schema with clear error messages."""
+
+    def __init__(self, valid_types):
+        """
+        Initialize validator with type schema including examples and documentation.
+
+        Args:
+            valid_types: List of tuples/lists, each containing [key, expected_types, example, docs_link].
+                        - key: String name of the data field to validate
+                        - expected_types: Type or tuple of types that are valid
+                        - example: Optional example value to show in error messages
+                        - docs_link: Optional URL for documentation reference
+        """
+        self.valid_types = valid_types
+
+    def _format_types(self, types):
+        """Convert type or tuple of types into readable string format."""
+        return ", ".join(t.__name__ for t in types) if isinstance(types, tuple) else types.__name__
+
+    def __call__(self, data):
+        """
+        Validate data dictionary against defined type schema.
+
+        Args:
+            data: Dictionary to validate against the schema
+
+        Raises:
+            TypeError: When a value's type doesn't match expected types,
+                      includes helpful example and documentation link if provided
+        """
+        for key, types, example, docs in self.valid_types:
+            if data.get(key) is not None and not isinstance(data[key], types):
+                error_msg = (
+                    f"'{key}' has invalid type {type(data[key]).__name__}. Valid types: {self._format_types(types)}."
+                )
+                if example is not None:
+                    error_msg += f" Example — {key}: {example}."
+                if docs is not None:
+                    error_msg += f" See {docs}"
+                raise TypeError(error_msg)
+
+
 # Default configuration
 DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()

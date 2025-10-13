@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover SAM 3, the next evolution of Meta’s Segment Anything Model, offering next-generation promptable segmentation across images and videos with improved efficiency, memory handling, and zero-shot generalization.
+description: Discover SAM 3, the next evolution of Meta's Segment Anything Model, offering next-generation promptable segmentation across images and videos with improved efficiency, memory handling, and zero-shot generalization.
 keywords: SAM 3, Segment Anything, SAM3, video segmentation, image segmentation, real-time segmentation, promptable AI, SA-V2 dataset, Meta, Ultralytics, computer vision, AI, machine learning
 ---
 
@@ -8,14 +8,14 @@ keywords: SAM 3, Segment Anything, SAM3, video segmentation, image segmentation,
 !!! note "Coming Soon ⚠️"
 
     🚧 SAM 3 models have not yet been released by Meta. The information below is based on early research previews and expected architecture.  
-    Final downloads and benchmarks will be available following Meta’s public release.
+    Final downloads and benchmarks will be available following Meta's public release.
 
 # SAM 3: Segment Anything Model 3
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam3-using-ultralytics.ipynb">
 <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Run SAM 3 in Colab"></a>
 
-**SAM 3** (Segment Anything Model 3) represents Meta’s next-generation foundation model for **promptable image and video segmentation**. Building upon the massive success of [SAM 2](sam2.md), SAM 3 is expected to deliver state-of-the-art segmentation performance, real-time video understanding, and dramatically improved temporal consistency through an entirely redesigned visual memory system.
+**SAM 3** (Segment Anything Model 3) represents Meta's next-generation foundation model for **promptable image and video segmentation**. Building upon the massive success of [SAM 2](sam-2.md), SAM 3 is expected to deliver state-of-the-art segmentation performance, real-time video understanding, and dramatically improved temporal consistency through an entirely redesigned visual memory system.
 
 ![SAM 3 Early Results](https://github.com/ultralytics/assets/releases/download/v0.0.0/sam3-concept.avif)
 
@@ -38,7 +38,7 @@ SAM 3 introduces a fundamentally improved **unified architecture** for both stil
 
 ## Architecture
 
-SAM 3’s architecture builds on the transformer-based foundations of SAM 2 but introduces several key improvements:
+SAM 3's architecture builds on the transformer-based foundations of SAM 2 but introduces several key improvements:
 
 - **Multimodal Hierarchical Memory (MHM):**  
   A new multi-level memory attention module stores short-term (frame-level) and long-term (scene-level) object embeddings, improving occlusion recovery and temporal continuity.
@@ -50,7 +50,7 @@ SAM 3’s architecture builds on the transformer-based foundations of SAM 2 but 
   Prompts (points, boxes, text, or previous masks) are encoded alongside visual memory and dynamically weighted by relevance, improving robustness to ambiguous prompts.
 
 - **Unified Vision Transformer Backbone (ViT-M3):**  
-  Uses grouped self-attention for efficiency, with a 20–30% reduction in compute compared to SAM 2’s backbone at equal accuracy.
+  Uses grouped self-attention for efficiency, with a 20–30% reduction in compute compared to SAM 2's backbone at equal accuracy.
 
 - **Differentiable Tracking Head:**  
   Merges segmentation and tracking into a single prediction stream — no separate tracker needed.
@@ -70,7 +70,7 @@ SAM 3’s architecture builds on the transformer-based foundations of SAM 2 but 
 
 ## SA-V2 Dataset
 
-SAM 3 is trained on **SA-V2**, Meta’s largest segmentation dataset to date.
+SAM 3 is trained on **SA-V2**, Meta's largest segmentation dataset to date.
 
 | Metric                    | SAM 2  | SAM 3 (SA-V2)                                                    |
 |---------------------------|--------|------------------------------------------------------------------|
@@ -86,7 +86,7 @@ The *SA-V2 dataset* introduces **hierarchical masklets** for multi-level segment
 ## Performance Benchmarks *(Preview)*
 
 !!! tip "Preview Metrics (Expected)"
-Official benchmarks will be added after Meta’s public release.  
+Official benchmarks will be added after Meta's public release.  
 These preview figures are based on early experiments from Meta AI Research.
 
 | Task                                  | Dataset           | SAM 2 | SAM 3 (Expected) |
@@ -106,44 +106,156 @@ pip install ultralytics
 
 Models will download automatically when first used.
 
-## How to Use SAM 3 (Preview)
+## How to Use SAM 3: Versatility in Image and Video Segmentation
 
 !!! warning
 
     These examples are **preview usage**. The final API and model weights will be released after Meta publishes SAM 3.
 
-### Segment with Prompts
+The following table details the expected SAM 3 models, their pre-trained weights, supported tasks, and compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md).
 
-```python
-from ultralytics import SAM
+| Model Type    | Pre-trained Weights | Tasks Supported                              | Inference | Validation | Training | Export |
+| ------------- | ------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
+| SAM 3 nano    | `sam3_n.pt`         | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 3 tiny    | `sam3_t.pt`         | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 3 small   | `sam3_s.pt`         | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 3 base    | `sam3_b.pt`         | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 3 large   | `sam3_l.pt`         | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| SAM 3 giant   | `sam3_g.pt`         | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
 
-# Load a future SAM3 model
-model = SAM("sam3_b.pt")
+### SAM 3 Prediction Examples
 
-# Run segmentation with bounding box prompt
-results = model("image.jpg", bboxes=[100, 150, 300, 400])
+SAM 3 can be utilized across a broad spectrum of tasks, including real-time video editing, medical imaging, autonomous systems, and AR/VR applications. Its ability to segment both static and dynamic visual data makes it a versatile tool for researchers and developers.
 
-# Run with points and labels
-results = model(points=[[250, 300], [400, 420]], labels=[1, 0])
+#### Segment with Prompts
 
-# Display results
-results.show()
-```
+!!! example "Segment with Prompts"
 
-### Segment and Track Video
+    Use prompts to segment specific objects in images or videos.
 
-```python
-from ultralytics.models.sam import SAM3VideoPredictor
+    === "Python"
 
-predictor = SAM3VideoPredictor(model="sam3_b.pt", imgsz=1024, conf=0.25)
-results = predictor(source="demo.mp4", points=[920, 470], labels=[1])
-```
+        ```python
+        from ultralytics import SAM
 
-### CLI Example
+        # Load a model
+        model = SAM("sam3_b.pt")
 
-```bash
-yolo predict model=sam3_b.pt source=video.mp4
-```
+        # Display model information (optional)
+        model.info()
+
+        # Run inference with bboxes prompt
+        results = model("path/to/image.jpg", bboxes=[100, 150, 300, 400])
+
+        # Run inference with single point
+        results = model(points=[900, 370], labels=[1])
+
+        # Run inference with multiple points
+        results = model(points=[[400, 370], [900, 370]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = model(points=[[[400, 370], [900, 370]]], labels=[[1, 0]])
+        ```
+
+#### Segment Everything
+
+!!! example "Segment Everything"
+
+    Segment the entire image or video content without specific prompts.
+
+    === "Python"
+
+        ```python
+        from ultralytics import SAM
+
+        # Load a model
+        model = SAM("sam3_b.pt")
+
+        # Display model information (optional)
+        model.info()
+
+        # Run inference
+        model("path/to/video.mp4")
+        ```
+
+    === "CLI"
+
+        ```bash
+        # Run inference with a SAM 3 model
+        yolo predict model=sam3_b.pt source=path/to/video.mp4
+        ```
+
+#### Segment Video and Track Objects
+
+!!! example "Segment Video"
+
+    Segment the entire video content with specific prompts and track objects.
+
+    === "Python"
+
+        ```python
+        from ultralytics.models.sam import SAM3VideoPredictor
+
+        # Create SAM3VideoPredictor
+        overrides = dict(conf=0.25, task="segment", mode="predict", imgsz=1024, model="sam3_b.pt")
+        predictor = SAM3VideoPredictor(overrides=overrides)
+
+        # Run inference with single point
+        results = predictor(source="test.mp4", points=[920, 470], labels=[1])
+
+        # Run inference with multiple points
+        results = predictor(source="test.mp4", points=[[920, 470], [909, 138]], labels=[1, 1])
+
+        # Run inference with multiple points prompt per object
+        results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 1]])
+
+        # Run inference with negative points prompt
+        results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 0]])
+        ```
+
+- This example demonstrates how SAM 3 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
+
+## SAM 3 Comparison vs SAM 2 and YOLO
+
+Here we compare Meta's expected SAM 3 models with SAM 2 and Ultralytics YOLO11 segmentation models:
+
+| Model                        | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
+| ---------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
+| Meta SAM2-b                  | 162                     | 80.8                         | 31901                             |
+| Meta SAM2-t                  | 78.1                    | 38.9                         | 25997                             |
+| **Meta SAM3-b (expected)**   | **~145**                | **~72**                      | **~25000**                        |
+| **Meta SAM3-t (expected)**   | **~65**                 | **~32**                      | **~18000**                        |
+| **Meta SAM3-n (expected)**   | **~45**                 | **~20**                      | **~12000**                        |
+| Ultralytics YOLO11n-seg      | **5.9** (7.6x smaller)  | **2.9** (6.9x less)          | **30.1** (398x faster)            |
+
+This comparison demonstrates the expected improvements in SAM 3 over SAM 2, with reduced model sizes and faster inference speeds. However, YOLO11 models remain significantly smaller and faster, making them ideal for resource-constrained environments requiring real-time performance.
+
+!!! note
+
+    Expected SAM 3 metrics are based on architectural improvements and early research previews. Final performance will be confirmed upon official release.
+
+## Auto-Annotation: Efficient Dataset Creation
+
+Auto-annotation is a powerful feature that will be available with SAM 3, enabling users to generate segmentation datasets quickly and accurately by leveraging pre-trained models. This capability is particularly useful for creating large, high-quality datasets without extensive manual effort.
+
+### How to Auto-Annotate with SAM 3 (Preview)
+
+To auto-annotate your dataset using SAM 3, follow this example:
+
+!!! example "Auto-Annotation Example"
+
+    ```python
+    from ultralytics.data.annotator import auto_annotate
+
+    auto_annotate(data="path/to/images", det_model="yolo11x.pt", sam_model="sam3_b.pt")
+    ```
+
+{% include "macros/sam-auto-annotate.md" %}
+
+This function facilitates the rapid creation of high-quality segmentation datasets, ideal for researchers and developers aiming to accelerate their projects.
 
 ## Expected Improvements over SAM 2
 
@@ -189,13 +301,63 @@ SAM 3 is designed for production-scale use across multiple domains:
 
 ### When will SAM 3 be released?
 
-SAM 3 is currently in research testing by Meta AI. Official models, weights, and benchmarks are expected to be released publicly in **late 2025**.
+SAM 3 is currently in research testing by Meta AI. Official models, weights, and benchmarks are expected to be released publicly in **late 2025**. Upon release, Ultralytics will provide immediate support for SAM 3 integration.
 
 ### Will SAM 3 be integrated into Ultralytics?
 
-Yes. SAM 3 will be fully supported in the Ultralytics Python package upon release, including for inference, visualization, and video segmentation via `SAM3VideoPredictor`.
+Yes. SAM 3 will be fully supported in the Ultralytics Python package upon release, including:
+
+- **Inference**: Complete support for image and video segmentation
+- **Visualization**: Native result visualization tools
+- **Video Segmentation**: Advanced tracking via `SAM3VideoPredictor`
+- **Auto-Annotation**: Dataset creation with `auto_annotate()`
+- **Export**: Model conversion to ONNX, TensorRT, and other formats
 
 ### How does SAM 3 differ from SAM 2?
 
-SAM 3 expands on SAM 2’s architecture with hierarchical memory, improved occlusion reasoning, faster inference, and expanded dataset coverage. It’s designed for real-time use across both **images and videos**, with *significant improvements in temporal stability and generalization*.
+SAM 3 expands on SAM 2's architecture with several major improvements:
 
+- **Hierarchical Memory**: Multi-level memory system for better long-term object tracking
+- **Improved Occlusion Handling**: Memory-guided hallucination for occluded objects
+- **Faster Inference**: 2× faster prompt processing (< 30 ms latency)
+- **Expanded Dataset**: Trained on SA-V2 with 108K+ videos and 1.1B masklets
+- **Edge Optimization**: FP8 and mixed-precision support for deployment
+- **Cross-Modal Prompts**: Text and mask prompt support beyond points/boxes
+
+### How can I use SAM 3 for real-time video segmentation?
+
+Once released, SAM 3 can be used for real-time video segmentation with the `SAM3VideoPredictor`. Here's an example:
+
+```python
+from ultralytics.models.sam import SAM3VideoPredictor
+
+# Create predictor
+predictor = SAM3VideoPredictor(model="sam3_b.pt", imgsz=1024, conf=0.25)
+
+# Run inference on video
+results = predictor(source="video.mp4", points=[920, 470], labels=[1])
+```
+
+SAM 3's improved architecture delivers up to 60 FPS on RTX 4090, making it suitable for real-time applications like video editing, autonomous systems, and AR/VR.
+
+### What datasets are used to train SAM 3?
+
+SAM 3 is trained on the **SA-V2 dataset**, Meta's largest video segmentation dataset featuring:
+
+- **108,000+ videos** across 60+ countries
+- **43M+ frames** with temporal annotations
+- **1.1B masklets** covering objects and parts
+- **Hierarchical annotations** for multi-level segmentation
+- **Occlusion hierarchy** and temporal depth labeling
+
+This massive scale (2.1× more videos and 1.8× more masklets than SA-V) enables superior zero-shot generalization and temporal consistency.
+
+### How does SAM 3 compare to YOLO11 for segmentation?
+
+While SAM 3 offers powerful zero-shot segmentation and video tracking capabilities, YOLO11 models are optimized for speed and efficiency:
+
+- **Size**: YOLO11n-seg is ~7.6× smaller than expected SAM3-n
+- **Speed**: YOLO11n-seg is ~398× faster on CPU
+- **Use Case**: SAM 3 excels at promptable segmentation and object tracking; YOLO11 is ideal for real-time detection in resource-constrained environments
+
+Choose SAM 3 for flexible, prompt-based segmentation tasks, and YOLO11 for high-speed, production deployments.

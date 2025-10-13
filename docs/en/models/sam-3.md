@@ -1,15 +1,15 @@
 ---
 comments: true
 description: Discover SAM 3, Meta's next evolution of the Segment Anything Model, introducing Promptable Concept Segmentation with text and image exemplar prompts for detecting all instances of visual concepts across images and videos.
-keywords: SAM 3, Segment Anything, SAM3, video segmentation, image segmentation, concept segmentation, promptable AI, SA-Co dataset, Meta, Ultralytics, computer vision, AI, machine learning, open vocabulary
+keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, video segmentation, image segmentation, concept segmentation, promptable AI, SA-Co dataset, Meta, Ultralytics, computer vision, AI, machine learning, open vocabulary
 ---
+
+# SAM 3: Segment Anything with Concepts
 
 !!! note "Coming Soon ⚠️"
 
     🚧 SAM 3 models have not yet been publicly released by Meta. The information below is based on the research paper submitted to ICLR 2026.
     Model downloads and final benchmarks will be available following Meta's official release.
-
-# SAM 3: Segment Anything with Concepts
 
 ![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
@@ -21,7 +21,7 @@ SAM 3 achieves a **2× performance gain** over existing systems in Promptable Co
 
 ![SAM 3 Segmentation](https://github.com/ultralytics/docs/releases/download/0/sam-3-segmentation.webp)
 
-### What Is Promptable Concept Segmentation (PCS)?
+### What is Promptable Concept Segmentation (PCS)?
 
 The PCS task takes a **concept prompt** as input and returns segmentation masks with unique identities for **all matching object instances**. Concept prompts can be:
 
@@ -489,9 +489,10 @@ While SAM 3 represents a major advancement, it has certain limitations:
         @inproceedings{sam3_2025,
           title     = {SAM 3: Segment Anything with Concepts},
           author    = {Anonymous authors},
-          booktitle = {Under review as a conference paper at ICLR 2026},
+          booktitle = {Submitted to ICLR 2026},
           year      = {2025},
-          note      = {Paper under double-blind review}
+          url       = {https://openreview.net/forum?id=r35clVtGzw},
+          note      = {Paper ID: 4183, under double-blind review}
         }
         ```
 

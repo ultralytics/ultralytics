@@ -394,11 +394,13 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
             visual_prompts=dict(
                 bboxes=np.array(
                     [
-                        [221.52, 405.8, 344.98, 857.54], # Box enclosing glasses
+                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing glasses
                     ]
                 ),
-                cls=["person"], # string cls to extract text embeddings and combine with visual prompt embeddings in memory bank
-            ),  
+                cls=[
+                    "person"
+                ],  # string cls to extract text embeddings and combine with visual prompt embeddings in memory bank
+            ),
             vp_weight=0.5,  # weight for visual prompt embeddings when combining with text embeddings
             predictor=YOLOEVPDetectPredictor,
         )
@@ -412,7 +414,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
                         [120, 425, 160, 445],  # Box enclosing glasses
                     ]
                 ),
-                cls=[0],   # int cls also can be used to add visual prompt embeddings to memory bank
+                cls=[0],  # int cls also can be used to add visual prompt embeddings to memory bank
             ),
             predictor=YOLOEVPDetectPredictor,
         )

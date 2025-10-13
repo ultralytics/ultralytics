@@ -11,16 +11,15 @@ keywords: SAM 3, Segment Anything, SAM3, video segmentation, image segmentation,
 
 # SAM 3: Segment Anything with Concepts
 
-<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam3-using-ultralytics.ipynb">
-<img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Run SAM 3 in Colab"></a>
+![SAM 3 Overview](https://github.com/ultralytics/docs/releases/download/0/sam-3-overview.webp)
 
 **SAM 3** (Segment Anything Model 3) represents Meta's next-generation foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
-
-![SAM 3 Concept Segmentation](https://github.com/ultralytics/assets/releases)
 
 ## Overview
 
 SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. These capabilities complement production-ready pipelines that rely on streamlined [predict](../modes/predict.md) and [track](../modes/track.md) workflows.
+
+![SAM 3 Segmentation](https://github.com/ultralytics/docs/releases/download/0/sam-3-segmentation.webp)
 
 ### What Is Promptable Concept Segmentation (PCS)?
 
@@ -66,7 +65,7 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 
-![SAM 3 Architecture](https://github.com/ultralytics/assets/releases)
+![SAM 3 Architecture](https://github.com/ultralytics/docs/releases/download/0/sam-3-architecture.webp)
 
 ### Key Innovations
 

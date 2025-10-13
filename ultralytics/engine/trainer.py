@@ -53,7 +53,6 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     select_device,
-    smart_inference_mode,
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,

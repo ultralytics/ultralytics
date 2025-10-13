@@ -460,6 +460,7 @@ class DetectionValidator(BaseValidator):
                 stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = (
                     val.stats[:2] if self.is_coco else [val.results["AP"], val.results["AP50"]]
                 )
+                stats["fitness"] = 0.9 * stats[self.metrics.keys[-1]] + 0.1 * stats[self.metrics.keys[-2]]
                 if self.is_coco:
                     self.metrics.box.map_small = val.stats[3]
                     self.metrics.box.map_medium = val.stats[4]

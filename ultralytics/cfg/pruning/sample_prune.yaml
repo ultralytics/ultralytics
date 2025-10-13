@@ -24,4 +24,4 @@ prune_ratios:
   19: 0.15 # Conv
   20: null # Concat - cat head P5
   21: .25 # C2f 21 - head P5 / large
-  22: [0, 0] # Detect - [regression tower, classification tower]
+  22: [0., 0.] # Detect - [regression tower, classification tower]

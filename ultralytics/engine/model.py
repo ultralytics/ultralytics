@@ -794,7 +794,7 @@ class Model(torch.nn.Module):
 
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume"):  # manually set model only if not resuming
-            if self.ckpt.get("is_pruned", False):
+            if hasattr(self.model, "is_pruned"):
                 self.trainer.model = self.model
             else:
                 self.trainer.model = self.trainer.get_model(

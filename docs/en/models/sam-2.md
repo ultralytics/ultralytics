@@ -71,7 +71,7 @@ SAM 2 sets a new benchmark in the field, outperforming previous models on variou
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent [object tracking](https://www.ultralytics.com/glossary/object-tracking) over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://raw.githubusercontent.com/facebookresearch/sam2/refs/heads/main/assets/model_diagram.png)
+![SAM 2 Architecture Diagram](https://github.com/ultralytics/docs/releases/download/0/sam2-architecture-diagram.avif)
 
 ### Memory Mechanism and Occlusion Handling
 

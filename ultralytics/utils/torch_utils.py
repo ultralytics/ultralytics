@@ -130,7 +130,7 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
-def select_device(device="", batch=0, newline=False, verbose=True):
+def select_device(device="", newline=False, verbose=True):
     """
     Select the appropriate PyTorch device based on the provided arguments.
 
@@ -141,16 +141,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
             'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
     Returns:
         (torch.device): Selected device.
-
-    Raises:
-        ValueError: If the specified device is not available or if the batch size is not a multiple of the number of
-            devices when using multiple GPUs.
 
     Examples:
         >>> select_device("cuda:0")
@@ -213,18 +208,6 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
-        n = len(devices)  # device count
-        if n > 1:  # multi-GPU
-            if batch < 1:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
-                )
-            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
-                raise ValueError(
-                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-                )
         space = " " * len(s)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB

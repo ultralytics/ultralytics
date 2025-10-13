@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -24,9 +25,9 @@ from ultralytics.nn.tasks import (
 from ultralytics.utils import ROOT, YAML
 
 
-import re
 def _is_object_label(label: str) -> bool:
     return isinstance(label, str) and bool(re.match(r"^object\d+$", label))
+
 
 class YOLO(Model):
     """
@@ -241,7 +242,13 @@ class YOLOE(Model):
         >>> results = model.predict("image.jpg", visual_prompts=prompts)
     """
 
-    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False, class_mode: str = "prototype") -> None:
+    def __init__(
+        self,
+        model: str | Path = "yoloe-11s-seg.pt",
+        task: str | None = None,
+        verbose: bool = False,
+        class_mode: str = "prototype",
+    ) -> None:
         """
         Initialize YOLOE model with a pre-trained model file.
 
@@ -252,7 +259,7 @@ class YOLOE(Model):
             class_mode (str): Method to aggregate embeddings in the memory bank for predict_memory function. Options are: "prototype" mode: each class has a unique prototype embedding, which is the mean of all visual prompt embeddings for that class. If the class is not an object-only prompt (i.e., it has a text label), the prototype embedding is a weighted combination of the visual prototype and the text embedding, controlled by the `vp_weight` parameter during prediction. This mode is efficient and works well when each class can be represented by a single prototype. "retrieval" mode: each class can have multiple embeddings (single text embedding and multiple visual prompt embeddings). During inference, the similarity between each detected box and all embeddings for each class is computed, and the maximum similarity is used as the final similarity score for that class. Note that the computation cost is higher as the number of embeddings increases. Under this setting, vp_weight is not used since the text and visual prompt embeddings are not combined.
         """
         super().__init__(model=model, task=task, verbose=verbose)
-        self.class_mode = class_mode  
+        self.class_mode = class_mode
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
@@ -528,7 +535,6 @@ class YOLOE(Model):
             if visual_prompts is None and not hasattr(self, "memory_bank"):
                 raise ValueError("No visual prompts provided for the first prediction, and memory bank is empty.")
 
-
             # init the memory bank if not exists
             if not hasattr(self, "memory_bank"):
                 self.memory_bank = dict()
@@ -545,36 +551,38 @@ class YOLOE(Model):
                 self.memory_bank[cls].append(cls_vpe)
 
             # set classes based on the memory bank
-            names,memory_pe_list = [],[]
+            names, memory_pe_list = [], []
             if self.class_mode == "prototype":  # each class only has unique prototype embedding
                 names = list(self.memory_bank.keys())
                 for cls in names:
                     # Calculate the mean visual prototype embedding
                     vpe_prototype = torch.mean(torch.stack(self.memory_bank[cls]), dim=0)
-                    
+
                     # If it's a text-based class, blend with text embedding
                     if not _is_object_label(cls):
                         text_embedding = self.get_text_pe([cls]).squeeze()
                         final_pe = vp_weight * vpe_prototype + (1 - vp_weight) * text_embedding
-                    else: # For object-only prompts, use the visual prototype directly
+                    else:  # For object-only prompts, use the visual prototype directly
                         final_pe = vpe_prototype
                     memory_pe_list.append(final_pe)
 
             elif self.class_mode == "retrieval":  # each class can have multiple embeddings for retrieval
                 # add text embeddings first
-                cls_set= [cls for cls in set(self.memory_bank.keys()) if not _is_object_label(cls)]
+                cls_set = [cls for cls in set(self.memory_bank.keys()) if not _is_object_label(cls)]
                 if len(cls_set):
                     text_pe = self.get_text_pe(list(cls_set)).squeeze(0)
                     for i, cls in enumerate(cls_set):
                         memory_pe_list.append(text_pe[i])
                         names.append(cls)
-                # Add each individual visual embedding 
+                # Add each individual visual embedding
                 for cls, vpe_list in self.memory_bank.items():
                     for vpe in vpe_list:
                         memory_pe_list.append(vpe)
-                        names.append(cls) # Name is duplicated for each visual instance
+                        names.append(cls)  # Name is duplicated for each visual instance
             else:
-                raise ValueError(f"Invalid class_mode: {self.class_mode}. Supported types are 'prototype' and 'retrieval'.")
+                raise ValueError(
+                    f"Invalid class_mode: {self.class_mode}. Supported types are 'prototype' and 'retrieval'."
+                )
 
             if not memory_pe_list:
                 # Handle case where memory bank is empty or no embeddings were generated
@@ -593,6 +601,6 @@ class YOLOE(Model):
             kwargs["prompts"] = None  # avoid updating the classes again
 
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-            pass # keep the predictor if no visual prompts, so that it can do prediction based on the memory bank
+            pass  # keep the predictor if no visual prompts, so that it can do prediction based on the memory bank
 
         return super().predict(source, stream, **kwargs)

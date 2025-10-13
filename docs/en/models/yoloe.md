@@ -395,7 +395,7 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         results[0].show()
         ```
 
-### Memory Bankd Predict Usage
+### Memory Bank Predict Usage
 
     === "Memory Bank and Multi-model Prompt"
         when prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no prompts are given, the model do prediction based on the memory bank if exists.  

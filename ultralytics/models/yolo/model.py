@@ -249,6 +249,7 @@ class YOLOE(Model):
             model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
             task (str, optional): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
+            class_mode (str): Method to aggregate embeddings in the memory bank for predict_memory function. Options are: "prototype" mode: each class has a unique prototype embedding, which is the mean of all visual prompt embeddings for that class. If the class is not an object-only prompt (i.e., it has a text label), the prototype embedding is a weighted combination of the visual prototype and the text embedding, controlled by the `vp_weight` parameter during prediction. This mode is efficient and works well when each class can be represented by a single prototype. "retrieval" mode: each class can have multiple embeddings (single text embedding and multiple visual prompt embeddings). During inference, the similarity between each detected box and all embeddings for each class is computed, and the maximum similarity is used as the final similarity score for that class. Note that the computation cost is higher as the number of embeddings increases. Under this setting, vp_weight is not used since the text and visual prompt embeddings are not combined.
         """
         super().__init__(model=model, task=task, verbose=verbose)
         self.class_mode = class_mode  

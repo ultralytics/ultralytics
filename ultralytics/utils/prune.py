@@ -49,7 +49,7 @@ def prune(
             dimension contains items to prune.
         prune_ratio (float): Fraction of items to remove, range 0.0 to 1.0.
         norm_order (float): Order of norm for scoring (1 for L1, 2 for L2).
-        dim (int | tuple): Dimension(s) over which to compute the norm, typically excluding the first dimension.
+        dim (int | Tuple): Dimension(s) over which to compute the norm, typically excluding the first dimension.
 
     Returns:
         pruned (torch.Tensor): Weight tensor containing only kept items with shape (num_kept, ...).

@@ -8,6 +8,10 @@ keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentati
 
     We have just added support for the more accurate SAM2.1 model. Please give it a try!
 
+!!! note "SAM Evolution"
+
+    SAM 2 builds upon the original [SAM](sam.md) with video segmentation capabilities. For the upcoming next-generation model with enhanced memory and 2× faster processing, see [SAM 3](sam-3.md).
+
 # SAM 2: Segment Anything Model 2
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Inference with Segment Anything 2 In Colab"></a>

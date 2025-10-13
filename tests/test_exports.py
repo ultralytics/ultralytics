@@ -51,7 +51,7 @@ def test_export_openvino():
         for task, dynamic, int8, half, batch, nms in product(
             TASKS, [True, False], [True, False], [True, False], [1, 2], [True, False]
         )
-        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
+        if not ((int8 and half) or (task == "classify" and nms))
     ],
 )
 def test_export_openvino_matrix(task, dynamic, int8, half, batch, nms):
@@ -231,7 +231,7 @@ def test_export_mnn():
         for task, dynamic, int8, half, nms, batch in product(
             TASKS, [True, False], [True, False], [True, False], [True, False], [1, 2]
         )
-        if not (int8 and half) and not (task == "classify" and nms)
+        if not ((int8 and half) or (task == "classify" and nms) or (nms and not TORCH_1_13))
     ],
 )
 def test_export_mnn_matrix(task, dynamic, int8, half, nms, batch):

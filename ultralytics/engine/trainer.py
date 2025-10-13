@@ -822,7 +822,7 @@ class BaseTrainer:
         if ckpt.get("scaler") is not None:
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
-            self.ema.ema.eval()
+            self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness", 0.0)

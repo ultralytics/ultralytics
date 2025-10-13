@@ -53,6 +53,7 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     select_device,
+    smart_inference_mode,
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
@@ -815,6 +816,7 @@ class BaseTrainer:
                 ) from e
         self.resume = resume
 
+    @smart_inference_mode()
     def _load_checkpoint_state(self, ckpt):
         """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
         if ckpt.get("optimizer") is not None:

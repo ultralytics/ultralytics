@@ -1,10 +1,12 @@
 # KITTI Dataset Configuration for Monocular Depth Estimation
+# Generated with proper train/val split (80/20)
+
 # Dataset path
-path: /root/autodl-tmp/kitti_yolo_depth
+path: kitti_yolo_depth_v2
 
 # Train and validation paths
-train: images
-val: images
+train: train/images
+val: val/images
 
 # Number of classes
 nc: 5
@@ -18,5 +20,26 @@ names:
   4: Truck
 
 # Depth range for normalization (in meters)
-depth_loss_weight: 1.0  # weight for depth loss component
-depth_loss_type: 'l1'  # depth loss type ('l1', 'l2', 'smooth_l1')
+depth_max: 100.0
+
+# Label Format:
+# Each line in the label files (*.txt) contains 6 space-separated values:
+#   class x_center y_center width height depth
+#
+# Where:
+#   - class: integer class ID (0-4)
+#   - x_center: normalized center x coordinate (0-1)
+#   - y_center: normalized center y coordinate (0-1)
+#   - width: normalized bounding box width (0-1)
+#   - height: normalized bounding box height (0-1)
+#   - depth: normalized depth value (0-1), calculated as depth_meters / depth_max
+#            To get actual depth in meters: depth_meters = depth * depth_max
+#
+# Example label line:
+#   0 0.5 0.5 0.2 0.3 0.155
+#   (Car at center of image, 20% width, 30% height, depth=0.155 → 15.5m with depth_max=100)
+
+# Dataset statistics
+# Train: 5984 images, 31066 objects
+# Val: 1497 images, 7609 objects
+# Depth range: 0.00m - 99.58m

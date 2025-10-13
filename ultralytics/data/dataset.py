@@ -157,8 +157,8 @@ class YOLODataset(BaseDataset):
                         "bbox_format": "xywh",
                     }
 
-                    # Add depth information if available
-                    if self.use_mde and depths is not None:
+                    # Add depth information if available (always add for MDE, even if None)
+                    if self.use_mde:
                         label_dict["depths"] = depths
 
                     x["labels"].append(label_dict)

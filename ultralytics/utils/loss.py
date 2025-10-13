@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics.utils import LOGGER
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
@@ -1067,6 +1068,7 @@ class v11DetectionLoss_MDE(v8DetectionLoss):
         # Remove zero targets (invalid depths)
         valid_mask = target_depths > 0
         if not valid_mask.any():
+            LOGGER.error("No valid depths found in compute_depth_loss")
             return torch.tensor(0.0, device=pred_depths.device)
 
         pred = pred_depths[valid_mask]

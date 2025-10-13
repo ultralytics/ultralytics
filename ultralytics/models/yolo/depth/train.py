@@ -9,7 +9,6 @@ This module provides training functionality for YOLO models with depth estimatio
 from __future__ import annotations
 
 import torch
-from torch.cuda.amp import autocast
 
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import MDEModel
@@ -209,76 +208,3 @@ class MDETrainer(DetectionTrainer):
             "Instances",
             "Size",
         )
-
-    def train_one_epoch(self):
-        """Train for one epoch."""
-        self.model.train()
-        self.loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        self.loss_items = []
-
-        pbar = enumerate(self.train_loader)
-        if RANK in (-1, 0):
-            pbar = self.pbar(pbar, total=len(self.train_loader))
-
-        self.optimizer.zero_grad()
-
-        for i, batch in pbar:
-            self.run_callbacks("on_train_batch_start")
-
-            # Preprocess batch (move to device and normalize)
-            batch = self.preprocess_batch(batch)
-
-            # Forward pass
-            with autocast(self.amp):
-                preds = self.model(batch["img"])
-                loss, loss_dict = self.criterion(preds, batch)
-
-            # Backward pass
-            self.scaler.scale(loss).backward()
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
-            self.optimizer.zero_grad()
-
-            # Update loss
-            self.loss_items = [
-                loss_dict[0],
-                loss_dict[1],
-                loss_dict[2],
-                loss_dict[3],
-            ]
-
-            # Update progress bar
-            if RANK in (-1, 0):
-                self.pbar.set_description(
-                    f"Epoch {self.epoch}/{self.epochs - 1} "
-                    f"Box: {self.loss_items[0]:.4f} "
-                    f"Cls: {self.loss_items[1]:.4f} "
-                    f"Dfl: {self.loss_items[2]:.4f} "
-                    f"Depth: {self.loss_items[3]:.4f}"
-                )
-
-            self.run_callbacks("on_train_batch_end")
-
-        self.scheduler.step()
-        self.run_callbacks("on_train_epoch_end")
-
-
-def train_mde(cfg=None, overrides=None):
-    """
-    Train MDE model.
-
-    Args:
-        cfg: Training configuration.
-        overrides: Configuration overrides.
-
-    Returns:
-        Training results.
-    """
-    trainer = MDETrainer(cfg, overrides)
-    trainer.train()
-    return trainer
-
-
-if __name__ == "__main__":
-    # Example usage
-    train_mde("yolov8n.yaml", {"data": "kitti.yaml", "epochs": 100, "imgsz": 640})

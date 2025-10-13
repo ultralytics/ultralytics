@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from ultralytics.engine.results import MDEResults
+from ultralytics.engine.results import Results
 from ultralytics.models.yolo.detect.predict import DetectionPredictor
 from ultralytics.utils import DEFAULT_CFG, ops
 
@@ -51,25 +51,27 @@ class MDEPredictor(DetectionPredictor):
 
     def construct_result(self, pred, img, orig_img, img_path):
         """
-        Construct the result object from the prediction, including depth values.
+        Construct the result object from the prediction.
 
-        Extends the parent class implementation by extracting depth data from predictions and adding them to the
-        result object.
+        Extends the parent class implementation to include depth information in the Results object.
 
         Args:
-            pred (torch.Tensor): The predicted bounding boxes, scores, and depth with shape (N, 7) where N is
-                the number of detections. Format: [x1, y1, x2, y2, conf, cls, depth].
+            pred (torch.Tensor): The predicted bounding boxes and scores with shape (N, 6) or (N, 7) where N is
+                the number of detections. Format: [x1, y1, x2, y2, conf, cls] or [x1, y1, x2, y2, conf, cls, depth].
             img (torch.Tensor): The processed input image tensor with shape (B, C, H, W).
             orig_img (np.ndarray): The original unprocessed image as a numpy array.
             img_path (str): The path to the original image file.
 
         Returns:
-            (MDEResults): The result object containing the original image, image path, class names, bounding boxes, and
-                depth values.
+            (Results): The result object containing the original image, image path, class names, bounding boxes,
+                and depth values.
         """
+        # Boxes are already in xyxy format after NMS
         # Scale bounding boxes to original image dimensions
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
 
-        # For MDE, pred should have 7 columns: [x1, y1, x2, y2, conf, cls, depth]
-        # The depth value is already in the 7th column (index 6)
-        return MDEResults(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :7])
+        # Extract depth values if present (column 6)
+        depths = pred[:, 6] if pred.shape[1] > 6 else None
+
+        # Use first 6 columns for boxes: [x1, y1, x2, y2, conf, cls]
+        return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], depths=depths)

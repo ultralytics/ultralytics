@@ -13,17 +13,7 @@ from PIL import Image
 from ultralytics.cfg import TASK2DATA, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
-from ultralytics.utils import (
-    ARGV,
-    ASSETS,
-    DEFAULT_CFG_DICT,
-    LOGGER,
-    RANK,
-    SETTINGS,
-    YAML,
-    callbacks,
-    checks,
-)
+from ultralytics.utils import ARGV, ASSETS, DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, YAML, callbacks, checks
 
 
 class Model(torch.nn.Module):
@@ -295,7 +285,16 @@ class Model(torch.nn.Module):
 
         if str(weights).rpartition(".")[-1] == "pt":
             self.model, self.ckpt = load_checkpoint(weights)
-            self.task = self.model.task
+            # Get task from model, fallback to args if not set (for older checkpoints)
+            self.task = getattr(self.model, "task", None) or (
+                self.model.args.get("task")
+                if hasattr(self.model, "args") and isinstance(self.model.args, dict)
+                else (
+                    getattr(self.model.args, "task", None)
+                    if hasattr(self.model, "args")
+                    else task or guess_model_task(self.model)
+                )
+            )
             self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:

@@ -378,15 +378,39 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
         # Show results
         results[0].show()
         ```
+    === "Prompt free"
 
-    === "Memory Bank and Multi-model Prompt"
-        when visual prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no visual prompts are given, the model do prediction based on the memory bank if exists. when cls is string, the text embeddings are extracted and combined with the visual prompt embeddings in the memory bank, where vp_weight controls the weight of visual prompt embeddings when combining with text embeddings.
+        YOLOE also includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
 
         ```python
+        from ultralytics import YOLOE
+
+        # Initialize a YOLOE model
+        model = YOLOE("yoloe-11l-seg-pf.pt")
+
+        # Run prediction. No prompts required.
+        results = model.predict("path/to/image.jpg")
+
+        # Show results
+        results[0].show()
+        ```
+
+### Memory Bankd Predict Usage
+
+    === "Memory Bank and Multi-model Prompt"
+        when prompts are given, the prompt embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings. when no prompts are given, the model do prediction based on the memory bank if exists.  
+
+        By setting `class_mode` to "prototype" or "retrieval" when initializing the model, you can control how the class embeddings are constructed from the memory bank.
+        - "prototype" mode: the class embeddings are computed as the mean of all prompt embeddings for each class in the memory bank. Under this setting, vp_weight can be used to control the weight of visual prompt embeddings when combining with text embeddings.
+        - "retrieval" mode: each class can have multiple embeddings (single text embedding and multiple visual prompt embeddings). During inference, the similarity between each detected box and all embeddings for each class is computed, and the maximum similarity is used as the final similarity score for that class. Note that the computation cost is higher as the number of embeddings increases. Under this setting, vp_weight is not used since the text and visual prompt embeddings are not combined.
+
+        ```python
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe  import YOLOEVPDetectPredictor
         import numpy as np
 
         # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg.pt")
+        model = YOLOE("yoloe-11l-seg.pt",class_mode="prototype")  # set class_mode to "prototype" to enable memory bank
 
         # Run inference on an image, using the provided visual prompts as guidance
         results1 = model.predict_memory(
@@ -422,23 +446,6 @@ YOLOE supports both text-based and visual prompting. Using prompts is straightfo
             "ultralytics/assets/zidane.jpg",
             conf=0.1,  # set lower confidence threshold can be helpful when doing cross-image prediction
         )
-        ```
-
-    === "Prompt free"
-
-        YOLOE also includes prompt-free variants that come with a built-in vocabulary. These models don't require any prompts and work like traditional YOLO models. Instead of relying on user-provided labels or visual examples, they detect objects from a [predefined list of 4,585 classes](https://github.com/xinyu1205/recognize-anything/blob/main/ram/data/ram_tag_list.txt) based on the tag set used by the [Recognize Anything Model Plus (RAM++)](https://arxiv.org/abs/2310.15200).
-
-        ```python
-        from ultralytics import YOLOE
-
-        # Initialize a YOLOE model
-        model = YOLOE("yoloe-11l-seg-pf.pt")
-
-        # Run prediction. No prompts required.
-        results = model.predict("path/to/image.jpg")
-
-        # Show results
-        results[0].show()
         ```
 
 ### Val Usage

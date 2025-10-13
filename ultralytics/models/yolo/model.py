@@ -24,6 +24,10 @@ from ultralytics.nn.tasks import (
 from ultralytics.utils import ROOT, YAML
 
 
+import re
+def _is_object_label(label: str) -> bool:
+    return isinstance(label, str) and bool(re.match(r"^object\d+$", label))
+
 class YOLO(Model):
     """
     YOLO (You Only Look Once) object detection model.
@@ -211,6 +215,7 @@ class YOLOE(Model):
         model: The loaded YOLOE model instance.
         task: The task type (detect or segment).
         overrides: Configuration overrides for the model.
+        class_mode: Method to aggregate embeddings in the memory bank ('prototype' or 'retrieval') for predict_memory.
 
     Methods:
         __init__: Initialize YOLOE model with a pre-trained model file.
@@ -236,7 +241,7 @@ class YOLOE(Model):
         >>> results = model.predict("image.jpg", visual_prompts=prompts)
     """
 
-    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False) -> None:
+    def __init__(self, model: str | Path = "yoloe-11s-seg.pt", task: str | None = None, verbose: bool = False, class_mode: str = "prototype") -> None:
         """
         Initialize YOLOE model with a pre-trained model file.
 
@@ -246,6 +251,7 @@ class YOLOE(Model):
             verbose (bool): If True, prints additional information during initialization.
         """
         super().__init__(model=model, task=task, verbose=verbose)
+        self.class_mode = class_mode  
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
@@ -471,7 +477,7 @@ class YOLOE(Model):
                 'bboxes' and 'cls' keys when non-empty.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
                 loaded based on the task.
-            vp_weight (float): Weight for visual prompt embeddings when merging with text embeddings. Default is 0.5.
+            vp_weight (float): Weight for visual prompt embeddings when merging with text embeddings. Default is 0.5. It is only used when class_mode is 'prototype' and the class is not an object-only prompt.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -521,9 +527,12 @@ class YOLOE(Model):
             if visual_prompts is None and not hasattr(self, "memory_bank"):
                 raise ValueError("No visual prompts provided for the first prediction, and memory bank is empty.")
 
-            # update the memory bank
+
+            # init the memory bank if not exists
             if not hasattr(self, "memory_bank"):
                 self.memory_bank = dict()
+
+            # update the memory bank with new visual prompt embeddings
             assert len(visual_prompts["cls"]) == vpe.shape[0]
             for cls, cls_vpe in zip(visual_prompts["cls"], vpe):
                 cls_vpe = cls_vpe.clone()
@@ -532,16 +541,50 @@ class YOLOE(Model):
                     cls = f"object{cls}"
                 if cls not in self.memory_bank.keys():
                     self.memory_bank[cls] = []
-                if not only_visual:
-                    cls_vpe = vp_weight * cls_vpe + (1 - vp_weight) * self.get_text_pe([cls]).squeeze()
                 self.memory_bank[cls].append(cls_vpe)
 
             # set classes based on the memory bank
-            names = list(self.memory_bank.keys())
-            memory_vpe = torch.stack([torch.mean(torch.stack(self.memory_bank[cls]), dim=0) for cls in names])
-            if len(memory_vpe.shape) == 2:
-                memory_vpe = memory_vpe.unsqueeze(0)
-            self.model.set_classes(names, memory_vpe)
+            names,memory_pe_list = [],[]
+            if self.class_mode == "prototype":  # each class only has unique prototype embedding
+                names = list(self.memory_bank.keys())
+                for cls in names:
+                    # Calculate the mean visual prototype embedding
+                    vpe_prototype = torch.mean(torch.stack(self.memory_bank[cls]), dim=0)
+                    
+                    # If it's a text-based class, blend with text embedding
+                    if not _is_object_label(cls):
+                        text_embedding = self.get_text_pe([cls]).squeeze()
+                        final_pe = vp_weight * vpe_prototype + (1 - vp_weight) * text_embedding
+                    else: # For object-only prompts, use the visual prototype directly
+                        final_pe = vpe_prototype
+                    memory_pe_list.append(final_pe)
+
+            elif self.class_mode == "retrieval":  # each class can have multiple embeddings for retrieval
+                # add text embeddings first
+                cls_set= [cls for cls in set(self.memory_bank.keys()) if not _is_object_label(cls)]
+                if len(cls_set):
+                    text_pe = self.get_text_pe(list(cls_set)).squeeze(0)
+                    for i, cls in enumerate(cls_set):
+                        memory_pe_list.append(text_pe[i])
+                        names.append(cls)
+                # Add each individual visual embedding 
+                for cls, vpe_list in self.memory_bank.items():
+                    for vpe in vpe_list:
+                        memory_pe_list.append(vpe)
+                        names.append(cls) # Name is duplicated for each visual instance
+            else:
+                raise ValueError(f"Invalid class_mode: {self.class_mode}. Supported types are 'prototype' and 'retrieval'.")
+
+            if not memory_pe_list:
+                # Handle case where memory bank is empty or no embeddings were generated
+                # You might want to return or raise an error here
+                return super().predict(source, stream, **kwargs)
+
+            memory_pe = torch.stack(memory_pe_list)
+            if memory_pe.ndim == 2:
+                memory_pe = memory_pe.unsqueeze(0)
+
+            self.model.set_classes(names, memory_pe)
 
             # Manually update predictor's names to sync with the memory bank
             self.predictor.names = names  #
@@ -549,7 +592,6 @@ class YOLOE(Model):
             kwargs["prompts"] = None  # avoid updating the classes again
 
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
-            # self.predictor = None  # reset predictor if no visual prompts
-            pass
+            pass # keep the predictor if no visual prompts, so that it can do prediction based on the memory bank
 
         return super().predict(source, stream, **kwargs)

@@ -1,8 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
 import os
-from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -48,7 +49,7 @@ class RTDETR:
         model_input (list): Model input metadata.
         input_width (int): Width dimension required by the model.
         input_height (int): Height dimension required by the model.
-        classes (List[str]): List of class names from COCO dataset.
+        classes (list[str]): List of class names from COCO dataset.
         color_palette (np.ndarray): Random color palette for visualization.
         img (np.ndarray): Loaded input image.
         img_height (int): Height of the input image.
@@ -74,7 +75,7 @@ class RTDETR:
         img_path: str,
         conf_thres: float = 0.5,
         iou_thres: float = 0.5,
-        class_names: Optional[str] = None,
+        class_names: str | None = None,
     ):
         """
         Initialize the RT-DETR object detection model.
@@ -212,7 +213,7 @@ class RTDETR:
         # Return the bounding boxes in (x_min, y_min, x_max, y_max) format
         return np.column_stack((x_min, y_min, x_max, y_max))
 
-    def postprocess(self, model_output: List[np.ndarray]) -> np.ndarray:
+    def postprocess(self, model_output: list[np.ndarray]) -> np.ndarray:
         """
         Postprocess model output to extract and visualize detections.
 
@@ -220,7 +221,7 @@ class RTDETR:
         dimensions, and draws detection annotations.
 
         Args:
-            model_output (List[np.ndarray]): Output tensors from the model inference.
+            model_output (list[np.ndarray]): Output tensors from the model inference.
 
         Returns:
             (np.ndarray): Annotated image with detection bounding boxes and labels.

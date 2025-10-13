@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
-from typing import List, Tuple
 
 import cv2
 import numpy as np
@@ -24,7 +25,7 @@ class YOLOv8:
         input_image (str): Path to the input image file.
         confidence_thres (float): Confidence threshold for filtering detections.
         iou_thres (float): IoU threshold for non-maximum suppression.
-        classes (List[str]): List of class names from the COCO dataset.
+        classes (list[str]): List of class names from the COCO dataset.
         color_palette (np.ndarray): Random color palette for visualizing different classes.
         input_width (int): Width dimension of the model input.
         input_height (int): Height dimension of the model input.
@@ -66,17 +67,17 @@ class YOLOv8:
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
 
-    def letterbox(self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Tuple[int, int]]:
+    def letterbox(self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)) -> tuple[np.ndarray, tuple[int, int]]:
         """
         Resize and reshape images while maintaining aspect ratio by adding padding.
 
         Args:
             img (np.ndarray): Input image to be resized.
-            new_shape (Tuple[int, int]): Target shape (height, width) for the image.
+            new_shape (tuple[int, int]): Target shape (height, width) for the image.
 
         Returns:
             img (np.ndarray): Resized and padded image.
-            pad (Tuple[int, int]): Padding values (top, left) applied to the image.
+            pad (tuple[int, int]): Padding values (top, left) applied to the image.
         """
         shape = img.shape[:2]  # current shape [height, width]
 
@@ -95,7 +96,7 @@ class YOLOv8:
 
         return img, (top, left)
 
-    def draw_detections(self, img: np.ndarray, box: List[float], score: float, class_id: int) -> None:
+    def draw_detections(self, img: np.ndarray, box: list[float], score: float, class_id: int) -> None:
         """Draw bounding boxes and labels on the input image based on the detected objects."""
         # Extract the coordinates of the bounding box
         x1, y1, w, h = box
@@ -124,7 +125,7 @@ class YOLOv8:
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def preprocess(self) -> Tuple[np.ndarray, Tuple[int, int]]:
+    def preprocess(self) -> tuple[np.ndarray, tuple[int, int]]:
         """
         Preprocess the input image before performing inference.
 
@@ -133,7 +134,7 @@ class YOLOv8:
 
         Returns:
             image_data (np.ndarray): Preprocessed image data ready for inference with shape (1, 3, height, width).
-            pad (Tuple[int, int]): Padding values (top, left) applied during letterboxing.
+            pad (tuple[int, int]): Padding values (top, left) applied during letterboxing.
         """
         # Read the input image using OpenCV
         self.img = cv2.imread(self.input_image)
@@ -158,7 +159,7 @@ class YOLOv8:
         # Return the preprocessed image data
         return image_data, pad
 
-    def postprocess(self, input_image: np.ndarray, output: List[np.ndarray], pad: Tuple[int, int]) -> np.ndarray:
+    def postprocess(self, input_image: np.ndarray, output: list[np.ndarray], pad: tuple[int, int]) -> np.ndarray:
         """
         Perform post-processing on the model's output to extract and visualize detections.
 
@@ -167,8 +168,8 @@ class YOLOv8:
 
         Args:
             input_image (np.ndarray): The input image.
-            output (List[np.ndarray]): The output arrays from the model.
-            pad (Tuple[int, int]): Padding values (top, left) used during letterboxing.
+            output (list[np.ndarray]): The output arrays from the model.
+            pad (tuple[int, int]): Padding values (top, left) used during letterboxing.
 
         Returns:
             (np.ndarray): The input image with detections drawn on it.

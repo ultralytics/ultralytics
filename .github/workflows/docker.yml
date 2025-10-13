@@ -78,11 +78,12 @@ jobs:
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
             derivatives: ""
-          - dockerfile: "Dockerfile-jetson-jetpack5"
-            tags: "latest-jetson-jetpack5"
-            platforms: "linux/arm64"
-            runs_on: "ubuntu-24.04-arm"
-            derivatives: ""
+          # Disabled due to NaN training errors in https://github.com/ultralytics/ultralytics/pull/22352
+          # - dockerfile: "Dockerfile-jetson-jetpack5"
+          #   tags: "latest-jetson-jetpack5"
+          #   platforms: "linux/arm64"
+          #   runs_on: "ubuntu-24.04-arm"
+          #   derivatives: ""
           - dockerfile: "Dockerfile-jetson-jetpack4"
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
@@ -91,7 +92,7 @@ jobs:
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
           #   platforms: "linux/amd64"
-          #   derivatives: []
+          #   derivatives: ""
 
     runs-on: ${{ matrix.runs_on }}
     outputs:
@@ -192,7 +193,7 @@ jobs:
                 # Determine derivative tags
                 derivative_tag=$(echo "$derivative" | sed 's/Dockerfile-/latest-/')
                 derivative_version_tag=$(echo "$derivative_tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
-                
+
                 echo "Building $derivative -> $derivative_tag"
                 docker build \
                   --platform ${{ matrix.platforms }} \
@@ -214,7 +215,7 @@ jobs:
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "pip install pytest && pytest tests"
+        run: docker run ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages pytest && pytest tests"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
@@ -245,7 +246,7 @@ jobs:
             for tag in "${images_to_push[@]}"; do
               docker push "ultralytics/ultralytics:$tag"
               docker push "ghcr.io/ultralytics/ultralytics:$tag"
-              
+
               # Push version tag if new release
               if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" && "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
                 version_tag=$(echo "$tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")

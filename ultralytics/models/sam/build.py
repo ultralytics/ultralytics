@@ -130,10 +130,10 @@ def _build_sam(
     Build a Segment Anything Model (SAM) with specified encoder parameters.
 
     Args:
-        encoder_embed_dim (int | List[int]): Embedding dimension for the encoder.
-        encoder_depth (int | List[int]): Depth of the encoder.
-        encoder_num_heads (int | List[int]): Number of attention heads in the encoder.
-        encoder_global_attn_indexes (List[int] | None): Indexes for global attention in the encoder.
+        encoder_embed_dim (int | list[int]): Embedding dimension for the encoder.
+        encoder_depth (int | list[int]): Depth of the encoder.
+        encoder_num_heads (int | list[int]): Number of attention heads in the encoder.
+        encoder_global_attn_indexes (list[int] | None): Indexes for global attention in the encoder.
         checkpoint (str | None, optional): Path to the model checkpoint file.
         mobile_sam (bool, optional): Whether to build a Mobile-SAM model.
 
@@ -228,12 +228,12 @@ def _build_sam2(
 
     Args:
         encoder_embed_dim (int, optional): Embedding dimension for the encoder.
-        encoder_stages (List[int], optional): Number of blocks in each stage of the encoder.
+        encoder_stages (list[int], optional): Number of blocks in each stage of the encoder.
         encoder_num_heads (int, optional): Number of attention heads in the encoder.
-        encoder_global_att_blocks (List[int], optional): Indices of global attention blocks in the encoder.
-        encoder_backbone_channel_list (List[int], optional): Channel dimensions for each level of the encoder backbone.
-        encoder_window_spatial_size (List[int], optional): Spatial size of the window for position embeddings.
-        encoder_window_spec (List[int], optional): Window specifications for each stage of the encoder.
+        encoder_global_att_blocks (list[int], optional): Indices of global attention blocks in the encoder.
+        encoder_backbone_channel_list (list[int], optional): Channel dimensions for each level of the encoder backbone.
+        encoder_window_spatial_size (list[int], optional): Spatial size of the window for position embeddings.
+        encoder_window_spec (list[int], optional): Window specifications for each stage of the encoder.
         checkpoint (str | None, optional): Path to the checkpoint file for loading pre-trained weights.
 
     Returns:

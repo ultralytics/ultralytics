@@ -24,7 +24,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO11 integrates advanc
   <br>
   <strong>Watch:</strong> Security Alarm System with Ultralytics YOLO11 + Solutions <a href="https://www.ultralytics.com/glossary/object-detection">Object Detection</a>
 </p>
- 
+
 ???+ note
 
     App Password Generation is necessary

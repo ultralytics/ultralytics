@@ -18,7 +18,7 @@ The IMX500 model format is designed to use minimal power while delivering fast p
 
 ## Why Should You Export to IMX500
 
-Sony's [IMX500 Intelligent Vision Sensor](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.  
+Sony's [IMX500 Intelligent Vision Sensor](https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.
 While other sensors merely pass along images and frames, the IMX500 tells a whole story. It processes data directly on the sensor, allowing devices to generate insights in real-time.
 
 ## Sony's IMX500 Export for YOLO11 Models

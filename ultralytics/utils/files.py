@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import contextlib
 import glob
 import os
@@ -8,7 +10,6 @@ import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Union
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
@@ -39,7 +40,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
         >>>     pass
     """
 
-    def __init__(self, new_dir: Union[str, Path]):
+    def __init__(self, new_dir: str | Path):
         """Initialize the WorkingDirectory context manager with the target directory."""
         self.dir = new_dir  # new dir
         self.cwd = Path.cwd().resolve()  # current dir
@@ -54,7 +55,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
 
 @contextmanager
-def spaces_in_path(path: Union[str, Path]):
+def spaces_in_path(path: str | Path):
     """
     Context manager to handle paths with spaces in their names.
 
@@ -105,7 +106,7 @@ def spaces_in_path(path: Union[str, Path]):
         yield path
 
 
-def increment_path(path: Union[str, Path], exist_ok: bool = False, sep: str = "", mkdir: bool = False) -> Path:
+def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "", mkdir: bool = False) -> Path:
     """
     Increment a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
@@ -153,19 +154,19 @@ def increment_path(path: Union[str, Path], exist_ok: bool = False, sep: str = ""
     return path
 
 
-def file_age(path: Union[str, Path] = __file__) -> int:
+def file_age(path: str | Path = __file__) -> int:
     """Return days since the last modification of the specified file."""
     dt = datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime)  # delta
     return dt.days  # + dt.seconds / 86400  # fractional days
 
 
-def file_date(path: Union[str, Path] = __file__) -> str:
+def file_date(path: str | Path = __file__) -> str:
     """Return the file modification date in 'YYYY-M-D' format."""
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
     return f"{t.year}-{t.month}-{t.day}"
 
 
-def file_size(path: Union[str, Path]) -> float:
+def file_size(path: str | Path) -> float:
     """Return the size of a file or directory in megabytes (MB)."""
     if isinstance(path, (str, Path)):
         mb = 1 << 20  # bytes to MiB (1024 ** 2)

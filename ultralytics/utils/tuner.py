@@ -129,7 +129,7 @@ def run_ray_tune(
             {**train_args, **{"exist_ok": train_args.pop("resume", False)}},  # resume w/ same tune_dir
         ),
         name=train_args.pop("name", "tune"),  # runs/{task}/{tune_dir}
-    ).resolve()  # must be absolute dir
+    )  # must be absolute dir
     tune_dir.mkdir(parents=True, exist_ok=True)
     if tune.Tuner.can_restore(tune_dir):
         LOGGER.info(f"{colorstr('Tuner: ')} Resuming tuning run {tune_dir}...")

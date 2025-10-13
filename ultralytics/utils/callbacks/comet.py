@@ -1,8 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any, List, Optional
+from typing import Any
 
 import cv2
 import numpy as np
@@ -147,7 +149,7 @@ def _fetch_trainer_metadata(trainer) -> dict:
 
 def _scale_bounding_box_to_original_image_shape(
     box, resized_image_shape, original_image_shape, ratio_pad
-) -> List[float]:
+) -> list[float]:
     """
     Scale bounding box from resized image coordinates to original image coordinates.
 
@@ -161,7 +163,7 @@ def _scale_bounding_box_to_original_image_shape(
         ratio_pad (tuple): Ratio and padding information for scaling.
 
     Returns:
-        (List[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
+        (list[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
     """
     resized_image_height, resized_image_width = resized_image_shape
 
@@ -178,7 +180,7 @@ def _scale_bounding_box_to_original_image_shape(
     return box
 
 
-def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> Optional[dict]:
+def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None) -> dict | None:
     """
     Format ground truth annotations for object detection.
 
@@ -233,7 +235,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     return {"name": "ground_truth", "data": data}
 
 
-def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None) -> Optional[dict]:
+def _format_prediction_annotations(image_path, metadata, class_label_map=None, class_map=None) -> dict | None:
     """
     Format YOLO predictions for object detection visualization.
 
@@ -286,7 +288,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     return {"name": "prediction", "data": data}
 
 
-def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> Optional[List[List[Any]]]:
+def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> list[list[Any]] | None:
     """
     Extract segmentation annotation from compressed segmentations as list of polygons.
 
@@ -295,7 +297,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
         decode (Callable): Function to decode the compressed segmentation data.
 
     Returns:
-        (List[List[Any]] | None): List of polygon points or None if extraction fails.
+        (list[list[Any]] | None): List of polygon points or None if extraction fails.
     """
     try:
         mask = decode(segmentation_raw)
@@ -307,9 +309,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
     return None
 
 
-def _fetch_annotations(
-    img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map
-) -> Optional[List]:
+def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map, class_map) -> list | None:
     """
     Join the ground truth and prediction annotations if they exist.
 
@@ -322,7 +322,7 @@ def _fetch_annotations(
         class_map (dict): Additional class mapping for label conversion.
 
     Returns:
-        (List | None): List of annotation dictionaries or None if no annotations exist.
+        (list | None): List of annotation dictionaries or None if no annotations exist.
     """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
@@ -356,7 +356,7 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch) -> None:
     )
 
 
-def _log_images(experiment, image_paths, curr_step: Optional[int], annotations=None) -> None:
+def _log_images(experiment, image_paths, curr_step: int | None, annotations=None) -> None:
     """
     Log images to the experiment with optional annotations.
 
@@ -365,9 +365,9 @@ def _log_images(experiment, image_paths, curr_step: Optional[int], annotations=N
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
-        image_paths (List[Path]): List of paths to images that will be logged.
+        image_paths (list[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
-        annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each
+        annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each
             annotation contains visualization data like bounding boxes, labels, and confidence scores.
     """
     if annotations:

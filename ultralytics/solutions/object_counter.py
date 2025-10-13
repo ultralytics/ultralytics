@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -17,8 +19,8 @@ class ObjectCounter(BaseSolution):
     Attributes:
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
-        counted_ids (List[int]): List of IDs of objects that have been counted.
-        classwise_counts (Dict[str, Dict[str, int]]): Dictionary for counts, categorized by object class.
+        counted_ids (list[int]): List of IDs of objects that have been counted.
+        classwise_counts (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
@@ -52,18 +54,18 @@ class ObjectCounter(BaseSolution):
 
     def count_objects(
         self,
-        current_centroid: Tuple[float, float],
+        current_centroid: tuple[float, float],
         track_id: int,
-        prev_position: Optional[Tuple[float, float]],
+        prev_position: tuple[float, float] | None,
         cls: int,
     ) -> None:
         """
         Count objects within a polygonal or linear region based on their tracks.
 
         Args:
-            current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
+            current_centroid (tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
             track_id (int): Unique identifier for the tracked object.
-            prev_position (Tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
+            prev_position (tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
 
         Examples:

@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include "grpc_client.h"
 
-class Image 
+class Image
 {
 public:
     Image() = default;

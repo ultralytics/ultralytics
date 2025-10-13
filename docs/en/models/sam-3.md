@@ -324,68 +324,6 @@ SAM 3 achieves state-of-the-art results across multiple benchmarks:
 
 SAM 3 shows significant improvements over SAM 2 and prior state-of-the-art across video benchmarks:
 
-<div style="text-align: center; margin: 30px 0;">
-    <canvas id="samVideoComparison" style="max-width: 800px; margin: 0 auto;"></canvas>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('samVideoComparison');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['MOSEv2', 'DAVIS 2017', 'LVOSv2', 'SA-V (test)', 'YTVOS19'],
-                datasets: [{
-                    label: 'SAM 2.1 Large',
-                    data: [47.9, 90.7, 79.6, 78.4, 89.3],
-                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'SAM 3',
-                    data: [60.1, 92.0, 88.2, 84.6, 89.6],
-                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'SAM 3 vs SAM 2.1: Video Segmentation Performance (J&F Score)',
-                        font: { size: 16, weight: 'bold' }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'J&F Score (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Benchmark Dataset'
-                        }
-                    }
-                }
-            }
-        });
-    }
-});
-</script>
-
 | Benchmark         | Metric | SAM 3   | SAM 2.1 L | Improvement |
 | ----------------- | ------ | ------- | --------- | ----------- |
 | **MOSEv2**        | J&F    | **60.1** | 47.9      | +25.5%      |
@@ -405,73 +343,7 @@ SAM 3 excels at adapting to new domains with minimal examples:
 
 ### Interactive Refinement Effectiveness
 
-<div style="text-align: center; margin: 30px 0;">
-    <canvas id="interactiveRefinement" style="max-width: 800px; margin: 0 auto;"></canvas>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('interactiveRefinement');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Text Only', '+1 Exemplar', '+2 Exemplars', '+3 Exemplars', '+4 Exemplars'],
-                datasets: [{
-                    label: 'SAM 3 Concept Segmentation (PCS)',
-                    data: [46.4, 57.6, 62.2, 65.0, 65.7],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 3,
-                    tension: 0.1,
-                    fill: true
-                }, {
-                    label: 'Visual Segmentation Baseline (PVS)',
-                    data: [46.4, 50.9, 52.5, 53.8, 54.2],
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderWidth: 3,
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Interactive Refinement: Concept vs Visual Prompts (CGF1 Score)',
-                        font: { size: 16, weight: 'bold' }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 70,
-                        title: {
-                            display: true,
-                            text: 'CGF1 Score'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Number of Prompts Added'
-                        }
-                    }
-                }
-            }
-        });
-    }
-});
-</script>
-
-After adding exemplar prompts iteratively:
+SAM 3's concept-based prompting with exemplars converges much faster than visual prompting:
 
 | Prompts Added | CGF1 Score | Gain vs Text-Only | Gain vs PVS Baseline |
 | ------------- | ---------- | ----------------- | -------------------- |
@@ -536,57 +408,7 @@ Traditional AP metrics don't account for calibration, making models difficult to
 
 ### Impact of Presence Head
 
-<div style="text-align: center; margin: 30px 0;">
-    <canvas id="presenceHeadImpact" style="max-width: 600px; margin: 0 auto;"></canvas>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('presenceHeadImpact');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['CGF1', 'IL_MCC', 'pmF1'],
-                datasets: [{
-                    label: 'Without Presence Head',
-                    data: [57.6, 0.77, 74.7],
-                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'With Presence Head',
-                    data: [63.3, 0.82, 77.1],
-                    backgroundColor: 'rgba(75, 192, 192, 0.8)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Impact of Presence Head on Performance',
-                        font: { size: 16, weight: 'bold' }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
-        });
-    }
-});
-</script>
+The presence head decouples recognition from localization, providing significant improvements:
 
 | Configuration     | CGF1  | IL_MCC | pmF1  |
 | ----------------- | ----- | ------ | ----- |

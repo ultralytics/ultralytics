@@ -56,6 +56,9 @@ class MDETrainer(DetectionTrainer):
         if weights:
             model.load(weights)
 
+        # Ensure task is set on the model for proper loading later
+        model.task = "mde"
+
         return model
 
     def get_validator(self):

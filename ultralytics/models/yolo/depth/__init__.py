@@ -7,7 +7,8 @@ This module provides depth estimation capabilities for YOLO models, allowing
 simultaneous object detection and depth estimation.
 """
 
+from .predict import MDEPredictor
 from .train import MDETrainer
 from .val import MDEValidator
 
-__all__ = ["MDETrainer", "MDEValidator"]
+__all__ = ["MDEPredictor", "MDETrainer", "MDEValidator"]

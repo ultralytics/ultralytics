@@ -108,7 +108,7 @@ class YOLO(Model):
                 "model": DetectionModel,  # MDE uses the same model structure as detection
                 "trainer": yolo.depth.MDETrainer,
                 "validator": yolo.depth.MDEValidator,
-                "predictor": yolo.detect.DetectionPredictor,  # Use detection predictor for now
+                "predictor": yolo.depth.MDEPredictor,
             },
             "segment": {
                 "model": SegmentationModel,
@@ -405,9 +405,9 @@ class YOLOE(Model):
             >>> results = model.predict("path/to/image.jpg", visual_prompts=prompts)
         """
         if len(visual_prompts):
-            assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
-                f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
-            )
+            assert (
+                "bboxes" in visual_prompts and "cls" in visual_prompts
+            ), f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
                 f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
                 f"{len(visual_prompts['cls'])} respectively"

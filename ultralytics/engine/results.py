@@ -557,9 +557,7 @@ class Results(SimpleClass, DataExportMixin):
             idx = (
                 pred_boxes.id
                 if pred_boxes.is_track and color_mode == "instance"
-                else pred_boxes.cls
-                if pred_boxes and color_mode == "class"
-                else reversed(range(len(pred_masks)))
+                else pred_boxes.cls if pred_boxes and color_mode == "class" else reversed(range(len(pred_masks)))
             )
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
@@ -574,13 +572,11 @@ class Results(SimpleClass, DataExportMixin):
                     box,
                     label,
                     color=colors(
-                        c
-                        if color_mode == "class"
-                        else id
-                        if id is not None
-                        else i
-                        if color_mode == "instance"
-                        else None,
+                        (
+                            c
+                            if color_mode == "class"
+                            else id if id is not None else i if color_mode == "instance" else None
+                        ),
                         True,
                     ),
                 )
@@ -1069,6 +1065,309 @@ class Boxes(BaseTensor):
         xywh[..., [0, 2]] /= self.orig_shape[1]
         xywh[..., [1, 3]] /= self.orig_shape[0]
         return xywh
+
+
+class MDEBoxes(Boxes):
+    """
+    A class for managing and manipulating detection boxes with depth information for Monocular Depth Estimation (MDE).
+
+    This class extends the Boxes class to include depth values for each detection, providing comprehensive
+    functionality for handling detection boxes with depth information. It supports various box formats and
+    offers methods for easy manipulation and conversion between different coordinate systems.
+
+    Attributes:
+        data (torch.Tensor | np.ndarray): The raw tensor containing detection boxes and associated data.
+        orig_shape (tuple[int, int]): The original image dimensions (height, width).
+        is_track (bool): Always False for MDE boxes (depth, not tracking).
+        xyxy (torch.Tensor | np.ndarray): Boxes in [x1, y1, x2, y2] format.
+        conf (torch.Tensor | np.ndarray): Confidence scores for each box.
+        cls (torch.Tensor | np.ndarray): Class labels for each box.
+        depth (torch.Tensor | np.ndarray): Depth values for each box.
+        xywh (torch.Tensor | np.ndarray): Boxes in [x, y, width, height] format.
+        xyxyn (torch.Tensor | np.ndarray): Normalized [x1, y1, x2, y2] boxes relative to orig_shape.
+        xywhn (torch.Tensor | np.ndarray): Normalized [x, y, width, height] boxes relative to orig_shape.
+
+    Methods:
+        cpu: Return a copy of the object with all tensors on CPU memory.
+        numpy: Return a copy of the object with all tensors as numpy arrays.
+        cuda: Return a copy of the object with all tensors on GPU memory.
+        to: Return a copy of the object with tensors on specified device and dtype.
+
+    Examples:
+        >>> import torch
+        >>> boxes_data = torch.tensor([[100, 50, 150, 100, 0.9, 0, 5.2], [200, 150, 300, 250, 0.8, 1, 8.5]])
+        >>> orig_shape = (480, 640)  # height, width
+        >>> mde_boxes = MDEBoxes(boxes_data, orig_shape)
+        >>> print(mde_boxes.xyxy)
+        >>> print(mde_boxes.depth)
+    """
+
+    def __init__(self, boxes: torch.Tensor | np.ndarray, orig_shape: tuple[int, int]) -> None:
+        """
+        Initialize the MDEBoxes class with detection box data including depth and the original image shape.
+
+        This class manages detection boxes with depth information for Monocular Depth Estimation tasks,
+        providing easy access and manipulation of box coordinates, confidence scores, class identifiers,
+        and depth values.
+
+        Args:
+            boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
+                (num_boxes, 7). Columns should contain [x1, y1, x2, y2, confidence, class, depth].
+            orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
+
+        Attributes:
+            data (torch.Tensor): The raw tensor containing detection boxes and their associated data.
+            orig_shape (tuple[int, int]): The original image size, used for normalization.
+            is_track (bool): Always False for MDE (indicates depth, not tracking).
+
+        Examples:
+            >>> import torch
+            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0, 5.2]])
+            >>> orig_shape = (480, 640)
+            >>> mde_boxes = MDEBoxes(boxes, orig_shape)
+            >>> print(mde_boxes.depth)
+            tensor([5.2000])
+        """
+        if boxes.ndim == 1:
+            boxes = boxes[None, :]
+        n = boxes.shape[-1]
+        assert n == 7, f"expected 7 values for MDE boxes but got {n}"  # xyxy, conf, cls, depth
+        # Call BaseTensor.__init__ directly to avoid Boxes assertion
+        BaseTensor.__init__(self, boxes, orig_shape)
+        self.is_track = False  # MDE uses depth, not tracking
+        self.orig_shape = orig_shape
+
+    @property
+    def conf(self) -> torch.Tensor | np.ndarray:
+        """
+        Return the confidence scores for each detection box.
+
+        Returns:
+            (torch.Tensor | np.ndarray): A 1D tensor or array containing confidence scores for each detection,
+                with shape (N,) where N is the number of detections.
+
+        Examples:
+            >>> mde_boxes = MDEBoxes(torch.tensor([[10, 20, 30, 40, 0.9, 0, 5.2]]), orig_shape=(100, 100))
+            >>> conf_scores = mde_boxes.conf
+            >>> print(conf_scores)
+            tensor([0.9000])
+        """
+        return self.data[:, 4]
+
+    @property
+    def cls(self) -> torch.Tensor | np.ndarray:
+        """
+        Return the class ID tensor representing category predictions for each bounding box.
+
+        Returns:
+            (torch.Tensor | np.ndarray): A tensor or numpy array containing the class IDs for each detection box.
+                The shape is (N,), where N is the number of boxes.
+
+        Examples:
+            >>> mde_boxes = MDEBoxes(torch.tensor([[10, 20, 30, 40, 0.9, 0, 5.2]]), orig_shape=(100, 100))
+            >>> class_ids = mde_boxes.cls
+            >>> print(class_ids)
+            tensor([0.])
+        """
+        return self.data[:, 5]
+
+    @property
+    def depth(self) -> torch.Tensor | np.ndarray:
+        """
+        Return the depth values for each detection box.
+
+        Returns:
+            (torch.Tensor | np.ndarray): A 1D tensor or array containing depth values for each detection,
+                with shape (N,) where N is the number of detections.
+
+        Examples:
+            >>> mde_boxes = MDEBoxes(torch.tensor([[10, 20, 30, 40, 0.9, 0, 5.2]]), orig_shape=(100, 100))
+            >>> depth_values = mde_boxes.depth
+            >>> print(depth_values)
+            tensor([5.2000])
+        """
+        return self.data[:, 6]
+
+
+class MDEResults(Results):
+    """
+    A class for storing and manipulating MDE (Monocular Depth Estimation) inference results.
+
+    This class extends the Results class to handle depth estimation results, including
+    detection boxes with depth information and depth-specific visualization.
+
+    Attributes:
+        orig_img (np.ndarray): The original image as a numpy array.
+        orig_shape (tuple[int, int]): Original image shape in (height, width) format.
+        boxes (MDEBoxes | None): Detected bounding boxes with depth information.
+        depth (torch.Tensor | np.ndarray | None): Full depth map if available.
+        speed (dict): Dictionary containing inference speed information.
+        names (dict): Dictionary mapping class indices to class names.
+        path (str): Path to the input image file.
+        save_dir (str | None): Directory to save results.
+
+    Examples:
+        >>> results = model("path/to/image.jpg")  # MDE model
+        >>> result = results[0]  # Get the first result
+        >>> boxes = result.boxes  # Get the boxes with depth for the first result
+        >>> depths = result.boxes.depth  # Get depth values
+    """
+
+    def __init__(
+        self,
+        orig_img: np.ndarray,
+        path: str,
+        names: dict[int, str],
+        boxes: torch.Tensor | None = None,
+        speed: dict[str, float] | None = None,
+    ) -> None:
+        """
+        Initialize the MDEResults class for MDE inference results.
+
+        Args:
+            orig_img (np.ndarray): The original image as a numpy array.
+            path (str): The path to the image file.
+            names (dict): A dictionary of class names.
+            boxes (torch.Tensor | None): A 2D tensor of bounding box coordinates with depth for each detection.
+                Shape should be (N, 7) with format [x1, y1, x2, y2, conf, cls, depth].
+            speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+
+        Examples:
+            >>> import torch
+            >>> orig_img = np.random.rand(480, 640, 3)
+            >>> boxes = torch.tensor([[100, 50, 150, 100, 0.9, 0, 5.2]])
+            >>> mde_result = MDEResults(orig_img, "image.jpg", {0: "person"}, boxes=boxes)
+            >>> print(mde_result.boxes.depth)
+        """
+        # Initialize base Results without creating boxes
+        super().__init__(
+            orig_img=orig_img,
+            path=path,
+            names=names,
+            boxes=None,  # Don't create boxes in parent
+            speed=speed,
+        )
+        # Create MDEBoxes instead of regular Boxes
+        self.boxes = MDEBoxes(boxes, self.orig_shape) if boxes is not None else None
+
+    def plot(
+        self,
+        conf: bool = True,
+        line_width: float | None = None,
+        font_size: float | None = None,
+        font: str = "Arial.ttf",
+        pil: bool = False,
+        img: np.ndarray | None = None,
+        im_gpu: torch.Tensor | None = None,
+        kpt_radius: int = 5,
+        kpt_line: bool = True,
+        labels: bool = True,
+        boxes: bool = True,
+        masks: bool = True,
+        probs: bool = True,
+        show: bool = False,
+        save: bool = False,
+        filename: str | None = None,
+        color_mode: str = "class",
+        txt_color: tuple[int, int, int] = (255, 255, 255),
+        show_depth: bool = True,
+    ) -> np.ndarray:
+        """
+        Plot MDE detection results with depth information on an input RGB image.
+
+        This method extends the base Results.plot() to include depth values in the labels.
+
+        Args:
+            conf (bool): Whether to plot detection confidence scores.
+            line_width (float | None): Line width of bounding boxes. If None, scaled to image size.
+            font_size (float | None): Font size for text. If None, scaled to image size.
+            font (str): Font to use for text.
+            pil (bool): Whether to return the image as a PIL Image.
+            img (np.ndarray | None): Image to plot on. If None, uses original image.
+            im_gpu (torch.Tensor | None): Normalized image on GPU for faster mask plotting.
+            kpt_radius (int): Radius of drawn keypoints.
+            kpt_line (bool): Whether to draw lines connecting keypoints.
+            labels (bool): Whether to plot labels of bounding boxes.
+            boxes (bool): Whether to plot bounding boxes.
+            masks (bool): Whether to plot masks.
+            probs (bool): Whether to plot classification probabilities.
+            show (bool): Whether to display the annotated image.
+            save (bool): Whether to save the annotated image.
+            filename (str | None): Filename to save image if save is True.
+            color_mode (str): Specify the color mode, e.g., 'instance' or 'class'.
+            txt_color (tuple[int, int, int]): Specify the RGB text color for classification task.
+            show_depth (bool): Whether to show depth values in labels.
+
+        Returns:
+            (np.ndarray): Annotated image as a numpy array.
+
+        Examples:
+            >>> results = model("image.jpg")  # MDE model
+            >>> for result in results:
+            >>>     im = result.plot(show_depth=True)
+            >>>     im.show()
+        """
+        from copy import deepcopy
+        from pathlib import Path
+
+        from ultralytics.utils.plotting import Annotator, colors
+
+        assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
+        if img is None and isinstance(self.orig_img, torch.Tensor):
+            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
+
+        names = self.names
+        pred_boxes, show_boxes = self.boxes, boxes
+        annotator = Annotator(
+            deepcopy(self.orig_img if img is None else img),
+            line_width,
+            font_size,
+            font,
+            pil,
+            example=names,
+        )
+
+        # Plot MDE Detect results with depth
+        if pred_boxes is not None and show_boxes:
+            for i, d in enumerate(reversed(pred_boxes)):
+                c, d_conf, id = int(d.cls), float(d.conf) if conf else None, int(d.id.item()) if d.is_track else None
+                name = ("" if id is None else f"id:{id} ") + names[c]
+
+                # Add depth information to label if available
+                if show_depth and hasattr(d, "depth"):
+                    # Access depth directly from the individual detection object
+                    depth_val = float(d.depth.item()) if hasattr(d.depth, "item") else float(d.depth)
+                    label = (
+                        (f"{name} {d_conf:.2f} {depth_val:.2f}m" if conf else f"{name} {depth_val:.2f}m")
+                        if labels
+                        else None
+                    )
+                else:
+                    label = (f"{name} {d_conf:.2f}" if conf else name) if labels else None
+
+                box = d.xyxy.squeeze()
+                annotator.box_label(
+                    box,
+                    label,
+                    color=colors(
+                        (
+                            c
+                            if color_mode == "class"
+                            else id if id is not None else i if color_mode == "instance" else None
+                        ),
+                        True,
+                    ),
+                )
+
+        # Show results
+        if show:
+            annotator.show(self.path)
+
+        # Save results
+        if save:
+            annotator.save(filename or f"results_{Path(self.path).name}")
+
+        return annotator.im if pil else annotator.result()
 
 
 class Masks(BaseTensor):

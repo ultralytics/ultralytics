@@ -234,7 +234,7 @@ class BaseValidator:
         if self.training:
             if RANK == 0:
                 gathered_stats = [None] * dist.get_world_size()
-                dist.gather_object(self.metrics.stats, gathered_stats if RANK == 0 else None, dst=0)
+                dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
                 merged_stats = {key: [] for key in self.metrics.stats.keys()}
                 for stats_dict in gathered_stats:
                     for key in merged_stats.keys():
@@ -242,6 +242,7 @@ class BaseValidator:
                 self.metrics.stats = merged_stats
             elif RANK > 0:
                 dist.gather_object(self.metrics.stats, None, dst=0)
+                self.metrics.clear_stats()
 
         if RANK in {-1, 0}:
             stats = self.get_stats()

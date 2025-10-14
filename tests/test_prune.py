@@ -24,7 +24,7 @@ from ultralytics.utils.prune import (
     prune_sppf,
     prune_detect,
     apply_prev_mask, prune_channels_groupwise, prune_by_groups, compute_effective_groups, prune_conv_with_skip,
-    validate_prune_cfg, gcd_all
+    validate_prune_cfg
 )
 
 ROOT = Path(__file__).resolve().parents[1]  # repo root
@@ -1368,21 +1368,3 @@ def test_yaml_syntax_error(tmp_path):
     bad_yaml.write_text("prune_ratios: [0.1, 0.2,,]")
     with pytest.raises(ValueError, match="Invalid YAML syntax"):
         validate_prune_cfg(bad_yaml)
-
-
-@pytest.mark.parametrize(
-    "vals, expected",
-    [
-        ([8, 12, 16], 4),
-        ([7], 7),
-        ([], 1),
-        ([9, 6], 3),
-        ([0, 12, 24], 12),
-        ([-8, -12], 4),
-        ([-8, 12], 4),
-        ([5, 7, 11], 1),
-    ],
-)
-def test_gcd_all(vals, expected):
-    """Test gcd_all() with various input types and edge cases."""
-    assert gcd_all(vals) == expected

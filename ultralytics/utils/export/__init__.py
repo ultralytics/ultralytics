@@ -37,7 +37,7 @@ def torch2onnx(
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
-    kwargs = { "dynamo": False } if TORCH_2_4 else {}
+    kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         torch_model,
         im,

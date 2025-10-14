@@ -243,7 +243,7 @@ class BaseValidator:
             model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()
-            if dist.is_initialized():
+            if trainer.world_size > 1:
                 dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
             if RANK > 0:
                 return

@@ -681,6 +681,10 @@ class BaseTrainer:
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
+            # Synchronize buffers across GPUs before EMA update
+            if self.world_size > 1:
+                for buffer in self.model.buffers():
+                    dist.broadcast(buffer, src=0)
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):

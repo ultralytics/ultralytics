@@ -402,6 +402,73 @@ class C3TR(C3):
         self.m = TransformerBlock(c_, c_, 4, n)
 
 
+class SqueezeExcite(nn.Module):
+    """
+    Squeeze-and-Excitation module for channel attention.
+    
+    Attributes:
+        gate_fn (callable): Gate activation function.
+        avg_pool (nn.AdaptiveAvgPool2d): Global average pooling.
+        conv_reduce (nn.Conv2d): Channel reduction convolution.
+        act1 (nn.Module): Activation after reduction.
+        conv_expand (nn.Conv2d): Channel expansion convolution.
+    """
+    
+    def __init__(self, in_chs, se_ratio=0.25, reduced_base_chs=None,
+                 act_layer=nn.ReLU, gate_fn=None, divisor=4):
+        """
+        Initialize Squeeze-and-Excitation module.
+        
+        Args:
+            in_chs (int): Input channels.
+            se_ratio (float): Reduction ratio.
+            reduced_base_chs (int | None): Base channels for reduction calculation.
+            act_layer (nn.Module): Activation layer class.
+            gate_fn (callable | None): Gate function (uses hard_sigmoid if None).
+            divisor (int): Divisor for making reduced channels divisible.
+        """
+        super().__init__()
+        
+        # Use hard_sigmoid as default gate function
+        if gate_fn is None:
+            gate_fn = lambda x: F.relu6(x + 3.) / 6.
+        self.gate_fn = gate_fn
+        
+        # Calculate reduced channels
+        reduced_chs = self._make_divisible((reduced_base_chs or in_chs) * se_ratio, divisor)
+        
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.conv_reduce = nn.Conv2d(in_chs, reduced_chs, 1, bias=True)
+        self.act1 = act_layer(inplace=True)
+        self.conv_expand = nn.Conv2d(reduced_chs, in_chs, 1, bias=True)
+
+    @staticmethod
+    def _make_divisible(v, divisor, min_value=None):
+        """Make channels divisible by divisor."""
+        if min_value is None:
+            min_value = divisor
+        new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+        if new_v < 0.9 * v:
+            new_v += divisor
+        return new_v
+    
+    def forward(self, x):
+        """
+        Apply squeeze-and-excitation to input tensor.
+        
+        Args:
+            x (torch.Tensor): Input tensor.
+        
+        Returns:
+            (torch.Tensor): Channel-attended output tensor.
+        """
+        x_se = self.avg_pool(x)
+        x_se = self.conv_reduce(x_se)
+        x_se = self.act1(x_se)
+        x_se = self.conv_expand(x_se)
+        return x * self.gate_fn(x_se)
+
+
 class C3Ghost(C3):
     """C3 module with GhostBottleneck()."""
 
@@ -418,8 +485,12 @@ class C3Ghost(C3):
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        #Create GhostBottleneck with proper layer_id tracking
-        self.m = nn.Sequential(*(GhostBottleneck(c_, c_, layer_id=i) for i in range(n)))
+        
+        # Reset layer_id counter before creating blocks
+        GhostBottleneck.reset_layer_id()
+        
+        # Create GhostBottleneck with proper layer_id tracking
+        self.m = nn.Sequential(*(GhostBottleneck(c_, c_, mid_c=c_, layer_id=i) for i in range(n)))
 
 
 class GhostBottleneck(nn.Module):
@@ -430,19 +501,18 @@ class GhostBottleneck(nn.Module):
     
     Attributes:
         stride (int): Stride for downsampling.
-        ghost1 (GhostConvV2): First ghost convolution (expansion).
+        ghost1 (GhostConv): First ghost convolution (expansion).
         conv_dw (nn.Conv2d | None): Depthwise convolution for stride > 1.
         bn_dw (nn.BatchNorm2d | None): Batch normalization for depthwise conv.
         se (SqueezeExcite | None): Squeeze-and-excitation module.
-        ghost2 (GhostConvV2): Second ghost convolution (projection).
+        ghost2 (GhostConv): Second ghost convolution (projection).
         shortcut (nn.Sequential): Shortcut connection.
     
     References:
         https://github.com/huawei-noah/Efficient-AI-Backbones
     """
 
-
-    #class variable to track layer_id across all instances
+    # Class variable to track layer_id across all instances
     _layer_id_counter = 0
     
     def __init__(self, c1, c2, mid_c=None, k=3, s=1, se_ratio=0., layer_id=None):
@@ -452,36 +522,36 @@ class GhostBottleneck(nn.Module):
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            mid_c (int | None): Middle channels. If None, uses c2.
+            mid_c (int | None): Middle (expansion) channels. If None, uses c2.
             k (int): Kernel size for depthwise convolution.
             s (int): Stride.
             se_ratio (float): Squeeze-excitation ratio (0 to disable).
-            layer_id (int): Layer index (determines attention mode).
+            layer_id (int | None): Layer index (determines attention mode). If None, uses class counter.
         """
         super().__init__()
+        
+        # Use c2 as default mid_c if not provided
         if mid_c is None:
             mid_c = c2
         
-        #use provided layer_id or increment class counter
+        # Use provided layer_id or increment class counter
         if layer_id is None:
             layer_id = GhostBottleneck._layer_id_counter
-            GhostBottleneck._layer_id_counter +=1
+            GhostBottleneck._layer_id_counter += 1
         
         has_se = se_ratio is not None and se_ratio > 0.
         self.stride = s
         
-        # Determine mode based on layer_id
+        # Determine mode based on layer_id (first 2 layers use 'original', rest use 'attn')
         mode = 'original' if layer_id <= 1 else 'attn'
         
-        # Point-wise expansion with GhostConvV2
+        # Point-wise expansion with GhostConv
         self.ghost1 = GhostConv(c1, mid_c, k=1, s=1, act=True, mode=mode)
         
-        # Depth-wise convolution
+        # Depth-wise convolution (only for stride > 1)
         if self.stride > 1:
-            self.conv_dw = nn.Conv2d(
-                mid_c, mid_c, k, stride=s,
-                padding=(k - 1) // 2, groups=mid_c, bias=False
-            )
+            self.conv_dw = nn.Conv2d(mid_c, mid_c, k, stride=s,
+                                     padding=(k - 1) // 2, groups=mid_c, bias=False)
             self.bn_dw = nn.BatchNorm2d(mid_c)
         else:
             self.conv_dw = None
@@ -489,22 +559,19 @@ class GhostBottleneck(nn.Module):
         
         # Squeeze-and-excitation
         if has_se:
-            from ultralytics.nn.modules.conv import ChannelAttention
-            # Use a simplified SE - you can also use the full SqueezeExcite from ghostnetv2_torch.py
-            self.se = ChannelAttention(mid_c)
+            self.se = SqueezeExcite(mid_c, se_ratio=se_ratio)
         else:
             self.se = None
         
-        # Point-wise projection
+        # Point-wise projection (always use 'original' mode for projection)
         self.ghost2 = GhostConv(mid_c, c2, k=1, s=1, act=False, mode='original')
         
-        # Shortcut
+        # Shortcut connection
         if c1 == c2 and self.stride == 1:
-            self.shortcut = nn.Identity()
+            self.shortcut = nn.Sequential()
         else:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(c1, c1, k, stride=s, padding=(k - 1) // 2, 
-                         groups=c1, bias=False),
+                nn.Conv2d(c1, c1, k, stride=s, padding=(k - 1) // 2, groups=c1, bias=False),
                 nn.BatchNorm2d(c1),
                 nn.Conv2d(c1, c2, 1, stride=1, padding=0, bias=False),
                 nn.BatchNorm2d(c2),
@@ -525,7 +592,7 @@ class GhostBottleneck(nn.Module):
         # Expansion
         x = self.ghost1(x)
         
-        # Depthwise
+        # Depthwise convolution (if stride > 1)
         if self.stride > 1:
             x = self.conv_dw(x)
             x = self.bn_dw(x)
@@ -537,14 +604,14 @@ class GhostBottleneck(nn.Module):
         # Projection
         x = self.ghost2(x)
         
-        # Residual
+        # Residual connection
         x += self.shortcut(residual)
         
         return x
     
     @classmethod
     def reset_layer_id(cls):
-        """Reset the layer is counter. Useful when creating a new model"""
+        """Reset the class-level layer_id counter."""
         cls._layer_id_counter = 0
 
 

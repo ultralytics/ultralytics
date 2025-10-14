@@ -230,20 +230,8 @@ class BaseValidator:
 
             self.run_callbacks("on_val_batch_end")
 
-        # Gather stats from all GPUs
-        if RANK == 0:
-            gathered_stats = [None] * dist.get_world_size()
-            dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
-            merged_stats = {key: [] for key in self.metrics.stats.keys()}
-            for stats_dict in gathered_stats:
-                for key in merged_stats.keys():
-                    merged_stats[key].extend(stats_dict[key])
-            self.metrics.stats = merged_stats
-        elif RANK > 0:
-            dist.gather_object(self.metrics.stats, None, dst=0)
-            self.metrics.clear_stats()
-
         stats = {}
+        self.gather_stats()
         if RANK in {-1, 0}:
             stats = self.get_stats()
             self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))

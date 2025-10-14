@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 
 import numpy as np
 import torch
+import torch.distributed as dist
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
@@ -112,6 +113,87 @@ class _RepeatSampler:
             yield from iter(self.sampler)
 
 
+class ContiguousDistributedSampler(torch.utils.data.Sampler):
+    """
+    Distributed sampler that assigns contiguous chunks of the dataset to each GPU rather than interleaving samples.
+
+    Unlike PyTorch's DistributedSampler which distributes samples in a round-robin fashion (GPU 0 gets indices
+    [0,2,4,...], GPU 1 gets [1,3,5,...]), this sampler gives each GPU a contiguous slice of the dataset
+    (GPU 0 gets [0,1,2,...N], GPU 1 gets [N+1,N+2,...2N], etc.). This preserves any ordering or grouping in the
+    original dataset, which is critical when samples are organized by similarity (e.g., images sorted by size to
+    enable efficient batching without padding when using rect=True).
+
+    The sampler handles uneven dataset sizes by distributing remainder samples to the first few ranks, ensuring
+    all samples are covered exactly once across all GPUs.
+
+    Args:
+        dataset: Dataset to sample from. Must implement __len__.
+        num_replicas (int, optional): Number of distributed processes. Defaults to world size.
+        rank (int, optional): Rank of current process. Defaults to current rank.
+        shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False.
+            When True, shuffling is deterministic and controlled by set_epoch() for reproducibility.
+
+    Example:
+        >>> # For validation with size-grouped images
+        >>> sampler = ContiguousDistributedSampler(val_dataset, shuffle=False)
+        >>> loader = DataLoader(val_dataset, batch_size=32, sampler=sampler)
+        >>> # For training with shuffling
+        >>> sampler = ContiguousDistributedSampler(train_dataset, shuffle=True)
+        >>> for epoch in range(num_epochs):
+        ...     sampler.set_epoch(epoch)  # Ensures different shuffle each epoch
+        ...     for batch in loader:
+        ...         ...
+    """
+
+    def __init__(self, dataset, num_replicas=None, rank=None, shuffle=False):
+        if num_replicas is None:
+            num_replicas = dist.get_world_size()
+        if rank is None:
+            rank = dist.get_rank()
+
+        self.dataset = dataset
+        self.num_replicas = num_replicas
+        self.rank = rank
+        self.epoch = 0
+        self.shuffle = shuffle
+
+        # Calculate contiguous chunk for this rank
+        self.total_size = len(dataset)
+        self.num_samples = self.total_size // self.num_replicas
+        # Handle remainder by giving extra samples to early ranks
+        if self.rank < self.total_size % self.num_replicas:
+            self.num_samples += 1
+
+    def __iter__(self):
+        """Generate indices for this rank's contiguous chunk of the dataset."""
+        # Calculate this rank's contiguous slice
+        samples_per_rank = self.total_size // self.num_replicas
+        start_idx = self.rank * samples_per_rank + min(self.rank, self.total_size % self.num_replicas)
+        end_idx = start_idx + self.num_samples
+
+        indices = list(range(start_idx, end_idx))
+
+        if self.shuffle:
+            g = torch.Generator()
+            g.manual_seed(self.epoch)
+            indices = [indices[i] for i in torch.randperm(len(indices), generator=g).tolist()]
+
+        return iter(indices)
+
+    def __len__(self):
+        """Return the number of samples in this rank's chunk."""
+        return self.num_samples
+
+    def set_epoch(self, epoch):
+        """
+        Set the epoch for this sampler to ensure different shuffling patterns across epochs.
+
+        Args:
+            epoch (int): Epoch number to use as the random seed for shuffling.
+        """
+        self.epoch = epoch
+
+
 def seed_worker(worker_id: int):  # noqa
     """Set dataloader worker seed for reproducibility across worker processes."""
     worker_seed = torch.initial_seed() % 2**32
@@ -204,7 +286,13 @@ def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, ra
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     nw = min(os.cpu_count() // max(nd, 1), workers)  # number of workers
-    sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
+    sampler = (
+        None
+        if rank == -1
+        else distributed.DistributedSampler(dataset, shuffle=shuffle)
+        if shuffle
+        else ContiguousDistributedSampler(dataset)
+    )
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
     return InfiniteDataLoader(

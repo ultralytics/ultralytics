@@ -18,10 +18,11 @@ Supported functionalities:
 Intended for submission as part of Ultralytics YOLOv8 pruning
 pipeline enhancements.
 """
+from __future__ import annotations
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Union, Tuple, Optional, List
+from typing import Union, Optional
 import math
 import torch
 import yaml
@@ -39,8 +40,8 @@ def prune(
         weight_tensor: torch.Tensor,
         prune_ratio: float,
         norm_order: float,
-        dim: Union[int, Tuple[int, ...]]
-) -> Tuple[torch.Tensor, torch.Tensor]:
+        dim: Union[int, tuple[int, ...]]
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Prune filters or groups in a weight tensor based on their norms.
 
@@ -49,7 +50,7 @@ def prune(
             dimension contains items to prune.
         prune_ratio (float): Fraction of items to remove, range 0.0 to 1.0.
         norm_order (float): Order of norm for scoring (1 for L1, 2 for L2).
-        dim (int | Tuple): Dimension(s) over which to compute the norm, typically excluding the first dimension.
+        dim (int | tuple): Dimension(s) over which to compute the norm, typically excluding the first dimension.
 
     Returns:
         pruned (torch.Tensor): Weight tensor containing only kept items with shape (num_kept, ...).
@@ -88,7 +89,7 @@ def prune_channels_groupwise(
         prune_ratio: float,
         norm_order: float,
         prune_groups: int
-) -> Tuple[torch.Tensor, torch.Tensor, int]:
+) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     Prune channels independently within each group, preserving group structure.
 
@@ -125,7 +126,7 @@ def prune_by_groups(
         prune_ratio: float,
         norm_order: float,
         prune_groups: int
-) -> Tuple[torch.Tensor, torch.Tensor, int]:
+) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     Prune entire groups of channels based on group-wise norms.
 
@@ -159,7 +160,7 @@ def prune_by_groups(
     return weight_view_pruned, mask, kept_out_channels
 
 
-def apply_prev_mask(weight: torch.Tensor, mask_prev: torch.Tensor, groups: int) -> Tuple[
+def apply_prev_mask(weight: torch.Tensor, mask_prev: torch.Tensor, groups: int) -> tuple[
     torch.Tensor, torch.Tensor, int]:
     """
     Apply previous layer's output mask to prune input channels of current layer's weights.
@@ -209,7 +210,7 @@ def prune_conv2d(
         conv_layer: Conv2d, prune_ratio: float, norm_order: float = 2.0, mask_prev: torch.Tensor = None,
         prune_groups=None,
         prune_type="preserve"
-) -> Tuple[Conv2d, torch.Tensor]:
+) -> tuple[Conv2d, torch.Tensor]:
     """
     Prune a Conv2d layer with group-aware pruning.
 
@@ -299,7 +300,7 @@ def prune_conv2d(
     return updated_conv, mask
 
 
-def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev: torch.Tensor=None) -> Tuple[Conv2d, torch.Tensor]:
+def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev: torch.Tensor=None) -> tuple[Conv2d, torch.Tensor]:
     """
     Prune a Conv2d layer to match output channels from a skip connection source.
 
@@ -409,7 +410,7 @@ def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None,
 # ============================================================
 
 
-def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor) -> Tuple[BatchNorm2d, torch.Tensor]:
+def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor) -> tuple[BatchNorm2d, torch.Tensor]:
     """
     Prune a BatchNorm2d layer to match channels from the previous layer.
 

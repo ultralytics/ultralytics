@@ -829,7 +829,7 @@ class BaseTrainer:
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""
-        loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
+        loss_nan = self.loss is not None and not self.loss.isfinite()
         fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
         fitness_collapse = self.best_fitness and self.best_fitness > 0 and self.fitness == 0
         corrupted = RANK in {-1, 0} and loss_nan and (fitness_nan or fitness_collapse)

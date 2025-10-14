@@ -11,7 +11,7 @@ from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK
 from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
 
@@ -196,16 +196,18 @@ class ClassificationTrainer(BaseTrainer):
 
     def final_eval(self):
         """Evaluate trained model and save validation results."""
-        for f in self.last, self.best:
-            if f.exists():
-                strip_optimizer(f)  # strip optimizers
-                if f is self.best:
-                    LOGGER.info(f"\nValidating {f}...")
-                    self.validator.args.data = self.args.data
-                    self.validator.args.plots = self.args.plots
-                    self.metrics = self.validator(model=f)
-                    self.metrics.pop("fitness", None)
-                    self.run_callbacks("on_fit_epoch_end")
+        with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
+            if RANK in {-1, 0}:
+                for f in self.last, self.best:
+                    if f.exists():
+                        strip_optimizer(f)  # strip optimizers
+
+        LOGGER.info(f"\nValidating {self.best}...")
+        self.validator.args.data = self.args.data
+        self.validator.args.plots = self.args.plots
+        self.metrics = self.validator(model=self.best)
+        self.metrics.pop("fitness", None)
+        self.run_callbacks("on_fit_epoch_end")
 
     def plot_training_samples(self, batch: dict[str, torch.Tensor], ni: int):
         """

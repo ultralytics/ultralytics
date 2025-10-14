@@ -162,36 +162,31 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.rank = rank
         self.epoch = 0
         self.shuffle = shuffle
-
-        # Calculate total batches
         self.total_size = len(dataset)
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
-        # Distribute batches across ranks
-        self.batches_per_rank = self.num_batches // self.num_replicas
-        if self.rank < self.num_batches % self.num_replicas:
-            self.batches_per_rank += 1
-
-        # Calculate actual number of samples for this rank
-        start_batch = self.rank * (self.num_batches // self.num_replicas) + min(
-            self.rank, self.num_batches % self.num_replicas
-        )
-        end_batch = start_batch + self.batches_per_rank
-        start_idx = start_batch * self.batch_size
-        end_idx = min(end_batch * self.batch_size, self.total_size)
-        self.num_samples = end_idx - start_idx
-
-    def __iter__(self):
-        """Generate indices for this rank's contiguous chunk of the dataset."""
+    def _get_rank_indices(self):
+        """Calculate the start and end sample indices for this rank."""
         # Calculate which batches this rank handles
         batches_per_rank_base = self.num_batches // self.num_replicas
-        start_batch = self.rank * batches_per_rank_base + min(self.rank, self.num_batches % self.num_replicas)
-        end_batch = start_batch + self.batches_per_rank
-
+        remainder = self.num_batches % self.num_replicas
+        
+        # This rank gets an extra batch if rank < remainder
+        batches_for_this_rank = batches_per_rank_base + (1 if self.rank < remainder else 0)
+        
+        # Calculate starting batch: base position + number of extra batches given to earlier ranks
+        start_batch = self.rank * batches_per_rank_base + min(self.rank, remainder)
+        end_batch = start_batch + batches_for_this_rank
+        
         # Convert batch indices to sample indices
         start_idx = start_batch * self.batch_size
         end_idx = min(end_batch * self.batch_size, self.total_size)
+        
+        return start_idx, end_idx
 
+    def __iter__(self):
+        """Generate indices for this rank's contiguous chunk of the dataset."""
+        start_idx, end_idx = self._get_rank_indices()
         indices = list(range(start_idx, end_idx))
 
         if self.shuffle:
@@ -203,7 +198,8 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
 
     def __len__(self):
         """Return the number of samples in this rank's chunk."""
-        return self.num_samples
+        start_idx, end_idx = self._get_rank_indices()
+        return end_idx - start_idx
 
     def set_epoch(self, epoch):
         """

@@ -205,6 +205,7 @@ class ClassificationValidator(BaseValidator):
             img=batch["img"],
             batch_idx=torch.arange(batch["img"].shape[0]),
             cls=torch.argmax(preds, dim=1),
+            conf=torch.amax(preds, dim=1),
         )
         plot_images(
             batched_preds,

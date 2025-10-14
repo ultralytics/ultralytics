@@ -326,10 +326,10 @@ class BaseTrainer:
             mode="val",
         )
         self.validator = self.get_validator()
-        metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
-        self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
         self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
+            metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
+            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
             if self.args.plots:
                 self.plot_training_labels()
 
@@ -696,15 +696,12 @@ class BaseTrainer:
             fitness (float): Fitness score for the validation.
         """
         metrics = self.validator(self)
-        if metrics is not None:
-            fitness = metrics.pop(
-                "fitness", -self.loss.detach().cpu().numpy()
-            )  # use loss as fitness measure if not found
-            if not self.best_fitness or self.best_fitness < fitness:
-                self.best_fitness = fitness
-            return metrics, fitness
-        else:
+        if metrics is None:
             return None, None
+        fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
+        if not self.best_fitness or self.best_fitness < fitness:
+            self.best_fitness = fitness
+        return metrics, fitness
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

@@ -170,18 +170,18 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         # Calculate which batches this rank handles
         batches_per_rank_base = self.num_batches // self.num_replicas
         remainder = self.num_batches % self.num_replicas
-        
+
         # This rank gets an extra batch if rank < remainder
         batches_for_this_rank = batches_per_rank_base + (1 if self.rank < remainder else 0)
-        
+
         # Calculate starting batch: base position + number of extra batches given to earlier ranks
         start_batch = self.rank * batches_per_rank_base + min(self.rank, remainder)
         end_batch = start_batch + batches_for_this_rank
-        
+
         # Convert batch indices to sample indices
         start_idx = start_batch * self.batch_size
         end_idx = min(end_batch * self.batch_size, self.total_size)
-        
+
         return start_idx, end_idx
 
     def __iter__(self):

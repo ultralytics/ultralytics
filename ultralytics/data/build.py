@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import random
 from collections.abc import Iterator
@@ -111,9 +112,6 @@ class _RepeatSampler:
         """Iterate over the sampler indefinitely, yielding its contents."""
         while True:
             yield from iter(self.sampler)
-
-
-import math
 
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):

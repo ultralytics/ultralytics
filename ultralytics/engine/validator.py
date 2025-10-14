@@ -350,6 +350,10 @@ class BaseValidator:
         """Return statistics about the model's performance."""
         return {}
 
+    def gather_stats(self):
+        """Gather statistics from all the GPUs during DDP training to GPU 0."""
+        pass
+
     def print_results(self):
         """Print the results of the model's predictions."""
         pass

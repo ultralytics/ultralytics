@@ -226,7 +226,7 @@ class DetectionValidator(BaseValidator):
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
-    
+
     def gather_stats(self) -> None:
         """Gather stats from all GPUs."""
         if RANK == 0:

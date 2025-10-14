@@ -510,11 +510,11 @@ class BaseTrainer:
                 break  # must break all DDP ranks
             epoch += 1
 
+        train_time = time.time() - self.train_time_start
+        # Do final val with best.pt
+        self.final_eval()
         if RANK in {-1, 0}:
-            # Do final val with best.pt
-            seconds = time.time() - self.train_time_start
-            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
-            self.final_eval()
+            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {train_time / 3600:.3f} hours.")
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
@@ -773,20 +773,18 @@ class BaseTrainer:
 
     def final_eval(self):
         """Perform final evaluation and validation for object detection YOLO model."""
-        ckpt = {}
-        for f in self.last, self.best:
-            if f.exists():
-                if f is self.last:
-                    ckpt = strip_optimizer(f)
-                elif f is self.best:
-                    k = "train_results"  # update best.pt train_metrics from last.pt
-                    strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
-                    LOGGER.info(f"\nValidating {f}...")
-                    self.validator.args.plots = self.args.plots
-                    self.validator.args.compile = False  # disable final val compile as too slow
-                    self.metrics = self.validator(model=f)
-                    self.metrics.pop("fitness", None)
-                    self.run_callbacks("on_fit_epoch_end")
+        with torch_distributed_zero_first(LOCAL_RANK):
+            if RANK in {-1, 0}:
+                ckpt = strip_optimizer(self.last) if self.last.exists() else {}
+                if self.best.exists():
+                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+
+        LOGGER.info(f"\nValidating {self.best}...")
+        self.validator.args.plots = self.args.plots
+        self.validator.args.compile = False
+        self.metrics = self.validator(model=self.best)
+        self.metrics.pop("fitness", None)
+        self.run_callbacks("on_fit_epoch_end")
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""

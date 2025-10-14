@@ -6,7 +6,7 @@ from ultralytics.data import YOLOConcatDataset, build_grounding, build_yolo_data
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.models.yolo.world import WorldTrainer
 from ultralytics.utils import DATASETS_DIR, DEFAULT_CFG, LOGGER
-from ultralytics.utils.torch_utils import de_parallel
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 class WorldTrainerFromScratch(WorldTrainer):
@@ -101,7 +101,7 @@ class WorldTrainerFromScratch(WorldTrainer):
         Returns:
             (YOLOConcatDataset | Dataset): The constructed dataset for training or validation.
         """
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(unwrap_model(self.model).stride.max() if self.model else 0), 32)
         if mode != "train":
             return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=False, stride=gs)
         datasets = [

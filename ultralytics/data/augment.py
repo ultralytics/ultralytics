@@ -2202,7 +2202,7 @@ class Format:
                 )
             labels["masks"] = masks
         labels["img"] = self._format_img(img)
-        labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
+        labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl, 1)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels["keypoints"] = (
@@ -2382,7 +2382,7 @@ class LoadVisualPrompt:
         #     assert len(cls_unique) == cls_unique[-1] + 1, (
         #         f"Expected a continuous range of class indices, but got {cls_unique}"
         #     )
-        visuals = torch.zeros(len(cls_unique), *masksz)
+        visuals = torch.zeros(cls_unique.shape[0], *masksz)
         for idx, mask in zip(inverse_indices, masks):
             visuals[idx] = torch.logical_or(visuals[idx], mask)
         return visuals

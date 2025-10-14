@@ -93,8 +93,8 @@ class OBBValidator(DetectionValidator):
             >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
             >>> correct_matrix = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
-        if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
-            return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
+        if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
+            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
@@ -134,7 +134,7 @@ class OBBValidator(DetectionValidator):
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
-        if len(cls):
+        if cls.shape[0]:
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
         return {
             "cls": cls,

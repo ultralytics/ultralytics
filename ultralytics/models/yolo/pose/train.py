@@ -9,7 +9,6 @@ from typing import Any
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER
-from ultralytics.utils.plotting import plot_results
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -30,7 +29,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         set_model_attributes: Set keypoints shape attribute on the model.
         get_validator: Create a validator instance for model evaluation.
         plot_training_samples: Visualize training samples with keypoints.
-        plot_metrics: Generate and save training/validation metric plots.
         get_dataset: Retrieve the dataset and ensure it contains required kpt_shape key.
 
     Examples:
@@ -44,9 +42,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """
         Initialize a PoseTrainer object for training YOLO pose estimation models.
 
-        This initializes a trainer specialized for pose estimation tasks, setting the task to 'pose' and
-        handling specific configurations needed for keypoint detection models.
-
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
@@ -55,12 +50,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         Notes:
             This trainer will automatically set the task to 'pose' regardless of what is provided in overrides.
             A warning is issued when using Apple MPS device due to known bugs with pose models.
-
-        Examples:
-            >>> from ultralytics.models.yolo.pose import PoseTrainer
-            >>> args = dict(model="yolo11n-pose.pt", data="coco8-pose.yaml", epochs=3)
-            >>> trainer = PoseTrainer(overrides=args)
-            >>> trainer.train()
         """
         if overrides is None:
             overrides = {}
@@ -109,10 +98,6 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-
-    def plot_metrics(self):
-        """Plot training/validation metrics."""
-        plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
 
     def get_dataset(self) -> dict[str, Any]:
         """

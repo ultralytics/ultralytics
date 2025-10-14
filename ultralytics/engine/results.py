@@ -900,7 +900,7 @@ class Boxes(BaseTensor):
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
                 (num_boxes, 6) or (num_boxes, 7). Columns should contain
-                [x1, y1, x2, y2, confidence, class, (optional) track_id].
+                [x1, y1, x2, y2, (optional) track_id, confidence, class].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
 
         Attributes:

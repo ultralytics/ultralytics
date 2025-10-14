@@ -89,9 +89,9 @@ class ClassificationValidator(BaseValidator):
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess input batch by moving data to device and converting to appropriate dtype."""
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].to(self.device, non_blocking=self.device.type == "cuda")
         batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
-        batch["cls"] = batch["cls"].to(self.device, non_blocking=True)
+        batch["cls"] = batch["cls"].to(self.device, non_blocking=self.device.type == "cuda")
         return batch
 
     def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
@@ -178,7 +178,7 @@ class ClassificationValidator(BaseValidator):
             >>> batch = {"img": torch.rand(16, 3, 224, 224), "cls": torch.randint(0, 10, (16,))}
             >>> validator.plot_val_samples(batch, 0)
         """
-        batch["batch_idx"] = torch.arange(len(batch["img"]))  # add batch index for plotting
+        batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
         plot_images(
             labels=batch,
             fname=self.save_dir / f"val_batch{ni}_labels.jpg",
@@ -203,8 +203,9 @@ class ClassificationValidator(BaseValidator):
         """
         batched_preds = dict(
             img=batch["img"],
-            batch_idx=torch.arange(len(batch["img"])),
+            batch_idx=torch.arange(batch["img"].shape[0]),
             cls=torch.argmax(preds, dim=1),
+            conf=torch.amax(preds, dim=1),
         )
         plot_images(
             batched_preds,

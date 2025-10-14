@@ -203,7 +203,6 @@ class ClassificationTrainer(BaseTrainer):
                         strip_optimizer(f)  # strip optimizers
 
         LOGGER.info(f"\nValidating {self.best}...")
-        self.validator.args.plots = self.args.plots
         self.validator.args.data = self.args.data
         self.validator.args.plots = self.args.plots
         self.metrics = self.validator(model=self.best)

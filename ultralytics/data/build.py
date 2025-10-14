@@ -127,7 +127,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     all samples are covered exactly once across all GPUs.
 
     Args:
-        dataset: Dataset to sample from. Must implement __len__.
+        dataset (torch.utils.data.Dataset): Dataset to sample from. Must implement __len__.
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
         rank (int, optional): Rank of current process. Defaults to current rank.
         shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False.

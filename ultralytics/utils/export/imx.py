@@ -210,9 +210,9 @@ def torch2imx(
             weights_memory = 2437771.67
             n_layers = 257  # 257 layers for fused YOLO11n-pose
         elif model.task == "classify":
-                layer_names = []
-                weights_memory = np.inf
-                n_layers = 112
+            layer_names = []
+            weights_memory = np.inf
+            n_layers = 112
     else:  # YOLOv8
         if model.task == "detect":
             layer_names = ["sub", "mul", "add_6", "cat_17"]
@@ -223,9 +223,9 @@ def torch2imx(
             weights_memory = 2482451.85
             n_layers = 187  # 187 layers for fused YOLO11n-pose
         elif model.task == "classify":
-                layer_names = []
-                weights_memory = np.inf
-                n_layers = 73
+            layer_names = []
+            weights_memory = np.inf
+            n_layers = 73
 
     # Check if the model has the expected number of layers
     if len(list(model.modules())) != n_layers:
@@ -262,7 +262,7 @@ def torch2imx(
             target_platform_capabilities=tpc,
         )[0]
     )
-    
+
     if model.task != "classify":
         quant_model = NMSWrapper(
             model=quant_model,

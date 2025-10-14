@@ -209,6 +209,10 @@ def torch2imx(
             layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
             weights_memory = 2437771.67
             n_layers = 257  # 257 layers for fused YOLO11n-pose
+        elif model.task == "classify":
+                layer_names = []
+                weights_memory = np.inf
+                n_layers = 112
     else:  # YOLOv8
         if model.task == "detect":
             layer_names = ["sub", "mul", "add_6", "cat_17"]
@@ -218,6 +222,10 @@ def torch2imx(
             layer_names = ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"]
             weights_memory = 2482451.85
             n_layers = 187  # 187 layers for fused YOLO11n-pose
+        elif model.task == "classify":
+                layer_names = []
+                weights_memory = np.inf
+                n_layers = 73
 
     # Check if the model has the expected number of layers
     if len(list(model.modules())) != n_layers:
@@ -254,14 +262,15 @@ def torch2imx(
             target_platform_capabilities=tpc,
         )[0]
     )
-
-    quant_model = NMSWrapper(
-        model=quant_model,
-        score_threshold=conf or 0.001,
-        iou_threshold=iou,
-        max_detections=max_det,
-        task=model.task,
-    )
+    
+    if model.task != "classify":
+        quant_model = NMSWrapper(
+            model=quant_model,
+            score_threshold=conf or 0.001,
+            iou_threshold=iou,
+            max_detections=max_det,
+            task=model.task,
+        )
 
     f = Path(str(file).replace(file.suffix, "_imx_model"))
     f.mkdir(exist_ok=True)

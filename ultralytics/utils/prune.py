@@ -23,6 +23,7 @@ from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 from typing import Union, Optional
+from functools import reduce
 import math
 import torch
 import yaml
@@ -300,7 +301,8 @@ def prune_conv2d(
     return updated_conv, mask
 
 
-def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev: torch.Tensor=None) -> tuple[Conv2d, torch.Tensor]:
+def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev: torch.Tensor = None) -> tuple[
+    Conv2d, torch.Tensor]:
     """
     Prune a Conv2d layer to match output channels from a skip connection source.
 
@@ -720,6 +722,23 @@ def prune_detect(
             mask_tracker[f"classification_tower_{i}_component_{2}_output"] = mask
 
 
+def gcd_all(vals):
+    """Compute the GCD of a sequence of integers.
+
+    Args:
+        vals (Iterable[int]): Sequence of integers.
+
+    Returns:
+        int: Greatest common divisor of all input values. Returns 1 if empty.
+    """
+    vals = list(vals)
+    if not vals:
+        return 1
+    if len(vals) == 1:
+        return vals[0]
+    return reduce(math.gcd, vals)
+
+
 def compute_effective_groups(groups: list[int]) -> int:
     """
     Compute the effective number of groups for pruning consecutive grouped convolutions.
@@ -736,7 +755,7 @@ def compute_effective_groups(groups: list[int]) -> int:
     """
 
     groups = [group for group in groups if group != 1]
-    return math.gcd(*groups)
+    return gcd_all(groups)
 
 
 def validate_prune_cfg(prune_yaml: str | Path):

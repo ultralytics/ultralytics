@@ -253,9 +253,13 @@ class BaseValidator:
         self.run_callbacks("on_val_end")
         if self.training:
             model.float()
+            # Reduce loss across all GPUs
+            loss = self.loss.clone().detach()
+            if dist.is_initialized():
+                dist.reduce(loss, dst=0, op=dist.ReduceOp.SUM)
             if RANK > 0:
                 return
-            results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
+            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
             LOGGER.info(

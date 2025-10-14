@@ -418,7 +418,8 @@ class C3Ghost(C3):
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.m = nn.Sequential(*(GhostBottleneck(c_, c_) for _ in range(n)))
+        #Create GhostBottleneck with proper layer_id tracking
+        self.m = nn.Sequential(*(GhostBottleneck(c_, c_, layer_id=i) for i in range(n)))
 
 
 class GhostBottleneck(nn.Module):
@@ -439,8 +440,12 @@ class GhostBottleneck(nn.Module):
     References:
         https://github.com/huawei-noah/Efficient-AI-Backbones
     """
+
+
+    #class variable to track layer_id across all instances
+    _layer_id_counter = 0
     
-    def __init__(self, c1, c2, mid_c=None, k=3, s=1, se_ratio=0., layer_id=0):
+    def __init__(self, c1, c2, mid_c=None, k=3, s=1, se_ratio=0., layer_id=None):
         """
         Initialize GhostNetV2 Bottleneck.
         
@@ -456,6 +461,11 @@ class GhostBottleneck(nn.Module):
         super().__init__()
         if mid_c is None:
             mid_c = c2
+        
+        #use provided layer_id or increment class counter
+        if layer_id is None:
+            layer_id = GhostBottleneck._layer_id_counter
+            GhostBottleneck._layer_id_counter +=1
         
         has_se = se_ratio is not None and se_ratio > 0.
         self.stride = s
@@ -531,6 +541,11 @@ class GhostBottleneck(nn.Module):
         x += self.shortcut(residual)
         
         return x
+    
+    @classmethod
+    def reset_layer_id(cls):
+        """Reset the layer is counter. Useful when creating a new model"""
+        cls._layer_id_counter = 0
 
 
 class Bottleneck(nn.Module):

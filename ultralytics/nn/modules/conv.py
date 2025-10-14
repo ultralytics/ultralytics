@@ -395,7 +395,12 @@ class GhostConv(nn.Module):
             out = torch.cat([x1, x2], dim=1)
             return out[:, :self.oup, :, :]
         elif self.mode == 'attn':
-            res = self.short_conv(torch.nn.functional.avg_pool2d(x, kernel_size=2, stride=2))
+            #apply average pooling only when stride is 1
+            if self.stride == 1:
+                res = self.short_conv(torch.nn.functional.avg_pool2d(x, kernel_size=2, stride=2))
+            else:
+                res = self.short_conv(x)
+            
             x1 = self.primary_conv(x)
             x2 = self.cheap_operation(x1)
             out = torch.cat([x1, x2], dim=1)

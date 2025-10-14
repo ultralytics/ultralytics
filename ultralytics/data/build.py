@@ -114,8 +114,6 @@ class _RepeatSampler:
 
 
 import math
-import torch
-import torch.distributed as dist
 
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):

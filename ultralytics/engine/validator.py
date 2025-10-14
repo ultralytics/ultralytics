@@ -29,11 +29,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
@@ -228,15 +229,34 @@ class BaseValidator:
                 self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
-        stats = self.get_stats()
-        self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
-        self.finalize_metrics()
-        self.print_results()
+
+        # Gather stats from all GPUs
+        if self.training:
+            if RANK == 0:
+                gathered_stats = [None] * dist.get_world_size()
+                dist.gather_object(self.metrics.stats, gathered_stats if RANK == 0 else None, dst=0)
+                merged_stats = {key: [] for key in self.metrics.stats.keys()}
+                for stats_dict in gathered_stats:
+                    for key in merged_stats.keys():
+                        merged_stats[key].extend(stats_dict[key])
+                self.metrics.stats = merged_stats
+            elif RANK > 0:
+                dist.gather_object(self.metrics.stats, None, dst=0)
+
+        if RANK in {-1, 0}:
+            stats = self.get_stats()
+            self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
+            self.finalize_metrics()
+            self.print_results()
+
         self.run_callbacks("on_val_end")
         if self.training:
             model.float()
-            results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
-            return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
+            if RANK in {-1, 0}:
+                results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
+                return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
+            else:
+                return
         else:
             LOGGER.info(
                 "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms loss, {:.1f}ms postprocess per image".format(

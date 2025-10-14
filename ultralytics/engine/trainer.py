@@ -318,18 +318,18 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
+        # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+        self.test_loader = self.get_dataloader(
+            self.data.get("val") or self.data.get("test"),
+            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            rank=LOCAL_RANK,
+            mode="val",
+        )
+        self.validator = self.get_validator()
+        metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
+        self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
+        self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
-            # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
-            self.test_loader = self.get_dataloader(
-                self.data.get("val") or self.data.get("test"),
-                batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
-                rank=-1,
-                mode="val",
-            )
-            self.validator = self.get_validator()
-            metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
-            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
-            self.ema = ModelEMA(self.model)
             if self.args.plots:
                 self.plot_training_labels()
 
@@ -467,10 +467,10 @@ class BaseTrainer:
                 final_epoch = epoch + 1 >= self.epochs
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
-                # Validation
-                if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
-                    self._clear_memory(threshold=0.5)  # prevent VRAM spike
-                    self.metrics, self.fitness = self.validate()
+            # Validation
+            if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+                self._clear_memory(threshold=0.5)  # prevent VRAM spike
+                self.metrics, self.fitness = self.validate()
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
@@ -696,10 +696,15 @@ class BaseTrainer:
             fitness (float): Fitness score for the validation.
         """
         metrics = self.validator(self)
-        fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
-        if not self.best_fitness or self.best_fitness < fitness:
-            self.best_fitness = fitness
-        return metrics, fitness
+        if metrics is not None:
+            fitness = metrics.pop(
+                "fitness", -self.loss.detach().cpu().numpy()
+            )  # use loss as fitness measure if not found
+            if not self.best_fitness or self.best_fitness < fitness:
+                self.best_fitness = fitness
+            return metrics, fitness
+        else:
+            return None, None
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

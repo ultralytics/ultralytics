@@ -900,7 +900,6 @@ class RTDETRDecoder(nn.Module):
     anchors = torch.empty(0)
     valid_mask = torch.empty(0)
     dynamic = False
-    end2end = True
 
     def __init__(
         self,

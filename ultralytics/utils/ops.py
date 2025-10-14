@@ -517,12 +517,10 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): Cropped masks.
     """
-    _, h, w = masks.shape
-    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
-    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
-    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-
-    return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    result = torch.zeros_like(masks)
+    for i, (x1, y1, x2, y2) in enumerate(boxes.int()):
+        result[i, y1:y2, x1:x2] = masks[i, y1:y2, x1:x2]
+    return result
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):

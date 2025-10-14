@@ -414,7 +414,7 @@ class SqueezeExcite(nn.Module):
         conv_expand (nn.Conv2d): Channel expansion convolution.
     """
     
-    def __init__(self, in_chs, se_ratio=0.25, reduced_base_chs=None,
+    def __init__(self, in_chs, se_ratio=0.0625, reduced_base_chs=None,
                  act_layer=nn.ReLU, gate_fn=None, divisor=4):
         """
         Initialize Squeeze-and-Excitation module.
@@ -515,7 +515,7 @@ class GhostBottleneck(nn.Module):
     # Class variable to track layer_id across all instances
     _layer_id_counter = 0
     
-    def __init__(self, c1, c2, mid_c=None, k=3, s=1, se_ratio=0., layer_id=None):
+    def __init__(self, c1, c2, mid_c=None, k=3, s=1, se_ratio=0., layer_id=None, use_attn=True):
         """
         Initialize GhostNetV2 Bottleneck.
         
@@ -542,8 +542,11 @@ class GhostBottleneck(nn.Module):
         has_se = se_ratio is not None and se_ratio > 0.
         self.stride = s
         
-        # Determine mode based on layer_id (first 2 layers use 'original', rest use 'attn')
-        mode = 'original' if layer_id <= 1 else 'attn'
+        # Only use attn for 3-8 not in neck/head
+        if use_attn and 2 < layer_id < 9:
+            mode = 'attn'
+        else:
+            mode = 'original'
         
         # Point-wise expansion with GhostConv
         self.ghost1 = GhostConv(c1, mid_c, k=1, s=1, act=True, mode=mode)

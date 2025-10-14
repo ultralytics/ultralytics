@@ -399,20 +399,14 @@ class GhostConv(nn.Module):
             out = torch.cat([x1, x2], dim=1)
             return out[:, :self.oup, :, :]
         elif self.mode == 'attn':
-            # Apply avg pooling with stride=2 for downsampling before short_conv
-            res = self.short_conv(F.avg_pool2d(x, kernel_size=2, stride=2))
+            # Use same spatial size
+            res = self.short_conv(x)
             
             x1 = self.primary_conv(x)
             x2 = self.cheap_operation(x1)
-            out = torch.cat([x1, x2], dim=1)
-            out = out[:, :self.oup, :, :]
+            out = torch.cat([x1, x2], dim=1)[:, :self.oup, :, :]
             
-            # Interpolate attention map to match output size
-            return out * F.interpolate(
-                self.gate_fn(res), 
-                size=(out.shape[-2], out.shape[-1]), 
-                mode='nearest'
-            )
+            return out * self.gate_fn(res) #no interpolation, removed
 
 class RepConv(nn.Module):
     """RepConv module with training and deploy modes.

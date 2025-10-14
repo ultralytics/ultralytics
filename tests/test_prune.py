@@ -24,7 +24,7 @@ from ultralytics.utils.prune import (
     prune_sppf,
     prune_detect,
     apply_prev_mask, prune_channels_groupwise, prune_by_groups, compute_effective_groups, prune_conv_with_skip,
-    validate_prune_cfg
+    validate_prune_cfg, gcd_all
 )
 
 ROOT = Path(__file__).resolve().parents[1]  # repo root
@@ -1205,6 +1205,7 @@ def test_prune_roundtrip_with_config(tmp_path):
     assert results is not None
 
 
+@pytest.mark.slow
 def test_prune_train(tmp_path):
     """Test that a pruned model can still be trained after pruning, and that the trained model's inference still works"""
     model = YOLO("yolov8n.pt")
@@ -1249,7 +1250,7 @@ def test_zero_prune(tmp_path):
     assert all(torch.equal(p1, p2) for p1, p2 in zip(model.parameters(), pruned_model.parameters()))
 
 
-# @pytest.mark.slow  # runs export & ONNX inference; not instant on CI
+@pytest.mark.slow
 def test_pruned_model_export_and_reload(tmp_path):
     """End-to-end check that a pruned YOLO model saves/loads correctly, preserves the 'is_pruned' flag, exports to ONNX, and runs inference after both reload and export."""
 
@@ -1368,3 +1369,21 @@ def test_yaml_syntax_error(tmp_path):
     bad_yaml.write_text("prune_ratios: [0.1, 0.2,,]")
     with pytest.raises(ValueError, match="Invalid YAML syntax"):
         validate_prune_cfg(bad_yaml)
+
+
+@pytest.mark.parametrize(
+    "vals, expected",
+    [
+        ([8, 12, 16], 4),
+        ([7], 7),
+        ([], 1),
+        ([9, 6], 3),
+        ([0, 12, 24], 12),
+        ([-8, -12], 4),
+        ([-8, 12], 4),
+        ([5, 7, 11], 1),
+    ],
+)
+def test_gcd_all(vals, expected):
+    """Test gcd_all() with various input types and edge cases."""
+    assert gcd_all(vals) == expected

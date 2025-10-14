@@ -6,6 +6,7 @@ import subprocess
 import types
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose

@@ -93,8 +93,8 @@ def compare_batchnorm_layers(pruned_bn: BatchNorm2d, original_bn: BatchNorm2d, m
         weight = original_bn.weight
         bias = original_bn.bias
 
-        assert torch.all(pruned_weight == weight[mask_out])
-        assert torch.all(pruned_bias == bias[mask_out])
+        assert torch.equal(pruned_weight, weight[mask_out])
+        assert torch.equal(pruned_bias, bias[mask_out])
 
 
 def compare_conv_layers(pruned_conv: Conv, original_conv: Conv, mask_out, mask_in=None, prune_type="preserve"):
@@ -223,10 +223,9 @@ def test_prune_by_groups():
     pruned_weight, mask, kept_out_channels = prune_by_groups(weight, prune_ratio, norm_order=2,
                                                              prune_groups=groups)
 
-    # divide mask into 'groups' and check each group contains all channels as either False or True
-    check = torch.tensor(
-        [torch.all(chunk == False).item() or torch.all(chunk == True).item() for chunk in mask.chunk(groups)])
-    assert torch.all(check)
+    # Verify each group is either entirely True or entirely False
+    for chunk in mask.chunk(groups):
+        assert torch.all(chunk) or torch.all(~chunk), "Group must be homogeneous"
 
     # kept out_channels/filters are still divisible by the channels_per_group
     assert kept_out_channels % channels_per_group == 0
@@ -298,10 +297,9 @@ def test_grouped_conv2d_remove():
     compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None,
                           prune_type="remove")
 
-    # check the entire groups of channels were either removed or kept
-    check = torch.tensor(
-        [torch.all(chunk == False).item() or torch.all(chunk == True).item() for chunk in mask.chunk(groups)])
-    assert torch.all(check)
+    # Verify each group is either entirely True or entirely False
+    for chunk in mask.chunk(groups):
+        assert torch.all(chunk) or torch.all(~chunk), "Group must be homogeneous"
 
 
 def test_grouped_conv2d_preserve():
@@ -411,11 +409,9 @@ def test_receiver_mask_removes_groups_no_further_pruning():
     compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=mask_prev,
                           prune_type="remove")
 
-    # check the entire groups of channels were either removed or kept
-    check = torch.tensor(
-        [torch.all(chunk == False).item()
-         or torch.all(chunk == True).item() for chunk in mask.chunk(groups)])
-    assert torch.all(check)
+    # Verify each group is either entirely True or entirely False
+    for chunk in mask.chunk(groups):
+        assert torch.all(chunk) or torch.all(~chunk), "Group must be homogeneous"
 
 
 def test_standard_conv2d_no_mask_channelwise_pruning():
@@ -497,10 +493,9 @@ def test_standard_conv2d_precedes_grouped_conv2d_remove():
     # check pruned_conv2d resulted from applying mask_out and mask_in to the original_conv2d
     compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None)
 
-    # check the entire groups of channels were either removed or kept
-    check = torch.tensor(
-        [torch.all(chunk == False).item() or torch.all(chunk == True).item() for chunk in mask.chunk(prune_groups)])
-    assert torch.all(check)
+    # Verify each group is either entirely True or entirely False
+    for chunk in mask.chunk(prune_groups):
+        assert torch.all(chunk) or torch.all(~chunk), "Group must be homogeneous"
 
 
 def test_chain_two_standard_conv2ds_propagation():
@@ -730,17 +725,17 @@ def test_prune_conv(mask_prev, prune_ratio, prune_type):
     # === No-op pruning sanity check ===
     if prune_ratio == 0.0 and mask_prev is None:
         # No weights or channels should be removed
-        assert torch.all(conv.conv.weight == original.conv.weight)
+        assert torch.equal(conv.conv.weight, original.conv.weight)
         assert conv.conv.out_channels == original.conv.out_channels
         assert conv.conv.in_channels == original.conv.in_channels
         if conv.conv.bias is not None:
-            assert torch.all(conv.conv.bias == original.conv.bias)
+            assert torch.all(conv.conv.bias, original.conv.bias)
         # BN params unchanged
-        assert torch.all(conv.bn.running_mean == original.bn.running_mean)
-        assert torch.all(conv.bn.running_var == original.bn.running_var)
+        assert torch.equal(conv.bn.running_mean, original.bn.running_mean)
+        assert torch.equal(conv.bn.running_var, original.bn.running_var)
         if conv.bn.affine:
-            assert torch.all(conv.bn.weight == original.bn.weight)
-            assert torch.all(conv.bn.bias == original.bn.bias)
+            assert torch.equal(conv.bn.weight, original.bn.weight)
+            assert torch.equal(conv.bn.bias, original.bn.bias)
 
     # === Forward pass shape checks ===
     if mask_prev is None:
@@ -854,10 +849,10 @@ def test_prune_c2f(prune_groups):
 
         # assert components of the 'm' attribute has in and out masks equal to the Bottleneck's cv1's input mask and
         # cv2's output mask respectively. This must hold since 'm' is a list of Bottlenecks in this case
-        assert torch.all(mask_dict_component["in"] == mask_dict_bottleneck["cv1_input"])
-        assert torch.all(mask_prev == mask_dict_bottleneck["cv1_input"])
-        assert torch.all(mask_dict_component["out"] == mask_dict_bottleneck["cv2_output"])
-        assert torch.all(mask_dict_bottleneck["cv2_input"] == mask_dict_bottleneck["cv1_output"])
+        assert torch.equal(mask_dict_component["in"], mask_dict_bottleneck["cv1_input"])
+        assert torch.equal(mask_prev, mask_dict_bottleneck["cv1_input"])
+        assert torch.equal(mask_dict_component["out"], mask_dict_bottleneck["cv2_output"])
+        assert torch.equal(mask_dict_bottleneck["cv2_input"], mask_dict_bottleneck["cv1_output"])
 
         # Each Bottleneck is consistently pruned
         bottleneck = c2f_orig.m[i]
@@ -889,8 +884,8 @@ def test_prune_sppf():
     mask_tracker = {}
     mask_out = prune_sppf(sppf_layer=sppf, prune_ratio=0.25, norm_order=2, mask_prev=mask_prev,
                           mask_tracker=mask_tracker)
-    assert torch.all(mask_out == mask_tracker["cv2_output"])
-    assert torch.all(mask_tracker["cv1_output"].repeat(4) == mask_tracker["cv2_input"])
+    assert torch.equal(mask_out ,mask_tracker["cv2_output"])
+    assert torch.equal(mask_tracker["cv1_output"].repeat(4), mask_tracker["cv2_input"])
     compare_conv_layers(pruned_conv=sppf.cv1, original_conv=sppf_original.cv1, mask_out=mask_tracker["cv1_output"],
                         mask_in=mask_prev)
     compare_conv_layers(pruned_conv=sppf.cv2, original_conv=sppf_original.cv2, mask_out=mask_tracker["cv2_output"],
@@ -948,7 +943,7 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
     for i, featuremap_mask, detection_tower_pruned, detection_tower_orig in zip(range(len(detect_head.cv2)),
                                                                                 prev_masks_detect, detect_head.cv2,
                                                                                 detect_head_orig.cv2):
-        assert torch.all(mask_tracker[f"detection_tower_{i}_component_{0}_input"] == featuremap_mask)  # detection
+        assert torch.equal(mask_tracker[f"detection_tower_{i}_component_{0}_input"], featuremap_mask)  # detection
         # tower's first component's input mask is equal to the mask from the corresponding featuremap
 
         # output mask of each component of the tower is the input mask of the next component.
@@ -958,7 +953,7 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
             input_mask_j = mask_tracker[f"detection_tower_{i}_component_{j}_input"]
             output_mask_j = mask_tracker[f"detection_tower_{i}_component_{j}_output"]
             input_mask_j_plus_1 = mask_tracker[f"detection_tower_{i}_component_{j + 1}_input"]
-            assert torch.all(output_mask_j == input_mask_j_plus_1)
+            assert torch.equal(output_mask_j, input_mask_j_plus_1)
             pruned_conv = detection_tower_pruned[j]
             conv_orig = detection_tower_orig[j]
 
@@ -983,7 +978,8 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
                 input_mask_j = mask_tracker[f"classification_tower_{i}_component_{j}_input"]
                 output_mask_j = mask_tracker[f"classification_tower_{i}_component_{j}_output"]
                 input_mask_j_plus_1 = mask_tracker[f"classification_tower_{i}_component_{j + 1}_input"]
-                assert torch.all(output_mask_j == input_mask_j_plus_1)
+
+                assert torch.equal(output_mask_j, input_mask_j_plus_1)
                 pruned_conv = classification_tower_pruned[j]
                 conv_orig = classification_tower_orig[j]
                 if j == 0:
@@ -1009,7 +1005,7 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
                     output_mask = mask_tracker[f"classification_tower_{i}_component_{j}_{k}_output"]
                     input_mask_next = mask_tracker[
                         f"classification_tower_{i}_component_{index_next_j}_{index_next_k}_input"]
-                    assert torch.all(output_mask == input_mask_next)
+                    assert torch.equal(output_mask, input_mask_next)
 
                     pruned_conv = tower_component_pruned[k]
                     conv_orig = tower_component_orig[k]

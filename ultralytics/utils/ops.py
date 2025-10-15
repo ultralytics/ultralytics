@@ -518,7 +518,7 @@ def crop_mask(masks, boxes):
         (torch.Tensor): Cropped masks.
     """
     n, h, w = masks.shape
-    if n < 100: # faster for fewer masks (predict)
+    if n < 100:  # faster for fewer masks (predict)
         result = torch.zeros_like(masks)
         for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
             result[i, y1:y2, x1:x2] = masks[i, y1:y2, x1:x2]

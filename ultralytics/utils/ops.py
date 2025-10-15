@@ -506,13 +506,14 @@ def resample_segments(segments, n: int = 1000):
     return segments
 
 
-def crop_mask(masks, boxes):
+def crop_mask(masks, boxes, margin=0.05):
     """
     Crop masks to bounding box regions.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).
         boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
+        margin (float): Margin will be added before cropping.
 
     Returns:
         (torch.Tensor): Cropped masks.
@@ -521,8 +522,10 @@ def crop_mask(masks, boxes):
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
+    pm, nm = 1 + margin, 1 - margin
+    filter = (r >= x1 * nm) * (r < x2 * pm) * (c >= y1 * nm) * (c < y2 * pm)
 
-    return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    return masks * filter
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -552,7 +555,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     downsampled_bboxes[:, 3] *= height_ratio
     downsampled_bboxes[:, 1] *= height_ratio
 
-    masks = crop_mask(masks, downsampled_bboxes.int())  # CHW
+    masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     return masks.gt_(0.0)
@@ -583,7 +586,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     downsampled_bboxes[:, 2] *= width_ratio
     downsampled_bboxes[:, 3] *= height_ratio
     downsampled_bboxes[:, 1] *= height_ratio
-    masks = crop_mask(masks, downsampled_bboxes.int())  # CHW
+    masks = crop_mask(masks, downsampled_bboxes)  # CHW
 
     masks = scale_masks(masks[None], shape)[0]  # CHW
     return masks.gt_(0.0)

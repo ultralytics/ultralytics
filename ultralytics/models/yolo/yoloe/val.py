@@ -139,7 +139,7 @@ class YOLOEDetectValidator(DetectionValidator):
         trainer: Any | None = None,
         model: YOLOEModel | str | None = None,
         refer_data: str | None = None,
-        load_vp: bool = False,
+        load_vp: bool = False, **kwargs
     ) -> dict[str, Any]:
         """
         Run validation on the model using either text or visual prompt embeddings.
@@ -203,8 +203,6 @@ class YOLOEDetectValidator(DetectionValidator):
                 model.set_classes(names, tpe)
                 stats = super().__call__(model=deepcopy(model))
         return stats
-
-
 
 class YOLOEDetectVpValidator(YOLOEDetectValidator):
     """YOLOE detection validator that supports both text and visual prompt embeddings."""

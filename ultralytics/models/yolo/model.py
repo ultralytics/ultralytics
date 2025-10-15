@@ -559,8 +559,8 @@ class YOLOE(Model):
                     vpe_prototype = torch.mean(torch.stack(self.memory_bank[cls]), dim=0)
 
                     # If it's a text-based class, blend with text embedding
-                    if not _is_object_label(cls) and vp_weight<1.0:
-                        text_embedding = self.get_text_pe([cls],cache_clip_model=True).squeeze()
+                    if not _is_object_label(cls) and vp_weight < 1.0:
+                        text_embedding = self.get_text_pe([cls], cache_clip_model=True).squeeze()
                         final_pe = vp_weight * vpe_prototype + (1 - vp_weight) * text_embedding
                     else:  # For object-only prompts, use the visual prototype directly
                         final_pe = vpe_prototype
@@ -570,7 +570,7 @@ class YOLOE(Model):
                 # add text embeddings first
                 cls_set = [cls for cls in set(self.memory_bank.keys()) if not _is_object_label(cls)]
                 if len(cls_set):
-                    text_pe = self.get_text_pe(list(cls_set),cache_clip_model=True).squeeze(0)
+                    text_pe = self.get_text_pe(list(cls_set), cache_clip_model=True).squeeze(0)
                     for i, cls in enumerate(cls_set):
                         memory_pe_list.append(text_pe[i])
                         names.append(cls)

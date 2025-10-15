@@ -557,7 +557,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
 
     masks = crop_mask(masks, downsampled_bboxes, margin=0.1)  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
+        masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=True)[0]  # CHW
     return masks.gt_(0.0)
 
 

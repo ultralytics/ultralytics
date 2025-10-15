@@ -109,5 +109,6 @@ class SegmentationPredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         if masks is not None:
             keep = masks.sum((-2, -1)) > 0  # only keep predictions with masks
-            pred, masks = pred[keep], masks[keep]
+            if not all(keep):  # most predictions have masks
+                pred, masks = pred[keep], masks[keep]  # indexing is slow
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)

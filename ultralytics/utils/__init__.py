@@ -422,10 +422,10 @@ def set_logging(name="LOGGING_NAME", verbose=True):
             # Apply prefixes based on log level
             if record.levelno == logging.WARNING:
                 prefix = "WARNING" if WINDOWS else "WARNING ⚠️"
-                record.msg = colorstr(f"{prefix} {record.msg}", "yellow")
+                record.msg = colorstr("bright_yellow", "bold", f"{prefix} {record.msg}")
             elif record.levelno == logging.ERROR:
                 prefix = "ERROR" if WINDOWS else "ERROR ❌"
-                record.msg = colorstr(f"{prefix} {record.msg}", "red")
+                record.msg = colorstr("bright_red", "bold", f"{prefix} {record.msg}")
 
             # Handle emojis in message based on platform
             formatted_message = super().format(record)

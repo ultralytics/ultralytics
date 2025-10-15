@@ -552,7 +552,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     downsampled_bboxes[:, 3] *= height_ratio
     downsampled_bboxes[:, 1] *= height_ratio
 
-    masks = crop_mask(masks, downsampled_bboxes)  # CHW
+    masks = crop_mask(masks, downsampled_bboxes.int())  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
     return masks.gt_(0.0)
@@ -572,9 +572,20 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         (torch.Tensor): Binary mask tensor with shape (H, W, N).
     """
     c, mh, mw = protos.shape  # CHW
+    ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
+
+    # Cropping is faster on downsampled bboxes
+    width_ratio = mw / iw
+    height_ratio = mh / ih
+    downsampled_bboxes = bboxes.clone()
+    downsampled_bboxes[:, 0] *= width_ratio
+    downsampled_bboxes[:, 2] *= width_ratio
+    downsampled_bboxes[:, 3] *= height_ratio
+    downsampled_bboxes[:, 1] *= height_ratio
+    masks = crop_mask(masks, downsampled_bboxes.int())  # CHW
+
     masks = scale_masks(masks[None], shape)[0]  # CHW
-    masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.0)
 
 

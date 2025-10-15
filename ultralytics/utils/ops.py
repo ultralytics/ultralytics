@@ -607,7 +607,7 @@ def scale_masks(masks, shape, padding: bool = True):
     top, left = (int(round(pad_h - 0.1)), int(round(pad_w - 0.1))) if padding else (0, 0)
     bottom = mh - int(round(pad_h + 0.1))
     right = mw - int(round(pad_w + 0.1))
-    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear", align_corners=False)  # NCHW masks
+    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear")  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):

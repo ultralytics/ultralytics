@@ -520,8 +520,8 @@ def crop_mask(masks, boxes):
     n, h, w = masks.shape
     if n < 100:  # faster for fewer masks (predict)
         for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
-            masks[i, :y1, :] = 0
-            masks[i, y2:, :] = 0
+            masks[i, :y1] = 0
+            masks[i, y2:] = 0
             masks[i, :, :x1] = 0
             masks[i, :, x2:] = 0
         return masks

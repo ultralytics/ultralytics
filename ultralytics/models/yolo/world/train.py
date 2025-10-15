@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import random
 
 from ultralytics.data import build_yolo_dataset
 from ultralytics.models.yolo.detect import DetectionTrainer
@@ -67,6 +68,7 @@ class WorldTrainer(DetectionTrainer):
         assert not overrides.get("compile"), f"Training with 'model={overrides['model']}' requires 'compile=False'"
         super().__init__(cfg, overrides, _callbacks)
         self.text_embeddings = None
+        self.article = ["the", "a", "one", "some", "any", "this", "that"]
 
     def get_model(self, cfg=None, weights: str | None = None, verbose: bool = True) -> WorldModel:
         """
@@ -172,6 +174,12 @@ class WorldTrainer(DetectionTrainer):
 
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))
+        for i, text in enumerate(texts):
+            if " " in text:
+                continue
+            texts[i] = f"{self.article[random.randint(0, len(self.article) - 1)]} {text}"
+            if texts[i] not in self.text_embeddings:
+                self.text_embeddings[texts[i]] = unwrap_model(self.model).get_text_pe([texts[i]], 1, cache_clip_model=True).squeeze()
         txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(
             self.device, non_blocking=self.device.type == "cuda"
         )

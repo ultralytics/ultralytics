@@ -272,10 +272,10 @@ class YOLOE(Model):
             },
         }
 
-    def get_text_pe(self, texts):
+    def get_text_pe(self, texts, cache_clip_model=False):
         """Get text positional embeddings for the given texts."""
         assert isinstance(self.model, YOLOEModel)
-        return self.model.get_text_pe(texts)
+        return self.model.get_text_pe(texts, cache_clip_model=cache_clip_model)
 
     def get_visual_pe(self, img, visual):
         """
@@ -553,8 +553,8 @@ class YOLOE(Model):
                     vpe_prototype = torch.mean(torch.stack(self.memory_bank[cls]), dim=0)
                     
                     # If it's a text-based class, blend with text embedding
-                    if not _is_object_label(cls):
-                        text_embedding = self.get_text_pe([cls]).squeeze()
+                    if not _is_object_label(cls) and vp_weight<1.0:
+                        text_embedding = self.get_text_pe([cls],cache_clip_model=True).squeeze()
                         final_pe = vp_weight * vpe_prototype + (1 - vp_weight) * text_embedding
                     else: # For object-only prompts, use the visual prototype directly
                         final_pe = vpe_prototype
@@ -564,7 +564,7 @@ class YOLOE(Model):
                 # add text embeddings first
                 cls_set= [cls for cls in set(self.memory_bank.keys()) if not _is_object_label(cls)]
                 if len(cls_set):
-                    text_pe = self.get_text_pe(list(cls_set)).squeeze(0)
+                    text_pe = self.get_text_pe(list(cls_set),cache_clip_model=True).squeeze(0)
                     for i, cls in enumerate(cls_set):
                         memory_pe_list.append(text_pe[i])
                         names.append(cls)

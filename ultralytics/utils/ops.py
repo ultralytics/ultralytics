@@ -523,9 +523,8 @@ def crop_mask(masks, boxes, margin=0):
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
     pm, nm = 1 + margin, 1 - margin
-    filter = (r >= x1 * nm) * (r < x2 * pm) * (c >= y1 * nm) * (c < y2 * pm)
 
-    return masks * filter
+    return masks * (r >= x1 * nm) * (r < x2 * pm) * (c >= y1 * nm) * (c < y2 * pm)
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):

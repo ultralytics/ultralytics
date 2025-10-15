@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
+from ultralytics.utils.torch_utils import TORCH_2_4
 
 from .imx import torch2imx  # noqa
 
@@ -36,6 +37,7 @@ def torch2onnx(
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
+    kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         torch_model,
         im,
@@ -46,6 +48,7 @@ def torch2onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
+        **kwargs,
     )
 
 

@@ -50,6 +50,7 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
 save_json: True # (bool) save results to COCO JSON for external evaluation
+save_json: True # (bool) save results to COCO JSON for external evaluation
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image

@@ -201,7 +201,10 @@ def unzip_file(
             if ".." in Path(f).parts:
                 LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")
                 return
-            zipObj.extract(f, extract_path)
+            try:
+                zipObj.extract(f, extract_path)
+            except FileExistsError:
+                pass  # Race condition when multiple threads create same directory
 
         if threads > 1:
             with ThreadPool(threads) as pool:

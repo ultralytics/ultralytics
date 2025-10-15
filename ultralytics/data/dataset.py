@@ -437,7 +437,8 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    cache_suffix=".merged.cache"
+    # cache_suffix=".merged.cache"
+    cache_suffix=".cache"
 
     def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
         """

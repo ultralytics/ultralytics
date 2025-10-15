@@ -205,9 +205,19 @@ def unzip_file(
 
         if threads > 1:
             with ThreadPool(threads) as pool:
-                list(TQDM(pool.imap(extract_file, files), total=len(files), desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress))
+                list(
+                    TQDM(
+                        pool.imap(extract_file, files),
+                        total=len(files),
+                        desc=f"Unzipping {file} to {Path(path).resolve()}...",
+                        unit="files",
+                        disable=not progress,
+                    )
+                )
         else:
-            for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
+            for f in TQDM(
+                files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress
+            ):
                 extract_file(f)
 
     return path  # return unzip dir

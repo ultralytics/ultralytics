@@ -141,6 +141,7 @@ def unzip_file(
     exclude: tuple[str, ...] = (".DS_Store", "__MACOSX"),
     exist_ok: bool = False,
     progress: bool = True,
+    threads: int = 8,
 ) -> Path:
     """
     Unzip a *.zip file to the specified path, excluding specified files.
@@ -155,6 +156,7 @@ def unzip_file(
         exclude (tuple, optional): A tuple of filename strings to be excluded.
         exist_ok (bool, optional): Whether to overwrite existing contents if they exist.
         progress (bool, optional): Whether to display a progress bar.
+        threads (int, optional): Number of threads for concurrent extraction.
 
     Returns:
         (Path): The path to the directory where the zipfile was extracted.
@@ -194,12 +196,19 @@ def unzip_file(
             LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
             return path
 
-        for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
-            # Ensure the file is within the extract_path to avoid path traversal security vulnerability
+        def extract_file(f: str) -> None:
+            """Extract a single file from the zip archive, checking for path traversal vulnerability."""
             if ".." in Path(f).parts:
                 LOGGER.warning(f"Potentially insecure file path: {f}, skipping extraction.")
-                continue
+                return
             zipObj.extract(f, extract_path)
+
+        if threads > 1:
+            with ThreadPool(threads) as pool:
+                list(TQDM(pool.imap(extract_file, files), total=len(files), desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress))
+        else:
+            for f in TQDM(files, desc=f"Unzipping {file} to {Path(path).resolve()}...", unit="files", disable=not progress):
+                extract_file(f)
 
     return path  # return unzip dir
 
@@ -532,8 +541,6 @@ def download(
                 ),
                 zip(urls, repeat(dir)),
             )
-            pool.close()
-            pool.join()
     else:
         for u in urls:
             safe_download(url=u, dir=dir, unzip=unzip, delete=delete, curl=curl, retry=retry, exist_ok=exist_ok)

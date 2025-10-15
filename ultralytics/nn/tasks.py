@@ -995,7 +995,6 @@ class YOLOEModel(DetectionModel):
         >>> model = YOLOEModel("yoloe-v8s.yaml", ch=3, nc=80)
         >>> results = model.predict(image_tensor, tpe=text_embeddings)
     """
-
     def __init__(self, cfg="yoloe-v8s.yaml", ch=3, nc=None, verbose=True):
         """
         Initialize YOLOE model with given config and parameters.
@@ -1008,6 +1007,7 @@ class YOLOEModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
+    
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
         """
@@ -1024,12 +1024,14 @@ class YOLOEModel(DetectionModel):
         """
         from ultralytics.nn.text_model import build_text_model
 
+        clip_weight=self.args.clip_weight_name
+
         device = next(self.model.parameters()).device
         if not getattr(self, "clip_model", None) and cache_clip_model:
             # For backwards compatibility of models lacking clip_model attribute
-            self.clip_model = build_text_model("mobileclip:blt", device=device)
+            self.clip_model = build_text_model(clip_weight, device=device)
 
-        model = self.clip_model if cache_clip_model else build_text_model("mobileclip:blt", device=device)
+        model = self.clip_model if cache_clip_model else build_text_model(clip_weight, device=device)
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)

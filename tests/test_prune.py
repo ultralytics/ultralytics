@@ -1205,7 +1205,7 @@ def test_prune_roundtrip_with_config(tmp_path):
     assert results is not None
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 def test_prune_train(tmp_path):
     """Test that a pruned model can still be trained after pruning, and that the trained model's inference still works"""
     model = YOLO("yolov8n.pt")
@@ -1250,7 +1250,7 @@ def test_zero_prune(tmp_path):
     assert all(torch.equal(p1, p2) for p1, p2 in zip(model.parameters(), pruned_model.parameters()))
 
 
-@pytest.mark.slow
+#@pytest.mark.slow
 def test_pruned_model_export_and_reload(tmp_path):
     """End-to-end check that a pruned YOLO model saves/loads correctly, preserves the 'is_pruned' flag, exports to ONNX, and runs inference after both reload and export."""
 

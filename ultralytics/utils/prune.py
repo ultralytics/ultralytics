@@ -722,7 +722,7 @@ def prune_detect(
             mask_tracker[f"classification_tower_{i}_component_{2}_output"] = mask
 
 
-def gcd_all(vals):
+def gcd_all(vals) -> int:
     """Compute the GCD of a sequence of integers.
 
     Args:
@@ -758,7 +758,7 @@ def compute_effective_groups(groups: list[int]) -> int:
     return gcd_all(groups)
 
 
-def validate_prune_cfg(prune_yaml: str | Path):
+def validate_prune_cfg(prune_yaml: str | Path) -> dict:
     """
     Validate and load a YOLOv8 pruning configuration YAML file.
 

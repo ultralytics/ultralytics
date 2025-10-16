@@ -549,12 +549,12 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw).half()  # CHW
-    
+
     width_ratio = mw / shape[1]
     height_ratio = mh / shape[0]
     ratios = torch.Tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
-    
-    masks = crop_mask(masks, boxes = bboxes * ratios)  # CHW
+
+    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
     return masks.gt_(0.0)

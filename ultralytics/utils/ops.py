@@ -548,7 +548,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw).half()  # CHW
+    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
 
     width_ratio = mw / shape[1]
     height_ratio = mh / shape[0]
@@ -574,7 +574,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
         (torch.Tensor): Binary mask tensor with shape (H, W, N).
     """
     c, mh, mw = protos.shape  # CHW
-    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw).half()
+    masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
     masks = scale_masks(masks[None], shape)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.0)

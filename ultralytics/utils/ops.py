@@ -548,18 +548,13 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
     c, mh, mw = protos.shape  # CHW
-    ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
-    width_ratio = mw / iw
-    height_ratio = mh / ih
 
-    downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes[:, 0] *= width_ratio
-    downsampled_bboxes[:, 2] *= width_ratio
-    downsampled_bboxes[:, 3] *= height_ratio
-    downsampled_bboxes[:, 1] *= height_ratio
+    width_ratio = mw / shape[1]
+    height_ratio = mh / shape[0]
+    ratios = torch.Tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
-    masks = crop_mask(masks, downsampled_bboxes)  # CHW
+    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
     return masks.gt_(0.0)

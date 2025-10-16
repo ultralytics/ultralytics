@@ -33,7 +33,7 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
 
-    def __init__(self, nc=80, act=True, ch=()):
+    def __init__(self, nc=80, ch=()):
         """Initialize the YOLO detection layer with specified number of classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
@@ -44,22 +44,20 @@ class Detect(nn.Module):
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(
-                Conv(x, c2, 3, act=act),
-                # Conv(c2, c2, 3, act=act),
-                Conv(c2, c2, 3, act=act),
+                Conv(x, c2, 3),
+                # Conv(c2, c2, 3),
+                Conv(c2, c2, 3),
                 nn.Conv2d(c2, 4 * self.reg_max, 1),
             )
             for x in ch
         )
         self.cv3 = (
-            nn.ModuleList(
-                nn.Sequential(Conv(x, c3, 3, act=act), Conv(c3, c3, 3, act=act), nn.Conv2d(c3, self.nc, 1)) for x in ch
-            )
+            nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
             if self.legacy
             else nn.ModuleList(
                 nn.Sequential(
-                    nn.Sequential(DWConv(x, x, 3, act=act), Conv(x, c3, 1, act=act)),
-                    nn.Sequential(DWConv(c3, c3, 3, act=act), Conv(c3, c3, 1, act=act)),
+                    nn.Sequential(DWConv(x, x, 3), Conv(x, c3, 1)),
+                    nn.Sequential(DWConv(c3, c3, 3), Conv(c3, c3, 1)),
                     nn.Conv2d(c3, self.nc, 1),
                 )
                 for x in ch
@@ -199,6 +197,7 @@ class Detect(nn.Module):
         i = torch.arange(batch_size)[..., None]  # batch indices
         # return torch.cat([boxes[i, index // nc], ori_scores], dim=-1).permute(0, 2, 1)
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+
     def fuse(self):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)

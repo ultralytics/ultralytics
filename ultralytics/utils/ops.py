@@ -674,7 +674,7 @@ def masks2segments(masks, strategy: str = "all"):
     from ultralytics.data.converter import merge_multi_segment
 
     segments = []
-    for x in masks.cpu().numpy():
+    for x in masks.byte().cpu().numpy():
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments

@@ -10,7 +10,6 @@ from typing import Any, Callable
 import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 

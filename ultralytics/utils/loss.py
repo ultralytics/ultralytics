@@ -752,7 +752,11 @@ class E2EDetectLoss:
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
-        extra = preds[1:] if isinstance(preds, tuple) else []
+        if isinstance(preds, tuple):
+            extra = preds[1:]
+            preds = preds[0]
+        else:
+            extra = []
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, *extra, batch)
         loss_one2one = self.one2one.loss(one2one, *extra, batch)

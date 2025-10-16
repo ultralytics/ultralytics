@@ -349,9 +349,10 @@ class DetectionModel(BaseModel):
 
             def _forward(x):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
+                output = self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
                 if self.end2end:
-                    return self.forward(x)["one2many"]
-                return self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
+                    return output["one2many"]
+                return  output
 
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
@@ -474,7 +475,7 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return v8SegmentationLoss(self)
+        return E2EDetectLoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
 
 
 class PoseModel(DetectionModel):

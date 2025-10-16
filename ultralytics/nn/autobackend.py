@@ -168,6 +168,7 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
+            end2end = getattr(model, "end2end", False)
 
         # PyTorch
         elif pt:
@@ -182,6 +183,7 @@ class AutoBackend(nn.Module):
             names = model.module.names if hasattr(model, "module") else model.names  # get class names
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            end2end = getattr(model, "end2end", False)
 
         # TorchScript
         elif jit:

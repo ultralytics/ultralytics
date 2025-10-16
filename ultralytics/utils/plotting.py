@@ -396,7 +396,9 @@ class Annotator:
                 # Use scale_masks to properly remove padding and upsample
                 masks = ops.scale_masks(masks[None], (ih, iw))[0] > 0.5
                 # Convert original BGR image to RGB tensor
-                im_gpu = torch.from_numpy(self.im).to(masks.device).permute(2, 0, 1).flip(0).contiguous().float() / 255.0
+                im_gpu = (
+                    torch.from_numpy(self.im).to(masks.device).permute(2, 0, 1).flip(0).contiguous().float() / 255.0
+                )
 
             colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None]  # shape(n,1,1,3)

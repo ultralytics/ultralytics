@@ -472,7 +472,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         return probiou(gt_bboxes, pd_bboxes).squeeze(-1).clamp_(0)
 
     @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes):
+    def select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt):
         """
         Select the positive anchor center in gt for rotated bounding boxes.
 

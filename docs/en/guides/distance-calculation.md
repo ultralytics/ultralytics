@@ -18,7 +18,7 @@ Measuring the gap between two objects is known as distance calculation within a 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Estimate Distance Between Detected Objects with Ultralytics YOLO in Pixels 🚀
+  <strong>Watch:</strong> How to estimate distance between detected objects with Ultralytics YOLO in Pixels 🚀
 </p>
 
 ## Visuals

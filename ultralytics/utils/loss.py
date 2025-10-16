@@ -734,10 +734,10 @@ class v8OBBLoss(v8DetectionLoss):
 class E2EDetectLoss:
     """Criterion class for computing training losses for end-to-end detection."""
 
-    def __init__(self, model):
+    def __init__(self, model, loss_fn=v8DetectionLoss):
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
-        self.one2many = v8DetectionLoss(model, tal_topk=10)
-        self.one2one = v8DetectionLoss(model, tal_topk=1)
+        self.one2many = loss_fn(model, tal_topk=10)
+        self.one2one = loss_fn(model, tal_topk=1)
         self.updates = 0
         self.total = 1.0
         self.o2m = 0.8
@@ -751,11 +751,11 @@ class E2EDetectLoss:
 
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        preds = preds[1] if isinstance(preds, tuple) else preds
-        one2many = preds["one2many"]
-        loss_one2many = self.one2many(one2many, batch)
-        one2one = preds["one2one"]
-        loss_one2one = self.one2one(one2one, batch)
+        preds = self.one2many.parse_output(preds)
+        extra = preds[1:] if isinstance(preds, tuple) else []
+        one2many, one2one = preds["one2many"], preds["one2one"]
+        loss_one2many = self.one2many.loss(one2many, *extra, batch)
+        loss_one2one = self.one2one.loss(one2one, *extra, batch)
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
             1
         ] * self.o2o

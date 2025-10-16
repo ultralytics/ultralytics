@@ -91,6 +91,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """Set keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data["kpt_shape"]
+        self.model.kpt_names = self.data["kpt_names"]
 
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""

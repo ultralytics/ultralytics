@@ -517,12 +517,19 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): Cropped masks.
     """
-    _, h, w = masks.shape
-    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
-    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
-    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-
-    return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    n, h, w = masks.shape
+    if n < 50:  # faster for fewer masks (predict)
+        for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
+            masks[i, :y1] = 0
+            masks[i, y2:] = 0
+            masks[i, :, :x1] = 0
+            masks[i, :, x2:] = 0
+        return masks
+    else:  # faster for more masks (val)
+        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
+        r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
+        c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
+        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -554,7 +561,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
+        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
     return masks.gt_(0.0)
 
 
@@ -600,7 +607,7 @@ def scale_masks(masks, shape, padding: bool = True):
     top, left = (int(round(pad_h - 0.1)), int(round(pad_w - 0.1))) if padding else (0, 0)
     bottom = mh - int(round(pad_h + 0.1))
     right = mw - int(round(pad_w + 0.1))
-    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear", align_corners=False)  # NCHW masks
+    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear")  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):

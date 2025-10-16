@@ -712,6 +712,12 @@ def plot_images(
     Note:
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
+
+        Channel Support:
+        - 1 channel: Greyscale
+        - 2 channels: Third channel added as zeros
+        - 3 channels: Used as-is (standard RGB)
+        - 4+ channels: Cropped to first 3 channels
     """
     for k in {"cls", "bboxes", "conf", "masks", "keypoints", "batch_idx", "images"}:
         if k not in labels:
@@ -731,7 +737,13 @@ def plot_images(
 
     if len(images) and isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
-    if images.shape[1] > 3:
+
+    # Handle 2-ch and n-ch images
+    c = images.shape[1]
+    if c == 2:
+        zero = np.zeros_like(images[:, :1])
+        images = np.concatenate((images, zero), axis=1)  # pad 2-ch with a black channel
+    elif c > 3:
         images = images[:, :3]  # crop multispectral images to first 3 channels
 
     bs, _, h, w = images.shape  # batch size, _, height, width
@@ -766,10 +778,10 @@ def plot_images(
             idx = batch_idx == i
             classes = cls[idx].astype("int")
             labels = confs is None
+            conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
 
             if len(bboxes):
                 boxes = bboxes[idx]
-                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
                 if len(boxes):
                     if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
                         boxes[..., [0, 2]] *= w  # scale to pixels
@@ -793,7 +805,8 @@ def plot_images(
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    annotator.text([x, y], f"{c}", txt_color=color, box_color=(64, 64, 64, 128))
+                    label = f"{c}" if labels else f"{c} {conf[0]:.1f}"
+                    annotator.text([x, y], label, txt_color=color, box_color=(64, 64, 64, 128))
 
             # Plot keypoints
             if len(kpts):
@@ -965,6 +978,14 @@ def plot_tune_results(csv_file: str = "tune_results.csv", exclude_zero_fitness_p
     fitness = x[:, 0]  # fitness
     if exclude_zero_fitness_points:
         mask = fitness > 0  # exclude zero-fitness points
+        x, fitness = x[mask], fitness[mask]
+    # Iterative sigma rejection on lower bound only
+    for _ in range(3):  # max 3 iterations
+        mean, std = fitness.mean(), fitness.std()
+        lower_bound = mean - 3 * std
+        mask = fitness >= lower_bound
+        if mask.all():  # no more outliers
+            break
         x, fitness = x[mask], fitness[mask]
     j = np.argmax(fitness)  # max fitness index
     n = math.ceil(len(keys) ** 0.5)  # columns and rows in plot

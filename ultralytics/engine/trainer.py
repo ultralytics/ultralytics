@@ -123,7 +123,7 @@ class BaseTrainer:
         self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
         self.check_resume(overrides)
-        self.device = select_device(self.args.device, self.args.batch)
+        self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
         self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
@@ -170,7 +170,10 @@ class BaseTrainer:
         self.tloss = None
         self.loss_names = ["Loss"]
         self.csv = self.save_dir / "results.csv"
+        if self.csv.exists() and not self.args.resume:
+            self.csv.unlink()
         self.plot_idx = [0, 1, 2]
+        self.nan_recovery_attempts = 0
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -216,10 +219,10 @@ class BaseTrainer:
                 LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
                 self.args.rect = False
             if self.args.batch < 1.0:
-                LOGGER.warning(
-                    "'batch<1' for AutoBatch is incompatible with Multi-GPU training, setting default 'batch=16'"
+                raise ValueError(
+                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                    f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
                 )
-                self.args.batch = 16
 
             # Command
             cmd, file = generate_ddp_command(self)
@@ -259,10 +262,6 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
-
-        # Initialize loss criterion before compilation for torch.compile compatibility
-        if hasattr(self.model, "init_criterion"):
-            self.model.criterion = self.model.init_criterion()
 
         # Compile model
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
@@ -424,14 +423,10 @@ class BaseTrainer:
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size
-                    self.tloss = (
-                        (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None else self.loss_items
-                    )
+                    self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
                 # Backward
                 self.scaler.scale(self.loss).backward()
-
-                # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
@@ -466,6 +461,7 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_end")
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
                 final_epoch = epoch + 1 >= self.epochs
@@ -475,6 +471,13 @@ class BaseTrainer:
                 if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                     self._clear_memory(threshold=0.5)  # prevent VRAM spike
                     self.metrics, self.fitness = self.validate()
+
+            # NaN recovery
+            if self._handle_nan_recovery(epoch):
+                continue
+
+            self.nan_recovery_attempts = 0
+            if RANK in {-1, 0}:
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
                 self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
@@ -560,7 +563,10 @@ class BaseTrainer:
         """Read results.csv into a dictionary using polars."""
         import polars as pl  # scope for faster 'import ultralytics'
 
-        return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+        try:
+            return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+        except Exception:
+            return {}
 
     def _model_train(self):
         """Set model in training mode."""
@@ -604,6 +610,7 @@ class BaseTrainer:
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
         # Save checkpoints
+        self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
@@ -669,7 +676,7 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
@@ -744,8 +751,9 @@ class BaseTrainer:
         """Save training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 2  # number of cols
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         t = time.time() - self.train_time_start
+        self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
         with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
 
@@ -807,20 +815,54 @@ class BaseTrainer:
                 ) from e
         self.resume = resume
 
+    def _load_checkpoint_state(self, ckpt):
+        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        if ckpt.get("optimizer") is not None:
+            self.optimizer.load_state_dict(ckpt["optimizer"])
+        if ckpt.get("scaler") is not None:
+            self.scaler.load_state_dict(ckpt["scaler"])
+        if self.ema and ckpt.get("ema"):
+            self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
+            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
+            self.ema.updates = ckpt["updates"]
+        self.best_fitness = ckpt.get("best_fitness", 0.0)
+
+    def _handle_nan_recovery(self, epoch):
+        """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""
+        loss_nan = self.loss is not None and not self.loss.isfinite()
+        fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
+        fitness_collapse = self.best_fitness and self.best_fitness > 0 and self.fitness == 0
+        corrupted = RANK in {-1, 0} and loss_nan and (fitness_nan or fitness_collapse)
+        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
+        if RANK != -1:  # DDP: broadcast to all ranks
+            broadcast_list = [corrupted if RANK == 0 else None]
+            dist.broadcast_object_list(broadcast_list, 0)
+            corrupted = broadcast_list[0]
+        if not corrupted:
+            return False
+        if epoch == self.start_epoch or not self.last.exists():
+            LOGGER.warning(f"{reason} detected but can not recover from last.pt...")
+            return False  # Cannot recover on first epoch, let training continue
+        self.nan_recovery_attempts += 1
+        if self.nan_recovery_attempts > 3:
+            raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
+        LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
+        self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
+        _, ckpt = load_checkpoint(self.last)
+        ema_state = ckpt["ema"].float().state_dict()
+        if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
+            raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")
+        unwrap_model(self.model).load_state_dict(ema_state)  # Load EMA weights into model
+        self._load_checkpoint_state(ckpt)  # Load optimizer/scaler/EMA/best_fitness
+        del ckpt, ema_state
+        self.scheduler.last_epoch = epoch - 1
+        return True
+
     def resume_training(self, ckpt):
         """Resume YOLO training from given epoch and best fitness."""
         if ckpt is None or not self.resume:
             return
-        best_fitness = 0.0
         start_epoch = ckpt.get("epoch", -1) + 1
-        if ckpt.get("optimizer") is not None:
-            self.optimizer.load_state_dict(ckpt["optimizer"])  # optimizer
-            best_fitness = ckpt["best_fitness"]
-        if ckpt.get("scaler") is not None:
-            self.scaler.load_state_dict(ckpt["scaler"])
-        if self.ema and ckpt.get("ema"):
-            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())  # EMA
-            self.ema.updates = ckpt["updates"]
         assert start_epoch > 0, (
             f"{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n"
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
@@ -831,7 +873,7 @@ class BaseTrainer:
                 f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
             )
             self.epochs += ckpt["epoch"]  # finetune additional epochs
-        self.best_fitness = best_fitness
+        self._load_checkpoint_state(ckpt)
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()

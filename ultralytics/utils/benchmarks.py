@@ -43,7 +43,7 @@ import torch.cuda
 from ultralytics import YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
-from ultralytics.utils import ARM64, ASSETS, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
+from ultralytics.utils import ARM64, ASSETS, ASSETS_URL, IS_JETSON, LINUX, LOGGER, MACOS, TQDM, WEIGHTS_DIR, YAML
 from ultralytics.utils.checks import IS_PYTHON_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.files import file_size
@@ -281,7 +281,7 @@ class RF100Benchmark:
         (shutil.rmtree("rf-100"), os.mkdir("rf-100")) if os.path.exists("rf-100") else os.mkdir("rf-100")
         os.chdir("rf-100")
         os.mkdir("ultralytics-benchmarks")
-        safe_download("https://github.com/ultralytics/assets/releases/download/v0.0.0/datasets_links.txt")
+        safe_download(f"{ASSETS_URL}/datasets_links.txt")
 
         with open(ds_link_txt, encoding="utf-8") as file:
             for line in file:
@@ -583,6 +583,11 @@ class ProfileModels:
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
+    @staticmethod
+    def check_dynamic(tensor_shape):
+        """Check whether the tensor shape in the ONNX model is dynamic."""
+        return not all(isinstance(dim, int) and dim >= 0 for dim in tensor_shape)
+
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
         """
         Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
@@ -595,7 +600,7 @@ class ProfileModels:
             mean_time (float): Mean inference time in milliseconds.
             std_time (float): Standard deviation of inference time in milliseconds.
         """
-        check_requirements("onnxruntime")
+        check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort
 
         # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
@@ -604,27 +609,36 @@ class ProfileModels:
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
-        input_tensor = sess.get_inputs()[0]
-        input_type = input_tensor.type
-        dynamic = not all(isinstance(dim, int) and dim >= 0 for dim in input_tensor.shape)  # dynamic input shape
-        input_shape = (1, 3, self.imgsz, self.imgsz) if dynamic else input_tensor.shape
+        input_data_dict = dict()
+        for input_tensor in sess.get_inputs():
+            input_type = input_tensor.type
+            if self.check_dynamic(input_tensor.shape):
+                if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
+                    raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
+                input_shape = (
+                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
+                )
+            else:
+                input_shape = input_tensor.shape
 
-        # Mapping ONNX datatype to numpy datatype
-        if "float16" in input_type:
-            input_dtype = np.float16
-        elif "float" in input_type:
-            input_dtype = np.float32
-        elif "double" in input_type:
-            input_dtype = np.float64
-        elif "int64" in input_type:
-            input_dtype = np.int64
-        elif "int32" in input_type:
-            input_dtype = np.int32
-        else:
-            raise ValueError(f"Unsupported ONNX datatype {input_type}")
+            # Mapping ONNX datatype to numpy datatype
+            if "float16" in input_type:
+                input_dtype = np.float16
+            elif "float" in input_type:
+                input_dtype = np.float32
+            elif "double" in input_type:
+                input_dtype = np.float64
+            elif "int64" in input_type:
+                input_dtype = np.int64
+            elif "int32" in input_type:
+                input_dtype = np.int32
+            else:
+                raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-        input_data = np.random.rand(*input_shape).astype(input_dtype)
-        input_name = input_tensor.name
+            input_data = np.random.rand(*input_shape).astype(input_dtype)
+            input_name = input_tensor.name
+            input_data_dict.update({input_name: input_data})
+
         output_name = sess.get_outputs()[0].name
 
         # Warmup runs
@@ -632,7 +646,7 @@ class ProfileModels:
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                sess.run([output_name], {input_name: input_data})
+                sess.run([output_name], input_data_dict)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
@@ -642,7 +656,7 @@ class ProfileModels:
         run_times = []
         for _ in TQDM(range(num_runs), desc=onnx_file):
             start_time = time.time()
-            sess.run([output_name], {input_name: input_data})
+            sess.run([output_name], input_data_dict)
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping

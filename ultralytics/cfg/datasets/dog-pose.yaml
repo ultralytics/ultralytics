@@ -20,5 +20,37 @@ kpt_shape: [24, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y
 names:
   0: dog
 
+# Keypoint names per class
+kpt_names:
+  0:
+    - left_front_paw
+    - None
+    - None
+    - left_front_wrist
+    - None
+    - None
+    - left_hind_hock
+    - None
+    - None
+    - right_front_paw
+    - None
+    - None
+    - right_front_wrist
+    - None
+    - None
+    - right_hind_hock
+    - None
+    - None
+    - withers
+    - None
+    - None
+    - left_ear_tip
+    - None
+    - None
+    - nose
+    - None
+    - None
+    - left_ear_base
+
 # Download script/URL (optional)
 download: https://github.com/ultralytics/assets/releases/download/v0.0.0/dog-pose.zip

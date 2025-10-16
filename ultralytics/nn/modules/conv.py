@@ -309,8 +309,8 @@ class Focus(nn.Module):
         # return self.conv(self.contract(x))
 
 
-class GhostConvV2Optimized(nn.Module):
-    """Optimized GhostNetV2 with fast DFC attention for YOLO."""
+class GhostConv(nn.Module):
+    """GhostNetV2 with DFC attention"""
     
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True, use_attn=True):
         super().__init__()

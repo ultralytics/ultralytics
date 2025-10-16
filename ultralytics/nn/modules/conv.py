@@ -311,102 +311,67 @@ class Focus(nn.Module):
 
 class GhostConv(nn.Module):
     """
-    GhostNetV2 Convolution module with attention mechanism.
-    
-    Generates more features with fewer parameters using cheap operations and optional attention.
+    GhostNetV2 Convolution with DFC attention.
     
     Attributes:
-        mode (str): Operation mode ('original' or 'attn').
-        oup (int): Output channels.
-        stride (int): Stride for convolution.
-        primary_conv (nn.Sequential): Primary convolution path.
-        cheap_operation (nn.Sequential): Cheap operation path.
-        short_conv (nn.Sequential | None): Short convolution for attention mode.
-        gate_fn (nn.Module): Gate activation function.
-    
-    References:
-        https://github.com/huawei-noah/Efficient-AI-Backbones
+        cv1 (Conv): Primary convolution (intrinsic features).
+        cv2 (Conv): Cheap operation convolution (ghost features).
+        short_conv (nn.Sequential): DFC attention path with horizontal/vertical convs.
+        gate (nn.Sigmoid): Sigmoid gate for attention.
     """
-    
-    def __init__(self, c1, c2, k=1, s=1, g=1, act=True, mode='original', dw_size=3, ratio=2):
+
+    def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
         """
-        Initialize GhostNetV2 Convolution module.
+        Initialize GhostNetV2 Conv with DFC attention.
         
         Args:
-            c1 (int): Number of input channels.
-            c2 (int): Number of output channels.
+            c1 (int): Input channels.
+            c2 (int): Output channels.
             k (int): Kernel size for primary conv.
             s (int): Stride.
-            g (int): Groups (not used in GhostNetV2, kept for compatibility).
-            act (bool): Whether to use activation.
-            mode (str): Mode 'original' or 'attn'.
-            dw_size (int): Depthwise convolution kernel size for cheap operation.
-            ratio (int): Channel expansion ratio.
+            g (int): Groups for primary conv.
+            act (bool | nn.Module): Activation function.
         """
         super().__init__()
-        self.mode = mode
-        self.gate_fn = nn.Sigmoid()
-        self.oup = c2
-        self.stride = s
-        
-        # Calculate channel splits
-        init_channels = math.ceil(c2 / ratio)
-        new_channels = init_channels * (ratio - 1)
+        c_ = c2 // 2  # hidden channels
         
         # Primary convolution
-        self.primary_conv = nn.Sequential(
-            nn.Conv2d(c1, init_channels, k, s, k // 2, bias=False),
-            nn.BatchNorm2d(init_channels),
-            nn.ReLU(inplace=True) if act else nn.Identity(),
-        )
+        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
         
-        # Cheap operation (depthwise conv)
-        self.cheap_operation = nn.Sequential(
-            nn.Conv2d(init_channels, new_channels, dw_size, 1, dw_size // 2, 
-                     groups=init_channels, bias=False),
-            nn.BatchNorm2d(new_channels),
-            nn.ReLU(inplace=True) if act else nn.Identity(),
-        )
+        # Cheap operation (fixed kernel=5)
+        self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
         
-        # Short convolution for attention mode
-        if self.mode == 'attn':
-            self.short_conv = nn.Sequential(
-                nn.Conv2d(c1, c2, k, s, k // 2, bias=False),
-                nn.BatchNorm2d(c2),
-                nn.Conv2d(c2, c2, kernel_size=(1, 5), stride=1, padding=(0, 2), 
-                         groups=c2, bias=False),
-                nn.BatchNorm2d(c2),
-                nn.Conv2d(c2, c2, kernel_size=(5, 1), stride=1, padding=(2, 0), 
-                         groups=c2, bias=False),
-                nn.BatchNorm2d(c2),
-            )
-        else:
-            self.short_conv = None
-    
+        # DFC Attention mechanism
+        self.short_conv = nn.Sequential(
+            Conv(c1, c2, k, s, None, 1, act=False),  # 1x1 conv
+            DWConv(c2, c2, (1, 5), 1, act=False),     # Horizontal strip
+            DWConv(c2, c2, (5, 1), 1, act=False),     # Vertical strip
+        )
+        self.gate = nn.Sigmoid()
+
     def forward(self, x):
         """
-        Apply GhostNetV2 Convolution to input tensor.
+        Forward pass with DFC attention.
         
         Args:
             x (torch.Tensor): Input tensor.
-        
+            
         Returns:
-            (torch.Tensor): Output tensor with ghosted features.
+            (torch.Tensor): Output tensor with attention-weighted features.
         """
-        if self.mode == 'original':
-            x1 = self.primary_conv(x)
-            x2 = self.cheap_operation(x1)
-            out = torch.cat([x1, x2], dim=1)
-            return out[:, :self.oup, :, :]
-        elif self.mode == 'attn':
-            # Use same spatial size
-            res = self.short_conv(x)
-            
-            x1 = self.primary_conv(x)
-            x2 = self.cheap_operation(x1)
-            out = torch.cat([x1, x2], dim=1)[:, :self.oup, :, :]
-            
-            return out * self.gate_fn(res) #no interpolation, removed
+        # Attention path
+        attn = F.avg_pool2d(x, kernel_size=2, stride=2)
+        attn = self.short_conv(attn)
+        attn = self.gate(attn)
+        
+        # Ghost path
+        y = self.cv1(x)
+        ghost = self.cv2(y)
+        out = torch.cat((y, ghost), 1)
+        
+        # Apply attention with interpolation
+        attn = F.interpolate(attn, size=out.shape[-2:], mode='bilinear', align_corners=True)
+        return out * attn
 
 class RepConv(nn.Module):
     """RepConv module with training and deploy modes.

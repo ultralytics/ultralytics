@@ -51,7 +51,7 @@ class BaseDataset(Dataset):
                  img_path,
                  imgsz=640,
                  cache=False,
-                 augment=True,
+                 augment=False,
                  hyp=DEFAULT_CFG,
                  prefix='',
                  rect=False,
@@ -65,7 +65,7 @@ class BaseDataset(Dataset):
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
-        self.augment = augment
+        self.augment = False
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
@@ -129,11 +129,13 @@ class BaseDataset(Dataset):
             if include_class is not None:
                 cls = self.labels[i]['cls']
                 bboxes = self.labels[i]['bboxes']
+                rng = self.labels[i]['rng']
                 segments = self.labels[i]['segments']
                 keypoints = self.labels[i]['keypoints']
                 j = (cls == include_class_array).any(1)
                 self.labels[i]['cls'] = cls[j]
                 self.labels[i]['bboxes'] = bboxes[j]
+                self.labels[i]['rng'] = rng[j]
                 if segments:
                     self.labels[i]['segments'] = [segments[si] for si, idx in enumerate(j) if idx]
                 if keypoints is not None:

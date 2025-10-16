@@ -1,0 +1,12 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../Cone-depth-YOLOv8/dataset  # dataset root dir, can be found at https://drive.google.com/file/d/1H0aM2fA9DR92Q9hMLoVuA6bsKM2YycP4/view?usp=sharing
+val: val/images  # val images (relative to 'path') 128 images
+train: train/images  # val images (relative to 'path') 128 images
+
+
+# Classes 
+names:
+  0: yellow_cone
+  1: blue_cone
+  2: orange_cone
+  3: large_orange_cone

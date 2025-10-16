@@ -242,8 +242,8 @@ class Results(SimpleClass):
         # Plot Detect results
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
-                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
-                name = ('' if id is None else f'id:{id} ') + names[c]
+                c, conf, rng = int(d.cls), float(d.conf) if conf else None, None if d.rng is None else int(d.rng.item())
+                name = ('' if rng is None else f'rng:{rng} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
@@ -294,7 +294,7 @@ class Results(SimpleClass):
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                c, conf, rng = int(d.cls), float(d.conf), None if d.rng is None else int(d.rng.item())
                 line = (c, *d.xywhn.view(-1))
                 if masks:
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
@@ -302,7 +302,7 @@ class Results(SimpleClass):
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
                     line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                line += (conf, ) * save_conf + (() if rng is None else (rng, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:
@@ -339,14 +339,14 @@ class Results(SimpleClass):
         results = []
         data = self.boxes.data.cpu().tolist()
         h, w = self.orig_shape if normalize else (1, 1)
-        for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
+        for i, row in enumerate(data):  # xyxy, conf, class_id, rng
             box = {'x1': row[0] / w, 'y1': row[1] / h, 'x2': row[2] / w, 'y2': row[3] / h}
             conf = row[-2]
             class_id = int(row[-1])
             name = self.names[class_id]
             result = {'name': name, 'class': class_id, 'confidence': conf, 'box': box}
             if self.boxes.is_track:
-                result['track_id'] = int(row[-3])  # track ID
+                result['rng'] = int(row[-3])  # rng
             if self.masks:
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
@@ -373,7 +373,7 @@ class Boxes(BaseTensor):
         xyxy (torch.Tensor | numpy.ndarray): The boxes in xyxy format.
         conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
         cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
-        id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
+        rng (torch.Tensor | numpy.ndarray): The range of the boxes.
         xywh (torch.Tensor | numpy.ndarray): The boxes in xywh format.
         xyxyn (torch.Tensor | numpy.ndarray): The boxes in xyxy format normalized by original image size.
         xywhn (torch.Tensor | numpy.ndarray): The boxes in xywh format normalized by original image size.
@@ -391,9 +391,8 @@ class Boxes(BaseTensor):
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, track_id, conf, cls
+        assert n==7, f'expected `n` in [7], but got {n}'  # xyxy, conf, cls, rng
         super().__init__(boxes, orig_shape)
-        self.is_track = n == 7
         self.orig_shape = orig_shape
 
     @property
@@ -404,17 +403,17 @@ class Boxes(BaseTensor):
     @property
     def conf(self):
         """Return the confidence values of the boxes."""
-        return self.data[:, -2]
+        return self.data[:, -3]
 
     @property
     def cls(self):
         """Return the class values of the boxes."""
-        return self.data[:, -1]
+        return self.data[:, -2]
 
     @property
-    def id(self):
-        """Return the track IDs of the boxes (if available)."""
-        return self.data[:, -3] if self.is_track else None
+    def rng(self):
+        """Return the rng of the boxes (if available)."""
+        return self.data[:, -1]
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice

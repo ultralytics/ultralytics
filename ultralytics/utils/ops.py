@@ -97,19 +97,20 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
     Returns:
         boxes (torch.Tensor): The scaled bounding boxes, in the format of (x1, y1, x2, y2)
     """
-    if ratio_pad is None:  # calculate from img0_shape
-        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1), round(
-            (img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)  # wh padding
-    else:
-        gain = ratio_pad[0][0]
-        pad = ratio_pad[1]
+    # print(ratio_pad)
+    # if ratio_pad is None:  # calculate from img0_shape
+    #     gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+    #     pad = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1), round(
+    #         (img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)  # wh padding
+    # # else:
+    # #     gain = ratio_pad[0][0]
+    # #     pad = ratio_pad[1]
 
-    if padding:
-        boxes[..., [0, 2]] -= pad[0]  # x padding
-        boxes[..., [1, 3]] -= pad[1]  # y padding
-    boxes[..., :4] /= gain
-    clip_boxes(boxes, img0_shape)
+    # if padding:
+    #     boxes[..., [0, 2]] -= pad[0]  # x padding
+    #     boxes[..., [1, 3]] -= pad[1]  # y padding
+    # boxes[..., :4] /= gain
+    # clip_boxes(boxes, img0_shape)
     return boxes
 
 
@@ -184,7 +185,7 @@ def non_max_suppression(
     if mps:  # MPS not fully supported yet, convert tensors to CPU before NMS
         prediction = prediction.cpu()
     bs = prediction.shape[0]  # batch size
-    nc = nc or (prediction.shape[1] - 4)  # number of classes
+    nc = nc or (prediction.shape[1] - 4 - 1)  # number of classes
     nm = prediction.shape[1] - nc - 4
     mi = 4 + nc  # mask start index
     xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
@@ -198,7 +199,7 @@ def non_max_suppression(
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
     t = time.time()
-    output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
+    output = [torch.zeros((0, 7), device=prediction.device)] * bs
     for xi, x in enumerate(prediction):  # image index, image inference
         # Apply constraints
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
@@ -207,7 +208,7 @@ def non_max_suppression(
         # Cat apriori labels if autolabelling
         if labels and len(labels[xi]):
             lb = labels[xi]
-            v = torch.zeros((len(lb), nc + nm + 4), device=x.device)
+            v = torch.zeros((len(lb), nc + nm + 4 + 1), device=x.device)
             v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
             v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
             x = torch.cat((x, v), 0)
@@ -217,14 +218,14 @@ def non_max_suppression(
             continue
 
         # Detections matrix nx6 (xyxy, conf, cls)
-        box, cls, mask = x.split((4, nc, nm), 1)
+        box, cls, rng = x.split((4, nc, 1), 1)
 
         if multi_label:
             i, j = torch.where(cls > conf_thres)
-            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), mask[i]), 1)
+            x = torch.cat((box[i], x[i, 4 + j, None], j[:, None].float(), rng[i]), 1)
         else:  # best class only
             conf, j = cls.max(1, keepdim=True)
-            x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
+            x = torch.cat((box, conf, j.float(), rng), 1)[conf.view(-1) > conf_thres]
 
         # Filter by class
         if classes is not None:

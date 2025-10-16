@@ -106,6 +106,7 @@ class BasePredictor:
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
+        self.pred = None
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im):
@@ -193,7 +194,7 @@ class BasePredictor:
         if stream:
             return self.stream_inference(source, model, *args, **kwargs)
         else:
-            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
+            return list(self.stream_inference(source, model, *args, **kwargs)), self.pred  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
         """
@@ -260,7 +261,7 @@ class BasePredictor:
 
             # Postprocess
             with profilers[2]:
-                self.results = self.postprocess(preds, im, im0s)
+                self.results, self.pred = self.postprocess(preds, im, im0s)
             self.run_callbacks('on_predict_postprocess_end')
 
             # Visualize, save, write results

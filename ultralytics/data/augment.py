@@ -868,6 +868,7 @@ class Format:
         img = labels.pop('img')
         h, w = img.shape[:2]
         cls = labels.pop('cls')
+        rng = labels.pop('rng')
         instances = labels.pop('instances')
         instances.convert_bbox(format=self.bbox_format)
         instances.denormalize(w, h)
@@ -875,7 +876,7 @@ class Format:
 
         if self.return_mask:
             if nl:
-                masks, instances, cls = self._format_segments(instances, cls, w, h)
+                masks, instances, cls, rng = self._format_segments(instances, cls, w, h, rng)
                 masks = torch.from_numpy(masks)
             else:
                 masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
@@ -885,6 +886,7 @@ class Format:
             instances.normalize(w, h)
         labels['img'] = self._format_img(img)
         labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)
+        labels['rng'] = torch.from_numpy(rng) if nl else torch.zeros(nl)
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels['keypoints'] = torch.from_numpy(instances.keypoints)
@@ -901,7 +903,7 @@ class Format:
         img = torch.from_numpy(img)
         return img
 
-    def _format_segments(self, instances, cls, w, h):
+    def _format_segments(self, instances, cls, w, h, rng):
         """Convert polygon points to bitmap."""
         segments = instances.segments
         if self.mask_overlap:
@@ -909,10 +911,11 @@ class Format:
             masks = masks[None]  # (640, 640) -> (1, 640, 640)
             instances = instances[sorted_idx]
             cls = cls[sorted_idx]
+            rng = rng[sorted_idx]
         else:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
-        return masks, instances, cls
+        return masks, instances, cls, rng
 
 
 def v8_transforms(dataset, imgsz, hyp, stretch=False):

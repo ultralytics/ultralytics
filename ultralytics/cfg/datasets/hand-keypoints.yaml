@@ -22,5 +22,30 @@ flip_idx:
 names:
   0: hand
 
+# Keypoint names per class
+kpt_names:
+  0:
+    - wrist
+    - thumb_cmc
+    - thumb_mcp
+    - thumb_ip
+    - thumb_tip
+    - index_mcp
+    - index_pip
+    - index_dip
+    - index_tip
+    - middle_mcp
+    - middle_pip
+    - middle_dip
+    - middle_tip
+    - ring_mcp
+    - ring_pip
+    - ring_dip
+    - ring_tip
+    - pinky_mcp
+    - pinky_pip
+    - pinky_dip
+    - pinky_tip
+
 # Download script/URL (optional)
 download: https://github.com/ultralytics/assets/releases/download/v0.0.0/hand-keypoints.zip

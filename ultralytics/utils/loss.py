@@ -338,8 +338,12 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate and return the combined loss for detection and segmentation."""
-        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
+        return self.mask_loss(feats, pred_masks, proto, batch)
+
+    def mask_loss(self, feats, pred_masks, proto, batch):
+        """Calculate and return the combined loss for detection and segmentation."""
+        loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]

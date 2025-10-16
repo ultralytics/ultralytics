@@ -246,10 +246,9 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
-    def __call__(self, preds, batch):
-        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
+    def get_assigned_targets_and_loss(self, feats, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and target indices."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        feats = preds[1] if isinstance(preds, tuple) else preds
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1
         )
@@ -273,7 +272,7 @@ class v8DetectionLoss:
         # dfl_conf = pred_distri.view(batch_size, -1, 4, self.reg_max).detach().softmax(-1)
         # dfl_conf = (dfl_conf.amax(-1).mean(-1) + dfl_conf.amax(-1).amin(-1)) / 2
 
-        _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
+        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             # pred_scores.detach().sigmoid() * 0.8 + dfl_conf.unsqueeze(-1) * 0.2,
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -282,7 +281,6 @@ class v8DetectionLoss:
             gt_bboxes,
             mask_gt,
         )
-        # self.total_assignments += fg_mask.sum().item()
 
         target_scores_sum = max(target_scores.sum(), 1)
 
@@ -292,13 +290,11 @@ class v8DetectionLoss:
 
         # Bbox loss
         if fg_mask.sum():
-            target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(
                 pred_distri,
                 pred_bboxes,
-                # pred_bboxes * stride_tensor,
                 anchor_points,
-                target_bboxes,
+                target_bboxes / stride_tensor,
                 target_scores,
                 target_scores_sum,
                 fg_mask,
@@ -309,8 +305,14 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        # self.total_assignments += fg_mask.sum().item()
+        return (fg_mask, target_gt_idx), loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-        return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
+    def __call__(self, preds, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
+        feats = preds[1] if isinstance(preds, tuple) else preds
+        _, loss, loss_detach = self.get_assigned_targets_and_loss(feats, batch)
+        return loss, loss_detach
 
     def update(self):
         self.updates += 1

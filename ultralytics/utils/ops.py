@@ -557,7 +557,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
-    return masks.gt_(0.0)
+    return masks.gt_(0.0).byte()
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -577,7 +577,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
     masks = scale_masks(masks[None], shape)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.0)
+    return masks.gt_(0.0).byte()
 
 
 def scale_masks(masks, shape, padding: bool = True):
@@ -674,7 +674,7 @@ def masks2segments(masks, strategy: str = "all"):
     from ultralytics.data.converter import merge_multi_segment
 
     segments = []
-    for x in masks.int().cpu().numpy().astype("uint8"):
+    for x in masks.cpu().numpy():
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments

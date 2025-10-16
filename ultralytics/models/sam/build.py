@@ -10,8 +10,8 @@ from functools import partial
 
 import torch
 
-from ultralytics.utils.torch_utils import TORCH_1_13
 from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils.torch_utils import TORCH_1_13
 
 from .modules.decoders import MaskDecoder
 from .modules.encoders import FpnNeck, Hiera, ImageEncoder, ImageEncoderViT, MemoryEncoder, PromptEncoder

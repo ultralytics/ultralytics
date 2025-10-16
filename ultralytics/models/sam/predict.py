@@ -1126,7 +1126,9 @@ class SAM2VideoPredictor(SAM2Predictor):
             )
 
             if prev_out is not None and prev_out.get("pred_masks") is not None:
-                prev_sam_mask_logits = prev_out["pred_masks"].to(device=self.device, non_blocking=True)
+                prev_sam_mask_logits = prev_out["pred_masks"].to(
+                    device=self.device, non_blocking=self.device.type == "cuda"
+                )
                 # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.
                 prev_sam_mask_logits.clamp_(-32.0, 32.0)
         current_out = self._run_single_frame_inference(
@@ -1418,12 +1420,12 @@ class SAM2VideoPredictor(SAM2Predictor):
         maskmem_features = current_out["maskmem_features"]
         if maskmem_features is not None:
             current_out["maskmem_features"] = maskmem_features.to(
-                dtype=torch.float16, device=self.device, non_blocking=True
+                dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
             )
         # NOTE: Do not support the `fill_holes_in_mask_scores` function since it needs cuda extensions
         # potentially fill holes in the predicted masks
         # if self.fill_hole_area > 0:
-        #     pred_masks = current_out["pred_masks"].to(self.device, non_blocking=True)
+        #     pred_masks = current_out["pred_masks"].to(self.device, non_blocking=self.device.type == "cuda")
         #     pred_masks = fill_holes_in_mask_scores(pred_masks, self.fill_hole_area)
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
@@ -1636,7 +1638,9 @@ class SAM2VideoPredictor(SAM2Predictor):
 
         # "maskmem_pos_enc" is the same across frames, so we only need to store one copy of it
         maskmem_pos_enc = self._get_maskmem_pos_enc(maskmem_pos_enc)
-        return maskmem_features.to(dtype=torch.float16, device=self.device, non_blocking=True), maskmem_pos_enc
+        return maskmem_features.to(
+            dtype=torch.float16, device=self.device, non_blocking=self.device.type == "cuda"
+        ), maskmem_pos_enc
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
         """
@@ -1906,7 +1910,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
                     consolidated_out["object_score_logits"][obj_idx : obj_idx + 1] = out["object_score_logits"]
 
         high_res_masks = F.interpolate(
-            consolidated_out["pred_masks"].to(self.device, non_blocking=True),
+            consolidated_out["pred_masks"].to(self.device, non_blocking=self.device.type == "cuda"),
             size=self.imgsz,
             mode="bilinear",
             align_corners=False,

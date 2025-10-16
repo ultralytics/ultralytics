@@ -491,12 +491,12 @@ class ConfusionMatrix(DataExportMixin):
         for i, mtype in enumerate(["GT", "FP", "TP", "FN"]):
             mbatch = self.matches[mtype]
             if "conf" not in mbatch:
-                mbatch["conf"] = torch.tensor([1.0] * mbatch["bboxes"].shape[0], device=img.device)
-            mbatch["batch_idx"] = torch.ones(mbatch["bboxes"].shape[0], device=img.device) * i
+                mbatch["conf"] = torch.tensor([1.0] * len(mbatch["bboxes"]), device=img.device)
+            mbatch["batch_idx"] = torch.ones(len(mbatch["bboxes"]), device=img.device) * i
             for k in mbatch.keys():
                 labels[k] += mbatch[k]
 
-        labels = {k: torch.stack(v, 0) if len(v) else v for k, v in labels.items()}
+        labels = {k: torch.stack(v, 0) if len(v) else torch.empty(0) for k, v in labels.items()}
         if self.task != "obb" and labels["bboxes"].shape[0]:
             labels["bboxes"] = xyxy2xywh(labels["bboxes"])
         (save_dir / "visualizations").mkdir(parents=True, exist_ok=True)

@@ -38,8 +38,11 @@ from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
 TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_10 = check_version(TORCH_VERSION, "1.10.0")
+TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
@@ -127,7 +130,7 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
-def select_device(device="", batch=0, newline=False, verbose=True):
+def select_device(device="", newline=False, verbose=True):
     """
     Select the appropriate PyTorch device based on the provided arguments.
 
@@ -138,16 +141,11 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     Args:
         device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
             'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
     Returns:
         (torch.device): Selected device.
-
-    Raises:
-        ValueError: If the specified device is not available or if the batch size is not a multiple of the number of
-            devices when using multiple GPUs.
 
     Examples:
         >>> select_device("cuda:0")
@@ -210,19 +208,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
-        n = len(devices)  # device count
-        if n > 1:  # multi-GPU
-            if batch < 1:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
-                )
-            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
-                raise ValueError(
-                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-                )
-        space = " " * (len(s) + 1)
+        space = " " * len(s)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
@@ -534,21 +520,6 @@ def copy_attr(a, b, include=(), exclude=()):
             setattr(a, k, v)
 
 
-def get_latest_opset():
-    """
-    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
-
-    Returns:
-        (int): The ONNX opset version.
-    """
-    if TORCH_1_13:
-        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
-    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
-    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
-    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
-
-
 def intersect_dicts(da, db, exclude=()):
     """
     Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
@@ -761,7 +732,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
 
     # Update other keys
     args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
-    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
+    for k in "optimizer", "best_fitness", "ema", "updates", "scaler":  # keys
         x[k] = None
     x["epoch"] = -1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
@@ -957,53 +928,6 @@ class EarlyStopping:
                 f"i.e. `patience=300` or use `patience=0` to disable EarlyStopping."
             )
         return stop
-
-
-class FXModel(nn.Module):
-    """
-    A custom model class for torch.fx compatibility.
-
-    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
-    manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
-    copying.
-
-    Attributes:
-        model (nn.Module): The original model's layers.
-    """
-
-    def __init__(self, model):
-        """
-        Initialize the FXModel.
-
-        Args:
-            model (nn.Module): The original model to wrap for torch.fx compatibility.
-        """
-        super().__init__()
-        copy_attr(self, model)
-        # Explicitly set `model` since `copy_attr` somehow does not copy it.
-        self.model = model.model
-
-    def forward(self, x):
-        """
-        Forward pass through the model.
-
-        This method performs the forward pass through the model, handling the dependencies between layers and saving
-        intermediate outputs.
-
-        Args:
-            x (torch.Tensor): The input tensor to the model.
-
-        Returns:
-            (torch.Tensor): The output tensor from the model.
-        """
-        y = []  # outputs
-        for m in self.model:
-            if m.f != -1:  # if not from previous layer
-                # from earlier layers
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-            x = m(x)  # run
-            y.append(x)  # save output
-        return x
 
 
 def attempt_compile(

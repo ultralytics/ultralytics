@@ -312,11 +312,18 @@ class v8DetectionLoss:
             loss.detach(),
         )  # loss(box, cls, dfl)
 
+    def parse_output(self, preds):
+        """Parse model predictions to extract features."""
+        return preds[1] if isinstance(preds, tuple) else preds
+
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        feats = preds[1] if isinstance(preds, tuple) else preds
+        return self.loss(*self.parse_output(preds), batch)
+
+    def loss(self, feats, batch):
+        """A wrapper for get_assigned_targets_and_loss and parse_output."""
         batch_size = feats[0].shape[0]
-        _, loss, loss_detach = self.get_assigned_targets_and_loss(feats, batch)
+        loss, loss_detach = self.get_assigned_targets_and_loss(feats, batch)[1:]
         return loss * batch_size, loss_detach
 
     def update(self):
@@ -336,12 +343,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         super().__init__(model, tal_topk)
         self.overlap = model.args.overlap_mask
 
-    def __call__(self, preds, batch):
-        """Calculate and return the combined loss for detection and segmentation."""
-        feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
-        return self.mask_loss(feats, pred_masks, proto, batch)
+    def parse_output(self, preds):
+        """Parse model predictions to extract features, mask predictions, and prototype masks."""
+        return preds if len(preds) == 3 else preds[1]
 
-    def mask_loss(self, feats, pred_masks, proto, batch):
+    def loss(self, feats, pred_masks, proto, batch):
         """Calculate and return the combined loss for detection and segmentation."""
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
@@ -478,10 +484,13 @@ class v8PoseLoss(v8DetectionLoss):
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
-    def __call__(self, preds, batch):
+    def parse_output(self, preds):
+        """Parse model predictions to extract features and keypoint predictions."""
+        return preds if isinstance(preds[0], list) else preds[1]
+
+    def loss(self, feats, pred_kpts, batch):
         """Calculate the total loss and detach it for pose estimation."""
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
-        feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(feats, batch)
         )
@@ -629,10 +638,13 @@ class v8OBBLoss(v8DetectionLoss):
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
-    def __call__(self, preds, batch):
+    def parse_output(self, preds):
+        """Parse model predictions to extract features and angle predictions."""
+        return preds if isinstance(preds[0], list) else preds[1]
+
+    def loss(self, feats, pred_angle, batch):
         """Calculate and return the loss for oriented bounding box detection."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        feats, pred_angle = preds if isinstance(preds[0], list) else preds[1]
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1

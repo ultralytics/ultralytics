@@ -394,10 +394,10 @@ class Annotator:
 
             ih, iw = self.im.shape[:2]
             if not retina_masks:
-                # Upsample masks, convert original BGR image to RGB tensor
-                if masks.shape[1:] != (ih, iw):
-                    masks = F.interpolate(masks[None], (ih, iw), mode="bilinear")[0] > 0.5
-                im_gpu = torch.from_numpy(self.im).to(masks.device).permute(2, 0, 1).flip(0).contiguous().float()
+                # Use scale_masks to properly remove padding and upsample
+                masks = ops.scale_masks(masks[None], (ih, iw))[0] > 0.5
+                # Convert original BGR image to RGB tensor
+                im_gpu = torch.from_numpy(self.im).to(masks.device).permute(2, 0, 1).flip(0).contiguous().float() / 255.0
 
             colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None]  # shape(n,1,1,3)
@@ -406,7 +406,7 @@ class Annotator:
             inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
             mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
-            im_gpu = (im_gpu / 255.0).flip(dims=[0]).permute(1, 2, 0).contiguous()  # shape(h,w,3)
+            im_gpu = im_gpu.flip(dims=[0]).permute(1, 2, 0).contiguous()  # shape(h,w,3)
             im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
             self.im[:] = (im_gpu * 255).byte().cpu().numpy()
         if self.pil:

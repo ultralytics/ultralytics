@@ -378,8 +378,10 @@ class SegmentationValidator(DetectionValidator):
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-                check_requirements("pycocotools>=2.0.6" if self.is_coco else "lvis>=0.5.3")
+                check_requirements("faster-coco-eval" if self.is_coco else "lvis>=0.5.3")
                 if self.is_coco:
+                    import faster_coco_eval
+                    faster_coco_eval.init_as_pycocotools()
                     from pycocotools.coco import COCO  # noqa
                     from pycocotools.cocoeval import COCOeval  # noqa
 
@@ -405,6 +407,7 @@ class SegmentationValidator(DetectionValidator):
                     stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = (
                         eval.stats[:2] if self.is_coco else [eval.results["AP"], eval.results["AP50"]]
                     )
+                    stats["fitness"] = 0.9 * stats[self.metrics.keys[idx + 1]] + 0.1 * stats[self.metrics.keys[idx]]
                     if self.is_lvis:
                         tag = "B" if i == 0 else "M"
                         stats[f"metrics/APr({tag})"] = eval.results["APr"]

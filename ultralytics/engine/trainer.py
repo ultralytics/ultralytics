@@ -125,7 +125,11 @@ class BaseTrainer:
         self.check_resume(overrides)
         self.device = select_device(self.args.device)
         # Update "-1" devices so post-training val does not repeat search
-        self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
+        # self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
+        if "npu" in str(self.device):
+            self.args.device = os.getenv("ASCEND_VISIBLE_DEVICES")
+        elif "cuda" in str(self.device):
+            self.args.device = os.getenv("CUDA_VISIBLE_DEVICES") if "cuda" in str(self.device) else str(self.device)
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -186,6 +190,8 @@ class BaseTrainer:
             world_size = 0
         elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
             world_size = 1  # default to device 0
+        elif torch_npu.npu.is_available():
+            world_size = 1
         else:  # i.e. device=None or device=''
             world_size = 0
 
@@ -247,11 +253,29 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        torch.cuda.set_device(RANK)
-        self.device = torch.device("cuda", RANK)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        device_type = getattr(getattr(self, "device", None), "type", None)
+        if device_type == "cuda":
+            torch.cuda.set_device(RANK)
+            self.device = torch.device("cuda", RANK)
+            backend = "nccl" if dist.is_nccl_available() else "gloo"
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # enforce timeout
+        elif device_type == "npu":
+            try:
+                import torch_npu  # noqa: F401
+
+                torch.npu.set_device(RANK)
+                self.device = torch.device("npu", RANK)
+                backend = "hccl"
+            except Exception:
+                # 回退 CPU
+                self.device = torch.device("cpu")
+                backend = "gloo"
+        else:
+            self.device = torch.device("cpu")
+            backend = "gloo"
+
         dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
+            backend=backend,
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
@@ -539,10 +563,28 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type == "npu":
+            try:
+                import torch_npu  # noqa: F401
+
+                # reserved memory in bytes if available
+                memory = getattr(torch.npu, "memory_reserved", lambda: 0)() or 0
+                if fraction:
+                    props_fn = getattr(torch.npu, "get_device_properties", None)
+                    if callable(props_fn):
+                        dev_props = props_fn(self.device)
+                        total = getattr(dev_props, "total_memory", 0) or 0
+                    if not total:
+                        return __import__("psutil").virtual_memory().percent / 100
+            except Exception:
+                if fraction:
+                    return __import__("psutil").virtual_memory().percent / 100
+                memory, total = 0, 0
         elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:
                 total = torch.cuda.get_device_properties(self.device).total_memory
+
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self, threshold: float = None):

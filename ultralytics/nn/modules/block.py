@@ -405,7 +405,7 @@ class C3TR(C3):
 class C3Ghost(C3):
     """C3 module with GhostBottleneck for enhanced feature extraction."""
 
-    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
+    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, layer_id: int = 0, g: int = 1, e: float = 0.5):
         """
         Initialize C3 module with GhostBottleneck.
         
@@ -419,12 +419,12 @@ class C3Ghost(C3):
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.m = nn.Sequential(*(GhostBottleneck(c_, c_) for _ in range(n)))
+        self.m = nn.Sequential(*(GhostBottleneck(c_, c_, layer_id=layer_id + i) for i in range(n)))
 
 class GhostBottleneck(nn.Module):
     """GhostNetV2 Bottleneck with DFC attention."""
 
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1):
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: int = 0):
         """
         Initialize GhostNetV2 Bottleneck.
         
@@ -436,11 +436,15 @@ class GhostBottleneck(nn.Module):
         """
         super().__init__()
         c_ = c2 // 2
+
+        # Determine attention mode based on layer_id
+        # Skip attention for first 2 bottleneck blocks (layer_id 0 and 1)
+        ghost1_mode = 'attn' if layer_id > 1 else 'original'
         
         self.conv = nn.Sequential(
-            GhostConv(c1, c_, 1, 1),  # pw with DFC attention
+            GhostConv(c1, c_, 1, 1, mode=ghost1_mode),  # pw with DFC attention
             DWConv(c_, c_, k, s, act=False) if s == 2 else nn.Identity(),  # dw
-            GhostConv(c_, c2, 1, 1, act=False),  # pw-linear
+            GhostConv(c_, c2, 1, 1, act=False, mode='original'),  # pw-linear
         )
         
         self.shortcut = (

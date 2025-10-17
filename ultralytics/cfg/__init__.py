@@ -490,7 +490,9 @@ def check_dict_alignment(base: dict, custom: dict, e: Exception = None) -> None:
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
-    if mismatched := [k for k in custom_keys if k not in base_keys]:
+    # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms
+    allowed_custom_keys = {"augmentations"}
+    if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches
 
         string = ""

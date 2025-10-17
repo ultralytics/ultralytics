@@ -336,8 +336,10 @@ class GhostConv(nn.Module):
         # DFC Attention mechanism
         self.short_conv = nn.Sequential(
             Conv(c1, c2, k, s, None, 1, act=False),
-            DWConv(c2, c2, (1, 5), 1, act=False),
-            DWConv(c2, c2, (5, 1), 1, act=False)
+            nn.BatchNorm2d(c2),
+            nn.Conv2d(c2, c2, (1, 5), 1, (0, 2), groups=c2, bias=False),
+            nn.Conv2d(c2, c2, (5, 1), 1, (2, 0), groups=c2, bias=False),
+            nn.BatchNorm2d(c2),
         )
         self.gate = nn.Sigmoid()
 

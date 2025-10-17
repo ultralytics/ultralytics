@@ -581,7 +581,7 @@ class AutoBackend(nn.Module):
             check_requirements("setuptools<71.0.0")
             check_requirements(
                 (
-                    "executorch==1.1.0.dev20251017",  # TODO: To change with stable release
+                    "executorch==1.0.0",
                     "torchao",
                     "flatbuffers",
                 ),

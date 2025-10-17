@@ -502,6 +502,8 @@ class Exporter:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
+            if hasattr(model, "kpt_names"):
+                self.metadata["kpt_names"] = model.kpt_names
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "

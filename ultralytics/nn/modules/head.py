@@ -239,6 +239,8 @@ class Segment(Detect):
 
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
+        if self.end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     def forward(self, x):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
@@ -247,12 +249,13 @@ class Segment(Detect):
 
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         if self.end2end:
-            x, post_mc = self.forward_end2end(x, mc)
+            x = self.forward_end2end(x, mc)
         else:
             x = Detect.forward(self, x)
+            x = (x, mc)
         if self.training:
-            return x, mc, p
-        return (torch.cat([x, post_mc], -1), p) if self.export else (torch.cat([x[0], post_mc], -1), (x[1], mc, p))
+            return x, p
+        return (torch.cat([x[0], x[1]], -1), p) if self.export else (torch.cat([x[0], x[1]], -1), (x, p))
 
     def forward_end2end(self, x: list[torch.Tensor], mask_coefficient: torch.Tensor) -> dict | tuple:
         """
@@ -270,14 +273,16 @@ class Segment(Detect):
         one2one = [
             torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
         ]
+        bs = x[0].shape[0]  # batch size
+        one2one_mc = torch.cat([self.one2one_cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
-            return {"one2many": x, "one2one": one2one}, mask_coefficient
+            return {"one2many": (x, mask_coefficient), "one2one": (one2one, one2one_mc)}
 
         y = self._inference(one2one)
-        y, mc = self.postprocess(y.permute(0, 2, 1), mask_coefficient, self.max_det, self.nc)
-        return (y, mc) if self.export else ((y, {"one2many": x, "one2one": one2one}), mc)
+        y, mc = self.postprocess(y.permute(0, 2, 1), one2one_mc, self.max_det, self.nc)
+        return (y, mc) if self.export else ((y, {"one2many": (x, mask_coefficient), "one2one": (one2one, one2one_mc)}), mc)
 
     @staticmethod
     def postprocess(preds: torch.Tensor, mask_coefficient: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:

@@ -22,6 +22,17 @@ names:
 # Depth range for normalization (in meters)
 depth_max: 100.0
 
+# Download script/URL (optional)
+download: |
+  from pathlib import Path
+
+  from ultralytics.data.prepare_kitti_mde import prepare_kitti_mde_dataset
+
+  dataset_dir = Path(yaml["path"])
+  depth_max = float(yaml.get("depth_max", 100.0))
+
+  prepare_kitti_mde_dataset(dataset_dir, depth_max=depth_max)
+
 # Label Format:
 # Each line in the label files (*.txt) contains 6 space-separated values:
 #   class x_center y_center width height depth

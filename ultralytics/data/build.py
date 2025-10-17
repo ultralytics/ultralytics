@@ -181,7 +181,15 @@ def build_grounding(
     )
 
 
-def build_dataloader(dataset, batch: int, workers: int, shuffle: bool = True, rank: int = -1, drop_last: bool = False, pin_memory: bool = True):
+def build_dataloader(
+    dataset,
+    batch: int,
+    workers: int,
+    shuffle: bool = True,
+    rank: int = -1,
+    drop_last: bool = False,
+    pin_memory: bool = True,
+):
     """
     Create and return an InfiniteDataLoader or DataLoader for training or validation.
 

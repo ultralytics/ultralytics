@@ -385,7 +385,7 @@ class Exporter:
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert not onnx or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
-            if getattr(model, "end2end", False):
+            if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
@@ -502,6 +502,8 @@ class Exporter:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
+            if hasattr(model, "kpt_names"):
+                self.metadata["kpt_names"] = model.kpt_names
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
@@ -1039,7 +1041,7 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
-        if "rtdetr" in self.model.model[-1]._get_name().lower():
+        if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
             assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True

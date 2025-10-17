@@ -822,16 +822,17 @@ class BaseTrainer:
         if ckpt.get("scaler") is not None:
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
+            self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness", 0.0)
 
     def _handle_nan_recovery(self, epoch):
-        """Detect and recover from NaN/Inf loss or fitness collapse by loading last checkpoint."""
-        loss_nan = self.tloss is not None and not torch.isfinite(self.tloss).all()
+        """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""
+        loss_nan = self.loss is not None and not self.loss.isfinite()
         fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
         fitness_collapse = self.best_fitness and self.best_fitness > 0 and self.fitness == 0
-        corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
+        corrupted = RANK in {-1, 0} and loss_nan and (fitness_nan or fitness_collapse)
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
         if RANK != -1:  # DDP: broadcast to all ranks
             broadcast_list = [corrupted if RANK == 0 else None]
@@ -846,6 +847,7 @@ class BaseTrainer:
         if self.nan_recovery_attempts > 3:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
+        self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)
         ema_state = ckpt["ema"].float().state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):

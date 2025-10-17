@@ -310,11 +310,14 @@ class Focus(nn.Module):
 
 
 class GhostConv(nn.Module):
-    """GhostNetV2 Convolution with DFC attention."""
+    """GhostNetV2 Convolution with optional DFC attention for deeper layers."""
+
+    # Class variable to track layer instances
+    _layer_count = 0
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
         """
-        Initialize GhostNetV2 Conv with DFC attention.
+        Initialize GhostNetV2 Conv with optional DFC attention.
         
         Args:
             c1 (int): Input channels.
@@ -327,34 +330,49 @@ class GhostConv(nn.Module):
         super().__init__()
         c_ = c2 // 2  # hidden channels
         
+        # Track layer ID and determine if attention should be used
+        GhostConv._layer_count += 1
+        self.layer_id = GhostConv._layer_count
+        # Use attention only for deeper layers (layer_id > 2)
+        self.use_attention = self.layer_id > 2
+        
         # Primary convolution
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
         
         # Cheap operation (fixed kernel=5)
         self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
         
-        # DFC Attention mechanism
-        self.short_conv = nn.Sequential(
-            Conv(c1, c2, k, s, None, 1, act=False),
-            DWConv(c2, c2, (1, 5), 1, act=False),
-            DWConv(c2, c2, (5, 1), 1, act=False),
-        )
-        self.gate = nn.Sigmoid()
+        # DFC Attention mechanism (only for deeper layers)
+        if self.use_attention:
+            self.short_conv = nn.Sequential(
+                Conv(c1, c2, k, s, None, 1, act=False),
+                DWConv(c2, c2, (1, 5), 1, act=False),
+                DWConv(c2, c2, (5, 1), 1, act=False),
+            )
+            self.gate = nn.Sigmoid()
 
     def forward(self, x):
-        # Attention path
-        attn = F.max_pool2d(x, kernel_size=2, stride=2)
-        attn = self.short_conv(attn)
-        attn = self.gate(attn)
-        
-        # Ghost path
+        # Ghost path - primary conv + cheap operation
         y = self.cv1(x)
-        ghost = self.cv2(y)
-        out = torch.cat((y, ghost), 1)
+        out = torch.cat((y, self.cv2(y)), 1)
         
-        # Apply attention with interpolation
-        attn = F.interpolate(attn, size=out.shape[-2:], mode='nearest')
-        return out * (1 + attn)
+        # Apply attention only if enabled (deeper layers)
+        if self.use_attention:
+            # Attention path with max pooling
+            attn = F.max_pool2d(x, kernel_size=2, stride=2)
+            attn = self.short_conv(attn)
+            attn = self.gate(attn)
+            
+            # Apply attention with interpolation
+            attn = F.interpolate(attn, size=out.shape[-2:], mode='nearest')
+            return out * attn
+        
+        return out
+
+    @classmethod
+    def reset_layer_count(cls):
+        """Reset the layer counter (useful for model re-initialization)."""
+        cls._layer_count = 0
 
 class RepConv(nn.Module):
     """RepConv module with training and deploy modes.

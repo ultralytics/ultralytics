@@ -52,6 +52,9 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "AAttn",
+    "ABlock",
+    "A2C2f",
 )
 
 

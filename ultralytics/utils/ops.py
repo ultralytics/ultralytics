@@ -506,20 +506,27 @@ def resample_segments(segments, n: int = 1000):
     return segments
 
 
-def crop_mask(masks, boxes):
+def crop_mask(masks, boxes, margin=0):
     """
     Crop masks to bounding box regions.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).
         boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
+        margin (float): Margin added before cropping.
 
     Returns:
         (torch.Tensor): Cropped masks.
     """
     n, h, w = masks.shape
+    pm, nm = 1 + margin, 1 - margin
     if n < 50:  # faster for fewer masks (predict)
-        for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
+        mboxes = boxes
+        if margin:
+            mboxes = boxes.clone()
+            mboxes[:, :2] *= nm
+            mboxes[:, 2:] *= pm
+        for i, (x1, y1, x2, y2) in enumerate(mboxes.round().int()):
             masks[i, :y1] = 0
             masks[i, y2:] = 0
             masks[i, :, :x1] = 0
@@ -529,7 +536,7 @@ def crop_mask(masks, boxes):
         x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
         r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
         c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+        return masks * ((r >= x1 * nm) * (r < x2 * pm) * (c >= y1 * nm) * (c < y2 * pm))
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -554,9 +561,9 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     height_ratio = mh / shape[0]
     ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
+    masks = crop_mask(masks, boxes=(bboxes * ratios).round(), margin=0.03 if upsample else 0)  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
+        masks = scale_masks(masks[None], shape)[0]  # CHW
     return masks.gt_(0.0).byte()
 
 

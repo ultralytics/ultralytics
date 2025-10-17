@@ -781,8 +781,7 @@ class BaseTrainer:
                     strip_optimizer(
                         self.best, updates={"train_results": ckpt.get("train_results")}
                     )  # update best.pt train_metrics from last.pt
-
-        LOGGER.info(f"\nValidating {self.best}...")
+                LOGGER.info(f"\nValidating {self.best}...")
         self.validator.args.plots = self.args.plots
         self.validator.args.compile = False  # disable final val compile as too slow
         self.metrics = self.validator(model=self.best)

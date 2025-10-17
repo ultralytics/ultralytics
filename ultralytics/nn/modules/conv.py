@@ -335,24 +335,11 @@ class GhostConv(nn.Module):
         self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
         
         # DFC Attention mechanism (only for deeper layers)
-        """
         if self.mode == 'attn':
             self.short_conv = nn.Sequential(
                 Conv(c1, c2, k, s, None, 1, act=False),
                 DWConv(c2, c2, (1, 5), 1, act=False),
                 DWConv(c2, c2, (5, 1), 1, act=False),
-            )
-            self.gate = nn.Sigmoid()
-            """
-        if self.mode == 'attn':
-            self.short_conv = nn.Sequential(
-                Conv(c1, c2, k, s, None, 1, act=False),
-                # Use raw Conv2d for non-square kernels (horizontal strip)
-                nn.Conv2d(c2, c2, kernel_size=(1, 5), stride=1, padding=(0, 2), groups=c2, bias=False),
-                nn.BatchNorm2d(c2),
-                # Vertical strip
-                nn.Conv2d(c2, c2, kernel_size=(5, 1), stride=1, padding=(2, 0), groups=c2, bias=False),
-                nn.BatchNorm2d(c2),
             )
             self.gate = nn.Sigmoid()
 

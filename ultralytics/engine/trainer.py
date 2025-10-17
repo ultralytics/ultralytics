@@ -510,11 +510,11 @@ class BaseTrainer:
                 break  # must break all DDP ranks
             epoch += 1
 
-        train_time = time.time() - self.train_time_start
+        seconds = time.time() - self.train_time_start
+        LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
         # Do final val with best.pt
         self.final_eval()
         if RANK in {-1, 0}:
-            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {train_time / 3600:.3f} hours.")
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")

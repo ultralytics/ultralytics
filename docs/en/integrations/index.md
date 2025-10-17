@@ -95,6 +95,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
+- [ExecuTorch](executorch.md) 🚀 NEW: Developed by [Meta](https://about.meta.com/), ExecuTorch is PyTorch's unified solution for deploying Ultralytics YOLO model on edge device.
+
 ## Datasets Integrations
 
 - [Roboflow](roboflow.md): Facilitate dataset labelling and management for Ultralytics models, offering annotation tools to label images.

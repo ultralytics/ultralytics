@@ -353,7 +353,7 @@ class GhostConv(nn.Module):
         out = torch.cat((y, ghost), 1)
         
         # Apply attention with interpolation
-        attn = F.interpolate(attn, size=out.shape[-2:], mode='bilinear', align_corners=False)
+        attn = F.interpolate(attn, size=out.shape[-2:], mode='area')
         return out * attn
 
 class RepConv(nn.Module):

@@ -346,10 +346,12 @@ class v8SegmentationLoss(v8DetectionLoss):
     def parse_output(self, preds):
         """Parse model predictions to extract features, mask predictions, and prototype masks."""
         preds = preds[1] if isinstance(preds[1], tuple) else preds
-        return *preds[0], preds[1]
+        return preds[0], preds[1]
 
-    def loss(self, feats, pred_masks, proto, batch):
+    def loss(self, feats, proto, batch):
         """Calculate and return the combined loss for detection and segmentation."""
+        pred_masks = feats[1]
+        feats = feats[0]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.

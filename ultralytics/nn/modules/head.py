@@ -26,7 +26,7 @@ class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     format = None  # export format
-    end2end = False  # end2end
+    end2end = True  # end2end
     max_det = 300  # max_det
     shape = None
     anchors = torch.empty(0)  # init
@@ -258,7 +258,8 @@ class Segment(Detect):
                 x = ((x[0], mc), (x[1], mc))
         if self.training:
             return x, p
-        return (torch.cat(x, 1), p) if self.export else (torch.cat(x[0], 1), (x[1], p))
+        dim = -1 if self.end2end else 1
+        return (torch.cat(x, dim), p) if self.export else (torch.cat(x[0], dim), (x[1], p))
 
     def forward_end2end(self, x: list[torch.Tensor], mask_coefficient: torch.Tensor) -> dict | tuple:
         """

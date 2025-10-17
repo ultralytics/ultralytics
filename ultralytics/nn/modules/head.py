@@ -33,9 +33,10 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
 
-    def __init__(self, nc=80, act=True, ch=()):
+    def __init__(self, nc=80, ch=()):
         """Initialize the YOLO detection layer with specified number of classes and channels."""
         super().__init__()
+        act = True
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
         self.reg_max = 1  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)

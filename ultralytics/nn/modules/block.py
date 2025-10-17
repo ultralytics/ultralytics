@@ -1715,15 +1715,17 @@ class PSABlock(nn.Module):
         """
         super().__init__()
 
-        assert attn in {"default", "sim", "area", "ds"}
-        if attn == "default":
-            self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
-        elif attn == "sim":
-            self.attn = SimAttention(c, num_heads=num_heads)
-        elif attn == "ds":
-            self.attn = DSAttention(c, attn_ratio=attn_ratio, num_heads=num_heads, downsample_ratio=downsample)
-        else:
-            self.attn = AreaAttention(c, num_heads=num_heads, attn_ratio=attn_ratio, area=area)
+        # assert attn in {"default", "sim", "area", "ds"}
+        # if attn == "default":
+        #     self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
+        # elif attn == "sim":
+        #     self.attn = SimAttention(c, num_heads=num_heads)
+        # elif attn == "ds":
+        #     self.attn = DSAttention(c, attn_ratio=attn_ratio, num_heads=num_heads, downsample_ratio=downsample)
+        # else:
+        #     self.attn = AreaAttention(c, num_heads=num_heads, attn_ratio=attn_ratio, area=area)
+
+        self.attn = Attention(c, attn_ratio=attn_ratio, num_heads=num_heads)
         self.ffn = nn.Sequential(Conv(c, c * 2, 1), Conv(c * 2, c, 1, act=False))
         self.add = shortcut
 

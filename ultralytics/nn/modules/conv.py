@@ -343,7 +343,7 @@ class GhostConv(nn.Module):
 
     def forward(self, x):
         # Attention path
-        attn = F.avg_pool2d(x, kernel_size=2, stride=2)
+        attn = F.max_pool2d(x, kernel_size=2, stride=2)
         attn = self.short_conv(attn)
         attn = self.gate(attn)
         
@@ -353,7 +353,7 @@ class GhostConv(nn.Module):
         out = torch.cat((y, ghost), 1)
         
         # Apply attention with interpolation
-        attn = F.interpolate(attn, size=out.shape[-2:], mode='area')
+        attn = F.interpolate(attn, size=out.shape[-2:], mode='nearest')
         return out * attn
 
 class RepConv(nn.Module):

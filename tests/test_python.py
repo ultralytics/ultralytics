@@ -17,6 +17,7 @@ from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
 from ultralytics.data.utils import check_det_dataset
+from ultralytics.engine.model import Model
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -744,3 +745,35 @@ def test_grayscale(task: str, model: str, data: str) -> None:
 
     model = YOLO(export_model, task=task)
     model.predict(source=im, imgsz=32)
+
+
+@pytest.mark.parametrize(
+    "model_url",
+    [
+        "http://localhost:8000/v2/models/yolo/versions/1",
+        "https://localhost:8000/v2/models/yolo/versions/1",
+        "https://localhost:8000/yolo/2",
+        "https://localhost:8000/yolo",
+        "https://localhost:8000/v2/models/yolo",
+        "https://localhost:8000/v2/models/yolo/versions/54",
+    ],
+)
+def test_correct_triton_url_check(model_url):
+    """Test validation of triton url."""
+    assert Model.is_triton_model(model_url)
+
+
+@pytest.mark.parametrize(
+    "model_url",
+    [
+        "http://localhost:8000/v2/models/yolo/versions/1?query=infer",
+        "https://localhost:8000/v2/models/yolo/versions/x?data=f",
+        "https://localhost:8000/yolo.pth",
+        "https://localhost:8000/yolo.x",
+        "https://localhost:8000/v2/models/yolo.pt",
+        "https://localhost:8000/v2/models/yolo/x",
+    ],
+)
+def test_incorrect_triton_url_check(model_url):
+    """Test validation of triton url."""
+    assert not Model.is_triton_model(model_url)

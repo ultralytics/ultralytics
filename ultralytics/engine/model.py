@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import re
 from pathlib import Path
 from typing import Any
 
@@ -209,7 +210,17 @@ class Model(torch.nn.Module):
         from urllib.parse import urlsplit
 
         url = urlsplit(model)
-        return url.netloc and url.path and url.scheme in {"http", "grpc"}
+        is_file = url.path.endswith((".pt", ".onnx", ".engine", ".tflite", ".pb", ".mlmodel", ".pth"))
+        triton_v2_regexp = r"^(http|https|grpc)://[^/?&]+/v2/models/[^/?&.]+(/versions/[0-9]+)?$"
+        simple_triton_regexp = r"^(http|https|grpc)://[^/?&]+/[^/?&.]+(/[0-9]+)?$"
+        is_triton = re.match(triton_v2_regexp, model) is not None or re.match(simple_triton_regexp, model) is not None
+        return (
+            url.netloc is not None
+            and url.path is not None
+            and (url.scheme in {"http", "grpc", "https"})
+            and not is_file
+            and is_triton
+        )
 
     @staticmethod
     def is_hub_model(model: str) -> bool:

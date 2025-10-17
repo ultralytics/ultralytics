@@ -354,7 +354,7 @@ class GhostConv(nn.Module):
         
         # Apply attention with interpolation
         attn = F.interpolate(attn, size=out.shape[-2:], mode='nearest')
-        return out * attn
+        return out * (1 + attn)
 
 class RepConv(nn.Module):
     """RepConv module with training and deploy modes.

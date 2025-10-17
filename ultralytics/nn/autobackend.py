@@ -582,10 +582,8 @@ class AutoBackend(nn.Module):
             check_requirements(
                 (
                     "executorch==1.0.0",
-                    "torchao",
                     "flatbuffers",
                 ),
-                cmds="--extra-index-url https://download.pytorch.org/whl/nightly",
             )
 
             from executorch.runtime import Runtime

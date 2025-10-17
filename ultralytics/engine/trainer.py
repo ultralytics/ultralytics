@@ -681,10 +681,6 @@ class BaseTrainer:
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
-            # Synchronize buffers across GPUs before EMA update
-            if self.world_size > 1:
-                for buffer in self.model.buffers():
-                    dist.broadcast(buffer, src=0)
             self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
@@ -699,6 +695,10 @@ class BaseTrainer:
             metrics (dict): Dictionary of validation metrics.
             fitness (float): Fitness score for the validation.
         """
+        if self.ema and self.world_size > 1:
+            # Sync EMA buffers from rank 0 to all ranks
+            for buffer in self.ema.ema.buffers():
+                dist.broadcast(buffer, src=0)
         metrics = self.validator(self)
         if metrics is None:
             return None, None

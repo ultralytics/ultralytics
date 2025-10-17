@@ -7,7 +7,6 @@ model_name: yolo11n-mde
 
 # Monocular Depth Estimation (MDE)
 
-<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/depth-estimation-examples.avif" alt="Monocular depth estimation examples">
 
 Monocular Depth Estimation (MDE) is a task that involves predicting the distance of objects from the camera using a single image. Unlike traditional depth estimation methods that require stereo cameras or LiDAR sensors, MDE estimates depth from monocular (single) images, making it more accessible and cost-effective.
 
@@ -49,12 +48,8 @@ Train YOLO11n-mde on the KITTI dataset for 100 [epochs](https://www.ultralytics.
         ```python
         from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO("yolo11n-mde.yaml")  # build a new model from YAML
-        model = YOLO("yolo11n-mde.pt")  # load a pretrained model (recommended for training)
-        model = YOLO("yolo11n-mde.yaml").load("yolo11n-mde.pt")  # build from YAML and transfer weights
-
-        # Train the model
+        # Build and train a new YOLO11n-mde model from scratch
+        model = YOLO("yolo11-mde.yaml")  # automatically uses 'n' scale
         results = model.train(data="kitti_mde.yaml", epochs=100, imgsz=640)
         ```
 
@@ -62,13 +57,7 @@ Train YOLO11n-mde on the KITTI dataset for 100 [epochs](https://www.ultralytics.
 
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo mde train data=kitti_mde.yaml model=yolo11n-mde.yaml epochs=100 imgsz=640
-
-        # Start training from a pretrained *.pt model
-        yolo mde train data=kitti_mde.yaml model=yolo11n-mde.pt epochs=100 imgsz=640
-
-        # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo mde train data=kitti_mde.yaml model=yolo11n-mde.yaml pretrained=yolo11n-mde.pt epochs=100 imgsz=640
+        yolo mde train data=kitti_mde.yaml model=yolo11-mde.yaml epochs=100 imgsz=640
         ```
 
 ### Dataset format
@@ -125,9 +114,8 @@ Validate trained YOLO11n-mde model [accuracy](https://www.ultralytics.com/glossa
         ```python
         from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO("yolo11n-mde.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom model
+        # Load a trained model
+        model = YOLO("runs/mde/train/weights/best.pt")  # load your trained model
 
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
@@ -146,8 +134,7 @@ Validate trained YOLO11n-mde model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo mde val model=yolo11n-mde.pt  # val official model
-        yolo mde val model=path/to/best.pt # val custom model
+        yolo mde val model=runs/mde/train/weights/best.pt
         ```
 
 ### Validation Metrics
@@ -180,13 +167,13 @@ Here are the actual training results from YOLO11-MDE models trained on the KITTI
 
 **Example Prediction Results:**
 
-<img src="../images/mde/prediction_example.jpg" alt="MDE Prediction Example" width="100%">
+<img src="images/mde/prediction_example.jpg" alt="MDE Prediction Example" width="100%">
 
 The image above shows validation predictions from YOLO11m-mde model, displaying both bounding boxes and estimated depth values for detected objects.
 
 **Training Progress:**
 
-<img src="../images/mde/training_results.png" alt="MDE Training Results" width="100%">
+<img src="images/mde/training_results.png" alt="MDE Training Results" width="100%">
 
 The training curves show the progression of detection and depth estimation metrics over 100 epochs, demonstrating stable convergence and high accuracy on the KITTI validation set.
 
@@ -201,9 +188,8 @@ Use a trained YOLO11n-mde model to run predictions on images.
         ```python
         from ultralytics import YOLO
 
-        # Load a model
-        model = YOLO("yolo11n-mde.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom model
+        # Load your trained model
+        model = YOLO("runs/mde/train/weights/best.pt")
 
         # Predict with the model
         results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
@@ -238,43 +224,12 @@ Use a trained YOLO11n-mde model to run predictions on images.
     === "CLI"
 
         ```bash
-        yolo mde predict model=yolo11n-mde.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo mde predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' # predict with custom model
+        yolo mde predict model=runs/mde/train/weights/best.pt source='https://ultralytics.com/images/bus.jpg'
         ```
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
-## Export
 
-Export a YOLO11n-mde model to a different format like ONNX, CoreML, etc.
-
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo11n-mde.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained model
-
-        # Export the model
-        model.export(format="onnx")
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo export model=yolo11n-mde.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
-        ```
-
-Available YOLO11-mde export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-mde.onnx`. Usage examples are shown for your model after export completes.
-
-{% include "macros/export-table.md" %}
-
-See full `export` details in the [Export](../modes/export.md) page.
 
 ## FAQ
 
@@ -299,8 +254,8 @@ Training a YOLO11-MDE model on a custom dataset requires:
         ```python
         from ultralytics import YOLO
 
-        # Load a pretrained model
-        model = YOLO("yolo11n-mde.pt")
+        # Build a new model from YAML
+        model = YOLO("yolo11-mde.yaml")
 
         # Train on your custom dataset
         results = model.train(
@@ -314,7 +269,7 @@ Training a YOLO11-MDE model on a custom dataset requires:
     === "CLI"
 
         ```bash
-        yolo mde train data=your_dataset.yaml model=yolo11n-mde.pt epochs=100 imgsz=640
+        yolo mde train data=your_dataset.yaml model=yolo11-mde.yaml epochs=100 imgsz=640
         ```
 
 Make sure your dataset YAML includes the `depth_max` parameter for proper depth normalization.
@@ -358,7 +313,7 @@ MDE models are suitable for:
 - Augmented reality systems
 - Advanced driver assistance systems (ADAS)
 
-For optimal performance, export your model to TensorRT or ONNX format and run on GPU-enabled hardware.
+For optimal performance, run your model on GPU-enabled hardware.
 
 ### What are the main applications of Monocular Depth Estimation?
 

@@ -342,6 +342,50 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                 frame.display()
         ```
 
+    === "Classification"
+
+        ```python
+        import numpy as np
+        from modlib.apps import Annotator
+        from modlib.devices import AiCamera
+        from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+        from modlib.models.post_processors import pp_cls
+
+
+        class YOLOClassification(Model):
+            """YOLO classification model for IMX500 deployment."""
+
+            def __init__(self):
+                """Initialize the YOLO classification model for IMX500 deployment."""
+                super().__init__(
+                    model_file="yolo11n-cls_imx_model/packerOut.zip",  # replace with proper directory
+                    model_type=MODEL_TYPE.CONVERTED,
+                    color_format=COLOR_FORMAT.RGB,
+                    preserve_aspect_ratio=True,
+                )
+
+                self.labels = np.genfromtxt("yolo11n-cls_imx_model/labels.txt", dtype=str, delimiter="\n")
+
+            def post_process(self, output_tensors):
+                """Post-process the output tensors for classification."""
+                return pp_cls(output_tensors)
+
+
+        device = AiCamera()
+        model = YOLOClassification()
+        device.deploy(model)
+
+        annotator = Annotator()
+
+        with device as stream:
+            for frame in stream:
+                for i, label in enumerate([model.labels[id] for id in frame.detections.class_id[:3]]):
+                    text = f"{i + 1}. {label}: {frame.detections.confidence[i]:.2f}"
+                    cv2.putText(frame.image, text, (50, 30 + 40 * (i + 1)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 0, 100), 2)
+
+                frame.display()
+        ```
+
 ## Benchmarks
 
 YOLOv8n, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.

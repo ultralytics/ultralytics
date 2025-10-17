@@ -1,0 +1,27 @@
+# ByteTracker configuration optimized for stationary vehicle tracking
+# Reduces ID switching for vehicles that remain in frame
+
+# Tracker type (do not change)
+tracker_type: bytetrack
+
+# Detection association thresholds
+track_high_thresh: 0.3    # Lower than default 0.5 - allows weaker detections to maintain tracks
+track_low_thresh: 0.01    # Much lower than default 0.1 - second chance for very weak detections  
+new_track_thresh: 0.4     # Lower than default 0.6 - easier to start new tracks
+
+# Track persistence settings
+track_buffer: 300          # Increased from default 30 - keep lost tracks alive longer
+match_thresh: 0.7         # Higher than default 0.8 - stricter matching to prevent ID swaps
+
+# Feature fusion (helps with ID consistency)
+fuse_score: True          # Combines confidence scores with IoU for better matching
+
+# Global Motion Compensation (helps with camera movement)
+gmc_method: sparseOptFlow # Use sparse optical flow for motion compensation
+
+track_buffer: 300
+mot20: False
+# ReID settings (disabled for performance)
+with_reid: False          # Disable ReID for better performance
+#proximity_thresh: 0.5     # Only used if ReID is enabled
+#appearance_thresh: 0.25   # Only used if ReID is enabled 

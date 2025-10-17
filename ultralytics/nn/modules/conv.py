@@ -336,7 +336,8 @@ class GhostConv(nn.Module):
         # DFC Attention mechanism
         self.short_conv = nn.Sequential(
             Conv(c1, c2, k, s, None, 1, act=False),
-            DWConv(c2, c2, 5, 1, act=False),
+            DWConv(c2, c2, (1, 5), 1, act=False),
+            DWConv(c2, c2, (5, 1), 1, act=False)
         )
         self.gate = nn.Sigmoid()
 
@@ -352,7 +353,7 @@ class GhostConv(nn.Module):
         out = torch.cat((y, ghost), 1)
         
         # Apply attention with interpolation
-        attn = F.interpolate(attn, size=out.shape[-2:], mode='nearest')
+        attn = F.interpolate(attn, size=out.shape[-2:], mode='bilinear', align_corners=False)
         return out * attn
 
 class RepConv(nn.Module):

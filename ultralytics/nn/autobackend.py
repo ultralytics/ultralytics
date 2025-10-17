@@ -19,6 +19,7 @@ from PIL import Image
 from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
+from ultralytics.utils.nms import non_max_suppression
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:
@@ -854,7 +855,10 @@ class AutoBackend(nn.Module):
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
-                self.forward(im)  # warmup
+                self.forward(im)  # warmup model
+                warmup_boxes = torch.rand(1, 84, 16, device=self.device)  # 16 boxes works best empirically
+                warmup_boxes[:, :4] *= imgsz[-1]
+                non_max_suppression(warmup_boxes)  # warmup NMS
 
     @staticmethod
     def _model_type(p: str = "path/to/model.pt") -> list[bool]:

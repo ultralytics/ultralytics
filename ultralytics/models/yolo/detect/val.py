@@ -300,7 +300,13 @@ class DetectionValidator(BaseValidator):
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
         return build_dataloader(
-            dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
+            dataset,
+            batch_size,
+            self.args.workers,
+            shuffle=False,
+            rank=-1,
+            drop_last=self.args.compile,
+            pin_memory=self.training,
         )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:

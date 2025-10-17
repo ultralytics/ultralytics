@@ -762,7 +762,8 @@ class E2EDetectLoss:
             extra = []
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, *extra, batch)
-        loss_one2one = self.one2one.loss(one2one, *extra, batch)
+        # loss_one2one = self.one2one.loss(one2one, *extra, batch)
+        loss_one2one = self.one2one.loss(one2one, extra[0].detach(), batch)
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
             1
         ] * self.o2o

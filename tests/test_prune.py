@@ -1,30 +1,32 @@
-from pathlib import Path
-from typing import List
-
-from ultralytics import YOLO
-from ultralytics.nn.modules import Conv, Bottleneck, C2f, SPPF, Detect, Concat
-from torch.nn import Conv2d, BatchNorm2d, Upsample
-from ultralytics.nn.modules import Conv, DWConv
-from copy import deepcopy
-import pytest
 import math
+from copy import deepcopy
+from pathlib import Path
 
+import pytest
 import torch
 import torch.nn as nn
+from torch.nn import BatchNorm2d, Conv2d, Upsample
 
+from ultralytics import YOLO
+from ultralytics.nn.modules import SPPF, Bottleneck, C2f, Concat, Conv, Detect
 from ultralytics.utils.prune import (
+    apply_prev_mask,
+    compute_effective_groups,
+    gcd_all,
     prune,
+    prune_batchnorm2d,
+    prune_bottleneck,
+    prune_by_groups,
+    prune_c2f,
+    prune_channels_groupwise,
+    prune_conv,
     prune_conv2d,
     prune_conv2d_with_skip,
-    prune_conv,
-    prune_batchnorm2d,
-    prune_detection_model,
-    prune_bottleneck,
-    prune_c2f,
-    prune_sppf,
+    prune_conv_with_skip,
     prune_detect,
-    apply_prev_mask, prune_channels_groupwise, prune_by_groups, compute_effective_groups, prune_conv_with_skip,
-    validate_prune_cfg, gcd_all
+    prune_detection_model,
+    prune_sppf,
+    validate_prune_cfg,
 )
 
 ROOT = Path(__file__).resolve().parents[1]  # repo root
@@ -36,9 +38,9 @@ CFG = ROOT / "ultralytics/cfg/pruning/sample_prune.yaml"
 # Helper functions for comparison and checks
 # ==========================================
 
-def compare_conv2d_layers(pruned_conv2d: Conv2d, original_conv2d, mask_out, mask_in=None, prune_type="preserve"):
-    """Assert that applying input/output masks to the original Conv2d reproduces the pruned Conv2d"""
 
+def compare_conv2d_layers(pruned_conv2d: Conv2d, original_conv2d, mask_out, mask_in=None, prune_type="preserve"):
+    """Assert that applying input/output masks to the original Conv2d reproduces the pruned Conv2d."""
     pruned_weight = pruned_conv2d.weight
     weight = original_conv2d.weight
 
@@ -68,7 +70,8 @@ def compare_conv2d_layers(pruned_conv2d: Conv2d, original_conv2d, mask_out, mask
             new_groups = torch.sum(mask_out) / out_channels_per_group
             assert pruned_conv2d.groups == new_groups  # kept groups are equal
             assert (original_groups - pruned_conv2d.groups) == torch.sum(
-                ~mask_out) / out_channels_per_group  # removed groups are equal
+                ~mask_out
+            ) / out_channels_per_group  # removed groups are equal
         else:
             # this regular conv, no groupings
             new_groups = 1
@@ -76,8 +79,7 @@ def compare_conv2d_layers(pruned_conv2d: Conv2d, original_conv2d, mask_out, mask
 
 
 def compare_batchnorm_layers(pruned_bn: BatchNorm2d, original_bn: BatchNorm2d, mask_out):
-    """Assert that applying output masks to the original BatchNorm2d reproduces the pruned BatchNorm2d"""
-
+    """Assert that applying output masks to the original BatchNorm2d reproduces the pruned BatchNorm2d."""
     pruned_running_mean = pruned_bn.running_mean
     pruned_running_var = pruned_bn.running_var
     running_mean = original_bn.running_mean
@@ -98,37 +100,41 @@ def compare_batchnorm_layers(pruned_bn: BatchNorm2d, original_bn: BatchNorm2d, m
 
 
 def compare_conv_layers(pruned_conv: Conv, original_conv: Conv, mask_out, mask_in=None, prune_type="preserve"):
-    """Assert that applying masks to Conv and BatchNorm in the original Conv reproduces the pruned module"""
-
+    """Assert that applying masks to Conv and BatchNorm in the original Conv reproduces the pruned module."""
     pruned_conv2d = pruned_conv.conv
     pruned_bn = pruned_conv.bn
     conv2d = original_conv.conv
     bn = original_conv.bn
 
-    compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask_out, mask_in=mask_in,
-                          prune_type=prune_type)
+    compare_conv2d_layers(
+        pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask_out, mask_in=mask_in, prune_type=prune_type
+    )
     compare_batchnorm_layers(pruned_bn=pruned_bn, original_bn=bn, mask_out=mask_out)
 
 
 def compare_bottleneck_layers(pruned_bottleneck: Bottleneck, original_bottleneck, mask_tracker):
-    """Assert that mask-propagated Conv layers in a Bottleneck match their pruned counterparts"""
-
+    """Assert that mask-propagated Conv layers in a Bottleneck match their pruned counterparts."""
     pruned_cv1 = pruned_bottleneck.cv1
     pruned_cv2 = pruned_bottleneck.cv2
     cv1 = original_bottleneck.cv1
     cv2 = original_bottleneck.cv2
 
     compare_conv_layers(
-        pruned_conv=pruned_cv1, original_conv=cv1, mask_out=mask_tracker["cv1_output"],
-        mask_in=mask_tracker["cv1_input"])
+        pruned_conv=pruned_cv1,
+        original_conv=cv1,
+        mask_out=mask_tracker["cv1_output"],
+        mask_in=mask_tracker["cv1_input"],
+    )
     compare_conv_layers(
-        pruned_conv=pruned_cv2, original_conv=cv2, mask_out=mask_tracker["cv2_output"],
-        mask_in=mask_tracker["cv2_input"])
+        pruned_conv=pruned_cv2,
+        original_conv=cv2,
+        mask_out=mask_tracker["cv2_output"],
+        mask_in=mask_tracker["cv2_input"],
+    )
 
 
 def check_groupwise_prune_correctness(weight_tensor, pruned_weight, mask, prune_groups):
-    """Helper to verify groupwise pruning matches manual reconstruction"""
-
+    """Helper to verify groupwise pruning matches manual reconstruction."""
     w_chunks = weight_tensor.chunk(prune_groups, 0)
     m_chunks = mask.chunk(prune_groups, 0)
     reconstructed = torch.cat([c[m] for c, m in zip(w_chunks, m_chunks)])
@@ -136,7 +142,7 @@ def check_groupwise_prune_correctness(weight_tensor, pruned_weight, mask, prune_
 
 
 def check_divisibility(conv):
-    """Helper to assert that Conv2d in/out channels remain divisible by groups"""
+    """Helper to assert that Conv2d in/out channels remain divisible by groups."""
     assert conv.out_channels % conv.groups == 0
     assert conv.in_channels % conv.groups == 0
 
@@ -145,16 +151,19 @@ def check_divisibility(conv):
 #  UNIT TESTS — PRIMITIVE & CONV2D-LEVEL PRUNING
 # ==========================================================
 
-@pytest.mark.parametrize("out_channels,prune_ratio", [
-    (8, 0.25),
-    (8, 0.5),
-    (16, 0.75),
-    (16, 0.0),
-    (16, 1.0),
-])
-def test_prune(out_channels, prune_ratio):
-    """Test that pruning correctly selects and masks channels by norm magnitude"""
 
+@pytest.mark.parametrize(
+    "out_channels,prune_ratio",
+    [
+        (8, 0.25),
+        (8, 0.5),
+        (16, 0.75),
+        (16, 0.0),
+        (16, 1.0),
+    ],
+)
+def test_prune(out_channels, prune_ratio):
+    """Test that pruning correctly selects and masks channels by norm magnitude."""
     torch.manual_seed(123)
     w = torch.randn(out_channels, 4, 3, 3)  # (out_channels, in_channels, kH, kW)
     norm_order = 2
@@ -190,15 +199,16 @@ def test_prune(out_channels, prune_ratio):
 
 
 def test_prune_channels_groupwise():
-    """Test that groupwise pruning applies consistent masks across all groups"""
+    """Test that groupwise pruning applies consistent masks across all groups."""
     groups = 8
     prune_ratio = 0.25
 
     conv = Conv2d(128, 256, 3, groups=groups)
 
     weight = deepcopy(conv.weight)
-    pruned_weight, mask, kept_out_channels = prune_channels_groupwise(weight, prune_ratio, norm_order=2,
-                                                                      prune_groups=groups)
+    pruned_weight, mask, kept_out_channels = prune_channels_groupwise(
+        weight, prune_ratio, norm_order=2, prune_groups=groups
+    )
 
     # divide mask into 'groups' and check each group has the same number of pruned channels
     chunks = mask.chunk(groups)
@@ -211,8 +221,7 @@ def test_prune_channels_groupwise():
 
 
 def test_prune_by_groups():
-    """Test that grouped pruning prunes complete groups and preserves divisibility"""
-
+    """Test that grouped pruning prunes complete groups and preserves divisibility."""
     groups = 8
     prune_ratio = 0.25
 
@@ -220,8 +229,7 @@ def test_prune_by_groups():
 
     channels_per_group = conv.out_channels / groups
     weight = deepcopy(conv.weight)
-    pruned_weight, mask, kept_out_channels = prune_by_groups(weight, prune_ratio, norm_order=2,
-                                                             prune_groups=groups)
+    pruned_weight, mask, kept_out_channels = prune_by_groups(weight, prune_ratio, norm_order=2, prune_groups=groups)
 
     # Verify each group is either entirely True or entirely False
     for chunk in mask.chunk(groups):
@@ -235,8 +243,7 @@ def test_prune_by_groups():
 
 
 def test_prune_by_groups_invalid_shape():
-    """Test that grouped pruning raises an error when weight shape is not divisible by groups"""
-
+    """Test that grouped pruning raises an error when weight shape is not divisible by groups."""
     w = torch.randn(30, 16, 3, 3)
     with pytest.raises(AssertionError, match="not divisible by groups"):
         prune_by_groups(w, prune_ratio=0.5, norm_order=2, prune_groups=8)
@@ -244,8 +251,7 @@ def test_prune_by_groups_invalid_shape():
 
 @pytest.mark.parametrize("prune_ratio", [0.0, 1.0])
 def test_prune_by_groups_edge_ratios(prune_ratio):
-    """Test that grouped pruning behaves correctly at edge ratios 0.0 and 1.0"""
-
+    """Test that grouped pruning behaves correctly at edge ratios 0.0 and 1.0."""
     groups = 4
     conv = Conv2d(64, 128, 3, groups=groups)
     weight = conv.weight.clone()
@@ -262,9 +268,9 @@ def test_prune_by_groups_edge_ratios(prune_ratio):
         assert kept_out_channels == channels_per_group
         assert mask.sum().item() == channels_per_group
 
+
 def test_prune_conv2d_with_skip():
     """Verifies prune_conv2d_with_skip correctly applies skip-connection mask and preserves structure."""
-
     conv2d = Conv2d(32, 32, 3)
     mask_prev = torch.tensor([0, 1, 1, 0], dtype=torch.bool).repeat(8)
     mask_skip = torch.tensor([1, 0], dtype=torch.bool).repeat(16)
@@ -273,15 +279,11 @@ def test_prune_conv2d_with_skip():
     compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask_out, mask_in=mask_prev)
 
 
-
 def test_grouped_conv2d_remove():
-    """Test that grouped Conv2d with 'remove' strategy prunes whole groups and reduces group count"""
-
+    """Test that grouped Conv2d with 'remove' strategy prunes whole groups and reduces group count."""
     groups = 8
     conv2d = Conv2d(32, 64, 3, groups=groups)
-    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=.25,
-                                       prune_groups=groups,
-                                       prune_type="remove")
+    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=0.25, prune_groups=groups, prune_type="remove")
 
     # pytorch's groups and channels constraint for this layer is still valid
     check_divisibility(pruned_conv2d)
@@ -294,8 +296,9 @@ def test_grouped_conv2d_remove():
     assert pruned_conv2d.out_channels == mask.sum().item()
 
     # check pruned_conv2d resulted from applying mask_out and mask_in to the original_conv2d
-    compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None,
-                          prune_type="remove")
+    compare_conv2d_layers(
+        pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None, prune_type="remove"
+    )
 
     # Verify each group is either entirely True or entirely False
     for chunk in mask.chunk(groups):
@@ -303,11 +306,10 @@ def test_grouped_conv2d_remove():
 
 
 def test_grouped_conv2d_preserve():
-    """Test that grouped Conv2d with 'preserve' pruning prunes within groups without changing group count"""
-
+    """Test that grouped Conv2d with 'preserve' pruning prunes within groups without changing group count."""
     groups = 8
     conv2d = Conv2d(32, 64, 3, groups=groups)
-    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=.25, prune_type="preserve")
+    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=0.25, prune_type="preserve")
 
     # groups stays 1
     assert pruned_conv2d.groups == groups
@@ -320,12 +322,14 @@ def test_grouped_conv2d_preserve():
     assert pruned_conv2d.out_channels == mask.sum().item()
 
     # check pruned_conv2d resulted from applying mask_out and mask_in to the original_conv2d
-    compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None,
-                          prune_type="preserve")
+    compare_conv2d_layers(
+        pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None, prune_type="preserve"
+    )
 
     # check the channels were pruned groupwise (divided into 'prune_groups' then independently pruned
-    check_groupwise_prune_correctness(weight_tensor=conv2d.weight, pruned_weight=pruned_conv2d.weight, mask=mask,
-                                      prune_groups=groups)
+    check_groupwise_prune_correctness(
+        weight_tensor=conv2d.weight, pruned_weight=pruned_conv2d.weight, mask=mask, prune_groups=groups
+    )
 
     # Each division has the same number of channels kept. Also, the groups preserved!
     mask_chunks = mask.chunk(groups)
@@ -334,21 +338,16 @@ def test_grouped_conv2d_preserve():
         assert kept_channels == torch.sum(mask_chunk).item()
 
 
-
-@pytest.mark.parametrize("prune_type", [
-    ("preserve"),
-    ("remove")
-])
+@pytest.mark.parametrize("prune_type", [("preserve"), ("remove")])
 def test_receiver_mask_preserves_groups_further_pruning(prune_type):
-    """Test that when the input mask preserves group structure, further pruning is correctly applied"""
-
+    """Test that when the input mask preserves group structure, further pruning is correctly applied."""
     in_channels = 64
     out_channels = 128
     groups = 8
 
     # set up a mask that simulates group-wise pruning of the previous layer
     in_channels_per_group = in_channels // groups
-    prune_ratio_prev = .25
+    prune_ratio_prev = 0.25
     kept_in = int(in_channels_per_group * (1 - prune_ratio_prev))
     remove_in = in_channels_per_group - kept_in
     mask_prev = torch.cat((torch.ones(kept_in, dtype=torch.bool), torch.zeros(remove_in, dtype=torch.bool)))
@@ -357,28 +356,32 @@ def test_receiver_mask_preserves_groups_further_pruning(prune_type):
     conv2d_grouped = Conv2d(in_channels, out_channels, 3, groups=groups)
 
     prune_ratio = 0.4
-    pruned_conv2d, mask = prune_conv2d(conv2d_grouped, prune_ratio=prune_ratio, mask_prev=mask_prev,
-                                       prune_type=prune_type)
+    pruned_conv2d, mask = prune_conv2d(
+        conv2d_grouped, prune_ratio=prune_ratio, mask_prev=mask_prev, prune_type=prune_type
+    )
 
     if prune_type == "preserve":
         assert pruned_conv2d.groups == groups
     if prune_type == "remove":
         assert pruned_conv2d.groups == max(1, groups - int(groups * prune_ratio))
 
-    compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d_grouped, mask_out=mask, mask_in=mask_prev,
-                          prune_type=prune_type)
+    compare_conv2d_layers(
+        pruned_conv2d=pruned_conv2d,
+        original_conv2d=conv2d_grouped,
+        mask_out=mask,
+        mask_in=mask_prev,
+        prune_type=prune_type,
+    )
 
 
 def test_receiver_mask_removes_groups_no_further_pruning():
-    """Test that when input mask removes groups, no additional pruning is applied"""
-
+    """Test that when input mask removes groups, no additional pruning is applied."""
     groups = 8
     remove_groups = 6
     left_groups = groups - remove_groups
     in_channels = 32
-    out_channels = 64
     in_channels_per_group = in_channels // groups
-    prune_ratio = .25
+    prune_ratio = 0.25
 
     # lets remove 6 groups worth of in channels which is more than our pruning ratio
     mask_prev = torch.cat((torch.zeros(remove_groups, dtype=torch.bool), torch.ones(left_groups, dtype=torch.bool)))
@@ -386,8 +389,9 @@ def test_receiver_mask_removes_groups_no_further_pruning():
     conv2d = Conv2d(32, 64, 3, groups=groups)
 
     pruned_conv2d_no_mask, mask_no_mask = prune_conv2d(conv_layer=conv2d, prune_ratio=prune_ratio, prune_type="remove")
-    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=prune_ratio, mask_prev=mask_prev,
-                                       prune_type="remove")
+    pruned_conv2d, mask = prune_conv2d(
+        conv_layer=conv2d, prune_ratio=prune_ratio, mask_prev=mask_prev, prune_type="remove"
+    )
 
     assert pruned_conv2d.groups == left_groups
 
@@ -406,8 +410,9 @@ def test_receiver_mask_removes_groups_no_further_pruning():
     assert pruned_conv2d.out_channels == mask.sum().item()
 
     # check pruned_conv2d resulted from applying mask_out and mask_in to the original_conv2d
-    compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=mask_prev,
-                          prune_type="remove")
+    compare_conv2d_layers(
+        pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=mask_prev, prune_type="remove"
+    )
 
     # Verify each group is either entirely True or entirely False
     for chunk in mask.chunk(groups):
@@ -415,10 +420,9 @@ def test_receiver_mask_removes_groups_no_further_pruning():
 
 
 def test_standard_conv2d_no_mask_channelwise_pruning():
-    """Test that standard Conv2d pruning applies channel-wise and preserves groups"""
-
+    """Test that standard Conv2d pruning applies channel-wise and preserves groups."""
     conv2d = Conv2d(32, 64, 3)
-    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=.25)
+    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=0.25)
 
     # groups stays 1
     assert pruned_conv2d.groups == 1
@@ -426,12 +430,13 @@ def test_standard_conv2d_no_mask_channelwise_pruning():
     # output channels reduced (or same if prune=0)
     assert pruned_conv2d.out_channels <= conv2d.out_channels
     assert pruned_conv2d.out_channels == mask.sum().item()
-    compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None,
-                          prune_type="preserve")
+    compare_conv2d_layers(
+        pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None, prune_type="preserve"
+    )
 
     # If there's no 'prune_groups' override,then the standard conv is pruned channels wise regardless of prune_type
-    pruned_conv_2, mask_2 = prune_conv2d(conv_layer=conv2d, prune_ratio=.25, prune_type="preserve")
-    pruned_conv_3, mask_3 = prune_conv2d(conv_layer=conv2d, prune_ratio=.25, prune_type="remove")
+    pruned_conv_2, mask_2 = prune_conv2d(conv_layer=conv2d, prune_ratio=0.25, prune_type="preserve")
+    pruned_conv_3, mask_3 = prune_conv2d(conv_layer=conv2d, prune_ratio=0.25, prune_type="remove")
 
     assert torch.all(mask_2 == mask_3)
     assert torch.all(pruned_conv_2.weight == pruned_conv_3.weight)
@@ -439,11 +444,10 @@ def test_standard_conv2d_no_mask_channelwise_pruning():
 
 
 def test_standard_conv2d_precedes_grouped_conv2d_preserve():
-    """Test that standard Conv2d preceding a grouped Conv preserves group structure under 'preserve' strategy"""
-
+    """Test that standard Conv2d preceding a grouped Conv preserves group structure under 'preserve' strategy."""
     prune_groups = 8
     conv2d = Conv2d(32, 64, 3)
-    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=.25, prune_groups=prune_groups)
+    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=0.25, prune_groups=prune_groups)
 
     # groups stays 1
     assert pruned_conv2d.groups == 1
@@ -459,8 +463,9 @@ def test_standard_conv2d_precedes_grouped_conv2d_preserve():
     compare_conv2d_layers(pruned_conv2d=pruned_conv2d, original_conv2d=conv2d, mask_out=mask, mask_in=None)
 
     # check the channels were pruned groupwise (divided into 'prune_groups' then independently pruned
-    check_groupwise_prune_correctness(weight_tensor=conv2d.weight, pruned_weight=pruned_conv2d.weight, mask=mask,
-                                      prune_groups=prune_groups)
+    check_groupwise_prune_correctness(
+        weight_tensor=conv2d.weight, pruned_weight=pruned_conv2d.weight, mask=mask, prune_groups=prune_groups
+    )
 
     # Each division has the same number of channels kept. Also, the groups preserved!
     mask_chunks = mask.chunk(prune_groups)
@@ -470,12 +475,12 @@ def test_standard_conv2d_precedes_grouped_conv2d_preserve():
 
 
 def test_standard_conv2d_precedes_grouped_conv2d_remove():
-    """Test that standard Conv2d preceding a grouped Conv removes full groups under 'remove' strategy"""
-
+    """Test that standard Conv2d preceding a grouped Conv removes full groups under 'remove' strategy."""
     prune_groups = 8
     conv2d = Conv2d(32, 64, 3)
-    pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=.25, prune_groups=prune_groups,
-                                       prune_type="remove")
+    pruned_conv2d, mask = prune_conv2d(
+        conv_layer=conv2d, prune_ratio=0.25, prune_groups=prune_groups, prune_type="remove"
+    )
 
     # groups stays 1
     assert pruned_conv2d.groups == 1
@@ -499,8 +504,7 @@ def test_standard_conv2d_precedes_grouped_conv2d_remove():
 
 
 def test_chain_two_standard_conv2ds_propagation():
-    """Test that pruning masks propagate correctly through a chain of standard Conv2d layers"""
-
+    """Test that pruning masks propagate correctly through a chain of standard Conv2d layers."""
     conv2d_1 = Conv2d(8, 16, 3)
     conv2d_2 = Conv2d(16, 32, 3)
 
@@ -515,15 +519,17 @@ def test_chain_two_standard_conv2ds_propagation():
     assert pruned_conv2.in_channels == mask_prev.sum().item()
 
 
-@pytest.mark.parametrize("prune_type, in_channels, out_channels", [
-    ("preserve", 16, 32),
-    ("remove", 16, 32),
-    ("preserve", 64, 64),
-    ("remove", 128, 128),
-])
+@pytest.mark.parametrize(
+    "prune_type, in_channels, out_channels",
+    [
+        ("preserve", 16, 32),
+        ("remove", 16, 32),
+        ("preserve", 64, 64),
+        ("remove", 128, 128),
+    ],
+)
 def test_standard_to_grouped_conv2d_chain(prune_type, in_channels, out_channels):
-    """Test that pruning propagates correctly from a standard Conv2d to a grouped Conv2d"""
-
+    """Test that pruning propagates correctly from a standard Conv2d to a grouped Conv2d."""
     prune_groups = math.gcd(in_channels, out_channels)
     conv2d = Conv2d(8, in_channels, 3)
     conv2d_grouped = Conv2d(in_channels, out_channels, 3, groups=prune_groups)
@@ -544,26 +550,30 @@ def test_standard_to_grouped_conv2d_chain(prune_type, in_channels, out_channels)
         assert conv2d_grouped_pruned.out_channels % prune_groups == 0
 
 
-@pytest.mark.parametrize("prune_type, in_channels_l1, out_channels_l1, out_channels_l2, g1, g2", [
-    ("preserve", 32, 64, 64, 16, 8),
-    ("remove", 32, 128, 128, 16, 8),
-    ("remove", 64, 128, 256, 8, 16),
-])
+@pytest.mark.parametrize(
+    "prune_type, in_channels_l1, out_channels_l1, out_channels_l2, g1, g2",
+    [
+        ("preserve", 32, 64, 64, 16, 8),
+        ("remove", 32, 128, 128, 16, 8),
+        ("remove", 64, 128, 256, 8, 16),
+    ],
+)
 def test_grouped_to_grouped_conv2d_chain(prune_type, in_channels_l1, out_channels_l1, out_channels_l2, g1, g2):
     """Two sequential grouped Conv2d layers — validates pruning mask propagation and group integrity."""
-
     conv2d_grouped_1 = Conv2d(in_channels_l1, out_channels_l1, 3, groups=g1)
     conv2d_grouped_2 = Conv2d(out_channels_l1, out_channels_l2, 3, groups=g2)
 
     # prune first layer
     prune_groups = compute_effective_groups([g1, g2])
-    conv2d_grouped_1_pruned, mask = prune_conv2d(conv2d_grouped_1, prune_ratio=0.5, prune_groups=prune_groups,
-                                                 prune_type=prune_type)
+    conv2d_grouped_1_pruned, mask = prune_conv2d(
+        conv2d_grouped_1, prune_ratio=0.5, prune_groups=prune_groups, prune_type=prune_type
+    )
     mask_prev = mask
 
     # prune second layer using mask_prev
-    conv2d_grouped_2_pruned, _ = prune_conv2d(conv2d_grouped_2, prune_ratio=0.5, mask_prev=mask_prev,
-                                              prune_type=prune_type)
+    conv2d_grouped_2_pruned, _ = prune_conv2d(
+        conv2d_grouped_2, prune_ratio=0.5, mask_prev=mask_prev, prune_type=prune_type
+    )
 
     # --- structural consistency ---
     assert conv2d_grouped_2_pruned.in_channels == mask_prev.sum().item()
@@ -580,26 +590,23 @@ def test_grouped_to_grouped_conv2d_chain(prune_type, in_channels_l1, out_channel
 
 def test_invalid_prune_type_raises_value_error():
     """Invalid prune_type argument should raise a ValueError."""
-
     prune_groups = 8
     conv2d = Conv2d(32, 64, 3)
 
     with pytest.raises(ValueError, match="Invalid prune_type value movie"):
-        pruned_conv2d, mask = prune_conv2d(conv_layer=conv2d, prune_ratio=.25, prune_groups=prune_groups,
-                                           prune_type="movie")
+        pruned_conv2d, mask = prune_conv2d(
+            conv_layer=conv2d, prune_ratio=0.25, prune_groups=prune_groups, prune_type="movie"
+        )
 
 
-@pytest.mark.parametrize("prune_type", [
-    "preserve",
-    "remove"
-])
+@pytest.mark.parametrize("prune_type", ["preserve", "remove"])
 def test_bias_pruning_propagates_mask_correctly(prune_type):
     """Ensures Conv2d bias parameters are pruned consistently with output channel masks."""
-
     conv2d = Conv2d(32, 64, 3)
     pruned_conv2d, mask = prune_conv2d(conv2d, 0.25, prune_type=prune_type)
 
     assert pruned_conv2d.weight.shape[0] == pruned_conv2d.bias.shape[0]
+
 
 def test_prune_batchnorm2d():
     """Test that prune_batchnorm2d correctly applies channel mask to BatchNorm2d parameters."""
@@ -612,14 +619,14 @@ def test_prune_batchnorm2d():
     assert torch.equal(bn_mask, mask_out)
     compare_batchnorm_layers(pruned_bn=pruned_bn, original_bn=original_bn, mask_out=mask_out)
 
+
 # ==========================================================
 #  MASK PROPAGATION TESTS (Sequential & Grouped Layers)
 # ==========================================================
 
 
 def test_apply_prev_mask_standard():
-    """Test that previous mask is applied correctly to standard Conv2d weights"""
-
+    """Test that previous mask is applied correctly to standard Conv2d weights."""
     conv = nn.Conv2d(12, 24, kernel_size=3, groups=1, bias=False)
     weight = conv.weight.clone()  # (6, 4, 3, 3)
 
@@ -640,8 +647,7 @@ def test_apply_prev_mask_standard():
 
 
 def test_apply_prev_mask_grouped_preserve():
-    """Test that grouped convolution preserves expected channels when previous masks are applied"""
-
+    """Test that grouped convolution preserves expected channels when previous masks are applied."""
     groups = 2
     conv = nn.Conv2d(6, 8, kernel_size=3, groups=groups, bias=False)
     weight = conv.weight.clone()  # (8, 3, 3, 3)
@@ -653,7 +659,7 @@ def test_apply_prev_mask_grouped_preserve():
 
     # Each group should have pruned in_channels=2
     in_per_group = conv.in_channels // groups
-    out_per_group = conv.out_channels // groups
+    conv.out_channels // groups
     expected_chunks = []
     for g, w_chunk in enumerate(weight.chunk(groups, 0)):
         start, end = g * in_per_group, (g + 1) * in_per_group
@@ -668,10 +674,8 @@ def test_apply_prev_mask_grouped_preserve():
     assert torch.all(pruned_weight == expected)
 
 
-
 def test_apply_prev_mask_grouped_remove():
-    """Test that grouped convolution removes entire groups when corresponding mask entries are zero"""
-
+    """Test that grouped convolution removes entire groups when corresponding mask entries are zero."""
     groups = 4
     conv = nn.Conv2d(8, 8, kernel_size=3, groups=groups, bias=False)
     weight = conv.weight  # (8, 3, 3, 3)
@@ -684,8 +688,8 @@ def test_apply_prev_mask_grouped_remove():
     assert new_groups < groups
     assert new_groups == 2
 
-    # pruned weight's are a result of either keeping or discarding entire groups, not indpendent pruning of channels of each group
-    # Actually, that's not necessay here, but is in the overall implementation
+    # pruned weight's are a result of either keeping or discarding entire groups, not independent pruning of channels of each group
+    # Actually, that's not necessary here, but is in the overall implementation
     expected = weight[mask]
     assert pruned_weight.shape == expected.shape
     assert torch.all(pruned_weight == expected)
@@ -695,18 +699,24 @@ def test_apply_prev_mask_grouped_remove():
 #  MODULE-LEVEL TESTS (Conv, Bottleneck, C2f, SPPF)
 # ==========================================================
 
-@pytest.mark.parametrize("mask_prev", [
-    None,  # prune only outputs
-    torch.tensor([1, 0, 1, 0, 1, 0, 1, 0], dtype=torch.bool)  # prune inputs + outputs
-])
-@pytest.mark.parametrize("prune_ratio", [
-    0.5,  # normal pruning
-    0.0  # no pruning edge case
-])
+
+@pytest.mark.parametrize(
+    "mask_prev",
+    [
+        None,  # prune only outputs
+        torch.tensor([1, 0, 1, 0, 1, 0, 1, 0], dtype=torch.bool),  # prune inputs + outputs
+    ],
+)
+@pytest.mark.parametrize(
+    "prune_ratio",
+    [
+        0.5,  # normal pruning
+        0.0,  # no pruning edge case
+    ],
+)
 @pytest.mark.parametrize("prune_type", ["preserve", "remove"])
 def test_prune_conv(mask_prev, prune_ratio, prune_type):
     """Tests prune_conv wrapper for structural correctness, no-op pruning, and forward-pass shape consistency."""
-
     # Input tensor
     x = torch.randn(1, 8, 16, 16)
 
@@ -719,8 +729,9 @@ def test_prune_conv(mask_prev, prune_ratio, prune_type):
 
     # === Structural checks ===
 
-    compare_conv_layers(pruned_conv=conv, original_conv=original,
-                        mask_out=mask_out, mask_in=mask_prev, prune_type=prune_type)
+    compare_conv_layers(
+        pruned_conv=conv, original_conv=original, mask_out=mask_out, mask_in=mask_prev, prune_type=prune_type
+    )
 
     # === No-op pruning sanity check ===
     if prune_ratio == 0.0 and mask_prev is None:
@@ -749,11 +760,8 @@ def test_prune_conv(mask_prev, prune_ratio, prune_type):
     assert y_pruned.shape[2:] == (16, 16)
 
 
-
-
 def test_prune_conv_with_skip():
     """Tests prune_conv_with_skip on composite Conv module — ensures skip mask alignment and structural correctness."""
-
     conv = Conv(32, 32, 3)
     conv_copy = deepcopy(conv)
     mask_prev = torch.tensor([0, 1, 1, 0], dtype=torch.bool).repeat(8)
@@ -764,13 +772,15 @@ def test_prune_conv_with_skip():
 
 
 @pytest.mark.parametrize("shortcut", [True, False])
-@pytest.mark.parametrize("mask_prev", [
-    None,  # out-only pruning
-    torch.tensor([1, 0, 1, 0, 1, 0, 1, 0], dtype=torch.bool),  # in+out pruning
-])
+@pytest.mark.parametrize(
+    "mask_prev",
+    [
+        None,  # out-only pruning
+        torch.tensor([1, 0, 1, 0, 1, 0, 1, 0], dtype=torch.bool),  # in+out pruning
+    ],
+)
 def test_prune_bottleneck(shortcut, mask_prev):
     """Tests Bottleneck pruning: verifies mask propagation, shortcut handling, and output shape consistency."""
-
     x = torch.randn(1, 8, 16, 16)
     bottleneck = Bottleneck(8, 8, shortcut=shortcut)
     original = deepcopy(bottleneck)
@@ -810,13 +820,9 @@ def test_prune_bottleneck(shortcut, mask_prev):
     assert y_pruned.shape[1] == cv2_mask.sum()
 
 
-@pytest.mark.parametrize("prune_groups", [
-    None,
-    8
-])
+@pytest.mark.parametrize("prune_groups", [None, 8])
 def test_prune_c2f(prune_groups):
     """Tests C2f module pruning: ensures correct mask tracking across internal Bottlenecks and final Conv layers."""
-
     c1 = 64
     c2 = 64
     n = 2
@@ -827,19 +833,29 @@ def test_prune_c2f(prune_groups):
     mask_tracker = {}
     c2f = C2f(c1, c2, n=n, shortcut=shortcut, g=1, e=0.5)
     c2f_orig = deepcopy(c2f)
-    mask_cv2_c2f = prune_c2f(c2f_layer=c2f, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev,
-                             prune_groups=prune_groups,
-                             mask_tracker=mask_tracker)
+    mask_cv2_c2f = prune_c2f(
+        c2f_layer=c2f,
+        prune_ratio=prune_ratio,
+        norm_order=norm_order,
+        mask_prev=mask_prev,
+        prune_groups=prune_groups,
+        mask_tracker=mask_tracker,
+    )
 
     # Checking masking for C2f.cv11
     chunk1_mask = mask_tracker["chunk1_mask"]
     chunk2_mask = mask_tracker["chunk2_mask"]
 
-    compare_conv_layers(pruned_conv=c2f.cv1, original_conv=c2f_orig.cv1, mask_out=torch.cat([chunk1_mask, chunk2_mask]),
-                        mask_in=mask_prev)
+    compare_conv_layers(
+        pruned_conv=c2f.cv1,
+        original_conv=c2f_orig.cv1,
+        mask_out=torch.cat([chunk1_mask, chunk2_mask]),
+        mask_in=mask_prev,
+    )
 
-    assert all(isinstance(m, Bottleneck) for m in c2f.m), \
+    assert all(isinstance(m, Bottleneck) for m in c2f.m), (
         f"Expected all elements of c2f.m to be Bottleneck, but got {[type(m) for m in c2f.m]}"
+    )
 
     mask_prev = chunk2_mask  # mask flow across the components in the ModuleList 'm'
     component_out_masks = []
@@ -859,8 +875,9 @@ def test_prune_c2f(prune_groups):
         pruned_bottleneck = c2f.m[i]
 
         # assert bottlenecks are applied with appropriate mask
-        compare_bottleneck_layers(pruned_bottleneck=pruned_bottleneck, original_bottleneck=bottleneck,
-                                  mask_tracker=mask_dict_bottleneck)
+        compare_bottleneck_layers(
+            pruned_bottleneck=pruned_bottleneck, original_bottleneck=bottleneck, mask_tracker=mask_dict_bottleneck
+        )
 
         mask_prev = mask_dict_component["out"]
         component_out_masks.append(mask_prev)
@@ -874,7 +891,6 @@ def test_prune_c2f(prune_groups):
 
 def test_prune_sppf():
     """Tests SPPF pruning: verifies correct mask propagation through pooled branches and final Conv consistency."""
-
     c1 = 256
     c2 = 256
     sppf = SPPF(c1, c2, 5)
@@ -882,14 +898,20 @@ def test_prune_sppf():
 
     mask_prev = torch.tensor([i % 4 == 0 for i in range(c1)])
     mask_tracker = {}
-    mask_out = prune_sppf(sppf_layer=sppf, prune_ratio=0.25, norm_order=2, mask_prev=mask_prev,
-                          mask_tracker=mask_tracker)
-    assert torch.equal(mask_out ,mask_tracker["cv2_output"])
+    mask_out = prune_sppf(
+        sppf_layer=sppf, prune_ratio=0.25, norm_order=2, mask_prev=mask_prev, mask_tracker=mask_tracker
+    )
+    assert torch.equal(mask_out, mask_tracker["cv2_output"])
     assert torch.equal(mask_tracker["cv1_output"].repeat(4), mask_tracker["cv2_input"])
-    compare_conv_layers(pruned_conv=sppf.cv1, original_conv=sppf_original.cv1, mask_out=mask_tracker["cv1_output"],
-                        mask_in=mask_prev)
-    compare_conv_layers(pruned_conv=sppf.cv2, original_conv=sppf_original.cv2, mask_out=mask_tracker["cv2_output"],
-                        mask_in=mask_tracker["cv2_input"])
+    compare_conv_layers(
+        pruned_conv=sppf.cv1, original_conv=sppf_original.cv1, mask_out=mask_tracker["cv1_output"], mask_in=mask_prev
+    )
+    compare_conv_layers(
+        pruned_conv=sppf.cv2,
+        original_conv=sppf_original.cv2,
+        mask_out=mask_tracker["cv2_output"],
+        mask_in=mask_tracker["cv2_input"],
+    )
 
 
 # ==========================================================
@@ -897,33 +919,35 @@ def test_prune_sppf():
 # ==========================================================
 
 
-@pytest.mark.parametrize("prune_type, prev_masks_fn, x_fn", [
-    (
+@pytest.mark.parametrize(
+    "prune_type, prev_masks_fn, x_fn",
+    [
+        (
             "preserve",
             lambda: [torch.ones(ch, dtype=torch.bool) for ch in [128, 256, 512]],
-            lambda: [torch.randn(1, ch, 32 // (2 ** i), 32 // (2 ** i))
-                     for i, ch in enumerate([128, 256, 512])]
-    ),
-    (
+            lambda: [torch.randn(1, ch, 32 // (2**i), 32 // (2**i)) for i, ch in enumerate([128, 256, 512])],
+        ),
+        (
             "remove",
-            lambda: [torch.tensor([1, 0], dtype=torch.bool).repeat(ch // 2)
-                     for ch in [128, 256, 512]],
-            lambda: [torch.randn(1, ch // 2, 32 // (2 ** i), 32 // (2 ** i))
-                     for i, ch in enumerate([128, 256, 512])]
-    )
-], ids=["preserve", "remove"])
-@pytest.mark.parametrize("prune_ratio_detect, prune_ratio_classify", [
-    (0.25, 0.4),
-    (0, 0)
-], ids=["partial", "none"])
-@pytest.mark.parametrize("detect_head_fn", [
-    pytest.param(lambda: Detect(nc=80, ch=(128, 256, 512)), id="custom"),
-    pytest.param(lambda: YOLO("yolov8s.yaml").model.model[-1], id="legacy_v8"),
-    pytest.param(lambda: YOLO("yolo11s.yaml").model.model[-1], id="non_legacy_v11")
-])
+            lambda: [torch.tensor([1, 0], dtype=torch.bool).repeat(ch // 2) for ch in [128, 256, 512]],
+            lambda: [torch.randn(1, ch // 2, 32 // (2**i), 32 // (2**i)) for i, ch in enumerate([128, 256, 512])],
+        ),
+    ],
+    ids=["preserve", "remove"],
+)
+@pytest.mark.parametrize("prune_ratio_detect, prune_ratio_classify", [(0.25, 0.4), (0, 0)], ids=["partial", "none"])
+@pytest.mark.parametrize(
+    "detect_head_fn",
+    [
+        pytest.param(lambda: Detect(nc=80, ch=(128, 256, 512)), id="custom"),
+        pytest.param(lambda: YOLO("yolov8s.yaml").model.model[-1], id="legacy_v8"),
+        pytest.param(lambda: YOLO("yolo11s.yaml").model.model[-1], id="non_legacy_v11"),
+    ],
+)
 def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, prune_ratio_classify, detect_head_fn):
-    """Verifies correct pruning and mask propagation within Detect head towers (cv2 and cv3) across YOLOv8 and YOLOv11 variants, ensuring layer-to-layer continuity and valid forward outputs."""
-
+    """Verifies correct pruning and mask propagation within Detect head towers (cv2 and cv3) across YOLOv8 and YOLOv11
+    variants, ensuring layer-to-layer continuity and valid forward outputs.
+    """
     prev_masks_detect = prev_masks_fn()
     x = x_fn()
     detect_head = detect_head_fn()
@@ -936,13 +960,13 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
         prune_ratio_classify=prune_ratio_classify,  # Prune classification towers
         norm_order=2,
         feature_masks=prev_masks_detect,  # Masks from C2f outputs
-        mask_tracker=mask_tracker
+        mask_tracker=mask_tracker,
     )
 
-    # checking if each detection tower recieves the correct input pruning mask
-    for i, featuremap_mask, detection_tower_pruned, detection_tower_orig in zip(range(len(detect_head.cv2)),
-                                                                                prev_masks_detect, detect_head.cv2,
-                                                                                detect_head_orig.cv2):
+    # checking if each detection tower receives the correct input pruning mask
+    for i, featuremap_mask, detection_tower_pruned, detection_tower_orig in zip(
+        range(len(detect_head.cv2)), prev_masks_detect, detect_head.cv2, detect_head_orig.cv2
+    ):
         assert torch.equal(mask_tracker[f"detection_tower_{i}_component_{0}_input"], featuremap_mask)  # detection
         # tower's first component's input mask is equal to the mask from the corresponding featuremap
 
@@ -957,20 +981,21 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
             pruned_conv = detection_tower_pruned[j]
             conv_orig = detection_tower_orig[j]
 
-            compare_conv_layers(pruned_conv=pruned_conv, original_conv=conv_orig,
-                                mask_out=output_mask_j,
-                                mask_in=input_mask_j)
+            compare_conv_layers(
+                pruned_conv=pruned_conv, original_conv=conv_orig, mask_out=output_mask_j, mask_in=input_mask_j
+            )
 
-        compare_conv2d_layers(pruned_conv2d=detection_tower_pruned[-1], original_conv2d=detection_tower_orig[-1],
-                              mask_out=mask_tracker[f"detection_tower_{i}_component_{2}_output"],
-                              mask_in=mask_tracker[f"detection_tower_{i}_component_{2}_input"])
+        compare_conv2d_layers(
+            pruned_conv2d=detection_tower_pruned[-1],
+            original_conv2d=detection_tower_orig[-1],
+            mask_out=mask_tracker[f"detection_tower_{i}_component_{2}_output"],
+            mask_in=mask_tracker[f"detection_tower_{i}_component_{2}_input"],
+        )
 
     ## classification tower:
-    for i, featuremap_mask, classification_tower_pruned, classification_tower_orig in zip(range(len(detect_head.cv3)),
-                                                                                          prev_masks_detect,
-                                                                                          detect_head.cv3,
-                                                                                          detect_head_orig.cv3):
-        mask = featuremap_mask
+    for i, featuremap_mask, classification_tower_pruned, classification_tower_orig in zip(
+        range(len(detect_head.cv3)), prev_masks_detect, detect_head.cv3, detect_head_orig.cv3
+    ):
         first_component = classification_tower_pruned[0]
 
         if isinstance(first_component, Conv):  # if legacy
@@ -985,14 +1010,16 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
                 if j == 0:
                     print(f"\nprune_type:{prune_type}")
                     print(f"pruned:{pruned_conv.conv.weight.shape}, conv:{conv_orig.conv.weight.shape}")
-                compare_conv_layers(pruned_conv=pruned_conv, original_conv=conv_orig,
-                                    mask_out=output_mask_j,
-                                    mask_in=input_mask_j)
+                compare_conv_layers(
+                    pruned_conv=pruned_conv, original_conv=conv_orig, mask_out=output_mask_j, mask_in=input_mask_j
+                )
 
-            compare_conv2d_layers(pruned_conv2d=classification_tower_pruned[-1],
-                                  original_conv2d=classification_tower_orig[-1],
-                                  mask_out=mask_tracker[f"classification_tower_{i}_component_{2}_output"],
-                                  mask_in=mask_tracker[f"classification_tower_{i}_component_{2}_input"])
+            compare_conv2d_layers(
+                pruned_conv2d=classification_tower_pruned[-1],
+                original_conv2d=classification_tower_orig[-1],
+                mask_out=mask_tracker[f"classification_tower_{i}_component_{2}_output"],
+                mask_in=mask_tracker[f"classification_tower_{i}_component_{2}_input"],
+            )
 
         else:
             for j in range(2):
@@ -1004,31 +1031,37 @@ def test_prune_detect_head(prune_type, prev_masks_fn, x_fn, prune_ratio_detect, 
                     index_next_k = (k + 1) % len(tower_component_pruned)
                     output_mask = mask_tracker[f"classification_tower_{i}_component_{j}_{k}_output"]
                     input_mask_next = mask_tracker[
-                        f"classification_tower_{i}_component_{index_next_j}_{index_next_k}_input"]
+                        f"classification_tower_{i}_component_{index_next_j}_{index_next_k}_input"
+                    ]
                     assert torch.equal(output_mask, input_mask_next)
 
                     pruned_conv = tower_component_pruned[k]
                     conv_orig = tower_component_orig[k]
-                    compare_conv_layers(pruned_conv=pruned_conv, original_conv=conv_orig,
-                                        mask_out=output_mask,
-                                        mask_in=input_mask,
-                                        prune_type=prune_type)
+                    compare_conv_layers(
+                        pruned_conv=pruned_conv,
+                        original_conv=conv_orig,
+                        mask_out=output_mask,
+                        mask_in=input_mask,
+                        prune_type=prune_type,
+                    )
 
-            compare_conv2d_layers(pruned_conv2d=classification_tower_pruned[-1],
-                                  original_conv2d=classification_tower_orig[-1],
-                                  mask_out=mask_tracker[f"classification_tower_{i}_component_{2}_{0}_output"],
-                                  mask_in=mask_tracker[f"classification_tower_{i}_component_{2}_{0}_input"],
-                                  prune_type=prune_type)
+            compare_conv2d_layers(
+                pruned_conv2d=classification_tower_pruned[-1],
+                original_conv2d=classification_tower_orig[-1],
+                mask_out=mask_tracker[f"classification_tower_{i}_component_{2}_{0}_output"],
+                mask_in=mask_tracker[f"classification_tower_{i}_component_{2}_{0}_input"],
+                prune_type=prune_type,
+            )
 
     y = detect_head(x)
     assert all([yi.shape[1] > 0 for yi in y])  # no zero channels
 
 
-@pytest.mark.parametrize("prune_type", [
-    "preserve", "remove"])
+@pytest.mark.parametrize("prune_type", ["preserve", "remove"])
 def test_prune_detection_model(prune_type):
-    """Verifies mask propagation and consistency across top-level modules in DetectionModel (Conv, C2f, SPPF, Detect), ensuring inter-module connectivity and structure remain valid after pruning."""
-
+    """Verifies mask propagation and consistency across top-level modules in DetectionModel (Conv, C2f, SPPF, Detect),
+    ensuring inter-module connectivity and structure remain valid after pruning.
+    """
     mask_tracker = {}
     model = YOLO("yolov8n.yaml")
     pruned_model = prune_detection_model(model, prune_ratio=0.25, mask_tracker=mask_tracker, prune_type=prune_type)
@@ -1054,14 +1087,14 @@ def test_prune_detection_model(prune_type):
             continue
 
         if mask is not None and mask_input is not None:
-
             if isinstance(mask_input, torch.Tensor):
                 assert torch.equal(mask, mask_input)
 
-            if isinstance(mask_input, List):
+            if isinstance(mask_input, list):
                 for feature_idx, feature_mask_mask_input in zip(component.f, mask_input):
-                    assert torch.equal(feature_mask_mask_input,
-                                       save_indices_masks[feature_idx]), f"Feature mask mismatch at index {feature_idx}"
+                    assert torch.equal(feature_mask_mask_input, save_indices_masks[feature_idx]), (
+                        f"Feature mask mismatch at index {feature_idx}"
+                    )
 
         if isinstance(component, C2f):
             first_component = component.cv1
@@ -1074,7 +1107,7 @@ def test_prune_detection_model(prune_type):
                 pruned_conv=first_component_pruned,
                 original_conv=first_component,
                 mask_out=cv1_mask_out,
-                mask_in=mask_input
+                mask_in=mask_input,
             )
 
             cv2_mask_in = [cv1_mask_out] + [mask_tracker_comp[f"m_{idx}"]["out"] for idx in range(len(component.m))]
@@ -1084,11 +1117,10 @@ def test_prune_detection_model(prune_type):
                 pruned_conv=last_component_pruned,
                 original_conv=last_component,
                 mask_out=mask_tracker_comp["cv2_mask"],
-                mask_in=cv2_mask_in
+                mask_in=cv2_mask_in,
             )
 
             mask = mask_tracker_comp["cv2_mask"]
-
 
         elif isinstance(component, SPPF):
             first_component = component.cv1
@@ -1098,7 +1130,7 @@ def test_prune_detection_model(prune_type):
                 pruned_conv=first_component_pruned,
                 original_conv=first_component,
                 mask_out=mask_tracker_comp["cv1_output"],
-                mask_in=mask_tracker_comp["cv1_input"]
+                mask_in=mask_tracker_comp["cv1_input"],
             )
 
             last_component = component.cv2
@@ -1108,17 +1140,16 @@ def test_prune_detection_model(prune_type):
                 pruned_conv=last_component_pruned,
                 original_conv=last_component,
                 mask_out=mask_tracker_comp["cv2_output"],
-                mask_in=mask_tracker_comp["cv2_input"]
+                mask_in=mask_tracker_comp["cv2_input"],
             )
 
             mask = mask_tracker_comp["cv2_output"]
 
-
-
         elif isinstance(component, Conv):
             # mask = prune_conv(component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev)
-            compare_conv_layers(pruned_conv=pruned_component, original_conv=component, mask_in=mask_input,
-                                mask_out=mask_output)
+            compare_conv_layers(
+                pruned_conv=pruned_component, original_conv=component, mask_in=mask_input, mask_out=mask_output
+            )
 
             mask = mask_output
 
@@ -1135,13 +1166,16 @@ def test_prune_detection_model(prune_type):
                 first_component = detection_tower[0]
                 first_component_pruned = detection_tower_pruned[0]
 
-                compare_conv_layers(pruned_conv=first_component_pruned,
-                                    original_conv=first_component,
-                                    mask_out=mask_tracker_comp[f"detection_tower_{idx}_component_{0}_output"],
-                                    mask_in=mask_in)
+                compare_conv_layers(
+                    pruned_conv=first_component_pruned,
+                    original_conv=first_component,
+                    mask_out=mask_tracker_comp[f"detection_tower_{idx}_component_{0}_output"],
+                    mask_in=mask_in,
+                )
 
-            for idx, classification_tower, classification_tower_pruned, mask_in in zip(range(3), cv3, cv3_pruned,
-                                                                                       mask_input):
+            for idx, classification_tower, classification_tower_pruned, mask_in in zip(
+                range(3), cv3, cv3_pruned, mask_input
+            ):
                 first_component = classification_tower[0]
                 first_component_pruned = classification_tower_pruned[0]
 
@@ -1149,18 +1183,20 @@ def test_prune_detection_model(prune_type):
                     first_component = first_component[0]
                     first_component_pruned = first_component_pruned[0]
 
-                    compare_conv_layers(pruned_conv=first_component_pruned,
-                                        original_conv=first_component,
-                                        mask_out=mask_tracker_comp[
-                                            f"classification_tower_{idx}_component_{0}_{0}_output"],
-                                        mask_in=mask_in)
+                    compare_conv_layers(
+                        pruned_conv=first_component_pruned,
+                        original_conv=first_component,
+                        mask_out=mask_tracker_comp[f"classification_tower_{idx}_component_{0}_{0}_output"],
+                        mask_in=mask_in,
+                    )
                 else:
                     # simple conv
-                    compare_conv_layers(pruned_conv=first_component_pruned,
-                                        original_conv=first_component,
-                                        mask_out=mask_tracker_comp[f"classification_tower_{idx}_component_{0}_output"],
-                                        mask_in=mask_in)
-
+                    compare_conv_layers(
+                        pruned_conv=first_component_pruned,
+                        original_conv=first_component,
+                        mask_out=mask_tracker_comp[f"classification_tower_{idx}_component_{0}_output"],
+                        mask_in=mask_in,
+                    )
 
         else:
             print(f"Class: {type(component)} not supported yet for pruning!")
@@ -1168,6 +1204,7 @@ def test_prune_detection_model(prune_type):
         # Save mask for layers whose outputs are needed downstream
         if i in save_indices:
             save_indices_masks[i] = mask
+
 
 # ==========================================================
 #  INTEGRATION / EXPORT TESTS
@@ -1191,7 +1228,9 @@ def test_prune_roundtrip(tmp_path):
 
 
 def test_prune_roundtrip_with_config(tmp_path):
-    """Test that pruning with a YAML config works and the pruned model saves/loads correctly and inference still runs"""
+    """Test that pruning with a YAML config works and the pruned model saves/loads correctly and inference still
+    runs.
+    """
     model = YOLO("yolov8n.pt")
     pruned_model = prune_detection_model(model, prune_yaml=str(CFG))
 
@@ -1205,9 +1244,11 @@ def test_prune_roundtrip_with_config(tmp_path):
     assert results is not None
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 def test_prune_train(tmp_path):
-    """Test that a pruned model can still be trained after pruning, and that the trained model's inference still works"""
+    """Test that a pruned model can still be trained after pruning, and that the trained model's inference still
+    works.
+    """
     model = YOLO("yolov8n.pt")
     pruned_model = prune_detection_model(model, prune_ratio=0.1)
 
@@ -1250,10 +1291,11 @@ def test_zero_prune(tmp_path):
     assert all(torch.equal(p1, p2) for p1, p2 in zip(model.parameters(), pruned_model.parameters()))
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 def test_pruned_model_export_and_reload(tmp_path):
-    """End-to-end check that a pruned YOLO model saves/loads correctly, preserves the 'is_pruned' flag, exports to ONNX, and runs inference after both reload and export."""
-
+    """End-to-end check that a pruned YOLO model saves/loads correctly, preserves the 'is_pruned' flag, exports to ONNX,
+    and runs inference after both reload and export.
+    """
     # Build + prune
     model = YOLO("yolov8n.pt")
     pruned = prune_detection_model(model, prune_ratio=0.25)
@@ -1286,7 +1328,6 @@ def test_pruned_model_export_and_reload(tmp_path):
     assert results_onnx is not None and len(results_onnx) > 0, "Inference after ONNX export failed"
 
 
-
 # ==========================================================
 #  YAML CONFIG VALIDATION TESTS
 # ==========================================================
@@ -1294,7 +1335,6 @@ def test_pruned_model_export_and_reload(tmp_path):
 
 def test_yaml_valid():
     """Valid prune YAML parses successfully and returns a complete ratio mapping."""
-
     sample_yaml = ROOT / Path("ultralytics/cfg/pruning/sample_prune.yaml")
     ratios = validate_prune_cfg(sample_yaml)
     assert isinstance(ratios, dict)
@@ -1305,7 +1345,6 @@ def test_yaml_valid():
 
 def test_yaml_incomplete_config_fails(tmp_path):
     """Incomplete prune YAML (missing required layer ratios) raises an AssertionError."""
-
     yaml_path = tmp_path / "incomplete.yaml"
     yaml_path.write_text("""
     prune_ratios:
@@ -1319,7 +1358,6 @@ def test_yaml_incomplete_config_fails(tmp_path):
 
 def test_yaml_missing_prune_ratios_key(tmp_path):
     """Missing top-level 'prune_ratios' key in YAML triggers an AssertionError."""
-
     bad_yaml = tmp_path / "missing_key.yaml"
     bad_yaml.write_text("not_prune_ratios:\n  0: 0.1\n")
     with pytest.raises(AssertionError, match="Missing key 'prune_ratios'"):
@@ -1328,7 +1366,6 @@ def test_yaml_missing_prune_ratios_key(tmp_path):
 
 def test_yaml_invalid_ratio_type(tmp_path):
     """Non-numeric prune ratios (e.g., strings) raise an AssertionError."""
-
     bad_yaml = tmp_path / "invalid_type.yaml"
     bad_yaml.write_text("""
     prune_ratios:
@@ -1340,7 +1377,6 @@ def test_yaml_invalid_ratio_type(tmp_path):
 
 def test_yaml_ratio_out_of_range(tmp_path):
     """Prune ratio values outside [0,1] range raise an AssertionError."""
-
     bad_yaml = tmp_path / "out_of_range.yaml"
     bad_yaml.write_text("""
     prune_ratios:
@@ -1352,7 +1388,6 @@ def test_yaml_ratio_out_of_range(tmp_path):
 
 def test_yaml_invalid_detect_head_format(tmp_path):
     """Detect-head YAML entries must contain exactly two numeric ratios; invalid lists raise an AssertionError."""
-
     bad_yaml = tmp_path / "bad_detect.yaml"
     bad_yaml.write_text("""
     prune_ratios:
@@ -1364,7 +1399,6 @@ def test_yaml_invalid_detect_head_format(tmp_path):
 
 def test_yaml_syntax_error(tmp_path):
     """Malformed YAML syntax raises a ValueError during validation."""
-
     bad_yaml = tmp_path / "malformed.yaml"
     bad_yaml.write_text("prune_ratios: [0.1, 0.2,,]")
     with pytest.raises(ValueError, match="Invalid YAML syntax"):

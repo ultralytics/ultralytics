@@ -18,19 +18,20 @@ Supported functionalities:
 Intended for submission as part of Ultralytics YOLOv8 pruning
 pipeline enhancements.
 """
+
 from __future__ import annotations
 
-from copy import deepcopy
-from pathlib import Path
-from typing import Union, Optional
-from functools import reduce
 import math
+from copy import deepcopy
+from functools import reduce
+from pathlib import Path
+
 import torch
 import yaml
 from torch.nn import BatchNorm2d, Conv2d, Sequential, Upsample
+
 from ultralytics import YOLO
 from ultralytics.nn.modules import SPPF, Bottleneck, C2f, Concat, Conv, Detect
-
 
 # ============================================================
 # Conv / YOLO Conv Pruning Functions
@@ -38,10 +39,7 @@ from ultralytics.nn.modules import SPPF, Bottleneck, C2f, Concat, Conv, Detect
 
 
 def prune(
-        weight_tensor: torch.Tensor,
-        prune_ratio: float,
-        norm_order: float,
-        dim: Union[int, tuple[int, ...]]
+    weight_tensor: torch.Tensor, prune_ratio: float, norm_order: float, dim: int | tuple[int, ...]
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Prune filters or groups in a weight tensor based on their norms.
@@ -86,10 +84,7 @@ def prune(
 
 
 def prune_channels_groupwise(
-        weight_tensor: torch.Tensor,
-        prune_ratio: float,
-        norm_order: float,
-        prune_groups: int
+    weight_tensor: torch.Tensor, prune_ratio: float, norm_order: float, prune_groups: int
 ) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     Prune channels independently within each group, preserving group structure.
@@ -104,7 +99,6 @@ def prune_channels_groupwise(
         pruned_weight (torch.Tensor): Pruned weight tensor with removed channels.
         mask (torch.Tensor): Binary mask indicating kept channels (1) and pruned channels (0).
         kept_out_channels (int): Total number of channels retained after pruning.
-
     """
     chunk_list = weight_tensor.chunk(prune_groups, 0)
     pruned_chunks, chunk_masks = [], []
@@ -123,10 +117,7 @@ def prune_channels_groupwise(
 
 
 def prune_by_groups(
-        weight_tensor: torch.Tensor,
-        prune_ratio: float,
-        norm_order: float,
-        prune_groups: int
+    weight_tensor: torch.Tensor, prune_ratio: float, norm_order: float, prune_groups: int
 ) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     Prune entire groups of channels based on group-wise norms.
@@ -144,7 +135,6 @@ def prune_by_groups(
             with shape (out_channels,).
         kept_out_channels (int): Number of output channels retained after pruning.
     """
-
     shape = weight_tensor.shape
     assert shape[0] % prune_groups == 0, f"out channels {shape[0]} not divisible by groups={prune_groups}"
 
@@ -161,8 +151,9 @@ def prune_by_groups(
     return weight_view_pruned, mask, kept_out_channels
 
 
-def apply_prev_mask(weight: torch.Tensor, mask_prev: torch.Tensor, groups: int) -> tuple[
-    torch.Tensor, torch.Tensor, int]:
+def apply_prev_mask(
+    weight: torch.Tensor, mask_prev: torch.Tensor, groups: int
+) -> tuple[torch.Tensor, torch.Tensor, int]:
     """
     Apply previous layer's output mask to prune input channels of current layer's weights.
 
@@ -208,9 +199,12 @@ def apply_prev_mask(weight: torch.Tensor, mask_prev: torch.Tensor, groups: int) 
 
 
 def prune_conv2d(
-        conv_layer: Conv2d, prune_ratio: float, norm_order: float = 2.0, mask_prev: torch.Tensor = None,
-        prune_groups=None,
-        prune_type="preserve"
+    conv_layer: Conv2d,
+    prune_ratio: float,
+    norm_order: float = 2.0,
+    mask_prev: torch.Tensor = None,
+    prune_groups=None,
+    prune_type="preserve",
 ) -> tuple[Conv2d, torch.Tensor]:
     """
     Prune a Conv2d layer with group-aware pruning.
@@ -230,7 +224,6 @@ def prune_conv2d(
         mask (torch.Tensor): Boolean mask indicating kept (True) or pruned (False) output channels with
             shape (original_out_channels,).
     """
-
     original_groups = conv_layer.groups
     prune_groups = prune_groups if prune_groups is not None else original_groups
     pruned_weight = conv_layer.weight
@@ -246,31 +239,34 @@ def prune_conv2d(
         pruned_weight, mask, new_groups = apply_prev_mask(pruned_weight, mask_prev, original_groups)
         kept_out_channels = int(torch.sum(mask).item())
 
-        assert kept_out_channels % new_groups == 0, f"Invalid grouped conv: {kept_out_channels} out_channels not divisible by {new_groups} groups"
+        assert kept_out_channels % new_groups == 0, (
+            f"Invalid grouped conv: {kept_out_channels} out_channels not divisible by {new_groups} groups"
+        )
 
     if new_groups == original_groups:
         if prune_ratio > 0:
             if prune_type == "preserve":
-                pruned_weight, mask, kept_out_channels = prune_channels_groupwise(pruned_weight, prune_ratio,
-                                                                                  norm_order=norm_order,
-                                                                                  prune_groups=prune_groups)
+                pruned_weight, mask, kept_out_channels = prune_channels_groupwise(
+                    pruned_weight, prune_ratio, norm_order=norm_order, prune_groups=prune_groups
+                )
                 new_groups = original_groups
 
             elif prune_type == "remove":
                 if original_groups == 1 and prune_groups == 1:
-                    pruned_weight, mask, kept_out_channels = prune_channels_groupwise(pruned_weight, prune_ratio,
-                                                                                      norm_order=norm_order,
-                                                                                      prune_groups=prune_groups)
+                    pruned_weight, mask, kept_out_channels = prune_channels_groupwise(
+                        pruned_weight, prune_ratio, norm_order=norm_order, prune_groups=prune_groups
+                    )
 
                 else:
-                    pruned_weight, mask, kept_out_channels = prune_by_groups(pruned_weight,
-                                                                             prune_ratio,
-                                                                             norm_order=norm_order,
-                                                                             prune_groups=prune_groups)
+                    pruned_weight, mask, kept_out_channels = prune_by_groups(
+                        pruned_weight, prune_ratio, norm_order=norm_order, prune_groups=prune_groups
+                    )
 
                     if original_groups > 1:
                         remaining_groups = kept_out_channels // out_channels_per_group
-                        assert kept_out_channels % out_channels_per_group == 0, f'Pruned out_channels={kept_out_channels} not divisible by channels/group={out_channels_per_group}'
+                        assert kept_out_channels % out_channels_per_group == 0, (
+                            f"Pruned out_channels={kept_out_channels} not divisible by channels/group={out_channels_per_group}"
+                        )
                         new_groups = remaining_groups
                         kept_in_channels = in_channels_per_group * remaining_groups
             else:
@@ -301,8 +297,9 @@ def prune_conv2d(
     return updated_conv, mask
 
 
-def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev: torch.Tensor = None) -> tuple[
-    Conv2d, torch.Tensor]:
+def prune_conv2d_with_skip(
+    conv_layer: Conv2d, mask_skip: torch.Tensor, mask_prev: torch.Tensor = None
+) -> tuple[Conv2d, torch.Tensor]:
     """
     Prune a Conv2d layer to match output channels from a skip connection source.
 
@@ -316,7 +313,6 @@ def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_pre
         pruned_conv (nn.Conv2d): Pruned Conv2d layer with adjusted channels.
         mask (torch.Tensor): Output channel mask applied (same as mask_skip).
     """
-
     updated_out_channels = int(torch.sum(mask_skip).item())  # non-zero number of out_channels
 
     updated_in_channels = conv_layer.in_channels if mask_prev is None else int(torch.sum(mask_prev).numpy())
@@ -345,9 +341,12 @@ def prune_conv2d_with_skip(conv_layer: Conv2d, mask_skip: torch.Tensor, mask_pre
 
 
 def prune_conv(
-        yolo_conv_layer: Conv, prune_ratio: float, norm_order: float = 2, mask_prev: torch.Tensor = None,
-        prune_groups=None,
-        prune_type="preserve"  # "remove"
+    yolo_conv_layer: Conv,
+    prune_ratio: float,
+    norm_order: float = 2,
+    mask_prev: torch.Tensor = None,
+    prune_groups=None,
+    prune_type="preserve",  # "remove"
 ) -> torch.Tensor:
     """
     Prune a YOLO Conv block (Conv2d + BatchNorm2d).
@@ -365,12 +364,17 @@ def prune_conv(
     Returns:
         mask (torch.Tensor): Boolean mask indicating kept (True) or pruned (False) output channels.
     """
-
     conv = yolo_conv_layer.conv
     bn = yolo_conv_layer.bn
 
-    pruned_conv, conv_mask = prune_conv2d(conv_layer=conv, prune_ratio=prune_ratio, norm_order=norm_order,
-                                          mask_prev=mask_prev, prune_groups=prune_groups, prune_type=prune_type)
+    pruned_conv, conv_mask = prune_conv2d(
+        conv_layer=conv,
+        prune_ratio=prune_ratio,
+        norm_order=norm_order,
+        mask_prev=mask_prev,
+        prune_groups=prune_groups,
+        prune_type=prune_type,
+    )
     pruned_bn, bn_mask = prune_batchnorm2d(bn_layer=bn, mask_prev=conv_mask)
 
     yolo_conv_layer.conv = pruned_conv
@@ -379,8 +383,9 @@ def prune_conv(
     return conv_mask
 
 
-def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None,
-                         mask_prev: torch.Tensor = None) -> torch.Tensor:
+def prune_conv_with_skip(
+    yolo_conv_layer: Conv, mask_skip: torch.Tensor = None, mask_prev: torch.Tensor = None
+) -> torch.Tensor:
     """
     Prune a YOLO Conv block to match output channels from a skip connection source.
 
@@ -394,7 +399,6 @@ def prune_conv_with_skip(yolo_conv_layer: Conv, mask_skip: torch.Tensor = None,
     Returns:
         mask (torch.Tensor): Boolean mask indicating kept output channels (same as mask_skip).
     """
-
     conv = yolo_conv_layer.conv
     bn = yolo_conv_layer.bn
 
@@ -452,11 +456,11 @@ def prune_batchnorm2d(bn_layer: BatchNorm2d, mask_prev: torch.Tensor) -> tuple[B
 
 
 def prune_bottleneck(
-        bottleneck: Bottleneck,
-        prune_ratio: float,
-        norm_order: float,
-        mask_prev: Optional[torch.Tensor],
-        mask_tracker: Optional[dict] = None
+    bottleneck: Bottleneck,
+    prune_ratio: float,
+    norm_order: float,
+    mask_prev: torch.Tensor | None,
+    mask_tracker: dict | None = None,
 ) -> torch.Tensor:
     """
     Prune a Bottleneck block in YOLO.
@@ -483,9 +487,9 @@ def prune_bottleneck(
     if add:
         if mask_prev is None:
             # No skip mask given → keep all cv2 outputs
-            cv2_mask = prune_conv_with_skip(yolo_conv_layer=cv2,
-                                            mask_skip=torch.ones(cv2.conv.out_channels, dtype=torch.bool),
-                                            mask_prev=cv1_mask)
+            cv2_mask = prune_conv_with_skip(
+                yolo_conv_layer=cv2, mask_skip=torch.ones(cv2.conv.out_channels, dtype=torch.bool), mask_prev=cv1_mask
+            )
         else:
             cv2_mask = prune_conv_with_skip(yolo_conv_layer=cv2, mask_skip=mask_prev, mask_prev=cv1_mask)
 
@@ -501,10 +505,15 @@ def prune_bottleneck(
     return cv2_mask
 
 
-def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None,
-              prune_groups=None,
-              prune_type="preserve",  # "remove"
-              mask_tracker: Optional[dict] = None) -> torch.Tensor:
+def prune_c2f(
+    c2f_layer: C2f,
+    prune_ratio: float,
+    norm_order=2,
+    mask_prev=None,
+    prune_groups=None,
+    prune_type="preserve",  # "remove"
+    mask_tracker: dict | None = None,
+) -> torch.Tensor:
     """
     Prune a C2f block in YOLO.
 
@@ -528,9 +537,7 @@ def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None,
     cv2 = c2f_layer.cv2
     m = c2f_layer.m
 
-    weight_mask = prune_conv(
-        cv1, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev, prune_groups=2
-    )
+    weight_mask = prune_conv(cv1, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev, prune_groups=2)
     chunk1_w_mask, chunk2_w_mask = weight_mask.chunk(2, 0)
 
     c2f_layer.c = chunk1_w_mask.sum().item()
@@ -545,8 +552,11 @@ def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None,
     for i, bottleneck in enumerate(m):
         mask_tracker_b = None if mask_tracker is None else {}
         bottleneck_mask = prune_bottleneck(
-            bottleneck, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=m_masks[-1],
-            mask_tracker=mask_tracker_b
+            bottleneck,
+            prune_ratio=prune_ratio,
+            norm_order=norm_order,
+            mask_prev=m_masks[-1],
+            mask_tracker=mask_tracker_b,
         )
         m_masks.append(bottleneck_mask)
 
@@ -560,8 +570,12 @@ def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None,
 
     if prune_groups:
         mask_cv2 = prune_conv(
-            cv2, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev_cv2,
-            prune_groups=prune_groups, prune_type=prune_type
+            cv2,
+            prune_ratio=prune_ratio,
+            norm_order=norm_order,
+            mask_prev=mask_prev_cv2,
+            prune_groups=prune_groups,
+            prune_type=prune_type,
         )
     else:
         mask_cv2 = prune_conv(cv2, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev_cv2)
@@ -572,8 +586,13 @@ def prune_c2f(c2f_layer: C2f, prune_ratio: float, norm_order=2, mask_prev=None,
     return mask_cv2
 
 
-def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2,
-               mask_prev: torch.Tensor = None, mask_tracker: Optional[dict] = None) -> torch.Tensor:
+def prune_sppf(
+    sppf_layer: SPPF,
+    prune_ratio: float,
+    norm_order: float = 2,
+    mask_prev: torch.Tensor = None,
+    mask_tracker: dict | None = None,
+) -> torch.Tensor:
     """
     Prune an SPPF (Spatial Pyramid Pooling - Fast) block in YOLO.
 
@@ -595,9 +614,7 @@ def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2,
 
     cv1_mask = prune_conv(yolo_conv_layer=cv1, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev)
     mask_prev_cv2 = cv1_mask.repeat(4)
-    cv2_mask = prune_conv(
-        yolo_conv_layer=cv2, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev_cv2
-    )
+    cv2_mask = prune_conv(yolo_conv_layer=cv2, prune_ratio=prune_ratio, norm_order=norm_order, mask_prev=mask_prev_cv2)
     if mask_tracker is not None:
         mask_tracker["cv1_input"] = mask_prev
         mask_tracker["cv1_output"] = cv1_mask
@@ -613,8 +630,13 @@ def prune_sppf(sppf_layer: SPPF, prune_ratio: float, norm_order: float = 2,
 
 
 def prune_detect(
-        detect_head: Detect, prune_ratio_detect: float, prune_ratio_classify: float, norm_order: float,
-        feature_masks: list, prune_type="preserve", mask_tracker: Optional[dict] = None
+    detect_head: Detect,
+    prune_ratio_detect: float,
+    prune_ratio_classify: float,
+    norm_order: float,
+    feature_masks: list,
+    prune_type="preserve",
+    mask_tracker: dict | None = None,
 ) -> None:
     """
     Prune the detection and classification towers of a YOLO Detect head.
@@ -642,7 +664,6 @@ def prune_detect(
         # prune first 2 Conv layers
         mask = feature_mask
         for j, conv in enumerate(detection_tower[:2]):
-
             if mask_tracker is not None:
                 mask_tracker[f"detection_tower_{i}_component_{j}_input"] = mask
 
@@ -654,8 +675,9 @@ def prune_detect(
         if mask_tracker is not None:
             mask_tracker[f"detection_tower_{i}_component_{2}_input"] = mask
 
-        updated_conv, mask = prune_conv2d(detection_tower[-1], 0, norm_order=norm_order, mask_prev=mask,
-                                          prune_type=prune_type)
+        updated_conv, mask = prune_conv2d(
+            detection_tower[-1], 0, norm_order=norm_order, mask_prev=mask, prune_type=prune_type
+        )
         detection_tower[-1] = updated_conv
 
         if mask_tracker is not None:
@@ -667,12 +689,12 @@ def prune_detect(
 
         if isinstance(first_component, Conv):
             for j, conv in enumerate(classification_tower[:2]):
-
                 if mask_tracker is not None:
                     mask_tracker[f"classification_tower_{i}_component_{j}_input"] = mask
 
-                mask = prune_conv(conv, prune_ratio_classify, norm_order=norm_order, mask_prev=mask,
-                                  prune_type=prune_type)
+                mask = prune_conv(
+                    conv, prune_ratio_classify, norm_order=norm_order, mask_prev=mask, prune_type=prune_type
+                )
 
                 if mask_tracker is not None:
                     mask_tracker[f"classification_tower_{i}_component_{j}_output"] = mask
@@ -683,23 +705,29 @@ def prune_detect(
 
             if mask_tracker is not None:
                 mask_tracker[f"classification_tower_{i}_component_{0}_{0}_input"] = mask
-            mask = prune_conv(dw_conv1, prune_ratio_classify, norm_order=norm_order, mask_prev=mask,
-                              prune_type=prune_type)
+            mask = prune_conv(
+                dw_conv1, prune_ratio_classify, norm_order=norm_order, mask_prev=mask, prune_type=prune_type
+            )
             if mask_tracker is not None:
                 mask_tracker[f"classification_tower_{i}_component_{0}_{0}_output"] = mask
                 mask_tracker[f"classification_tower_{i}_component_{0}_{1}_input"] = mask
 
             grouped_conv_chain = compute_effective_groups([conv1.conv.groups, dw_conv2.conv.groups])
             mask = prune_conv(
-                conv1, prune_ratio_classify, norm_order=norm_order, mask_prev=mask,
-                prune_groups=grouped_conv_chain, prune_type=prune_type
+                conv1,
+                prune_ratio_classify,
+                norm_order=norm_order,
+                mask_prev=mask,
+                prune_groups=grouped_conv_chain,
+                prune_type=prune_type,
             )
             if mask_tracker is not None:
                 mask_tracker[f"classification_tower_{i}_component_{0}_{1}_output"] = mask
                 mask_tracker[f"classification_tower_{i}_component_{1}_{0}_input"] = mask
 
-            mask = prune_conv(dw_conv2, prune_ratio_classify, norm_order=norm_order, mask_prev=mask,
-                              prune_type=prune_type)
+            mask = prune_conv(
+                dw_conv2, prune_ratio_classify, norm_order=norm_order, mask_prev=mask, prune_type=prune_type
+            )
             if mask_tracker is not None:
                 mask_tracker[f"classification_tower_{i}_component_{1}_{0}_output"] = mask
                 mask_tracker[f"classification_tower_{i}_component_{1}_{1}_input"] = mask
@@ -712,8 +740,9 @@ def prune_detect(
             mask_tracker[f"classification_tower_{i}_component_{2}_{0}_input"] = mask
             mask_tracker[f"classification_tower_{i}_component_{2}_input"] = mask
 
-        updated_conv, mask = prune_conv2d(classification_tower[-1], 0, norm_order=norm_order, mask_prev=mask,
-                                          prune_type=prune_type)
+        updated_conv, mask = prune_conv2d(
+            classification_tower[-1], 0, norm_order=norm_order, mask_prev=mask, prune_type=prune_type
+        )
         classification_tower[-1] = updated_conv
 
         if mask_tracker is not None:
@@ -723,7 +752,8 @@ def prune_detect(
 
 
 def gcd_all(vals) -> int:
-    """Compute the GCD of a sequence of integers.
+    """
+    Compute the GCD of a sequence of integers.
 
     Args:
         vals (Iterable[int]): Sequence of integers.
@@ -753,7 +783,6 @@ def compute_effective_groups(groups: list[int]) -> int:
         effective_groups (int): GCD of all group values excluding 1, representing the maximum
             common group divisor for pruning.
     """
-
     groups = [group for group in groups if group != 1]
     return gcd_all(groups)
 
@@ -827,8 +856,14 @@ def validate_prune_cfg(prune_yaml: str | Path) -> dict:
     return ratios
 
 
-def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: float = 2, prune_type="preserve",
-                          prune_yaml: str = None, mask_tracker: Optional[dict] = None) -> YOLO:
+def prune_detection_model(
+    model: YOLO,
+    prune_ratio: float = 0.1,
+    norm_order: float = 2,
+    prune_type="preserve",
+    prune_yaml: str = None,
+    mask_tracker: dict | None = None,
+) -> YOLO:
     """
     Prune a YOLO detection model by reducing channels across supported components.
 
@@ -848,7 +883,6 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
     Returns:
         YOLO: A deep-copied YOLO model with updated pruned weights and masks.
     """
-
     # Load component-wise pruning ratios if YAML is provided
     if prune_yaml is not None:
         prune_cfg = validate_prune_cfg(prune_yaml)
@@ -866,7 +900,6 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
     mask_prev = None
 
     for component in model_components:
-
         i, f = component.i, component.f
         mask_tracker_comp = {}
 
@@ -896,19 +929,26 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
                         mask_prev=mask_prev,
                         prune_groups=compute_effective_groups(grouped_conv_chain),
                         prune_type=prune_type,
-                        mask_tracker=mask_tracker_comp
+                        mask_tracker=mask_tracker_comp,
                     )
                 else:
-                    mask = prune_c2f(component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev,
-                                     mask_tracker=mask_tracker_comp)
+                    mask = prune_c2f(
+                        component,
+                        prune_ratio,
+                        norm_order=norm_order,
+                        mask_prev=mask_prev,
+                        mask_tracker=mask_tracker_comp,
+                    )
 
             else:
-                mask = prune_c2f(component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev,
-                                 mask_tracker=mask_tracker_comp)
+                mask = prune_c2f(
+                    component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev, mask_tracker=mask_tracker_comp
+                )
 
         elif isinstance(component, SPPF):
-            mask = prune_sppf(component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev,
-                              mask_tracker=mask_tracker_comp)
+            mask = prune_sppf(
+                component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev, mask_tracker=mask_tracker_comp
+            )
 
         elif isinstance(component, Conv):
             mask = prune_conv(component, prune_ratio, norm_order=norm_order, mask_prev=mask_prev)
@@ -932,7 +972,7 @@ def prune_detection_model(model: YOLO, prune_ratio: float = 0.1, norm_order: flo
                 norm_order=norm_order,
                 feature_masks=mask_prev,  # Masks from C2f outputs
                 prune_type=prune_type,
-                mask_tracker=mask_tracker_comp
+                mask_tracker=mask_tracker_comp,
             )
 
         elif isinstance(component, Upsample):

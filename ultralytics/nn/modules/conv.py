@@ -326,6 +326,7 @@ class GhostConv(nn.Module):
         """
         super().__init__()
         c_ = c2 // 2  # hidden channels
+        self.mode = mode
         
         # Primary convolution
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
@@ -350,7 +351,7 @@ class GhostConv(nn.Module):
         # Apply attention only if enabled (deeper layers)
         if self.mode == 'attn':
             # Attention path with max pooling
-            attn = F.max_pool2d(x, kernel_size=2, stride=2)
+            attn = F.avg_pool2d(x, kernel_size=2, stride=2)
             attn = self.short_conv(attn)
             attn = self.gate(attn)
             

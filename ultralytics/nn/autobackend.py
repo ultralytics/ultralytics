@@ -856,10 +856,9 @@ class AutoBackend(nn.Module):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
                 self.forward(im)  # warmup model
-                for i in (16, 20):
-                    warmup_boxes = torch.rand(1, 84, i, device=self.device)
-                    warmup_boxes[:, :4] *= imgsz[-1]
-                    non_max_suppression(warmup_boxes)  # warmup NMS
+                warmup_boxes = torch.rand(1, 84, 16, device=self.device)  # 16 boxes works best empirically
+                warmup_boxes[:, :4] *= imgsz[-1]
+                non_max_suppression(warmup_boxes)  # warmup NMS
 
     @staticmethod
     def _model_type(p: str = "path/to/model.pt") -> list[bool]:

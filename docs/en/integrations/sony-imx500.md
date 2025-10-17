@@ -345,8 +345,8 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
     === "Classification"
 
         ```python
-        import numpy as np
         import cv2
+        import numpy as np
         from modlib.apps import Annotator
         from modlib.devices import AiCamera
         from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model

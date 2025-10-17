@@ -63,7 +63,6 @@ ExecuTorch export requires Python 3.10 or higher and specific dependencies:
 
 For detailed instructions and best practices related to the installation process, check our [YOLO11 Installation guide](../quickstart.md). While installing the required packages for YOLO11, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
-
 ### Usage
 
 Exporting YOLO11 models to ExecuTorch is straightforward:
@@ -84,7 +83,6 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
         executorch_model = YOLO("yolo11n_executorch_model")
 
         results = executorch_model.predict("https://ultralytics.com/images/bus.jpg")
-
         ```
 
     === "CLI"
@@ -105,7 +103,6 @@ When exporting to ExecuTorch format, you can specify the following arguments:
 | -------- | --------------- | ------- | ------------------------------------------ |
 | `imgsz`  | `int` or `list` | `640`   | Image size for model input (height, width) |
 | `device` | `str`           | `'cpu'` | Device to use for export (`'cpu'`)         |
-
 
 ### Output Structure
 

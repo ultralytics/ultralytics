@@ -54,6 +54,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 mlruns/
+pytest.ini
+*.mp4
 
 # Translations
 *.mo

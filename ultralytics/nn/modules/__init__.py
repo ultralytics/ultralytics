@@ -73,7 +73,9 @@ from .conv import (
     GhostConv,
     Index,
     LightConv,
+    Permute,
     RepConv,
+    Reshape,
     SpatialAttention,
 )
 from .head import (
@@ -179,4 +181,6 @@ __all__ = (
     "TorchVision",
     "Index",
     "A2C2f",
+    "Permute",
+    "Reshape",
 )

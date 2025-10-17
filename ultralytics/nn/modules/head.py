@@ -26,7 +26,7 @@ class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     format = None  # export format
-    end2end = True  # end2end
+    end2end = False  # end2end
     max_det = 300  # max_det
     shape = None
     anchors = torch.empty(0)  # init
@@ -252,10 +252,13 @@ class Segment(Detect):
             x = self.forward_end2end(x, mc)
         else:
             x = Detect.forward(self, x)
-            x = (x, mc)
+            if self.training:
+                x = (x, mc)
+            else:
+                x = ((x[0], mc), (x[1], mc))
         if self.training:
             return x, p
-        return (torch.cat([x[0], x[1]], -1), p) if self.export else (torch.cat([x[0], x[1]], -1), (x, p))
+        return (torch.cat(x, 1), p) if self.export else (torch.cat(x[0], 1), (x[1], p))
 
     def forward_end2end(self, x: list[torch.Tensor], mask_coefficient: torch.Tensor) -> dict | tuple:
         """
@@ -282,7 +285,7 @@ class Segment(Detect):
 
         y = self._inference(one2one)
         y, mc = self.postprocess(y.permute(0, 2, 1), one2one_mc, self.max_det, self.nc)
-        return (y, mc) if self.export else ((y, {"one2many": (x, mask_coefficient), "one2one": (one2one, one2one_mc)}), mc)
+        return (y, mc) if self.export else ((y, mc), {"one2many": (x, mask_coefficient), "one2one": (one2one, one2one_mc)})
 
     @staticmethod
     def postprocess(preds: torch.Tensor, mask_coefficient: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:

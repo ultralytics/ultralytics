@@ -345,7 +345,8 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def parse_output(self, preds):
         """Parse model predictions to extract features, mask predictions, and prototype masks."""
-        return preds if len(preds) == 3 else preds[1]
+        preds = preds[1] if isinstance(preds[1], tuple) else preds
+        return *preds[0], preds[1]
 
     def loss(self, feats, pred_masks, proto, batch):
         """Calculate and return the combined loss for detection and segmentation."""

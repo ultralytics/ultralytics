@@ -101,7 +101,7 @@ class SegmentationValidator(DetectionValidator):
             proto (torch.Tensor): Prototype masks for segmentation.
         """
         p = super().postprocess(preds[0])
-        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
+        proto = preds[1][-1] if isinstance(preds[1], tuple) else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
     def _prepare_batch(self, si, batch):

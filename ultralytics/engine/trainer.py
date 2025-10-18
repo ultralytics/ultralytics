@@ -774,19 +774,20 @@ class BaseTrainer:
 
     def final_eval(self):
         """Perform final evaluation and validation for object detection YOLO model."""
+        model = self.best if self.best.exists() else None
         with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
             if RANK in {-1, 0}:
                 ckpt = strip_optimizer(self.last) if self.last.exists() else {}
-                if self.best.exists():
-                    strip_optimizer(
-                        self.best, updates={"train_results": ckpt.get("train_results")}
-                    )  # update best.pt train_metrics from last.pt
-                LOGGER.info(f"\nValidating {self.best}...")
-        self.validator.args.plots = self.args.plots
-        self.validator.args.compile = False  # disable final val compile as too slow
-        self.metrics = self.validator(model=self.best)
-        self.metrics.pop("fitness", None)
-        self.run_callbacks("on_fit_epoch_end")
+                if model:
+                    # update best.pt train_metrics from last.pt
+                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        if model:
+            LOGGER.info(f"\nValidating {model}...")
+            self.validator.args.plots = self.args.plots
+            self.validator.args.compile = False  # disable final val compile as too slow
+            self.metrics = self.validator(model=model)
+            self.metrics.pop("fitness", None)
+            self.run_callbacks("on_fit_epoch_end")
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""

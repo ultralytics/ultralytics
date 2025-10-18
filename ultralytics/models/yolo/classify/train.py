@@ -194,21 +194,6 @@ class ClassificationTrainer(BaseTrainer):
         loss_items = [round(float(loss_items), 5)]
         return dict(zip(keys, loss_items))
 
-    def final_eval(self):
-        """Evaluate trained model and save validation results."""
-        with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
-            if RANK in {-1, 0}:
-                for f in self.last, self.best:
-                    if f.exists():
-                        strip_optimizer(f)  # strip optimizers
-
-        LOGGER.info(f"\nValidating {self.best}...")
-        self.validator.args.data = self.args.data
-        self.validator.args.plots = self.args.plots
-        self.metrics = self.validator(model=self.best)
-        self.metrics.pop("fitness", None)
-        self.run_callbacks("on_fit_epoch_end")
-
     def plot_training_samples(self, batch: dict[str, torch.Tensor], ni: int):
         """
         Plot training samples with their annotations.

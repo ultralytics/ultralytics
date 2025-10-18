@@ -578,7 +578,7 @@ class AutoBackend(nn.Module):
         elif pte:
             LOGGER.info(f"Loading {w} for ExecuTorch inference...")
             check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-            check_requirements(("executorch==1.0.0","flatbuffers"))
+            check_requirements(("executorch==1.0.0", "flatbuffers"))
             from executorch.runtime import Runtime
 
             w = Path(w)

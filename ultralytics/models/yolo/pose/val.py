@@ -266,7 +266,9 @@ class PoseValidator(DetectionValidator):
             pred_json = self.save_dir / "predictions.json"  # predictions
             LOGGER.info(f"\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...")
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements("pycocotools>=2.0.6")
+                check_requirements("faster-coco-eval")
+                import faster_coco_eval
+                faster_coco_eval.init_as_pycocotools()
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
 
@@ -284,6 +286,7 @@ class PoseValidator(DetectionValidator):
                     stats[self.metrics.keys[idx + 1]], stats[self.metrics.keys[idx]] = eval.stats[
                         :2
                     ]  # update mAP50-95 and mAP50
+                    stats["fitness"] = 0.9 * stats[self.metrics.keys[idx + 1]] + 0.1 * stats[self.metrics.keys[idx]]
             except Exception as e:
                 LOGGER.warning(f"pycocotools unable to run: {e}")
         return stats

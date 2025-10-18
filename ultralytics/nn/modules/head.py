@@ -327,6 +327,8 @@ class OBB(Detect):
 
         c4 = max(ch[0] // 4, self.ne)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.ne, 1)) for x in ch)
+        if self.end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
@@ -337,14 +339,78 @@ class OBB(Detect):
         # angle = angle.sigmoid() * math.pi / 2  # [0, pi/2]
         if not self.training:
             self.angle = angle
-        x = Detect.forward(self, x)
+        if self.end2end:
+            x = self.forward_end2end(x, angle)
+        else:
+            x = Detect.forward(self, x)
+            if self.training:
+                x = (x, angle)
+            else:
+                x = ((x[0], angle), (x[1], angle))
         if self.training:
-            return x, angle
-        return torch.cat([x, angle], 1) if self.export else (torch.cat([x[0], angle], 1), (x[1], angle))
+            return x
+        dim = -1 if self.end2end else 1
+        return torch.cat(x, dim) if self.export else (torch.cat(x[0], dim), x[1])
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
+
+    def forward_end2end(self, x: list[torch.Tensor], angle: torch.Tensor) -> dict | tuple:
+        """
+        Perform forward pass of the v10Detect module.
+
+        Args:
+            x (list[torch.Tensor]): Input feature maps from different levels.
+            angle (torch.Tensor): OBB angle logits.
+
+        Returns:
+            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
+                Inference mode returns processed detections or tuple with detections and raw outputs.
+        """
+        x_detach = [xi.detach() for xi in x]
+        one2one = [
+            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
+        ]
+        bs = x[0].shape[0]  # batch size
+        one2one_angle = torch.cat([self.one2one_cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
+        one2one_angle = (one2one_angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:  # Training path
+            return {"one2many": (x, angle), "one2one": (one2one, one2one_angle)}
+
+        y = self._inference(one2one)
+        y, ag = self.postprocess(y.permute(0, 2, 1), one2one_angle, self.max_det, self.nc)
+        return (y, ag) if self.export else ((y, ag), {"one2many": (x, angle), "one2one": (one2one, one2one_angle)})
+
+    @staticmethod
+    def postprocess(preds: torch.Tensor, angle: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+        """
+        Post-process YOLO model predictions.
+
+        Args:
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
+                format [x, y, w, h, class_probs].
+            max_det (int): Maximum detections per image.
+            nc (int, optional): Number of classes.
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
+                dimension format [x, y, w, h, max_class_prob, class_index].
+        """
+        batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
+        boxes, scores = preds.split([4, nc], dim=-1)
+        index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
+        angle = angle.permute(0, 2, 1)  # (bs,8400,32)
+        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
+        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
+        angle = angle.gather(dim=1, index=index.repeat(1, 1, angle.shape[-1]))
+        scores, index = scores.flatten(1).topk(min(max_det, anchors))
+        i = torch.arange(batch_size)[..., None]  # batch indices
+        return torch.cat(
+            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1
+        ), angle[i, index // nc]
 
 
 class Pose(Detect):

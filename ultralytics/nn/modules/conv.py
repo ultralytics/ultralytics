@@ -351,7 +351,7 @@ class GhostConv(nn.Module):
         # Apply attention only if enabled (deeper layers)
         if self.mode == 'attn':
             # Attention path with max pooling
-            attn = F.avg_pool2d(x, kernel_size=2, stride=2)
+            attn = F.max_pool2d(x, kernel_size=2, stride=2)
             attn = self.short_conv(attn)
             attn = self.gate(attn)
             

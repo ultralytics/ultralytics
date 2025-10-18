@@ -11,9 +11,9 @@ from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images
-from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
+from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
 
 
 class ClassificationTrainer(BaseTrainer):

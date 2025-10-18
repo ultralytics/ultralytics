@@ -161,7 +161,7 @@ class BaseValidator:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device if RANK == -1 else torch.device("cuda", RANK)),
+                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,

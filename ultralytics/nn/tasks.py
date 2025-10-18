@@ -350,10 +350,12 @@ class DetectionModel(BaseModel):
             def _forward(x):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
                 # output = self.forward(x)[0][0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
-                output = self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
+                output = self.forward(x)
+                if isinstance(m, (Segment, YOLOESegment)):
+                    output = self.forward(x)[0]  # split proto
                 if self.end2end:
-                    return output["one2many"][0]
-                return  output
+                    output = output["one2many"]
+                return output[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else output
 
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride

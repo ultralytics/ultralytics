@@ -491,6 +491,7 @@ nav:
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - Gradio: integrations/gradio.md
       - Roboflow: integrations/roboflow.md
+      - ExecuTorch: integrations/executorch.md
   - HUB:
       - hub/index.md
       - Web:

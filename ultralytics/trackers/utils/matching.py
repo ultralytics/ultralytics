@@ -13,7 +13,7 @@ try:
 except (ImportError, AssertionError, AttributeError):
     from ultralytics.utils.checks import check_requirements
 
-    check_requirements('lapx>=0.5.2')  # update to lap package from https://github.com/rathaROG/lapx
+    check_requirements("lapx>=0.5.2")  # update to lap package from https://github.com/rathaROG/lapx
     import lap
 
 
@@ -29,7 +29,6 @@ def linear_assignment(cost_matrix, thresh, use_lap=True):
     Returns:
         (tuple): Tuple containing matched indices, unmatched indices from 'a', and unmatched indices from 'b'.
     """
-
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 
@@ -64,9 +63,9 @@ def iou_distance(atracks, btracks):
     Returns:
         (np.ndarray): Cost matrix computed based on IoU.
     """
-
-    if (len(atracks) > 0 and isinstance(atracks[0], np.ndarray)) \
-            or (len(btracks) > 0 and isinstance(btracks[0], np.ndarray)):
+    if (len(atracks) > 0 and isinstance(atracks[0], np.ndarray)) or (
+        len(btracks) > 0 and isinstance(btracks[0], np.ndarray)
+    ):
         atlbrs = atracks
         btlbrs = btracks
     else:
@@ -75,13 +74,13 @@ def iou_distance(atracks, btracks):
 
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if len(atlbrs) and len(btlbrs):
-        ious = bbox_ioa(np.ascontiguousarray(atlbrs, dtype=np.float32),
-                        np.ascontiguousarray(btlbrs, dtype=np.float32),
-                        iou=True)
+        ious = bbox_ioa(
+            np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32), iou=True
+        )
     return 1 - ious  # cost matrix
 
 
-def embedding_distance(tracks, detections, metric='cosine'):
+def embedding_distance(tracks, detections, metric="cosine"):
     """
     Compute distance between tracks and detections based on embeddings.
 
@@ -93,7 +92,6 @@ def embedding_distance(tracks, detections, metric='cosine'):
     Returns:
         (np.ndarray): Cost matrix computed based on embeddings.
     """
-
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
@@ -116,7 +114,6 @@ def fuse_score(cost_matrix, detections):
     Returns:
         (np.ndarray): Fused similarity matrix.
     """
-
     if cost_matrix.size == 0:
         return cost_matrix
     iou_sim = 1 - cost_matrix

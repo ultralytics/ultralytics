@@ -39,6 +39,7 @@ class BOTrack(STrack):
         bo_track.predict()
         bo_track.update(new_track, frame_id)
     """
+
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
@@ -176,7 +177,7 @@ class BOTSORT(BYTETracker):
     def get_dists(self, tracks, detections):
         """Get distances between tracks and detections using IoU and (optionally) ReID embeddings."""
         dists = matching.iou_distance(tracks, detections)
-        dists_mask = (dists > self.proximity_thresh)
+        dists_mask = dists > self.proximity_thresh
 
         # TODO: mot20
         # if not self.args.mot20:

@@ -52,7 +52,7 @@ Install the required dependencies:
 
 ```bash
 pip install -r yolov5/requirements.txt
-pip install onnx>=1.10.0
+pip install onnx > =1.10.0
 ```
 
 Train the YOLOv5 model:

@@ -22,7 +22,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 ## Supported Tasks
 
 | Model Type  | Pre-trained Weights                                                                                                 | Task                  |
-|-------------|---------------------------------------------------------------------------------------------------------------------|-----------------------|
+| ----------- | ------------------------------------------------------------------------------------------------------------------- | --------------------- |
 | YOLOv8      | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`                                                | Detection             |
 | YOLOv8-seg  | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                            | Instance Segmentation |
 | YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt`, `yolov8x-pose-p6.pt` | Pose/Keypoints        |
@@ -31,7 +31,7 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
 ## Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+| ---------- | ------------------ |
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
@@ -107,16 +107,16 @@ You can use YOLOv8 for object detection tasks using the Ultralytics pip package.
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLOv8n model
-        model = YOLO('yolov8n.pt')
+        model = YOLO("yolov8n.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv8n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

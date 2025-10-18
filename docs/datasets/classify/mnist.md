@@ -42,10 +42,10 @@ To train a CNN model on the MNIST dataset for 100 epochs with an image size of 3
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
 
         # Train the model
-        results = model.train(data='mnist', epochs=100, imgsz=32)
+        results = model.train(data="mnist", epochs=100, imgsz=32)
         ```
 
     === "CLI"

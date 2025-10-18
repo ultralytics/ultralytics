@@ -40,16 +40,16 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
         from ultralytics import RTDETR
 
         # Load a COCO-pretrained RT-DETR-l model
-        model = RTDETR('rtdetr-l.pt')
+        model = RTDETR("rtdetr-l.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the RT-DETR-l model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"
@@ -65,14 +65,14 @@ You can use RT-DETR for object detection tasks using the `ultralytics` pip packa
 ### Supported Tasks
 
 | Model Type          | Pre-trained Weights | Tasks Supported  |
-|---------------------|---------------------|------------------|
+| ------------------- | ------------------- | ---------------- |
 | RT-DETR Large       | `rtdetr-l.pt`       | Object Detection |
 | RT-DETR Extra-Large | `rtdetr-x.pt`       | Object Detection |
 
 ### Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+| ---------- | ------------------ |
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
@@ -98,4 +98,4 @@ If you use Baidu's RT-DETR in your research or development work, please cite the
 
 We would like to acknowledge Baidu and the [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community. Their contribution to the field with the development of the Vision Transformers-based real-time object detector, RT-DETR, is greatly appreciated.
 
-*Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API*
+_Keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API_

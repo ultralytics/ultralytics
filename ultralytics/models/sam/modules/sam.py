@@ -6,7 +6,6 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import List
 
 import torch
 from torch import nn
@@ -30,16 +29,17 @@ class Sam(nn.Module):
         pixel_mean (List[float]): Mean pixel values for image normalization.
         pixel_std (List[float]): Standard deviation values for image normalization.
     """
+
     mask_threshold: float = 0.0
-    image_format: str = 'RGB'
+    image_format: str = "RGB"
 
     def __init__(
         self,
         image_encoder: ImageEncoderViT,
         prompt_encoder: PromptEncoder,
         mask_decoder: MaskDecoder,
-        pixel_mean: List[float] = (123.675, 116.28, 103.53),
-        pixel_std: List[float] = (58.395, 57.12, 57.375)
+        pixel_mean: list[float] = (123.675, 116.28, 103.53),
+        pixel_std: list[float] = (58.395, 57.12, 57.375),
     ) -> None:
         """
         Initialize the Sam class to predict object masks from an image and input prompts.
@@ -60,5 +60,5 @@ class Sam(nn.Module):
         self.image_encoder = image_encoder
         self.prompt_encoder = prompt_encoder
         self.mask_decoder = mask_decoder
-        self.register_buffer('pixel_mean', torch.Tensor(pixel_mean).view(-1, 1, 1), False)
-        self.register_buffer('pixel_std', torch.Tensor(pixel_std).view(-1, 1, 1), False)
+        self.register_buffer("pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False)
+        self.register_buffer("pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False)

@@ -23,13 +23,13 @@ YOLOv5u represents an advancement in object detection methodologies. Originating
 ## Supported Tasks
 
 | Model Type | Pre-trained Weights                                                                                                         | Task      |
-|------------|-----------------------------------------------------------------------------------------------------------------------------|-----------|
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- | --------- |
 | YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | Detection |
 
 ## Supported Modes
 
 | Mode       | Supported          |
-|------------|--------------------|
+| ---------- | ------------------ |
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
@@ -68,16 +68,16 @@ You can use YOLOv5u for object detection tasks using the Ultralytics repository.
         from ultralytics import YOLO
 
         # Load a COCO-pretrained YOLOv5n model
-        model = YOLO('yolov5n.pt')
+        model = YOLO("yolov5n.pt")
 
         # Display model information (optional)
         model.info()
 
         # Train the model on the COCO8 example dataset for 100 epochs
-        results = model.train(data='coco8.yaml', epochs=100, imgsz=640)
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
         # Run inference with the YOLOv5n model on the 'bus.jpg' image
-        results = model('path/to/bus.jpg')
+        results = model("path/to/bus.jpg")
         ```
 
     === "CLI"

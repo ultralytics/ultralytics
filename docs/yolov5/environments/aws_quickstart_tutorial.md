@@ -8,7 +8,7 @@ keywords: AWS, YOLOv5, instance, deep learning, Ultralytics, guide, training, de
 
 This guide will help new users run YOLOv5 on an Amazon Web Services (AWS) Deep Learning instance. AWS offers a [Free Tier](https://aws.amazon.com/free/) and a [credit program](https://aws.amazon.com/activate/) for a quick and affordable start.
 
-Other quickstart options for YOLOv5 include our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial), and our Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>. *Updated: 21 April 2023*.
+Other quickstart options for YOLOv5 include our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial), and our Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>. _Updated: 21 April 2023_.
 
 ## 1. AWS Console Sign-in
 
@@ -59,18 +59,18 @@ Select the checkbox next to your running instance, and then click Connect. Copy 
 Once you have logged in to your instance, clone the repository and install the dependencies in a [**Python>=3.8.0**](https://www.python.org/) environment, including [**PyTorch>=1.8**](https://pytorch.org/get-started/locally/). [Models](https://github.com/ultralytics/yolov5/tree/master/models) and [datasets](https://github.com/ultralytics/yolov5/tree/master/data) download automatically from the latest YOLOv5 [release](https://github.com/ultralytics/yolov5/releases).
 
 ```bash
-git clone https://github.com/ultralytics/yolov5  # clone
+git clone https://github.com/ultralytics/yolov5 # clone
 cd yolov5
-pip install -r requirements.txt  # install
+pip install -r requirements.txt # install
 ```
 
 Then, start training, testing, detecting, and exporting YOLOv5 models:
 
 ```bash
-python train.py  # train a model
-python val.py --weights yolov5s.pt  # validate a model for Precision, Recall, and mAP
-python detect.py --weights yolov5s.pt --source path/to/images  # run inference on images and videos
-python export.py --weights yolov5s.pt --include onnx coreml tflite  # export models to other formats
+python train.py                                                    # train a model
+python val.py --weights yolov5s.pt                                 # validate a model for Precision, Recall, and mAP
+python detect.py --weights yolov5s.pt --source path/to/images      # run inference on images and videos
+python export.py --weights yolov5s.pt --include onnx coreml tflite # export models to other formats
 ```
 
 ## Optional Extras
@@ -82,7 +82,7 @@ sudo fallocate -l 64G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
-free -h  # check memory
+free -h # check memory
 ```
 
 Now you have successfully set up and run YOLOv5 on an AWS Deep Learning instance. Enjoy training, testing, and deploying your object detection models!

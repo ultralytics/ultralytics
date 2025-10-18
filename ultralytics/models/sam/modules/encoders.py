@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from typing import Any, Optional, Tuple, Type
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -26,23 +26,23 @@ class ImageEncoderViT(nn.Module):
     """
 
     def __init__(
-            self,
-            img_size: int = 1024,
-            patch_size: int = 16,
-            in_chans: int = 3,
-            embed_dim: int = 768,
-            depth: int = 12,
-            num_heads: int = 12,
-            mlp_ratio: float = 4.0,
-            out_chans: int = 256,
-            qkv_bias: bool = True,
-            norm_layer: Type[nn.Module] = nn.LayerNorm,
-            act_layer: Type[nn.Module] = nn.GELU,
-            use_abs_pos: bool = True,
-            use_rel_pos: bool = False,
-            rel_pos_zero_init: bool = True,
-            window_size: int = 0,
-            global_attn_indexes: Tuple[int, ...] = (),
+        self,
+        img_size: int = 1024,
+        patch_size: int = 16,
+        in_chans: int = 3,
+        embed_dim: int = 768,
+        depth: int = 12,
+        num_heads: int = 12,
+        mlp_ratio: float = 4.0,
+        out_chans: int = 256,
+        qkv_bias: bool = True,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
+        act_layer: type[nn.Module] = nn.GELU,
+        use_abs_pos: bool = True,
+        use_rel_pos: bool = False,
+        rel_pos_zero_init: bool = True,
+        window_size: int = 0,
+        global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
         """
         Args:
@@ -144,10 +144,10 @@ class PromptEncoder(nn.Module):
     def __init__(
         self,
         embed_dim: int,
-        image_embedding_size: Tuple[int, int],
-        input_image_size: Tuple[int, int],
+        image_embedding_size: tuple[int, int],
+        input_image_size: tuple[int, int],
         mask_in_chans: int,
-        activation: Type[nn.Module] = nn.GELU,
+        activation: type[nn.Module] = nn.GELU,
     ) -> None:
         """
         Encodes prompts for input to SAM's mask decoder.
@@ -231,7 +231,7 @@ class PromptEncoder(nn.Module):
 
     def _get_batch_size(
         self,
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
+        points: Optional[tuple[torch.Tensor, torch.Tensor]],
         boxes: Optional[torch.Tensor],
         masks: Optional[torch.Tensor],
     ) -> int:
@@ -251,10 +251,10 @@ class PromptEncoder(nn.Module):
 
     def forward(
         self,
-        points: Optional[Tuple[torch.Tensor, torch.Tensor]],
+        points: Optional[tuple[torch.Tensor, torch.Tensor]],
         boxes: Optional[torch.Tensor],
         masks: Optional[torch.Tensor],
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Embeds different types of prompts, returning both sparse and dense embeddings.
 
@@ -281,9 +281,9 @@ class PromptEncoder(nn.Module):
         if masks is not None:
             dense_embeddings = self._embed_masks(masks)
         else:
-            dense_embeddings = self.no_mask_embed.weight.reshape(1, -1, 1,
-                                                                 1).expand(bs, -1, self.image_embedding_size[0],
-                                                                           self.image_embedding_size[1])
+            dense_embeddings = self.no_mask_embed.weight.reshape(1, -1, 1, 1).expand(
+                bs, -1, self.image_embedding_size[0], self.image_embedding_size[1]
+            )
 
         return sparse_embeddings, dense_embeddings
 
@@ -296,7 +296,7 @@ class PositionEmbeddingRandom(nn.Module):
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
-        self.register_buffer('positional_encoding_gaussian_matrix', scale * torch.randn((2, num_pos_feats)))
+        self.register_buffer("positional_encoding_gaussian_matrix", scale * torch.randn((2, num_pos_feats)))
 
         # Set non-deterministic for forward() error 'cumsum_cuda_kernel does not have a deterministic implementation'
         torch.use_deterministic_algorithms(False)
@@ -311,7 +311,7 @@ class PositionEmbeddingRandom(nn.Module):
         # Outputs d_1 x ... x d_n x C shape
         return torch.cat([torch.sin(coords), torch.cos(coords)], dim=-1)
 
-    def forward(self, size: Tuple[int, int]) -> torch.Tensor:
+    def forward(self, size: tuple[int, int]) -> torch.Tensor:
         """Generate positional encoding for a grid of the specified size."""
         h, w = size
         device: Any = self.positional_encoding_gaussian_matrix.device
@@ -324,7 +324,7 @@ class PositionEmbeddingRandom(nn.Module):
         pe = self._pe_encoding(torch.stack([x_embed, y_embed], dim=-1))
         return pe.permute(2, 0, 1)  # C x H x W
 
-    def forward_with_coords(self, coords_input: torch.Tensor, image_size: Tuple[int, int]) -> torch.Tensor:
+    def forward_with_coords(self, coords_input: torch.Tensor, image_size: tuple[int, int]) -> torch.Tensor:
         """Positionally encode points that are not normalized to [0,1]."""
         coords = coords_input.clone()
         coords[:, :, 0] = coords[:, :, 0] / image_size[1]
@@ -341,12 +341,12 @@ class Block(nn.Module):
         num_heads: int,
         mlp_ratio: float = 4.0,
         qkv_bias: bool = True,
-        norm_layer: Type[nn.Module] = nn.LayerNorm,
-        act_layer: Type[nn.Module] = nn.GELU,
+        norm_layer: type[nn.Module] = nn.LayerNorm,
+        act_layer: type[nn.Module] = nn.GELU,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         window_size: int = 0,
-        input_size: Optional[Tuple[int, int]] = None,
+        input_size: Optional[tuple[int, int]] = None,
     ) -> None:
         """
         Args:
@@ -407,7 +407,7 @@ class Attention(nn.Module):
         qkv_bias: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
-        input_size: Optional[Tuple[int, int]] = None,
+        input_size: Optional[tuple[int, int]] = None,
     ) -> None:
         """
         Args:
@@ -421,14 +421,14 @@ class Attention(nn.Module):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
-        self.scale = head_dim ** -0.5
+        self.scale = head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.proj = nn.Linear(dim, dim)
 
         self.use_rel_pos = use_rel_pos
         if self.use_rel_pos:
-            assert (input_size is not None), 'Input size must be provided if using relative positional encoding.'
+            assert input_size is not None, "Input size must be provided if using relative positional encoding."
             # Initialize relative positional embeddings
             self.rel_pos_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, head_dim))
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
@@ -451,9 +451,10 @@ class Attention(nn.Module):
         return self.proj(x)
 
 
-def window_partition(x: torch.Tensor, window_size: int) -> Tuple[torch.Tensor, Tuple[int, int]]:
+def window_partition(x: torch.Tensor, window_size: int) -> tuple[torch.Tensor, tuple[int, int]]:
     """
     Partition into non-overlapping windows with padding if needed.
+
     Args:
         x (tensor): input tokens with [B, H, W, C].
         window_size (int): window size.
@@ -475,8 +476,9 @@ def window_partition(x: torch.Tensor, window_size: int) -> Tuple[torch.Tensor, T
     return windows, (Hp, Wp)
 
 
-def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[int, int],
-                       hw: Tuple[int, int]) -> torch.Tensor:
+def window_unpartition(
+    windows: torch.Tensor, window_size: int, pad_hw: tuple[int, int], hw: tuple[int, int]
+) -> torch.Tensor:
     """
     Window unpartition into original sequences and removing padding.
 
@@ -502,8 +504,8 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: Tuple[in
 
 def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
     """
-    Get relative positional embeddings according to the relative positions of
-        query and key sizes.
+    Get relative positional embeddings according to the relative positions of query and key sizes.
+
     Args:
         q_size (int): size of query q.
         k_size (int): size of key k.
@@ -519,7 +521,7 @@ def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor
         rel_pos_resized = F.interpolate(
             rel_pos.reshape(1, rel_pos.shape[0], -1).permute(0, 2, 1),
             size=max_rel_dist,
-            mode='linear',
+            mode="linear",
         )
         rel_pos_resized = rel_pos_resized.reshape(-1, max_rel_dist).permute(1, 0)
     else:
@@ -538,8 +540,8 @@ def add_decomposed_rel_pos(
     q: torch.Tensor,
     rel_pos_h: torch.Tensor,
     rel_pos_w: torch.Tensor,
-    q_size: Tuple[int, int],
-    k_size: Tuple[int, int],
+    q_size: tuple[int, int],
+    k_size: tuple[int, int],
 ) -> torch.Tensor:
     """
     Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
@@ -562,11 +564,12 @@ def add_decomposed_rel_pos(
 
     B, _, dim = q.shape
     r_q = q.reshape(B, q_h, q_w, dim)
-    rel_h = torch.einsum('bhwc,hkc->bhwk', r_q, Rh)
-    rel_w = torch.einsum('bhwc,wkc->bhwk', r_q, Rw)
+    rel_h = torch.einsum("bhwc,hkc->bhwk", r_q, Rh)
+    rel_w = torch.einsum("bhwc,wkc->bhwk", r_q, Rw)
 
     attn = (attn.view(B, q_h, q_w, k_h, k_w) + rel_h[:, :, :, :, None] + rel_w[:, :, :, None, :]).view(
-        B, q_h * q_w, k_h * k_w)
+        B, q_h * q_w, k_h * k_w
+    )
 
     return attn
 
@@ -575,12 +578,12 @@ class PatchEmbed(nn.Module):
     """Image to Patch Embedding."""
 
     def __init__(
-            self,
-            kernel_size: Tuple[int, int] = (16, 16),
-            stride: Tuple[int, int] = (16, 16),
-            padding: Tuple[int, int] = (0, 0),
-            in_chans: int = 3,
-            embed_dim: int = 768,
+        self,
+        kernel_size: tuple[int, int] = (16, 16),
+        stride: tuple[int, int] = (16, 16),
+        padding: tuple[int, int] = (0, 0),
+        in_chans: int = 3,
+        embed_dim: int = 768,
     ) -> None:
         """
         Args:

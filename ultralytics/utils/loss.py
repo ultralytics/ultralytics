@@ -509,11 +509,13 @@ class v8PoseLoss(v8DetectionLoss):
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def parse_output(self, preds):
-        """Parse model predictions to extract features and keypoint predictions."""
-        return preds if isinstance(preds[0], list) else preds[1]
+        """Parse model predictions to extract features and angle predictions."""
+        return preds[1] if isinstance(preds, tuple) else preds
 
-    def loss(self, feats, pred_kpts, batch):
+    def loss(self, feats, batch):
         """Calculate the total loss and detach it for pose estimation."""
+        pred_kpts = feats[1]
+        feats = feats[0]
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(feats, batch)

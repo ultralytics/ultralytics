@@ -278,7 +278,9 @@ class Segment(Detect):
             torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
         ]
         bs = x[0].shape[0]  # batch size
-        one2one_mc = torch.cat([self.one2one_cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
+        one2one_mc = torch.cat(
+            [self.one2one_cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2
+        )  # mask coefficients
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
@@ -286,7 +288,9 @@ class Segment(Detect):
 
         y = self._inference(one2one)
         y, mc = self.postprocess(y.permute(0, 2, 1), one2one_mc, self.max_det, self.nc)
-        return (y, mc) if self.export else ((y, mc), {"one2many": (x, mask_coefficient), "one2one": (one2one, one2one_mc)})
+        return (
+            (y, mc) if self.export else ((y, mc), {"one2many": (x, mask_coefficient), "one2one": (one2one, one2one_mc)})
+        )
 
     @staticmethod
     def postprocess(preds: torch.Tensor, mask_coefficient: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -373,7 +377,9 @@ class OBB(Detect):
             torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
         ]
         bs = x[0].shape[0]  # batch size
-        one2one_angle = torch.cat([self.one2one_cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
+        one2one_angle = torch.cat(
+            [self.one2one_cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2
+        )  # OBB theta logits
         one2one_angle = (one2one_angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
@@ -408,9 +414,9 @@ class OBB(Detect):
         angle = angle.gather(dim=1, index=index.repeat(1, 1, angle.shape[-1]))
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
-        return torch.cat(
-            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1
-        ), angle[i, index // nc]
+        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1), angle[
+            i, index // nc
+        ]
 
 
 class Pose(Detect):
@@ -424,16 +430,25 @@ class Pose(Detect):
 
         c4 = max(ch[0] // 4, self.nk)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
+        if self.end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     def forward(self, x):
         """Perform forward pass through YOLO model and return predictions."""
         bs = x[0].shape[0]  # batch size
         kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
-        x = Detect.forward(self, x)
+        if self.end2end:
+            x = self.forward_end2end(x, kpt)
+        else:
+            x = Detect.forward(self, x)
+            if self.training:
+                x = (x, kpt)
+            else:
+                x = ((x[0], self.kpts_decode(bs, kpt)), (x[1], kpt))
         if self.training:
-            return x, kpt
-        pred_kpt = self.kpts_decode(bs, kpt)
-        return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
+            return x
+        dim = -1 if self.end2end else 1
+        return torch.cat(x, dim) if self.export else (torch.cat(x[0], dim), x[1])
 
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
@@ -463,6 +478,62 @@ class Pose(Detect):
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
+
+    def forward_end2end(self, x: list[torch.Tensor], kpts: torch.Tensor) -> dict | tuple:
+        """
+        Perform forward pass of the v10Detect module.
+
+        Args:
+            x (list[torch.Tensor]): Input feature maps from different levels.
+            kpts (torch.Tensor): Keypoints.
+
+        Returns:
+            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
+                Inference mode returns processed detections or tuple with detections and raw outputs.
+        """
+        x_detach = [xi.detach() for xi in x]
+        one2one = [
+            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
+        ]
+        bs = x[0].shape[0]  # batch size
+        one2one_kpt = torch.cat([self.one2one_cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:  # Training path
+            return {"one2many": (x, kpts), "one2one": (one2one, one2one_kpt)}
+
+        y = self._inference(one2one)
+        kpt = self.kpts_decode(bs, one2one_kpt)
+        y, kpt = self.postprocess(y.permute(0, 2, 1), kpt, self.max_det, self.nc)
+        return (y, kpt) if self.export else ((y, kpt), {"one2many": (x, kpts), "one2one": (one2one, one2one_kpt)})
+
+    @staticmethod
+    def postprocess(preds: torch.Tensor, kpts: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+        """
+        Post-process YOLO model predictions.
+
+        Args:
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
+                format [x, y, w, h, class_probs].
+            max_det (int): Maximum detections per image.
+            nc (int, optional): Number of classes.
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
+                dimension format [x, y, w, h, max_class_prob, class_index].
+        """
+        batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
+        boxes, scores = preds.split([4, nc], dim=-1)
+        index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
+        kpts = kpts.permute(0, 2, 1)  # (bs,8400,32)
+        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
+        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
+        kpts = kpts.gather(dim=1, index=index.repeat(1, 1, kpts.shape[-1]))
+        scores, index = scores.flatten(1).topk(min(max_det, anchors))
+        i = torch.arange(batch_size)[..., None]  # batch indices
+        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1), kpts[
+            i, index // nc
+        ]
 
 
 class Classify(nn.Module):

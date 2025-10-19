@@ -243,9 +243,9 @@ class BaseDataset(Dataset):
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 imgsz = self.imgsz
                 pad_imgsz = math.ceil(self.imgsz / self.stride + self.pad) * self.stride
-                if max(h0, w0) >= pad_imgsz: # only use larger imgsz if original has higher res
+                if max(h0, w0) >= pad_imgsz:  # only use larger imgsz if original has higher res
                     imgsz = pad_imgsz
-                r = (imgsz / max(h0, w0))  # ratio
+                r = imgsz / max(h0, w0)  # ratio
                 if r != 1:  # if sizes are not equal
                     w, h = (min(math.ceil(w0 * r), imgsz), min(math.ceil(h0 * r), imgsz))
                     im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)

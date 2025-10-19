@@ -166,13 +166,19 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         Process the source to get the visual prompt embeddings (VPE).
 
+        Preprocesses a single image using pre_transform([im]) (called internally via preprocess()) to apply
+        letterboxing and convert visual prompts into tensor format, then extracts the VPE from the model.
+
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
                 of the image to make predictions on. Accepts various types including file paths, URLs, PIL
-                images, numpy arrays, and torch tensors.
+                images, numpy arrays, and torch tensors. Only single images are supported.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.
+
+        Raises:
+            AssertionError: If the source contains more than one image.
         """
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"

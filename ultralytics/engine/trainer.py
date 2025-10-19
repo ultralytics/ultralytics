@@ -637,12 +637,13 @@ class BaseTrainer:
         if not all_nan_grads:
             self.scaler.step(self.optimizer)
             # self.scaler.update()
-            self.optimizer.zero_grad()
+            # self.optimizer.zero_grad()
             if self.ema:
                 self.ema.update(self.model)
         else:
             LOGGER.warning("WARNING ⚠️ All gradients are NaN, skipping optimizer step")
         self.scaler.update()
+        self.optimizer.zero_grad()
         # self.scaler.step(self.optimizer)
         # self.scaler.update()
         # self.optimizer.zero_grad()

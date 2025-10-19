@@ -636,13 +636,17 @@ class BaseTrainer:
 
         if not all_nan_grads:
             self.scaler.step(self.optimizer)
+            self.scaler.update()
+            self.optimizer.zero_grad()
+            if self.ema:
+                self.ema.update(self.model)
         else:
             LOGGER.warning("WARNING ⚠️ All gradients are NaN, skipping optimizer step")
         # self.scaler.step(self.optimizer)
-        self.scaler.update()
-        self.optimizer.zero_grad()
-        if self.ema:
-            self.ema.update(self.model)
+        # self.scaler.update()
+        # self.optimizer.zero_grad()
+        # if self.ema:
+        #     self.ema.update(self.model)
 
     def preprocess_batch(self, batch):
         """Allows custom preprocessing model inputs and ground truths depending on task type."""

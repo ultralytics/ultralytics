@@ -13,7 +13,7 @@ env:
 on:
   push:
     branches: [main]
-  pull_request:
+  pull_request: {}
   schedule:
     - cron: "0 8 * * *" # runs at 08:00 UTC every day
   workflow_dispatch:
@@ -47,9 +47,19 @@ on:
         default: true
         type: boolean
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref }}
+  cancel-in-progress: ${{ ! (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+
 jobs:
   HUB:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true'))
+    if: >
+      github.repository == 'ultralytics/ultralytics' &&
+      (
+        github.event_name == 'schedule' ||
+        github.event_name == 'push' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.hub == 'true')
+      )
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -150,9 +150,9 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     def __init__(self, dataset, num_replicas=None, batch_size=None, rank=None, shuffle=False):
         """Initialize the sampler with dataset and distributed training parameters."""
         if num_replicas is None:
-            num_replicas = dist.get_world_size()
+            num_replicas = dist.get_world_size() if dist.is_initialized() else 1
         if rank is None:
-            rank = dist.get_rank()
+            rank = dist.get_rank() if dist.is_initialized() else 0
         if batch_size is None:
             batch_size = getattr(dataset, "batch_size", 1)
 

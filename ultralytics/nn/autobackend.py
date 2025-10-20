@@ -179,8 +179,8 @@ class AutoBackend(nn.Module):
             ncnn,
             imx,
             rknn,
-            triton,
             pte,
+            triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu or rknn  # BHWC formats (vs torch BCWH)
@@ -903,25 +903,19 @@ class AutoBackend(nn.Module):
         """
         from ultralytics.engine.exporter import export_formats
 
-        sf = export_formats()["Suffix"]
-        p_path = Path(p)
-        if not is_url(p) and not p_path.is_dir():
-            check_suffix(p, sf)
-
-        p_str = str(p)
-        sf_standard = sf[:-1]  # Standard suffixes from exporter
-        pte_suffix = sf[-1]  # '.pte' suffix
-
-        types = [p_str.endswith(s) for s in sf_standard]
-        types[5] |= p_str.endswith(".mlmodel")  # CoreML special case
-        types[8] &= not types[9]  # TFLite vs. EdgeTPU
-        pte = p_str.endswith(pte_suffix)  # ExecuTorch check
-
-        triton = False
-        if not (any(types) or pte):
+        sf = export_formats()["Suffix"]  # export suffixes
+        if not is_url(p) and not isinstance(p, str):
+            check_suffix(p, sf)  # checks
+        name = Path(p).name
+        types = [s in name for s in sf]
+        types[5] |= name.endswith(".mlmodel")  # retain support for older Apple CoreML *.mlmodel formats
+        types[8] &= not types[9]  # tflite &= not edgetpu
+        if any(types):
+            triton = False
+        else:
             from urllib.parse import urlsplit
 
-            url = urlsplit(p_str)
+            url = urlsplit(p)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
-        return types + [triton, pte]
+        return types + [triton]

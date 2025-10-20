@@ -23,7 +23,6 @@ Ultralytics provides a built-in pruning utility that allows two modes of operati
 
 ```python
 from ultralytics import YOLO
-from ultralytics.utils.prune import prune_detection_model
 
 model = YOLO("yolov8s.pt")
 ```
@@ -34,6 +33,8 @@ The `prune_detection_model()` function takes a YOLO model instance and returns a
 ## 1. Global Pruning Ratio
 
 ```python
+
+from ultralytics.utils.prune import prune_detection_model
 
 # Prune 25% of channels globally
 pruned = prune_detection_model(model, prune_ratio=0.25)
@@ -46,13 +47,19 @@ pruned.save("y8s-pruned.pt")
 
 ```python
 
+from ultralytics.utils.prune import prune_detection_model
+
 # Prune using a YAML-defined ratio for each component
 pruned = prune_detection_model(model, prune_yaml="ultralytics/cfg/pruning/sample_prune.yaml")
 pruned.save("y8s-pruned.pt")
 
 ```
 Example structure of sample_prune.yaml:
-```commandline
+
+
+
+
+```yaml
 prune_ratios:
   # Backbone
   0: 0.1 # Conv 0 - P1/2
@@ -78,7 +85,7 @@ prune_ratios:
   18: 0.5 # C2f 18 - head P4 / medium
   19: 0.25 # Conv
   20: null # Concat - cat head P5
-  21: .5 # C2f 21 - head P5 / large
+  21: 0.5 # C2f 21 - head P5 / large
   22: [0.0, 0.0] # Detect - [regression tower, classification tower]
 ```
 Each index (0–22) corresponds to the components in the [YOLOv8 model definition](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v8/yolov8.yaml).
@@ -97,7 +104,7 @@ pruned.train(data="coco128.yaml", epochs=50)
 
 ## Exporting Pruned Models
 
->**Note:** ONNX export requires the onnxscript package to be installed.
+>**Note:** ONNX export requires the `onnxscript` package (`pip install onnxscript`).
 
 Export pruned models as usual:
 ```python

@@ -195,7 +195,7 @@ jobs:
           yolo checks
           uv pip list
       - name: Pytest tests
-        run: pytest --cov=ultralytics/ --cov-report=xml -n auto --randomly-seed=42 tests/
+        run: pytest --cov=ultralytics/ -v --cov-report=xml -n auto --randomly-seed=42 tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         uses: codecov/codecov-action@v5

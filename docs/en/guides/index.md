@@ -58,7 +58,6 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [Vertex AI Deployment with Docker](vertex-ai-deployment-with-docker.md) 🚀 NEW: Streamlined guide to containerizing YOLO models with Docker and deploying them on Google Cloud Vertex AI—covering build, push, autoscaling, and monitoring.
 - [Model Pruning for YOLOv8](model-optimization/pruning.md) 🚀 NEW: Learn how to prune YOLOv8 detection models to reduce size and latency while maintaining accuracy—ideal for edge and real-time deployment.
 
-
 ## Contribute to Our Guides
 
 We welcome contributions from the community! If you've mastered a particular aspect of Ultralytics YOLO that's not yet covered in our guides, we encourage you to share your expertise. Writing a guide is a great way to give back to the community and help us make our documentation more comprehensive and user-friendly.

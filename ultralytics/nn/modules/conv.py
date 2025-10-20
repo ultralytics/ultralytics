@@ -337,11 +337,12 @@ class GhostConv(nn.Module):
         # DFC Attention mechanism (only for deeper layers)
         if self.mode == 'attn':
             self.short_conv = nn.Sequential(
-                Conv(c1, c2, k, s, None, 1, act=False),
-                DWConv(c2, c2, (1, 5), 1, act=False),
-                DWConv(c2, c2, (5, 1), 1, act=False),
+                nn.Conv2d(c1, c2, k, s, padding=k // 2, bias=True),
+                nn.Conv2d(c2, c2, (1, 5), 1, padding=(0, 2), groups=c2, bias=True),
+                nn.Conv2d(c2, c2, (5, 1), 1, padding=(2, 0), groups=c2, bias=True),
             )
             self.gate = nn.Sigmoid()
+            self.gamma = nn.Parameter(torch.tensor(0.1))
 
     def forward(self, x):
         # Ghost path - primary conv + cheap operation
@@ -350,15 +351,11 @@ class GhostConv(nn.Module):
         
         # Apply attention only if enabled (deeper layers)
         if self.mode == 'attn':
-            # Attention path with max pooling
-            attn = F.max_pool2d(x, kernel_size=2, stride=2)
+            attn = F.avg_pool2d(x, kernel_size=2, stride=2)
             attn = self.short_conv(attn)
-            attn = self.gate(attn)
-            
-            # Apply attention with interpolation
             attn = F.interpolate(attn, size=out.shape[-2:], mode='nearest')
-            return out * attn
-        
+            attn = self.gate(attn)
+            return out * (1 + self.gamma * (attn - 0.5)) 
         return out
 
 class RepConv(nn.Module):

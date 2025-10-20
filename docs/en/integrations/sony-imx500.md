@@ -362,7 +362,7 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                     model_file="yolo11n-cls_imx_model/packerOut.zip",  # replace with proper directory
                     model_type=MODEL_TYPE.CONVERTED,
                     color_format=COLOR_FORMAT.RGB,
-                    preserve_aspect_ratio=True,
+                    preserve_aspect_ratio=False,
                 )
 
                 self.labels = np.genfromtxt("yolo11n-cls_imx_model/labels.txt", dtype=str, delimiter="\n")

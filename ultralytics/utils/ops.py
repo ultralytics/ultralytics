@@ -506,27 +506,52 @@ def resample_segments(segments, n: int = 1000):
     return segments
 
 
-def crop_mask(masks, boxes, margin=0):
+def crop_mask_soft(masks, boxes, soft_pixels=6):
+    """
+    Crop masks with soft boundary transitions.
+
+    Args:
+        masks (torch.Tensor): Masks with shape (N, H, W).
+        boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
+        soft_pixels (int): Width of the soft transition zone in pixels.
+
+    Returns:
+        (torch.Tensor): Cropped masks with soft boundaries.
+    """
+    _, h, w = masks.shape
+
+    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)
+    r = torch.arange(w, device=masks.device, dtype=masks.dtype)[None, None, :]
+    c = torch.arange(h, device=masks.device, dtype=masks.dtype)[None, :, None]
+
+    # Distance from each boundary
+    dist_left = r - x1 + 1
+    dist_right = x2 - r
+    dist_top = c - y1 + 1
+    dist_bottom = y2 - c
+
+    # Smooth falloff using clamp instead of hard cutoff
+    alpha_h = torch.clamp(torch.minimum(dist_left, dist_right) / soft_pixels, 0, 1)
+    alpha_v = torch.clamp(torch.minimum(dist_top, dist_bottom) / soft_pixels, 0, 1)
+    alpha = alpha_h * alpha_v
+
+    return masks * alpha
+
+
+def crop_mask(masks, boxes):
     """
     Crop masks to bounding box regions.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).
         boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
-        margin (float): Margin added before cropping.
 
     Returns:
         (torch.Tensor): Cropped masks.
     """
     n, h, w = masks.shape
-    pm, nm = 1 + margin, 1 - margin
     if n < 50:  # faster for fewer masks (predict)
-        mboxes = boxes
-        if margin:
-            mboxes = boxes.clone()
-            mboxes[:, :2] *= nm
-            mboxes[:, 2:] *= pm
-        for i, (x1, y1, x2, y2) in enumerate(mboxes.round().int()):
+        for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
             masks[i, :y1] = 0
             masks[i, y2:] = 0
             masks[i, :, :x1] = 0
@@ -536,7 +561,7 @@ def crop_mask(masks, boxes, margin=0):
         x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
         r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
         c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-        return masks * ((r >= x1 * nm) * (r < x2 * pm) * (c >= y1 * nm) * (c < y2 * pm))
+        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -561,10 +586,10 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     height_ratio = mh / shape[0]
     ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
-    masks = crop_mask(masks, boxes=(bboxes * ratios).round(), margin=0.03 if upsample else 0)  # CHW
+    masks = crop_mask_soft(masks, boxes=(bboxes * ratios).round())  # CHW
     if upsample:
         masks = scale_masks(masks[None], shape)[0]  # CHW
-    return masks.gt_(0.0).byte()
+    return masks.gt_(0.05).byte()
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):

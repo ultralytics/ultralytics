@@ -589,7 +589,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     masks = crop_mask_soft(masks, boxes=(bboxes * ratios).round())  # CHW
     if upsample:
         masks = scale_masks(masks[None], shape)[0]  # CHW
-    return masks.gt_(0.05).byte()
+    return masks.gt_(0.06).byte()
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):

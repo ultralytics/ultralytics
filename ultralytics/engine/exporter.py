@@ -1235,6 +1235,8 @@ class Exporter:
             "imx500-converter[pt]>3.17.3" if IS_PYTHON_3_8 else "imx500-converter[pt]>=3.17.3"
         )  # Python 3.8 requires >3.17.3, Python 3.9+ can use >=3.17.3
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
+        check_requirements("onnxscript")  # needed for failing CIs. Check reason later.
+        
 
         # Install Java>=17
         try:

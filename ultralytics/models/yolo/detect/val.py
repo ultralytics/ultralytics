@@ -237,6 +237,7 @@ class DetectionValidator(BaseValidator):
                 for key in merged_stats.keys():
                     merged_stats[key].extend(stats_dict[key])
             self.metrics.stats = merged_stats
+            self.seen = len(self.dataloader.dataset)  # total image count from dataset
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
             self.metrics.clear_stats()

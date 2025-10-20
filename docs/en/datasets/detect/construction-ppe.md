@@ -6,6 +6,8 @@ keywords: Construction-PPE, PPE dataset, safety compliance, construction workers
 
 # Construction-PPE Dataset
 
+<a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-construction-ppe-detection-dataset.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Construction-PPE Dataset In Colab"></a>
+
 The Construction-PPE dataset is designed to improve safety compliance in construction sites by enabling detection of essential protective gear such as helmets, vests, gloves, boots, and goggles, along with annotations for missing equipment. Curated from real construction environments, it includes both compliant and non-compliant cases, making it a valuable resource for training AI models that monitor workplace safety.
 
 ## Dataset Structure

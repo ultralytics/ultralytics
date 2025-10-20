@@ -564,7 +564,7 @@ Once the deployment is complete, Vertex AI will provide you with a sample API in
 To test remote inference, you can use the provided cURL command or create another Python client library that will send requests to the deployed model. Remember that you need to encode your image to base64 before sending it to the `/predict` endpoint.
 
 <p align="center">
-  <img width="50%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/test-endpoint.png" alt="Vertex AI endpoint testing interface displaying sample cURL command for making prediction requests to deployed YOLO11 model">
+  <img width="50%" src="https://github.com/ultralytics/docs/releases/download/0/vertex-ai-endpoint-test-curl-yolo11.avif" alt="Vertex AI endpoint testing interface displaying sample cURL command for making prediction requests to deployed YOLO11 model">
 </p>
 
 !!! note "Expect a short delay on the first request"

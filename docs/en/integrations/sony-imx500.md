@@ -392,16 +392,16 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
 YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
 | Model        | Format | Size (pixels) | Size of `packerOut.zip` (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------------ | ------ | ------ | ---------------------------- | ----------- | ---------------------- |
-| YOLOv8n      | imx    | 640     | 2.1                          | 0.470       | 58.79                  |
-| YOLO11n      | imx    | 640     | 2.2                          | 0.517       | 58.82                  |
-| YOLOv8n-pose | imx    | 640     | 2.0                          | 0.687       | 58.79                  |
-| YOLO11n-pose | imx    | 640     | 2.1                          | 0.788       | 62.50                  |
+| ------------ | ------ | ------------- | ---------------------------- | ----------- | ---------------------- |
+| YOLOv8n      | imx    | 640           | 2.1                          | 0.470       | 58.79                  |
+| YOLO11n      | imx    | 640           | 2.2                          | 0.517       | 58.82                  |
+| YOLOv8n-pose | imx    | 640           | 2.0                          | 0.687       | 58.79                  |
+| YOLO11n-pose | imx    | 640           | 2.1                          | 0.788       | 62.50                  |
 
-| Model        | Format | Size (pixels) | Size of `packerOut.zip` (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
-| ------------ | ------ | ------ | ---------------------------- | ----------- | ----------- | ---------------------- |
-| YOLOv8n-cls  | imx    | 224     | 2.3                          |  0.25      |      0.5             | 33.31 |
-| YOLO11n-cls  | imx    | 224     | 2.3                          |  0.25      |    0.417          | 33.31 |
+| Model       | Format | Size (pixels) | Size of `packerOut.zip` (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
+| ----------- | ------ | ------------- | ---------------------------- | ---------- | ---------- | ---------------------- |
+| YOLOv8n-cls | imx    | 224           | 2.3                          | 0.25       | 0.5        | 33.31                  |
+| YOLO11n-cls | imx    | 224           | 2.3                          | 0.25       | 0.417      | 33.31                  |
 
 !!! note
 

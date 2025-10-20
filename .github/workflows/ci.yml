@@ -252,7 +252,7 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/ -n auto
+          run: pytest --slow --cov=ultralytics/ -n auto --cov-report=xml tests/
           retries: 1 # Retry once after initial attempt (2 total runs)
           retry_delay_seconds: 60
       - name: Prune uv Cache

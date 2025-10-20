@@ -105,10 +105,6 @@ class SegmentationPredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             masks = ops.process_mask_native(proto, pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # HWC
         else:
-            masks = ops.process_mask(proto, pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
-        if masks is not None:
-            keep = masks.amax((-2, -1)) > 0  # only keep predictions with masks
-            if not all(keep):  # most predictions have masks
-                pred, masks = pred[keep], masks[keep]  # indexing is slow
+            masks = ops.process_mask(proto, pred[:, 6:], pred[:, :4], orig_img.shape[:2], upsample=True)  # HWC
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)

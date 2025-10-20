@@ -506,6 +506,38 @@ def resample_segments(segments, n: int = 1000):
     return segments
 
 
+def crop_mask_soft(masks, boxes, soft_pixels=6):
+    """
+    Crop masks with soft boundary transitions.
+
+    Args:
+        masks (torch.Tensor): Masks with shape (N, H, W).
+        boxes (torch.Tensor): Bounding box coordinates with shape (N, 4) in relative point form.
+        soft_pixels (int): Width of the soft transition zone in pixels.
+
+    Returns:
+        (torch.Tensor): Cropped masks with soft boundaries.
+    """
+    _, h, w = masks.shape
+
+    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)
+    r = torch.arange(w, device=masks.device, dtype=masks.dtype)[None, None, :]
+    c = torch.arange(h, device=masks.device, dtype=masks.dtype)[None, :, None]
+
+    # Distance from each boundary
+    dist_left = r - x1 + 1
+    dist_right = x2 - r
+    dist_top = c - y1 + 1
+    dist_bottom = y2 - c
+
+    # Smooth falloff using clamp instead of hard cutoff
+    alpha_h = torch.clamp(torch.minimum(dist_left, dist_right) / soft_pixels, 0, 1)
+    alpha_v = torch.clamp(torch.minimum(dist_top, dist_bottom) / soft_pixels, 0, 1)
+    alpha = alpha_h * alpha_v
+
+    return masks * alpha
+
+
 def crop_mask(masks, boxes):
     """
     Crop masks to bounding box regions.
@@ -554,10 +586,10 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
     height_ratio = mh / shape[0]
     ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
-    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
+    masks = crop_mask_soft(masks, boxes=(bboxes * ratios).round())  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
-    return masks.gt_(0.0).byte()
+        masks = scale_masks(masks[None], shape)[0]  # CHW
+    return masks.gt_(0.05).byte()
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):

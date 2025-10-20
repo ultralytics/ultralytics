@@ -29,11 +29,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
@@ -160,7 +161,7 @@ class BaseValidator:
             callbacks.add_integration_callbacks(self)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device),
+                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
@@ -223,21 +224,34 @@ class BaseValidator:
                 preds = self.postprocess(preds)
 
             self.update_metrics(preds, batch)
-            if self.args.plots and batch_i < 3:
+            if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
             self.run_callbacks("on_val_batch_end")
-        stats = self.get_stats()
-        self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
-        self.finalize_metrics()
-        self.print_results()
-        self.run_callbacks("on_val_end")
+
+        stats = {}
+        self.gather_stats()
+        if RANK in {-1, 0}:
+            stats = self.get_stats()
+            self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1e3 for x in dt)))
+            self.finalize_metrics()
+            self.print_results()
+            self.run_callbacks("on_val_end")
+
         if self.training:
             model.float()
-            results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
+            # Reduce loss across all GPUs
+            loss = self.loss.clone().detach()
+            if trainer.world_size > 1:
+                dist.reduce(loss, dst=0, op=dist.ReduceOp.AVG)
+            if RANK > 0:
+                return
+            results = {**stats, **trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val")}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
+            if RANK > 0:
+                return stats
             LOGGER.info(
                 "Speed: {:.1f}ms preprocess, {:.1f}ms inference, {:.1f}ms loss, {:.1f}ms postprocess per image".format(
                     *tuple(self.speed.values())
@@ -335,6 +349,10 @@ class BaseValidator:
     def get_stats(self):
         """Return statistics about the model's performance."""
         return {}
+
+    def gather_stats(self):
+        """Gather statistics from all the GPUs during DDP training to GPU 0."""
+        pass
 
     def print_results(self):
         """Print the results of the model's predictions."""

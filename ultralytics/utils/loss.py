@@ -385,7 +385,7 @@ class v8SegmentationLoss(v8DetectionLoss):
             masks = batch["masks"].to(self.device).float()
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                 # masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
-                proto = F.interpolate(proto, masks.shape[-2:], mode="billinear", align_corners=False)
+                proto = F.interpolate(proto, masks.shape[-2:], mode="bilinear", align_corners=False)
 
             imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=feats[0].dtype) * self.stride[0]
             loss[1] = self.calculate_segmentation_loss(

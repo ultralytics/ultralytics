@@ -524,13 +524,11 @@ def crop_mask_soft(masks, boxes, soft_pixels=6):
     r = torch.arange(w, device=masks.device, dtype=masks.dtype)[None, None, :]
     c = torch.arange(h, device=masks.device, dtype=masks.dtype)[None, :, None]
 
-    # Distance from each boundary
     dist_left = r - x1 + 1
     dist_right = x2 - r
     dist_top = c - y1 + 1
     dist_bottom = y2 - c
 
-    # Smooth falloff using clamp instead of hard cutoff
     alpha_h = torch.clamp(torch.minimum(dist_left, dist_right) / soft_pixels, 0, 1)
     alpha_v = torch.clamp(torch.minimum(dist_top, dist_bottom) / soft_pixels, 0, 1)
     alpha = alpha_h * alpha_v

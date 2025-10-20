@@ -1149,13 +1149,8 @@ class Exporter:
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
-        check_requirements("setuptools<71.0.0")
-        check_requirements(
-            (
-                "executorch==1.0.0",
-                "flatbuffers",
-            ),
-        )
+        check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+        check_requirements(("executorch==1.0.0", "flatbuffers"))
 
         import torch
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner

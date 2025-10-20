@@ -187,7 +187,7 @@ jobs:
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
           uv pip install --system -e ".[export,solutions]" \
-            $torch pytest-cov pytest-xdist pytest-randomly \
+            $torch pytest-cov pytest-xdist \
             --extra-index-url https://download.pytorch.org/whl/cpu \
             --index-strategy unsafe-best-match
       - name: Check environment
@@ -195,6 +195,8 @@ jobs:
           yolo checks
           uv pip list
       - name: Pytest tests
+        env:
+          PYTHONHASHSEED: 0
         run: pytest --cov=ultralytics/ --cov-report=xml -n auto tests/
       - name: Upload Coverage Reports to CodeCov
         if: github.repository == 'ultralytics/ultralytics' # && matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
@@ -244,7 +246,7 @@ jobs:
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
           uv pip install --system -e ".[export,solutions]" \
-            $torch faster-coco-eval mlflow pytest-cov pytest-xdist pytest-randomly \
+            $torch faster-coco-eval mlflow pytest-cov \
             --extra-index-url https://download.pytorch.org/whl/cpu \
             --index-strategy unsafe-best-match
       - name: Check environment
@@ -255,7 +257,7 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          run: pytest --slow --cov=ultralytics/ --cov-report=xml -n auto tests/
+          run: pytest --slow --cov=ultralytics/ --cov-report=xml tests/
           retries: 1 # Retry once after initial attempt (2 total runs)
           retry_delay_seconds: 60
       - name: Prune uv Cache

@@ -183,31 +183,31 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
 @pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
-def test_solution(name, solution_class, needs_frame_count, video, kwargs, tmpdir):
+def test_solution(name, solution_class, needs_frame_count, video, kwargs, tmp_path):
     """Test individual Ultralytics solution with video processing and parameter validation."""
     if video:
         if name != "ObjectCounterVertical":
-            safe_download(url=f"{ASSETS_URL}/{video}", dir=tmpdir)
+            safe_download(url=f"{ASSETS_URL}/{video}", dir=tmp_path)
         else:
-            safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=tmpdir)
+            safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=tmp_path)
     if name == "ParkingManager":
-        safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=tmpdir)
-        safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=tmpdir)
+        safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=tmp_path)
+        safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=tmp_path)
 
     elif name == "StreamlitInference":
         if checks.check_imshow():  # do not merge with elif above
             solution_class(**kwargs).inference()  # requires interactive GUI environment
         return
 
-    # Update kwargs to use tmpdir
+    # Update kwargs to use tmp_path
     for key in ["crop_dir", "model", "json_file"]:
         if key in kwargs:
-            kwargs[key] = str(tmpdir / kwargs[key])
+            kwargs[key] = str(tmp_path / kwargs[key])
 
     video = VERTICAL_VIDEO if name == "ObjectCounterVertical" else video
     process_video(
         solution=solution_class(**kwargs),
-        video_path=str(tmpdir / video),
+        video_path=str(tmp_path / video),
         needs_frame_count=needs_frame_count,
     )
 
@@ -297,10 +297,9 @@ def test_streamlit_handle_video_upload_creates_file():
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-def test_similarity_search(tmpdir):
-    """Test similarity search solution with sample images and text query."""
-    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=tmpdir)  # 4 dog images for testing in a zip file
-    searcher = solutions.VisualAISearch(data=str(tmpdir / "4-imgs-similaritysearch"))
+def test_similarity_search(tmp_path):
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=tmp_path)  # 4 dog images for testing in a zip file
+    searcher = solutions.VisualAISearch(data=str(tmp_path / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 
 

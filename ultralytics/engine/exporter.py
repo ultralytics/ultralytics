@@ -114,7 +114,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, select_device
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, TORCH_2_9, select_device
 
 
 def export_formats():
@@ -1148,6 +1148,8 @@ class Exporter:
         following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
+        assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
         # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
         check_requirements(("executorch==1.0.0", "flatbuffers"))

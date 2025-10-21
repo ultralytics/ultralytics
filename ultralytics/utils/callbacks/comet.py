@@ -163,7 +163,7 @@ def _scale_bounding_box_to_original_image_shape(
         ratio_pad (tuple): Ratio and padding information for scaling.
 
     Returns:
-        (List[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
+        (list[float]): Scaled bounding box coordinates in xywh format with top-left corner adjustment.
     """
     resized_image_height, resized_image_width = resized_image_shape
 
@@ -297,7 +297,7 @@ def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) ->
         decode (Callable): Function to decode the compressed segmentation data.
 
     Returns:
-        (List[List[Any]] | None): List of polygon points or None if extraction fails.
+        (list[list[Any]] | None): List of polygon points or None if extraction fails.
     """
     try:
         mask = decode(segmentation_raw)
@@ -322,7 +322,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
         class_map (dict): Additional class mapping for label conversion.
 
     Returns:
-        (List | None): List of annotation dictionaries or None if no annotations exist.
+        (list | None): List of annotation dictionaries or None if no annotations exist.
     """
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(
         img_idx, image_path, batch, class_label_map
@@ -365,9 +365,9 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
-        image_paths (List[Path]): List of paths to images that will be logged.
+        image_paths (list[Path]): List of paths to images that will be logged.
         curr_step (int): Current training step/iteration for tracking in the experiment timeline.
-        annotations (List[List[dict]], optional): Nested list of annotation dictionaries for each image. Each
+        annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each
             annotation contains visualization data like bounding boxes, labels, and confidence scores.
     """
     if annotations:

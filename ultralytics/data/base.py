@@ -36,8 +36,8 @@ class BaseDataset(Dataset):
         fraction (float): Fraction of dataset to utilize.
         channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         cv2_flag (int): OpenCV flag for reading images.
-        im_files (List[str]): List of image file paths.
-        labels (List[Dict]): List of label data dictionaries.
+        im_files (list[str]): List of image file paths.
+        labels (list[dict]): List of label data dictionaries.
         ni (int): Number of images in the dataset.
         rect (bool): Whether to use rectangular training.
         batch_size (int): Size of batches.
@@ -48,7 +48,7 @@ class BaseDataset(Dataset):
         ims (list): List of loaded images.
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
-        npy_files (List[Path]): List of numpy file paths.
+        npy_files (list[Path]): List of numpy file paths.
         cache (str): Cache images to RAM or disk during training.
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
@@ -90,18 +90,18 @@ class BaseDataset(Dataset):
         Initialize BaseDataset with given configuration and options.
 
         Args:
-            img_path (str | List[str]): Path to the folder containing images or list of image paths.
+            img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
             cache (bool | str): Cache images to RAM or disk during training.
             augment (bool): If True, data augmentation is applied.
-            hyp (Dict[str, Any]): Hyperparameters to apply data augmentation.
+            hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
             rect (bool): If True, rectangular training is used.
             batch_size (int): Size of batches.
             stride (int): Stride used in the model.
             pad (float): Padding value.
             single_cls (bool): If True, single class training is used.
-            classes (List[int], optional): List of included classes.
+            classes (list[int], optional): List of included classes.
             fraction (float): Fraction of dataset to utilize.
             channels (int): Number of channels in the images (1 for grayscale, 3 for RGB).
         """
@@ -152,10 +152,10 @@ class BaseDataset(Dataset):
         Read image files from the specified path.
 
         Args:
-            img_path (str | List[str]): Path or list of paths to image directories or files.
+            img_path (str | list[str]): Path or list of paths to image directories or files.
 
         Returns:
-            (List[str]): List of image file paths.
+            (list[str]): List of image file paths.
 
         Raises:
             FileNotFoundError: If no images are found or the path doesn't exist.
@@ -190,7 +190,7 @@ class BaseDataset(Dataset):
         Update labels to include only specified classes.
 
         Args:
-            include_class (List[int], optional): List of classes to include. If None, all classes are included.
+            include_class (list[int], optional): List of classes to include. If None, all classes are included.
         """
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
@@ -219,8 +219,8 @@ class BaseDataset(Dataset):
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
-            hw_original (Tuple[int, int]): Original image dimensions in (height, width) format.
-            hw_resized (Tuple[int, int]): Resized image dimensions in (height, width) format.
+            hw_original (tuple[int, int]): Original image dimensions in (height, width) format.
+            hw_resized (tuple[int, int]): Resized image dimensions in (height, width) format.
 
         Raises:
             FileNotFoundError: If the image file is not found.
@@ -388,7 +388,7 @@ class BaseDataset(Dataset):
             index (int): Index of the image to retrieve.
 
         Returns:
-            (Dict[str, Any]): Label dictionary with image and metadata.
+            (dict[str, Any]): Label dictionary with image and metadata.
         """
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it

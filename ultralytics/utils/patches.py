@@ -51,7 +51,7 @@ def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> 
     Args:
         filename (str): Path to the file to write.
         img (np.ndarray): Image to write.
-        params (List[int], optional): Additional parameters for image encoding.
+        params (list[int], optional): Additional parameters for image encoding.
 
     Returns:
         (bool): True if the file was written successfully, False otherwise.
@@ -172,7 +172,7 @@ def override_configs(args, overrides: dict[str, Any] | None = None):
 
     Args:
         args (IterableSimpleNamespace): Original configuration arguments.
-        overrides (Dict[str, Any]): Dictionary of overrides to apply.
+        overrides (dict[str, Any]): Dictionary of overrides to apply.
 
     Yields:
         (IterableSimpleNamespace): Configuration arguments with overrides applied.

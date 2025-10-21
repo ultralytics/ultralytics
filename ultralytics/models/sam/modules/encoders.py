@@ -83,7 +83,7 @@ class ImageEncoderViT(nn.Module):
             use_rel_pos (bool): If True, adds relative positional embeddings to attention maps.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window for windowed attention blocks.
-            global_attn_indexes (Tuple[int, ...]): Indices of blocks that use global attention.
+            global_attn_indexes (tuple[int, ...]): Indices of blocks that use global attention.
 
         Examples:
             >>> encoder = ImageEncoderViT(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12)
@@ -161,13 +161,13 @@ class PromptEncoder(nn.Module):
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
-        input_image_size (Tuple[int, int]): Size of the input image as (H, W).
-        image_embedding_size (Tuple[int, int]): Spatial size of the image embedding as (H, W).
+        input_image_size (tuple[int, int]): Size of the input image as (H, W).
+        image_embedding_size (tuple[int, int]): Spatial size of the image embedding as (H, W).
         pe_layer (PositionEmbeddingRandom): Module for random position embedding.
         num_point_embeddings (int): Number of point embeddings for different types of points.
         point_embeddings (nn.ModuleList): List of point embeddings.
         not_a_point_embed (nn.Embedding): Embedding for points that are not part of any label.
-        mask_input_size (Tuple[int, int]): Size of the input mask.
+        mask_input_size (tuple[int, int]): Size of the input mask.
         mask_downscaling (nn.Sequential): Neural network for downscaling the mask.
         no_mask_embed (nn.Embedding): Embedding for cases where no mask is provided.
 
@@ -198,8 +198,8 @@ class PromptEncoder(nn.Module):
 
         Args:
             embed_dim (int): The dimension of the embeddings.
-            image_embedding_size (Tuple[int, int]): The spatial size of the image embedding as (H, W).
-            input_image_size (Tuple[int, int]): The padded size of the input image as (H, W).
+            image_embedding_size (tuple[int, int]): The spatial size of the image embedding as (H, W).
+            input_image_size (tuple[int, int]): The padded size of the input image as (H, W).
             mask_in_chans (int): The number of hidden channels used for encoding input masks.
             activation (Type[nn.Module]): The activation function to use when encoding input masks.
 
@@ -310,7 +310,7 @@ class PromptEncoder(nn.Module):
         Embed different types of prompts, returning both sparse and dense embeddings.
 
         Args:
-            points (Tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
+            points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
                 tensor contains coordinates with shape (B, N, 2), and the second tensor contains labels with
                 shape (B, N).
             boxes (torch.Tensor | None): Boxes to embed with shape (B, M, 2, 2), where M is the number of boxes.
@@ -522,10 +522,10 @@ class FpnNeck(nn.Module):
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
         convs (nn.ModuleList): List of convolutional layers for each backbone level.
-        backbone_channel_list (List[int]): List of channel dimensions from the backbone.
+        backbone_channel_list (list[int]): List of channel dimensions from the backbone.
         fpn_interp_model (str): Interpolation mode for FPN feature resizing.
         fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
-        fpn_top_down_levels (List[int]): Levels to have top-down features in outputs.
+        fpn_top_down_levels (list[int]): Levels to have top-down features in outputs.
 
     Methods:
         forward: Perform forward pass through the FPN neck.
@@ -558,13 +558,13 @@ class FpnNeck(nn.Module):
 
         Args:
             d_model (int): Dimension of the model.
-            backbone_channel_list (List[int]): List of channel dimensions from the backbone.
+            backbone_channel_list (list[int]): List of channel dimensions from the backbone.
             kernel_size (int): Kernel size for the convolutional layers.
             stride (int): Stride for the convolutional layers.
             padding (int): Padding for the convolutional layers.
             fpn_interp_model (str): Interpolation mode for FPN feature resizing.
             fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
-            fpn_top_down_levels (Optional[List[int]]): Levels to have top-down features in outputs.
+            fpn_top_down_levels (Optional[list[int]]): Levels to have top-down features in outputs.
 
         Examples:
             >>> backbone_channels = [64, 128, 256, 512]
@@ -610,12 +610,12 @@ class FpnNeck(nn.Module):
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
 
         Args:
-            xs (List[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
+            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
 
         Returns:
-            out (List[torch.Tensor]): List of output feature maps after FPN processing, each with shape
+            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape
                 (B, d_model, H, W).
-            pos (List[torch.Tensor]): List of positional encodings corresponding to each output feature map.
+            pos (list[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:
             >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
@@ -664,18 +664,18 @@ class Hiera(nn.Module):
     with optional pooling and global attention mechanisms.
 
     Attributes:
-        window_spec (Tuple[int, ...]): Window sizes for each stage.
-        q_stride (Tuple[int, int]): Downsampling stride between stages.
-        stage_ends (List[int]): Indices of the last block in each stage.
-        q_pool_blocks (List[int]): Indices of blocks where pooling is applied.
+        window_spec (tuple[int, ...]): Window sizes for each stage.
+        q_stride (tuple[int, int]): Downsampling stride between stages.
+        stage_ends (list[int]): Indices of the last block in each stage.
+        q_pool_blocks (list[int]): Indices of blocks where pooling is applied.
         return_interm_layers (bool): Whether to return intermediate layer outputs.
         patch_embed (PatchEmbed): Module for patch embedding.
-        global_att_blocks (Tuple[int, ...]): Indices of blocks with global attention.
-        window_pos_embed_bkg_spatial_size (Tuple[int, int]): Spatial size for window positional embedding background.
+        global_att_blocks (tuple[int, ...]): Indices of blocks with global attention.
+        window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
         pos_embed (nn.Parameter): Positional embedding for the background.
         pos_embed_window (nn.Parameter): Positional embedding for the window.
         blocks (nn.ModuleList): List of MultiScaleBlock modules.
-        channel_list (List[int]): List of output channel dimensions for each stage.
+        channel_list (list[int]): List of output channel dimensions for each stage.
 
     Methods:
         _get_pos_embed: Generate positional embeddings by interpolating and combining window and background embeddings.
@@ -727,13 +727,13 @@ class Hiera(nn.Module):
             num_heads (int): Initial number of attention heads.
             drop_path_rate (float): Stochastic depth rate.
             q_pool (int): Number of query pooling stages.
-            q_stride (Tuple[int, int]): Downsampling stride between stages.
-            stages (Tuple[int, ...]): Number of blocks per stage.
+            q_stride (tuple[int, int]): Downsampling stride between stages.
+            stages (tuple[int, ...]): Number of blocks per stage.
             dim_mul (float): Dimension multiplier factor at stage transitions.
             head_mul (float): Head multiplier factor at stage transitions.
-            window_pos_embed_bkg_spatial_size (Tuple[int, int]): Spatial size for window positional embedding background.
-            window_spec (Tuple[int, ...]): Window sizes for each stage when not using global attention.
-            global_att_blocks (Tuple[int, ...]): Indices of blocks that use global attention.
+            window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
+            window_spec (tuple[int, ...]): Window sizes for each stage when not using global attention.
+            global_att_blocks (tuple[int, ...]): Indices of blocks that use global attention.
             return_interm_layers (bool): Whether to return intermediate layer outputs.
 
         Examples:
@@ -823,7 +823,7 @@ class Hiera(nn.Module):
             x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.
 
         Returns:
-            (List[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
+            (list[torch.Tensor]): List of feature maps at different scales, each with shape (B, C_i, H_i, W_i), where
                 C_i is the channel dimension and H_i, W_i are the spatial dimensions at scale i. The list is ordered
                 from highest resolution (fine features) to lowest resolution (coarse features) if return_interm_layers
                 is True, otherwise contains only the final output.

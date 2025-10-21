@@ -15,7 +15,7 @@ class GCPRegions:
     geographical location, tier classification, and network latency.
 
     Attributes:
-        regions (Dict[str, Tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
+        regions (dict[str, tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.
 
     Methods:
         tier1: Returns a list of tier 1 GCP regions.
@@ -136,7 +136,7 @@ class GCPRegions:
             attempts (int, optional): Number of ping attempts per region.
 
         Returns:
-            (List[Tuple[str, float, float, float, float]]): List of tuples containing region information and
+            (list[tuple[str, float, float, float, float]]): List of tuples containing region information and
                 latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:

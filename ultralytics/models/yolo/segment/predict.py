@@ -71,13 +71,13 @@ class SegmentationPredictor(DetectionPredictor):
         Construct a list of result objects from the predictions.
 
         Args:
-            preds (List[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
+            preds (list[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
             img (torch.Tensor): The image after preprocessing.
-            orig_imgs (List[np.ndarray]): List of original images before preprocessing.
-            protos (List[torch.Tensor]): List of prototype masks.
+            orig_imgs (list[np.ndarray]): List of original images before preprocessing.
+            protos (list[torch.Tensor]): List of prototype masks.
 
         Returns:
-            (List[Results]): List of result objects containing the original images, image paths, class names,
+            (list[Results]): List of result objects containing the original images, image paths, class names,
                 bounding boxes, and masks.
         """
         return [
@@ -90,7 +90,7 @@ class SegmentationPredictor(DetectionPredictor):
         Construct a single result object from the prediction.
 
         Args:
-            pred (np.ndarray): The predicted bounding boxes, scores, and masks.
+            pred (torch.Tensor): The predicted bounding boxes, scores, and masks.
             img (torch.Tensor): The image after preprocessing.
             orig_img (np.ndarray): The original image before preprocessing.
             img_path (str): The path to the original image.
@@ -99,7 +99,7 @@ class SegmentationPredictor(DetectionPredictor):
         Returns:
             (Results): Result object containing the original image, image path, class names, bounding boxes, and masks.
         """
-        if not len(pred):  # save empty boxes
+        if pred.shape[0] == 0:  # save empty boxes
             masks = None
         elif self.args.retina_masks:
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
@@ -108,6 +108,7 @@ class SegmentationPredictor(DetectionPredictor):
             masks = ops.process_mask(proto, pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
         if masks is not None:
-            keep = masks.sum((-2, -1)) > 0  # only keep predictions with masks
-            pred, masks = pred[keep], masks[keep]
+            keep = masks.amax((-2, -1)) > 0  # only keep predictions with masks
+            if not all(keep):  # most predictions have masks
+                pred, masks = pred[keep], masks[keep]  # indexing is slow
         return Results(orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks)

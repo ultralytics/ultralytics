@@ -19,8 +19,8 @@ def is_box_near_crop_edge(
 
     Args:
         boxes (torch.Tensor): Bounding boxes in XYXY format.
-        crop_box (List[int]): Crop box coordinates in [x0, y0, x1, y1] format.
-        orig_box (List[int]): Original image box coordinates in [x0, y0, x1, y1] format.
+        crop_box (list[int]): Crop box coordinates in [x0, y0, x1, y1] format.
+        orig_box (list[int]): Original image box coordinates in [x0, y0, x1, y1] format.
         atol (float, optional): Absolute tolerance for edge proximity detection.
 
     Returns:
@@ -53,7 +53,7 @@ def batch_iterator(batch_size: int, *args) -> Generator[list[Any]]:
         *args (Any): Variable length input iterables to batch. All iterables must have the same length.
 
     Yields:
-        (List[Any]): A list of batched elements from each input iterable.
+        (list[Any]): A list of batched elements from each input iterable.
 
     Examples:
         >>> data = [1, 2, 3, 4, 5]
@@ -121,13 +121,13 @@ def generate_crop_boxes(
     Generate crop boxes of varying sizes for multiscale image processing, with layered overlapping regions.
 
     Args:
-        im_size (Tuple[int, ...]): Height and width of the input image.
+        im_size (tuple[int, ...]): Height and width of the input image.
         n_layers (int): Number of layers to generate crop boxes for.
         overlap_ratio (float): Ratio of overlap between adjacent crop boxes.
 
     Returns:
-        crop_boxes (List[List[int]]): List of crop boxes in [x0, y0, x1, y1] format.
-        layer_idxs (List[int]): List of layer indices corresponding to each crop box.
+        crop_boxes (list[list[int]]): List of crop boxes in [x0, y0, x1, y1] format.
+        layer_idxs (list[int]): List of layer indices corresponding to each crop box.
 
     Examples:
         >>> im_size = (800, 1200)  # Height, width

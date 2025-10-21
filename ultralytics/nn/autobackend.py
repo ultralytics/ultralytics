@@ -19,6 +19,7 @@ from PIL import Image
 from ultralytics.utils import ARM64, IS_JETSON, LINUX, LOGGER, PYTHON_VERSION, ROOT, YAML, is_jetson
 from ultralytics.utils.checks import check_requirements, check_suffix, check_version, check_yaml, is_rockchip
 from ultralytics.utils.downloads import attempt_download_asset, is_url
+from ultralytics.utils.nms import non_max_suppression
 
 
 def check_class_names(names: list | dict) -> dict[int, str]:
@@ -249,12 +250,12 @@ class AutoBackend(nn.Module):
                     LOGGER.warning("Failed to start ONNX Runtime with CUDA. Using CPU...")
                     device = torch.device("cpu")
                     cuda = False
-            LOGGER.info(f"Using ONNX Runtime {providers[0]}")
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} {providers[0]}")
             if onnx:
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
                 check_requirements(
-                    ["model-compression-toolkit>=2.4.1", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions"]
+                    ("model-compression-toolkit>=2.4.1", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions")
                 )
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
@@ -406,6 +407,7 @@ class AutoBackend(nn.Module):
             import coremltools as ct
 
             model = ct.models.MLModel(w)
+            dynamic = model.get_spec().description.input[0].type.HasField("multiArrayType")
             metadata = dict(model.user_defined_metadata)
 
         # TF SavedModel
@@ -584,7 +586,7 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in {"stride", "batch", "channels"}:
                     metadata[k] = int(v)
-                elif k in {"imgsz", "names", "kpt_shape", "args"} and isinstance(v, str):
+                elif k in {"imgsz", "names", "kpt_shape", "kpt_names", "args"} and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata["stride"]
             task = metadata["task"]
@@ -592,6 +594,7 @@ class AutoBackend(nn.Module):
             imgsz = metadata["imgsz"]
             names = metadata["names"]
             kpt_shape = metadata.get("kpt_shape")
+            kpt_names = metadata.get("kpt_names")
             end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
             ch = metadata.get("channels", 3)
@@ -624,7 +627,7 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments for model configuration.
 
         Returns:
-            (torch.Tensor | List[torch.Tensor]): The raw output tensor(s) from the model.
+            (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
         """
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
@@ -720,10 +723,13 @@ class AutoBackend(nn.Module):
 
         # CoreML
         elif self.coreml:
-            im = im[0].cpu().numpy()
-            im_pil = Image.fromarray((im * 255).astype("uint8"))
+            im = im.cpu().numpy()
+            if self.dynamic:
+                im = im.transpose(0, 3, 1, 2)
+            else:
+                im = Image.fromarray((im[0] * 255).astype("uint8"))
             # im = im.resize((192, 320), Image.BILINEAR)
-            y = self.model.predict({"image": im_pil})  # coordinates are xywh normalized
+            y = self.model.predict({"image": im})  # coordinates are xywh normalized
             if "confidence" in y:  # NMS included
                 from ultralytics.utils.ops import xywh2xyxy
 
@@ -849,7 +855,10 @@ class AutoBackend(nn.Module):
         if any(warmup_types) and (self.device.type != "cpu" or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):
-                self.forward(im)  # warmup
+                self.forward(im)  # warmup model
+                warmup_boxes = torch.rand(1, 84, 16, device=self.device)  # 16 boxes works best empirically
+                warmup_boxes[:, :4] *= imgsz[-1]
+                non_max_suppression(warmup_boxes)  # warmup NMS
 
     @staticmethod
     def _model_type(p: str = "path/to/model.pt") -> list[bool]:
@@ -860,7 +869,7 @@ class AutoBackend(nn.Module):
             p (str): Path to the model file.
 
         Returns:
-            (List[bool]): List of booleans indicating the model type.
+            (list[bool]): List of booleans indicating the model type.
 
         Examples:
             >>> model = AutoBackend(model="path/to/model.onnx")

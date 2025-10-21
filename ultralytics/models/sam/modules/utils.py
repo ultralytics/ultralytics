@@ -14,12 +14,12 @@ def select_closest_cond_frames(frame_idx: int, cond_frame_outputs: dict[int, Any
 
     Args:
         frame_idx (int): Current frame index.
-        cond_frame_outputs (Dict[int, Any]): Dictionary of conditioning frame outputs keyed by frame indices.
+        cond_frame_outputs (dict[int, Any]): Dictionary of conditioning frame outputs keyed by frame indices.
         max_cond_frame_num (int): Maximum number of conditioning frames to select.
 
     Returns:
-        selected_outputs (Dict[int, Any]): Selected items from cond_frame_outputs.
-        unselected_outputs (Dict[int, Any]): Items not selected from cond_frame_outputs.
+        selected_outputs (dict[int, Any]): Selected items from cond_frame_outputs.
+        unselected_outputs (dict[int, Any]): Items not selected from cond_frame_outputs.
 
     Examples:
         >>> frame_idx = 5
@@ -229,7 +229,7 @@ def window_partition(x: torch.Tensor, window_size: int):
 
     Returns:
         windows (torch.Tensor): Partitioned windows with shape (B * num_windows, window_size, window_size, C).
-        padded_h_w (Tuple[int, int]): Padded height and width before partition.
+        padded_h_w (tuple[int, int]): Padded height and width before partition.
 
     Examples:
         >>> x = torch.randn(1, 16, 16, 3)
@@ -262,8 +262,8 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: tuple[in
             window_size, C), where B is the batch size, num_windows is the number of windows, window_size is
             the size of each window, and C is the number of channels.
         window_size (int): Size of each window.
-        pad_hw (Tuple[int, int]): Padded height and width (Hp, Wp) of the input before windowing.
-        hw (Tuple[int, int]): Original height and width (H, W) of the input before padding and windowing.
+        pad_hw (tuple[int, int]): Padded height and width (Hp, Wp) of the input before windowing.
+        hw (tuple[int, int]): Original height and width (H, W) of the input before padding and windowing.
 
     Returns:
         (torch.Tensor): Unpartitioned sequences with shape (B, H, W, C), where B is the batch size, H and W
@@ -350,8 +350,8 @@ def add_decomposed_rel_pos(
         q (torch.Tensor): Query tensor in the attention layer with shape (B, q_h * q_w, C).
         rel_pos_h (torch.Tensor): Relative position embeddings for height axis with shape (Lh, C).
         rel_pos_w (torch.Tensor): Relative position embeddings for width axis with shape (Lw, C).
-        q_size (Tuple[int, int]): Spatial sequence size of query q as (q_h, q_w).
-        k_size (Tuple[int, int]): Spatial sequence size of key k as (k_h, k_w).
+        q_size (tuple[int, int]): Spatial sequence size of query q as (q_h, q_w).
+        k_size (tuple[int, int]): Spatial sequence size of key k as (k_h, k_w).
 
     Returns:
         (torch.Tensor): Updated attention map with added relative positional embeddings, shape

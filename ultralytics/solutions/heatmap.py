@@ -57,7 +57,7 @@ class Heatmap(ObjectCounter):
         Efficiently calculate heatmap area and effect location for applying colormap.
 
         Args:
-            box (List[float]): Bounding box coordinates [x0, y0, x1, y1].
+            box (list[float]): Bounding box coordinates [x0, y0, x1, y1].
         """
         x0, y0, x1, y1 = map(int, box)
         radius_squared = (min(x1 - x0, y1 - y0) // 2) ** 2

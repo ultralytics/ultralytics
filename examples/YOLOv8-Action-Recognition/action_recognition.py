@@ -91,7 +91,7 @@ class TorchVisionVideoClassifier:
         Get the list of available model names.
 
         Returns:
-            (List[str]): List of available model names that can be used with this classifier.
+            (list[str]): List of available model names that can be used with this classifier.
         """
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
@@ -100,8 +100,8 @@ class TorchVisionVideoClassifier:
         Preprocess a list of crops for video classification.
 
         Args:
-            crops (List[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
-            input_size (List[int], optional): The target input size for the model.
+            crops (list[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
+            input_size (list[int], optional): The target input size for the model.
 
         Returns:
             (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
@@ -143,8 +143,8 @@ class TorchVisionVideoClassifier:
             outputs (torch.Tensor): The model's output logits.
 
         Returns:
-            pred_labels (List[str]): The predicted labels.
-            pred_confs (List[float]): The predicted confidences.
+            pred_labels (list[str]): The predicted labels.
+            pred_confs (list[float]): The predicted confidences.
         """
         pred_labels = []
         pred_confs = []
@@ -167,7 +167,7 @@ class HuggingFaceVideoClassifier:
 
     Attributes:
         fp16 (bool): Whether to use FP16 for inference.
-        labels (List[str]): List of labels for zero-shot classification.
+        labels (list[str]): List of labels for zero-shot classification.
         device (torch.device): The device on which the model is loaded.
         processor (transformers.AutoProcessor): The processor for the model.
         model (transformers.AutoModel): The loaded Hugging Face model.
@@ -197,7 +197,7 @@ class HuggingFaceVideoClassifier:
         Initialize the HuggingFaceVideoClassifier with the specified model name.
 
         Args:
-            labels (List[str]): List of labels for zero-shot classification.
+            labels (list[str]): List of labels for zero-shot classification.
             model_name (str): The name of the model to use.
             device (str | torch.device): The device to run the model on.
             fp16 (bool): Whether to use FP16 for inference.
@@ -216,8 +216,8 @@ class HuggingFaceVideoClassifier:
         Preprocess a list of crops for video classification.
 
         Args:
-            crops (List[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
-            input_size (List[int], optional): The target input size for the model.
+            crops (list[np.ndarray]): List of crops to preprocess. Each crop should have dimensions (H, W, C).
+            input_size (list[int], optional): The target input size for the model.
 
         Returns:
             (torch.Tensor): Preprocessed crops as a tensor with dimensions (1, T, C, H, W).
@@ -269,8 +269,8 @@ class HuggingFaceVideoClassifier:
             outputs (torch.Tensor): The model's output logits.
 
         Returns:
-            pred_labels (List[List[str]]): The predicted top2 labels for each sample.
-            pred_confs (List[List[float]]): The predicted top2 confidences for each sample.
+            pred_labels (list[list[str]]): The predicted top2 labels for each sample.
+            pred_confs (list[list[float]]): The predicted top2 confidences for each sample.
         """
         pred_labels = []
         pred_confs = []
@@ -295,7 +295,7 @@ def crop_and_pad(frame: np.ndarray, box: list[float], margin_percent: int) -> np
 
     Args:
         frame (np.ndarray): The input frame to crop from.
-        box (List[float]): The bounding box coordinates [x1, y1, x2, y2].
+        box (list[float]): The bounding box coordinates [x1, y1, x2, y2].
         margin_percent (int): The percentage of margin to add around the box.
 
     Returns:
@@ -348,7 +348,7 @@ def run(
         video_cls_overlap_ratio (float): Overlap ratio between video sequences.
         fp16 (bool): Whether to use half-precision floating point.
         video_classifier_model (str): Name or path of the video classifier model.
-        labels (List[str], optional): List of labels for zero-shot classification.
+        labels (list[str], optional): List of labels for zero-shot classification.
     """
     if labels is None:
         labels = [

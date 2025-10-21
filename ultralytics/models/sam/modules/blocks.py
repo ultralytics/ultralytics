@@ -593,7 +593,7 @@ class MultiScaleBlock(nn.Module):
         norm1 (nn.Module): First normalization layer.
         window_size (int): Size of the window for partitioning.
         pool (nn.Module | None): Pooling layer for query downsampling.
-        q_stride (Tuple[int, int] | None): Stride for query pooling.
+        q_stride (tuple[int, int] | None): Stride for query pooling.
         attn (MultiScaleAttention): Multi-scale attention module.
         drop_path (nn.Module): Drop path layer for regularization.
         norm2 (nn.Module): Second normalization layer.
@@ -934,7 +934,7 @@ class Block(nn.Module):
             use_rel_pos (bool): If True, uses relative positional embeddings in attention.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
-            input_size (Tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
+            input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
 
         Examples:
             >>> block = Block(dim=256, num_heads=8, window_size=7)
@@ -1026,7 +1026,7 @@ class REAttention(nn.Module):
             qkv_bias (bool): If True, adds a learnable bias to query, key, value projections.
             use_rel_pos (bool): If True, uses relative positional encodings.
             rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
-            input_size (Tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
+            input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
                 Required if use_rel_pos is True.
 
         Examples:
@@ -1106,9 +1106,9 @@ class PatchEmbed(nn.Module):
         image data into a suitable format for subsequent transformer blocks.
 
         Args:
-            kernel_size (Tuple[int, int]): Size of the convolutional kernel for patch extraction.
-            stride (Tuple[int, int]): Stride of the convolutional operation.
-            padding (Tuple[int, int]): Padding applied to the input before convolution.
+            kernel_size (tuple[int, int]): Size of the convolutional kernel for patch extraction.
+            stride (tuple[int, int]): Stride of the convolutional operation.
+            padding (tuple[int, int]): Padding applied to the input before convolution.
             in_chans (int): Number of input image channels.
             embed_dim (int): Dimensionality of the output patch embeddings.
 

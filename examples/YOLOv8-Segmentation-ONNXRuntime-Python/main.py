@@ -24,7 +24,7 @@ class YOLOv8Seg:
 
     Attributes:
         session (ort.InferenceSession): ONNX Runtime inference session for model execution.
-        imgsz (Tuple[int, int]): Input image size as (height, width) for the model.
+        imgsz (tuple[int, int]): Input image size as (height, width) for the model.
         classes (dict): Dictionary mapping class indices to class names from the dataset.
         conf (float): Confidence threshold for filtering detections.
         iou (float): IoU threshold used by non-maximum suppression.
@@ -50,7 +50,7 @@ class YOLOv8Seg:
             onnx_model (str): Path to the ONNX model file.
             conf (float, optional): Confidence threshold for filtering detections.
             iou (float, optional): IoU threshold for non-maximum suppression.
-            imgsz (int | Tuple[int, int], optional): Input image size of the model. Can be an integer for square
+            imgsz (int | tuple[int, int], optional): Input image size of the model. Can be an integer for square
                 input or a tuple for rectangular input.
         """
         self.session = ort.InferenceSession(
@@ -73,7 +73,7 @@ class YOLOv8Seg:
             img (np.ndarray): The original input image in BGR format.
 
         Returns:
-            (List[Results]): Processed detection results after post-processing, containing bounding boxes and
+            (list[Results]): Processed detection results after post-processing, containing bounding boxes and
                 segmentation masks.
         """
         prep_img = self.preprocess(img, self.imgsz)
@@ -86,7 +86,7 @@ class YOLOv8Seg:
 
         Args:
             img (np.ndarray): Input image in BGR format.
-            new_shape (Tuple[int, int], optional): Target shape as (height, width).
+            new_shape (tuple[int, int], optional): Target shape as (height, width).
 
         Returns:
             (np.ndarray): Resized and padded image.
@@ -114,7 +114,7 @@ class YOLOv8Seg:
 
         Args:
             img (np.ndarray): The input image in BGR format.
-            new_shape (Tuple[int, int]): The target shape for resizing as (height, width).
+            new_shape (tuple[int, int]): The target shape for resizing as (height, width).
 
         Returns:
             (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and
@@ -133,10 +133,10 @@ class YOLOv8Seg:
         Args:
             img (np.ndarray): The original input image.
             prep_img (np.ndarray): The preprocessed image used for inference.
-            outs (List): Model outputs containing predictions and prototype masks.
+            outs (list): Model outputs containing predictions and prototype masks.
 
         Returns:
-            (List[Results]): Processed detection results containing bounding boxes and segmentation masks.
+            (list[Results]): Processed detection results containing bounding boxes and segmentation masks.
         """
         preds, protos = (torch.from_numpy(p) for p in outs)
         preds = nms.non_max_suppression(preds, self.conf, self.iou, nc=len(self.classes))
@@ -160,7 +160,7 @@ class YOLOv8Seg:
             masks_in (torch.Tensor): Predicted mask coefficients with shape (N, mask_dim), where N is number of
                 detections.
             bboxes (torch.Tensor): Bounding boxes with shape (N, 4), where N is number of detections.
-            shape (Tuple[int, int]): The size of the input image as (height, width).
+            shape (tuple[int, int]): The size of the input image as (height, width).
 
         Returns:
             (torch.Tensor): Binary segmentation masks with shape (N, height, width).

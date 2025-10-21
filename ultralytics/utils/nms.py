@@ -38,10 +38,10 @@ def non_max_suppression(
             containing boxes, classes, and optional masks.
         conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
         iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
-        classes (List[int], optional): List of class indices to consider. If None, all classes are considered.
+        classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.
-        labels (List[List[Union[int, float, torch.Tensor]]]): A priori labels for each image.
+        labels (list[list[Union[int, float, torch.Tensor]]]): A priori labels for each image.
         max_det (int): Maximum number of detections to keep per image.
         nc (int): Number of classes. Indices after this are considered masks.
         max_time_img (float): Maximum time in seconds for processing one image.
@@ -52,9 +52,9 @@ def non_max_suppression(
         return_idxs (bool): Whether to return the indices of kept detections.
 
     Returns:
-        output (List[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks)
+        output (list[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks)
             containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
-        keepi (List[torch.Tensor]): Indices of kept detections if return_idxs=True.
+        keepi (list[torch.Tensor]): Indices of kept detections if return_idxs=True.
     """
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
@@ -192,6 +192,7 @@ class TorchNMS:
         iou_threshold: float,
         use_triu: bool = True,
         iou_func=box_iou,
+        exit_early: bool = True,
     ) -> torch.Tensor:
         """
         Fast-NMS implementation from https://arxiv.org/pdf/1904.02689 using upper triangular matrix operations.
@@ -202,6 +203,7 @@ class TorchNMS:
             iou_threshold (float): IoU threshold for suppression.
             use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
             iou_func (callable): Function to compute IoU between boxes.
+            exit_early (bool): Whether to exit early if there are no boxes.
 
         Returns:
             (torch.Tensor): Indices of boxes to keep after NMS.
@@ -212,7 +214,7 @@ class TorchNMS:
             >>> scores = torch.tensor([0.9, 0.8])
             >>> keep = TorchNMS.nms(boxes, scores, 0.5)
         """
-        if boxes.numel() == 0:
+        if boxes.numel() == 0 and exit_early:
             return torch.empty((0,), dtype=torch.int64, device=boxes.device)
 
         sorted_idx = torch.argsort(scores, descending=True)
@@ -261,12 +263,11 @@ class TorchNMS:
         areas = (x2 - x1) * (y2 - y1)
 
         # Sort by scores descending
-        _, order = scores.sort(0, descending=True)
+        order = scores.argsort(0, descending=True)
 
         # Pre-allocate keep list with maximum possible size
         keep = torch.zeros(order.numel(), dtype=torch.int64, device=boxes.device)
         keep_idx = 0
-
         while order.numel() > 0:
             i = order[0]
             keep[keep_idx] = i
@@ -274,7 +275,6 @@ class TorchNMS:
 
             if order.numel() == 1:
                 break
-
             # Vectorized IoU calculation for remaining boxes
             rest = order[1:]
             xx1 = torch.maximum(x1[i], x1[rest])
@@ -286,20 +286,14 @@ class TorchNMS:
             w = (xx2 - xx1).clamp_(min=0)
             h = (yy2 - yy1).clamp_(min=0)
             inter = w * h
-
-            # Early termination: skip IoU calculation if no intersection
+            # Early exit: skip IoU calculation if no intersection
             if inter.sum() == 0:
                 # No overlaps with current box, keep all remaining boxes
-                remaining_count = rest.numel()
-                keep[keep_idx : keep_idx + remaining_count] = rest
-                keep_idx += remaining_count
-                break
-
+                order = rest
+                continue
             iou = inter / (areas[i] + areas[rest] - inter)
-
             # Keep boxes with IoU <= threshold
-            mask = iou <= iou_threshold
-            order = rest[mask]
+            order = rest[iou <= iou_threshold]
 
         return keep[:keep_idx]
 

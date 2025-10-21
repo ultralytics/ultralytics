@@ -146,7 +146,7 @@ class Bboxes:
         Concatenate a list of Bboxes objects into a single Bboxes object.
 
         Args:
-            boxes_list (List[Bboxes]): A list of Bboxes objects to concatenate.
+            boxes_list (list[Bboxes]): A list of Bboxes objects to concatenate.
             axis (int, optional): The axis along which to concatenate the bounding boxes.
 
         Returns:
@@ -458,7 +458,7 @@ class Instances:
         Concatenate a list of Instances objects into a single Instances object.
 
         Args:
-            instances_list (List[Instances]): A list of Instances objects to concatenate.
+            instances_list (list[Instances]): A list of Instances objects to concatenate.
             axis (int, optional): The axis along which the arrays will be concatenated.
 
         Returns:

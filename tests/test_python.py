@@ -20,8 +20,11 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import (
     ARM64,
     ASSETS,
+    ASSETS_URL,
     DEFAULT_CFG,
     DEFAULT_CFG_PATH,
+    IS_JETSON,
+    IS_RASPBERRYPI,
     LINUX,
     LOGGER,
     ONLINE,
@@ -34,7 +37,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download
-from ultralytics.utils.torch_utils import TORCH_1_9
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
 IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
@@ -125,7 +128,7 @@ def test_predict_img(model_name):
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        "https://github.com/ultralytics/assets/releases/download/v0.0.0/zidane.jpg" if ONLINE else SOURCE,  # URI
+        f"{ASSETS_URL}/zidane.jpg?token=123" if ONLINE else SOURCE,  # URI
         im,  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
@@ -188,7 +191,7 @@ def test_track_stream(model):
     """
     if model == "yolo11n-cls.pt":  # classification model not supported for tracking
         return
-    video_url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
+    video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
     model = YOLO(model)
     model.track(video_url, imgsz=160, tracker="bytetrack.yaml")
     model.track(video_url, imgsz=160, tracker="botsort.yaml", save_frames=True)  # test frame saving also
@@ -216,6 +219,7 @@ def test_val(task: str, weight: str, data: str) -> None:
         metrics.confusion_matrix.to_json()
 
 
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
     """Test training the YOLO model from scratch using the provided configuration."""
     model = YOLO(CFG)
@@ -227,9 +231,7 @@ def test_train_scratch():
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
-    model.train(
-        data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson", epochs=1, imgsz=32
-    )
+    model.train(data=f"{ASSETS_URL}/coco8-ndjson.ndjson", epochs=1, imgsz=32)
 
 
 @pytest.mark.parametrize("scls", [False, True])
@@ -246,7 +248,7 @@ def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
         if "rtdetr" in m.name:
-            if TORCH_1_9:  # torch<=1.8 issue - TypeError: __init__() got an unexpected keyword argument 'batch_first'
+            if TORCH_1_11:
                 _ = RTDETR(m.name)(SOURCE, imgsz=640)  # must be 640
         else:
             YOLO(m.name)
@@ -270,7 +272,7 @@ def test_predict_callback_and_setup():
         path, im0s, _ = predictor.batch
         im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
-        predictor.results = zip(predictor.results, im0s, bs)  # results is List[batch_size]
+        predictor.results = zip(predictor.results, im0s, bs)  # results is list[batch_size]
 
     model = YOLO(MODEL)
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -288,8 +290,8 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str):
     """Test YOLO model results processing and output in various formats."""
-    temp_s = "https://ultralytics.com/images/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
-    results = YOLO(WEIGHTS_DIR / model)([temp_s, temp_s], imgsz=160)
+    im = f"{ASSETS_URL}/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
+    results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
         assert len(r), f"'{model}' results should not be empty!"
         r = r.cpu().numpy()
@@ -355,8 +357,7 @@ def test_data_converter():
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
-    file = "instances_val2017.json"
-    download(f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{file}", dir=TMP)
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=TMP)
     convert_coco(labels_dir=TMP, save_dir=TMP / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True)
     coco80_to_coco91_class()
 
@@ -375,7 +376,7 @@ def test_data_annotator():
 
 def test_events():
     """Test event sending functionality."""
-    from ultralytics.hub.utils import Events
+    from ultralytics.utils.events import Events
 
     events = Events()
     events.enabled = True
@@ -406,7 +407,7 @@ def test_utils_init():
 def test_utils_checks():
     """Test various utility checks for filenames, git status, requirements, image sizes, and versions."""
     checks.check_yolov5u_filename("yolov5n.pt")
-    checks.check_requirements()  # check requirements.txt
+    checks.check_requirements("numpy")  # check requirements.txt
     checks.check_imgsz([600, 600], max_dim=1)
     checks.check_imshow(warn=True)
     checks.check_version("ultralytics", "8.0.0")
@@ -634,7 +635,8 @@ def test_yolo_world():
     )
 
 
-@pytest.mark.skipif(checks.IS_PYTHON_3_12 or not TORCH_1_9, reason="YOLOE with CLIP is not supported in Python 3.12")
+@pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
+@pytest.mark.skipif(checks.IS_PYTHON_3_12, reason="YOLOE with CLIP is not supported in Python 3.12")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -648,16 +650,12 @@ def test_yoloe():
     model.set_classes(names, model.get_text_pe(names))
     model(SOURCE, conf=0.01)
 
-    import numpy as np
-
     from ultralytics import YOLOE
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
     # visual-prompts
     visuals = dict(
-        bboxes=np.array(
-            [[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]],
-        ),
+        bboxes=np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),
         cls=np.array([0, 1]),
     )
     model.predict(
@@ -674,7 +672,7 @@ def test_yoloe():
     model.val(data="coco128-seg.yaml", load_vp=True, imgsz=32)
 
     # Train, fine-tune
-    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer
+    from ultralytics.models.yolo.yoloe import YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
     model = YOLOE("yoloe-11s-seg.pt")
     model.train(
@@ -682,6 +680,15 @@ def test_yoloe():
         epochs=1,
         close_mosaic=1,
         trainer=YOLOEPESegTrainer,
+        imgsz=32,
+    )
+    # Train, from scratch
+    model = YOLOE("yoloe-11s-seg.yaml")
+    model.train(
+        data=dict(train=dict(yolo_data=["coco128-seg.yaml"]), val=dict(yolo_data=["coco128-seg.yaml"])),
+        epochs=1,
+        close_mosaic=1,
+        trainer=YOLOESegTrainerFromScratch,
         imgsz=32,
     )
 

@@ -14,7 +14,7 @@ class VisionEye(BaseSolution):
     mapping vision points, and annotating results with bounding boxes and labels.
 
     Attributes:
-        vision_point (Tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
+        vision_point (tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.
 
     Methods:
         process: Process the input image to detect objects, annotate them, and apply vision mapping.

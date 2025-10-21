@@ -34,7 +34,7 @@ class Inference:
         org_frame (Any): Container for the original frame to be displayed.
         ann_frame (Any): Container for the annotated frame to be displayed.
         vid_file_name (str | int): Name of the uploaded video file or webcam index.
-        selected_ind (List[int]): List of selected class indices for detection.
+        selected_ind (list[int]): List of selected class indices for detection.
 
     Methods:
         web_ui: Set up the Streamlit web interface with custom HTML elements.
@@ -166,9 +166,8 @@ class Inference:
         selected_model = self.st.sidebar.selectbox("Model", available_models)
 
         with self.st.spinner("Model is downloading..."):
-            if (
-                selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine"))
-                or "openvino_model" in selected_model
+            if selected_model.endswith((".pt", ".onnx", ".torchscript", ".mlpackage", ".engine")) or any(
+                fmt in selected_model for fmt in ("openvino_model", "rknn_model")
             ):
                 model_path = selected_model
             else:

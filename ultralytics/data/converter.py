@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -25,7 +25,7 @@ def coco91_to_coco80_class() -> list[int]:
     Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (List[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
+        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
             is the corresponding 91-index class ID.
     """
     return [
@@ -128,7 +128,7 @@ def coco80_to_coco91_class() -> list[int]:
     Convert 80-index (val2014) to 91-index (paper).
 
     Returns:
-        (List[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
+        (list[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
 
     References:
         https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
@@ -539,11 +539,11 @@ def merge_multi_segment(segments: list[list]):
     This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments (List[List]): Original segmentations in COCO's JSON file.
+        segments (list[list]): Original segmentations in COCO's JSON file.
                                Each element is a list of coordinates, like [segmentation1, segmentation2,...].
 
     Returns:
-        s (List[np.ndarray]): A list of connected segments represented as NumPy arrays.
+        s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]
@@ -678,9 +678,7 @@ def create_synthetic_coco_dataset():
 
     # Download labels
     dir = DATASETS_DIR / "coco"
-    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
-    label_zip = "coco2017labels-segments.zip"
-    download([url + label_zip], dir=dir.parent)
+    download([f"{ASSETS_URL}/coco2017labels-segments.zip"], dir=dir.parent)
 
     # Create synthetic images
     shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed

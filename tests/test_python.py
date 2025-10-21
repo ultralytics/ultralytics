@@ -33,7 +33,6 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     checks,
-    is_dir_writeable,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download
@@ -350,7 +349,9 @@ def test_data_converter(tmpdir):
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
     download(f"{ASSETS_URL}/instances_val2017.json", dir=tmpdir)
-    convert_coco(labels_dir=tmpdir, save_dir=tmpdir / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True)
+    convert_coco(
+        labels_dir=tmpdir, save_dir=tmpdir / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True
+    )
     coco80_to_coco91_class()
 
 
@@ -473,7 +474,6 @@ def test_utils_files(tmpdir):
 @pytest.mark.slow
 def test_utils_patches_torch_save(tmpdir):
     """Test torch_save backoff when _torch_save raises RuntimeError."""
-
     from unittest.mock import MagicMock, patch
 
     from ultralytics.utils.patches import torch_save
@@ -481,9 +481,7 @@ def test_utils_patches_torch_save(tmpdir):
     mock = MagicMock(side_effect=RuntimeError)
 
     with patch("ultralytics.utils.patches._torch_save", new=mock):
-
         with pytest.raises(RuntimeError):
-
             torch_save(torch.zeros(1), tmpdir / "test.pt")
 
     assert mock.call_count == 4, "torch_save was not attempted the expected number of times"

@@ -1,4 +1,4 @@
----
+---yolo train data=pcb.yaml model=yolov8n.pt epochs=100
 comments: true
 description: Learn how to install Ultralytics using pip, conda, or Docker. Follow our step-by-step guide for a seamless setup of YOLO with thorough instructions.
 keywords: Ultralytics, YOLO11, Install Ultralytics, pip, conda, Docker, GitHub, machine learning, object detection

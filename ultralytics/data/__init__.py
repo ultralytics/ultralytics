@@ -10,6 +10,8 @@ from .dataset import (
     YOLODataset,
     YOLOMultiModalDataset,
 )
+from .prepare_kitti_mde import prepare_kitti_mde_dataset
+from .prepare_sunrgbd_mde import prepare_sunrgbd_mde_dataset
 
 __all__ = (
     "BaseDataset",
@@ -23,4 +25,6 @@ __all__ = (
     "build_grounding",
     "build_dataloader",
     "load_inference_source",
+    "prepare_kitti_mde_dataset",
+    "prepare_sunrgbd_mde_dataset",
 )

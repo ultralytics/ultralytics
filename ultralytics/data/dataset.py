@@ -137,7 +137,8 @@ class YOLODataset(BaseDataset):
                     # Handle both 5-column (standard) and 6-column (MDE) labels
                     if self.use_mde:
                         assert lb.shape[1] == 5, f"MDE label must provide 5 detection columns, but got {lb.shape[1]}"
-                        if depths is None:
+                        # Only require depths if there are actual objects in the label
+                        if depths is None and lb.shape[0] > 0:
                             raise ValueError(
                                 "MDE dataset requires depth values in labels. Verify 'verify_image_label' returns depths."
                             )

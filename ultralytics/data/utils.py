@@ -183,6 +183,7 @@ def verify_image_label(args: tuple) -> list:
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     mde, depths = False, None
+    allow_mde = not keypoint  # Allow MDE format if not doing keypoint detection
     try:
         # Verify images
         im = Image.open(im_file)
@@ -205,7 +206,6 @@ def verify_image_label(args: tuple) -> list:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
                 if lb:
                     line_lens = {len(x) for x in lb}
-                    allow_mde = not keypoint
 
                     if any(len(x) > (6 if allow_mde else 5) for x in lb) and (not keypoint):  # is segment
                         classes = np.array([x[0] for x in lb], dtype=np.float32)
@@ -264,7 +264,9 @@ def verify_image_label(args: tuple) -> list:
             if ndim == 2:
                 kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
                 keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
-        return im_file, (lb, depths) if (mde and not keypoint) else lb, shape, segments, keypoints, nm, nf, ne, nc, msg
+        # Return tuple for MDE even if file is empty (mde flag or allow_mde)
+        return_tuple_for_mde = (mde or allow_mde) and not keypoint
+        return im_file, (lb, depths) if return_tuple_for_mde else lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"

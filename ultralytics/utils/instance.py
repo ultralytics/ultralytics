@@ -511,7 +511,19 @@ class Instances:
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        cat_depths = np.concatenate([b.depths for b in instances_list], axis=axis) if use_depth else None
+        
+        # Concatenate depths, ensuring proper shape even for empty arrays
+        if use_depth:
+            depths_list = []
+            for b in instances_list:
+                if b.depths is not None and len(b.depths):
+                    depths_list.append(b.depths)
+                else:
+                    # Empty depths - create properly shaped empty array (0, 1)
+                    depths_list.append(np.empty((0, 1), dtype=np.float32))
+            cat_depths = np.concatenate(depths_list, axis=axis) if depths_list else None
+        else:
+            cat_depths = None
 
         return cls(cat_boxes, cat_segments, cat_keypoints, cat_depths, bbox_format, normalized)
 

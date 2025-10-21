@@ -527,7 +527,7 @@ class Results(SimpleClass, DataExportMixin):
         """
         assert color_mode in {"instance", "class"}, f"Expected color_mode='instance' or 'class', not {color_mode}."
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).to(torch.uint8).cpu().numpy()
+            img = (self.orig_img[0].detach().permute(1, 2, 0).contiguous() * 255).byte().cpu().numpy()
 
         names = self.names
         is_obb = self.obb is not None
@@ -900,7 +900,7 @@ class Boxes(BaseTensor):
         Args:
             boxes (torch.Tensor | np.ndarray): A tensor or numpy array with detection boxes of shape
                 (num_boxes, 6) or (num_boxes, 7). Columns should contain
-                [x1, y1, x2, y2, confidence, class, (optional) track_id].
+                [x1, y1, x2, y2, (optional) track_id, confidence, class].
             orig_shape (tuple[int, int]): The original image shape as (height, width). Used for normalization.
 
         Attributes:

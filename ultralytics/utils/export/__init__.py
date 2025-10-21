@@ -8,9 +8,12 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
+from ultralytics.utils.torch_utils import TORCH_2_4
+
+from .imx import torch2imx  # noqa
 
 
-def export_onnx(
+def torch2onnx(
     torch_model: torch.nn.Module,
     im: torch.Tensor,
     onnx_file: str,
@@ -34,6 +37,7 @@ def export_onnx(
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
+    kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         torch_model,
         im,
@@ -44,10 +48,11 @@ def export_onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
+        **kwargs,
     )
 
 
-def export_engine(
+def onnx2engine(
     onnx_file: str,
     engine_file: str | None = None,
     workspace: int | None = None,
@@ -98,12 +103,12 @@ def export_engine(
     # Engine builder
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
-    workspace = int((workspace or 0) * (1 << 30))
+    workspace_bytes = int((workspace or 0) * (1 << 30))
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
-    if is_trt10 and workspace > 0:
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-    elif workspace > 0:  # TensorRT versions 7, 8
-        config.max_workspace_size = workspace
+    if is_trt10 and workspace_bytes > 0:
+        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
+    elif workspace_bytes > 0:  # TensorRT versions 7, 8
+        config.max_workspace_size = workspace_bytes
     flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
     network = builder.create_network(flag)
     half = builder.platform_has_fast_fp16 and half

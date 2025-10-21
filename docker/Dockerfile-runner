@@ -7,6 +7,7 @@
 FROM ultralytics/ultralytics:latest
 
 # Set additional environment variables for runner
+ARG RUNNER_VERSION=2.328.0
 ENV RUNNER_ALLOW_RUNASROOT=1 \
     DEBIAN_FRONTEND=noninteractive
 
@@ -14,11 +15,11 @@ ENV RUNNER_ALLOW_RUNASROOT=1 \
 WORKDIR /actions-runner
 
 # Download and unpack the latest runner from https://github.com/actions/runner and install dependencies
-RUN FILENAME=actions-runner-linux-x64-2.323.0.tar.gz && \
-    curl -o $FILENAME -L https://github.com/actions/runner/releases/download/v2.323.0/$FILENAME && \
-    tar xzf $FILENAME && \
-    rm $FILENAME && \
-    # Install runner dependencies
+RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
+    curl -o "$FILENAME" -L "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
+    tar xzf "$FILENAME" && \
+    rm "$FILENAME" && \
+    # Install runner dependencies \
     uv pip install --system pytest-cov && \
     ./bin/installdependencies.sh && \
     apt-get -y install libicu-dev

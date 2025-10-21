@@ -1921,7 +1921,7 @@ class A2C2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         y = self.cv2(torch.cat(y, 1))
         if self.gamma is not None:
-            return x + self.gamma.view(-1, len(self.gamma), 1, 1) * y
+            return x + self.gamma.view(-1, self.gamma.shape[0], 1, 1) * y
         return y
 
 

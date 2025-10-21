@@ -366,12 +366,13 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def parse_output(self, preds):
         """Parse model predictions to extract features, mask predictions, and prototype masks."""
-        preds = preds[1] if isinstance(preds[1], tuple) else preds
-        return preds[0], preds[1]
+        preds = preds[1] if isinstance(preds, tuple) else preds
+        return preds
 
-    def loss(self, feats, proto, batch):
+    def loss(self, feats, batch):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks = feats[1]
+        proto = feats[2]
         feats = feats[0]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
@@ -791,18 +792,18 @@ class E2EDetectLoss:
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
-        if isinstance(preds, tuple):
-            extra = preds[1:]
-            preds = preds[0]
-        else:
-            extra = []
+        # if isinstance(preds, tuple):
+        #     extra = preds[1:]
+        #     preds = preds[0]
+        # else:
+        #     extra = []
         one2many, one2one = preds["one2many"], preds["one2one"]
-        loss_one2many = self.one2many.loss(one2many, *extra, batch)
+        loss_one2many = self.one2many.loss(one2many, batch)
         # loss_one2one = self.one2one.loss(one2one, *extra, batch)
-        if self.is_seg:
-            loss_one2one = self.one2one.loss(one2one, extra[0].detach(), batch)
-        else:
-            loss_one2one = self.one2one.loss(one2one, *extra, batch)
+        # if self.is_seg:
+        #     loss_one2one = self.one2one.loss(one2one, extra[0].detach(), batch)
+        # else:
+        loss_one2one = self.one2one.loss(one2one, batch)
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
             1
         ] * self.o2o

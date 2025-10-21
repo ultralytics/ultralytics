@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import ASSETS, ROOT, WEIGHTS_DIR, checks
+from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
 # Constants used in tests
 MODEL = WEIGHTS_DIR / "path with spaces" / "yolo11n.pt"  # test spaces in path

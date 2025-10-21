@@ -262,7 +262,7 @@ class Segment(Detect):
             return x
         dim = -1 if self.end2end else 1
         p = one2one_p if self.end2end else p
-        return (torch.cat(x, dim), p) if self.export else (torch.cat(x[0], dim), x[1])
+        return (torch.cat(x, dim), p) if self.export else ((torch.cat(x[0], dim), p), x[1])
 
     def forward_end2end(
         self, x: list[torch.Tensor], mask_coefficient: torch.Tensor, proto: torch.Tensor, one2one_proto: torch.Tensor

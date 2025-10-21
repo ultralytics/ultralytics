@@ -131,7 +131,7 @@ def test_solutions(solution: str) -> None:
     run(f"yolo solutions {solution} verbose=False")
 
 
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 and checks.TORCH_VERSION < "2.8.0", reason="ExecuTorch export requires Python>=3.10 and Torch>=2.1.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch() -> None:
     """Test exporting a YOLO model to ExecuTorch format via CLI."""

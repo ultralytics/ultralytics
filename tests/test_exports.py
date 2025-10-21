@@ -264,7 +264,7 @@ def test_export_imx():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or checks.TORCH_VERSION < "2.8.0", reason="ExecuTorch export requires Python>=3.10 and Torch>=2.8.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch():
     """Test YOLO model export to ExecuTorch format."""
@@ -280,8 +280,9 @@ def test_export_executorch():
     shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
+
 @pytest.mark.slow
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="ExecuTorch export requires Python>=3.10")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or checks.TORCH_VERSION < "2.8.0", reason="ExecuTorch export requires Python>=3.10 and Torch>=2.8.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 @pytest.mark.parametrize("task", TASKS)
 def test_export_executorch_matrix(task):

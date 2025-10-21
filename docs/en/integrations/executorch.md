@@ -204,6 +204,27 @@ For faster inference:
 - **Hardware Acceleration**: Use platform-specific delegates (e.g., CoreML for iOS)
 - **Batch Processing**: Process multiple images when possible
 
+## Benchmarks
+
+The Ultralytics team benchmarked YOLO11 models, comparing speed and accuracy between PyTorch and ExecuTorch.
+
+!!! tip "Performance"
+
+    === "Raspberry Pi 5"
+
+        | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO11n | PyTorch     | ✅     | 5.4       | 0.5060              | 337.67                 |
+        | YOLO11n | ExecuTorch  | ✅     | 11        | 0.5080              | 167.28                 |
+        | YOLO11s | PyTorch     | ✅     | 19        | 0.5770              |  928.80                |
+        | YOLO11s | ExecuTorch  | ✅     | 37        | 0.5780              | 388.31                 |
+
+    === "More devices coming soon!"
+
+    !!! note
+
+        Inference time does not include pre/ post-processing.
+
 ## Troubleshooting
 
 ### Common Issues

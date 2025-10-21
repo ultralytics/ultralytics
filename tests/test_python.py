@@ -137,6 +137,7 @@ def test_predict_visualize(model):
 
 
 def test_predict_grey_and_4ch(tmp_path):
+    """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)
 
     source_greyscale = tmp_path / "greyscale.jpg"
@@ -179,7 +180,6 @@ def test_track_stream(model, tmp_path):
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
-    tmp_path = Path(tmp_path)
     if model == "yolo11n-cls.pt":  # classification model not supported for tracking
         return
     video_url = f"{ASSETS_URL}/decelera_portrait_min.mov"
@@ -281,7 +281,6 @@ def test_predict_callback_and_setup():
 @pytest.mark.parametrize("model", MODELS)
 def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
-    tmp_path = Path(tmp_path)
     im = f"{ASSETS_URL}/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
     for r in results:
@@ -462,7 +461,6 @@ def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
 
-    tmp_path = Path(tmp_path)
     file_age(SOURCE)
     file_date(SOURCE)
     get_latest_run(ROOT / "runs")

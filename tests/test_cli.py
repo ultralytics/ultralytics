@@ -132,7 +132,7 @@ def test_solutions(solution: str) -> None:
 
 
 @pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_10 and checks.TORCH_VERSION < "2.8.0",
+    not checks.IS_PYTHON_MINIMUM_3_10 or checks.TORCH_VERSION < "2.8.0",
     reason="ExecuTorch export requires Python>=3.10 and Torch>=2.1.0",
 )
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")

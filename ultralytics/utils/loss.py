@@ -803,6 +803,7 @@ class E2EDetectLoss:
         # if self.is_seg:
         #     loss_one2one = self.one2one.loss(one2one, extra[0].detach(), batch)
         # else:
+        # TODO: detach proto for segment
         loss_one2one = self.one2one.loss(one2one, batch)
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
             1

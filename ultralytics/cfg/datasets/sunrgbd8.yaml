@@ -1,0 +1,85 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# SUN RGB-D 8-image test dataset for MDE (Monocular Depth Estimation) unit testing
+# This is a minimal dataset for fast testing, similar to coco8.yaml for detection
+
+# Dataset path (relative to DATASETS_DIR, will be auto-downloaded)
+# Structure: parent
+#            ├── ultralytics
+#            └── datasets
+#                └── sunrgbd8  ← downloads here (~700 KB)
+path: sunrgbd8
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+train: images  # 8 images
+val: images    # 8 images (same as train for testing purposes)
+test:          # test images (optional)
+
+# Number of classes
+nc: 37
+
+# Depth range for normalization (in meters)
+depth_max: 10.0
+
+# Class names (37 SUN RGB-D object classes)
+names:
+  0: bed
+  1: table
+  2: sofa
+  3: chair
+  4: toilet
+  5: desk
+  6: dresser
+  7: night_stand
+  8: bookshelf
+  9: bathtub
+  10: person
+  11: cabinet
+  12: box
+  13: pillow
+  14: door
+  15: tv
+  16: lamp
+  17: bag
+  18: computer
+  19: monitor
+  20: bin
+  21: sink
+  22: books
+  23: curtain
+  24: mirror
+  25: floor_mat
+  26: clothes
+  27: ceiling
+  28: book
+  29: fridge
+  30: window
+  31: blinds
+  32: shelves
+  33: picture
+  34: counter
+  35: floor
+  36: wall
+
+# Download script/URL (optional)
+# TODO: Upload to https://github.com/ultralytics/assets/releases and update URL
+# For now, uses local package assets as fallback
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/sunrgbd8.zip
+
+# Label Format:
+# Each line in the label files (*.txt) contains 6 space-separated values:
+#   class x_center y_center width height depth
+#
+# Where:
+#   - class: integer class ID (0-36)
+#   - x_center: normalized center x coordinate (0-1)
+#   - y_center: normalized center y coordinate (0-1)
+#   - width: normalized bounding box width (0-1)
+#   - height: normalized bounding box height (0-1)
+#   - depth: normalized depth value (0-1), calculated as depth_meters / depth_max
+
+# Dataset info
+# Total samples: 8 (from different sensors: kv1, kv2)
+# Total objects: 28
+# Image size: 640x480
+# This is a test dataset only - for production use sunrgbd-mde.yaml
+

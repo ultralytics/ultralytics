@@ -241,7 +241,6 @@ class Segment(Detect):
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
         if self.end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
-            self.one2one_proto = copy.deepcopy(self.proto)
 
     def forward(self, x):
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
@@ -250,8 +249,7 @@ class Segment(Detect):
 
         mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
         if self.end2end:
-            one2one_p = self.one2one_proto(x[0])  # mask protos
-            x = self.forward_end2end(x, mc, p, one2one_p)
+            x = self.forward_end2end(x, mc, p)
         else:
             x = Detect.forward(self, x)
             if self.training:
@@ -261,11 +259,10 @@ class Segment(Detect):
         if self.training:
             return x
         dim = -1 if self.end2end else 1
-        p = one2one_p if self.end2end else p
         return (torch.cat(x, dim), p) if self.export else ((torch.cat(x[0], dim), p), x[1])
 
     def forward_end2end(
-        self, x: list[torch.Tensor], mask_coefficient: torch.Tensor, proto: torch.Tensor, one2one_proto: torch.Tensor
+        self, x: list[torch.Tensor], mask_coefficient: torch.Tensor, proto: torch.Tensor
     ) -> dict | tuple:
         """
         Perform forward pass of the v10Detect module.
@@ -274,7 +271,6 @@ class Segment(Detect):
             x (list[torch.Tensor]): Input feature maps from different levels.
             mask_coefficient (torch.Tensor): Mask coefficients.
             proto (torch.Tensor): Mask prototypes.
-            one2one_proto (torch.Tensor): One-to-one mask prototypes.
 
         Returns:
             outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
@@ -291,14 +287,14 @@ class Segment(Detect):
         for i in range(self.nl):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
-            return {"one2many": (x, mask_coefficient, proto), "one2one": (one2one, one2one_mc, one2one_proto)}
+            return {"one2many": (x, mask_coefficient, proto), "one2one": (one2one, one2one_mc, proto)}
 
         y = self._inference(one2one)
         y, mc = self.postprocess(y.permute(0, 2, 1), one2one_mc, self.max_det, self.nc)
         return (
             (y, mc)
             if self.export
-            else ((y, mc), {"one2many": (x, mask_coefficient, proto), "one2one": (one2one, one2one_mc, one2one_proto)})
+            else ((y, mc), {"one2many": (x, mask_coefficient, proto), "one2one": (one2one, one2one_mc, proto)})
         )
 
     @staticmethod

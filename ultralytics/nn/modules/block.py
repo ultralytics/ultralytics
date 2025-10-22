@@ -403,7 +403,7 @@ class C3TR(C3):
 
 
 class C3Ghost(C3):
-    """C3 module with GhostBottleneck for enhanced feature extraction."""
+    """C3 module with GhostBottleneck(). """
 
     def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, layer_id: int = 0, g: int = 1, e: float = 0.5):
         """
@@ -414,7 +414,8 @@ class C3Ghost(C3):
             c2 (int): Output channels.
             n (int): Number of GhostBottleneckV2 blocks.
             shortcut (bool): Whether to use shortcut connections.
-            g (int): Groups (not used in V2).
+            layer_id (int): layer ID which controls attention
+            g (int): Groups for convolutions.
             e (float): Expansion ratio.
         """
         super().__init__(c1, c2, n, shortcut, g, e)
@@ -422,23 +423,23 @@ class C3Ghost(C3):
         self.m = nn.Sequential(*(GhostBottleneck(c_, c_, layer_id=layer_id + i) for i in range(n)))
 
 class GhostBottleneck(nn.Module):
-    """GhostNetV2 Bottleneck with DFC attention."""
+    """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
 
     def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: int = 0):
         """
-        Initialize GhostNetV2 Bottleneck.
+        Initialize GhostNetV2 Bottleneck module.
         
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
             k (int): Kernel size for depthwise conv.
             s (int): Stride.
+            layer_id (int): Layer identifier.
         """
         super().__init__()
         c_ = c2 // 2
 
-        # Determine attention mode based on layer_id
-        # Skip attention for first 2 bottleneck blocks (layer_id 0 and 1)
+        # Skip attention for first 2 bottleneck (layer_id 0 and 1) as per paper: https://arxiv.org/abs/2211.12905
         ghost1_mode = 'attn' if layer_id > 1 else 'original'
         
         self.conv = nn.Sequential(

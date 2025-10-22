@@ -310,7 +310,17 @@ class Focus(nn.Module):
 
 
 class GhostConv(nn.Module):
-    """GhostNetV2 Convolution with optional DFC attention"""
+    """Ghost Convolution Module
+    
+    Generates more features with fewer parameters by using cheap operations.
+
+    Attributes:
+        cv1 (Conv): Primary convolution.
+        cv2 (Conv): Cheap operation convolution.
+
+    References:
+        https://github.com/huawei-noah/Efficient-AI-Backbones
+    """
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True, mode='original'):
         """
@@ -319,22 +329,19 @@ class GhostConv(nn.Module):
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            k (int): Kernel size for primary conv.
+            k (int): Kernel size.
             s (int): Stride.
-            g (int): Groups for primary conv.
+            g (int): Groups.
             act (bool | nn.Module): Activation function.
+            mode (str): Convolution mode.
         """
         super().__init__()
         c_ = c2 // 2  # hidden channels
         self.mode = mode
-        
-        # Primary convolution
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
-        
-        # Cheap operation (fixed kernel=5)
         self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
         
-        # DFC Attention mechanism (only for deeper layers)
+        # DFC Attention mechanism if enabled only
         if self.mode == 'attn':
             self.short_conv = nn.Sequential(
                 nn.Conv2d(c1, c2, k, s, padding=k // 2, bias=True),
@@ -345,11 +352,18 @@ class GhostConv(nn.Module):
             self.gamma = nn.Parameter(torch.tensor(0.1))
 
     def forward(self, x):
-        # Ghost path - primary conv + cheap operation
+        """
+        Apply Ghost Convolution to input tensor.
+
+        Args:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            (torch.Tensor): Output tensor with c2 concatenated features, optionally with attention.
+        """
         y = self.cv1(x)
         out = torch.cat((y, self.cv2(y)), 1)
         
-        # Apply attention only if enabled (deeper layers)
         if self.mode == 'attn':
             attn = F.avg_pool2d(x, kernel_size=2, stride=2)
             attn = self.short_conv(attn)

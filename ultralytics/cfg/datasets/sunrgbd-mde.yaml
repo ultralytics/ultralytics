@@ -58,6 +58,9 @@ names:
   36: wall
 
 # Download script/URL (optional)
+# Automatically detects network location:
+#   - China: Downloads from Baidu AI Studio (aistudio.baidu.com)
+#   - Others: Downloads from Princeton University servers
 download: |
   from pathlib import Path
 

@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 import random
 import shutil
+import subprocess
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -67,6 +69,106 @@ SUNRGBD_CLASS_MAP = {
 
 SUNRGBD_RAW_DIR_NAME = "sunrgbd_raw"
 SUNRGBD_DEPTH_MAX_DEFAULT = 10.0  # SUN RGB-D depth is typically in meters (0-10m range)
+
+# Baidu AI Studio dataset info
+BAIDU_DATASET_ID = "71231/cpEKg8sF"
+
+
+def _is_china_network() -> bool:
+    """Detect if the system is in China based on network connectivity."""
+    import socket
+    import urllib.request
+    
+    # Test 1: Try to access a China-specific site (fast check)
+    try:
+        socket.create_connection(("www.baidu.com", 80), timeout=2)
+        LOGGER.info("Detected China network environment (Baidu accessible).")
+        return True
+    except (socket.timeout, OSError):
+        pass
+    
+    # Test 2: Try to access Princeton site (if slow/fails, likely in China)
+    try:
+        req = urllib.request.Request("http://rgbd.cs.princeton.edu/", method="HEAD")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            # If Princeton site is accessible and fast, likely not in China
+            LOGGER.info("Detected non-China network environment (Princeton accessible).")
+            return False
+    except (urllib.error.URLError, socket.timeout):
+        # Princeton site not accessible/slow, likely in China
+        LOGGER.info("Detected China network environment (Princeton not accessible).")
+        return True
+    
+    # Default to False if uncertain
+    return False
+
+
+def _install_aistudio_sdk() -> bool:
+    """Install aistudio-sdk for Baidu downloads."""
+    try:
+        import importlib.util
+        # Check if aistudio_sdk module is available
+        if importlib.util.find_spec("aistudio_sdk") is not None:
+            LOGGER.info("aistudio-sdk is already installed.")
+            return True
+        
+        LOGGER.info("Installing aistudio-sdk for Baidu downloads (this may take a moment)...")
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "aistudio-sdk"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        LOGGER.info("aistudio-sdk installed successfully.")
+        return True
+    except subprocess.CalledProcessError as e:
+        LOGGER.warning(f"Failed to install aistudio-sdk: {e}")
+        if e.stderr:
+            LOGGER.warning(f"Error details: {e.stderr}")
+        return False
+    except Exception as e:
+        LOGGER.warning(f"Unexpected error installing aistudio-sdk: {e}")
+        return False
+
+
+def _download_from_baidu(raw_dir: Path) -> bool:
+    """Download SUN RGB-D dataset from Baidu AI Studio.
+    
+    Note: aistudio-sdk must be installed before calling this function.
+    """
+    try:
+        LOGGER.info(f"Downloading SUN RGB-D dataset from Baidu AI Studio (dataset: {BAIDU_DATASET_ID})...")
+        LOGGER.info("This may take a while, please be patient...")
+        
+        # Use aistudio CLI to download dataset
+        # Note: Do NOT capture_output=True as it will buffer and appear to hang
+        # Let the output stream directly to console so user can see progress
+        cmd = [
+            "aistudio",
+            "download",
+            "--dataset",
+            BAIDU_DATASET_ID,
+            "--local_dir",
+            str(raw_dir),
+        ]
+        
+        # Run without capturing output to show progress
+        result = subprocess.run(cmd, check=True)
+        LOGGER.info("Successfully downloaded SUN RGB-D dataset from Baidu AI Studio.")
+        
+        # Check if download was successful by looking for the dataset
+        if _find_sunrgbd_dir(raw_dir) is not None:
+            return True
+        else:
+            LOGGER.warning("Download completed but could not locate SUN RGB-D directory.")
+            return False
+            
+    except subprocess.CalledProcessError as e:
+        LOGGER.warning(f"Failed to download from Baidu AI Studio: {e}")
+        return False
+    except Exception as e:
+        LOGGER.warning(f"Unexpected error during Baidu download: {e}")
+        return False
 
 
 def prepare_sunrgbd_mde_dataset(
@@ -192,7 +294,36 @@ def _ensure_sunrgbd_raw(raw_dir: Path, download_assets: bool) -> Path:
 
     if download_assets or sunrgbd_dir is None:
         LOGGER.info("Downloading SUN RGB-D dataset assets (this may take a while)...")
-        download(SUNRGBD_URLS, dir=raw_dir, unzip=True, exist_ok=True)
+        
+        # Detect network location and choose download method
+        use_baidu = _is_china_network()
+        download_success = False
+        
+        if use_baidu:
+            # Install aistudio-sdk first if in China
+            if not _install_aistudio_sdk():
+                LOGGER.warning("Failed to install aistudio-sdk, falling back to Princeton URLs...")
+                use_baidu = False
+            else:
+                LOGGER.info("Using Baidu AI Studio for download (China network detected)...")
+                download_success = _download_from_baidu(raw_dir)
+                
+                if not download_success:
+                    LOGGER.warning("Baidu download failed, falling back to Princeton URLs...")
+        
+        # If not in China or Baidu download failed, use Princeton URLs
+        if not use_baidu or not download_success:
+            try:
+                download(SUNRGBD_URLS, dir=raw_dir, unzip=True, exist_ok=True)
+            except Exception as e:
+                LOGGER.error(f"Failed to download from Princeton URLs: {e}")
+                if use_baidu:
+                    raise FileNotFoundError(
+                        f"Both Baidu and Princeton downloads failed. "
+                        f"Please manually download the dataset to {raw_dir}"
+                    ) from e
+                raise
+        
         sunrgbd_dir = _find_sunrgbd_dir(raw_dir)
 
     if sunrgbd_dir is None:

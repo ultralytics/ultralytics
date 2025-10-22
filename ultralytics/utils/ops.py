@@ -592,6 +592,8 @@ def scale_masks(masks, shape, padding: bool = True):
     Returns:
         (torch.Tensor): Rescaled masks.
     """
+    if not torch.is_floating_point(masks):
+        masks = masks.float()
     mh, mw = masks.shape[2:]
     gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
     pad_w = mw - shape[1] * gain

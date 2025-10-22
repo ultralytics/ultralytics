@@ -8,7 +8,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_9 WINDOWS
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_9, WINDOWS
 
 
 def run(cmd: str) -> None:

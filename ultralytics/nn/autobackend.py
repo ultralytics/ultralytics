@@ -96,6 +96,8 @@ class AutoBackend(nn.Module):
             | NCNN                  | *_ncnn_model/     |
             | IMX                   | *_imx_model/      |
             | RKNN                  | *_rknn_model/     |
+            | Triton Inference      | triton://model    |
+            | ExecuTorch            | *.pte             |
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO model.
@@ -122,6 +124,7 @@ class AutoBackend(nn.Module):
         imx (bool): Whether the model is an IMX model.
         rknn (bool): Whether the model is an RKNN model.
         triton (bool): Whether the model is a Triton Inference Server model.
+        pte (bool): Whether the model is a PyTorch ExecuTorch model.
 
     Methods:
         forward: Run inference on an input image.
@@ -176,6 +179,7 @@ class AutoBackend(nn.Module):
             ncnn,
             imx,
             rknn,
+            pte,
             triton,
         ) = self._model_type("" if nn_module else model)
         fp16 &= pt or jit or onnx or xml or engine or nn_module or triton  # FP16
@@ -570,6 +574,25 @@ class AutoBackend(nn.Module):
             rknn_model.init_runtime()
             metadata = w.parent / "metadata.yaml"
 
+        # ExecuTorch
+        elif pte:
+            LOGGER.info(f"Loading {w} for ExecuTorch inference...")
+            # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
+            check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+            check_requirements(("executorch==1.0.0", "flatbuffers"))
+            from executorch.runtime import Runtime
+
+            w = Path(w)
+            if w.is_dir():
+                model_file = next(w.rglob("*.pte"))
+                metadata = w / "metadata.yaml"
+            else:
+                model_file = w
+                metadata = w.parent / "metadata.yaml"
+
+            program = Runtime.get().load_program(str(model_file))
+            model = program.load_method("forward")
+
         # Any other format (unsupported)
         else:
             from ultralytics.engine.exporter import export_formats
@@ -772,6 +795,10 @@ class AutoBackend(nn.Module):
             im = (im.cpu().numpy() * 255).astype("uint8")
             im = im if isinstance(im, (list, tuple)) else [im]
             y = self.rknn_model.inference(inputs=im)
+
+        # ExecuTorch
+        elif self.pte:
+            y = self.model.execute([im])
 
         # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)
         else:

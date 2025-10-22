@@ -201,14 +201,16 @@ def test_solution(name, solution_class, needs_frame_count, video, kwargs, tmp_pa
         return
 
     # Update kwargs to use tmp_path
+    kwargs_updated = {}
     for key in kwargs:
         if key.startswith("temp_"):
-            kwargs[key.replace("temp_", "")] = str(tmp_path / kwargs[key])
-            del kwargs[key]
+            kwargs_updated[key.replace("temp_", "")] = str(tmp_path / kwargs[key])
+        else:
+            kwargs_updated[key] = kwargs[key]
 
     video = VERTICAL_VIDEO if name == "ObjectCounterVertical" else video
     process_video(
-        solution=solution_class(**kwargs),
+        solution=solution_class(**kwargs_updated),
         video_path=str(tmp_path / video),
         needs_frame_count=needs_frame_count,
     )

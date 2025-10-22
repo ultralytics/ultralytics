@@ -18,9 +18,9 @@ from ultralytics.utils import (
     LINUX,
     MACOS,
     WINDOWS,
-    checks,
+    checks
 )
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -264,10 +264,7 @@ def test_export_imx():
     YOLO(file)(SOURCE, imgsz=32)
 
 
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_10 or checks.TORCH_VERSION < "2.9.0",
-    reason="ExecuTorch export requires Python>=3.10 and Torch>=2.9.0",
-)
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 def test_export_executorch():
     """Test YOLO model export to ExecuTorch format."""
@@ -284,10 +281,7 @@ def test_export_executorch():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(
-    not checks.IS_PYTHON_MINIMUM_3_10 or checks.TORCH_VERSION < "2.9.0",
-    reason="ExecuTorch export requires Python>=3.10 and Torch>=2.9.0",
-)
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
 @pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
 @pytest.mark.parametrize("task", TASKS)
 def test_export_executorch_matrix(task):

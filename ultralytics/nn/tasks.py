@@ -1161,7 +1161,7 @@ class YOLOEModel(DetectionModel):
             assert vpe.ndim == 3
             all_pe.append(vpe)
         if not all_pe:
-            all_pe.append(getattr(self, "pe", torch.zeros(1, 80, 512)))
+            all_pe.append(getattr(self, "pe", torch.zeros(1, self.model[-1].nc, 512)))
         return torch.cat(all_pe, dim=1)
 
     def predict(

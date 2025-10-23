@@ -210,7 +210,7 @@ jobs:
         run: uv cache prune --ci
 
   SlowTests:
-    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
+    # if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
     runs-on: ${{ matrix.os }}
     strategy:

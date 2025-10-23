@@ -298,59 +298,35 @@ class OBB(Detect):
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        bs = x[0].shape[0]  # batch size
-        angle = torch.cat([self.cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
-        # NOTE: set `angle` as an attribute so that `decode_bboxes` could use it.
-        angle = (angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
-        # angle = angle.sigmoid() * math.pi / 2  # [0, pi/2]
-        if not self.training:
-            self.angle = angle
+        preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
         if self.end2end:
-            x = self.forward_end2end(x, angle)
-        else:
-            x = Detect.forward(self, x)
-            if self.training:
-                x = (x, angle)
-            else:
-                x = ((x[0], angle), (x[1], angle))
+            x_detach = [xi.detach() for xi in x]
+            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3, self.one2one_cv4)
+            preds = {"one2many": preds, "one2one": one2one}
         if self.training:
+            return preds
+        self.angle = preds["one2one"]["angle"] if self.end2end else preds["angle"]  # TODO: need to test obb
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1), preds["one2one"]["angle"], self.max_det, self.nc)
+        else:
+            y = torch.cat([y, preds["angle"]], 1)
+        return y if self.export else (y, preds)
+
+    def forward_head(self, x, box_head, cls_head, angle_head):
+        """Concatenates and returns predicted bounding boxes, class probabilities, and angles."""
+        if box_head is None or cls_head is None:
             return x
-        dim = -1 if self.end2end else 1
-        return torch.cat(x, dim) if self.export else (torch.cat(x[0], dim), x[1])
+        bs = x[0].shape[0]  # batch size
+        preds = super().forward_head(x, box_head, cls_head)
+        angle = torch.cat([angle_head[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
+        angle = (angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
+        preds["angle"] = angle
+        return preds
 
     def decode_bboxes(self, bboxes, anchors):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
-
-    def forward_end2end(self, x: list[torch.Tensor], angle: torch.Tensor) -> dict | tuple:
-        """
-        Perform forward pass of the v10Detect module.
-
-        Args:
-            x (list[torch.Tensor]): Input feature maps from different levels.
-            angle (torch.Tensor): OBB angle logits.
-
-        Returns:
-            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
-                Inference mode returns processed detections or tuple with detections and raw outputs.
-        """
-        x_detach = [xi.detach() for xi in x]
-        one2one = [
-            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
-        ]
-        bs = x[0].shape[0]  # batch size
-        one2one_angle = torch.cat(
-            [self.one2one_cv4[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2
-        )  # OBB theta logits
-        one2one_angle = (one2one_angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:  # Training path
-            return {"one2many": (x, angle), "one2one": (one2one, one2one_angle)}
-
-        y = self._inference(one2one)
-        y, ag = self.postprocess(y.permute(0, 2, 1), one2one_angle, self.max_det, self.nc)
-        return (y, ag) if self.export else ((y, ag), {"one2many": (x, angle), "one2one": (one2one, one2one_angle)})
 
     @staticmethod
     def postprocess(preds: torch.Tensor, angle: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -376,9 +352,9 @@ class OBB(Detect):
         angle = angle.gather(dim=1, index=index.repeat(1, 1, angle.shape[-1]))
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
-        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1), angle[
-            i, index // nc
-        ]
+        return torch.cat(
+            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), angle[i, index // nc]], dim=-1
+        )
 
 
 class Pose(Detect):

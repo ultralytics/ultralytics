@@ -384,7 +384,9 @@ class v8SegmentationLoss(v8DetectionLoss):
                 # masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
                 proto = F.interpolate(proto, masks.shape[-2:], mode="bilinear", align_corners=False)
 
-            imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_masks.dtype)  # image size (h,w)
+            imgsz = torch.tensor(
+                batch["resized_shape"][0], device=self.device, dtype=pred_masks.dtype
+            )  # image size (h,w)
             loss[1] = self.calculate_segmentation_loss(
                 fg_mask,
                 masks,
@@ -669,13 +671,11 @@ class v8OBBLoss(v8DetectionLoss):
 
     def loss(self, feats, batch):
         """Calculate and return the loss for oriented bounding box detection."""
-        pred_angle = feats[1]
-        feats = feats[0]
+        pred_angle = feats["angle"]
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
+        pred_distri, pred_scores = feats["boxes"], feats["scores"]
+        anchor_points, stride_tensor = feats["anchors"], feats["strides"]
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
-        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1
-        )
 
         # b, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
@@ -683,8 +683,7 @@ class v8OBBLoss(v8DetectionLoss):
         pred_angle = pred_angle.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
-        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
-        anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
+        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=dtype)  # image size (h,w)
 
         # targets
         try:

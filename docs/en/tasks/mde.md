@@ -121,17 +121,7 @@ Validate trained YOLO11n-mde model [accuracy](https://www.ultralytics.com/glossa
         model = YOLO("runs/mde/train/weights/best.pt")  # load your trained model
 
         # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered
-        metrics.box.map  # map50-95 for object detection
-        metrics.box.map50  # map50
-        metrics.box.map75  # map75
-        metrics.box.maps  # a list contains map50-95 of each category
-
-        # Access depth estimation metrics
-        print(f"Depth Error Rate: {metrics.depth_error:.2f}%")
-        print(f"Depth MAE: {metrics.depth_mae:.2f}m")
-        print(f"Depth RMSE: {metrics.depth_rmse:.2f}m")
-        print(f"Depth Accuracy (δ<1.25): {metrics.depth_acc:.2f}%")
+        metrics = model.val()  # no arguments needed, dataset and settings remembered        
         ```
 
     === "CLI"

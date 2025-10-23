@@ -219,59 +219,34 @@ class Segment(Detect):
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     def forward(self, x):
-        """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
-        p = self.proto(x[0])  # mask protos
-        bs = p.shape[0]  # batch size
-
-        mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
+        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
         if self.end2end:
-            x = self.forward_end2end(x, mc, p)
-        else:
-            x = Detect.forward(self, x)
-            if self.training:
-                x = (x, mc, p)
-            else:
-                x = ((x[0], mc), (x[1], mc, p))
+            x_detach = [xi.detach() for xi in x]
+            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3, self.one2one_cv4, detach=True)
+            preds = {"one2many": preds, "one2one": one2one}
         if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1), preds["one2one"]["mask_coefficient"], self.max_det, self.nc)
+        else:
+            y = torch.cat([y, preds["mask_coefficient"]], 1)
+        return y if self.export else (y, preds)
+
+    # TODO
+    def forward_head(self, x, box_head, cls_head, mask_head, detach=False):
+        if box_head is None or cls_head is None:  # for fused inference
             return x
-        dim = -1 if self.end2end else 1
-        return (torch.cat(x, dim), p) if self.export else ((torch.cat(x[0], dim), p), x[1])
-
-    def forward_end2end(
-        self, x: list[torch.Tensor], mask_coefficient: torch.Tensor, proto: torch.Tensor
-    ) -> dict | tuple:
-        """
-        Perform forward pass of the v10Detect module.
-
-        Args:
-            x (list[torch.Tensor]): Input feature maps from different levels.
-            mask_coefficient (torch.Tensor): Mask coefficients.
-            proto (torch.Tensor): Mask prototypes.
-
-        Returns:
-            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
-                Inference mode returns processed detections or tuple with detections and raw outputs.
-        """
-        x_detach = [xi.detach() for xi in x]
-        one2one = [
-            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
-        ]
+        preds = super().forward_head(x, box_head, cls_head)
         bs = x[0].shape[0]  # batch size
-        one2one_mc = torch.cat(
-            [self.one2one_cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2
-        )  # mask coefficients
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:  # Training path
-            return {"one2many": (x, mask_coefficient, proto), "one2one": (one2one, one2one_mc, proto)}
-
-        y = self._inference(one2one)
-        y, mc = self.postprocess(y.permute(0, 2, 1), one2one_mc, self.max_det, self.nc)
-        return (
-            (y, mc)
-            if self.export
-            else ((y, mc), {"one2many": (x, mask_coefficient, proto), "one2one": (one2one, one2one_mc, proto)})
-        )
+        mc = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
+        preds["mask_coefficient"] = mc
+        # TODO: duplicate computation
+        preds["proto"] = self.proto(x[0])  # mask protos
+        if detach:
+            preds["proto"] = preds["proto"].detach()
+        return preds
 
     @staticmethod
     def postprocess(preds: torch.Tensor, mask_coefficient: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -298,8 +273,14 @@ class Segment(Detect):
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
         return torch.cat(
-            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1
-        ), mask_coefficient[i, index // nc]
+            [
+                boxes[i, index // nc],
+                scores[..., None],
+                (index % nc)[..., None].float(),
+                mask_coefficient[i, index // nc],
+            ],
+            dim=-1,
+        )
 
 
 class OBB(Detect):

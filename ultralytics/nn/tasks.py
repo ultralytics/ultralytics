@@ -355,7 +355,7 @@ class DetectionModel(BaseModel):
                 #     output = self.forward(x)[0]  # split proto
                 if self.end2end:
                     output = output["one2many"]
-                return output[0]["feats"] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else output["feats"]
+                return output["feats"]
 
             m.stride = torch.tensor([s / x.shape[-2] for x in _forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride

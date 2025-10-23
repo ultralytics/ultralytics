@@ -369,9 +369,7 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def loss(self, feats, batch):
         """Calculate and return the combined loss for detection and segmentation."""
-        pred_masks = feats[1]
-        proto = feats[2]
-        feats = feats[0]
+        pred_masks, proto = feats["mask_coefficient"], feats["proto"]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
@@ -386,7 +384,7 @@ class v8SegmentationLoss(v8DetectionLoss):
                 # masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
                 proto = F.interpolate(proto, masks.shape[-2:], mode="bilinear", align_corners=False)
 
-            imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=feats[0].dtype) * self.stride[0]
+            imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_masks.dtype)  # image size (h,w)
             loss[1] = self.calculate_segmentation_loss(
                 fg_mask,
                 masks,

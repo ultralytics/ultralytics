@@ -82,7 +82,7 @@ class Model(torch.nn.Module):
     def __init__(
         self,
         model: str | Path | Model = "yolo11n.pt",
-        task: str = None,
+        task: str | None = None,
         verbose: bool = False,
     ) -> None:
         """

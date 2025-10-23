@@ -71,41 +71,28 @@ class Detect(nn.Module):
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
+        preds = self.forward_head(x, self.cv2, self.cv3)
         if self.end2end:
-            return self.forward_end2end(x)
+            x_detach = [xi.detach() for xi in x]
+            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
+        return y if self.export else (y, preds)
 
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:  # Training path
+    def forward_head(self, x, box_head=None, cls_head=None):
+        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        if box_head is None or cls_head is None:  # for fused inference
             return x
-        y = self._inference(x)
-        # y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else (y, x)
-
-    def forward_end2end(self, x):
-        """
-        Performs forward pass of the v10Detect module.
-
-        Args:
-            x (List[torch.Tensor]): Input feature maps from different levels.
-
-        Returns:
-            (dict | tuple): If in training mode, returns a dictionary containing the outputs of both one2many and
-                one2one detections. If not in training mode, returns processed detections or a tuple with
-                processed detections and raw outputs.
-        """
-        x_detach = [xi.detach() for xi in x]
-        one2one = [
-            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
-        ]
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:  # Training path
-            return {"one2many": x, "one2one": one2one}
-
-        y = self._inference(one2one)
-        y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else (y, {"one2many": x, "one2one": one2one})
+        bs = x[0].shape[0]  # batch size
+        boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        anchors, strides = make_anchors(x, self.stride, 0.5)
+        # TODO: try to eliminate feats here
+        return dict(boxes=boxes, scores=scores, anchors=anchors, strides=strides, feats=x)
 
     def _inference(self, x):
         """
@@ -118,23 +105,12 @@ class Detect(nn.Module):
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
         """
         # Inference path
-        # if not hasattr(self, "box_tensors"):
-        #     self.box_tensors = []
-        # for i in x:
-        #     box_tensor = self.dfl(i[:, :4 * self.reg_max].view(i.shape[0], 4 * self.reg_max, -1))
-        #     self.box_tensors.append(box_tensor.mean().item())
-        shape = x[0].shape  # BCHW
-        x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+        shape = x["feats"][0].shape  # BCHW
         if self.format != "imx" and (self.dynamic or self.shape != shape):
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            self.anchors, self.strides = x["anchors"].transpose(0, 1), x["strides"].transpose(0, 1)
             self.shape = shape
 
-        if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:  # avoid TF FlexSplitV ops
-            box = x_cat[:, : self.reg_max * 4]
-            cls = x_cat[:, self.reg_max * 4 :]
-        else:
-            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-
+        box, cls = x["boxes"], x["scores"]
         if self.export and self.format in {"tflite", "edgetpu"}:
             # Precompute normalization factor to increase numerical stability
             # See https://github.com/ultralytics/ultralytics/issues/7371
@@ -200,7 +176,7 @@ class Detect(nn.Module):
 
     def fuse(self):
         """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
+        self.cv2 = self.cv3 = None
 
 
 class PSADetect(Detect):

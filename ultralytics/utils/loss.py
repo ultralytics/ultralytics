@@ -270,17 +270,15 @@ class v8DetectionLoss:
     def get_assigned_targets_and_loss(self, feats, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and target indices."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1
-        )
+        pred_distri, pred_scores = feats["boxes"], feats["scores"]
+        anchor_points, stride_tensor = feats["anchors"], feats["strides"]
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
-        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
-        anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
+        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=dtype)  # image size (h,w)
 
         # Targets
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
@@ -343,7 +341,7 @@ class v8DetectionLoss:
 
     def loss(self, feats, batch):
         """A wrapper for get_assigned_targets_and_loss and parse_output."""
-        batch_size = feats[0].shape[0]
+        batch_size = feats["boxes"].shape[0]
         loss, loss_detach = self.get_assigned_targets_and_loss(feats, batch)[1:]
         return loss * batch_size, loss_detach
 

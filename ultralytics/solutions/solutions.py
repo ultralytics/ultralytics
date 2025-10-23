@@ -471,7 +471,7 @@ class SolutionAnnotator(Annotator):
         points = [(int(k[0]), int(k[1])) for i, k in enumerate(keypoints) if i in indices and k[2] >= conf_thresh]
 
         # Draw lines between consecutive points
-        for start, end in itertools.pairwise(points):
+        for start, end in zip(points[:-1], points[1:]):
             cv2.line(self.im, start, end, (0, 255, 0), 2, lineType=cv2.LINE_AA)
 
         # Draw circles for keypoints

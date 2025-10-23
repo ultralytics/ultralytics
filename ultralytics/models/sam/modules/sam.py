@@ -712,7 +712,7 @@ class SAM2Model(torch.nn.Module):
                     continue  # skip padding frames
                 # "maskmem_features" might have been offloaded to CPU in demo use cases,
                 # so we load it back to inference device (it's a no-op if it's already on device).
-                feats = prev["maskmem_features"].to(device=device, non_blocking=True)
+                feats = prev["maskmem_features"].to(device=device, non_blocking=device.type == "cuda")
                 to_cat_memory.append(feats.flatten(2).permute(2, 0, 1))
                 # Spatial positional encoding (it might have been offloaded to CPU in eval)
                 maskmem_enc = prev["maskmem_pos_enc"][-1].to(device=device)

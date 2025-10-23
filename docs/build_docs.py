@@ -329,7 +329,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
         if js:
             import jsmin
     except ImportError as e:
-        LOGGER.info(f"Missing required package: {str(e)}")
+        LOGGER.info(f"Missing required package: {e}")
         return
 
     stats = {}

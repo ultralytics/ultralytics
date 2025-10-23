@@ -20,6 +20,7 @@ MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
+ExecuTorch              | `executorch`              | yolo11n_executorch_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -48,6 +49,7 @@ Inference:
                          yolo11n_ncnn_model         # NCNN
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
+                         yolo11n_executorch_model   # ExecuTorch
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -112,7 +114,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, select_device
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, TORCH_2_9, select_device
 
 
 def export_formats():
@@ -148,6 +150,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -322,9 +325,24 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
-            flags  # export booleans
-        )
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            mnn,
+            ncnn,
+            imx,
+            rknn,
+            executorch,
+        ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
@@ -385,7 +403,7 @@ class Exporter:
             assert not tflite or not ARM64 or not LINUX, "TFLite export with NMS unsupported on ARM64 Linux"
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert not onnx or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
-            if getattr(model, "end2end", False):
+            if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
                 self.args.nms = False
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
@@ -502,6 +520,8 @@ class Exporter:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
+            if hasattr(model, "kpt_names"):
+                self.metadata["kpt_names"] = model.kpt_names
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
@@ -541,6 +561,8 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
+        if executorch:
+            f[15] = self.export_executorch()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -612,7 +634,7 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.12.0"]
         if self.args.simplify:
-            requirements += ["onnxslim>=0.1.67", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
+            requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -1014,7 +1036,7 @@ class Exporter:
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
                 "onnx>=1.12.0",
                 "onnx2tf>=1.26.3",
-                "onnxslim>=0.1.67",
+                "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
                 "protobuf>=5",
             ),
@@ -1039,6 +1061,9 @@ class Exporter:
             attempt_download_asset(f"{onnx2tf_file}.zip", unzip=True, delete=True)
 
         # Export to ONNX
+        if isinstance(self.model.model[-1], RTDETRDecoder):
+            self.args.opset = self.args.opset or 19
+            assert 16 <= self.args.opset <= 19, "RTDETR export requires opset>=16;<=19"
         self.args.simplify = True
         f_onnx = self.export_onnx()
 
@@ -1116,6 +1141,39 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
+
+    @try_export
+    def export_executorch(self, prefix=colorstr("ExecuTorch:")):
+        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
+        following Ultralytics conventions.
+        """
+        LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
+        assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
+        # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+        check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+        check_requirements(("executorch==1.0.0", "flatbuffers"))
+
+        import torch
+        from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
+        from executorch.exir import to_edge_transform_and_lower
+
+        file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
+        file_directory.mkdir(parents=True, exist_ok=True)
+
+        file_pte = file_directory / self.file.with_suffix(".pte").name
+        sample_inputs = (self.im,)
+
+        et_program = to_edge_transform_and_lower(
+            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
+        ).to_executorch()
+
+        with open(file_pte, "wb") as file:
+            file.write(et_program.buffer)
+
+        YAML.save(file_directory / "metadata.yaml", self.metadata)
+
+        return str(file_directory)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):

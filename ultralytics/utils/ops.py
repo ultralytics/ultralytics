@@ -517,12 +517,19 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): Cropped masks.
     """
-    _, h, w = masks.shape
-    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
-    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
-    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
-
-    return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
+    n, h, w = masks.shape
+    if n < 50:  # faster for fewer masks (predict)
+        for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
+            masks[i, :y1] = 0
+            masks[i, y2:] = 0
+            masks[i, :, :x1] = 0
+            masks[i, :, x2:] = 0
+        return masks
+    else:  # faster for more masks (val)
+        x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
+        r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
+        c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
+        return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 
 
 def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
@@ -541,21 +548,16 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
     c, mh, mw = protos.shape  # CHW
-    ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)  # CHW
-    width_ratio = mw / iw
-    height_ratio = mh / ih
 
-    downsampled_bboxes = bboxes.clone()
-    downsampled_bboxes[:, 0] *= width_ratio
-    downsampled_bboxes[:, 2] *= width_ratio
-    downsampled_bboxes[:, 3] *= height_ratio
-    downsampled_bboxes[:, 1] *= height_ratio
+    width_ratio = mw / shape[1]
+    height_ratio = mh / shape[0]
+    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
-    masks = crop_mask(masks, downsampled_bboxes)  # CHW
+    masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
     if upsample:
-        masks = F.interpolate(masks[None], shape, mode="bilinear", align_corners=False)[0]  # CHW
-    return masks.gt_(0.0)
+        masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
+    return masks.gt_(0.0).byte()
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -575,7 +577,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
     masks = scale_masks(masks[None], shape)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.0)
+    return masks.gt_(0.0).byte()
 
 
 def scale_masks(masks, shape, padding: bool = True):
@@ -600,7 +602,7 @@ def scale_masks(masks, shape, padding: bool = True):
     top, left = (int(round(pad_h - 0.1)), int(round(pad_w - 0.1))) if padding else (0, 0)
     bottom = mh - int(round(pad_h + 0.1))
     right = mw - int(round(pad_w + 0.1))
-    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear", align_corners=False)  # NCHW masks
+    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear")  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):
@@ -672,7 +674,7 @@ def masks2segments(masks, strategy: str = "all"):
     from ultralytics.data.converter import merge_multi_segment
 
     segments = []
-    for x in masks.int().cpu().numpy().astype("uint8"):
+    for x in masks.byte().cpu().numpy():
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments
@@ -699,7 +701,7 @@ def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
     Returns:
         (np.ndarray): Output NumPy array batch with shape (Batch, Height, Width, Channels) and dtype uint8.
     """
-    return (batch.permute(0, 2, 3, 1).contiguous() * 255).clamp(0, 255).to(torch.uint8).cpu().numpy()
+    return (batch.permute(0, 2, 3, 1).contiguous() * 255).clamp(0, 255).byte().cpu().numpy()
 
 
 def clean_str(s):

@@ -19,6 +19,7 @@ Usage:
 Note:
     - Requires Python and MkDocs to be installed and configured.
 """
+from __future__ import annotations
 
 import os
 import re

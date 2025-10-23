@@ -1270,7 +1270,13 @@ class SegmentMetrics(DetMetrics):
     @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing metrics."""
-        return [*DetMetrics.keys.fget(self), "metrics/precision(M)", "metrics/recall(M)", "metrics/mAP50(M)", "metrics/mAP50-95(M)"]
+        return [
+            *DetMetrics.keys.fget(self),
+            "metrics/precision(M)",
+            "metrics/recall(M)",
+            "metrics/mAP50(M)",
+            "metrics/mAP50-95(M)",
+        ]
 
     def mean_results(self) -> list[float]:
         """Return the mean metrics for bounding box and segmentation results."""
@@ -1293,7 +1299,13 @@ class SegmentMetrics(DetMetrics):
     @property
     def curves(self) -> list[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return [*DetMetrics.curves.fget(self), "Precision-Recall(M)", "F1-Confidence(M)", "Precision-Confidence(M)", "Recall-Confidence(M)"]
+        return [
+            *DetMetrics.curves.fget(self),
+            "Precision-Recall(M)",
+            "F1-Confidence(M)",
+            "Precision-Confidence(M)",
+            "Recall-Confidence(M)",
+        ]
 
     @property
     def curves_results(self) -> list[list]:
@@ -1397,7 +1409,13 @@ class PoseMetrics(DetMetrics):
     @property
     def keys(self) -> list[str]:
         """Return a list of evaluation metric keys."""
-        return [*DetMetrics.keys.fget(self), "metrics/precision(P)", "metrics/recall(P)", "metrics/mAP50(P)", "metrics/mAP50-95(P)"]
+        return [
+            *DetMetrics.keys.fget(self),
+            "metrics/precision(P)",
+            "metrics/recall(P)",
+            "metrics/mAP50(P)",
+            "metrics/mAP50-95(P)",
+        ]
 
     def mean_results(self) -> list[float]:
         """Return the mean results of box and pose."""
@@ -1420,7 +1438,17 @@ class PoseMetrics(DetMetrics):
     @property
     def curves(self) -> list[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return [*DetMetrics.curves.fget(self), "Precision-Recall(B)", "F1-Confidence(B)", "Precision-Confidence(B)", "Recall-Confidence(B)", "Precision-Recall(P)", "F1-Confidence(P)", "Precision-Confidence(P)", "Recall-Confidence(P)"]
+        return [
+            *DetMetrics.curves.fget(self),
+            "Precision-Recall(B)",
+            "F1-Confidence(B)",
+            "Precision-Confidence(B)",
+            "Recall-Confidence(B)",
+            "Precision-Recall(P)",
+            "F1-Confidence(P)",
+            "Precision-Confidence(P)",
+            "Recall-Confidence(P)",
+        ]
 
     @property
     def curves_results(self) -> list[list]:

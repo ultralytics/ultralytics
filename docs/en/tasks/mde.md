@@ -121,7 +121,7 @@ Validate trained YOLO11n-mde model [accuracy](https://www.ultralytics.com/glossa
         model = YOLO("runs/mde/train/weights/best.pt")  # load your trained model
 
         # Validate the model
-        metrics = model.val()  # no arguments needed, dataset and settings remembered        
+        metrics = model.val()  # no arguments needed, dataset and settings remembered
         ```
 
     === "CLI"

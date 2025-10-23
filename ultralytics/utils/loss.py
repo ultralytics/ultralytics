@@ -514,8 +514,7 @@ class v8PoseLoss(v8DetectionLoss):
 
     def loss(self, feats, batch):
         """Calculate the total loss and detach it for pose estimation."""
-        pred_kpts = feats[1]
-        feats = feats[0]
+        pred_kpts = feats["kpt"]
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(feats, batch)
@@ -523,9 +522,9 @@ class v8PoseLoss(v8DetectionLoss):
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
-        batch_size = feats[0].shape[0]
+        batch_size = pred_kpts.shape[0]
         pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
-        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=feats[0].dtype) * self.stride[0]
+        imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
 
         # Pboxes
         pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)

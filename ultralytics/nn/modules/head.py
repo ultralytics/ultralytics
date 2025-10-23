@@ -371,23 +371,6 @@ class Pose(Detect):
         if self.end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
-    def forward(self, x):
-        """Perform forward pass through YOLO model and return predictions."""
-        bs = x[0].shape[0]  # batch size
-        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
-        if self.end2end:
-            x = self.forward_end2end(x, kpt)
-        else:
-            x = Detect.forward(self, x)
-            if self.training:
-                x = (x, kpt)
-            else:
-                x = ((x[0], self.kpts_decode(bs, kpt)), (x[1], kpt))
-        if self.training:
-            return x
-        dim = -1 if self.end2end else 1
-        return torch.cat(x, dim) if self.export else (torch.cat(x[0], dim), x[1])
-
     def kpts_decode(self, bs, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
@@ -417,33 +400,31 @@ class Pose(Detect):
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
 
-    def forward_end2end(self, x: list[torch.Tensor], kpts: torch.Tensor) -> dict | tuple:
-        """
-        Perform forward pass of the v10Detect module.
+    def forward(self, x):
+        """Concatenates and returns predicted bounding boxes and class probabilities."""
+        preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
+        if self.end2end:
+            x_detach = [xi.detach() for xi in x]
+            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3, self.one2one_cv4)
+            preds = {"one2many": preds, "one2one": one2one}
+        if self.training:
+            return preds
+        y = self._inference(preds["one2one"] if self.end2end else preds)
+        kpt = self.kpts_decode(y.shape[0], preds["one2one"]["kpt"] if self.end2end else preds["kpt"])
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1), kpt, self.max_det, self.nc)
+        else:
+            y = torch.cat([y, kpt], 1)
+        return y if self.export else (y, preds)
 
-        Args:
-            x (list[torch.Tensor]): Input feature maps from different levels.
-            kpts (torch.Tensor): Keypoints.
-
-        Returns:
-            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
-                Inference mode returns processed detections or tuple with detections and raw outputs.
-        """
-        x_detach = [xi.detach() for xi in x]
-        one2one = [
-            torch.cat((self.one2one_cv2[i](x_detach[i]), self.one2one_cv3[i](x_detach[i])), 1) for i in range(self.nl)
-        ]
+    def forward_head(self, x, box_head, cls_head, pose_head):
+        """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
+        if box_head is None or cls_head is None:
+            return x
         bs = x[0].shape[0]  # batch size
-        one2one_kpt = torch.cat([self.one2one_cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
-        if self.training:  # Training path
-            return {"one2many": (x, kpts), "one2one": (one2one, one2one_kpt)}
-
-        y = self._inference(one2one)
-        kpt = self.kpts_decode(bs, one2one_kpt)
-        y, kpt = self.postprocess(y.permute(0, 2, 1), kpt, self.max_det, self.nc)
-        return (y, kpt) if self.export else ((y, kpt), {"one2many": (x, kpts), "one2one": (one2one, one2one_kpt)})
+        preds = super().forward_head(x, box_head, cls_head)
+        preds["kpt"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+        return preds
 
     @staticmethod
     def postprocess(preds: torch.Tensor, kpts: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -469,9 +450,9 @@ class Pose(Detect):
         kpts = kpts.gather(dim=1, index=index.repeat(1, 1, kpts.shape[-1]))
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
-        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1), kpts[
-            i, index // nc
-        ]
+        return torch.cat(
+            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), kpts[i, index // nc]], dim=-1
+        )
 
 
 class Classify(nn.Module):

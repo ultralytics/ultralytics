@@ -1026,7 +1026,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements("tensorflow>=2.0.0,<=2.19.0")
+            check_requirements("tensorflow>=2.0.0,<=2.19.1")
             import tensorflow as tf  # noqa
         check_requirements(
             (

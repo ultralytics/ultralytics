@@ -12,15 +12,8 @@ import pytest
 from tests import MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.utils import (
-    ARM64,
-    IS_RASPBERRYPI,
-    LINUX,
-    MACOS,
-    WINDOWS,
-    checks,
-)
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1
+from ultralytics.utils import ARM64, IS_RASPBERRYPI, LINUX, MACOS, WINDOWS, checks
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_9
 
 
 def test_export_torchscript():
@@ -262,3 +255,38 @@ def test_export_imx():
     model = YOLO("yolov8n.pt")
     file = model.export(format="imx", imgsz=32)
     YOLO(file)(SOURCE, imgsz=32)
+
+
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
+def test_export_executorch():
+    """Test YOLO model export to ExecuTorch format."""
+    file = YOLO(MODEL).export(format="executorch", imgsz=32)
+    assert Path(file).exists(), f"ExecuTorch export failed, directory not found: {file}"
+    # Check that .pte file exists in the exported directory
+    pte_file = Path(file) / Path(MODEL).with_suffix(".pte").name
+    assert pte_file.exists(), f"ExecuTorch .pte file not found: {pte_file}"
+    # Check that metadata.yaml exists
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found: {metadata_file}"
+    # Note: Inference testing skipped as ExecuTorch requires special runtime setup
+    shutil.rmtree(file, ignore_errors=True)  # cleanup
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
+@pytest.mark.parametrize("task", TASKS)
+def test_export_executorch_matrix(task):
+    """Test YOLO export to ExecuTorch format for various task types."""
+    file = YOLO(TASK2MODEL[task]).export(format="executorch", imgsz=32)
+    assert Path(file).exists(), f"ExecuTorch export failed for task '{task}', directory not found: {file}"
+    # Check that .pte file exists in the exported directory
+    model_name = Path(TASK2MODEL[task]).with_suffix(".pte").name
+    pte_file = Path(file) / model_name
+    assert pte_file.exists(), f"ExecuTorch .pte file not found for task '{task}': {pte_file}"
+    # Check that metadata.yaml exists
+    metadata_file = Path(file) / "metadata.yaml"
+    assert metadata_file.exists(), f"ExecuTorch metadata.yaml not found for task '{task}': {metadata_file}"
+    # Note: Inference testing skipped as ExecuTorch requires special runtime setup
+    shutil.rmtree(file, ignore_errors=True)  # cleanup

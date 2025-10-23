@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import torch.distributed as dist
 
 from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix
 from ultralytics.utils.plotting import plot_images
 
@@ -141,6 +142,19 @@ class ClassificationValidator(BaseValidator):
         """Calculate and return a dictionary of metrics by processing targets and predictions."""
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
+
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        if RANK == 0:
+            gathered_preds = [None] * dist.get_world_size()
+            gathered_targets = [None] * dist.get_world_size()
+            dist.gather_object(self.pred, gathered_preds, dst=0)
+            dist.gather_object(self.targets, gathered_targets, dst=0)
+            self.pred = [pred for rank in gathered_preds for pred in rank]
+            self.targets = [targets for rank in gathered_targets for targets in rank]
+        elif RANK > 0:
+            dist.gather_object(self.pred, None, dst=0)
+            dist.gather_object(self.targets, None, dst=0)
 
     def build_dataset(self, img_path: str) -> ClassificationDataset:
         """Create a ClassificationDataset instance for validation."""

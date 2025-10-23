@@ -78,11 +78,11 @@ class VisualAISearch:
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
-        return self.model.encode_image(Image.open(path)).cpu().numpy()
+        return self.model.encode_image(Image.open(path)).detach().cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
-        return self.model.encode_text(self.model.tokenize([text])).cpu().numpy()
+        return self.model.encode_text(self.model.tokenize([text])).detach().cpu().numpy()
 
     def load_or_build_index(self) -> None:
         """

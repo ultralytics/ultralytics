@@ -5,6 +5,7 @@ Train a model on a dataset.
 Usage:
     $ yolo mode=train model=yolo11n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
+
 from __future__ import annotations
 
 import gc

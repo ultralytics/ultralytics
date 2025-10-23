@@ -332,7 +332,7 @@ class v8DetectionLoss:
 
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        return self.loss(*self.parse_output(preds), batch)
+        return self.loss(self.parse_output(preds), batch)
 
     def loss(self, feats, batch):
         """A wrapper for get_assigned_targets_and_loss and parse_output."""

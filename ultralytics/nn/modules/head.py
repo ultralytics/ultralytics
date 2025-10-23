@@ -26,7 +26,7 @@ class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     format = None  # export format
-    end2end = True  # end2end
+    end2end = False  # end2end
     max_det = 300  # max_det
     shape = None
     anchors = torch.empty(0)  # init
@@ -232,7 +232,8 @@ class Segment(Detect):
             y = self.postprocess(y.permute(0, 2, 1), preds["one2one"]["mask_coefficient"], self.max_det, self.nc)
         else:
             y = torch.cat([y, preds["mask_coefficient"]], 1)
-        return y if self.export else (y, preds)
+        proto = preds["one2one"]["proto"] if self.end2end else preds["proto"]
+        return (y, proto) if self.export else ((y, proto), preds)
 
     # TODO
     def forward_head(self, x, box_head, cls_head, mask_head, detach=False):

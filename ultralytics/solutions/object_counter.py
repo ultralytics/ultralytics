@@ -106,11 +106,8 @@ class ObjectCounter(BaseSolution):
                 region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
                 region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
-                if (
-                    (region_width < region_height
-                    and current_centroid[0] > prev_position[0])
-                    or (region_width >= region_height
-                    and current_centroid[1] > prev_position[1])
+                if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
+                    region_width >= region_height and current_centroid[1] > prev_position[1]
                 ):  # Moving right or downward
                     self.in_count += 1
                     self.classwise_count[self.names[cls]]["IN"] += 1

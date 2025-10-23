@@ -3,8 +3,6 @@
 import shutil
 from pathlib import Path
 
-from tests import TMP
-
 
 def pytest_addoption(parser):
     """Add custom command-line options to pytest."""
@@ -29,7 +27,7 @@ def pytest_sessionstart(session):
     Initialize session configurations for pytest.
 
     This function is automatically called by pytest after the 'Session' object has been created but before performing
-    test collection. It sets the initial seeds and prepares the temporary directory for the test session.
+    test collection. It sets the initial seeds for the test session.
 
     Args:
         session: The pytest session object.
@@ -37,8 +35,6 @@ def pytest_sessionstart(session):
     from ultralytics.utils.torch_utils import init_seeds
 
     init_seeds()
-    shutil.rmtree(TMP, ignore_errors=True)  # Delete any existing tests/tmp directory
-    TMP.mkdir(parents=True, exist_ok=True)  # Create a new empty directory
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -62,5 +58,5 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
     # Remove directories
     models = [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [WEIGHTS_DIR / "path with spaces", TMP.parents[1] / ".pytest_cache", TMP] + models:
+    for directory in [WEIGHTS_DIR / "path with spaces"] + models:
         shutil.rmtree(directory, ignore_errors=True)

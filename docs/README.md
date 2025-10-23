@@ -104,7 +104,7 @@ To deploy your MkDocs documentation site, choose a hosting provider and configur
 
     After deployment, you might need to update the "Custom domain" settings in your repository's settings page if you wish to use a personalized URL.
 
-    ![GitHub Pages Custom Domain Setting](https://user-images.githubusercontent.com/26833433/210150206-9e86dcd7-10af-43e4-9eb2-9518b3799eac.png)
+    ![GitHub Pages Custom Domain Setting](https://github.com/ultralytics/docs/releases/download/0/github-pages-custom-domain-setting.avif)
 
 - For detailed instructions on various deployment methods, consult the official [MkDocs Deploying your docs guide](https://www.mkdocs.org/user-guide/deploying-your-docs/).
 

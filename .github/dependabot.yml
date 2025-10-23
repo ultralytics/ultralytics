@@ -11,8 +11,6 @@ updates:
       interval: weekly
       time: "04:00"
     open-pull-requests-limit: 10
-    reviewers:
-      - glenn-jocher
     labels:
       - dependencies
 
@@ -22,7 +20,5 @@ updates:
       interval: weekly
       time: "04:00"
     open-pull-requests-limit: 5
-    reviewers:
-      - glenn-jocher
     labels:
       - dependencies

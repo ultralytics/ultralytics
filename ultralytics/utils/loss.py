@@ -324,12 +324,7 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
-        # self.total_assignments += fg_mask.sum().item()
-        return (
-            (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
-            loss,
-            loss.detach(),
-        )  # loss(box, cls, dfl)
+        return ((fg_mask, target_gt_idx, target_bboxes), loss, loss.detach())  # loss(box, cls, dfl)
 
     def parse_output(self, preds):
         """Parse model predictions to extract features."""
@@ -362,16 +357,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         super().__init__(model, tal_topk)
         self.overlap = model.args.overlap_mask
 
-    def parse_output(self, preds):
-        """Parse model predictions to extract features, mask predictions, and prototype masks."""
-        preds = preds[1] if isinstance(preds, tuple) else preds
-        return preds
-
     def loss(self, feats, batch):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = feats["mask_coefficient"], feats["proto"]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
-        (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
+        (fg_mask, target_gt_idx, target_bboxes), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
@@ -508,17 +498,12 @@ class v8PoseLoss(v8DetectionLoss):
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
-    def parse_output(self, preds):
-        """Parse model predictions to extract features and angle predictions."""
-        return preds[1] if isinstance(preds, tuple) else preds
-
     def loss(self, feats, batch):
         """Calculate the total loss and detach it for pose estimation."""
         pred_kpts = feats["kpt"]
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
-        (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
-            self.get_assigned_targets_and_loss(feats, batch)
-        )
+        (fg_mask, target_gt_idx, target_bboxes), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
+        anchor_points, stride_tensor = feats["anchors"], feats["strides"]
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
@@ -664,10 +649,6 @@ class v8OBBLoss(v8DetectionLoss):
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
-    def parse_output(self, preds):
-        """Parse model predictions to extract features and angle predictions."""
-        return preds[1] if isinstance(preds, tuple) else preds
-
     def loss(self, feats, batch):
         """Calculate and return the loss for oriented bounding box detection."""
         pred_angle = feats["angle"]
@@ -786,18 +767,8 @@ class E2EDetectLoss:
     def __call__(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         preds = self.one2many.parse_output(preds)
-        # if isinstance(preds, tuple):
-        #     extra = preds[1:]
-        #     preds = preds[0]
-        # else:
-        #     extra = []
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, batch)
-        # loss_one2one = self.one2one.loss(one2one, *extra, batch)
-        # if self.is_seg:
-        #     loss_one2one = self.one2one.loss(one2one, extra[0].detach(), batch)
-        # else:
-        # TODO: detach proto for segment
         loss_one2one = self.one2one.loss(one2one, batch)
         return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
             1

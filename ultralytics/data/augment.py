@@ -477,7 +477,7 @@ class BaseMixTransform:
         if "texts" not in labels:
             return labels
 
-        mix_texts = sum([labels["texts"]] + [x["texts"] for x in labels["mix_labels"]], [])
+        mix_texts = [*labels["texts"], *(item for x in labels["mix_labels"] for item in x["texts"])]
         mix_texts = list({tuple(x) for x in mix_texts})
         text2id = {text: i for i, text in enumerate(mix_texts)}
 

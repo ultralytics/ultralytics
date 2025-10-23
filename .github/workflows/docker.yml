@@ -49,7 +49,7 @@ on:
 
 jobs:
   docker:
-    if: github.repository == 'ultralytics/ultralytics'
+    # if: github.repository == 'ultralytics/ultralytics'
     name: Build
     strategy:
       fail-fast: false

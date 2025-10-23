@@ -7,10 +7,10 @@ model_name: yolo11n-mde
 
 # Monocular Depth Estimation (MDE)
 
-
 Monocular Depth Estimation (MDE) is a task that involves predicting the distance of objects from the camera using a single image. Unlike traditional depth estimation methods that require stereo cameras or LiDAR sensors, MDE estimates depth from monocular (single) images, making it more accessible and cost-effective.
 
 The YOLO11-MDE model extends standard object detection by simultaneously predicting:
+
 - **Bounding boxes** that localize objects in the image
 - **Class labels** that identify what each object is
 - **Depth values** that estimate how far each object is from the camera
@@ -27,13 +27,13 @@ YOLO11 pretrained MDE models are shown here. These models extend the standard YO
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Model | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|-------|----------------------|---------------------------|-------------------|------------------|
-| YOLO11n-mde | 640 | 51.9 | 2.6 | 6.6 |
-| YOLO11s-mde | 640 | 62.6 | 9.5 | 21.7 |
-| YOLO11m-mde | 640 | 64.9 | 20.1 | 68.5 |
-| YOLO11l-mde | 640 | 53.1 | 25.4 | 87.6 |
-| YOLO11x-mde | 640 | 63.6 | 57.0 | 196.0 |
+| Model       | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ----------- | --------------------- | -------------------------- | ------------------ | ----------------- |
+| YOLO11n-mde | 640                   | 51.9                       | 2.6                | 6.6               |
+| YOLO11s-mde | 640                   | 62.6                       | 9.5                | 21.7              |
+| YOLO11m-mde | 640                   | 64.9                       | 20.1               | 68.5              |
+| YOLO11l-mde | 640                   | 53.1                       | 25.4               | 87.6              |
+| YOLO11x-mde | 640                   | 63.6                       | 57.0               | 196.0             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [KITTI](https://www.cvlibs.net/datasets/kitti/) validation set. <br>Reproduce by `yolo mde val data=kitti_mde.yaml device=0`
 
@@ -69,6 +69,7 @@ class_id x_center y_center width height depth
 ```
 
 Where:
+
 - `class_id`: Object class index (integer, starting from 0)
 - `x_center, y_center`: Normalized center coordinates of the bounding box (0-1)
 - `width, height`: Normalized width and height of the bounding box (0-1)
@@ -77,9 +78,11 @@ Where:
 To convert actual depth in meters back: `depth_meters = depth * depth_max`
 
 **Example annotation:**
+
 ```
 0 0.5 0.5 0.2 0.3 0.155
 ```
+
 This represents a Car (class 0) at the center of the image with normalized width 0.2, height 0.3, and depth 0.155 (which equals 15.5m if depth_max=100).
 
 **Dataset YAML configuration:**
@@ -92,13 +95,13 @@ val: val/images
 
 nc: 5
 names:
-  0: Car
-  1: Pedestrian
-  2: Cyclist
-  3: Van
-  4: Truck
+    0: Car
+    1: Pedestrian
+    2: Cyclist
+    3: Van
+    4: Truck
 
-depth_max: 100.0  # Maximum depth for normalization (meters)
+depth_max: 100.0 # Maximum depth for normalization (meters)
 ```
 
 For more details on preparing depth estimation datasets, refer to the MDE dataset preparation guide.
@@ -142,12 +145,14 @@ Validate trained YOLO11n-mde model [accuracy](https://www.ultralytics.com/glossa
 MDE models provide both standard object detection metrics and specialized depth estimation metrics:
 
 **Detection Metrics:**
+
 - Precision (P)
 - Recall (R)
 - mAP50 (mean Average Precision at IoU=0.5)
 - mAP50-95 (mean Average Precision at IoU=0.5:0.95)
 
 **Depth Metrics:**
+
 - **Depth Error Rate**: Percentage error in depth predictions
 - **Depth MAE**: Mean Absolute Error of depth in meters
 - **Depth RMSE**: Root Mean Square Error of depth in meters
@@ -157,13 +162,13 @@ MDE models provide both standard object detection metrics and specialized depth 
 
 Here are the actual training results from YOLO11-MDE models trained on the KITTI dataset for 100 epochs:
 
-| Model | Precision | Recall | mAP50 | mAP50-95 | Depth Accuracy (δ<1.25) |
-|-------|-----------|--------|-------|----------|-------------------------|
-| YOLO11n-mde | 82.1% | 66.3% | 76.6% | 51.9% | 95.5% |
-| YOLO11s-mde | 87.6% | 77.7% | 86.3% | 62.6% | 97.2% |
-| YOLO11m-mde | 87.9% | 80.4% | 87.9% | 64.9% | 97.5% |
-| YOLO11l-mde | 83.5% | 66.1% | 76.4% | 53.1% | 94.5% |
-| YOLO11x-mde | 89.9% | 77.5% | 87.0% | 63.6% | 97.1% |
+| Model       | Precision | Recall | mAP50 | mAP50-95 | Depth Accuracy (δ<1.25) |
+| ----------- | --------- | ------ | ----- | -------- | ----------------------- |
+| YOLO11n-mde | 82.1%     | 66.3%  | 76.6% | 51.9%    | 95.5%                   |
+| YOLO11s-mde | 87.6%     | 77.7%  | 86.3% | 62.6%    | 97.2%                   |
+| YOLO11m-mde | 87.9%     | 80.4%  | 87.9% | 64.9%    | 97.5%                   |
+| YOLO11l-mde | 83.5%     | 66.1%  | 76.4% | 53.1%    | 94.5%                   |
+| YOLO11x-mde | 89.9%     | 77.5%  | 87.0% | 63.6%    | 97.1%                   |
 
 **Example Prediction Results:**
 
@@ -229,8 +234,6 @@ Use a trained YOLO11n-mde model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
-
-
 ## FAQ
 
 ### What is Monocular Depth Estimation and how does it work in YOLO11?
@@ -258,12 +261,7 @@ Training a YOLO11-MDE model on a custom dataset requires:
         model = YOLO("yolo11-mde.yaml")
 
         # Train on your custom dataset
-        results = model.train(
-            data="your_dataset.yaml",
-            epochs=100,
-            imgsz=640,
-            batch=16
-        )
+        results = model.train(data="your_dataset.yaml", epochs=100, imgsz=640, batch=16)
         ```
 
     === "CLI"
@@ -281,6 +279,7 @@ YOLO11-MDE models are compatible with datasets that provide both object detectio
 - **[KITTI](https://www.cvlibs.net/datasets/kitti/)**: A popular autonomous driving dataset with 7,481 training images containing object annotations and depth values from LiDAR sensors.
 
 You can also create custom MDE datasets by:
+
 1. Using stereo cameras or depth sensors to capture depth information
 2. Converting existing detection datasets using depth estimation models
 3. Manually annotating depth values for objects in your images
@@ -296,6 +295,7 @@ YOLO11-MDE provides competitive accuracy for depth estimation while maintaining 
 - **Scene complexity**: Simple scenes typically yield better results than complex ones
 
 The model outputs several depth metrics during validation:
+
 - **Depth Error Rate**: 2-3% on KITTI dataset (YOLO11n-mde: 2.8%, YOLO11s-mde: 2.3%, YOLO11m-mde: 2.1%)
 - **Depth MAE**: Mean absolute error in normalized depth units (typically 0.003-0.009)
 - **Depth RMSE**: Root mean square error for depth predictions (typically 0.16-0.18)
@@ -308,6 +308,7 @@ Yes! YOLO11-MDE is designed for real-time applications. The model architecture i
 The smaller models (YOLO11n-mde, YOLO11s-mde) are ideal for edge devices and real-time applications, while larger models (YOLO11m-mde, YOLO11l-mde, YOLO11x-mde) provide higher accuracy for more demanding applications.
 
 MDE models are suitable for:
+
 - Autonomous vehicles requiring real-time scene understanding
 - Robotics applications with onboard processing
 - Augmented reality systems

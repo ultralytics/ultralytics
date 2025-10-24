@@ -96,7 +96,7 @@ class Detect(nn.Module):
     def forward_head(self, x, box_head=None, cls_head=None):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if box_head is None or cls_head is None:  # for fused inference
-            return x
+            return dict()
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
         scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
@@ -240,7 +240,8 @@ class Segment(Detect):
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = super().forward(x)
+        outputs = super().forward(x)
+        preds = outputs[1] if isinstance(outputs, tuple) else outputs
         proto = self.proto(x[0])  # mask protos
         if isinstance(preds, dict):  # training and validating during training
             if self.end2end:
@@ -250,7 +251,7 @@ class Segment(Detect):
                 preds["proto"] = proto
         if self.training:
             return preds
-        return (preds, proto) if self.export else ((preds[0], proto), preds[1])
+        return (outputs, proto) if self.export else ((outputs[0], proto), preds)
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
@@ -258,11 +259,10 @@ class Segment(Detect):
         return torch.cat([preds, x["mask_coefficient"]], dim=1)
 
     def forward_head(self, x, box_head, cls_head, mask_head):
-        if box_head is None or cls_head is None:  # for fused inference
-            return x
         preds = super().forward_head(x, box_head, cls_head)
-        bs = x[0].shape[0]  # batch size
-        preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
+        if mask_head is not None:
+            bs = x[0].shape[0]  # batch size
+            preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
 
     def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -296,6 +296,10 @@ class Segment(Detect):
             ],
             dim=-1,
         )
+
+    def fuse(self):
+        """Remove the one2many head for inference optimization."""
+        self.cv2 = self.cv3 = self.cv4 = None
 
 
 class OBB(Detect):

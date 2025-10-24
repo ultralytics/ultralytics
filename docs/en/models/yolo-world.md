@@ -79,6 +79,17 @@ This section details the models available with their specific pre-trained weight
 
 The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/sWEm3dIGKU8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLO-World Model Usage examples with Ultralytics | Open Vocab, Prompt-Free & others  🚀
+</p>
+
 ### Train Usage
 
 !!! tip

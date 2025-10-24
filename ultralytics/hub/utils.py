@@ -35,8 +35,8 @@ def request_with_credentials(url: str) -> Any:
     """
     if not IS_COLAB:
         raise OSError("request_with_credentials() must run in a Colab environment")
-    from google.colab import output  # noqa
-    from IPython import display  # noqa
+    from google.colab import output
+    from IPython import display
 
     display.display(
         display.Javascript(

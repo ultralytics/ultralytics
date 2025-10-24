@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import math
 import warnings
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import cv2
 import numpy as np
@@ -384,25 +385,32 @@ class Annotator:
                 overlay[mask.astype(bool)] = colors[i]
             self.im = cv2.addWeighted(self.im, 1 - alpha, overlay, alpha, 0)
         else:
-            assert isinstance(masks, torch.Tensor), "`masks` must be a torch.Tensor if `im_gpu` is provided."
+            assert isinstance(masks, torch.Tensor), "'masks' must be a torch.Tensor if 'im_gpu' is provided."
             if len(masks) == 0:
                 self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
+                return
             if im_gpu.device != masks.device:
                 im_gpu = im_gpu.to(masks.device)
+
+            ih, iw = self.im.shape[:2]
+            if not retina_masks:
+                # Use scale_masks to properly remove padding and upsample, convert bool to float first
+                masks = ops.scale_masks(masks[None].float(), (ih, iw))[0] > 0.5
+                # Convert original BGR image to RGB tensor
+                im_gpu = (
+                    torch.from_numpy(self.im).to(masks.device).permute(2, 0, 1).flip(0).contiguous().float() / 255.0
+                )
+
             colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
             colors = colors[:, None, None]  # shape(n,1,1,3)
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
             masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
-
             inv_alpha_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
             mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
-            im_gpu = im_gpu.flip(dims=[0])  # flip channel
-            im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
+            im_gpu = im_gpu.flip(dims=[0]).permute(1, 2, 0).contiguous()  # shape(h,w,3)
             im_gpu = im_gpu * inv_alpha_masks[-1] + mcs
-            im_mask = im_gpu * 255
-            im_mask_np = im_mask.byte().cpu().numpy()
-            self.im[:] = im_mask_np if retina_masks else ops.scale_image(im_mask_np, self.im.shape)
+            self.im[:] = (im_gpu * 255).byte().cpu().numpy()
         if self.pil:
             # Convert im back to PIL and update draw
             self.fromarray(self.im)
@@ -778,10 +786,10 @@ def plot_images(
             idx = batch_idx == i
             classes = cls[idx].astype("int")
             labels = confs is None
+            conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
 
             if len(bboxes):
                 boxes = bboxes[idx]
-                conf = confs[idx] if confs is not None else None  # check for confidence presence (label vs pred)
                 if len(boxes):
                     if boxes[:, :4].max() <= 1.1:  # if normalized with tolerance 0.1
                         boxes[..., [0, 2]] *= w  # scale to pixels
@@ -805,7 +813,8 @@ def plot_images(
                 for c in classes:
                     color = colors(c)
                     c = names.get(c, c) if names else c
-                    annotator.text([x, y], f"{c}", txt_color=color, box_color=(64, 64, 64, 128))
+                    label = f"{c}" if labels else f"{c} {conf[0]:.1f}"
+                    annotator.text([x, y], label, txt_color=color, box_color=(64, 64, 64, 128))
 
             # Plot keypoints
             if len(kpts):

@@ -8,7 +8,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_9, WINDOWS
 
 
 def run(cmd: str) -> None:
@@ -82,7 +82,7 @@ def test_fastsam(
         everything_results = sam_model(s, device="cpu", retina_masks=True, imgsz=320, conf=0.4, iou=0.9)
 
         # Remove small regions
-        new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
+        _new_masks, _ = Predictor.remove_small_regions(everything_results[0].masks.data, min_area=20)
 
         # Run inference with bboxes and points and texts prompt at the same time
         sam_model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
@@ -129,3 +129,10 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""
     run(f"yolo solutions {solution} verbose=False")
+
+
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
+@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
+def test_export_executorch() -> None:
+    """Test exporting a YOLO model to ExecuTorch format via CLI."""
+    run("yolo export model=yolo11n.pt format=executorch imgsz=32")

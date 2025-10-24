@@ -19,6 +19,7 @@ from PIL import Image, ImageOps
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (
+    ASSETS_URL,
     DATASETS_DIR,
     LOGGER,
     NUM_THREADS,
@@ -459,7 +460,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
         if not all(x.exists() for x in val):
             name = clean_url(dataset)  # dataset name with URL auth stripped
             LOGGER.info("")
-            m = f"Dataset '{name}' images not found, missing path '{[x for x in val if not x.exists()][0]}'"
+            m = f"Dataset '{name}' images not found, missing path '{next(x for x in val if not x.exists())}'"
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -523,8 +524,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
         if str(dataset) == "imagenet":
             subprocess.run(["bash", str(ROOT / "data/scripts/get_imagenet.sh")], check=True)
         else:
-            url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{dataset}.zip"
-            download(url, dir=data_dir.parent)
+            download(f"{ASSETS_URL}/{dataset}.zip", dir=data_dir.parent)
         LOGGER.info(f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n")
     train_set = data_dir / "train"
     if not train_set.is_dir():
@@ -747,7 +747,7 @@ class HUBDatasetStats:
         return self.im_dir
 
 
-def compress_one_image(f: str, f_new: str = None, max_dim: int = 1920, quality: int = 50):
+def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, quality: int = 50):
     """
     Compress a single image file to reduced size while preserving its aspect ratio and quality using either the Python
     Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be

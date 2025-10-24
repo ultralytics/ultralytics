@@ -92,7 +92,7 @@ def onnx2engine(
         INT8 calibration requires a dataset and generates a calibration cache.
         Metadata is serialized and written to the engine file if provided.
     """
-    import tensorrt as trt  # noqa
+    import tensorrt as trt
 
     engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
 

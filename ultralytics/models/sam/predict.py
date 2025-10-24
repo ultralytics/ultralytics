@@ -1850,7 +1850,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
     @smart_inference_mode()
     def update_memory(
         self,
-        obj_ids: list[int] = None,
+        obj_ids: list[int] | None = None,
         points: torch.Tensor | None = None,
         labels: torch.Tensor | None = None,
         masks: torch.Tensor | None = None,

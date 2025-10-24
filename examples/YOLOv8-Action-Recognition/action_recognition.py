@@ -95,7 +95,9 @@ class TorchVisionVideoClassifier:
         """
         return list(TorchVisionVideoClassifier.model_name_to_model_and_weights.keys())
 
-    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(
+        self, crops: list[np.ndarray], input_size: list[int] | None = None
+    ) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
@@ -211,7 +213,9 @@ class HuggingFaceVideoClassifier:
             model = model.half()
         self.model = model.eval()
 
-    def preprocess_crops_for_video_cls(self, crops: list[np.ndarray], input_size: list[int] = None) -> torch.Tensor:
+    def preprocess_crops_for_video_cls(
+        self, crops: list[np.ndarray], input_size: list[int] | None = None
+    ) -> torch.Tensor:
         """
         Preprocess a list of crops for video classification.
 
@@ -332,7 +336,7 @@ def run(
     video_cls_overlap_ratio: float = 0.25,
     fp16: bool = False,
     video_classifier_model: str = "microsoft/xclip-base-patch32",
-    labels: list[str] = None,
+    labels: list[str] | None = None,
 ) -> None:
     """
     Run action recognition on a video source using YOLO for object detection and a video classifier.

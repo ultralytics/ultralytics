@@ -8,6 +8,8 @@ keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural netw
 
 The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
+<img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/yaml-configuration-guide.avif" alt="Model YAML configuration workflow.">
+
 ## Configuration Structure
 
 Model YAML files are organized into three main sections that work together to define the architecture.
@@ -235,11 +237,15 @@ Modifying the source code is the most versatile way to integrate your custom mod
 
     ```python
     class CustomBlock(nn.Module):
+        """Custom block with Conv-BatchNorm-ReLU sequence."""
+
         def __init__(self, c1, c2):
+            """Initialize CustomBlock with input and output channels."""
             super().__init__()
             self.layers = nn.Sequential(nn.Conv2d(c1, c2, 3, 1, 1), nn.BatchNorm2d(c2), nn.ReLU())
 
         def forward(self, x):
+            """Forward pass through the block."""
             return self.layers(x)
     ```
 
@@ -258,7 +264,8 @@ Modifying the source code is the most versatile way to integrate your custom mod
 5. **Handle special arguments** (if needed) inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py) in `ultralytics/nn/tasks.py`:
 
     ```python
-    elif m is CustomBlock:
+    # Add this condition in the parse_model() function
+    if m is CustomBlock:
         c1, c2 = ch[f], args[0]  # input channels, output channels
         args = [c1, c2, *args[1:]]
     ```

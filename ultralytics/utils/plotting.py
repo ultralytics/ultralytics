@@ -423,7 +423,7 @@ class Annotator:
         kpt_line: bool = True,
         conf_thres: float = 0.25,
         kpt_color: tuple | None = None,
-        kpt_names: dict[int, list[str]] | None = None
+        kpt_names: dict[int, list[str]] | None = None,
     ):
         """
         Plot keypoints on the image.
@@ -450,7 +450,7 @@ class Annotator:
         is_pose = nkpt == 17 and ndim in {2, 3}
         kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
         for i, k in enumerate(kpts):
-            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
+            kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
             x_coord, y_coord = k[0], k[1]
             if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                 if len(k) == 3:

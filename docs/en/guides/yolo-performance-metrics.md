@@ -56,6 +56,7 @@ One of the sections of the output is the class-wise breakdown of performance met
 - **Instances**: This provides the count of how many times the class appears across all images in the validation set.
 
 - **Box(P, R, mAP50, mAP50-95)**: This metric provides insights into the model's performance in detecting objects:
+
     - **P (Precision)**: The accuracy of the detected objects, indicating how many detections were correct.
 
     - **R (Recall)**: The ability of the model to identify all instances of objects in the images.

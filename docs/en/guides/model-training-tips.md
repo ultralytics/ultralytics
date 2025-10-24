@@ -145,10 +145,12 @@ You can also fine-tune optimizer parameters to improve model performance. Adjust
 Different optimizers have various strengths and weaknesses. Let's take a glimpse at a few common optimizers.
 
 - **SGD (Stochastic Gradient Descent)**:
+
     - Updates model parameters using the gradient of the loss function with respect to the parameters.
     - Simple and efficient but can be slow to converge and might get stuck in local minima.
 
 - **[Adam](https://www.ultralytics.com/glossary/adam-optimizer) (Adaptive Moment Estimation)**:
+
     - Combines the benefits of both SGD with momentum and RMSProp.
     - Adjusts the learning rate for each parameter based on estimates of the first and second moments of the gradients.
     - Well-suited for noisy data and sparse gradients.

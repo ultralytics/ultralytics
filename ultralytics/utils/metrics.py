@@ -535,7 +535,7 @@ class ConfusionMatrix(DataExportMixin):
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
             n = (self.nc + k - 1) // k  # number of retained classes
         nc = nn = n if self.task == "classify" else n + 1  # adjust for background if needed
-        ticklabels = (names + ["background"]) if (0 < nn < 99) and (nn == nc) else "auto"
+        ticklabels = ([*names, "background"]) if (0 < nn < 99) and (nn == nc) else "auto"
         xy_ticks = np.arange(len(ticklabels))
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
@@ -608,7 +608,7 @@ class ConfusionMatrix(DataExportMixin):
         """
         import re
 
-        names = list(self.names.values()) if self.task == "classify" else list(self.names.values()) + ["background"]
+        names = list(self.names.values()) if self.task == "classify" else [*list(self.names.values()), "background"]
         clean_names, seen = [], set()
         for name in names:
             clean_name = re.sub(r"[^a-zA-Z0-9_]", "_", name)
@@ -1152,8 +1152,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
     @property
     def results_dict(self) -> dict[str, float]:
         """Return dictionary of computed performance metrics and statistics."""
-        keys = self.keys + ["fitness"]
-        values = ((float(x) if hasattr(x, "item") else x) for x in (self.mean_results() + [self.fitness]))
+        keys = [*self.keys, "fitness"]
+        values = ((float(x) if hasattr(x, "item") else x) for x in ([*self.mean_results(), self.fitness]))
         return dict(zip(keys, values))
 
     @property
@@ -1270,7 +1270,8 @@ class SegmentMetrics(DetMetrics):
     @property
     def keys(self) -> list[str]:
         """Return a list of keys for accessing metrics."""
-        return DetMetrics.keys.fget(self) + [
+        return [
+            *DetMetrics.keys.fget(self),
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP50(M)",
@@ -1298,7 +1299,8 @@ class SegmentMetrics(DetMetrics):
     @property
     def curves(self) -> list[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return DetMetrics.curves.fget(self) + [
+        return [
+            *DetMetrics.curves.fget(self),
             "Precision-Recall(M)",
             "F1-Confidence(M)",
             "Precision-Confidence(M)",
@@ -1407,7 +1409,8 @@ class PoseMetrics(DetMetrics):
     @property
     def keys(self) -> list[str]:
         """Return a list of evaluation metric keys."""
-        return DetMetrics.keys.fget(self) + [
+        return [
+            *DetMetrics.keys.fget(self),
             "metrics/precision(P)",
             "metrics/recall(P)",
             "metrics/mAP50(P)",
@@ -1435,7 +1438,8 @@ class PoseMetrics(DetMetrics):
     @property
     def curves(self) -> list[str]:
         """Return a list of curves for accessing specific metrics curves."""
-        return DetMetrics.curves.fget(self) + [
+        return [
+            *DetMetrics.curves.fget(self),
             "Precision-Recall(B)",
             "F1-Confidence(B)",
             "Precision-Confidence(B)",
@@ -1527,7 +1531,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
     @property
     def results_dict(self) -> dict[str, float]:
         """Return a dictionary with model's performance metrics and fitness score."""
-        return dict(zip(self.keys + ["fitness"], [self.top1, self.top5, self.fitness]))
+        return dict(zip([*self.keys, "fitness"], [self.top1, self.top5, self.fitness]))
 
     @property
     def keys(self) -> list[str]:

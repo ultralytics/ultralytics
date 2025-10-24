@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, SplAtConv2d, autopad
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -52,6 +52,8 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
+    "ResNeStBlock",
+    "ResNeStLayer",
 )
 
 
@@ -550,6 +552,145 @@ class ResNetBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the ResNet block."""
         return F.relu(self.cv3(self.cv2(self.cv1(x))) + self.shortcut(x))
+
+
+class ResNetLayer(nn.Module):
+    """ResNet layer with multiple ResNet blocks."""
+
+    def __init__(self, c1: int, c2: int, s: int = 1, is_first: bool = False, n: int = 1, e: int = 4):
+        """
+        Initialize ResNet layer.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            s (int): Stride.
+            is_first (bool): Whether this is the first layer.
+            n (int): Number of ResNet blocks.
+            e (int): Expansion ratio.
+        """
+        super().__init__()
+        self.is_first = is_first
+
+        if self.is_first:
+            self.layer = nn.Sequential(
+                Conv(c1, c2, k=7, s=2, p=3, act=True), nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+            )
+        else:
+            blocks = [ResNetBlock(c1, c2, s, e=e)]
+            blocks.extend([ResNetBlock(e * c2, c2, 1, e=e) for _ in range(n - 1)])
+            self.layer = nn.Sequential(*blocks)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the ResNet layer."""
+        return self.layer(x)
+
+
+class ResNeStBlock(ResNetBlock):
+    """ResNeSt block with standard and split attention convolution layers."""
+
+    def __init__(
+        self, c1: int, c2: int, s: int = 1, e: int = 4, radix: int = 1, d: int = 1, is_first_block: bool = False
+    ):
+        """
+        Initialize ResNeSt block.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            s (int): Stride.
+            e (int): Expansion ratio.
+            raidx (int): Number of splits.
+            d (int): Dilation rate.
+            is_first_block (bool): Whether this is the first block.
+        """
+        super().__init__(c1, c2, s, e)
+        c3 = e * c2
+        if s != 1 or c1 != c3:
+            down_layers = []
+            if d == 1:
+                down_layers.append(nn.AvgPool2d(s, s, ceil_mode=True, count_include_pad=False))
+            else:
+                down_layers.append(nn.AvgPool2d(1, 1, ceil_mode=True, count_include_pad=False))
+            down_layers.append(Conv(c1, c3, k=1, s=1, act=False))
+            self.shortcut = nn.Sequential(*down_layers)
+
+        self.avd = s > 1 or is_first_block
+        if self.avd:
+            self.avd_layer = nn.AvgPool2d(3, s, padding=1)
+            s = 1
+
+        self.radix = radix
+        if radix >= 1:
+            self.cv2 = SplAtConv2d(c2, s=s, d=d, radix=radix)
+        else:
+            self.cv2 = Conv(c2, c2, k=3, s=s, p=d, d=d, act=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the ResNet block."""
+        out = self.cv1(x)
+        if self.avd:
+            out = self.avd_layer(out)
+        return F.relu(self.cv3(self.cv2(out)) + self.shortcut(x))
+
+
+class ResNeStLayer(nn.Module):
+    """ResNeSt layer with multiple ResNeSt blocks."""
+
+    def __init__(
+        self,
+        c1: int,
+        c2: int,
+        s: int = 1,
+        is_first: bool = False,
+        n: int = 1,
+        dilation: int = 1,
+        e: int = 4,
+        radix: int = 2,
+        deep_stem: bool = True,
+    ):
+        """
+        Initialize ResNet layer.
+
+        Args:
+            c1 (int): Input channels.
+            c2 (int): Output channels.
+            s (int): Stride.
+            is_first (bool): Whether this is the first layer.
+            n (int): Number of ResNeSt blocks.
+            dilation (int): Dilation rate.
+            e (int): Expansion ratio.
+            radix (int): Number of splits.
+            deep_stem (bool): Whether to use deep stem.
+        """
+        super().__init__()
+        self.is_first = is_first
+
+        if self.is_first:
+            if deep_stem:
+                stem_width = c2 // 2
+                self.layer = nn.Sequential(
+                    Conv(c1, stem_width, k=3, s=2, p=1, act=True),
+                    Conv(stem_width, stem_width, k=3, s=1, p=1, act=True),
+                    Conv(stem_width, c2, k=3, s=1, p=1, act=True),
+                    nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+                )
+            else:
+                self.layer = nn.Sequential(
+                    Conv(c1, c2, k=7, s=2, p=3, act=True), nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+                )
+        else:
+            is_first_block = False if s == 1 else True
+            if dilation > 1:
+                s = 1
+            d = dilation // 2 if dilation > 1 else dilation
+            blocks = [ResNeStBlock(c1, c2, s, e=e, radix=radix, d=d, is_first_block=is_first_block)]
+            blocks.extend([ResNeStBlock(e * c2, c2, 1, e=e, radix=radix, d=dilation) for _ in range(n - 1)])
+            self.layer = nn.Sequential(*blocks)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the ResSNet layer."""
+        return self.layer(x)
 
 
 class ResNetLayer(nn.Module):

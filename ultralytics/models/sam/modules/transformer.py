@@ -280,7 +280,7 @@ class Attention(nn.Module):
         embedding_dim: int,
         num_heads: int,
         downsample_rate: int = 1,
-        kv_in_dim: int = None,
+        kv_in_dim: int | None = None,
     ) -> None:
         """
         Initialize the Attention module with specified dimensions and settings.

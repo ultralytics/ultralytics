@@ -56,7 +56,7 @@ class Profile(contextlib.ContextDecorator):
         self.start = self.time()
         return self
 
-    def __exit__(self, type, value, traceback):  # noqa
+    def __exit__(self, type, value, traceback):
         """Stop timing."""
         self.dt = self.time() - self.start  # delta-time
         self.t += self.dt  # accumulate dt
@@ -236,10 +236,10 @@ def scale_image(masks, im0_shape, ratio_pad=None):
         pad = ratio_pad[1]
 
     pad_w, pad_h = pad
-    top = int(round(pad_h - 0.1))
-    left = int(round(pad_w - 0.1))
-    bottom = im1_h - int(round(pad_h + 0.1))
-    right = im1_w - int(round(pad_w + 0.1))
+    top = round(pad_h - 0.1)
+    left = round(pad_w - 0.1)
+    bottom = im1_h - round(pad_h + 0.1)
+    right = im1_w - round(pad_w + 0.1)
 
     if len(masks.shape) < 2:
         raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
@@ -552,12 +552,12 @@ def process_mask(protos, masks_in, bboxes, shape, upsample: bool = False):
 
     width_ratio = mw / shape[1]
     height_ratio = mh / shape[0]
-    ratios = torch.Tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
+    ratios = torch.tensor([[width_ratio, height_ratio, width_ratio, height_ratio]], device=bboxes.device)
 
     masks = crop_mask(masks, boxes=bboxes * ratios)  # CHW
     if upsample:
         masks = F.interpolate(masks[None], shape, mode="bilinear")[0]  # CHW
-    return masks.gt_(0.0)
+    return masks.gt_(0.0).byte()
 
 
 def process_mask_native(protos, masks_in, bboxes, shape):
@@ -577,7 +577,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     masks = (masks_in @ protos.float().view(c, -1)).view(-1, mh, mw)
     masks = scale_masks(masks[None], shape)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.0)
+    return masks.gt_(0.0).byte()
 
 
 def scale_masks(masks, shape, padding: bool = True):
@@ -599,9 +599,9 @@ def scale_masks(masks, shape, padding: bool = True):
     if padding:
         pad_w /= 2
         pad_h /= 2
-    top, left = (int(round(pad_h - 0.1)), int(round(pad_w - 0.1))) if padding else (0, 0)
-    bottom = mh - int(round(pad_h + 0.1))
-    right = mw - int(round(pad_w + 0.1))
+    top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
+    bottom = mh - round(pad_h + 0.1)
+    right = mw - round(pad_w + 0.1)
     return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear")  # NCHW masks
 
 
@@ -674,7 +674,7 @@ def masks2segments(masks, strategy: str = "all"):
     from ultralytics.data.converter import merge_multi_segment
 
     segments = []
-    for x in masks.int().cpu().numpy().astype("uint8"):
+    for x in masks.byte().cpu().numpy():
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
         if c:
             if strategy == "all":  # merge and concatenate all segments
@@ -701,7 +701,7 @@ def convert_torch2numpy_batch(batch: torch.Tensor) -> np.ndarray:
     Returns:
         (np.ndarray): Output NumPy array batch with shape (Batch, Height, Width, Channels) and dtype uint8.
     """
-    return (batch.permute(0, 2, 3, 1).contiguous() * 255).clamp(0, 255).to(torch.uint8).cpu().numpy()
+    return (batch.permute(0, 2, 3, 1).contiguous() * 255).clamp(0, 255).byte().cpu().numpy()
 
 
 def clean_str(s):

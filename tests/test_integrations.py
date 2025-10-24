@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import MODEL, SOURCE, TMP
+from tests import MODEL, SOURCE
 from ultralytics import YOLO, download
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
@@ -71,14 +71,14 @@ def test_mlflow_keep_run_active():
 
 
 @pytest.mark.skipif(not check_requirements("tritonclient", install=False), reason="tritonclient[all] not installed")
-def test_triton():
+def test_triton(tmp_path):
     """Test NVIDIA Triton Server functionalities with YOLO model."""
     check_requirements("tritonclient[all]")
-    from tritonclient.http import InferenceServerClient  # noqa
+    from tritonclient.http import InferenceServerClient
 
     # Create variables
     model_name = "yolo"
-    triton_repo = TMP / "triton_repo"  # Triton repo path
+    triton_repo = tmp_path / "triton_repo"  # Triton repo path
     triton_model = triton_repo / model_name  # Triton model path
 
     # Export model to ONNX

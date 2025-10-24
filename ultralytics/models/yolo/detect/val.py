@@ -8,10 +8,11 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.distributed as dist
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import LOGGER, nms, ops
+from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
@@ -226,6 +227,21 @@ class DetectionValidator(BaseValidator):
         self.metrics.confusion_matrix = self.confusion_matrix
         self.metrics.save_dir = self.save_dir
 
+    def gather_stats(self) -> None:
+        """Gather stats from all GPUs."""
+        if RANK == 0:
+            gathered_stats = [None] * dist.get_world_size()
+            dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
+            merged_stats = {key: [] for key in self.metrics.stats.keys()}
+            for stats_dict in gathered_stats:
+                for key in merged_stats.keys():
+                    merged_stats[key].extend(stats_dict[key])
+            self.metrics.stats = merged_stats
+            self.seen = len(self.dataloader.dataset)  # total image count from dataset
+        elif RANK > 0:
+            dist.gather_object(self.metrics.stats, None, dst=0)
+            self.metrics.clear_stats()
+
     def get_stats(self) -> dict[str, Any]:
         """
         Calculate and return metrics statistics.
@@ -300,7 +316,13 @@ class DetectionValidator(BaseValidator):
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
         return build_dataloader(
-            dataset, batch_size, self.args.workers, shuffle=False, rank=-1, drop_last=self.args.compile
+            dataset,
+            batch_size,
+            self.args.workers,
+            shuffle=False,
+            rank=-1,
+            drop_last=self.args.compile,
+            pin_memory=self.training,
         )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:

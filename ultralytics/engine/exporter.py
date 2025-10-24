@@ -20,6 +20,7 @@ MNN                     | `mnn`                     | yolo11n.mnn
 NCNN                    | `ncnn`                    | yolo11n_ncnn_model/
 IMX                     | `imx`                     | yolo11n_imx_model/
 RKNN                    | `rknn`                    | yolo11n_rknn_model/
+ExecuTorch              | `executorch`              | yolo11n_executorch_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -48,6 +49,7 @@ Inference:
                          yolo11n_ncnn_model         # NCNN
                          yolo11n_imx_model          # IMX
                          yolo11n_rknn_model         # RKNN
+                         yolo11n_executorch_model   # ExecuTorch
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -112,7 +114,7 @@ from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, select_device
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13, TORCH_2_1, TORCH_2_4, TORCH_2_9, select_device
 
 
 def export_formats():
@@ -148,6 +150,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 
@@ -322,9 +325,24 @@ class Exporter:
         flags = [x == fmt for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{fmt}'. Valid formats are {fmts}")
-        (jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, mnn, ncnn, imx, rknn) = (
-            flags  # export booleans
-        )
+        (
+            jit,
+            onnx,
+            xml,
+            engine,
+            coreml,
+            saved_model,
+            pb,
+            tflite,
+            edgetpu,
+            tfjs,
+            paddle,
+            mnn,
+            ncnn,
+            imx,
+            rknn,
+            executorch,
+        ) = flags  # export booleans
 
         is_tf_format = any((saved_model, pb, tflite, edgetpu, tfjs))
 
@@ -502,6 +520,8 @@ class Exporter:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
+            if hasattr(model, "kpt_names"):
+                self.metadata["kpt_names"] = model.kpt_names
 
         LOGGER.info(
             f"\n{colorstr('PyTorch:')} starting from '{file}' with input shape {tuple(im.shape)} BCHW and "
@@ -541,6 +561,8 @@ class Exporter:
             f[13] = self.export_imx()
         if rknn:
             f[14] = self.export_rknn()
+        if executorch:
+            f[15] = self.export_executorch()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -614,7 +636,7 @@ class Exporter:
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
-        import onnx  # noqa
+        import onnx
 
         opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
@@ -763,8 +785,8 @@ class Exporter:
                 "x2paddle",
             )
         )
-        import x2paddle  # noqa
-        from x2paddle.convert import pytorch2paddle  # noqa
+        import x2paddle
+        from x2paddle.convert import pytorch2paddle
 
         LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
         f = str(self.file).replace(self.file.suffix, f"_paddle_model{os.sep}")
@@ -779,7 +801,7 @@ class Exporter:
         f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")
-        import MNN  # noqa
+        import MNN
         from MNN.tools import mnnconvert
 
         # Setup and checks
@@ -802,7 +824,7 @@ class Exporter:
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
         check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
-        import ncnn  # noqa
+        import ncnn
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
@@ -819,7 +841,7 @@ class Exporter:
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
                 release, assets = get_github_assets(repo="pnnx/pnnx")
-                asset = [x for x in assets if f"{system}.zip" in x][0]
+                asset = next(x for x in assets if f"{system}.zip" in x)
                 assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20250930-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
             except Exception as e:
@@ -871,7 +893,7 @@ class Exporter:
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         check_requirements("coremltools>=8.0")
-        import coremltools as ct  # noqa
+        import coremltools as ct
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
@@ -967,12 +989,12 @@ class Exporter:
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
-            import tensorrt as trt  # noqa
+            import tensorrt as trt
         except ImportError:
             if LINUX:
                 cuda_version = torch.version.cuda.split(".")[0]
                 check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
-            import tensorrt as trt  # noqa
+            import tensorrt as trt
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
 
@@ -1002,10 +1024,10 @@ class Exporter:
         """Export YOLO model to TensorFlow SavedModel format."""
         cuda = torch.cuda.is_available()
         try:
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         except ImportError:
             check_requirements("tensorflow>=2.0.0,<=2.19.0")
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         check_requirements(
             (
                 "tf_keras<=2.19.0",  # required by 'onnx2tf' package
@@ -1091,8 +1113,8 @@ class Exporter:
     @try_export
     def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
         """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
-        import tensorflow as tf  # noqa
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
+        import tensorflow as tf
+        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         f = self.file.with_suffix(".pb")
@@ -1108,7 +1130,7 @@ class Exporter:
     def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
         """Export YOLO model to TensorFlow Lite format."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
-        import tensorflow as tf  # noqa
+        import tensorflow as tf
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
@@ -1119,6 +1141,39 @@ class Exporter:
         else:
             f = saved_model / f"{self.file.stem}_float32.tflite"
         return str(f)
+
+    @try_export
+    def export_executorch(self, prefix=colorstr("ExecuTorch:")):
+        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
+        following Ultralytics conventions.
+        """
+        LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")
+        assert TORCH_2_9, f"ExecuTorch export requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        # TorchAO release compatibility table bug https://github.com/pytorch/ao/issues/2919
+        # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+        check_requirements("setuptools<71.0.0")  # Setuptools bug: https://github.com/pypa/setuptools/issues/4483
+        check_requirements(("executorch==1.0.0", "flatbuffers"))
+
+        import torch
+        from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
+        from executorch.exir import to_edge_transform_and_lower
+
+        file_directory = Path(str(self.file).replace(self.file.suffix, "_executorch_model"))
+        file_directory.mkdir(parents=True, exist_ok=True)
+
+        file_pte = file_directory / self.file.with_suffix(".pte").name
+        sample_inputs = (self.im,)
+
+        et_program = to_edge_transform_and_lower(
+            torch.export.export(self.model, sample_inputs), partitioner=[XnnpackPartitioner()]
+        ).to_executorch()
+
+        with open(file_pte, "wb") as file:
+            file.write(et_program.buffer)
+
+        YAML.save(file_directory / "metadata.yaml", self.metadata)
+
+        return str(file_directory)
 
     @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):
@@ -1160,7 +1215,7 @@ class Exporter:
         """Export YOLO model to TensorFlow.js format."""
         check_requirements("tensorflowjs")
         import tensorflow as tf
-        import tensorflowjs as tfjs  # noqa
+        import tensorflowjs as tfjs
 
         LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
         f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
@@ -1260,7 +1315,7 @@ class Exporter:
 
     def _pipeline_coreml(self, model, weights_dir=None, prefix=colorstr("CoreML Pipeline:")):
         """Create CoreML pipeline with NMS for YOLO detection models."""
-        import coremltools as ct  # noqa
+        import coremltools as ct
 
         LOGGER.info(f"{prefix} starting pipeline with coremltools {ct.__version__}...")
 

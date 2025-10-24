@@ -6,6 +6,8 @@ Usage:
     $ yolo mode=train model=yolo11n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
+from __future__ import annotations
+
 import gc
 import math
 import os
@@ -318,18 +320,18 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
+        # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
+        self.test_loader = self.get_dataloader(
+            self.data.get("val") or self.data.get("test"),
+            batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
+            rank=LOCAL_RANK,
+            mode="val",
+        )
+        self.validator = self.get_validator()
+        self.ema = ModelEMA(self.model)
         if RANK in {-1, 0}:
-            # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
-            self.test_loader = self.get_dataloader(
-                self.data.get("val") or self.data.get("test"),
-                batch_size=batch_size if self.args.task == "obb" else batch_size * 2,
-                rank=-1,
-                mode="val",
-            )
-            self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
-            self.ema = ModelEMA(self.model)
             if self.args.plots:
                 self.plot_training_labels()
 
@@ -467,10 +469,10 @@ class BaseTrainer:
                 final_epoch = epoch + 1 >= self.epochs
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
-                # Validation
-                if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
-                    self._clear_memory(threshold=0.5)  # prevent VRAM spike
-                    self.metrics, self.fitness = self.validate()
+            # Validation
+            if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+                self._clear_memory(threshold=0.5)  # prevent VRAM spike
+                self.metrics, self.fitness = self.validate()
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
@@ -510,11 +512,11 @@ class BaseTrainer:
                 break  # must break all DDP ranks
             epoch += 1
 
+        seconds = time.time() - self.train_time_start
+        LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
+        # Do final val with best.pt
+        self.final_eval()
         if RANK in {-1, 0}:
-            # Do final val with best.pt
-            seconds = time.time() - self.train_time_start
-            LOGGER.info(f"\n{epoch - self.start_epoch + 1} epochs completed in {seconds / 3600:.3f} hours.")
-            self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
@@ -545,7 +547,7 @@ class BaseTrainer:
                 total = torch.cuda.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
-    def _clear_memory(self, threshold: float = None):
+    def _clear_memory(self, threshold: float | None = None):
         """Clear accelerator memory by calling garbage collector and emptying cache."""
         if threshold:
             assert 0 <= threshold <= 1, "Threshold must be between 0 and 1."
@@ -695,7 +697,13 @@ class BaseTrainer:
             metrics (dict): Dictionary of validation metrics.
             fitness (float): Fitness score for the validation.
         """
+        if self.ema and self.world_size > 1:
+            # Sync EMA buffers from rank 0 to all ranks
+            for buffer in self.ema.ema.buffers():
+                dist.broadcast(buffer, src=0)
         metrics = self.validator(self)
+        if metrics is None:
+            return None, None
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness
@@ -753,9 +761,9 @@ class BaseTrainer:
         n = len(metrics) + 2  # number of cols
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time"] + keys)).rstrip(",") + "\n")  # header
+        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time", *keys])).rstrip(",") + "\n")  # header
         with open(self.csv, "a", encoding="utf-8") as f:
-            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t] + vals)).rstrip(",") + "\n")
+            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t, *vals])).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""
@@ -768,20 +776,20 @@ class BaseTrainer:
 
     def final_eval(self):
         """Perform final evaluation and validation for object detection YOLO model."""
-        ckpt = {}
-        for f in self.last, self.best:
-            if f.exists():
-                if f is self.last:
-                    ckpt = strip_optimizer(f)
-                elif f is self.best:
-                    k = "train_results"  # update best.pt train_metrics from last.pt
-                    strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
-                    LOGGER.info(f"\nValidating {f}...")
-                    self.validator.args.plots = self.args.plots
-                    self.validator.args.compile = False  # disable final val compile as too slow
-                    self.metrics = self.validator(model=f)
-                    self.metrics.pop("fitness", None)
-                    self.run_callbacks("on_fit_epoch_end")
+        model = self.best if self.best.exists() else None
+        with torch_distributed_zero_first(LOCAL_RANK):  # strip only on GPU 0; other GPUs should wait
+            if RANK in {-1, 0}:
+                ckpt = strip_optimizer(self.last) if self.last.exists() else {}
+                if model:
+                    # update best.pt train_metrics from last.pt
+                    strip_optimizer(self.best, updates={"train_results": ckpt.get("train_results")})
+        if model:
+            LOGGER.info(f"\nValidating {model}...")
+            self.validator.args.plots = self.args.plots
+            self.validator.args.compile = False  # disable final val compile as too slow
+            self.metrics = self.validator(model=model)
+            self.metrics.pop("fitness", None)
+            self.run_callbacks("on_fit_epoch_end")
 
     def check_resume(self, overrides):
         """Check if resume checkpoint exists and update arguments accordingly."""

@@ -315,6 +315,16 @@ class OBB(Detect):
         if self.end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv4)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv4)
+
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
@@ -337,13 +347,16 @@ class OBB(Detect):
 
     def forward_head(self, x, box_head, cls_head, angle_head):
         """Concatenates and returns predicted bounding boxes, class probabilities, and angles."""
-        if box_head is None or cls_head is None:
-            return x
-        bs = x[0].shape[0]  # batch size
         preds = super().forward_head(x, box_head, cls_head)
-        angle = torch.cat([angle_head[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2)  # OBB theta logits
-        angle = (angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
-        preds["angle"] = angle
+        if angle_head is not None:
+            bs = x[0].shape[0]  # batch size
+            angle = torch.cat(
+                [angle_head[i](x[i]).view(bs, self.ne, -1) for i in range(self.nl)], 2
+            )  # OBB theta logits
+            angle = (angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
+            preds["angle"] = angle
+            # For decode_bboxes convenience
+            self.angle = angle  # TODO: need to test obb
         return preds
 
     def decode_bboxes(self, bboxes, anchors):
@@ -367,7 +380,6 @@ class OBB(Detect):
         batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores, angle = preds.split([4, nc, self.ne], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        angle = angle.permute(0, 2, 1)  # (bs,8400,32)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
         scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
         angle = angle.gather(dim=1, index=index.repeat(1, 1, angle.shape[-1]))
@@ -376,6 +388,10 @@ class OBB(Detect):
         return torch.cat(
             [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), angle[i, index // nc]], dim=-1
         )
+
+    def fuse(self):
+        """Remove the one2many head for inference optimization."""
+        self.cv2 = self.cv3 = self.cv4 = None
 
 
 class Pose(Detect):
@@ -474,6 +490,10 @@ class Pose(Detect):
         return torch.cat(
             [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), kpts[i, index // nc]], dim=-1
         )
+
+    def fuse(self):
+        """Remove the one2many head for inference optimization."""
+        self.cv2 = self.cv3 = self.cv4 = None
 
 
 class Classify(nn.Module):

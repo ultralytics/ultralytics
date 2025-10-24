@@ -635,7 +635,6 @@ class AutoBackend(nn.Module):
         if kpt_names is None and kpt_shape is not None:  # Fallback to numeric names if kpt_names not found
              kpt_names = {i: [f"{j}" for j in range(self.model.kpt_shape[0])] for i in range(len(names))}
 
-        print(kpt_names)
         self.__dict__.update(locals())  # assign all variables to self
 
     def forward(

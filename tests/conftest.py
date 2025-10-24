@@ -53,10 +53,10 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
     # Remove files
     models = [path for x in {"*.onnx", "*.torchscript"} for path in WEIGHTS_DIR.rglob(x)]
-    for file in ["decelera_portrait_min.mov", "bus.jpg", "yolo11n.onnx", "yolo11n.torchscript"] + models:
+    for file in ["decelera_portrait_min.mov", "bus.jpg", "yolo11n.onnx", "yolo11n.torchscript", *models]:
         Path(file).unlink(missing_ok=True)
 
     # Remove directories
     models = [path for x in {"*.mlpackage", "*_openvino_model"} for path in WEIGHTS_DIR.rglob(x)]
-    for directory in [WEIGHTS_DIR / "path with spaces"] + models:
+    for directory in [WEIGHTS_DIR / "path with spaces", *models]:
         shutil.rmtree(directory, ignore_errors=True)

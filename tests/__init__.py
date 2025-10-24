@@ -14,10 +14,10 @@ TASK_MODEL_DATA = [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for t
 MODELS = sorted(list(TASK2MODEL.values()) + ["yolo11n-grayscale.pt"])
 
 __all__ = (
-    "MODEL",
     "CFG",
+    "CUDA_DEVICE_COUNT",
+    "CUDA_IS_AVAILABLE",
+    "MODEL",
     "SOURCE",
     "SOURCES_LIST",
-    "CUDA_IS_AVAILABLE",
-    "CUDA_DEVICE_COUNT",
 )

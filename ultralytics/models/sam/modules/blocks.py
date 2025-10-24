@@ -619,7 +619,7 @@ class MultiScaleBlock(nn.Module):
         mlp_ratio: float = 4.0,
         drop_path: float = 0.0,
         norm_layer: nn.Module | str = "LayerNorm",
-        q_stride: tuple[int, int] = None,
+        q_stride: tuple[int, int] | None = None,
         act_layer: type[nn.Module] = nn.GELU,
         window_size: int = 0,
     ):

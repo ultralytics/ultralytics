@@ -189,7 +189,7 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data: str = "images", device: str = None) -> None:
+    def __init__(self, data: str = "images", device: str | None = None) -> None:
         """
         Initialize the SearchApp with VisualAISearch backend.
 

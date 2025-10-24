@@ -267,7 +267,7 @@ class LoadScreenshots:
             channels (int): Number of image channels (1 for grayscale, 3 for RGB).
         """
         check_requirements("mss")
-        import mss  # noqa
+        import mss
 
         source, *params = source.split()
         self.screen, left, top, width, height = 0, None, None, None, None  # default to full screen 0
@@ -690,7 +690,7 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
 
     elif method == "pafy":
         check_requirements(("pafy", "youtube_dl==2020.12.2"))
-        import pafy  # noqa
+        import pafy
 
         return pafy.new(url).getbestvideo(preftype="mp4").url
 

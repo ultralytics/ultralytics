@@ -308,7 +308,7 @@ def convert_coco(
                     continue
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
-                box = [cls] + box.tolist()
+                box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
                     if use_segments and ann.get("segmentation") is not None:
@@ -321,7 +321,7 @@ def convert_coco(
                         else:
                             s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                        s = [cls] + s
+                        s = [cls, *s]
                         segments.append(s)
                     if use_keypoints and ann.get("keypoints") is not None:
                         keypoints.append(
@@ -730,7 +730,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     path = Path(path)
     if path.is_dir():
         # Process directory
-        im_files = sum((list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})), [])
+        im_files = [f for ext in (IMG_FORMATS - {"tif", "tiff"}) for f in path.rglob(f"*.{ext}")]
         for im_path in im_files:
             try:
                 convert_to_multispectral(im_path, n_channels)

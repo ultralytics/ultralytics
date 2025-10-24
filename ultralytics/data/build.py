@@ -211,7 +211,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.epoch = epoch
 
 
-def seed_worker(worker_id: int):  # noqa
+def seed_worker(worker_id: int):
     """Set dataloader worker seed for reproducibility across worker processes."""
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)

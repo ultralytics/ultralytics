@@ -672,7 +672,7 @@ def check_yolo(verbose=True, device=""):
         # System info
         gib = 1 << 30  # bytes per GiB
         ram = psutil.virtual_memory().total
-        total, used, free = shutil.disk_usage("/")
+        total, _used, free = shutil.disk_usage("/")
         s = f"({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)"
         try:
             from IPython import display
@@ -705,7 +705,7 @@ def collect_system_info():
     gib = 1 << 30  # bytes per GiB
     cuda = torch.cuda.is_available()
     check_yolo()
-    total, used, free = shutil.disk_usage("/")
+    total, _used, free = shutil.disk_usage("/")
 
     info_dict = {
         "OS": platform.platform(),

@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML
 from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -308,7 +308,7 @@ def convert_coco(
                     continue
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
-                box = [cls] + box.tolist()
+                box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
                     if use_segments and ann.get("segmentation") is not None:
@@ -321,7 +321,7 @@ def convert_coco(
                         else:
                             s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                        s = [cls] + s
+                        s = [cls, *s]
                         segments.append(s)
                     if use_keypoints and ann.get("keypoints") is not None:
                         keypoints.append(
@@ -678,9 +678,7 @@ def create_synthetic_coco_dataset():
 
     # Download labels
     dir = DATASETS_DIR / "coco"
-    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
-    label_zip = "coco2017labels-segments.zip"
-    download([url + label_zip], dir=dir.parent)
+    download([f"{ASSETS_URL}/coco2017labels-segments.zip"], dir=dir.parent)
 
     # Create synthetic images
     shutil.rmtree(dir / "labels" / "test2017", ignore_errors=True)  # Remove test2017 directory as not needed
@@ -732,7 +730,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     path = Path(path)
     if path.is_dir():
         # Process directory
-        im_files = sum((list(path.rglob(f"*.{ext}")) for ext in (IMG_FORMATS - {"tif", "tiff"})), [])
+        im_files = [f for ext in (IMG_FORMATS - {"tif", "tiff"}) for f in path.rglob(f"*.{ext}")]
         for im_path in im_files:
             try:
                 convert_to_multispectral(im_path, n_channels)

@@ -104,7 +104,7 @@ def test_export_engine_matrix(task, dynamic, int8, half, batch):
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup
-    Path(file).with_suffix(".cache").unlink() if int8 else None  # cleanup INT8 cache
+    Path(file).with_suffix(".cache").unlink(missing_ok=True) if int8 else None  # cleanup INT8 cache
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

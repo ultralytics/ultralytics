@@ -305,10 +305,11 @@ nav:
       - YOLOv9: models/yolov9.md
       - YOLOv10: models/yolov10.md
       - YOLO11: models/yolo11.md
-      - YOLO26 🚀 Coming soon: models/yolo26.md
       - YOLO12: models/yolo12.md
+      - YOLO26 🚀 Coming soon: models/yolo26.md
       - SAM (Segment Anything Model): models/sam.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
+      - SAM 3 (Segment Anything Model 3) 🚀 Coming soon: models/sam-3.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
@@ -490,6 +491,7 @@ nav:
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - Gradio: integrations/gradio.md
       - Roboflow: integrations/roboflow.md
+      - ExecuTorch: integrations/executorch.md
   - HUB:
       - hub/index.md
       - Web:
@@ -737,7 +739,6 @@ plugins:
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
-            ignore_init_summary: true
             docstring_style: google
             show_root_heading: true
             show_source: true

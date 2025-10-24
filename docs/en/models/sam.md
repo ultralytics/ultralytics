@@ -6,6 +6,10 @@ keywords: Segment Anything, SAM, image segmentation, promptable segmentation, ze
 
 # Segment Anything Model (SAM)
 
+!!! note "SAM Evolution"
+
+    This is the original SAM model from Meta. For improved capabilities, see [SAM 2](sam-2.md) for video segmentation or [SAM 3](sam-3.md) for the upcoming next-generation model with enhanced memory and performance.
+
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="How to use Segment Anything In Colab"></a>
 
 Welcome to the frontier of [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) with the Segment Anything Model, or SAM. This revolutionary model has changed the game by introducing promptable image segmentation with real-time performance, setting new standards in the field.

@@ -94,7 +94,7 @@ To train a YOLO11n-pose model on the Hand Keypoints dataset for 100 [epochs](htt
 
 The Hand keypoints dataset contains a diverse set of images with human hands annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/human-hand-pose.jpg)
+![Dataset sample image](https://github.com/ultralytics/docs/releases/download/0/human-hand-pose.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

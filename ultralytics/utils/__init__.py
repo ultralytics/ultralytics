@@ -380,7 +380,10 @@ def plt_settings(rcparams=None, backend="Agg"):
             finally:
                 if switch:
                     plt.close("all")
-                    plt.switch_backend(original_backend)
+                    try:
+                        plt.switch_backend(original_backend)  # get_backend() doesn't guarantee valid backend
+                    except Exception:
+                        pass
             return result
 
         return wrapper

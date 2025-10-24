@@ -239,11 +239,14 @@ class Segment(Detect):
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1), preds["one2one"]["mask_coefficient"], self.max_det, self.nc)
-        else:
-            y = torch.cat([y, preds["mask_coefficient"]], 1)
+            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         proto = preds["one2one"]["proto"] if self.end2end else preds["proto"]
         return (y, proto) if self.export else ((y, proto), preds)
+
+    def _inference(self, x):
+        """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        preds = super()._inference(x)
+        return torch.cat([preds, x["mask_coefficient"]], dim=1)
 
     # TODO
     def forward_head(self, x, box_head, cls_head, mask_head, detach=False):
@@ -259,8 +262,7 @@ class Segment(Detect):
             preds["proto"] = preds["proto"].detach()
         return preds
 
-    @staticmethod
-    def postprocess(preds: torch.Tensor, mask_coefficient: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
         """
         Post-process YOLO model predictions.
 
@@ -275,7 +277,7 @@ class Segment(Detect):
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
         batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
-        boxes, scores = preds.split([4, nc], dim=-1)
+        boxes, scores, mask_coefficient = preds.split([4, nc, self.nm], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
         mask_coefficient = mask_coefficient.permute(0, 2, 1)  # (bs,8400,32)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))

@@ -318,27 +318,12 @@ class OBB(Detect):
     @property
     def one2many(self):
         """Returns the one-to-many head components, here for backward compatibility."""
-        return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv4)
+        return dict(box_head=self.cv2, cls_head=self.cv3, angle_head=self.cv4)
 
     @property
     def one2one(self):
         """Returns the one-to-many head components, here for backward compatibility."""
-        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv4)
-
-    def forward(self, x):
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
-        if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3, self.one2one_cv4)
-            preds = {"one2many": preds, "one2one": one2one}
-        if self.training:
-            return preds
-        self.angle = preds["one2one"]["angle"] if self.end2end else preds["angle"]  # TODO: need to test obb
-        y = self._inference(preds["one2one"] if self.end2end else preds)
-        if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        return y if self.export else (y, preds)
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, angle_head=self.one2one_cv4)
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""

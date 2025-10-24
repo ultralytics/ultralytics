@@ -48,9 +48,9 @@ div.highlight {
 
 /* Banner ----------------------------------------------------------------------------------------------------------- */
 .md-banner {
-  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/6895c3942e4cf6aab3572420_yv25-banner.avif);
+  background-image: url(https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/68e64c5afee71f0eab03fcd3_Banner%20Horizontal%20V2.avif);
   background-size: cover;
-  background-position: 62%;
+  background-position: 22% 0%;
   background-repeat: no-repeat;
 }
 .md-banner__inner {
@@ -82,8 +82,27 @@ div.highlight {
 .banner-wrapper > .banner-content-wrapper > img {
   height: 40px;
 }
+.banner-wrapper > .banner-content-wrapper > .shenzhen-text {
+  font-size: 20px;
+  font-weight: 600;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(
+    90deg,
+    rgba(221, 214, 215, 0.8),
+    rgba(255, 213, 226, 0.8),
+    rgba(255, 241, 203, 0.8)
+  );
+  background-size: cover;
+  background-position: center;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
 @media screen and (min-width: 768px) {
   .md-banner {
+    height: 68px;
+
     background-position: center;
   }
   .banner-wrapper,
@@ -96,6 +115,9 @@ div.highlight {
   .banner-wrapper > .banner-content-wrapper {
     gap: 16px;
     margin: 0 auto;
+  }
+  .banner-wrapper > .banner-content-wrapper > .shenzhen-text {
+    font-size: 28px;
   }
 }
 /* Banner ----------------------------------------------------------------------------------------------------------- */

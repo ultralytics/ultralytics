@@ -78,7 +78,7 @@ TASK2METRIC = {
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 SOLUTIONS_HELP_MSG = f"""
-    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo solutions' usage overview:
+    Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo solutions' usage overview:
 
         yolo solutions SOLUTION ARGS
 
@@ -108,7 +108,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo streamlit-predict
     """
 CLI_HELP_MSG = f"""
-    Arguments received: {str(["yolo"] + ARGV[1:])}. Ultralytics 'yolo' commands use the following syntax:
+    Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -277,7 +277,9 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     return cfg
 
 
-def get_cfg(cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrides: dict = None) -> SimpleNamespace:
+def get_cfg(
+    cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrides: dict | None = None
+) -> SimpleNamespace:
     """
     Load and merge configuration data from a file or dictionary, with optional overrides.
 
@@ -387,7 +389,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 cfg[k] = bool(v)
 
 
-def get_save_dir(args: SimpleNamespace, name: str = None) -> Path:
+def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
     """
     Return the directory path for saving outputs, derived from arguments or default settings.
 
@@ -463,7 +465,7 @@ def _handle_deprecation(custom: dict) -> dict:
     return custom
 
 
-def check_dict_alignment(base: dict, custom: dict, e: Exception = None) -> None:
+def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -> None:
     """
     Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.

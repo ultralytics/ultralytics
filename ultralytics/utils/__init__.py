@@ -260,7 +260,7 @@ class SimpleClass:
                     # Display only the module and class name for subclasses
                     s = f"{a}: {v.__module__}.{v.__class__.__name__} object"
                 else:
-                    s = f"{a}: {repr(v)}"
+                    s = f"{a}: {v!r}"
                 attr.append(s)
         return f"{self.__module__}.{self.__class__.__name__} object with attributes:\n\n" + "\n".join(attr)
 
@@ -1137,7 +1137,7 @@ def set_sentry():
         return
     # If sentry_sdk package is not installed then return and do not use Sentry
     try:
-        import sentry_sdk  # noqa
+        import sentry_sdk
     except ImportError:
         return
 

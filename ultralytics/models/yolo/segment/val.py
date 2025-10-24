@@ -173,7 +173,7 @@ class SegmentationValidator(DetectionValidator):
         if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
             tp_m = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
         else:
-            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1))
+            iou = mask_iou(batch["masks"].flatten(1), preds["masks"].flatten(1).float())  # float, uint8
             tp_m = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp
@@ -222,7 +222,7 @@ class SegmentationValidator(DetectionValidator):
             predn (dict[str, torch.Tensor]): Predictions containing bboxes, masks, confidence scores, and classes.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        from faster_coco_eval.core.mask import encode  # noqa
+        from faster_coco_eval.core.mask import encode
 
         def single_encode(x):
             """Encode predicted masks as RLE and append results to jdict."""

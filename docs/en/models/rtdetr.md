@@ -12,13 +12,13 @@ Real-Time Detection Transformer (RT-DETR), developed by Baidu, is a cutting-edge
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/SArFQs6CHwk"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/i70ecEGB1ro"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Real-Time Detection Transformer (RT-DETR)
+  <strong>Watch:</strong> How to Use Baidu's RT-DETR for Object Detection | Inference and Benchmarking with Ultralytics  🚀
 </p>
 
 ![Model example image](https://github.com/ultralytics/docs/releases/download/0/baidu-rtdetr-model-overview.avif) **Overview of Baidu's RT-DETR.** The RT-DETR model architecture diagram shows the last three stages of the backbone {S3, S4, S5} as the input to the encoder. The efficient hybrid encoder transforms multiscale features into a sequence of image features through intrascale feature interaction (AIFI) and cross-scale feature-fusion module (CCFM). The IoU-aware query selection is employed to select a fixed number of image features to serve as initial object queries for the decoder. Finally, the decoder with auxiliary prediction heads iteratively optimizes object queries to generate boxes and confidence scores ([source](https://arxiv.org/pdf/2304.08069)).

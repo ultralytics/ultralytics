@@ -228,38 +228,41 @@ class Segment(Detect):
         if self.end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv4)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv4)
+
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
-        if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3, self.one2one_cv4, detach=True)
-            preds = {"one2many": preds, "one2one": one2one}
+        preds = super().forward(x)
+        proto = self.proto(x[0])  # mask protos
+        if isinstance(preds, dict):  # training and validating during training
+            if self.end2end:
+                preds["one2many"]["proto"] = proto
+                preds["one2one"]["proto"] = proto.detach()
+            else:
+                preds["proto"] = proto
         if self.training:
             return preds
-        y = self._inference(preds["one2one"] if self.end2end else preds)
-        if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
-        proto = preds["one2one"]["proto"] if self.end2end else preds["proto"]
-        return (y, proto) if self.export else ((y, proto), preds)
+        return (preds, proto) if self.export else ((preds[0], proto), preds[1])
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
         preds = super()._inference(x)
         return torch.cat([preds, x["mask_coefficient"]], dim=1)
 
-    # TODO
-    def forward_head(self, x, box_head, cls_head, mask_head, detach=False):
+    def forward_head(self, x, box_head, cls_head, mask_head):
         if box_head is None or cls_head is None:  # for fused inference
             return x
         preds = super().forward_head(x, box_head, cls_head)
         bs = x[0].shape[0]  # batch size
-        mc = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
-        preds["mask_coefficient"] = mc
-        # TODO: duplicate computation
-        preds["proto"] = self.proto(x[0])  # mask protos
-        if detach:
-            preds["proto"] = preds["proto"].detach()
+        preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
 
     def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
@@ -279,7 +282,6 @@ class Segment(Detect):
         batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores, mask_coefficient = preds.split([4, nc, self.nm], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        mask_coefficient = mask_coefficient.permute(0, 2, 1)  # (bs,8400,32)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
         scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
         mask_coefficient = mask_coefficient.gather(dim=1, index=index.repeat(1, 1, mask_coefficient.shape[-1]))
@@ -321,10 +323,13 @@ class OBB(Detect):
         self.angle = preds["one2one"]["angle"] if self.end2end else preds["angle"]  # TODO: need to test obb
         y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1), preds["one2one"]["angle"], self.max_det, self.nc)
-        else:
-            y = torch.cat([y, preds["angle"]], 1)
+            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, preds)
+
+    def _inference(self, x):
+        """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        preds = super()._inference(x)
+        return torch.cat([preds, x["angle"]], dim=1)
 
     def forward_head(self, x, box_head, cls_head, angle_head):
         """Concatenates and returns predicted bounding boxes, class probabilities, and angles."""
@@ -341,8 +346,7 @@ class OBB(Detect):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
 
-    @staticmethod
-    def postprocess(preds: torch.Tensor, angle: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
         """
         Post-process YOLO model predictions.
 
@@ -357,7 +361,7 @@ class OBB(Detect):
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
         batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
-        boxes, scores = preds.split([4, nc], dim=-1)
+        boxes, scores, angle = preds.split([4, nc, self.ne], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
         angle = angle.permute(0, 2, 1)  # (bs,8400,32)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))

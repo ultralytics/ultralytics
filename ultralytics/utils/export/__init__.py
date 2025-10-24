@@ -8,6 +8,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
+from ultralytics.utils.torch_utils import TORCH_2_4
 
 from .imx import torch2imx  # noqa
 
@@ -36,6 +37,7 @@ def torch2onnx(
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
+    kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         torch_model,
         im,
@@ -46,6 +48,7 @@ def torch2onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic or None,
+        **kwargs,
     )
 
 
@@ -89,7 +92,7 @@ def onnx2engine(
         INT8 calibration requires a dataset and generates a calibration cache.
         Metadata is serialized and written to the engine file if provided.
     """
-    import tensorrt as trt  # noqa
+    import tensorrt as trt
 
     engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
 

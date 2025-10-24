@@ -200,7 +200,7 @@ class ConsoleLogger:
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
 
-        __slots__ = ("original", "callback")
+        __slots__ = ("callback", "original")
 
         def __init__(self, original, callback):
             self.original = original

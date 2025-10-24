@@ -69,12 +69,22 @@ class Detect(nn.Module):
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
+
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, self.cv2, self.cv3)
+        preds = self.forward_head(x, **self.one2many)
         if self.end2end:
             x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3)
+            one2one = self.forward_head(x_detach, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
@@ -140,7 +150,7 @@ class Detect(nn.Module):
         for i, (a, b, s) in enumerate(zip(m.cv2, m.cv3, m.stride)):  # from
             a[-1].bias.data[:] = box_init[i]  # box
             b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
-        if self.end2end:
+        if self.end2end:  # TODO
             for a, b, s in zip(m.one2one_cv2, m.one2one_cv3, m.stride):  # from
                 a[-1].bias.data[:] = 1.0  # box
                 b[-1].bias.data[: m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)

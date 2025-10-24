@@ -423,7 +423,7 @@ class Annotator:
         kpt_line: bool = True,
         conf_thres: float = 0.25,
         kpt_color: tuple | None = None,
-        kpt_names: dict[int, list[str]] | None = None
+        kpt_names: dict[int, list[str]] | None = None,
     ):
         """
         Plot keypoints on the image.

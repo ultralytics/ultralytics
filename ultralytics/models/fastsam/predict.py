@@ -4,7 +4,7 @@ import torch
 from PIL import Image
 
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils import DEFAULT_CFG, checks
+from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import scale_masks
 from ultralytics.utils.torch_utils import TORCH_1_10
@@ -101,7 +101,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 continue
             masks = result.masks.data
             if masks.shape[1:] != result.orig_shape:
-                masks = scale_masks(masks[None], result.orig_shape)[0]
+                masks = (scale_masks(masks[None].float(), result.orig_shape)[0] > 0.5).byte()
             # bboxes prompt
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
@@ -161,20 +161,14 @@ class FastSAMPredictor(SegmentationPredictor):
         Returns:
             (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).
         """
-        try:
-            import clip
-        except ImportError:
-            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
-            import clip
-        if (not hasattr(self, "clip_model")) or (not hasattr(self, "clip_preprocess")):
-            self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
-        images = torch.stack([self.clip_preprocess(image).to(self.device) for image in images])
-        tokenized_text = clip.tokenize(texts).to(self.device)
-        image_features = self.clip_model.encode_image(images)
-        text_features = self.clip_model.encode_text(tokenized_text)
-        image_features /= image_features.norm(dim=-1, keepdim=True)  # (N, 512)
-        text_features /= text_features.norm(dim=-1, keepdim=True)  # (M, 512)
-        return (image_features * text_features[:, None]).sum(-1)  # (M, N)
+        from ultralytics.nn.text_model import CLIP
+
+        if not hasattr(self, "clip"):
+            self.clip = CLIP("ViT-B/32", device=self.device)
+        images = torch.stack([self.clip.image_preprocess(image).to(self.device) for image in images])
+        image_features = self.clip.encode_image(images)
+        text_features = self.clip.encode_text(self.clip.tokenize(texts))
+        return text_features @ image_features.T  # (M, N)
 
     def set_prompts(self, prompts):
         """Set prompts to be used during inference."""

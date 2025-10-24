@@ -421,43 +421,52 @@ class C3TR(C3):
 class C3Ghost(C3):
     """C3 module with GhostBottleneck()."""
 
-    def __init__(self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5):
+    def __init__(
+        self, c1: int, c2: int, n: int = 1, shortcut: bool = True, layer_id: int = 0, g: int = 1, e: float = 0.5
+    ):
         """
         Initialize C3 module with GhostBottleneck.
 
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            n (int): Number of Ghost bottleneck blocks.
+            n (int): Number of GhostBottleneckV2 blocks.
             shortcut (bool): Whether to use shortcut connections.
+            layer_id (int): layer ID which controls attention
             g (int): Groups for convolutions.
             e (float): Expansion ratio.
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.m = nn.Sequential(*(GhostBottleneck(c_, c_) for _ in range(n)))
+        self.m = nn.Sequential(*(GhostBottleneck(c_, c_, layer_id=layer_id + i) for i in range(n)))
 
 
 class GhostBottleneck(nn.Module):
     """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
 
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1):
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: int = 0):
         """
-        Initialize Ghost Bottleneck module.
+        Initialize GhostNetV2 Bottleneck module.
 
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            k (int): Kernel size.
+            k (int): Kernel size for depthwise conv.
             s (int): Stride.
+            layer_id (int): Layer identifier.
         """
         super().__init__()
         c_ = c2 // 2
+
+        # Skip attention for first 2 bottleneck (layer_id 0 and 1) as per paper: https://arxiv.org/abs/2211.12905
+        ghost1_mode = "attn" if layer_id > 1 else "original"
+
         self.conv = nn.Sequential(
-            GhostConv(c1, c_, 1, 1),  # pw
+            GhostConv(c1, c_, 1, 1, mode=ghost1_mode),  # pw with DFC attention
             DWConv(c_, c_, k, s, act=False) if s == 2 else nn.Identity(),  # dw
-            GhostConv(c_, c2, 1, 1, act=False),  # pw-linear
+            GhostConv(c_, c2, 1, 1, act=False, mode="original"),  # pw-linear
         )
+
         self.shortcut = (
             nn.Sequential(DWConv(c1, c1, k, s, act=False), Conv(c1, c2, 1, 1, act=False)) if s == 2 else nn.Identity()
         )

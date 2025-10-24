@@ -11,7 +11,7 @@ keywords: COCO8-Multispectral, Ultralytics, dataset, multispectral, object detec
 The [Ultralytics](https://www.ultralytics.com/) COCO8-Multispectral dataset is an advanced variant of the original COCO8 dataset, designed to facilitate experimentation with multispectral object detection models. It consists of the same 8 images from the COCO train 2017 set—4 for training and 4 for validation—but with each image transformed into a 10-channel multispectral format. By expanding beyond standard RGB channels, COCO8-Multispectral enables the development and evaluation of models that can leverage richer spectral information.
 
 <p align="center">
-  <img width="640" src="https://github.com/user-attachments/assets/5bf7f52b-b81e-4e5f-9888-653ab68665f5" alt="Multispectral Imagery Overview">
+  <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/coco8-multispectral-overview.avif" alt="Multispectral Imagery Overview">
 </p>
 
 COCO8-Multispectral is fully compatible with [Ultralytics HUB](https://hub.ultralytics.com/) and [YOLO11](../../models/yolo11.md), ensuring seamless integration into your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) workflows.
@@ -96,7 +96,7 @@ For more details on model selection and best practices, explore the [Ultralytics
 
 Below is an example of a mosaiced training batch from the COCO8-Multispectral dataset:
 
-<img src="https://github.com/user-attachments/assets/bd1cc52b-fc25-46cf-91f9-8922ab098081" alt="Dataset sample image" width="800">
+<img src="https://github.com/ultralytics/docs/releases/download/0/coco8-multispectral-mosaic-batch.avif" alt="Dataset sample image" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch where multiple dataset images are combined using [mosaic augmentation](https://docs.ultralytics.com/reference/data/augment/). Mosaic augmentation increases the diversity of objects and scenes within each batch, helping the model generalize better to various object sizes, aspect ratios, and backgrounds.
 

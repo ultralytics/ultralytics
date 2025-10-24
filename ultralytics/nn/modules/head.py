@@ -159,7 +159,7 @@ class Detect(nn.Module):
         """Decode bounding boxes."""
         return dist2bbox(bboxes, anchors, xywh=xywh and (not self.end2end), dim=1)
 
-    @staticmethod
+    @staticmethod  # TODO
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
         """
         Post-processes YOLO model predictions.
@@ -408,9 +408,20 @@ class Pose(Detect):
         if self.end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
-    def kpts_decode(self, bs, kpts):
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, pose_head=self.cv4)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, pose_head=self.one2one_cv4)
+
+    def kpts_decode(self, kpts):
         """Decodes keypoints."""
         ndim = self.kpt_shape[1]
+        bs = kpts.shape[0]
         if self.export:
             if self.format in {
                 "tflite",
@@ -437,34 +448,21 @@ class Pose(Detect):
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
 
-    def forward(self, x):
-        """Concatenates and returns predicted bounding boxes and class probabilities."""
-        preds = self.forward_head(x, self.cv2, self.cv3, self.cv4)
-        if self.end2end:
-            x_detach = [xi.detach() for xi in x]
-            one2one = self.forward_head(x_detach, self.one2one_cv2, self.one2one_cv3, self.one2one_cv4)
-            preds = {"one2many": preds, "one2one": one2one}
-        if self.training:
-            return preds
-        y = self._inference(preds["one2one"] if self.end2end else preds)
-        kpt = self.kpts_decode(y.shape[0], preds["one2one"]["kpt"] if self.end2end else preds["kpt"])
-        if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1), kpt, self.max_det, self.nc)
-        else:
-            y = torch.cat([y, kpt], 1)
-        return y if self.export else (y, preds)
+    def _inference(self, x):
+        """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        preds = super()._inference(x)
+        return torch.cat([preds, self.kpts_decode(x["kpt"])], dim=1)
 
     def forward_head(self, x, box_head, cls_head, pose_head):
         """Concatenates and returns predicted bounding boxes, class probabilities, and keypoints."""
-        if box_head is None or cls_head is None:
-            return x
-        bs = x[0].shape[0]  # batch size
         preds = super().forward_head(x, box_head, cls_head)
-        preds["kpt"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+        if pose_head is not None:
+            bs = x[0].shape[0]  # batch size
+            preds = super().forward_head(x, box_head, cls_head)
+            preds["kpt"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
         return preds
 
-    @staticmethod
-    def postprocess(preds: torch.Tensor, kpts: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
         """
         Post-process YOLO model predictions.
 
@@ -479,9 +477,8 @@ class Pose(Detect):
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
         batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
-        boxes, scores = preds.split([4, nc], dim=-1)
+        boxes, scores, kpts = preds.split([4, nc, self.nk], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        kpts = kpts.permute(0, 2, 1)  # (bs,8400,32)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
         scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
         kpts = kpts.gather(dim=1, index=index.repeat(1, 1, kpts.shape[-1]))

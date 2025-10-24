@@ -1153,7 +1153,7 @@ def set_sentry():
             (dict | None): The modified event or None if the event should not be sent to Sentry.
         """
         if "exc_info" in hint:
-            exc_type, exc_value, _ = hint["exc_info"]
+            _exc_type, _exc_value, _ = hint["exc_info"]
             frame = event["exception"]["values"][0]["stacktrace"]["frames"][-1]
             fname, line = frame["filename"].split("/"), frame["context_line"].strip()
 

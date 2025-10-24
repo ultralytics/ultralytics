@@ -327,6 +327,8 @@ class OBB(Detect):
 
     def _inference(self, x):
         """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        # For decode_bboxes convenience
+        self.angle = x["angle"]  # TODO: need to test obb
         preds = super()._inference(x)
         return torch.cat([preds, x["angle"]], dim=1)
 
@@ -340,8 +342,6 @@ class OBB(Detect):
             )  # OBB theta logits
             angle = (angle.sigmoid() - 0.25) * math.pi  # [-pi/4, 3pi/4]
             preds["angle"] = angle
-            # For decode_bboxes convenience
-            self.angle = angle  # TODO: need to test obb
         return preds
 
     def decode_bboxes(self, bboxes, anchors):

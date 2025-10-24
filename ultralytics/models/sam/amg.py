@@ -145,7 +145,7 @@ def generate_crop_boxes(
 
     def crop_len(orig_len, n_crops, overlap):
         """Calculate the length of each crop given the original length, number of crops, and overlap."""
-        return int(math.ceil((overlap * (n_crops - 1) + orig_len) / n_crops))
+        return math.ceil((overlap * (n_crops - 1) + orig_len) / n_crops)
 
     for i_layer in range(n_layers):
         n_crops_per_side = 2 ** (i_layer + 1)
@@ -227,7 +227,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> tup
     small_regions = [i + 1 for i, s in enumerate(sizes) if s < area_thresh]
     if not small_regions:
         return mask, False
-    fill_labels = [0] + small_regions
+    fill_labels = [0, *small_regions]
     if not correct_holes:
         # If every region is below threshold, keep largest
         fill_labels = [i for i in range(n_labels) if i not in fill_labels] or [int(np.argmax(sizes)) + 1]

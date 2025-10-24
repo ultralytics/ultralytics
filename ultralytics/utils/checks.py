@@ -642,6 +642,7 @@ def check_imshow(warn=False):
         if LINUX:
             assert not IS_COLAB and not IS_KAGGLE
             assert "DISPLAY" in os.environ, "The DISPLAY environment variable isn't set."
+        assert not check_requirements("opencv-python-headless", install=False)
         cv2.imshow("test", np.zeros((8, 8, 3), dtype=np.uint8))  # show a small 8-pixel image
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -726,6 +727,8 @@ def collect_system_info():
     package_info = {}
     for r in parse_requirements(package="ultralytics"):
         try:
+            if "opencv" in r.name and check_requirements("opencv-python-headless", install=False):
+                r.name = "opencv-python-headless"
             current = metadata.version(r.name)
             is_met = "✅ " if check_version(current, str(r.specifier), name=r.name, hard=True) else "❌ "
         except metadata.PackageNotFoundError:

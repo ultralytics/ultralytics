@@ -117,6 +117,7 @@ class Detect(nn.Module):
         # Inference path
         shape = x["feats"][0].shape  # BCHW
         if self.format != "imx" and (self.dynamic or self.shape != shape):
+            # TODO
             self.anchors, self.strides = x["anchors"].transpose(0, 1), x["strides"].transpose(0, 1)
             self.shape = shape
 

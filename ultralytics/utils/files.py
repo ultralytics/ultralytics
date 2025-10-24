@@ -49,7 +49,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
         """Change the current working directory to the specified directory upon entering the context."""
         os.chdir(self.dir)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):  # noqa
+    def __exit__(self, exc_type, exc_val, exc_tb):
         """Restore the original working directory when exiting the context."""
         os.chdir(self.cwd)
 

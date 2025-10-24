@@ -80,7 +80,7 @@ show_boxes: True # (bool) draw bounding boxes on images
 line_width: # (int, optional) line width of boxes; auto-scales with image size if not set
 
 # Export settings ------------------------------------------------------------------------------------------------------
-format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn
+format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn|executorch
 keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) TorchScript only; apply mobile optimizations to the scripted model
 int8: False # (bool) INT8/PTQ where supported (openvino, tflite, tfjs, engine, imx); needs calibration data/fraction

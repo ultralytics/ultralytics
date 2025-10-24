@@ -458,7 +458,7 @@ class Annotator:
                     if conf < conf_thres:
                         continue
                 if kpt_names:
-                    kpt_label, font_scale = str(i), self.sf * 1.2
+                    kpt_label, font_scale = kpt_names[0][i], self.sf * 1.1
                     (tw, th), _ = cv2.getTextSize(kpt_label, 0, font_scale, self.tf)
                     tx, ty = int(x_coord - tw // 2), int(y_coord + th // 2)
                     cv2.rectangle(self.im, (tx - 10, ty - th - 10), (tx + tw + 10, ty + 20), (108, 27, 255), -1)

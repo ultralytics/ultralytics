@@ -213,6 +213,7 @@ class AutoBackend(nn.Module):
                 model, _ = load_checkpoint(model, device=device, fuse=fuse)  # load model, ckpt
 
             # Common PyTorch model processing
+            kpt_shape = None
             if hasattr(model, "kpt_shape"):
                 kpt_shape = model.kpt_shape  # pose-only
             kpt_names = None

@@ -162,13 +162,22 @@ Here are the actual training results from YOLO11-MDE models trained on the KITTI
 
 **Example Prediction Results:**
 
-<img src="images/mde/prediction_example.jpg" alt="MDE Prediction Example" width="100%">
+Below are prediction examples from different YOLO11-MDE model variants, showing detection bounding boxes with estimated depth values for each detected object:
 
-The image above shows validation predictions from YOLO11m-mde model, displaying both bounding boxes and estimated depth values for detected objects.
+<img src="https://github.com/ultralytics/docs/releases/download/0/pred_yolo11n_mde.jpg" alt="YOLO11n-MDE Prediction" width="100%">
+*YOLO11n-MDE: Lightweight model optimized for speed*
+
+<img src="https://github.com/ultralytics/docs/releases/download/0/pred_yolo11s_mde.jpg" alt="YOLO11s-MDE Prediction" width="100%">
+*YOLO11s-MDE: Balanced model for speed and accuracy*
+
+<img src="https://github.com/ultralytics/docs/releases/download/0/pred_yolo11x_mde.jpg" alt="YOLO11x-MDE Prediction" width="100%">
+*YOLO11x-MDE: High-accuracy model with detailed depth estimation*
+
+These examples demonstrate how different model sizes detect objects and estimate their distances from the camera, with larger models providing more refined predictions.
 
 **Training Progress:**
 
-<img src="images/mde/training_results.png" alt="MDE Training Results" width="100%">
+<img src="https://github.com/ultralytics/docs/releases/download/0/training_results_mde.png" alt="MDE Training Results" width="100%">
 
 The training curves show the progression of detection and depth estimation metrics over 100 epochs, demonstrating stable convergence and high accuracy on the KITTI validation set.
 

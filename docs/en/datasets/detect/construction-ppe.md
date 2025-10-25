@@ -18,7 +18,7 @@ The Construction-PPE dataset is designed to improve safety compliance in constru
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to train Ultralytics YOLO on Personal Protective Equipment Dataset | VisionAI in Construction 🚀👷
+  <strong>Watch:</strong> How to train Ultralytics YOLO on Personal Protective Equipment Dataset | VisionAI in Construction 👷
 </p>
 
 ## Dataset Structure

@@ -362,7 +362,7 @@ jobs:
           yolo checks
           uv pip list
       - name: Pytest tests
-        run: pytest --slow tests/test_python.py::test_multichannel
+        run: pytest --slow tests/test_python.py
       # - name: Activate Virtual Environment for Benchmarks
       #   run: |
       #     python3.11 -m venv env-benchmarks

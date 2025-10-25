@@ -77,13 +77,18 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
         | YOLO26s | 640                   | 47.4                      | 47.0                 | 87.16 ± 0.9                     | 2.7 ± 0.0                            | 9.5                | 20.7              |
         | YOLO26m | 640                   | 51.9                      | 52.4                 | 220.0 ± 1.4                     | 4.9 ± 0.1                            | 20.4               | 68.2              |
         | YOLO26l | 640                   | 53.6                      | 54.1                 | 286.17 ± 2.0                    | 6.5 ± 0.2                            | 24.8               | 86.4              |
-        | YOLO26x | 640                   | 55.9                      | 56.2                 | -                               | -                                    | -                  | -                 |
+        | YOLO26x | 640                   | 55.9                      | 56.2                 | -                               | 11.78 ± 0.2                          | 55.73              | 193.88            |
 
-        *Metrics for YOLO26l and YOLO26x are in progress. Final benchmarks will be added here.
 
     === "Segmentation (COCO)"
 
-        Performance metrics coming soon.
+        | Model       | size<br><sup>(pixels) | mAP<sup>val<br>50-95(e2e) | mAP<sup>mask<br>50-95(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        |-------------|-----------------------|---------------------------|----------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+        | YOLO26n-seg | 640                   | 38.0                      | 31.6                       | 38.90 ± 0.7                    | 1.7 ± 0.0                           | 2.66               | 8.62              |
+        | YOLO26s-seg | 640                   | 46.3                      | 38.2                       | 87.16 ± 0.9                    | 2.7 ± 0.0                           | 10.15              | 32.18             |
+        | YOLO26m-seg | 640                   | 51.5                      | 42.3                       | 220.0 ± 1.4                    | 4.9 ± 0.1                           | 22.72              | 113.43            |
+        | YOLO26l-seg | 640                   | 53.1                      | 43.6                       | 286.17 ± 2.0                   | 6.5 ± 0.2                           | 27.11              | 131.68            |
+        | YOLO26x-seg | 640                   | 55.4                      | 45.4                       | -                              | 11.78 ± 0.2                         | 60.90              | 295.34            |
 
     === "Classification (ImageNet)"
 
@@ -91,11 +96,23 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
     === "Pose (COCO)"
 
-        Performance metrics coming soon.
+        | Model        | size<br><sup>(pixels) | mAP<sup>val<br>50-95(e2e) | mAP<sup>pose<br>50(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        |--------------|-----------------------|---------------------------|-------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+        | YOLO26n-pose | 640                   | 55.2                      | 82.4                    | 38.90 ± 0.7                    | 1.7 ± 0.0                           | 2.66               | 6.71              |
+        | YOLO26s-pose | 640                   | 62.2                      | 86.9                    | 87.16 ± 0.9                    | 2.7 ± 0.0                           | 9.96               | 23.95             |
+        | YOLO26m-pose | 640                   | 67.3                      | 89.4                    | 220.0 ± 1.4                    | 4.9 ± 0.1                           | 21.21              | 77.84             |
+        | YOLO26l-pose | 640                   | 69.5                      | 90.5                    | 286.17 ± 2.0                   | 6.5 ± 0.2                           | 25.60              | 96.08             |
+        | YOLO26x-pose | 640                   | 71.2                      | 91.4                    | -                              | 11.78 ± 0.2                         | 57.56              | 215.73            |
 
     === "OBB (DOTAv1)"
 
-        Performance metrics coming soon.
+        | Model       | size<br><sup>(pixels) | mAP<sup>test<br>50(e2e) | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+        |-------------|-----------------------|-------------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+        | YOLO26n-obb | 1024                  | 78.9                    | 38.90 ± 0.7                    | 1.7 ± 0.0                           | 2.66               | 6.71              |
+        | YOLO26s-obb | 1024                  | 79.8                    | 87.16 ± 0.9                    | 2.7 ± 0.0                           | 9.96               | 23.95             |
+        | YOLO26m-obb | 1024                  | 80.7                    | 220.0 ± 1.4                    | 4.9 ± 0.1                           | 21.21              | 77.84             |
+        | YOLO26l-obb | 1024                  | 81.4                    | 286.17 ± 2.0                   | 6.5 ± 0.2                           | 25.60              | 96.08             |
+        | YOLO26x-obb | 1024                  | 82.1                    | -                              | 11.78 ± 0.2                         | 57.56              | 215.73            |
 
 ---
 

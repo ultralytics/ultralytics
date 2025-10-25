@@ -10,6 +10,17 @@ keywords: Construction-PPE, PPE dataset, safety compliance, construction workers
 
 The Construction-PPE dataset is designed to improve safety compliance in construction sites by enabling detection of essential protective gear such as helmets, vests, gloves, boots, and goggles, along with annotations for missing equipment. Curated from real construction environments, it includes both compliant and non-compliant cases, making it a valuable resource for training AI models that monitor workplace safety.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/lFaVnrhMmaE"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to train Ultralytics YOLO on Personal Protective Equipment Dataset | VisionAI in Construction 👷
+</p>
+
 ## Dataset Structure
 
 The Construction-PPE dataset is organized into three main subsets:

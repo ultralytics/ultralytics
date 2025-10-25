@@ -327,4 +327,4 @@ Yes! ExecuTorch supports hardware acceleration through various backends:
 - **NPU/DSP**: Via platform-specific delegates
 - **Default**: XNNPACK for optimized CPU inference
 
-Refer to the [ExecuTorch Documentation](https://pytorch.org/executorch/stable/native-delegates-executorch.html) for backend-specific setup.
+Refer to the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/stable/compiler-delegate-and-partitioner.html) for backend-specific setup.

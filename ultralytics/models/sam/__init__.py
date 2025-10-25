@@ -6,7 +6,7 @@ from .predict import Predictor, SAM2DynamicInteractivePredictor, SAM2Predictor, 
 __all__ = (
     "SAM",
     "Predictor",
+    "SAM2DynamicInteractivePredictor",
     "SAM2Predictor",
     "SAM2VideoPredictor",
-    "SAM2DynamicInteractivePredictor",
 )  # tuple or list of exportable items

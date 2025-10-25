@@ -337,11 +337,11 @@ class AutoBackend(nn.Module):
                 check_requirements("numpy==1.23.5")
 
             try:  # https://developer.nvidia.com/nvidia-tensorrt-download
-                import tensorrt as trt  # noqa
+                import tensorrt as trt
             except ImportError:
                 if LINUX:
                     check_requirements("tensorrt>7.0.0,!=10.1.0")
-                import tensorrt as trt  # noqa
+                import tensorrt as trt
             check_version(trt.__version__, ">=7.0.0", hard=True)
             check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
             if device.type == "cpu":
@@ -496,7 +496,7 @@ class AutoBackend(nn.Module):
                 if ARM64
                 else "paddlepaddle>=3.0.0"
             )
-            import paddle.inference as pdi  # noqa
+            import paddle.inference as pdi
 
             w = Path(w)
             model_file, params_file = None, None
@@ -652,7 +652,7 @@ class AutoBackend(nn.Module):
         Returns:
             (torch.Tensor | list[torch.Tensor]): The raw output tensor(s) from the model.
         """
-        b, ch, h, w = im.shape  # batch, channel, height, width
+        _b, _ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
         if self.nhwc:
@@ -919,4 +919,4 @@ class AutoBackend(nn.Module):
             url = urlsplit(p)
             triton = bool(url.netloc) and bool(url.path) and url.scheme in {"http", "grpc"}
 
-        return types + [triton]
+        return [*types, triton]

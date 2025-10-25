@@ -87,12 +87,12 @@ def mouse_callback(event: int, x: int, y: int, flags: int, param: Any) -> None:
 
 def run(
     weights: str = "yolo11n.pt",
-    source: str = None,
+    source: str | None = None,
     device: str = "cpu",
     view_img: bool = False,
     save_img: bool = False,
     exist_ok: bool = False,
-    classes: list[int] = None,
+    classes: list[int] | None = None,
     line_thickness: int = 2,
     track_thickness: int = 2,
     region_thickness: int = 2,

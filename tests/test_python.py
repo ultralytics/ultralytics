@@ -12,7 +12,7 @@ import pytest
 import torch
 from PIL import Image
 
-from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA, TMP
+from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import TASK2DATA, TASKS
 from ultralytics.data.build import load_inference_source
@@ -33,13 +33,10 @@ from ultralytics.utils import (
     WINDOWS,
     YAML,
     checks,
-    is_dir_writeable,
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
-
-IS_TMP_WRITEABLE = is_dir_writeable(TMP)  # WARNING: must be run once tests start as TMP does not exist on tests/init
 
 
 def test_model_forward():
@@ -77,10 +74,9 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
-@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
-def test_predict_txt():
+def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
-    file = TMP / "sources_multi_row.txt"
+    file = tmp_path / "sources_multi_row.txt"
     with open(file, "w") as f:
         for src in SOURCES_LIST:
             f.write(f"{src}\n")
@@ -89,10 +85,9 @@ def test_predict_txt():
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")
-@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
-def test_predict_csv_multi_row():
+def test_predict_csv_multi_row(tmp_path):
     """Test YOLO predictions with sources listed in multiple rows of a CSV file."""
-    file = TMP / "sources_multi_row.csv"
+    file = tmp_path / "sources_multi_row.csv"
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["source"])
@@ -102,10 +97,9 @@ def test_predict_csv_multi_row():
 
 
 @pytest.mark.skipif(True, reason="disabled for testing")
-@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
-def test_predict_csv_single_row():
+def test_predict_csv_single_row(tmp_path):
     """Test YOLO predictions with sources listed in a single row of a CSV file."""
-    file = TMP / "sources_single_row.csv"
+    file = tmp_path / "sources_single_row.csv"
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(SOURCES_LIST)
@@ -142,16 +136,14 @@ def test_predict_visualize(model):
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
-def test_predict_grey_and_4ch():
+def test_predict_grey_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)
-    directory = TMP / "im4"
-    directory.mkdir(parents=True, exist_ok=True)
 
-    source_greyscale = directory / "greyscale.jpg"
-    source_rgba = directory / "4ch.png"
-    source_non_utf = directory / "non_UTF_测试文件_tést_image.jpg"
-    source_spaces = directory / "image with spaces.jpg"
+    source_greyscale = tmp_path / "greyscale.jpg"
+    source_rgba = tmp_path / "4ch.png"
+    source_non_utf = tmp_path / "non_UTF_测试文件_tést_image.jpg"
+    source_spaces = tmp_path / "image with spaces.jpg"
 
     im.convert("L").save(source_greyscale)  # greyscale
     im.convert("RGBA").save(source_rgba)  # 4-ch PNG with alpha
@@ -181,9 +173,8 @@ def test_youtube():
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-@pytest.mark.skipif(not IS_TMP_WRITEABLE, reason="directory is not writeable")
 @pytest.mark.parametrize("model", MODELS)
-def test_track_stream(model):
+def test_track_stream(model, tmp_path):
     """
     Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
 
@@ -199,7 +190,7 @@ def test_track_stream(model):
     # Test Global Motion Compensation (GMC) methods and ReID
     for gmc, reidm in zip(["orb", "sift", "ecc"], ["auto", "auto", "yolo11n-cls.pt"]):
         default_args = YAML.load(ROOT / "cfg/trackers/botsort.yaml")
-        custom_yaml = TMP / f"botsort-{gmc}.yaml"
+        custom_yaml = tmp_path / f"botsort-{gmc}.yaml"
         YAML.save(custom_yaml, {**default_args, "gmc_method": gmc, "with_reid": True, "model": reidm})
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
@@ -278,7 +269,7 @@ def test_predict_callback_and_setup():
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
     dataset = load_inference_source(source=SOURCE)
-    bs = dataset.bs  # noqa access predictor properties
+    bs = dataset.bs  # access predictor properties
     results = model.predict(dataset, stream=True, imgsz=160)  # source already setup
     for r, im0, bs in results:
         print("test_callback", im0.shape)
@@ -288,7 +279,7 @@ def test_predict_callback_and_setup():
 
 
 @pytest.mark.parametrize("model", MODELS)
-def test_results(model: str):
+def test_results(model: str, tmp_path):
     """Test YOLO model results processing and output in various formats."""
     im = f"{ASSETS_URL}/boats.jpg" if model == "yolo11n-obb.pt" else SOURCE
     results = YOLO(WEIGHTS_DIR / model)([im, im], imgsz=160)
@@ -297,12 +288,12 @@ def test_results(model: str):
         r = r.cpu().numpy()
         print(r, len(r), r.path)  # print numpy attributes
         r = r.to(device="cpu", dtype=torch.float32)
-        r.save_txt(txt_file=TMP / "runs/tests/label.txt", save_conf=True)
-        r.save_crop(save_dir=TMP / "runs/tests/crops/")
+        r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
+        r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
         r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
         r.to_csv()
         r.to_json(normalize=True)
-        r.plot(pil=True, save=True, filename=TMP / "results_plot_save.jpg")
+        r.plot(pil=True, save=True, filename=tmp_path / "results_plot_save.jpg")
         r.plot(conf=True, boxes=True)
         print(r, len(r), r.path)  # print after methods
 
@@ -332,7 +323,7 @@ def test_labels_and_crops():
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_data_utils():
+def test_data_utils(tmp_path):
     """Test utility functions in ultralytics/data/utils.py, including dataset stats and auto-splitting."""
     from ultralytics.data.split import autosplit
     from ultralytics.data.utils import HUBDatasetStats
@@ -343,26 +334,28 @@ def test_data_utils():
 
     for task in TASKS:
         file = Path(TASK2DATA[task]).with_suffix(".zip")  # i.e. coco8.zip
-        download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=TMP)
-        stats = HUBDatasetStats(TMP / file, task=task)
+        download(f"https://github.com/ultralytics/hub/raw/main/example_datasets/{file}", unzip=False, dir=tmp_path)
+        stats = HUBDatasetStats(tmp_path / file, task=task)
         stats.get_json(save=True)
         stats.process_images()
 
-    autosplit(TMP / "coco8")
-    zip_directory(TMP / "coco8/images/val")  # zip
+    autosplit(tmp_path / "coco8")
+    zip_directory(tmp_path / "coco8/images/val")  # zip
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
-def test_data_converter():
+def test_data_converter(tmp_path):
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""
     from ultralytics.data.converter import coco80_to_coco91_class, convert_coco
 
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=TMP)
-    convert_coco(labels_dir=TMP, save_dir=TMP / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True)
+    download(f"{ASSETS_URL}/instances_val2017.json", dir=tmp_path)
+    convert_coco(
+        labels_dir=tmp_path, save_dir=tmp_path / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True
+    )
     coco80_to_coco91_class()
 
 
-def test_data_annotator():
+def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate
 
@@ -370,7 +363,7 @@ def test_data_annotator():
         ASSETS,
         det_model=WEIGHTS_DIR / "yolo11n.pt",
         sam_model=WEIGHTS_DIR / "mobile_sam.pt",
-        output_dir=TMP / "auto_annotate_labels",
+        output_dir=tmp_path / "auto_annotate_labels",
     )
 
 
@@ -464,7 +457,7 @@ def test_utils_ops():
     torch.allclose(boxes, xyxyxyxy2xywhr(xywhr2xyxyxyxy(boxes)), rtol=1e-3)
 
 
-def test_utils_files():
+def test_utils_files(tmp_path):
     """Test file handling utilities including file age, date, and paths with spaces."""
     from ultralytics.utils.files import file_age, file_date, get_latest_run, spaces_in_path
 
@@ -472,14 +465,14 @@ def test_utils_files():
     file_date(SOURCE)
     get_latest_run(ROOT / "runs")
 
-    path = TMP / "path/with spaces"
+    path = tmp_path / "path/with spaces"
     path.mkdir(parents=True, exist_ok=True)
     with spaces_in_path(path) as new_path:
         print(new_path)
 
 
 @pytest.mark.slow
-def test_utils_patches_torch_save():
+def test_utils_patches_torch_save(tmp_path):
     """Test torch_save backoff when _torch_save raises RuntimeError."""
     from unittest.mock import MagicMock, patch
 
@@ -489,7 +482,7 @@ def test_utils_patches_torch_save():
 
     with patch("ultralytics.utils.patches._torch_save", new=mock):
         with pytest.raises(RuntimeError):
-            torch_save(torch.zeros(1), TMP / "test.pt")
+            torch_save(torch.zeros(1), tmp_path / "test.pt")
 
     assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
 
@@ -722,11 +715,11 @@ def test_multichannel():
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
-def test_grayscale(task: str, model: str, data: str) -> None:
+def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if task == "classify":  # not support grayscale classification yet
         return
-    grayscale_data = Path(TMP) / f"{Path(data).stem}-grayscale.yaml"
+    grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)
     data["channels"] = 1  # add additional channels key for grayscale
     YAML.save(grayscale_data, data)

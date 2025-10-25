@@ -183,7 +183,7 @@ def unzip_file(
         if unzip_as_dir:
             # Zip has 1 top-level directory
             extract_path = path  # i.e. ../datasets
-            path = Path(path) / list(top_level_dirs)[0]  # i.e. extract coco8/ dir to ../datasets/
+            path = Path(path) / next(iter(top_level_dirs))  # i.e. extract coco8/ dir to ../datasets/
         else:
             # Zip has multiple files at top level
             path = extract_path = Path(path) / Path(file).stem  # i.e. extract multiple files to ../datasets/coco8/
@@ -222,7 +222,7 @@ def check_disk_space(
     Returns:
         (bool): True if there is sufficient disk space, False otherwise.
     """
-    total, used, free = shutil.disk_usage(path)  # bytes
+    _total, _used, free = shutil.disk_usage(path)  # bytes
     if file_bytes * sf < free:
         return True  # sufficient space
 

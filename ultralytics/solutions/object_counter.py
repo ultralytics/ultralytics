@@ -106,11 +106,8 @@ class ObjectCounter(BaseSolution):
                 region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
                 region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
-                if (
-                    region_width < region_height
-                    and current_centroid[0] > prev_position[0]
-                    or region_width >= region_height
-                    and current_centroid[1] > prev_position[1]
+                if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
+                    region_width >= region_height and current_centroid[1] > prev_position[1]
                 ):  # Moving right or downward
                     self.in_count += 1
                     self.classwise_count[self.names[cls]]["IN"] += 1
@@ -135,7 +132,7 @@ class ObjectCounter(BaseSolution):
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
             f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip()
             for key, value in self.classwise_count.items()
-            if value["IN"] != 0 or value["OUT"] != 0 and (self.show_in or self.show_out)
+            if value["IN"] != 0 or (value["OUT"] != 0 and (self.show_in or self.show_out))
         }
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)

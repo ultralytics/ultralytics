@@ -636,7 +636,7 @@ class Exporter:
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
-        import onnx  # noqa
+        import onnx
 
         opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type)
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
@@ -785,8 +785,8 @@ class Exporter:
                 "x2paddle",
             )
         )
-        import x2paddle  # noqa
-        from x2paddle.convert import pytorch2paddle  # noqa
+        import x2paddle
+        from x2paddle.convert import pytorch2paddle
 
         LOGGER.info(f"\n{prefix} starting export with X2Paddle {x2paddle.__version__}...")
         f = str(self.file).replace(self.file.suffix, f"_paddle_model{os.sep}")
@@ -801,7 +801,7 @@ class Exporter:
         f_onnx = self.export_onnx()  # get onnx model first
 
         check_requirements("MNN>=2.9.6")
-        import MNN  # noqa
+        import MNN
         from MNN.tools import mnnconvert
 
         # Setup and checks
@@ -824,7 +824,7 @@ class Exporter:
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
         check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
-        import ncnn  # noqa
+        import ncnn
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
@@ -841,7 +841,7 @@ class Exporter:
             system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
             try:
                 release, assets = get_github_assets(repo="pnnx/pnnx")
-                asset = [x for x in assets if f"{system}.zip" in x][0]
+                asset = next(x for x in assets if f"{system}.zip" in x)
                 assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20250930-macos.zip
                 LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
             except Exception as e:
@@ -893,7 +893,7 @@ class Exporter:
         """Export YOLO model to CoreML format."""
         mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
         check_requirements("coremltools>=8.0")
-        import coremltools as ct  # noqa
+        import coremltools as ct
 
         LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
@@ -989,12 +989,12 @@ class Exporter:
         f_onnx = self.export_onnx()  # run before TRT import https://github.com/ultralytics/ultralytics/issues/7016
 
         try:
-            import tensorrt as trt  # noqa
+            import tensorrt as trt
         except ImportError:
             if LINUX:
                 cuda_version = torch.version.cuda.split(".")[0]
                 check_requirements(f"tensorrt-cu{cuda_version}>7.0.0,!=10.1.0")
-            import tensorrt as trt  # noqa
+            import tensorrt as trt
         check_version(trt.__version__, ">=7.0.0", hard=True)
         check_version(trt.__version__, "!=10.1.0", msg="https://github.com/ultralytics/ultralytics/pull/14239")
 
@@ -1024,10 +1024,10 @@ class Exporter:
         """Export YOLO model to TensorFlow SavedModel format."""
         cuda = torch.cuda.is_available()
         try:
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         except ImportError:
             check_requirements("tensorflow>=2.0.0,<=2.19.0")
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         check_requirements(
             (
                 "tf_keras<=2.19.0",  # required by 'onnx2tf' package
@@ -1113,8 +1113,8 @@ class Exporter:
     @try_export
     def export_pb(self, keras_model, prefix=colorstr("TensorFlow GraphDef:")):
         """Export YOLO model to TensorFlow GraphDef *.pb format https://github.com/leimao/Frozen-Graph-TensorFlow."""
-        import tensorflow as tf  # noqa
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
+        import tensorflow as tf
+        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         f = self.file.with_suffix(".pb")
@@ -1130,7 +1130,7 @@ class Exporter:
     def export_tflite(self, prefix=colorstr("TensorFlow Lite:")):
         """Export YOLO model to TensorFlow Lite format."""
         # BUG https://github.com/ultralytics/ultralytics/issues/13436
-        import tensorflow as tf  # noqa
+        import tensorflow as tf
 
         LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")
         saved_model = Path(str(self.file).replace(self.file.suffix, "_saved_model"))
@@ -1215,7 +1215,7 @@ class Exporter:
         """Export YOLO model to TensorFlow.js format."""
         check_requirements("tensorflowjs")
         import tensorflow as tf
-        import tensorflowjs as tfjs  # noqa
+        import tensorflowjs as tfjs
 
         LOGGER.info(f"\n{prefix} starting export with tensorflowjs {tfjs.__version__}...")
         f = str(self.file).replace(self.file.suffix, "_web_model")  # js dir
@@ -1315,7 +1315,7 @@ class Exporter:
 
     def _pipeline_coreml(self, model, weights_dir=None, prefix=colorstr("CoreML Pipeline:")):
         """Create CoreML pipeline with NMS for YOLO detection models."""
-        import coremltools as ct  # noqa
+        import coremltools as ct
 
         LOGGER.info(f"{prefix} starting pipeline with coremltools {ct.__version__}...")
 

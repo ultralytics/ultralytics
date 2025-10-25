@@ -51,7 +51,7 @@ class GitRepo:
     @staticmethod
     def _find_root(p: Path) -> Path | None:
         """Return repo root or None."""
-        return next((d for d in [p] + list(p.parents) if (d / ".git").exists()), None)
+        return next((d for d in [p, *list(p.parents)] if (d / ".git").exists()), None)
 
     @staticmethod
     def _gitdir(root: Path) -> Path | None:

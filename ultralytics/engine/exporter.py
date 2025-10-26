@@ -1508,7 +1508,7 @@ class NMSModel(torch.nn.Module):
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
-            nmsbox = box.clone()  # force FP32 for better accuracy
+            nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = (8 if self.obb else 1) / len(self.model.names)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization

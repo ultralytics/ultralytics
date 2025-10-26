@@ -1519,7 +1519,7 @@ class NMSModel(torch.nn.Module):
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
-                cls_offset = cls.reshape(cls.shape[0], 1).expand(cls.shape[0], end)
+                cls_offset = cls.view(cls.shape[0], 1).expand(cls.shape[0], end)
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (

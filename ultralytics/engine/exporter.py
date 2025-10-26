@@ -1487,7 +1487,6 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        pred = pred.float()  # force FP32 for NMS accuracy
         kwargs = dict(device=pred.device, dtype=pred.dtype)
         bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)

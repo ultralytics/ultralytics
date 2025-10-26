@@ -1470,7 +1470,7 @@ class NMSModel(torch.nn.Module):
         self.obb = model.task == "obb"
         self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
 
-    def forward(self, x, *args, **kwargs):
+    def forward(self, x):
         """
         Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
@@ -1517,7 +1517,7 @@ class NMSModel(torch.nn.Module):
                 nmsbox *= multiplier
             else:
                 nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
-            if not self.args.agnostic_nms:
+            if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
                 cls_offset = cls.reshape(cls.shape[0], 1).expand(cls.shape[0], end)

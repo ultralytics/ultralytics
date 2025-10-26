@@ -1470,7 +1470,7 @@ class NMSModel(torch.nn.Module):
         self.obb = model.task == "obb"
         self.is_tf = self.args.format in frozenset({"saved_model", "tflite", "tfjs"})
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         """
         Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
 
@@ -1487,6 +1487,8 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
+        if self.obb:
+            pred.float()  # OBB requires FP32 NMS for accuracy
         kwargs = dict(device=pred.device, dtype=pred.dtype)
         bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
@@ -1510,17 +1512,16 @@ class NMSModel(torch.nn.Module):
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb
-            multiplier = 8 if self.obb else 1
+            multiplier = (8 if self.obb else 1) / len(self.model.names)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
             if self.args.format == "tflite":  # TFLite is already normalized
                 nmsbox *= multiplier
             else:
-                nmsbox = multiplier * nmsbox / torch.tensor(x.shape[2:], **kwargs).max()
-            if not self.args.agnostic_nms:  # class-specific NMS
+                nmsbox = multiplier * (nmsbox / torch.tensor(x.shape[2:], **kwargs).max())
+            if not self.args.agnostic_nms:
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
-                # large max_wh causes issues when quantizing
-                cls_offset = cls.reshape(-1, 1).expand(nmsbox.shape[0], end)
+                cls_offset = cls.reshape(cls.shape[0], 1).expand(cls.shape[0], end)
                 offbox = nmsbox[:, :end] + cls_offset * multiplier
                 nmsbox = torch.cat((offbox, nmsbox[:, end:]), dim=-1)
             nms_fn = (

@@ -190,7 +190,9 @@ def select_device(device="", newline=False, verbose=True):
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         is_cuda_init = torch.cuda.is_initialized()
         if not is_cuda_init:
-            os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+            os.environ["CUDA_VISIBLE_DEVICES"] = (
+                device  # set environment variable - must be before assert is_available()
+            )
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
             LOGGER.info(s)
             install = (

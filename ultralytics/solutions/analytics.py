@@ -53,8 +53,10 @@ class Analytics(BaseSolution):
 
         import matplotlib
 
-        if matplotlib.get_backend() != 'Agg':
-            matplotlib.use('Agg')  # fix Windows CI tkinter error: https://github.com/ultralytics/ultralytics/actions/runs/18829620495/job/53718655526
+        if matplotlib.get_backend() != "Agg":
+            matplotlib.use(
+                "Agg"
+            )  # fix Windows CI tkinter error: https://github.com/ultralytics/ultralytics/actions/runs/18829620495/job/53718655526
 
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
         from matplotlib.backends.backend_agg import FigureCanvasAgg

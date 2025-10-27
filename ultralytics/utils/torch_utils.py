@@ -212,7 +212,11 @@ def select_device(device="", newline=False, verbose=True):
         space = " " * len(s)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
-        arg = "cuda:0"
+        if torch.cuda.is_initialized():
+            # if CUDA has initialized, setting CUDA_VISIBLE_DEVICES has no effect; GPU indices remain unchanged; return passed GPU index
+            arg = f"cuda:{device[0]}"
+        else:
+            arg = "cuda:0"  # 0 here refers to the first GPU in CUDA_VISIBLE_DEVICES, not the true GPU index
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"

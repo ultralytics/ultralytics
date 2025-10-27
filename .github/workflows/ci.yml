@@ -9,7 +9,6 @@ permissions:
 
 env:
   PYTHONFAULTHANDLER: 1
-  MPLBACKEND: Agg  # fix Windows CI tkinter error: https://github.com/ultralytics/ultralytics/actions/runs/18829620495/job/53718655526
 
 on:
   push:

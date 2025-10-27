@@ -868,7 +868,7 @@ class SemanticDataset(BaseDataset):
     def split_mask(self, mask):
         """Split RGB mask from the dataset into one-hot mask by channel."""
         nc, colors = self.data["nc"], self.data["colors"]
-        h, w, c = mask.shape
+        h, w, _c = mask.shape
         results = np.zeros((h, w, nc), dtype=np.uint8)
         mask_b = mask[:, :, 0]
         mask_g = mask[:, :, 1]

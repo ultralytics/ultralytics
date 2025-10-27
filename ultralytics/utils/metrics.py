@@ -1799,7 +1799,7 @@ class SemSegMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns results of object detection model for evaluation."""
-        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+        return dict(zip([*self.keys, "fitness"], [*self.mean_results(), self.fitness]))
 
     @property
     def curves(self):

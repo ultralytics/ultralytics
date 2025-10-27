@@ -187,9 +187,10 @@ def select_device(device="", newline=False, verbose=True):
             device = "0"
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
-        is_cuda_init = torch.cuda.is_initialized()
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
+        is_cuda_init = torch.cuda.is_initialized()
+        if not is_cuda_init:
+            os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
             LOGGER.info(s)
             install = (
@@ -215,8 +216,8 @@ def select_device(device="", newline=False, verbose=True):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         if is_cuda_init:
             # if CUDA has initialized, setting CUDA_VISIBLE_DEVICES has no effect; GPU indices remain unchanged; return passed GPU index
-            arg = f"cuda:{device[0]}"
-            torch.cuda.set_device(arg)
+            arg = f"cuda:{devices[0]}"
+            torch.cuda.set_device(int(devices[0]))
         else:
             arg = "cuda:0"  # 0 here refers to the first GPU in CUDA_VISIBLE_DEVICES, not the true GPU index
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():

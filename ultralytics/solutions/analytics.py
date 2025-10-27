@@ -51,7 +51,7 @@ class Analytics(BaseSolution):
         """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)
 
-        import matplotlib  
+        import matplotlib
 
         if matplotlib.get_backend() != 'Agg':
             matplotlib.use('Agg')  # fix Windows CI tkinter error: https://github.com/ultralytics/ultralytics/actions/runs/18829620495/job/53718655526

@@ -52,8 +52,9 @@ class Analytics(BaseSolution):
         super().__init__(**kwargs)
 
         import matplotlib  # Fix Windows CI tkinter error: https://github.com/ultralytics/ultralytics/actions/runs/18829620495/job/53718655526
-        matplotlib.use('Agg')  # Set non-interactive backend before pyplot import to avoid GUI dependencies
-        
+
+        matplotlib.use("Agg")  # Set non-interactive backend before pyplot import to avoid GUI dependencies
+
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
         from matplotlib.backends.backend_agg import FigureCanvasAgg
         from matplotlib.figure import Figure

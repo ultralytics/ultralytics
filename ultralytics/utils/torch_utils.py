@@ -163,6 +163,7 @@ def select_device(device="", newline=False, verbose=True):
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
+    is_cuda_init = torch.cuda.is_initialized()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
 
@@ -188,7 +189,6 @@ def select_device(device="", newline=False, verbose=True):
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        is_cuda_init = torch.cuda.is_initialized()
         if not is_cuda_init:
             os.environ["CUDA_VISIBLE_DEVICES"] = (
                 device  # set environment variable - must be before assert is_available()

@@ -839,7 +839,7 @@ def get_boundingbox_from_polygons(polygons, format="xyxy"):
 
 def verify_image_and_mask(args: tuple) -> list:
     """Verify image and its mask."""
-    im_file, lb_file, colors, prefix, keypoint, num_cls, nkpt, ndim = args
+    im_file, lb_file, colors, prefix, _keypoint, num_cls, _nkpt, _ndim = args
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
         image = cv2.imread(im_file)

@@ -21,16 +21,16 @@ from .transformer import MLP, DeformableTransformerDecoder, DeformableTransforme
 from .utils import bias_init_with_prob, linear_init
 
 __all__ = (
-    "Detect",
-    "Segment",
-    "Pose",
-    "Classify",
     "OBB",
+    "Classify",
+    "Detect",
+    "Pose",
     "RTDETRDecoder",
-    "v10Detect",
+    "Segment",
+    "SemanticSegment",
     "YOLOEDetect",
     "YOLOESegment",
-    "SemanticSegment",
+    "v10Detect",
 )
 
 

@@ -215,7 +215,7 @@ def select_device(device="", newline=False, verbose=True):
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(int(d) if is_cuda_init else i)})\n"  # bytes to MB
         if is_cuda_init:
             # if CUDA has initialized, setting CUDA_VISIBLE_DEVICES has no effect; GPU indices remain unchanged; return passed GPU index
             arg = f"cuda:{devices[0]}"

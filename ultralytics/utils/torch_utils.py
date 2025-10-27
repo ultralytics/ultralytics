@@ -198,12 +198,12 @@ def select_device(device="", newline=False, verbose=True):
             # CUDA already initialized - CUDA_VISIBLE_DEVICES won't work, must remap indices
             if not visible:
                 visible = os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, range(torch.cuda.device_count())))
-            all_devices = [int(x) for x in visible.split(",")]
             try:
-                device = [all_devices.index(int(d)) for d in device]  # get remapped indices
+                if not ("MIG" in visible or "UUID" in visible):  # skip validation for MIG/UUID
+                    device = [visible.split(",").index(d) for d in device]  # get remapped indices
             except ValueError:
                 raise ValueError(
-                    f"CUDA was already initialized with the following GPUs: {all_devices}. "
+                    f"CUDA was already initialized with the following GPUs: {visible.split(',')}. "
                     f"'device={requested_devices}' contains GPUs that are not available in this session. "
                     "To change the available GPUs, a session restart is necessary."
                 )

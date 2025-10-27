@@ -215,7 +215,7 @@ def select_device(device="", newline=False, verbose=True):
         if torch.cuda.is_initialized():
             # if CUDA has initialized, setting CUDA_VISIBLE_DEVICES has no effect; GPU indices remain unchanged; return passed GPU index
             arg = f"cuda:{device[0]}"
-            torch.cuda.set_device(device[0])
+            torch.cuda.set_device(arg)
         else:
             arg = "cuda:0"  # 0 here refers to the first GPU in CUDA_VISIBLE_DEVICES, not the true GPU index
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():

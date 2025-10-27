@@ -233,9 +233,11 @@ def select_device(device="", newline=False, verbose=True):
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         space = " " * (len(s) + 1)
+        if not device:
+            device = [0]
+            requested_devices = ["0"]
         for i, (req_idx, dev_idx) in enumerate(zip(requested_devices, device)):
             s += f"{'' if i == 0 else space}CUDA:{req_idx} ({get_gpu_info(dev_idx)})\n"  # bytes to MB
-
         arg = f"cuda:{device[0]}"
         if is_cuda_init:
             # if CUDA has initialized, setting CUDA_VISIBLE_DEVICES has no effect; GPU indices remain unchanged; return passed GPU index

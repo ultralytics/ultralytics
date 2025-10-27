@@ -189,10 +189,7 @@ def select_device(device="", newline=False, verbose=True):
         if "," in device:
             device = ",".join([x for x in device.split(",") if x])  # remove sequential commas, i.e. "0,,1" -> "0,1"
         visible = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-        if not is_cuda_init:
-            os.environ["CUDA_VISIBLE_DEVICES"] = (
-                device  # set environment variable - must be before assert is_available()
-            )
+        os.environ["CUDA_VISIBLE_DEVICES"] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.split(","))):
             LOGGER.info(s)
             install = (

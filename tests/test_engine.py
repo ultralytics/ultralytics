@@ -174,7 +174,7 @@ def test_semseg():
     val(model=trainer.best)
 
     # Predictor
-    #pred = semseg.SemSegPredictor(cfg=cfg)
-    #pred.add_callback("on_predict_start", test_func)
-    #assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
-    #result = pred(source=ASSETS, model=trainer.best)
+    # pred = semseg.SemSegPredictor(cfg=cfg)
+    # pred.add_callback("on_predict_start", test_func)
+    # assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    # result = pred(source=ASSETS, model=trainer.best)

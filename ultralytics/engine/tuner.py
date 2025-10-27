@@ -257,13 +257,13 @@ class Tuner:
                 return
 
             # Write to CSV
-            headers = ",".join(["fitness"] + list(self.space.keys())) + "\n"
+            headers = ",".join(["fitness", *list(self.space.keys())]) + "\n"
             with open(self.tune_csv, "w", encoding="utf-8") as f:
                 f.write(headers)
                 for result in all_results:
                     fitness = result["fitness"]
                     hyp_values = [result["hyperparameters"][k] for k in self.space.keys()]
-                    log_row = [round(fitness, 5)] + hyp_values
+                    log_row = [round(fitness, 5), *hyp_values]
                     f.write(",".join(map(str, log_row)) + "\n")
 
         except Exception as e:
@@ -344,7 +344,7 @@ class Tuner:
 
         # Update types
         if "close_mosaic" in hyp:
-            hyp["close_mosaic"] = int(round(hyp["close_mosaic"]))
+            hyp["close_mosaic"] = round(hyp["close_mosaic"])
 
         return hyp
 
@@ -421,7 +421,7 @@ class Tuner:
             else:
                 # Save to CSV only if no MongoDB
                 log_row = [round(fitness, 5)] + [mutated_hyp[k] for k in self.space.keys()]
-                headers = "" if self.tune_csv.exists() else (",".join(["fitness"] + list(self.space.keys())) + "\n")
+                headers = "" if self.tune_csv.exists() else (",".join(["fitness", *list(self.space.keys())]) + "\n")
                 with open(self.tune_csv, "a", encoding="utf-8") as f:
                     f.write(headers + ",".join(map(str, log_row)) + "\n")
 

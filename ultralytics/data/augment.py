@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import functools
 import math
+import operator
 import random
 from copy import deepcopy
 from typing import Any
@@ -477,7 +479,7 @@ class BaseMixTransform:
         if "texts" not in labels:
             return labels
 
-        mix_texts = sum([labels["texts"]] + [x["texts"] for x in labels["mix_labels"]], [])
+        mix_texts = functools.reduce(operator.iadd, [labels["texts"]] + [x["texts"] for x in labels["mix_labels"]], [])
         mix_texts = list({tuple(x) for x in mix_texts})
         text2id = {text: i for i, text in enumerate(mix_texts)}
 
@@ -1517,7 +1519,7 @@ class RandomFlip:
         >>> flipped_instances = result["instances"]
     """
 
-    def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: list[int] = None) -> None:
+    def __init__(self, p: float = 0.5, direction: str = "horizontal", flip_idx: list[int] | None = None) -> None:
         """
         Initialize the RandomFlip class with probability and direction.
 
@@ -1664,7 +1666,7 @@ class LetterBox:
         self.padding_value = padding_value
         self.interpolation = interpolation
 
-    def __call__(self, labels: dict[str, Any] = None, image: np.ndarray = None) -> dict[str, Any] | np.ndarray:
+    def __call__(self, labels: dict[str, Any] | None = None, image: np.ndarray = None) -> dict[str, Any] | np.ndarray:
         """
         Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
 
@@ -1701,7 +1703,7 @@ class LetterBox:
 
         # Compute padding
         ratio = r, r  # width, height ratios
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = round(shape[1] * r), round(shape[0] * r)
         dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
@@ -1719,8 +1721,8 @@ class LetterBox:
             if img.ndim == 2:
                 img = img[..., None]
 
-        top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
-        left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
+        top, bottom = round(dh - 0.1) if self.center else 0, round(dh + 0.1)
+        left, right = round(dw - 0.1) if self.center else 0, round(dw + 0.1)
         h, w, c = img.shape
         if c == 3:
             img = cv2.copyMakeBorder(
@@ -2601,7 +2603,7 @@ def classify_transforms(
     mean: tuple[float, float, float] = DEFAULT_MEAN,
     std: tuple[float, float, float] = DEFAULT_STD,
     interpolation: str = "BILINEAR",
-    crop_fraction: float = None,
+    crop_fraction: float | None = None,
 ):
     """
     Create a composition of image transforms for classification tasks.
@@ -2651,11 +2653,11 @@ def classify_augmentations(
     size: int = 224,
     mean: tuple[float, float, float] = DEFAULT_MEAN,
     std: tuple[float, float, float] = DEFAULT_STD,
-    scale: tuple[float, float] = None,
-    ratio: tuple[float, float] = None,
+    scale: tuple[float, float] | None = None,
+    ratio: tuple[float, float] | None = None,
     hflip: float = 0.5,
     vflip: float = 0.0,
-    auto_augment: str = None,
+    auto_augment: str | None = None,
     hsv_h: float = 0.015,  # image HSV-Hue augmentation (fraction)
     hsv_s: float = 0.4,  # image HSV-Saturation augmentation (fraction)
     hsv_v: float = 0.4,  # image HSV-Value augmentation (fraction)

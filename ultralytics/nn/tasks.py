@@ -348,10 +348,7 @@ class DetectionModel(BaseModel):
 
             def _forward(x):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
-                # output = self.forward(x)[0][0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
                 output = self.forward(x)
-                # if isinstance(m, (Segment, YOLOESegment)):
-                #     output = self.forward(x)[0]  # split proto
                 if self.end2end:
                     output = output["one2many"]
                 return output["feats"]

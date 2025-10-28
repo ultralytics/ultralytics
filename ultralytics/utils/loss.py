@@ -271,7 +271,7 @@ class v8DetectionLoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and target indices."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores = feats["boxes"], feats["scores"]
-        anchor_points, stride_tensor = feats["anchors"], feats["strides"]
+        anchor_points, stride_tensor = make_anchors(feats["feats"], self.stride, 0.5)
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
@@ -324,7 +324,11 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
-        return ((fg_mask, target_gt_idx, target_bboxes), loss, loss.detach())  # loss(box, cls, dfl)
+        return (
+            (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
+            loss,
+            loss.detach(),
+        )  # loss(box, cls, dfl)
 
     def parse_output(self, preds):
         """Parse model predictions to extract features."""
@@ -361,7 +365,7 @@ class v8SegmentationLoss(v8DetectionLoss):
         """Calculate and return the combined loss for detection and segmentation."""
         pred_masks, proto = feats["mask_coefficient"], feats["proto"]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
-        (fg_mask, target_gt_idx, target_bboxes), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
+        (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
@@ -502,8 +506,9 @@ class v8PoseLoss(v8DetectionLoss):
         """Calculate the total loss and detach it for pose estimation."""
         pred_kpts = feats["kpt"]
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
-        (fg_mask, target_gt_idx, target_bboxes), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
-        anchor_points, stride_tensor = feats["anchors"], feats["strides"]
+        (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
+            self.get_assigned_targets_and_loss(feats, batch)
+        )
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 

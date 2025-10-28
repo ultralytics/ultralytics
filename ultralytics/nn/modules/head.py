@@ -12,7 +12,7 @@ from torch.nn.init import constant_, xavier_uniform_
 from ultralytics.utils.tal import TORCH_1_10, dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto, C2PSA
+from .block import DFL, BNContrastiveHead, ContrastiveHead, Proto
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -100,9 +100,7 @@ class Detect(nn.Module):
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
         scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
-        anchors, strides = make_anchors(x, self.stride, 0.5)
-        # TODO: try to eliminate feats here
-        return dict(boxes=boxes, scores=scores, anchors=anchors, strides=strides, feats=x)
+        return dict(boxes=boxes, scores=scores, feats=x)
 
     def _inference(self, x):
         """
@@ -117,8 +115,7 @@ class Detect(nn.Module):
         # Inference path
         shape = x["feats"][0].shape  # BCHW
         if self.format != "imx" and (self.dynamic or self.shape != shape):
-            # TODO
-            self.anchors, self.strides = x["anchors"].transpose(0, 1), x["strides"].transpose(0, 1)
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
         box, cls = x["boxes"], x["scores"]

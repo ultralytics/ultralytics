@@ -1274,7 +1274,6 @@ class Exporter:
     @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
         """Export YOLO model to IMX format."""
-
         assert LINUX, (
             "Export only supported on Linux."
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="

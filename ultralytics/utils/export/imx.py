@@ -266,9 +266,22 @@ def torch2imx(
     f = Path(str(file).replace(file.suffix, "_imx_model"))
     f.mkdir(exist_ok=True)
     onnx_model = f / Path(str(file.name).replace(file.suffix, "_imx.onnx"))  # js dir
+    
+    # Monkey-patch torch.onnx.export to use legacy exporter (dynamo=False) for MCT compatibility
+    import torch.onnx
+    original_export = torch.onnx.export
+    
+    def legacy_export(*args, **kwargs):
+        """Force legacy ONNX exporter to avoid torch.export compatibility issues with MCT quantization."""
+        kwargs["dynamo"] = False  # Force legacy TorchScript-based exporter
+        return original_export(*args, **kwargs)
+    
+    torch.onnx.export = legacy_export
     mct.exporter.pytorch_export_model(
         model=quant_model, save_model_path=onnx_model, repr_dataset=representative_dataset_gen
     )
+    # Restore original torch.onnx.export function
+    torch.onnx.export = original_export
 
     model_onnx = onnx.load(onnx_model)  # load onnx model
     for k, v in metadata.items():

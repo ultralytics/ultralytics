@@ -270,11 +270,11 @@ class v8DetectionLoss:
     def get_assigned_targets_and_loss(self, feats, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and target indices."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        pred_distri, pred_scores = feats["boxes"], feats["scores"]
+        pred_distri, pred_scores = (
+            feats["boxes"].permute(0, 2, 1).contiguous(),
+            feats["scores"].permute(0, 2, 1).contiguous(),
+        )
         anchor_points, stride_tensor = make_anchors(feats["feats"], self.stride, 0.5)
-
-        pred_scores = pred_scores.permute(0, 2, 1).contiguous()
-        pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
@@ -363,14 +363,13 @@ class v8SegmentationLoss(v8DetectionLoss):
 
     def loss(self, feats, batch):
         """Calculate and return the combined loss for detection and segmentation."""
-        pred_masks, proto = feats["mask_coefficient"], feats["proto"]
+        pred_masks, proto = feats["mask_coefficient"].permute(0, 2, 1).contiguous(), feats["proto"]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
         (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
-        pred_masks = pred_masks.permute(0, 2, 1).contiguous()
         if fg_mask.sum():
             # Masks loss
             masks = batch["masks"].to(self.device).float()
@@ -504,7 +503,7 @@ class v8PoseLoss(v8DetectionLoss):
 
     def loss(self, feats, batch):
         """Calculate the total loss and detach it for pose estimation."""
-        pred_kpts = feats["kpt"]
+        pred_kpts = feats["kpt"].permute(0, 2, 1).contiguous()
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
             self.get_assigned_targets_and_loss(feats, batch)
@@ -513,7 +512,6 @@ class v8PoseLoss(v8DetectionLoss):
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
 
         batch_size = pred_kpts.shape[0]
-        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
         imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=pred_kpts.dtype)  # image size (h,w)
 
         # Pboxes
@@ -656,16 +654,14 @@ class v8OBBLoss(v8DetectionLoss):
 
     def loss(self, feats, batch):
         """Calculate and return the loss for oriented bounding box detection."""
-        pred_angle = feats["angle"]
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        pred_distri, pred_scores = feats["boxes"], feats["scores"]
+        pred_distri, pred_scores, pred_angle = (
+            feats["boxes"].permute(0, 2, 1).contiguous(),
+            feats["scores"].permute(0, 2, 1).contiguous(),
+            feats["angle"].permute(0, 2, 1).contiguous(),
+        )
         anchor_points, stride_tensor = feats["anchors"], feats["strides"]
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
-
-        # b, grids, ..
-        pred_scores = pred_scores.permute(0, 2, 1).contiguous()
-        pred_distri = pred_distri.permute(0, 2, 1).contiguous()
-        pred_angle = pred_angle.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(batch["resized_shape"][0], device=self.device, dtype=dtype)  # image size (h,w)

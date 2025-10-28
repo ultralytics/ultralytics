@@ -190,30 +190,6 @@ class Detect(nn.Module):
         self.cv2 = self.cv3 = None
 
 
-class PSADetect(Detect):
-    def __init__(self, nc=80, act=True, ch=()):
-        super().__init__(nc, act, ch)
-        c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
-        self.cv2 = nn.ModuleList(
-            nn.Sequential(
-                Conv(x, c2, 3, act=act),
-                C2PSA(c2, c2),
-                Conv(c2, c2, 3, act=act),
-                nn.Conv2d(c2, 4 * self.reg_max, 1),
-            )
-            for x in ch
-        )
-        self.cv3 = nn.ModuleList(
-            nn.Sequential(
-                nn.Sequential(DWConv(x, x, 3, act=act), Conv(x, c3, 1, act=act)),
-                # C2PSA(c3, c3),
-                nn.Sequential(DWConv(c3, c3, 3, act=act), Conv(c3, c3, 1, act=act)),
-                nn.Conv2d(c3, self.nc, 1),
-            )
-            for x in ch
-        )
-
-
 class Segment(Detect):
     """YOLO Segment head for segmentation models."""
 

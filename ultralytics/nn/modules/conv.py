@@ -313,6 +313,9 @@ class GhostConv(nn.Module):
     """
     Ghost Convolution Module.
 
+    """
+    Ghost Convolution Module.
+
     Generates more features with fewer parameters by using cheap operations.
 
     Attributes:
@@ -325,7 +328,7 @@ class GhostConv(nn.Module):
 
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True, mode="original"):
         """
-        Initialize GhostNetV2 Conv with optional DFC attention.
+        Initialize Ghost Convolution module with given parameters.
 
         Args:
             c1 (int): Number of input channels.
@@ -342,7 +345,7 @@ class GhostConv(nn.Module):
         self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
         self.cv2 = Conv(c_, c_, 5, 1, None, c_, act=act)
 
-        # DFC Attention mechanism if enabled only
+        # DFC Attention mechanism
         if self.mode == "attn":
             self.short_conv = nn.Sequential(
                 nn.Conv2d(c1, c2, k, s, padding=k // 2, bias=True),
@@ -366,9 +369,10 @@ class GhostConv(nn.Module):
         out = torch.cat((y, self.cv2(y)), 1)
 
         if self.mode == "attn":
-            attn = F.avg_pool2d(x, kernel_size=2, stride=2)
-            attn = self.short_conv(attn)
-            attn = F.interpolate(attn, size=out.shape[-2:], mode="nearest")
+            _, _, H, W = x.shape
+            attn = self.short_conv(x if H < 2 or W < 2 else F.avg_pool2d(x, 2, 2))
+            if attn.shape[-2:] != out.shape[-2:]:
+                attn = F.interpolate(attn, size=out.shape[-2:], mode="nearest")
             attn = self.gate(attn)
             return out * (1 + self.gamma * (attn - 0.5))
         return out

@@ -430,7 +430,7 @@ class GhostBottleneck(nn.Module):
 
     def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: int = 0):
         """
-        Initialize GhostNetV2 Bottleneck module.
+        Initialize Ghost Bottleneck module.
 
         Args:
             c1 (int): Input channels.

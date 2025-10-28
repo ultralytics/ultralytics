@@ -397,7 +397,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
 - **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 

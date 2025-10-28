@@ -52,7 +52,7 @@ YOLOv4 is a powerful and efficient object detection model that strikes a balance
 
 For those looking to implement object detection in their projects, YOLOv4 remains a strong contender, especially when real-time performance is a priority. While Ultralytics currently focuses on supporting newer YOLO versions like [YOLOv8](https://docs.ultralytics.com/models/yolov8/) and [YOLO11](https://docs.ultralytics.com/models/yolo11/), the architectural innovations introduced in YOLOv4 have influenced the development of these later models.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv4 authors for their significant contributions in the field of real-time object detection:
 

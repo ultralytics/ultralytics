@@ -136,7 +136,7 @@ def test_predict_visualize(model):
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
-def test_predict_grey_and_4ch(tmp_path):
+def test_predict_gray_and_4ch(tmp_path):
     """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)
 
@@ -152,7 +152,7 @@ def test_predict_grey_and_4ch(tmp_path):
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_greyscale, source_non_utf, source_spaces:
+    for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
             assert len(results) == 1  # verify that an image was run

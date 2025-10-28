@@ -100,7 +100,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_9,
+    IS_PYTHON_MINIMUM_3_9,
     check_imgsz,
     check_is_path_safe,
     check_requirements,
@@ -1278,7 +1278,7 @@ class Exporter:
             "Export only supported on Linux."
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
-        assert IS_PYTHON_3_9, "IMX export is only supported on Python 3.9 or above."
+        assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
 
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")

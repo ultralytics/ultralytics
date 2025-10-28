@@ -112,7 +112,12 @@ class PoseDetector:
         sitting_by_ratio = False
 
         # Criterion 1: Knee angle
+<<<<<<< HEAD
         if left_knee_corner or right_knee_corner:
+=======
+        if left_knee_corner is not None or right_knee_corner is not None:
+
+>>>>>>> 55c4c21b (Fix: explicit None checks for knee angle conditions)
             angles = [a for a in [left_knee_corner, right_knee_corner] if a is not None]
             medium_angle = sum(angles) / len(angles)
             if 50 < medium_angle < 150:  # Bent knees

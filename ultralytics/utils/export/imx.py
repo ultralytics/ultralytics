@@ -92,6 +92,7 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
 
 class NMSWrapper(torch.nn.Module):
     """Wrap PyTorch Module with multiclass_nms layer from edge-mdt-cl."""
+
     def __init__(
         self,
         model: torch.nn.Module,

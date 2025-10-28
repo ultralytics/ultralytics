@@ -91,8 +91,7 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
 
 
 class NMSWrapper(torch.nn.Module):
-    """Wrap PyTorch Module with multiclass_nms layer from sony_custom_layers."""
-
+    """Wrap PyTorch Module with multiclass_nms layer from edge-mdt-cl."""
     def __init__(
         self,
         model: torch.nn.Module,
@@ -120,7 +119,7 @@ class NMSWrapper(torch.nn.Module):
 
     def forward(self, images):
         """Forward pass with model inference and NMS post-processing."""
-        from sony_custom_layers.pytorch import multiclass_nms_with_indices
+        from edgemdt_cl.pytorch.nms.nms_with_indices import multiclass_nms_with_indices
 
         # model inference
         outputs = self.model(images)
@@ -181,7 +180,7 @@ def torch2imx(
         >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
 
     Note:
-        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and sony_custom_layers packages
+        - Requires model_compression_toolkit, onnx, edgemdt_tpc, and edge-mdt-cl packages
         - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """

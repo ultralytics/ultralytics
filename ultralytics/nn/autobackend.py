@@ -259,12 +259,13 @@ class AutoBackend(nn.Module):
                 session = onnxruntime.InferenceSession(w, providers=providers)
             else:
                 check_requirements(
-                    ("model-compression-toolkit>=2.4.1", "sony-custom-layers[torch]>=0.3.0", "onnxruntime-extensions")
+                    ("model-compression-toolkit>=2.4.1", "edge-mdt-cl[torch]", "onnxruntime-extensions")
                 )
                 w = next(Path(w).glob("*.onnx"))
                 LOGGER.info(f"Loading {w} for ONNX IMX inference...")
                 import mct_quantizers as mctq
-                from sony_custom_layers.pytorch.nms import nms_ort  # noqa
+                from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops
+
 
                 session_options = mctq.get_ort_session_options()
                 session_options.enable_mem_reuse = False  # fix the shape mismatch from onnxruntime

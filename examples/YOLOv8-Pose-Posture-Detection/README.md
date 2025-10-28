@@ -9,6 +9,7 @@ from webcam input, using geometric relationships between detected body keypoints
 
 The script detects a person in real time through the webcam and estimates their posture
 as **Standing**, **Sitting**, or **Unknown** based on:
+
 - The **knee–hip–shoulder angle** (side view)
 - The **leg/bust ratio** (front view)
 
@@ -22,3 +23,4 @@ Make sure you have the following installed:
 
 ```bash
 pip install ultralytics opencv-python torch numpy
+```

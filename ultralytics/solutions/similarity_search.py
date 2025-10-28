@@ -10,9 +10,9 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.data.utils import IMG_FORMATS
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, TORCH_VERSION
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.torch_utils import select_device
+from ultralytics.utils.torch_utils import TORCH_2_4, select_device
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some systems
 
@@ -49,6 +49,7 @@ class VisualAISearch:
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the VisualAISearch class with FAISS index and CLIP model."""
+        assert TORCH_2_4, f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})"
         from ultralytics.nn.text_model import build_text_model
 
         check_requirements("faiss-cpu")
@@ -77,11 +78,11 @@ class VisualAISearch:
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
         """Extract CLIP image embedding from the given image path."""
-        return self.model.encode_image(Image.open(path)).cpu().numpy()
+        return self.model.encode_image(Image.open(path)).detach().cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
         """Extract CLIP text embedding from the given text query."""
-        return self.model.encode_text(self.model.tokenize([text])).cpu().numpy()
+        return self.model.encode_text(self.model.tokenize([text])).detach().cpu().numpy()
 
     def load_or_build_index(self) -> None:
         """
@@ -188,7 +189,7 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data: str = "images", device: str = None) -> None:
+    def __init__(self, data: str = "images", device: str | None = None) -> None:
         """
         Initialize the SearchApp with VisualAISearch backend.
 

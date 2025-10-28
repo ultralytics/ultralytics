@@ -69,7 +69,7 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
+from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, SETTINGS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
@@ -1631,7 +1631,8 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
         }
     )
-    exec(d.get("module", {}).get("init", ""), globals())  # run custom init script
+    if SETTINGS.get("yaml_exec"):
+        exec(d.get("module", {}).get("init", ""), globals())  # run custom init script
     for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
         m = (
             getattr(torch.nn, m[3:])
@@ -1704,9 +1705,10 @@ def parse_model(d, ch, verbose=True):
         else:
             c2 = ch[f]
 
-        namespace = locals()
-        exec(d.get("module", {}).get("parse", ""), globals(), namespace)  # run custom parser
-        args = namespace.get("args", args)
+        if SETTINGS.get("yaml_exec"):
+            namespace = locals()
+            exec(d.get("module", {}).get("parse", ""), globals(), namespace)  # run custom parser
+            args = namespace.get("args", args)
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params

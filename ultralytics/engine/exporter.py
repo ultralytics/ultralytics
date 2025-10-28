@@ -100,7 +100,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
-    IS_PYTHON_3_8,
+    IS_PYTHON_3_9,
     check_imgsz,
     check_is_path_safe,
     check_requirements,
@@ -1274,19 +1274,20 @@ class Exporter:
     @try_export
     def export_imx(self, prefix=colorstr("IMX:")):
         """Export YOLO model to IMX format."""
+
         assert LINUX, (
-            "export only supported on Linux. "
-            "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
+            "Export only supported on Linux."
+            "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
+        assert IS_PYTHON_3_9, "IMX export is only supported on Python 3.9 or above."
+
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
             ("model-compression-toolkit>=2.4.1", "sony-custom-layers>=0.3.0", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
         )
 
-        check_requirements(
-            "imx500-converter[pt]>3.17.3" if IS_PYTHON_3_8 else "imx500-converter[pt]>=3.17.3"
-        )  # Python 3.8 requires >3.17.3, Python 3.9+ can use >=3.17.3
+        check_requirements("imx500-converter[pt]>=3.17.3")
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
         check_requirements("onnxscript")  # needed for failing CIs. Check reason later.
 

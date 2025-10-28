@@ -1288,7 +1288,7 @@ class Exporter:
 
         check_requirements("imx500-converter[pt]>=3.17.3")
         check_requirements("mct-quantizers>=1.6.0")  # Separate for compatibility with model-compression-toolkit
-        check_requirements("onnxscript")  # needed for failing CIs. Check reason later.
+        check_requirements("onnxscript")  # Model Compression Toolkit dependency at Export in runtime
 
         # Install Java>=17
         try:

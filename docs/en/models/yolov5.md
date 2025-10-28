@@ -99,7 +99,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
         yolo predict model=yolov5n.pt source=path/to/bus.jpg
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 !!! tip "Ultralytics YOLOv5 Publication"
 

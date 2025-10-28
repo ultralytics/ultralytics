@@ -89,7 +89,7 @@ The YOLOv6 series offers a range of models, each optimized for high-performance 
 
 This table provides a detailed overview of the YOLOv6 model variants, highlighting their capabilities in [object detection](https://www.ultralytics.com/glossary/object-detection) tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv6 models in a broad range of object detection scenarios.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:
 

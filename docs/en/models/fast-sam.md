@@ -279,7 +279,7 @@ FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/Fa
 
 Additionally, you can try FastSAM through the CASIA-IVA-Lab [Colab demo](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing).
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 

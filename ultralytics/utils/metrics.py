@@ -663,7 +663,7 @@ def plot_pr_curve(
         for i, y in enumerate(py.T):
             ax.plot(px, y, linewidth=1, label=f"{names[i]} {ap[i, 0]:.3f}")  # plot(recall, precision)
     else:
-        ax.plot(px, py, linewidth=1, color="grey")  # plot(recall, precision)
+        ax.plot(px, py, linewidth=1, color="gray")  # plot(recall, precision)
 
     ax.plot(px, py.mean(1), linewidth=3, color="blue", label=f"all classes {ap[:, 0].mean():.3f} mAP@0.5")
     ax.set_xlabel("Recall")
@@ -708,7 +708,7 @@ def plot_mc_curve(
         for i, y in enumerate(py):
             ax.plot(px, y, linewidth=1, label=f"{names[i]}")  # plot(confidence, metric)
     else:
-        ax.plot(px, py.T, linewidth=1, color="grey")  # plot(confidence, metric)
+        ax.plot(px, py.T, linewidth=1, color="gray")  # plot(confidence, metric)
 
     y = smooth(py.mean(0), 0.1)
     ax.plot(px, y, linewidth=3, color="blue", label=f"all classes {y.max():.2f} at {px[y.argmax()]:.3f}")

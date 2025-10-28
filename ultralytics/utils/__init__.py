@@ -795,13 +795,13 @@ def is_pip_package(filepath: str = __name__) -> bool:
 
 def is_dir_writeable(dir_path: str | Path) -> bool:
     """
-    Check if a directory is writeable.
+    Check if a directory is writable.
 
     Args:
         dir_path (str | Path): The path to the directory.
 
     Returns:
-        (bool): True if the directory is writeable, False otherwise.
+        (bool): True if the directory is writable, False otherwise.
     """
     return os.access(str(dir_path), os.W_OK)
 
@@ -882,14 +882,14 @@ def get_user_config_dir(sub_dir="Ultralytics"):
         p.mkdir(parents=True, exist_ok=True)
         return p
 
-    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writeable
+    # Fallbacks for Docker, GCP/AWS functions where only /tmp is writable
     for alt in [Path("/tmp") / sub_dir, Path.cwd() / sub_dir]:
         if alt.exists():
             return alt
         if is_dir_writeable(alt.parent):
             alt.mkdir(parents=True, exist_ok=True)
             LOGGER.warning(
-                f"user config directory '{p}' is not writeable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
+                f"user config directory '{p}' is not writable, using '{alt}'. Set YOLO_CONFIG_DIR to override."
             )
             return alt
 

@@ -46,7 +46,7 @@ class Conv(nn.Module):
         default_act (nn.Module): Default activation function (SiLU).
     """
 
-    default_act = nn.SiLU  # default activation
+    default_act = nn.SiLU()  # default activation
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         """
@@ -65,16 +65,7 @@ class Conv(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
-        act = (
-            self.default_act
-            if act is True
-            else act
-            if isinstance(act, nn.Module)
-            else eval(act)
-            if isinstance(act, str)
-            else nn.Identity
-        )
-        self.act = act(c2) if act in {FReLU, SwiGLU} else act()
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x):
         """
@@ -722,32 +713,3 @@ class Index(nn.Module):
             (torch.Tensor): Selected tensor.
         """
         return x[self.index]
-
-
-class Add(nn.Module):
-    """
-    Element-wise addition of a list of tensors.
-
-    Attributes:
-        None
-    """
-
-    def __init__(self, c2):
-        """
-        Initialize Add module.
-        """
-        super().__init__()
-        self.gamma = nn.Parameter(0.01 * torch.ones(c2), requires_grad=True)
-
-    def forward(self, x):
-        """
-        Perform element-wise addition of input tensors.
-
-        Args:
-            x (List[torch.Tensor]): List of input tensors.
-
-        Returns:
-            (torch.Tensor): Resultant tensor after addition.
-        """
-        return x[0] + self.gamma.view(-1, len(self.gamma), 1, 1) * x[1]
-        # return x[0] + x[1]

@@ -128,7 +128,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          imx_model = YOLO("yolo11n-cls_imx_model")
 
          # Run inference
-         results = imx_model("https://ultralytics.com/images/bus.jpg")
+         results = imx_model("https://ultralytics.com/images/bus.jpg", imgsz=224)
          ```
 
     === "CLI"
@@ -138,7 +138,7 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo export model=yolo11n-cls.pt format=imx data=imagenet10
 
          # Run inference with the exported model
-         yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg'
+         yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
          ```
 
 !!! warning

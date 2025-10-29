@@ -336,7 +336,6 @@ class DetectionModel(BaseModel):
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f"{i}" for i in range(self.yaml["nc"])}  # default names dict
         self.inplace = self.yaml.get("inplace", True)
-        self.end2end = getattr(self.model[-1], "end2end", False)
 
         # Build strides
         m = self.model[-1]  # Detect()
@@ -362,6 +361,11 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info("")
+
+    @property
+    def end2end(self):
+        """Dynamically get the end2end attribute from the model's last layer for better consistency."""
+        return getattr(self.model[-1], "end2end", False)
 
     def _predict_augment(self, x):
         """
@@ -1354,7 +1358,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
-
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 

@@ -225,9 +225,9 @@ class Detect(nn.Module):
         batch_size, anchors, np = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores, extras = preds.split([4, nc, np - (4 + nc)], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
-        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
-        extras = extras.gather(dim=1, index=index.repeat(1, 1, extras.shape[-1]))
+        boxes = boxes.gather(dim=1, index=index.expand(-1, -1, 4))
+        scores = scores.gather(dim=1, index=index.expand(-1, -1, nc))
+        extras = extras.gather(dim=1, index=index.expand(-1, -1, extras.shape[-1]))
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
         return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), extras], dim=-1)

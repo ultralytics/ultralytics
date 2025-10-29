@@ -50,7 +50,6 @@ __all__ = (
     "PSA",
     "SCDown",
     "TorchVision",
-    "SimSPPF",
 )
 
 
@@ -200,7 +199,7 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(self, c1, c2, k=5, n=3, act=True, shortcut=False):
+    def __init__(self, c1, c2, k=5, n=3, shortcut=False):
         """
         Initialize the SPPF layer with given input/output channels and kernel size.
 
@@ -215,7 +214,7 @@ class SPPF(nn.Module):
         super().__init__()
         c_ = c1 // 2  # hidden channels
         self.cv1 = Conv(c1, c_, 1, 1, act=False)
-        self.cv2 = Conv(c_ * (n + 1), c2, 1, 1, act=act)
+        self.cv2 = Conv(c_ * (n + 1), c2, 1, 1)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
         self.n = n
         self.add = shortcut and c1 == c2
@@ -226,35 +225,6 @@ class SPPF(nn.Module):
         y.extend(self.m(y[-1]) for _ in range(getattr(self, "n", 3)))
         y = self.cv2(torch.cat(y, 1))
         return y + x if getattr(self, "add", False) else y
-
-
-class SimSPPF(nn.Module):
-    """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
-
-    def __init__(self, c1, c2, k=5, act=True):
-        """
-        Initialize the SPPF layer with given input/output channels and kernel size.
-
-        Args:
-            c1 (int): Input channels.
-            c2 (int): Output channels.
-            k (int): Kernel size.
-
-        Notes:
-            This module is equivalent to SPP(k=(5, 9, 13)).
-        """
-        super().__init__()
-        c_ = c1 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * 2, c2, 1, 1, act=act)
-        self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
-        self.ca = ChannelAttention(c_)  # Channel Attention
-
-    def forward(self, x):
-        """Apply sequential pooling operations to input and return concatenated feature maps."""
-        y = [self.cv1(x)]
-        y.append(self.ca(y[0]) * self.m(y[0]))
-        return self.cv2(torch.cat(y, 1)) + x
 
 
 class C1(nn.Module):

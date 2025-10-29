@@ -240,14 +240,14 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
-    def get_assigned_targets_and_loss(self, feats, batch):
+    def get_assigned_targets_and_loss(self, preds, batch):
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and target indices."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores = (
-            feats["boxes"].permute(0, 2, 1).contiguous(),
-            feats["scores"].permute(0, 2, 1).contiguous(),
+            preds["boxes"].permute(0, 2, 1).contiguous(),
+            preds["scores"].permute(0, 2, 1).contiguous(),
         )
-        anchor_points, stride_tensor = make_anchors(feats["feats"], self.stride, 0.5)
+        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5)
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
@@ -311,10 +311,10 @@ class v8DetectionLoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         return self.loss(self.parse_output(preds), batch)
 
-    def loss(self, feats, batch):
+    def loss(self, preds, batch):
         """A wrapper for get_assigned_targets_and_loss and parse_output."""
-        batch_size = feats["boxes"].shape[0]
-        loss, loss_detach = self.get_assigned_targets_and_loss(feats, batch)[1:]
+        batch_size = preds["boxes"].shape[0]
+        loss, loss_detach = self.get_assigned_targets_and_loss(preds, batch)[1:]
         return loss * batch_size, loss_detach
 
 
@@ -326,11 +326,11 @@ class v8SegmentationLoss(v8DetectionLoss):
         super().__init__(model, tal_topk)
         self.overlap = model.args.overlap_mask
 
-    def loss(self, feats, batch):
+    def loss(self, preds, batch):
         """Calculate and return the combined loss for detection and segmentation."""
-        pred_masks, proto = feats["mask_coefficient"].permute(0, 2, 1).contiguous(), feats["proto"]
+        pred_masks, proto = preds["mask_coefficient"].permute(0, 2, 1).contiguous(), preds["proto"]
         loss = torch.zeros(4, device=self.device)  # box, seg, cls, dfl
-        (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(feats, batch)
+        (fg_mask, target_gt_idx, target_bboxes, _, _), det_loss, _ = self.get_assigned_targets_and_loss(preds, batch)
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[2], loss[3] = det_loss[0], det_loss[1], det_loss[2]
 
@@ -466,12 +466,12 @@ class v8PoseLoss(v8DetectionLoss):
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
-    def loss(self, feats, batch):
+    def loss(self, preds, batch):
         """Calculate the total loss and detach it for pose estimation."""
-        pred_kpts = feats["kpt"].permute(0, 2, 1).contiguous()
+        pred_kpts = preds["kpt"].permute(0, 2, 1).contiguous()
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
-            self.get_assigned_targets_and_loss(feats, batch)
+            self.get_assigned_targets_and_loss(preds, batch)
         )
         # NOTE: re-assign index for consistency for now. Need to be removed in the future.
         loss[0], loss[3], loss[4] = det_loss[0], det_loss[1], det_loss[2]
@@ -617,15 +617,15 @@ class v8OBBLoss(v8DetectionLoss):
                     out[j, :n] = torch.cat([targets[matches, 1:2], bboxes], dim=-1)
         return out
 
-    def loss(self, feats, batch):
+    def loss(self, preds, batch):
         """Calculate and return the loss for oriented bounding box detection."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores, pred_angle = (
-            feats["boxes"].permute(0, 2, 1).contiguous(),
-            feats["scores"].permute(0, 2, 1).contiguous(),
-            feats["angle"].permute(0, 2, 1).contiguous(),
+            preds["boxes"].permute(0, 2, 1).contiguous(),
+            preds["scores"].permute(0, 2, 1).contiguous(),
+            preds["angle"].permute(0, 2, 1).contiguous(),
         )
-        anchor_points, stride_tensor = feats["anchors"], feats["strides"]
+        anchor_points, stride_tensor = preds["anchors"], preds["strides"]
         batch_size = pred_angle.shape[0]  # batch size, number of masks, mask height, mask width
 
         dtype = pred_scores.dtype
@@ -752,6 +752,7 @@ class E2EDetectLoss:
         )
 
 
+# TODO: need to double check
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""
 

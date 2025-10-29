@@ -1284,7 +1284,7 @@ class Exporter:
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
             (
-                "packaging>=25",
+                "packaging<22" if ARM64 else "packaging",
                 "model-compression-toolkit>=2.4.1",
                 "edge-mdt-cl",
                 "edge-mdt-tpc>=1.1.0",

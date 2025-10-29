@@ -429,17 +429,11 @@ class Pose(Detect):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
-        batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores, kpts = preds.split([4, nc, self.nk], dim=-1)
-        index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
-        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
-        kpts = kpts.gather(dim=1, index=index.repeat(1, 1, kpts.shape[-1]))
-        scores, index = scores.flatten(1).topk(min(max_det, anchors))
-        i = torch.arange(batch_size)[..., None]  # batch indices
-        return torch.cat(
-            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), kpts[i, index // nc]], dim=-1
-        )
+        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+        kpts = kpts.gather(dim=1, index=idx.repeat(1, 1, self.nk))
+        return torch.cat([boxes, scores, conf, kpts], dim=-1)
 
     def fuse(self):
         """Remove the one2many head for inference optimization."""

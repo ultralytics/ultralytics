@@ -895,20 +895,13 @@ class BaseTrainer:
         # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
         if name == "MuSGD" and len(g[3]):
             optimizer.add_param_group(
-                dict(
-                    params=g[3],
-                    lr=lr,
-                    weight_decay=decay,  # need to update for DDP
-                    momentum=momentum,
-                    nesterov=True,
-                    use_muon=True,
-                ),
+                dict(params=g[3], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=True),
             )
 
         optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
         optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
-            f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
+            f"{len(g[1])} weight(decay=0.0), {len(g[0]) if len(g[0]) else len(g[3])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"
         )
         return optimizer

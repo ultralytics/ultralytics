@@ -90,7 +90,7 @@ class Detect(nn.Module):
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
+            y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
 
     def forward_head(self, x, box_head=None, cls_head=None):
@@ -155,22 +155,20 @@ class Detect(nn.Module):
         """Decode bounding boxes."""
         return dist2bbox(bboxes, anchors, xywh=xywh and (not self.end2end), dim=1)
 
-    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80):
+    def postprocess(self, preds: torch.Tensor):
         """
         Post-processes YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
                 format [x, y, w, h, class_probs].
-            max_det (int): Maximum detections per image.
-            nc (int, optional): Number of classes. Default: 80.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
-        boxes, scores = preds.split([4, nc], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes, scores = preds.split([4, self.nc], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         return torch.cat([boxes, scores, conf], dim=-1)
 
@@ -251,22 +249,20 @@ class Segment(Detect):
             preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
 
-    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """
         Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
                 format [x, y, w, h, class_probs].
-            max_det (int): Maximum detections per image.
-            nc (int, optional): Number of classes.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
                 dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
         """
-        boxes, scores, mask_coefficient = preds.split([4, nc, self.nm], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
@@ -322,19 +318,17 @@ class OBB(Detect):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
 
-    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """
         Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
                 format [x, y, w, h, class_probs].
-            max_det (int): Maximum detections per image.
-            nc (int, optional): Number of classes.
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x, y, w, h, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 7) and last
+                dimension format [x, y, w, h, max_class_prob, class_index, angle].
         """
         boxes, scores, angle = preds.split([4, nc, self.ne], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, max_det)
@@ -415,22 +409,20 @@ class Pose(Detect):
             preds["kpt"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
         return preds
 
-    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """
         Post-process YOLO model predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
                 format [x, y, w, h, class_probs].
-            max_det (int): Maximum detections per image.
-            nc (int, optional): Number of classes.
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x, y, w, h, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and last
+                dimension format [x, y, w, h, max_class_prob, class_index, keypoints].
         """
-        boxes, scores, kpts = preds.split([4, nc, self.nk], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         kpts = kpts.gather(dim=1, index=idx.repeat(1, 1, self.nk))
         return torch.cat([boxes, scores, conf, kpts], dim=-1)

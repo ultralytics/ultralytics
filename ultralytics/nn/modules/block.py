@@ -406,7 +406,14 @@ class C3Ghost(C3):
     """C3 module with GhostBottleneck()."""
 
     def __init__(
-        self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5, layer_id: int | None = None
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        shortcut: bool = True,
+        g: int = 1,
+        e: float = 0.5,
+        layer_id: int | None = None,
     ):
         """
         Initialize C3 module with GhostBottleneck.

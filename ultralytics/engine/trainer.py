@@ -430,11 +430,6 @@ class BaseTrainer:
                 self.run_callbacks("on_train_batch_end")
             if self.args.o2m != 1.0:
                 de_parallel(self.model).criterion.update()
-            if hasattr(self.optimizer, "update_sgd"):
-                self.optimizer.update_sgd()
-            # print(self.model.criterion.assigner.zero_assigned)
-            # print("total assignment:", self.model.criterion.total_assignments)
-            # exit()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.run_callbacks("on_train_epoch_end")

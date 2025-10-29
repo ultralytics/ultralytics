@@ -6,7 +6,6 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
@@ -414,7 +413,7 @@ class C3Ghost(C3):
         shortcut: bool = True,
         g: int = 1,
         e: float = 0.5,
-        layer_id: Optional[int] = None,
+        layer_id: int | None = None,
     ):
         """
         Initialize C3 module with GhostBottleneck.
@@ -439,7 +438,7 @@ class C3Ghost(C3):
 class GhostBottleneck(nn.Module):
     """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
 
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: Optional[int] = None):
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: int | None = None):
         """
         Initialize Ghost Bottleneck module.
 

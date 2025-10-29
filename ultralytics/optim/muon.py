@@ -147,8 +147,25 @@ class MuSGD(optim.Optimizer):
         - The Muon update uses orthogonalization which works best for 2D+ parameter tensors.
     """
 
-    def __init__(self, param_groups: dict, muon: float = 0.5, sgd: float = 0.5):
-        super().__init__(param_groups, dict())
+    def __init__(
+        self,
+        params,
+        lr: float = 1e-3,
+        momentum: float = 0.0,
+        weight_decay: float = 0.0,
+        nesterov: bool = False,
+        use_muon=False,
+        muon: float = 0.5,
+        sgd: float = 0.5,
+    ):
+        defaults = dict(
+            lr=lr,
+            momentum=momentum,
+            weight_decay=weight_decay,
+            nesterov=nesterov,
+            use_muon=use_muon,
+        )
+        super().__init__(params, defaults)
         self.muon = muon
         self.sgd = sgd
 

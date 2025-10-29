@@ -877,7 +877,7 @@ class BaseTrainer:
                 else:  # weight (with decay)
                     g[0].append(param)
 
-        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "Muon", "auto"}
+        optimizers = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "RMSProp", "SGD", "MuSGD", "auto"}
         name = {x.lower(): x for x in optimizers}.get(name.lower())
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
@@ -885,32 +885,28 @@ class BaseTrainer:
             optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
         elif name == "SGD":
             optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
-        # elif name == "Muon":
-        #     optimizer = Muon(g[2], lr=lr, momentum=momentum, nesterov=True)
+        elif name == "MuSGD":
+            optimizer = MuSGD(g[2], lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
         # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
-        param_groups = [
-            dict(
-                params=g[3],
-                lr=lr,
-                weight_decay=decay,  # need to update for DDP
-                momentum=momentum,
-                nesterov=True,
-                use_muon=True,
-            ),
-            dict(params=g[2], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
-            dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
-            dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
-        ]
-        optimizer = MuSGD(param_groups, muon=self.args.muon_w, sgd=self.args.sgd_w)
+        if name == "MuSGD" and len(g[3]):
+            optimizer.add_param_group(
+                dict(
+                    params=g[3],
+                    lr=lr,
+                    weight_decay=decay,  # need to update for DDP
+                    momentum=momentum,
+                    nesterov=True,
+                    use_muon=True,
+                ),
+            )
 
-        # if len(g[0]):
-        #     optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
-        # optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
+        optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay
+        optimizer.add_param_group({"params": g[1], "weight_decay": 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
             f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)"

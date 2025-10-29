@@ -113,12 +113,10 @@ def onnx2saved_model(
     # Remove/rename TFLite models
     if int8:
         tmp_file.unlink(missing_ok=True)
-        for output_dir in output_dir.rglob("*_dynamic_range_quant.tflite"):
-            output_dir.rename(
-                output_dir.with_name(output_dir.stem.replace("_dynamic_range_quant", "_int8") + output_dir.suffix)
-            )
-        for output_dir in output_dir.rglob("*_integer_quant_with_int16_act.tflite"):
-            output_dir.unlink()  # delete extra fp16 activation TFLite files
+        for file in output_dir.rglob("*_dynamic_range_quant.tflite"):
+            file.rename(file.with_name(file.stem.replace("_dynamic_range_quant", "_int8") + file.suffix))
+        for file in output_dir.rglob("*_integer_quant_with_int16_act.tflite"):
+            file.unlink()  # delete extra fp16 activation TFLite files
     return keras_model
 
 

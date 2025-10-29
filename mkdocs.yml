@@ -209,7 +209,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
-          - MDE: tasks/mde.md
+          - MDE: tasks/monocular-depth-estimation.md
       - Models:
           - models/index.md
       - Datasets:
@@ -257,7 +257,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
-          - MDE: tasks/mde.md
+          - MDE: tasks/monocular-depth-estimation.md
       - Models:
           - models/index.md
       - Datasets:
@@ -281,7 +281,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
-          - MDE: tasks/mde.md
+          - MDE: tasks/monocular-depth-estimation.md
   - Tasks:
       - tasks/index.md
       - Detect: tasks/detect.md

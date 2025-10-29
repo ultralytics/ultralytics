@@ -8,7 +8,7 @@ keywords: Ultralytics YOLO11, detection, segmentation, classification, oriented 
 
 <img width="1024" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-tasks-banner.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-Ultralytics YOLO11 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), [pose](pose.md) estimation, and [monocular depth estimation (MDE)](mde.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
+Ultralytics YOLO11 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [obb](obb.md), [classification](classify.md), [pose](pose.md) estimation, and [monocular depth estimation (MDE)](monocular-depth-estimation.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
 <p align="center">
   <br>
@@ -51,11 +51,11 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 [Oriented Detection](obb.md){ .md-button }
 
-## [Monocular Depth Estimation (MDE)](mde.md)
+## [Monocular Depth Estimation (MDE)](monocular-depth-estimation.md)
 
 Monocular Depth Estimation (MDE) combines object detection with depth prediction, estimating how far detected objects are from the camera using only a single image. Unlike traditional depth sensing methods that require stereo cameras or LiDAR, YOLO11-MDE provides both object localization and distance estimation in a single forward pass. This makes it ideal for [autonomous driving](https://www.ultralytics.com/solutions/ai-in-automotive), robotics, augmented reality, and advanced driver assistance systems (ADAS) where spatial understanding is crucial.
 
-[MDE Examples](mde.md){ .md-button }
+[MDE Examples](monocular-depth-estimation.md){ .md-button }
 
 ## Conclusion
 
@@ -72,7 +72,7 @@ Ultralytics YOLO11 is a versatile AI framework capable of performing various com
 - **[Classification](classify.md):** Categorizing entire images based on their content, leveraging variants of the EfficientNet architecture.
 - **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
-- **[Monocular Depth Estimation (MDE)](mde.md):** Estimating object distances from the camera using single images, combining detection with depth prediction.
+- **[Monocular Depth Estimation (MDE)](monocular-depth-estimation.md):** Estimating object distances from the camera using single images, combining detection with depth prediction.
 
 ### How do I use Ultralytics YOLO11 for object detection?
 

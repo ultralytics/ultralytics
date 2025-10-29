@@ -146,7 +146,8 @@ class Detect(nn.Module):
             return {"one2many": x, "one2one": one2one}
 
         y = self._inference(one2one)
-        y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
+        if self.format != "ncnn":
+            y = self.postprocess(y.permute(0, 2, 1), self.max_det, self.nc)
         return y if self.export else (y, {"one2many": x, "one2one": one2one})
 
     def _inference(self, x: list[torch.Tensor]) -> torch.Tensor:
@@ -212,23 +213,24 @@ class Detect(nn.Module):
         Post-process YOLO model predictions.
 
         Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extras) with last dimension
                 format [x, y, w, h, class_probs].
             max_det (int): Maximum detections per image.
             nc (int, optional): Number of classes.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x, y, w, h, max_class_prob, class_index].
+                dimension format [x, y, w, h, max_class_prob, class_index, extras].
         """
-        batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
-        boxes, scores = preds.split([4, nc], dim=-1)
+        batch_size, anchors, np = preds.shape  # i.e. shape(16,8400,84)
+        boxes, scores, extras = preds.split([4, nc, np - (4 + nc)], dim=-1)
         index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
         boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
         scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
+        extras = extras.gather(dim=1, index=index.repeat(1, 1, extras.shape[-1]))
         scores, index = scores.flatten(1).topk(min(max_det, anchors))
         i = torch.arange(batch_size)[..., None]  # batch indices
-        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), extras], dim=-1)
 
 
 class Segment(Detect):

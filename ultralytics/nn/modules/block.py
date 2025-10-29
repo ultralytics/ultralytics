@@ -216,7 +216,7 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(self, c1: int, c2: int, k: int = 5):
+    def __init__(self, c1: int, c2: int, k: int = 5, n: int = 3, shortcut: bool = False):
         """
         Initialize the SPPF layer with given input/output channels and kernel size.
 
@@ -230,15 +230,18 @@ class SPPF(nn.Module):
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c_ * 4, c2, 1, 1)
+        self.cv1 = Conv(c1, c_, 1, 1, act=False)
+        self.cv2 = Conv(c_ * (n + 1), c2, 1, 1)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
+        self.n = n
+        self.add = shortcut and c1 == c2
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply sequential pooling operations to input and return concatenated feature maps."""
         y = [self.cv1(x)]
-        y.extend(self.m(y[-1]) for _ in range(3))
-        return self.cv2(torch.cat(y, 1))
+        y.extend(self.m(y[-1]) for _ in range(getattr(self, "n", 3)))
+        y = self.cv2(torch.cat(y, 1))
+        return y + x if getattr(self, "add", False) else y
 
 
 class C1(nn.Module):
@@ -1108,7 +1111,15 @@ class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
     def __init__(
-        self, c1: int, c2: int, n: int = 1, c3k: bool = False, e: float = 0.5, g: int = 1, shortcut: bool = True
+        self,
+        c1: int,
+        c2: int,
+        n: int = 1,
+        c3k: bool = False,
+        e: float = 0.5,
+        attn: bool = False,
+        g: int = 1,
+        shortcut: bool = True,
     ):
         """
         Initialize C3k2 module.
@@ -1124,7 +1135,15 @@ class C3k2(C2f):
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
-            C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+            nn.Sequential(
+                Bottleneck(self.c, self.c, shortcut, g),
+                PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
+            )
+            if attn
+            else C3k(self.c, self.c, 2, shortcut, g)
+            if c3k
+            else Bottleneck(self.c, self.c, shortcut, g)
+            for _ in range(n)
         )
 
 
@@ -1453,7 +1472,7 @@ class PSA(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
 
-        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=self.c // 64)
+        self.attn = Attention(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1))
         self.ffn = nn.Sequential(Conv(self.c, self.c * 2, 1), Conv(self.c * 2, self.c, 1, act=False))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -804,4 +804,4 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
             np.save(file, x)
         LOGGER.info(f"{prefix}New cache created: {path}")
     else:
-        LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writeable, cache not saved.")
+        LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")

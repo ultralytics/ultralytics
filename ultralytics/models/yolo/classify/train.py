@@ -38,7 +38,7 @@ class ClassificationTrainer(BaseTrainer):
         preprocess_batch: Preprocess a batch of images and classes.
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
-        label_loss_items: Return a loss dict with labelled training loss items.
+        label_loss_items: Return a loss dict with labeled training loss items.
         final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
@@ -178,7 +178,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def label_loss_items(self, loss_items: torch.Tensor | None = None, prefix: str = "train"):
         """
-        Return a loss dict with labelled training loss items tensor.
+        Return a loss dict with labeled training loss items tensor.
 
         Args:
             loss_items (torch.Tensor, optional): Loss tensor items.

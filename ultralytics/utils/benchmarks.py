@@ -144,7 +144,9 @@ def benchmark(
             if format == "imx":
                 assert not is_end2end
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 IMX exports not supported"
-                assert model.task == "detect", "IMX only supported for detection task"
+                assert model.task in {"detect", "classify", "pose"}, (
+                    "IMX export is only supported for detection, classification and pose estimation tasks"
+                )
                 assert "C2f" in model.__str__(), "IMX only supported for YOLOv8n and YOLO11n"
             if format == "rknn":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 RKNN exports not supported yet"

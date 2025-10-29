@@ -26,14 +26,13 @@ class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     format = None  # export format
-    end2end = True  # end2end
     max_det = 300  # max_det
     shape = None
     anchors = torch.empty(0)  # init
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
 
-    def __init__(self, nc=80, ch=()):
+    def __init__(self, nc=80, end2end=False, ch=()):
         """Initialize the YOLO detection layer with specified number of classes and channels."""
         super().__init__()
         self.nc = nc  # number of classes
@@ -59,19 +58,24 @@ class Detect(nn.Module):
         )
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
-        if self.end2end:
+        if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
     @property
     def one2many(self):
-        """Returns the one-to-many head components, here for backward compatibility."""
+        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
         return dict(box_head=self.cv2, cls_head=self.cv3)
 
     @property
     def one2one(self):
         """Returns the one-to-one head components."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
+
+    @property
+    def end2end(self):
+        """Checks if the model is in end-to-end mode for v5/v5/v8/v9/11 backward compatibility."""
+        return hasattr(self, "one2one")
 
     def forward(self, x):
         """Concatenates and returns predicted bounding boxes and class probabilities."""
@@ -194,16 +198,16 @@ class Detect(nn.Module):
 class Segment(Detect):
     """YOLO Segment head for segmentation models."""
 
-    def __init__(self, nc=80, nm=32, npr=256, ch=()):
+    def __init__(self, nc=80, nm=32, npr=256, end2end=False, ch=()):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers."""
-        super().__init__(nc, ch)
+        super().__init__(nc, end2end, ch)
         self.nm = nm  # number of masks
         self.npr = npr  # number of protos
         self.proto = Proto(ch[0], self.npr, self.nm)  # protos
 
         c4 = max(ch[0] // 4, self.nm)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
-        if self.end2end:
+        if end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     @property
@@ -269,14 +273,14 @@ class Segment(Detect):
 class OBB(Detect):
     """YOLO OBB detection head for detection with rotation models."""
 
-    def __init__(self, nc=80, ne=1, ch=()):
+    def __init__(self, nc=80, ne=1, end2end=False, ch=()):
         """Initialize OBB with number of classes `nc` and layer channels `ch`."""
-        super().__init__(nc, ch)
+        super().__init__(nc, end2end, ch)
         self.ne = ne  # number of extra parameters
 
         c4 = max(ch[0] // 4, self.ne)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.ne, 1)) for x in ch)
-        if self.end2end:
+        if end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     @property
@@ -338,15 +342,15 @@ class OBB(Detect):
 class Pose(Detect):
     """YOLO Pose head for keypoints models."""
 
-    def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
+    def __init__(self, nc=80, kpt_shape=(17, 3), end2end=False, ch=()):
         """Initialize YOLO network with default parameters and Convolutional Layers."""
-        super().__init__(nc, ch)
+        super().__init__(nc, end2end, ch)
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
 
         c4 = max(ch[0] // 4, self.nk)
         self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
-        if self.end2end:
+        if end2end:
             self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     @property
@@ -454,9 +458,9 @@ class Classify(nn.Module):
 class WorldDetect(Detect):
     """Head for integrating YOLO detection models with semantic understanding from text embeddings."""
 
-    def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
+    def __init__(self, nc=80, embed=512, with_bn=False, end2end=False, ch=()):
         """Initialize YOLO detection layer with nc classes and layer channels ch."""
-        super().__init__(nc, ch)
+        super().__init__(nc, end2end, ch)
         c3 = max(ch[0], min(self.nc, 100))
         self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, embed, 1)) for x in ch)
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
@@ -576,9 +580,9 @@ class YOLOEDetect(Detect):
 
     is_fused = False
 
-    def __init__(self, nc=80, embed=512, with_bn=False, ch=()):
+    def __init__(self, nc=80, embed=512, with_bn=False, end2end=False, ch=()):
         """Initialize YOLO detection layer with nc classes and layer channels ch."""
-        super().__init__(nc, ch)
+        super().__init__(nc, end2end, ch)
         c3 = max(ch[0], min(self.nc, 100))
         assert c3 <= embed
         assert with_bn is True
@@ -758,9 +762,9 @@ class Residual(nn.Module):
 class YOLOESegment(YOLOEDetect):
     """YOLO segmentation head with text embedding capabilities."""
 
-    def __init__(self, nc=80, nm=32, npr=256, embed=512, with_bn=False, ch=()):
+    def __init__(self, nc=80, nm=32, npr=256, embed=512, with_bn=False, end2end=False, ch=()):
         """Initialize YOLOESegment with class count, mask parameters, and embedding dimensions."""
-        super().__init__(nc, embed, with_bn, ch)
+        super().__init__(nc, embed, with_bn, end2end, ch)
         self.nm = nm
         self.npr = npr
         self.proto = Proto(ch[0], self.npr, self.nm)

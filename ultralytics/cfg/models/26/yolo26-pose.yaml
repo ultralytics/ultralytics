@@ -6,6 +6,7 @@
 
 # Parameters
 nc: 80 # number of classes
+end2end: True  # whether to use end-to-end mode
 kpt_shape: [17, 3] # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
 scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call yolo11.yaml with scale 'n'
   # [depth, width, max_channels]
@@ -49,4 +50,3 @@ head:
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
   - [[16, 19, 22], 1, Pose, [nc, kpt_shape]] # Detect(P3, P4, P5)
-

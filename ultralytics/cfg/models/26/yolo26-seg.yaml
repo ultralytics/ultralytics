@@ -6,6 +6,7 @@
 
 # Parameters
 nc: 80 # number of classes
+end2end: True  # whether to use end-to-end mode
 scales: # model compound scaling constants, i.e. 'model=yolo11n.yaml' will call yolo11.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 181 layers, 2624080 parameters, 2624064 gradients, 6.6 GFLOPs
@@ -48,4 +49,3 @@ head:
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
   - [[16, 19, 22], 1, Segment, [nc, 32, 256]] # Segment(P3, P4, P5)
-

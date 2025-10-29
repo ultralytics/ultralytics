@@ -737,7 +737,6 @@ class E2ELoss:
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
         self.one2one = loss_fn(model, tal_topk=1)
-        self.is_seg = loss_fn is v8SegmentationLoss
         self.updates = 0
         self.total = 1.0
         self.o2m = 0.8

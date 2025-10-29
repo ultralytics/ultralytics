@@ -846,28 +846,11 @@ class BaseTrainer:
             name, lr, momentum = ("SGD", lr, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
+        use_muon = name == "MuSGD"
         for module_name, module in de_parallel(model).named_modules():
             for param_name, param in module.named_parameters(recurse=False):
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
-                if param.ndim >= 2 and self.args.muon_head == "model":
-                    g[3].append(param)
-                elif param.ndim >= 2 and "head" in self.args.muon_head and int(module_name.split(".")[1]) == 23:
-                    g[3].append(param)
-                elif (
-                    param.ndim >= 2
-                    and "backbone" in self.args.muon_head
-                    and int(module_name.split(".")[1]) in set(range(11))
-                ):
-                    g[3].append(param)
-                # elif param.ndim >= 2 and self.args.muon_head == "neck" and int(module_name.split(".")[1]) in set(range(11, 23)):
-                elif (
-                    param.ndim >= 2
-                    and "neck" in self.args.muon_head
-                    # and int(module_name.split(".")[1]) in list(range(11)) + [17, 20]
-                    and int(module_name.split(".")[1]) in list(range(11, 23))
-                ):
-                    g[3].append(param)
-                elif param.ndim >= 2 and self.args.muon_head is None and int(module_name.split(".")[1]) < 23:
+                if param.ndim >= 2 and use_muon:
                     g[3].append(param)
                 elif "bias" in fullname:  # bias (no decay)
                     g[2].append(param)

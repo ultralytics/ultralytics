@@ -875,7 +875,6 @@ class BaseTrainer:
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "
                 "Request support for addition optimizers at https://github.com/ultralytics/ultralytics."
             )
-        # optimizer_muon = Muon(g[3], lr=self.args.muon_lr0, weight_decay=decay, momentum=momentum)
         if name == "MuSGD" and len(g[3]):
             optimizer.add_param_group(
                 dict(params=g[3], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=True),

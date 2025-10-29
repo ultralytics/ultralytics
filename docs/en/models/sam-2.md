@@ -260,7 +260,7 @@ It offers three significant enhancements:
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt
-        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[0], update_memory=True)
 
         # Detect this particular object in a new image
         results = predictor(source="image2.jpg")

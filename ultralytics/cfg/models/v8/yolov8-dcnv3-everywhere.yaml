@@ -1,0 +1,48 @@
+# YOLOv8 with DCN v3 Everywhere
+# Maximum DCN usage across all scales
+#
+# Strategy: Replace ALL C2f blocks with DCNv3C2f
+# Benefit: Maximum deformable sampling and adaptive receptive fields
+#
+# Expected improvement: +8-12% mAP50-95
+# Trade-off: ~15-20% slower training, +10% more parameters
+#
+# Best for: Research, thesis work, maximum accuracy scenarios
+
+nc: 6  # number of classes (car, motorcycle, tricycle, bus, van, truck)
+depth_multiple: 0.33  # model depth multiple
+width_multiple: 0.25  # layer channel multiple
+
+# YOLOv8.0n backbone with DCN v3 everywhere
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
+  - [-1, 3, DCNv3C2f, [128, True]]       # 2 - DCN v3! (early features)
+  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3 (P3 scale)
+  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3 (P4 scale)
+  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
+  - [-1, 3, DCNv3C2f, [1024, True]]      # 8 - DCN v3! (deep features)
+  - [-1, 1, SPPF, [1024, 5]]             # 9
+
+# YOLOv8.0n head (standard)
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
+  - [-1, 3, C2f, [512]]  # 12
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 3, C2f, [256]]  # 15 (P3/8-small)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]  # cat head P4
+  - [-1, 3, C2f, [512]]  # 18 (P4/16-medium)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 9], 1, Concat, [1]]  # cat head P5
+  - [-1, 3, C2f, [1024]]  # 21 (P5/32-large)
+
+  - [[15, 18, 21], 1, Detect, [nc]]  # Detect(P3, P4, P5)

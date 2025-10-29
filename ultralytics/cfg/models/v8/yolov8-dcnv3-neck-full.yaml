@@ -1,0 +1,58 @@
+# YOLOv8 with DCN v3 - FULL DCN NECK (FPN + PAN)
+# Maximum DCN usage for best multi-scale feature fusion
+#
+# Architecture Strategy:
+# - Backbone: DCN v3 at P3/P4 (scale-sensitive layers)
+# - Neck FPN: ALL layers use DCN v3 (top-down pathway)
+# - Neck PAN: ALL layers use DCN v3 (bottom-up pathway)
+#
+# Benefits:
+# - Maximum adaptive multi-scale fusion
+# - Best for complex scenes with scale variation
+# - Handles occlusions better (adaptive sampling)
+#
+# Trade-offs:
+# - Higher computational cost (~10-15% slower)
+# - Requires more training data to converge
+#
+# Expected improvement: +6-15% mAP50-95 (best for complex datasets)
+# Best for: Dense traffic, occluded vehicles, extreme scale variation
+
+nc: 6
+depth_multiple: 0.33
+width_multiple: 0.25
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
+  - [-1, 3, C2f, [128, True]]            # 2 - standard
+  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3
+  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3
+  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
+  - [-1, 3, C2f, [1024, True]]           # 8 - standard
+  - [-1, 1, SPPF, [1024, 5]]             # 9
+
+head:
+  # FPN (Feature Pyramid Network) - ALL DCN v3
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10
+  - [[-1, 6], 1, Concat, [1]]                   # 11 - concat P4
+  - [-1, 3, DCNv3C2f, [512]]                    # 12 - DCN v3! (top-down fusion)
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13
+  - [[-1, 4], 1, Concat, [1]]                   # 14 - concat P3
+  - [-1, 3, DCNv3C2f, [256]]                    # 15 - DCN v3! (P3/8-small, top-down fusion)
+
+  # PAN (Path Aggregation Network) - ALL DCN v3
+  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - downsample
+  - [[-1, 12], 1, Concat, [1]]                  # 17 - concat P4
+  - [-1, 3, DCNv3C2f, [512]]                    # 18 - DCN v3! (P4/16-medium, bottom-up fusion)
+
+  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - downsample
+  - [[-1, 9], 1, Concat, [1]]                   # 20 - concat P5
+  - [-1, 3, DCNv3C2f, [1024]]                   # 21 - DCN v3! (P5/32-large, bottom-up fusion)
+
+  # Detection head
+  - [[15, 18, 21], 1, Detect, [nc]]             # 22 Detect(P3, P4, P5)

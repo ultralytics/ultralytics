@@ -43,8 +43,12 @@ from ultralytics.nn.modules import (
     Conv,
     Conv2,
     ConvTranspose,
-    DeformConv, 
+    DeformConv,
+    DeformBottleneck,
     DeformC2f,
+    DCNv3Conv,
+    DCNv3Bottleneck,
+    DCNv3C2f,
     Detect,
     DWConv,
     DWConvTranspose2d,
@@ -1614,6 +1618,9 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             A2C2f,
             DeformConv,
+            DeformBottleneck,
+            DCNv3Conv,
+            DCNv3Bottleneck,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments

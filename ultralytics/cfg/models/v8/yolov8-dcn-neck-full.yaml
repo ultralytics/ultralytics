@@ -1,0 +1,49 @@
+# YOLOv8 with DCN v2 - FULL DCN NECK (FPN + PAN)
+# Maximum DCN v2 usage with modulation for all neck layers
+#
+# Architecture Strategy:
+# - Backbone: DCN v2 at P3/P4 (scale-sensitive layers)
+# - Neck FPN: ALL layers use DCN v2 with modulation
+# - Neck PAN: ALL layers use DCN v2 with modulation
+#
+# Expected improvement: +5-14% mAP50-95
+# Best for: Complex scenes, when you need maximum adaptive fusion
+
+nc: 6
+depth_multiple: 0.33
+width_multiple: 0.25
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
+  - [-1, 3, C2f, [128, True]]            # 2 - standard
+  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
+  - [-1, 6, DeformC2f, [256, True]]      # 4 - DCN v2
+  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
+  - [-1, 6, DeformC2f, [512, True]]      # 6 - DCN v2
+  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
+  - [-1, 3, C2f, [1024, True]]           # 8 - standard
+  - [-1, 1, SPPF, [1024, 5]]             # 9
+
+head:
+  # FPN - ALL DCN v2 with modulation
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10
+  - [[-1, 6], 1, Concat, [1]]                   # 11
+  - [-1, 3, DeformC2f, [512]]                   # 12 - DCN v2!
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13
+  - [[-1, 4], 1, Concat, [1]]                   # 14
+  - [-1, 3, DeformC2f, [256]]                   # 15 - DCN v2!
+
+  # PAN - ALL DCN v2 with modulation
+  - [-1, 1, Conv, [256, 3, 2]]                  # 16
+  - [[-1, 12], 1, Concat, [1]]                  # 17
+  - [-1, 3, DeformC2f, [512]]                   # 18 - DCN v2!
+
+  - [-1, 1, Conv, [512, 3, 2]]                  # 19
+  - [[-1, 9], 1, Concat, [1]]                   # 20
+  - [-1, 3, DeformC2f, [1024]]                  # 21 - DCN v2!
+
+  # Detection head
+  - [[15, 18, 21], 1, Detect, [nc]]             # 22

@@ -101,31 +101,10 @@ class BboxLoss(nn.Module):
         target_scores_sum,
         fg_mask,
         imgsz,
-        feature_weight=None,
+        stride,
     ):
         """Compute IoU and DFL losses for bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        # if feature_weight is not None:
-        #     feature_weight = feature_weight.squeeze(-1).repeat(len(target_scores), 1)[fg_mask].unsqueeze(-1)
-        #     weight = weight * feature_weight
-        # xyxy
-        # target_bboxes_l = target_bboxes[fg_mask].long()
-        # target_bboxes_r = target_bboxes_l + 1
-
-        # xywh
-        # target_bboxes_ = xyxy2xywh(target_bboxes[fg_mask])
-        # target_bboxes_l = target_bboxes_.clone()
-        # target_bboxes_l[..., 2:4] = target_bboxes_[..., 2:4].long()
-        # target_bboxes_r = target_bboxes_l.clone()
-        # target_bboxes_r[..., 2:4] += 1
-        # wl = (target_bboxes_r[..., 2:4] - target_bboxes_[..., 2:4]).mean(-1, keepdims=True)  # weight left
-        # # wr = (target_bboxes_[..., 2:4] - target_bboxes_l[..., 2:4]).mean(-1, keepdims=True)  # weight left
-        # wr = 1 - wl
-        # target_bboxes_l = xywh2xyxy(target_bboxes_l)
-        # target_bboxes_r = xywh2xyxy(target_bboxes_r)
-
-        # iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes_l, xywh=False, CIoU=True) * wl + bbox_iou(pred_bboxes[fg_mask], target_bboxes_r, xywh=False, CIoU=True) * wr
-        # iou = (bbox_iou(pred_bboxes[fg_mask], target_bboxes_l, xywh=False, CIoU=True) + bbox_iou(pred_bboxes[fg_mask], target_bboxes_r, xywh=False, CIoU=True)) / 2.0
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 
@@ -136,19 +115,16 @@ class BboxLoss(nn.Module):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, target_bboxes)
-            target_ltrb = target_ltrb * feature_weight
+            target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
             target_ltrb[..., 1::2] /= imgsz[0]
-            pred_dist = pred_dist * feature_weight
+            pred_dist = pred_dist * stride
             pred_dist[..., 0::2] /= imgsz[1]
             pred_dist[..., 1::2] /= imgsz[0]
             loss_dfl = (
                 F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
             )
             loss_dfl = loss_dfl.sum() / target_scores_sum
-            # TODO: try this, treat this as an additional branch, not put it with `target_scores_sum`
-            # loss_dfl = F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="mean")
-            # loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
         return loss_iou, loss_dfl
 
@@ -170,7 +146,7 @@ class RotatedBboxLoss(BboxLoss):
         target_scores_sum,
         fg_mask,
         imgsz,
-        feature_weight=None,
+        stride,
     ):
         """Compute IoU and DFL losses for rotated bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
@@ -184,10 +160,10 @@ class RotatedBboxLoss(BboxLoss):
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
             target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
-            target_ltrb = target_ltrb * feature_weight
+            target_ltrb = target_ltrb * stride
             target_ltrb[..., 0::2] /= imgsz[1]
             target_ltrb[..., 1::2] /= imgsz[0]
-            pred_dist = pred_dist * feature_weight
+            pred_dist = pred_dist * stride
             pred_dist[..., 0::2] /= imgsz[1]
             pred_dist[..., 1::2] /= imgsz[0]
             loss_dfl = (

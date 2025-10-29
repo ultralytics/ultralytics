@@ -789,8 +789,7 @@ class AutoBackend(nn.Module):
                 from ultralytics.nn.modules.head import Detect
 
                 y = torch.from_numpy(y)
-                y, nc = y.permute(0, 2, 1), len(self.names)
-                y = Detect.postprocess(y, self.max_det, nc)
+                y = Detect.postprocess(y.permute(0, 2, 1), self.max_det, len(self.names))
 
         # NVIDIA Triton Inference Server
         elif self.triton:

@@ -1283,7 +1283,13 @@ class Exporter:
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(
-            ("model-compression-toolkit>=2.4.1", "edge-mdt-cl", "edge-mdt-tpc>=1.1.0", "pydantic<=2.11.7")
+            (
+                "packaging>=25",
+                "model-compression-toolkit>=2.4.1",
+                "edge-mdt-cl",
+                "edge-mdt-tpc>=1.1.0",
+                "pydantic<=2.11.7",
+            )
         )
 
         check_requirements("imx500-converter[pt]>=3.17.3")

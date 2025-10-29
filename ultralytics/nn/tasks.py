@@ -69,7 +69,7 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     v10Detect,
 )
-from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, emojis, yaml_load
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
@@ -1354,6 +1354,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
+
+        if verbose:
+            LOGGER.info(f"{colorstr('activation:')} {act}")  # print
 
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")

@@ -110,7 +110,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
 
 !!! warning
 
-    Code is for **example purposes only**. Hyperparameters obtained from quick tuning with a small number of epochs are likely not optimal for full training. The tuning process may, for instance, increase certain loss weights to make the network converge faster within fewer epochs, or reduce the intensity of some image augmentations to improve validation performance under such limited training conditions.
+    This example is for **demonstration** only. Hyperparameters derived from short or small-scale tuning runs are rarely optimal for real-world training. In practice, tuning should be performed under settings similar to full training — including comparable datasets, epochs, and augmentations — to ensure reliable and transferable results. Quick tuning may bias parameters toward faster convergence or short-term validation gains that do not generalize.
 
 !!! example
 

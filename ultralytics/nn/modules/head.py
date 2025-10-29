@@ -74,7 +74,7 @@ class Detect(nn.Module):
 
     @property
     def end2end(self):
-        """Checks if the model is in end-to-end mode for v5/v5/v8/v9/11 backward compatibility."""
+        """Checks if the model has one2one for v5/v5/v8/v9/11 backward compatibility."""
         return hasattr(self, "one2one")
 
     def forward(self, x):

@@ -3,6 +3,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Any
 
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
@@ -714,42 +715,19 @@ class v8OBBLoss(v8DetectionLoss):
 class E2EDetectLoss:
     """Criterion class for computing training losses for end-to-end detection."""
 
-    def __init__(self, model, loss_fn=v8DetectionLoss):
+    def __init__(self, model):
         """Initialize E2EDetectLoss with one-to-many and one-to-one detection losses using the provided model."""
-        self.one2many = loss_fn(model, tal_topk=10)
-        self.one2one = loss_fn(model, tal_topk=1)
-        self.is_seg = loss_fn is v8SegmentationLoss
-        self.updates = 0
-        self.total = 1.0
-        self.o2m = 0.8
-        # self.total = 2.0
-        # self.o2m = 1.0
-        self.o2o = self.total - self.o2m
-        self.o2m_copy = self.o2m
-        if self.one2one.hyp.o2m == 1.0:
-            self.o2o = 1.0
-            self.o2m = 1.0
+        self.one2many = v8DetectionLoss(model, tal_topk=10)
+        self.one2one = v8DetectionLoss(model, tal_topk=1)
 
-    def __call__(self, preds, batch):
+    def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        preds = self.one2many.parse_output(preds)
-        one2many, one2one = preds["one2many"], preds["one2one"]
-        loss_one2many = self.one2many.loss(one2many, batch)
-        loss_one2one = self.one2one.loss(one2one, batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
-            1
-        ] * self.o2o
-
-    def update(self):
-        self.updates += 1
-        self.o2m = self.decay(self.updates)
-        self.o2o = max(self.total - self.o2m, 0)
-
-    def decay(self, x):
-        return (
-            max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.one2one.hyp.o2m)
-            + self.one2one.hyp.o2m
-        )
+        preds = preds[1] if isinstance(preds, tuple) else preds
+        one2many = preds["one2many"]
+        loss_one2many = self.one2many(one2many, batch)
+        one2one = preds["one2one"]
+        loss_one2one = self.one2one(one2one, batch)
+        return loss_one2many[0] + loss_one2one[0], loss_one2many[1] + loss_one2one[1]
 
 
 class E2ELoss:

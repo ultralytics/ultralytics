@@ -155,8 +155,7 @@ class Detect(nn.Module):
         """Decode bounding boxes."""
         return dist2bbox(bboxes, anchors, xywh=xywh and (not self.end2end), dim=1)
 
-    @staticmethod  # TODO
-    def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80):
+    def postprocess(self, preds: torch.Tensor, max_det: int, nc: int = 80):
         """
         Post-processes YOLO model predictions.
 
@@ -170,15 +169,30 @@ class Detect(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
-        batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores = preds.split([4, nc], dim=-1)
-        index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
-        ori_scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
-        scores, index = ori_scores.flatten(1).topk(min(max_det, anchors))
-        i = torch.arange(batch_size)[..., None]  # batch indices
-        # return torch.cat([boxes[i, index // nc], ori_scores], dim=-1).permute(0, 2, 1)
-        return torch.cat([boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float()], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+        return torch.cat([boxes, scores, conf], dim=-1)
+
+    @staticmethod
+    def get_topk_index(scores, max_det: int):
+        """
+        Get top-k indices from scores.
+
+        Args:
+            scores (torch.Tensor): Scores tensor with shape (batch_size, num_anchors, num_classes).
+            max_det (int): Maximum detections per image.
+
+        Returns:
+            (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
+
+        """
+        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,84)
+        ori_index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
+        scores = scores.gather(dim=1, index=ori_index.repeat(1, 1, nc))
+        scores, index = scores.flatten(1).topk(min(max_det, anchors))
+        idx = ori_index[torch.arange(batch_size)[..., None], index // nc]  # original index
+        return scores[..., None], (index % nc)[..., None].float(), idx
 
     def fuse(self):
         """Remove the one2many head for inference optimization."""

@@ -330,8 +330,8 @@ class OBB(Detect):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 7) and last
                 dimension format [x, y, w, h, max_class_prob, class_index, angle].
         """
-        boxes, scores, angle = preds.split([4, nc, self.ne], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
         angle = angle.gather(dim=1, index=idx.repeat(1, 1, self.ne))
         return torch.cat([boxes, scores, conf, angle], dim=-1)

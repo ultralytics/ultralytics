@@ -110,7 +110,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
 
 !!! warning
 
-    Note that hyperparameters obtained from quick tuning with a small number of epochs are likely not optimal for full training. The tuning process may, for instance, increase certain loss weights to make the network converge faster within fewer epochs, or reduce the intensity of some image augmentations to improve validation performance under such limited training conditions.
+    Code is for **example purposes only**. Hyperparameters obtained from quick tuning with a small number of epochs are likely not optimal for full training. The tuning process may, for instance, increase certain loss weights to make the network converge faster within fewer epochs, or reduce the intensity of some image augmentations to improve validation performance under such limited training conditions.
 
 !!! example
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Optional
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
@@ -413,7 +414,7 @@ class C3Ghost(C3):
         shortcut: bool = True,
         g: int = 1,
         e: float = 0.5,
-        layer_id: int | None = None,
+        layer_id: Optional[int] = None,
     ):
         """
         Initialize C3 module with GhostBottleneck.
@@ -425,7 +426,7 @@ class C3Ghost(C3):
             shortcut (bool): Whether to use shortcut connections.
             g (int): Groups for convolutions.
             e (float): Expansion ratio.
-            layer_id (int | None): Base layer ID which controls attention. If None, attention is disabled
+            layer_id (Optional[int]): Base layer ID which controls attention. If None, attention is disabled
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
@@ -438,7 +439,7 @@ class C3Ghost(C3):
 class GhostBottleneck(nn.Module):
     """Ghost Bottleneck https://github.com/huawei-noah/Efficient-AI-Backbones."""
 
-    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: int | None = None):
+    def __init__(self, c1: int, c2: int, k: int = 3, s: int = 1, layer_id: Optional[int] = None):
         """
         Initialize Ghost Bottleneck module.
 
@@ -447,7 +448,7 @@ class GhostBottleneck(nn.Module):
             c2 (int): Output channels.
             k (int): Kernel size.
             s (int): Stride.
-            layer_id (int | None): Layer index.
+            layer_id (Optional[int]): Layer index.
         """
         super().__init__()
         c_ = c2 // 2

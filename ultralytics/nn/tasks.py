@@ -72,7 +72,7 @@ from ultralytics.nn.modules import (
 from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
-    E2EDetectLoss,
+    E2ELoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
@@ -432,7 +432,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -452,7 +452,7 @@ class OBBModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
-        return E2EDetectLoss(self, v8OBBLoss) if getattr(self, "end2end", False) else v8OBBLoss(self)
+        return E2ELoss(self, v8OBBLoss) if getattr(self, "end2end", False) else v8OBBLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -472,7 +472,7 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return E2EDetectLoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
+        return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
 
 
 class PoseModel(DetectionModel):
@@ -498,7 +498,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        return E2EDetectLoss(self, v8PoseLoss) if getattr(self, "end2end", False) else v8PoseLoss(self)
+        return E2ELoss(self, v8PoseLoss) if getattr(self, "end2end", False) else v8PoseLoss(self)
 
 
 class ClassificationModel(BaseModel):

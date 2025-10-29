@@ -511,7 +511,7 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
-            "args": {k: v for k, v in self.args if k in fmt_keys + ["max_det"]},
+            "args": {k: v for k, v in self.args if k in [*fmt_keys, "max_det"]},
             "channels": model.yaml.get("channels", 3),
         }  # model metadata
         self.metadata["args"].update({"nms": self.args.nms or getattr(model, "end2end", False)})

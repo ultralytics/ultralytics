@@ -21,7 +21,7 @@ import torch
 from torch import distributed as dist
 from torch import nn, optim
 
-from ultralytics.optim.muon import MuonWithSGD, Muon
+from ultralytics.optim.muon import MuSGD
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
@@ -268,7 +268,7 @@ class BaseTrainer:
         self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
         if self.amp and RANK in {-1, 0}:  # Single-GPU and DDP
             callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
-            self.amp = torch.tensor(True, device=self.device)
+            self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
         if RANK > -1 and world_size > 1:  # DDP
             dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
@@ -906,13 +906,7 @@ class BaseTrainer:
             dict(params=g[1], lr=lr, weight_decay=0.0, momentum=momentum, nesterov=True, use_muon=False),
             dict(params=g[0], lr=lr, weight_decay=decay, momentum=momentum, nesterov=True, use_muon=False),
         ]
-        optimizer = MuonWithSGD(
-            param_groups,
-            muon=self.args.muon_w,
-            sgd=self.args.sgd_w,
-            decay_factor=self.args.decay_factor,
-            epochs=self.args.epochs,
-        )
+        optimizer = MuSGD(param_groups, muon=self.args.muon_w, sgd=self.args.sgd_w)
 
         # if len(g[0]):
         #     optimizer.add_param_group({"params": g[0], "weight_decay": decay})  # add g0 with weight_decay

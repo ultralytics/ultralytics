@@ -1,17 +1,37 @@
+from __future__ import annotations
 from torch import optim
 import torch
 import math
 
 
-def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
-    """
-    Newton-Schulz iteration to compute the zeroth power / orthogonalization of G. We opt to use a
-    quintic iteration whose coefficients are selected to maximize the slope at zero. For the purpose
-    of minimizing steps, it turns out to be empirically effective to keep increasing the slope at
-    zero even beyond the point where the iteration no longer converges all the way to one everywhere
-    on the interval. This iteration therefore does not produce UV^T but rather something like US'V^T
-    where S' is diagonal with S_{ii}' sim Uniform(0.5, 1.5), which turns out not to hurt model
-    performance at all relative to UV^T, where USV^T = G is the SVD.
+def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+    """Compute the zeroth power / orthogonalization of matrix G using Newton-Schulz iteration.
+
+    This function implements a quintic Newton-Schulz iteration to compute an approximate
+    orthogonalization of the input matrix G. The iteration coefficients are optimized to
+    maximize convergence slope at zero, producing a result similar to UV^T from SVD, where
+    USV^T = G, but with relaxed convergence guarantees that empirically work well for
+    optimization purposes.
+
+    Args:
+        G (torch.Tensor): Input 2D tensor/matrix to orthogonalize.
+        eps (float, optional): Small epsilon value added to norm for numerical stability. Default: 1e-7.
+
+    Returns:
+        (torch.Tensor): Orthogonalized matrix with same shape as input G.
+
+    Notes:
+        - Uses bfloat16 precision for computation.
+        - Performs exactly 5 Newton-Schulz iteration steps with fixed coefficients.
+        - Automatically transposes for efficiency when rows > columns.
+        - Output approximates US'V^T where S' has diagonal entries ~ Uniform(0.5, 1.5).
+        - Does not produce exact UV^T but works well empirically for neural network optimization.
+
+    Example:
+        >>> G = torch.randn(128, 64)
+        >>> G_ortho = zeropower_via_newtonschulz5(G)
+        >>> print(G_ortho.shape)
+        torch.Size([128, 64])
     """
     assert len(G.shape) == 2
     X = G.bfloat16()
@@ -25,27 +45,6 @@ def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
         (3.4445, -4.7750, 2.0315),
         (3.4445, -4.7750, 2.0315),
         (3.4445, -4.7750, 2.0315),
-        # option 1
-        # (4.0848, -6.8946, 2.9270),
-        # (3.9505, -6.3029, 2.6377),
-        # (3.7418, -5.5913, 2.3037),
-        # (2.8769, -3.1427, 1.2046),
-        # (2.8366, -3.0525, 1.2012),
-        # option 2
-        # (4.01, -9.22, 5.80),
-        # (3.49, -6.38, 3.23),
-        # (3.34, -6.21, 3.20),
-        # (3.64, -7.48, 4.43),
-        # (3.46, -5.35, 2.85),
-        # # option 3
-        # (7.2086, -15.5131, 9.0178),
-        # (3.9623, -2.5813, 0.4542),
-        # (3.9466, -2.5765, 0.4544),
-        # (3.8991, -2.5671, 0.4566),
-        # (3.7186, -2.5308, 0.4653),
-        # (3.1390, -2.3073, 0.4733),
-        # (2.1715, -1.5246, 0.3885),
-        # (1.8648, -1.2224, 0.3577),
     ]:
         # for _ in range(steps):
         A = X @ X.T
@@ -56,7 +55,41 @@ def zeropower_via_newtonschulz5(G, steps=3, eps=1e-7):
     return X
 
 
-def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
+def muon_update(
+    grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, ns_steps: int = 5, nesterov: bool = True
+) -> torch.Tensor:
+    """Compute Muon optimizer update with momentum and orthogonalization.
+
+    This function applies momentum to the gradient, optionally uses Nesterov acceleration,
+    and then orthogonalizes the update using Newton-Schulz iterations. For convolutional
+    filters (4D tensors), it reshapes before orthogonalization and scales the final update
+    based on parameter dimensions.
+
+    Args:
+        grad (torch.Tensor): Gradient tensor to update. Can be 2D or 4D (for conv filters).
+        momentum (torch.Tensor): Momentum buffer tensor, modified in-place via lerp.
+        beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
+        ns_steps (int, optional): Number of Newton-Schulz iteration steps for orthogonalization. Default: 5.
+        nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
+
+    Returns:
+        (torch.Tensor): Orthogonalized update tensor with same shape as input grad.
+            For 4D inputs, returns reshaped result matching original dimensions.
+
+    Notes:
+        - Momentum buffer is updated in-place: momentum = beta * momentum + (1-beta) * grad.
+        - With Nesterov: update = beta * momentum + (1-beta) * grad.
+        - Without Nesterov: update = momentum.
+        - 4D tensors (conv filters) are reshaped to 2D as (channels, height*width*depth) for orthogonalization.
+        - Final update is scaled by sqrt(max(dim[-2], dim[-1])) to account for parameter dimensions.
+
+    Example:
+        >>> grad = torch.randn(64, 128)
+        >>> momentum = torch.zeros_like(grad)
+        >>> update = muon_update(grad, momentum, beta=0.95, nesterov=True)
+        >>> print(update.shape)
+        torch.Size([64, 128])
+    """
     momentum.lerp_(grad, 1 - beta)
     # update = grad.lerp_(momentum, beta) if nesterov else momentum
     update = grad.lerp(momentum, beta) if nesterov else momentum
@@ -67,23 +100,69 @@ def muon_update(grad, momentum, beta=0.95, ns_steps=5, nesterov=True):
     return update
 
 
-class MuonWithSGD(optim.Optimizer):
-    def __init__(self, param_groups, muon=0.1, sgd=1.0, decay_factor=0.1, epochs=None):
+class MuSGD(optim.Optimizer):
+    """Hybrid optimizer combining Muon and SGD updates for neural network training.
+
+    This optimizer implements a combination of Muon (a momentum-based optimizer with
+    orthogonalization via Newton-Schulz iterations) and standard SGD with momentum.
+    It allows different parameter groups to use either the hybrid Muon+SGD approach
+    or pure SGD.
+
+    Args:
+        param_groups (list): List of parameter groups with their optimization settings.
+        muon (float, optional): Weight factor for Muon updates in hybrid mode. Default: 0.5.
+        sgd (float, optional): Weight factor for SGD updates in hybrid mode. Default: 0.5.
+
+    Attributes:
+        muon (float): Scaling factor applied to Muon learning rate.
+        sgd (float): Scaling factor applied to SGD learning rate in hybrid mode.
+
+    Example:
+        >>> param_groups = [
+        ...     {
+        ...         "params": model.conv_params,
+        ...         "lr": 0.02,
+        ...         "use_muon": True,
+        ...         "momentum": 0.95,
+        ...         "nesterov": True,
+        ...         "weight_decay": 0.01,
+        ...     },
+        ...     {
+        ...         "params": model.other_params,
+        ...         "lr": 0.01,
+        ...         "use_muon": False,
+        ...         "momentum": 0.9,
+        ...         "nesterov": False,
+        ...         "weight_decay": 0,
+        ...     },
+        ... ]
+        >>> optimizer = MuSGD(param_groups, muon=0.5, sgd=0.5)
+        >>> loss = model(data)
+        >>> loss.backward()
+        >>> optimizer.step()
+
+    Notes:
+        - Parameter groups with 'use_muon': True will receive both Muon and SGD updates.
+        - Parameter groups with 'use_muon': False will receive only SGD updates.
+        - The Muon update uses orthogonalization which works best for 2D+ parameter tensors.
+    """
+
+    def __init__(self, param_groups: dict, muon: float = 0.5, sgd: float = 0.5):
         super().__init__(param_groups, dict())
         self.muon = muon
         self.sgd = sgd
-        self.decay_factor = decay_factor
-        target = 0.8
-        self.updates = 0.0
-        self.sf = lambda x: max(1 - x / epochs, 0) * (sgd - target) + target
 
-    def update_sgd(self):
-        self.updates += 1
-        # self.sgd = self.sf(self.updates)
-        # self.decay_factor = self.df(self.updates)
+    def adjust_lr(self, lr: float, param_shape: tuple) -> float:
+        """Adjust learning rate based on parameter shape dimensions.
 
-    def adjust_lr(self, lr, param_shape):
-        """Adjust learning rate based on parameter shape."""
+        Args:
+            lr (float): Base learning rate to adjust.
+            param_shape (tuple): Shape of the parameter tensor.
+
+        Returns:
+            (float): Adjusted learning rate scaled by sqrt(max(A, B)) * 0.2,
+                where A and B are the first two dimensions of param_shape.
+        """
         A, B = param_shape[:2]
         adjusted_ratio = 0.2 * math.sqrt(max(A, B))
         adjusted_lr = lr * adjusted_ratio
@@ -93,9 +172,21 @@ class MuonWithSGD(optim.Optimizer):
     def step(self, closure=None):
         """Perform a single optimization step.
 
+        Applies either hybrid Muon+SGD updates or pure SGD updates depending on the
+        'use_muon' flag in each parameter group. For Muon-enabled groups, parameters
+        receive both an orthogonalized Muon update and a standard SGD momentum update.
+
         Args:
             closure (Callable, optional): A closure that reevaluates the model
-                and returns the loss.
+                and returns the loss. Default: None.
+
+        Returns:
+            (torch.Tensor | None): The loss value if closure is provided, otherwise None.
+
+        Notes:
+            - Parameters with None gradients are assigned zero gradients for synchronization.
+            - Muon updates use Newton-Schulz orthogonalization and work best on 2D+ tensors.
+            - Weight decay is applied only to the SGD component in hybrid mode.
         """
         loss = None
         if closure is not None:
@@ -115,37 +206,12 @@ class MuonWithSGD(optim.Optimizer):
                     if len(state) == 0:
                         state["momentum_buffer"] = torch.zeros_like(p)
                         state["momentum_buffer_SGD"] = torch.zeros_like(p)
-                    # state["momentum_buffer"].lerp_(grad, 1 - group["momentum"])
-                    # update = (
-                    #     grad.lerp_(state["momentum_buffer"], group["momentum"])
-                    #     if group["nesterov"]
-                    #     else group["momentum"]
-                    # )
-
-                    # Muon update
-                    # if group["weight_decay"] != 0:
-                    #     grad = grad.add(p, alpha=group["weight_decay"])
-                    # state["momentum_buffer"].mul_(group["momentum"]).add_(grad)
-                    # update = (
-                    #     grad.add(state["momentum_buffer"], alpha=group["momentum"])
-                    #     if group["nesterov"]
-                    #     else state["momentum_buffer"]
-                    # )
-                    # # sgd_update = update.clone()
-                    # if update.ndim == 4:  # for the case of conv filters
-                    #     update = update.view(len(update), -1)
-                    # update = zeropower_via_newtonschulz5(update)
-                    # update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
-                    # p.add_(update.reshape(p.shape), alpha=-group["lr"])
 
                     update = muon_update(
                         grad, state["momentum_buffer"], beta=group["momentum"], nesterov=group["nesterov"]
                     )
-                    # TODO
                     lr = group["lr"] * self.muon
                     # lr = self.adjust_lr(lr, p.shape)
-                    if self.decay_factor:
-                        p.mul_(1 - group["lr"] * self.decay_factor * group["weight_decay"])
                     p.add_(update.reshape(p.shape), alpha=-lr)
 
                     # SGD update
@@ -180,16 +246,65 @@ class MuonWithSGD(optim.Optimizer):
 
 
 class Muon(optim.Optimizer):
-    """
-    Muon variant for usage in non-distributed settings.
+    """Muon optimizer for usage in non-distributed settings.
+
+    This optimizer implements the Muon algorithm, which combines momentum-based updates
+    with orthogonalization via Newton-Schulz iterations. It applies weight decay and
+    learning rate scaling to parameter updates.
+
+    Args:
+        params (iterable): Iterable of parameters to optimize or dicts defining parameter groups.
+        lr (float, optional): Learning rate. Default: 0.02.
+        weight_decay (float, optional): Weight decay (L2 penalty) coefficient. Default: 0.
+        momentum (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
+
+    Attributes:
+        param_groups (list): List of parameter groups with their optimization settings.
+        state (dict): Dictionary containing optimizer state for each parameter.
+
+    Example:
+        >>> model = YourModel()
+        >>> optimizer = Muon(model.parameters(), lr=0.02, weight_decay=0.01, momentum=0.95)
+        >>> loss = model(data)
+        >>> loss.backward()
+        >>> optimizer.step()
+
+    Notes:
+        - Designed for non-distributed training environments.
+        - Uses Muon updates with orthogonalization for all parameters.
+        - Weight decay is applied multiplicatively before parameter update.
+        - Parameters with None gradients are assigned zero gradients for synchronization.
     """
 
-    def __init__(self, params, lr=0.02, weight_decay=0, momentum=0.95):
+    def __init__(self, params, lr: float = 0.02, weight_decay: float = 0, momentum: float = 0.95):
         defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum)
         super().__init__(params, defaults)
 
     @torch.no_grad()
     def step(self, closure=None):
+        """Perform a single optimization step.
+
+        Applies Muon updates to all parameters, incorporating momentum and orthogonalization.
+        Weight decay is applied multiplicatively before the parameter update.
+
+        Args:
+            closure (Callable[[], torch.Tensor] | None, optional): A closure that reevaluates the model
+                and returns the loss. Default: None.
+
+        Returns:
+            (torch.Tensor | None): The loss value if closure is provided, otherwise None.
+
+        Notes:
+            - Parameters with None gradients are assigned zero gradients for synchronization.
+            - Weight decay is applied as: p *= (1 - lr * weight_decay).
+            - Muon update uses Newton-Schulz orthogonalization and works best on 2D+ tensors.
+
+        Example:
+            >>> optimizer = Muon(model.parameters())
+            >>> loss = model(inputs)
+            >>> loss.backward()
+            >>> optimizer.step()
+        """
         loss = None
         if closure is not None:
             with torch.enable_grad():

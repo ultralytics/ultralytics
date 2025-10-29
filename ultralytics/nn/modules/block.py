@@ -406,7 +406,7 @@ class C3Ghost(C3):
     """C3 module with GhostBottleneck()."""
 
     def __init__(
-        self, c1: int, c2: int, n: int = 1, shortcut: bool = True, layer_id: int = 0, g: int = 1, e: float = 0.5
+        self, c1: int, c2: int, n: int = 1, shortcut: bool = True, g: int = 1, e: float = 0.5, layer_id: int = 0
     ):
         """
         Initialize C3 module with GhostBottleneck.
@@ -416,9 +416,9 @@ class C3Ghost(C3):
             c2 (int): Output channels.
             n (int): Number of Ghost bottleneck blocks.
             shortcut (bool): Whether to use shortcut connections.
-            layer_id (int): layer ID which controls attention
             g (int): Groups for convolutions.
             e (float): Expansion ratio.
+            layer_id (int): layer ID which controls attention
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
@@ -435,7 +435,7 @@ class GhostBottleneck(nn.Module):
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
-            k (int): Kernel size for depthwise conv.
+            k (int): Kernel size.
             s (int): Stride.
             layer_id (int): Layer index.
         """

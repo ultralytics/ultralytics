@@ -321,6 +321,9 @@ class GhostConv(nn.Module):
     Attributes:
         cv1 (Conv): Primary convolution.
         cv2 (Conv): Cheap operation convolution.
+        short_conv (nn.Sequential): DFC attention path.
+        gate (nn.Sigmoid): Sigmoid activation for attention.
+        gamma (nn.Parameter): Learnable scaling parameter for attention.
 
     References:
         https://github.com/huawei-noah/Efficient-AI-Backbones

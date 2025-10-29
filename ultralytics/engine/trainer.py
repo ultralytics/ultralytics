@@ -727,7 +727,7 @@ class BaseTrainer:
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         """
-        Return a loss dict with labelled training loss items tensor.
+        Return a loss dict with labeled training loss items tensor.
 
         Note:
             This is not needed for classification but necessary for segmentation & detection

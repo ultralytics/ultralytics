@@ -4,11 +4,11 @@ description: Discover SAM 2, the next generation of Meta's Segment Anything Mode
 keywords: SAM 2, SAM 2.1, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot performance, SA-V dataset, Ultralytics, real-time segmentation, AI, machine learning
 ---
 
-!!! tip "SAM 2.1"
-
-    We have just added support for the more accurate SAM2.1 model. Please give it a try!
-
 # SAM 2: Segment Anything Model 2
+
+!!! note "SAM Evolution"
+
+    SAM 2 builds upon the original [SAM](sam.md) with video segmentation capabilities. For the upcoming next-generation model with enhanced memory and 2× faster processing, see [SAM 3](sam-3.md).
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/inference-with-meta-sam-and-sam2-using-ultralytics-python-package.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Inference with Segment Anything 2 In Colab"></a>
 
@@ -397,7 +397,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
 - **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 

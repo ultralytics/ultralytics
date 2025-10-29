@@ -307,10 +307,10 @@ class BaseDataset(Dataset):
             b += im.nbytes
             if not os.access(Path(im_file).parent, os.W_OK):
                 self.cache = None
-                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writeable")
+                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
-        total, used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
+        total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(

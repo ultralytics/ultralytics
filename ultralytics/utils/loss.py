@@ -211,11 +211,8 @@ class v8DetectionLoss:
         self.use_dfl = m.reg_max > 1
 
         self.assigner = TaskAlignedAssigner(topk=tal_topk, num_classes=self.nc, alpha=0.5, beta=6.0)
-        self.tal_topk = tal_topk
-        self.updates = 0
         self.bbox_loss = BboxLoss(m.reg_max).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
-        # self.total_assignments = 0
 
     def preprocess(self, targets, batch_size, scale_tensor):
         """Preprocess targets by converting to tensor format and scaling coordinates."""
@@ -319,14 +316,6 @@ class v8DetectionLoss:
         batch_size = feats["boxes"].shape[0]
         loss, loss_detach = self.get_assigned_targets_and_loss(feats, batch)[1:]
         return loss * batch_size, loss_detach
-
-    def update(self):
-        self.updates += 1
-        self.assigner.topk = self.decay(self.updates)
-
-    def decay(self, x):
-        # return int(round(self.tal_topk - ((self.tal_topk - 1) / self.hyp.epochs) * x))
-        return max(int(round(self.tal_topk - (self.tal_topk / self.hyp.epochs) * x)), 1)
 
 
 class v8SegmentationLoss(v8DetectionLoss):

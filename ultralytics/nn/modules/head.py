@@ -70,7 +70,7 @@ class Detect(nn.Module):
 
     @property
     def one2one(self):
-        """Returns the one-to-many head components, here for backward compatibility."""
+        """Returns the one-to-one head components."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
 
     def forward(self, x):
@@ -213,7 +213,7 @@ class Segment(Detect):
 
     @property
     def one2one(self):
-        """Returns the one-to-many head components, here for backward compatibility."""
+        """Returns the one-to-one head components."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv4)
 
     def forward(self, x):
@@ -286,7 +286,7 @@ class OBB(Detect):
 
     @property
     def one2one(self):
-        """Returns the one-to-many head components, here for backward compatibility."""
+        """Returns the one-to-one head components."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, angle_head=self.one2one_cv4)
 
     def _inference(self, x):
@@ -356,7 +356,7 @@ class Pose(Detect):
 
     @property
     def one2one(self):
-        """Returns the one-to-many head components, here for backward compatibility."""
+        """Returns the one-to-one head components."""
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, pose_head=self.one2one_cv4)
 
     def kpts_decode(self, kpts):

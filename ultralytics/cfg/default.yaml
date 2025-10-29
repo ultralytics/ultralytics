@@ -37,8 +37,6 @@ fraction: 1.0 # (float) dataset fraction to train on (default is 1.0, all images
 profile: False # (bool) profile ONNX and TensorRT speeds during training for loggers
 freeze: None # (int | list, optional) freeze first n layers, or freeze list of layer indices during training
 multi_scale: False # (bool) Whether to use multiscale during training
-sema: False  # (bool) Whether to apply Swich-EMA method
-ema_ratio: None # (float) EMA iterations ratio
 # Segmentation
 overlap_mask: True # (bool) merge object masks into a single image mask during training (segment train only)
 mask_ratio: 4 # (int) mask downsample ratio (segment train only)
@@ -94,10 +92,6 @@ nms: False # (bool) CoreML: add NMS
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
 lrf: 0.01 # (float) final learning rate (lr0 * lrf)
-muon_head: backbone,neck,head
-muon_w: 0.5
-sgd_w: 0.5
-decay_factor: 0.0
 momentum: 0.937 # (float) SGD momentum/Adam beta1
 weight_decay: 0.0005 # (float) optimizer weight decay 5e-4
 warmup_epochs: 3.0 # (float) warmup epochs (fractions ok)

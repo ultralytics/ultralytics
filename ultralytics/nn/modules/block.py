@@ -302,9 +302,6 @@ class C2f(nn.Module):
         """Forward pass through C2f layer."""
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
-        # y = [self.cv1(x)]
-        # split = y[0].chunk(2, 1)[1]
-        # y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         return self.cv2(torch.cat(y, 1))
 
     def forward_split(self, x):
@@ -312,9 +309,6 @@ class C2f(nn.Module):
         y = self.cv1(x).split((self.c, self.c), 1)
         y = [y[0], y[1]]
         y.extend(m(y[-1]) for m in self.m)
-        # y = [self.cv1(x)]
-        # split = y[0].split((self.c, self.c), 1)[1]
-        # y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
         return self.cv2(torch.cat(y, 1))
 
 
@@ -339,13 +333,10 @@ class C3(nn.Module):
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
         self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
-        self.add = shortcut and c1 == c2
 
     def forward(self, x):
         """Forward pass through the CSP bottleneck with 3 convolutions."""
-        y = self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
-        # return x + y if self.add else y
-        return y
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
 
 
 class C3x(C3):
@@ -1089,9 +1080,7 @@ class C3f(nn.Module):
 class C3k2(C2f):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
 
-    def __init__(
-        self, c1, c2, n=1, c3k=False, e=0.5, attn=None, act=True, downsample=1, g=1, shortcut=True, chattn=False
-    ):
+    def __init__(self, c1, c2, n=1, c3k=False, e=0.5, attn=False, g=1, shortcut=True):
         """
         Initialize C3k2 module.
 
@@ -1105,40 +1094,17 @@ class C3k2(C2f):
             shortcut (bool): Whether to use shortcut connections.
         """
         super().__init__(c1, c2, n, shortcut, g, e)
-        # self.m = nn.ModuleList(
-        #     C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
-        # )
         self.m = nn.ModuleList(
             nn.Sequential(
-                # C3k(self.c, self.c, 1, shortcut, g),
-                Bottleneck(self.c, self.c, shortcut, g),  # concat?
-                PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1), attn=attn, downsample=downsample),
-                # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)  # slightly faster
+                Bottleneck(self.c, self.c, shortcut, g),
+                PSABlock(self.c, attn_ratio=0.5, num_heads=max(self.c // 64, 1)),
             )
-            # C2PSA(self.c, self.c, 1, 0.5, attn=attn, downsample=downsample)
-            if attn is not None
+            if attn
             else C3k(self.c, self.c, 2, shortcut, g)
-            # else C3(self.c, self.c, 4, shortcut, g)
             if c3k
             else Bottleneck(self.c, self.c, shortcut, g)
             for _ in range(n)
         )
-        self.cv2 = Conv((2 + n) * self.c, c2, 1, act=act)
-        # self.chattn = ChannelAttention(c1) if chattn else None
-        self.chattn = CHAttention(c1) if chattn else None
-        # self.add = c1 == c2
-
-    # def forward(self, x):
-    #     if self.chattn is not None:
-    #         x = self.chattn(x)
-    #     return super().forward(x)
-    #     # return x + super().forward(x) if self.add else super().forward(x)
-    #
-    # def forward_split(self, x):
-    #     if self.chattn is not None:
-    #         x = self.chattn(x)
-    #     return super().forward(x)
-    #     # return x + super().forward_split(x) if self.add else super().forward_split(x)
 
 
 class C3k(C3):

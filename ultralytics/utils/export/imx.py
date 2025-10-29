@@ -227,16 +227,13 @@ def torch2imx(
     tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
 
     bit_cfg = mct.core.BitWidthConfig()
-    model_name = "YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"
-    layer_names = MCT_CONFIG[model_name][model.task]["layer_names"]
-    weights_memory = MCT_CONFIG[model_name][model.task]["weights_memory"]
-    n_layers = MCT_CONFIG[model_name][model.task]["n_layers"]
+    mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]
 
     # Check if the model has the expected number of layers
-    if len(list(model.modules())) != n_layers:
+    if len(list(model.modules())) != mct_config["n_layers"]:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
-    for layer_name in layer_names:
+    for layer_name in mct_config["layer_names"]:
         bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 
     config = mct.core.CoreConfig(
@@ -245,7 +242,7 @@ def torch2imx(
         bit_width_config=bit_cfg,
     )
 
-    resource_utilization = mct.core.ResourceUtilization(weights_memory=weights_memory)
+    resource_utilization = mct.core.ResourceUtilization(weights_memory=mct_config["weights_memory"])
 
     quant_model = (
         mct.gptq.pytorch_gradient_post_training_quantization(  # Perform Gradient-Based Post Training Quantization

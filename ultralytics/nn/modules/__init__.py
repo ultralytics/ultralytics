@@ -59,7 +59,6 @@ from .block import (
     ResNetLayer,
     SCDown,
     TorchVision,
-    SimSPPF,
 )
 from .conv import (
     CBAM,
@@ -76,7 +75,6 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
-    Add,
 )
 from .head import (
     OBB,

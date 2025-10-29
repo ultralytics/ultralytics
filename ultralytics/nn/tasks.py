@@ -1355,12 +1355,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         depth, width, max_channels = scales[scale]
 
     if act:
-        from ultralytics.nn.modules import activation
-
-        # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
-        Conv.default_act = getattr(activation, act, None) or eval(act)
-        if verbose:
-            LOGGER.info(f"{colorstr('activation:')} {act}")  # print
+        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU()
 
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
@@ -1375,7 +1370,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             Bottleneck,
             GhostBottleneck,
             SPP,
-            SimSPPF,
             SPPF,
             C2fPSA,
             C2PSA,
@@ -1493,8 +1487,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
-        elif m is Add:
-            c2 = args[0] = make_divisible(min(args[0], max_channels) * width, 8)
         else:
             c2 = ch[f]
 

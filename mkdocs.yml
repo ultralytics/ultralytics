@@ -209,6 +209,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
+          - MDE: tasks/mde.md
       - Models:
           - models/index.md
       - Datasets:
@@ -256,6 +257,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
+          - MDE: tasks/mde.md
       - Models:
           - models/index.md
       - Datasets:
@@ -279,6 +281,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
           - OBB: tasks/obb.md
+          - MDE: tasks/mde.md
   - Tasks:
       - tasks/index.md
       - Detect: tasks/detect.md
@@ -286,6 +289,7 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - MDE: tasks/mde.md
       - Modes:
           - modes/index.md
           - Train: modes/train.md

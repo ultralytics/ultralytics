@@ -55,9 +55,7 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
     return X
 
 
-def muon_update(
-    grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, ns_steps: int = 5, nesterov: bool = True
-) -> torch.Tensor:
+def muon_update(grad: torch.Tensor, momentum: torch.Tensor, beta: float = 0.95, nesterov: bool = True) -> torch.Tensor:
     """Compute Muon optimizer update with momentum and orthogonalization.
 
     This function applies momentum to the gradient, optionally uses Nesterov acceleration,
@@ -69,7 +67,6 @@ def muon_update(
         grad (torch.Tensor): Gradient tensor to update. Can be 2D or 4D (for conv filters).
         momentum (torch.Tensor): Momentum buffer tensor, modified in-place via lerp.
         beta (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
-        ns_steps (int, optional): Number of Newton-Schulz iteration steps for orthogonalization. Default: 5.
         nesterov (bool, optional): Whether to use Nesterov momentum acceleration. Default: True.
 
     Returns:
@@ -95,7 +92,7 @@ def muon_update(
     update = grad.lerp(momentum, beta) if nesterov else momentum
     if update.ndim == 4:  # for the case of conv filters
         update = update.view(len(update), -1)
-    update = zeropower_via_newtonschulz5(update, steps=ns_steps)
+    update = zeropower_via_newtonschulz5(update)
     update *= max(1, grad.size(-2) / grad.size(-1)) ** 0.5
     return update
 

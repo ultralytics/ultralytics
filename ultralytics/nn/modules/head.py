@@ -262,8 +262,8 @@ class Segment(Detect):
             nc (int, optional): Number of classes.
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x, y, w, h, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
+                dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
         """
         boxes, scores, mask_coefficient = preds.split([4, nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, max_det)

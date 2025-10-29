@@ -618,24 +618,7 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        # torch.nn.utils.clip_grad_value_(self.model.parameters(), clip_value=0.5)  # clip gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
-        # all_nan_grads = all(torch.isnan(p.grad).all() for p in self.model.parameters() if p.grad is not None)
-        # if RANK != -1:  # DDP model
-        #     all_nan_grads = torch.tensor(all_nan_grads, dtype=torch.bool, device=next(self.model.parameters()).device)
-        #     dist.all_reduce(all_nan_grads, op=dist.ReduceOp.MAX)
-        #     all_nan_grads = all_nan_grads.item()
-        #
-        # if not all_nan_grads:
-        #     self.scaler.step(self.optimizer)
-        #     # self.scaler.update()
-        #     # self.optimizer.zero_grad()
-        #     if self.ema:
-        #         self.ema.update(self.model)
-        # else:
-        #     LOGGER.warning("WARNING ⚠️ All gradients are NaN, skipping optimizer step")
-        # self.scaler.update()
-        # self.optimizer.zero_grad()
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
@@ -732,8 +715,6 @@ class BaseTrainer:
                     ckpt = strip_optimizer(f)
                 elif f is self.best:
                     k = "train_results"  # update best.pt train_metrics from last.pt
-                    best_ckpt = torch.load(f, map_location=torch.device("cpu"))
-                    print(f"best epoch: {best_ckpt['epoch']}")
                     strip_optimizer(f, updates={k: ckpt[k]} if k in ckpt else None)
                     LOGGER.info(f"\nValidating {f}...")
                     self.validator.args.plots = self.args.plots

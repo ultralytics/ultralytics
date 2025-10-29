@@ -88,8 +88,7 @@ class RTDETRDataset(YOLODataset):
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
-            # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([])
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
         transforms.append(
             Format(
                 bbox_format="xywh",

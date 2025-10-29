@@ -428,7 +428,7 @@ class BaseTrainer:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")
-            if self.args.o2m != 1.0:
+            if self.args.o2m != 1.0 and hasattr(de_parallel(self.model).criterion, "update"):
                 de_parallel(self.model).criterion.update()
 
             self.lr = {f"lr/pg{ir}": x["lr"] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers

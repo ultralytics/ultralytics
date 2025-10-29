@@ -752,6 +752,45 @@ class E2EDetectLoss:
         )
 
 
+class E2ELoss:
+    """Criterion class for computing training losses for end-to-end detection."""
+
+    def __init__(self, model, loss_fn=v8DetectionLoss):
+        """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
+        self.one2many = loss_fn(model, tal_topk=10)
+        self.one2one = loss_fn(model, tal_topk=1)
+        self.is_seg = loss_fn is v8SegmentationLoss
+        self.updates = 0
+        self.total = 1.0
+        self.o2m = 0.8
+        self.o2o = self.total - self.o2m
+        self.o2m_copy = self.o2m
+        if self.one2one.hyp.o2m == 1.0:
+            self.o2o = 1.0
+            self.o2m = 1.0
+
+    def __call__(self, preds, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
+        preds = self.one2many.parse_output(preds)
+        one2many, one2one = preds["one2many"], preds["one2one"]
+        loss_one2many = self.one2many.loss(one2many, batch)
+        loss_one2one = self.one2one.loss(one2one, batch)
+        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2many[1] * self.o2m + loss_one2one[
+            1
+        ] * self.o2o
+
+    def update(self):
+        self.updates += 1
+        self.o2m = self.decay(self.updates)
+        self.o2o = max(self.total - self.o2m, 0)
+
+    def decay(self, x):
+        return (
+            max(1 - x / (self.one2one.hyp.epochs - 1), 0) * (self.o2m_copy - self.one2one.hyp.o2m)
+            + self.one2one.hyp.o2m
+        )
+
+
 # TODO: need to double check
 class TVPDetectLoss:
     """Criterion class for computing training losses for text-visual prompt detection."""

@@ -269,7 +269,7 @@ It offers three significant enhancements:
         results = predictor(
             source="image4.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
-            obj_ids=[2],  # New object ID
+            obj_ids=[1],  # New object ID
             update_memory=True,  # Add to memory
         )
         # Perform inference
@@ -281,7 +281,7 @@ It offers three significant enhancements:
             source="image6.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
-            obj_ids=[2],  # Same object ID
+            obj_ids=[1],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
         # Perform inference on new image

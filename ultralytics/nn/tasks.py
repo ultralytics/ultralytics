@@ -1700,9 +1700,18 @@ def parse_model(d, ch, verbose=True):
             c2 = args[0]
             c1 = ch[f]
             args = [*args[1:]]
+<<<<<<< Updated upstream
         else:
             c2 = ch[f]
 
+=======
+        elif SETTINGS.get("yaml_exec"):
+            namespace = locals()
+            exec(d.get("module", {}).get("parse", ""), globals(), namespace)  # run custom parser
+            args = namespace.get("args", args)
+        else:
+            c2 = ch[f]
+>>>>>>> Stashed changes
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params

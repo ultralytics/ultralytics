@@ -14,6 +14,32 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
 
+# Configuration for Model Compression Toolkit (MCT) quantization
+MCT_CONFIG = {
+    "YOLO11": {
+        "detect": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_21"],
+            "weights_memory": 2585350.2439,
+            "n_layers": 238,
+        },
+        "pose": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"],
+            "weights_memory": 2437771.67,
+            "n_layers": 257,
+        },
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
+    },
+    "YOLOv8": {
+        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2550540.8, "n_layers": 168},
+        "pose": {
+            "layer_names": ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"],
+            "weights_memory": 2482451.85,
+            "n_layers": 187,
+        },
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
+    },
+}
+
 
 class FXModel(torch.nn.Module):
     """
@@ -201,32 +227,10 @@ def torch2imx(
     tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
 
     bit_cfg = mct.core.BitWidthConfig()
-    if "C2PSA" in model.__str__():  # YOLO11
-        if model.task == "detect":
-            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
-            weights_memory = 2585350.2439
-            n_layers = 238  # 238 layers for fused YOLO11n
-        elif model.task == "pose":
-            layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
-            weights_memory = 2437771.67
-            n_layers = 257  # 257 layers for fused YOLO11n-pose
-        elif model.task == "classify":
-            layer_names = []
-            weights_memory = np.inf
-            n_layers = 112
-    else:  # YOLOv8
-        if model.task == "detect":
-            layer_names = ["sub", "mul", "add_6", "cat_17"]
-            weights_memory = 2550540.8
-            n_layers = 168  # 168 layers for fused YOLOv8n
-        elif model.task == "pose":
-            layer_names = ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"]
-            weights_memory = 2482451.85
-            n_layers = 187  # 187 layers for fused YOLO11n-pose
-        elif model.task == "classify":
-            layer_names = []
-            weights_memory = np.inf
-            n_layers = 73
+    model_name = "YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"
+    layer_names = MCT_CONFIG[model_name][model.task]["layer_names"]
+    weights_memory = MCT_CONFIG[model_name][model.task]["weights_memory"]
+    n_layers = MCT_CONFIG[model_name][model.task]["n_layers"]
 
     # Check if the model has the expected number of layers
     if len(list(model.modules())) != n_layers:

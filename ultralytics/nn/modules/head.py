@@ -268,7 +268,7 @@ class Segment(Detect):
         boxes, scores, mask_coefficient = preds.split([4, nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, max_det)
         boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, mask_coefficient.shape[-1]))
+        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self):
@@ -336,17 +336,11 @@ class OBB(Detect):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].
         """
-        batch_size, anchors, _ = preds.shape  # i.e. shape(16,8400,84)
         boxes, scores, angle = preds.split([4, nc, self.ne], dim=-1)
-        index = scores.amax(dim=-1).topk(min(max_det, anchors))[1].unsqueeze(-1)
-        boxes = boxes.gather(dim=1, index=index.repeat(1, 1, 4))
-        scores = scores.gather(dim=1, index=index.repeat(1, 1, nc))
-        angle = angle.gather(dim=1, index=index.repeat(1, 1, angle.shape[-1]))
-        scores, index = scores.flatten(1).topk(min(max_det, anchors))
-        i = torch.arange(batch_size)[..., None]  # batch indices
-        return torch.cat(
-            [boxes[i, index // nc], scores[..., None], (index % nc)[..., None].float(), angle[i, index // nc]], dim=-1
-        )
+        scores, conf, idx = self.get_topk_index(scores, max_det)
+        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+        angle = angle.gather(dim=1, index=idx.repeat(1, 1, self.ne))
+        return torch.cat([boxes, scores, conf, angle], dim=-1)
 
     def fuse(self):
         """Remove the one2many head for inference optimization."""

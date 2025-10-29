@@ -792,7 +792,6 @@ class AutoBackend(nn.Module):
                 y, nc = y.permute(0, 2, 1), len(self.names)
                 y = Detect.postprocess(y, self.max_det, nc)
 
-
         # NVIDIA Triton Inference Server
         elif self.triton:
             im = im.cpu().numpy()  # torch to numpy

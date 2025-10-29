@@ -79,6 +79,17 @@ The YOLOE models are easy to integrate into your Python applications. Ultralytic
 
 You can fine-tune any [pretrained YOLOE model](#textvisual-prompt-models) on your custom YOLO dataset for both detection and instance segmentation tasks.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/vnn90bEyk0w"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train YOLOE on Car Parts Segmentation Dataset | Open-Vocabulary Model, Prediction & Export 🚀
+</p>
+
 !!! example
 
     === "Fine-Tuning"
@@ -899,7 +910,7 @@ The [Ultralytics documentation](https://docs.ultralytics.com/) provides further 
     **Pro Tip:**
     To maximize YOLOE's zero-shot accuracy, fine-tune from provided checkpoints rather than training from scratch. Use prompt words aligning with common training labels (see LVIS categories) to improve detection accuracy.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If YOLOE has contributed to your research or project, please cite the original paper by **Ao Wang, Lihao Liu, Hui Chen, Zijia Lin, Jungong Han, and Guiguang Ding** from **Tsinghua University**:
 

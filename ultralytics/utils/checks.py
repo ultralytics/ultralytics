@@ -23,6 +23,7 @@ import torch
 from ultralytics.utils import (
     ARM64,
     ASSETS,
+    ASSETS_URL,
     AUTOINSTALL,
     GIT,
     IS_COLAB,
@@ -336,7 +337,7 @@ def check_font(font="Arial.ttf"):
         return matches[0]
 
     # Download to USER_CONFIG_DIR if missing
-    url = f"https://github.com/ultralytics/assets/releases/download/v0.0.0/{name}"
+    url = f"{ASSETS_URL}/{name}"
     if downloads.is_url(url, check=True):
         downloads.safe_download(url=url, file=file)
         return file
@@ -671,7 +672,7 @@ def check_yolo(verbose=True, device=""):
         # System info
         gib = 1 << 30  # bytes per GiB
         ram = psutil.virtual_memory().total
-        total, used, free = shutil.disk_usage("/")
+        total, _used, free = shutil.disk_usage("/")
         s = f"({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)"
         try:
             from IPython import display
@@ -704,7 +705,7 @@ def collect_system_info():
     gib = 1 << 30  # bytes per GiB
     cuda = torch.cuda.is_available()
     check_yolo()
-    total, used, free = shutil.disk_usage("/")
+    total, _used, free = shutil.disk_usage("/")
 
     info_dict = {
         "OS": platform.platform(),

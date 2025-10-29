@@ -150,7 +150,7 @@ Fortunately, all labels in the marine litter data set are already formatted as Y
 But, YOLO models by default require separate images and labels in subdirectories within the train/val/test split. We need to reorganize the directory into the following structure:
 
 <p align="center">
-  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/yolo-directory-structure.avif" alt="Yolo Directory Structure">
+  <img width="400" src="https://github.com/ultralytics/docs/releases/download/0/yolo-directory-structure.avif" alt="YOLO Directory Structure">
 </p>
 
 To reorganize the data set directory, we can run the following script:
@@ -273,10 +273,10 @@ We can now run inference to test the performance of our fine-tuned model:
 
 This brief script generates predicted labels for each image in our test set, as well as new output image files that overlay the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) atop the original image.
 
-Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.  
+Predicted .txt labels for each image are saved via the `save_txt=True` argument and the output images with bounding box overlays are generated through the `save=True` argument.
 The parameter `conf=0.5` informs the model to ignore all predictions with a confidence level of less than 50%.
 
-Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.  
+Lastly, `iou=.5` directs the model to ignore boxes in the same class with an overlap of 50% or greater. It helps to reduce potential duplicate boxes generated for the same object.
 we can load the images with predicted bounding box overlays to view how our model performs on a handful of images.
 
 !!! example "Display Predictions"

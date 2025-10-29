@@ -14,13 +14,13 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/kONm9nE5_Fk?si=kzquuBrxjSbntHoU"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/AvFh-oTGDaw"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How To Export and Optimize an Ultralytics YOLOv8 Model for Inference with OpenVINO.
+  <strong>Watch:</strong> How to Export Ultralytics YOLO11 to Intel OpenVINO Format for Faster Inference 🚀
 </p>
 
 ## Usage Examples

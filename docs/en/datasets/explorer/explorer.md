@@ -8,7 +8,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 
 <div align="center">
 
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
 <a href="https://docs.ultralytics.com/zh/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/">日本語</a> |
@@ -24,7 +24,7 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
-    <a href="https://pepy.tech/projects/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
+    <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
@@ -52,7 +52,7 @@ Simply `pip install ultralytics` and run `yolo explorer` in your terminal to run
 Pip install `ultralytics` and [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) and check software and hardware.
 
 ```bash
-%pip install ultralytics[explorer] openai
+!uv pip install ultralytics[explorer] openai
 yolo checks
 ```
 
@@ -116,7 +116,6 @@ Image.fromarray(plt)
 ```python
 # plot
 from PIL import Image
-
 from ultralytics.data.explorer import plot_query_result
 
 plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 persons"))
@@ -193,7 +192,7 @@ pa_table = table.to_arrow()
 
 ### Work with Embeddings
 
-You can access the raw embedding from lancedb Table and analyse it. The image embeddings are stored in column `vector`
+You can access the raw embedding from lancedb Table and analyze it. The image embeddings are stored in column `vector`
 
 ```python
 import numpy as np
@@ -204,7 +203,7 @@ embeddings = np.array(embeddings)
 
 ### Scatterplot
 
-One of the preliminary steps in analysing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
+One of the preliminary steps in analyzing embeddings is by plotting them in 2D space via dimensionality reduction. Let's try an example
 
 ![Scatterplot Example](https://github.com/ultralytics/docs/releases/download/0/scatterplot-sql-queries.avif)
 

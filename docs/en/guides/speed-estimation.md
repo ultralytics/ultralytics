@@ -173,7 +173,7 @@ Yes, YOLO11 can be integrated with other AI frameworks like TensorFlow and PyTor
 To export a YOLO11 model to ONNX format:
 
 ```bash
-yolo export --weights yolo11n.pt --include onnx
+yolo export model=yolo11n.pt format=onnx
 ```
 
 Learn more about exporting models in our [guide on export](../modes/export.md).

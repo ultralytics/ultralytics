@@ -1,7 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -9,6 +11,7 @@ import torch
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.metrics import OBBMetrics, batch_probiou
+from ultralytics.utils.nms import TorchNMS
 
 
 class OBBValidator(DetectionValidator):
@@ -67,19 +70,20 @@ class OBBValidator(DetectionValidator):
         super().init_metrics(model)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
+        self.confusion_matrix.task = "obb"  # set confusion matrix task to 'obb'
 
-    def _process_batch(self, preds: Dict[str, torch.Tensor], batch: Dict[str, torch.Tensor]) -> Dict[str, np.ndarray]:
+    def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> dict[str, np.ndarray]:
         """
         Compute the correct prediction matrix for a batch of detections and ground truth bounding boxes.
 
         Args:
-            preds (Dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected
+            preds (dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected
                 class labels and bounding boxes.
-            batch (Dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth
+            batch (dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth
                 class labels and bounding boxes.
 
         Returns:
-            (Dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
+            (dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
                 array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy
                 of predictions compared to the ground truth.
 
@@ -89,31 +93,31 @@ class OBBValidator(DetectionValidator):
             >>> gt_cls = torch.randint(0, 5, (50,))  # 50 ground truth class labels
             >>> correct_matrix = validator._process_batch(detections, gt_bboxes, gt_cls)
         """
-        if len(batch["cls"]) == 0 or len(preds["cls"]) == 0:
-            return {"tp": np.zeros((len(preds["cls"]), self.niou), dtype=bool)}
+        if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
+            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = batch_probiou(batch["bboxes"], preds["bboxes"])
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
-    def postprocess(self, preds: torch.Tensor) -> List[Dict[str, torch.Tensor]]:
+    def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
         """
         Args:
             preds (torch.Tensor): Raw predictions from the model.
 
         Returns:
-            (List[Dict[str, torch.Tensor]]): Processed predictions with angle information concatenated to bboxes.
+            (list[dict[str, torch.Tensor]]): Processed predictions with angle information concatenated to bboxes.
         """
         preds = super().postprocess(preds)
         for pred in preds:
             pred["bboxes"] = torch.cat([pred["bboxes"], pred.pop("extra")], dim=-1)  # concatenate angle
         return preds
 
-    def _prepare_batch(self, si: int, batch: Dict[str, Any]) -> Dict[str, Any]:
+    def _prepare_batch(self, si: int, batch: dict[str, Any]) -> dict[str, Any]:
         """
         Prepare batch data for OBB validation with proper scaling and formatting.
 
         Args:
             si (int): Batch index to process.
-            batch (Dict[str, Any]): Dictionary containing batch data with keys:
+            batch (dict[str, Any]): Dictionary containing batch data with keys:
                 - batch_idx: Tensor of batch indices
                 - cls: Tensor of class labels
                 - bboxes: Tensor of bounding boxes
@@ -122,7 +126,7 @@ class OBBValidator(DetectionValidator):
                 - ratio_pad: Ratio and padding information
 
         Returns:
-            (Dict[str, Any]): Prepared batch data with scaled bounding boxes and metadata.
+            (dict[str, Any]): Prepared batch data with scaled bounding boxes and metadata.
         """
         idx = batch["batch_idx"] == si
         cls = batch["cls"][idx].squeeze(-1)
@@ -130,43 +134,24 @@ class OBBValidator(DetectionValidator):
         ori_shape = batch["ori_shape"][si]
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
-        if len(cls):
+        if cls.shape[0]:
             bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
-            ops.scale_boxes(imgsz, bbox, ori_shape, ratio_pad=ratio_pad, xywh=True)  # native-space labels
-        return {"cls": cls, "bboxes": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
+        return {
+            "cls": cls,
+            "bboxes": bbox,
+            "ori_shape": ori_shape,
+            "imgsz": imgsz,
+            "ratio_pad": ratio_pad,
+            "im_file": batch["im_file"][si],
+        }
 
-    def _prepare_pred(self, pred: Dict[str, torch.Tensor], pbatch: Dict[str, Any]) -> Dict[str, torch.Tensor]:
-        """
-        Prepare predictions by scaling bounding boxes to original image dimensions.
-
-        This method takes prediction tensors containing bounding box coordinates and scales them from the model's
-        input dimensions to the original image dimensions using the provided batch information.
-
-        Args:
-            pred (Dict[str, torch.Tensor]): Prediction dictionary containing bounding box coordinates and other information.
-            pbatch (Dict[str, Any]): Dictionary containing batch information with keys:
-                - imgsz (tuple): Model input image size.
-                - ori_shape (tuple): Original image shape.
-                - ratio_pad (tuple): Ratio and padding information for scaling.
-
-        Returns:
-            (Dict[str, torch.Tensor]): Scaled prediction dictionary with bounding boxes in original image dimensions.
-        """
-        cls = pred["cls"]
-        if self.args.single_cls:
-            cls *= 0
-        bboxes = ops.scale_boxes(
-            pbatch["imgsz"], pred["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
-        )  # native-space pred
-        return {"bboxes": bboxes, "conf": pred["conf"], "cls": cls}
-
-    def plot_predictions(self, batch: Dict[str, Any], preds: List[torch.Tensor], ni: int) -> None:
+    def plot_predictions(self, batch: dict[str, Any], preds: list[torch.Tensor], ni: int) -> None:
         """
         Plot predicted bounding boxes on input images and save the result.
 
         Args:
-            batch (Dict[str, Any]): Batch data containing images, file paths, and other metadata.
-            preds (List[torch.Tensor]): List of prediction tensors for each image in the batch.
+            batch (dict[str, Any]): Batch data containing images, file paths, and other metadata.
+            preds (list[torch.Tensor]): List of prediction tensors for each image in the batch.
             ni (int): Batch index used for naming the output file.
 
         Examples:
@@ -180,21 +165,22 @@ class OBBValidator(DetectionValidator):
             p["bboxes"][:, :4] = ops.xywh2xyxy(p["bboxes"][:, :4])  # convert to xyxy format for plotting
         super().plot_predictions(batch, preds, ni)  # plot bboxes
 
-    def pred_to_json(self, predn: Dict[str, torch.Tensor], filename: Union[str, Path]) -> None:
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
         Args:
-            predn (Dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
                 with bounding box coordinates, confidence scores, and class predictions.
-            filename (str | Path): Path to the image file for which predictions are being processed.
+            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Notes:
             This method processes rotated bounding box predictions and converts them to both rbox format
             (x, y, w, h, angle) and polygon format (x1, y1, x2, y2, x3, y3, x4, y4) before adding them
             to the JSON dictionary.
         """
-        stem = Path(filename).stem
+        path = Path(pbatch["im_file"])
+        stem = path.stem
         image_id = int(stem) if stem.isnumeric() else stem
         rbox = predn["bboxes"]
         poly = ops.xywhr2xyxyxyxy(rbox).view(-1, 8)
@@ -202,6 +188,7 @@ class OBBValidator(DetectionValidator):
             self.jdict.append(
                 {
                     "image_id": image_id,
+                    "file_name": path.name,
                     "category_id": self.class_map[int(c)],
                     "score": round(s, 5),
                     "rbox": [round(x, 3) for x in r],
@@ -209,7 +196,7 @@ class OBBValidator(DetectionValidator):
                 }
             )
 
-    def save_one_txt(self, predn: Dict[str, torch.Tensor], save_conf: bool, shape: Tuple[int, int], file: Path) -> None:
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """
         Save YOLO OBB detections to a text file in normalized coordinates.
 
@@ -217,7 +204,7 @@ class OBBValidator(DetectionValidator):
             predn (torch.Tensor): Predicted detections with shape (N, 7) containing bounding boxes, confidence scores,
                 class predictions, and angles in format (x, y, w, h, conf, cls, angle).
             save_conf (bool): Whether to save confidence scores in the text file.
-            shape (Tuple[int, int]): Original image shape in format (height, width).
+            shape (tuple[int, int]): Original image shape in format (height, width).
             file (Path): Output file path to save detections.
 
         Examples:
@@ -236,15 +223,24 @@ class OBBValidator(DetectionValidator):
             obb=torch.cat([predn["bboxes"], predn["conf"].unsqueeze(-1), predn["cls"].unsqueeze(-1)], dim=1),
         ).save_txt(file, save_conf=save_conf)
 
-    def eval_json(self, stats: Dict[str, Any]) -> Dict[str, Any]:
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Scales predictions to the original image size."""
+        return {
+            **predn,
+            "bboxes": ops.scale_boxes(
+                pbatch["imgsz"], predn["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"], xywh=True
+            ),
+        }
+
+    def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
         """
         Evaluate YOLO output in JSON format and save predictions in DOTA format.
 
         Args:
-            stats (Dict[str, Any]): Performance statistics dictionary.
+            stats (dict[str, Any]): Performance statistics dictionary.
 
         Returns:
-            (Dict[str, Any]): Updated performance statistics.
+            (dict[str, Any]): Updated performance statistics.
         """
         if self.args.save_json and self.is_dota and len(self.jdict):
             import json
@@ -288,7 +284,7 @@ class OBBValidator(DetectionValidator):
                 b = bbox[:, :5].clone()
                 b[:, :2] += c
                 # 0.3 could get results close to the ones from official merging script, even slightly better.
-                i = ops.nms_rotated(b, scores, 0.3)
+                i = TorchNMS.fast_nms(b, scores, 0.3, iou_func=batch_probiou)
                 bbox = bbox[i]
 
                 b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)

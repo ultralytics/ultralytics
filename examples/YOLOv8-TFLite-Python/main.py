@@ -1,7 +1,8 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import argparse
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -54,7 +55,7 @@ class YOLOv8TFLite:
         >>> cv2.imshow("Result", result)
     """
 
-    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: Union[str, None] = None):
+    def __init__(self, model: str, conf: float = 0.25, iou: float = 0.45, metadata: str | None = None):
         """
         Initialize the YOLOv8TFLite detector.
 
@@ -91,18 +92,18 @@ class YOLOv8TFLite:
         self.out_scale, self.out_zero_point = output_details["quantization"]
 
     def letterbox(
-        self, img: np.ndarray, new_shape: Tuple[int, int] = (640, 640)
-    ) -> Tuple[np.ndarray, Tuple[float, float]]:
+        self, img: np.ndarray, new_shape: tuple[int, int] = (640, 640)
+    ) -> tuple[np.ndarray, tuple[float, float]]:
         """
         Resize and pad image while maintaining aspect ratio.
 
         Args:
             img (np.ndarray): Input image with shape (H, W, C).
-            new_shape (Tuple[int, int]): Target shape (height, width).
+            new_shape (tuple[int, int]): Target shape (height, width).
 
         Returns:
             (np.ndarray): Resized and padded image.
-            (Tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
+            (tuple[float, float]): Padding ratios (top/height, left/width) for coordinate adjustment.
         """
         shape = img.shape[:2]  # Current shape [height, width]
 
@@ -110,13 +111,13 @@ class YOLOv8TFLite:
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
 
         # Compute padding
-        new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
+        new_unpad = round(shape[1] * r), round(shape[0] * r)
         dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2  # wh padding
 
         if shape[::-1] != new_unpad:  # Resize if needed
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
-        top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
-        left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+        top, bottom = round(dh - 0.1), round(dh + 0.1)
+        left, right = round(dw - 0.1), round(dw + 0.1)
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
 
         return img, (top / img.shape[0], left / img.shape[1])
@@ -159,7 +160,7 @@ class YOLOv8TFLite:
         # Draw text
         cv2.putText(img, label, (int(label_x), int(label_y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
 
-    def preprocess(self, img: np.ndarray) -> Tuple[np.ndarray, Tuple[float, float]]:
+    def preprocess(self, img: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
         """
         Preprocess the input image before performing inference.
 
@@ -168,7 +169,7 @@ class YOLOv8TFLite:
 
         Returns:
             (np.ndarray): Preprocessed image ready for model input.
-            (Tuple[float, float]): Padding ratios for coordinate adjustment.
+            (tuple[float, float]): Padding ratios for coordinate adjustment.
         """
         img, pad = self.letterbox(img, (self.in_width, self.in_height))
         img = img[..., ::-1][None]  # BGR to RGB and add batch dimension (N, H, W, C) for TFLite
@@ -176,14 +177,14 @@ class YOLOv8TFLite:
         img = img.astype(np.float32)
         return img / 255, pad  # Normalize to [0, 1]
 
-    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: Tuple[float, float]) -> np.ndarray:
+    def postprocess(self, img: np.ndarray, outputs: np.ndarray, pad: tuple[float, float]) -> np.ndarray:
         """
         Process model outputs to extract and visualize detections.
 
         Args:
             img (np.ndarray): The original input image.
             outputs (np.ndarray): Raw model outputs.
-            pad (Tuple[float, float]): Padding ratios from preprocessing.
+            pad (tuple[float, float]): Padding ratios from preprocessing.
 
         Returns:
             (np.ndarray): The input image with detections drawn on it.

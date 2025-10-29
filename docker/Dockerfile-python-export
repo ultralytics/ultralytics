@@ -1,0 +1,43 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Builds ultralytics/ultralytics:latest-python-export image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
+# Full-featured image with export capabilities for YOLO model conversion
+
+# Build from lightweight Ultralytics Python image
+FROM ultralytics/ultralytics:latest-python
+
+# Install export-specific system packages
+# gnupg required for Edge TPU install
+# Java runtime environment (default-jre-headless) required for Sony IMX export
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gnupg default-jre-headless && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install export dependencies and run exports to AutoInstall packages
+# Prevent torch upgrade to 2.9.0 which has issues with imx export
+RUN sed -i -e 's/"torch>=1.8.0/"torch>=1.8.0,<=2.8.0/' pyproject.toml
+RUN uv pip install --system -e ".[export]" && \
+    # Need lower version of 'numpy' for Sony IMX export
+    uv pip install --system numpy==1.26.4 && \
+    # Run exports to AutoInstall packages
+    yolo export model=tmp/yolo11n.pt format=edgetpu imgsz=32 && \
+    yolo export model=tmp/yolo11n.pt format=ncnn imgsz=32 && \
+    yolo export model=tmp/yolo11n.pt format=imx imgsz=32 && \
+    uv pip install --system paddlepaddle x2paddle && \
+    # Remove extra build files
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+
+# Usage Examples -------------------------------------------------------------------------------------------------------
+
+# Build and Push
+# t=ultralytics/ultralytics:latest-python-export && sudo docker build -f docker/Dockerfile-python-export -t $t . && sudo docker push $t
+
+# Run
+# t=ultralytics/ultralytics:latest-python-export && sudo docker run -it --ipc=host $t
+
+# Pull and Run
+# t=ultralytics/ultralytics:latest-python-export && sudo docker pull $t && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
+# t=ultralytics/ultralytics:latest-python-export && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/shared/datasets:/datasets $t

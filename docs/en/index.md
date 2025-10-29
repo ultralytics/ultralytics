@@ -5,7 +5,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 ---
 
 <div align="center">
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="1024%" src="https://github.com/ultralytics/docs/releases/download/0/ultralytics-yolov8-banner.avif" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/events/yolovision?utm_source=github&utm_medium=org&utm_campaign=yv25_event" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
 <a href="https://docs.ultralytics.com/zh/">中文</a> |
 <a href="https://docs.ultralytics.com/ko/">한국어</a> |
 <a href="https://docs.ultralytics.com/ja/">日本語</a> |
@@ -20,7 +20,7 @@ keywords: Ultralytics, YOLO, YOLO11, object detection, image segmentation, deep 
 <br>
 <br>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
-    <a href="https://pepy.tech/projects/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
+    <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="Ultralytics YOLO Citation"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
     <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
@@ -99,7 +99,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     [:octicons-arrow-right-24: Explore Tasks](tasks/index.md)
 
-- :rocket:{ .lg .middle } &nbsp; **Explore YOLO11 NEW**
+- :rocket:{ .lg .middle } &nbsp; **Explore YOLO11 🚀**
 
     ***
 
@@ -107,7 +107,7 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 
     ***
 
-    [:octicons-arrow-right-24: YOLO11 Models 🚀 NEW](models/yolo11.md)
+    [:octicons-arrow-right-24: YOLO11 Models 🚀](models/yolo11.md)
 
 - :material-scale-balance:{ .lg .middle } &nbsp; **Open Source, AGPL-3.0**
 
@@ -145,7 +145,8 @@ Explore the Ultralytics Docs, a comprehensive resource designed to help you unde
 - [YOLOv8](https://github.com/ultralytics/ultralytics) released in 2023 by Ultralytics, introduced new features and improvements for enhanced performance, flexibility, and efficiency, supporting a full range of vision AI tasks.
 - [YOLOv9](models/yolov9.md) introduces innovative methods like Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN).
 - [YOLOv10](models/yolov10.md) created by researchers from [Tsinghua University](https://www.tsinghua.edu.cn/en/) using the [Ultralytics](https://www.ultralytics.com/) [Python package](https://pypi.org/project/ultralytics/), provides real-time [object detection](tasks/detect.md) advancements by introducing an End-to-End head that eliminates Non-Maximum Suppression (NMS) requirements.
-- **[YOLO11](models/yolo11.md) 🚀 NEW**: Ultralytics' latest YOLO models, deliver state-of-the-art (SOTA) performance across multiple tasks, including [object detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), leveraging capabilities across diverse AI applications and domains.
+- **[YOLO11](models/yolo11.md) 🚀**: Ultralytics' latest YOLO models, deliver state-of-the-art (SOTA) performance across multiple tasks, including [object detection](tasks/detect.md), [segmentation](tasks/segment.md), [pose estimation](tasks/pose.md), [tracking](modes/track.md), and [classification](tasks/classify.md), leveraging capabilities across diverse AI applications and domains.
+- **[YOLO26](models/yolo26.md) ⚠️ Coming Soon**: Ultralytics' next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
 
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 

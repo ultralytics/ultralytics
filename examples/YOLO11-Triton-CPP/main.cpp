@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <chrono>
 
-#define MODEL_INPUT_IMAGE_WIDTH 640 
+#define MODEL_INPUT_IMAGE_WIDTH 640
 #define MODEL_INPUT_IMAGE_HEIGHT 640
 #define NETWORK_THRESHOLD 0.50
 #define IMAGE_CHANNEL 3
@@ -24,8 +24,8 @@ double get_time_since_epoch_millis()
 
 int main(int argc, char *argv[])
 {
-    std::string triton_address= "localhost:8001"; 
-    std::string model_name= "yolo11"; 
+    std::string triton_address= "localhost:8001";
+    std::string model_name= "yolo11";
     std::string model_version= "1";
 	std::string image_path = "test.jpg";
 	std::string output_path = "output.jpg";

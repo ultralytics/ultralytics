@@ -918,7 +918,9 @@ class YOLOEDetect(Detect):
     def _get_decode_boxes(self, x):
         """Decode predicted bounding boxes for inference."""
         dbox = super()._get_decode_boxes(x)
-        return dbox if self.export and not self.dynamic else dbox[..., x["index"]]
+        if hasattr(self, "lrpc"):
+            dbox = dbox if self.export and not self.dynamic else dbox[..., x["index"]]
+        return dbox
 
     @property
     def one2many(self):
@@ -1027,26 +1029,38 @@ class YOLOESegment(YOLOEDetect):
             box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv2, contrastive_head=self.cv4
         )
 
-    # def forward(self, x: list[torch.Tensor], text: torch.Tensor) -> tuple | torch.Tensor:
-    #     """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
-    #     p = self.proto(x[0])  # mask protos
-    #     bs = p.shape[0]  # batch size
-    #
-    #     mc = torch.cat([self.cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients
-    #     has_lrpc = hasattr(self, "lrpc")
-    #
-    #     if not has_lrpc:
-    #         x = YOLOEDetect.forward(self, x, text)
-    #     else:
-    #         x, mask = YOLOEDetect.forward(self, x, text, return_mask=True)
-    #
-    #     if self.training:
-    #         return x, mc, p
-    #
-    #     if has_lrpc:
-    #         mc = (mc * mask.int()) if self.export and not self.dynamic else mc[..., mask]
-    #
-    #     return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
+    def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
+        """Process features with fused text embeddings to generate detections for prompt-free model."""
+        boxes, scores, index = [], [], []
+        bs = x[0].shape[0]
+        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
+        cv3 = self.cv3 if not self.end2end else self.one2one_cv2
+        cv5 = self.cv5 if not self.end2end else self.one2one_cv5
+        for i in range(self.nl):
+            cls_feat = cv3[i](x[i])
+            loc_feat = cv2[i](x[i])
+            assert isinstance(self.lrpc[i], LRPCHead)
+            box, score, idx = self.lrpc[i](
+                cls_feat,
+                loc_feat,
+                0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
+            )
+            boxes.append(box.view(bs, self.reg_max * 4, -1))
+            scores.append(score)
+            index.append(idx)
+        mc = torch.cat([cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
+        index = torch.cat(index)
+        preds = dict(
+            boxes=torch.cat(boxes, 2),
+            scores=torch.cat(scores, 2),
+            feats=x,
+            index=index,
+            mask_coefficient=mc * index.int() if self.export and not self.dynamic else mc[..., index],
+        )
+        y = self._inference(preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        return y if self.export else (y, preds)
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
@@ -1066,12 +1080,6 @@ class YOLOESegment(YOLOEDetect):
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
         preds = super()._inference(x)
-        if hasattr(self, "lrpc"):
-            x["mask_coefficient"] = (
-                (x["mask_coefficient"] * preds["index"].int())
-                if self.export and not self.dynamic
-                else x["mask_coefficient"][..., preds["index"]]
-            )
         return torch.cat([preds, x["mask_coefficient"]], dim=1)
 
     def forward_head(

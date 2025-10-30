@@ -78,10 +78,10 @@ class ClassificationPredictor(BasePredictor):
         Args:
             preds (torch.Tensor): Raw predictions from the model.
             img (torch.Tensor): Input images after preprocessing.
-            orig_imgs (List[np.ndarray] | torch.Tensor): Original images before preprocessing.
+            orig_imgs (list[np.ndarray] | torch.Tensor): Original images before preprocessing.
 
         Returns:
-            (List[Results]): List of Results objects containing classification results for each image.
+            (list[Results]): List of Results objects containing classification results for each image.
         """
         if not isinstance(orig_imgs, list):  # Input images are a torch.Tensor, not a list
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)

@@ -80,7 +80,7 @@ void Inference::Preprocessing(const cv::Mat &frame) {
     uint8_t* input_data = input_tensor.data<uint8_t>();
     size_t bytes_to_copy = resized_frame.total() * resized_frame.elemSize();
     memcpy(input_data, resized_frame.data, bytes_to_copy);
-	
+
 	inference_request_.set_input_tensor(input_tensor); // Set input tensor for inference
 }
 
@@ -152,26 +152,26 @@ void Inference::DrawDetectedObject(cv::Mat &frame, const Detection &detection) c
 	const cv::Rect &box = detection.box;
 	const float &confidence = detection.confidence;
 	const int &class_id = detection.class_id;
-	
+
 	// Generate a random color for the bounding box
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> dis(120, 255);
 	const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
-	
+
 	// Draw the bounding box around the detected object
 	cv::rectangle(frame, cv::Point(box.x, box.y), cv::Point(box.x + box.width, box.y + box.height), color, 3);
-	
+
 	// Prepare the class label and confidence text
 	std::string classString = classes_[class_id] + std::to_string(confidence).substr(0, 4);
-	
+
 	// Get the size of the text box
 	cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 2, 0);
 	cv::Rect textBox(box.x, box.y - 40, textSize.width + 10, textSize.height + 20);
-	
+
 	// Draw the text box
 	cv::rectangle(frame, textBox, color, cv::FILLED);
-	
+
 	// Put the class label and confidence text above the bounding box
 	cv::putText(frame, classString, cv::Point(box.x + 5, box.y - 10), cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 2, 0);
 }

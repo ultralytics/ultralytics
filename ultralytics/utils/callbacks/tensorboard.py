@@ -70,14 +70,14 @@ def _log_tensorboard_graph(trainer) -> None:
         # Try simple method first (YOLO)
         try:
             trainer.model.eval()  # place in .eval() mode to avoid BatchNorm statistics changes
-            WRITER.add_graph(torch.jit.trace(torch_utils.de_parallel(trainer.model), im, strict=False), [])
+            WRITER.add_graph(torch.jit.trace(torch_utils.unwrap_model(trainer.model), im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")
             return
 
         except Exception:
             # Fallback to TorchScript export steps (RTDETR)
             try:
-                model = deepcopy(torch_utils.de_parallel(trainer.model))
+                model = deepcopy(torch_utils.unwrap_model(trainer.model))
                 model.eval()
                 model = model.fuse(verbose=False)
                 for m in model.modules():

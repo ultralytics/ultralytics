@@ -38,7 +38,7 @@ YOLO12 introduces an attention-centric architecture that departs from the tradit
 - **Enhanced Efficiency**: Achieves higher accuracy with fewer parameters compared to many prior models, demonstrating an improved balance between speed and accuracy.
 - **Flexible Deployment**: Designed for deployment across diverse platforms, from edge devices to cloud infrastructure.
 
-![YOLO12 comparison visualization](https://github.com/user-attachments/assets/8009d90f-b43c-4a96-bb89-47ef843e7144)
+![YOLO12 comparison visualization](https://github.com/ultralytics/docs/releases/download/0/yolo12-comparison-visualization.avif)
 
 ## Supported Tasks and Modes
 
@@ -136,7 +136,7 @@ The Ultralytics YOLO12 implementation, by default, _does not require_ FlashAtten
 - [Ada Lovelace GPUs](https://www.nvidia.com/en-us/geforce/ada-lovelace-architecture/) (e.g., RTX40 series)
 - [Hopper GPUs](https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/) (e.g., H100/H200)
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If you use YOLO12 in your research, please cite the original work by [University at Buffalo](https://www.buffalo.edu/) and the [University of Chinese Academy of Sciences](https://english.ucas.ac.cn/):
 

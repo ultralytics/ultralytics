@@ -1227,7 +1227,11 @@ class YOLOEModel(DetectionModel):
             from ultralytics.utils.loss import TVPDetectLoss
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
-            self.criterion = TVPDetectLoss(self) if visual_prompt else self.init_criterion()
+            self.criterion = (
+                TVPDetectLoss(self, tal_topk=1 if getattr(self, "end2end", False) else 10)
+                if visual_prompt
+                else self.init_criterion()
+            )
 
         if preds is None:
             preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))
@@ -1275,7 +1279,11 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
             from ultralytics.utils.loss import TVPSegmentLoss
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
-            self.criterion = TVPSegmentLoss(self) if visual_prompt else self.init_criterion()
+            self.criterion = (
+                TVPSegmentLoss(self, tal_topk=1 if getattr(self, "end2end", False) else 10)
+                if visual_prompt
+                else self.init_criterion()
+            )
 
         if preds is None:
             preds = self.forward(batch["img"], tpe=batch.get("txt_feats", None), vpe=batch.get("visuals", None))

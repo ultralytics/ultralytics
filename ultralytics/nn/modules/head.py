@@ -942,9 +942,11 @@ class YOLOEDetect(Detect):
             return dict()
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        self.nc = x[-1].shape[1]
         scores = torch.cat(
-            [contrastive_head[i](cls_head[i](x[i]), x[-1]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1
+            [contrastive_head[i](cls_head[i](x[i]), x[-1]).reshape(bs, self.nc, -1) for i in range(self.nl)], dim=-1
         )
+        print(boxes.shape, scores.shape, x[-1].shape)
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
         return dict(boxes=boxes, scores=scores, feats=x[:3])
 
@@ -1030,7 +1032,7 @@ class YOLOESegment(YOLOEDetect):
     def one2one(self):
         """Returns the one-to-one head components."""
         return dict(
-            box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv2, contrastive_head=self.cv4
+            box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv5, contrastive_head=self.cv4
         )
 
     def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:

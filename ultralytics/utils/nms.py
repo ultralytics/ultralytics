@@ -235,7 +235,7 @@ class TorchNMS:
             scores_[~((ious >= iou_threshold).sum(0) <= 0)] = 0
             scores[sorted_idx] = scores_  # update original tensor for NMSModel
             # NOTE: return indices with fixed length to avoid TFLite reshape error
-            pick = torch.topk(scores, scores.shape[0]).indices
+            pick = torch.topk(scores_, scores_.shape[0]).indices
         return sorted_idx[pick]
 
     @staticmethod

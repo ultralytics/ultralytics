@@ -946,7 +946,6 @@ class YOLOEDetect(Detect):
         scores = torch.cat(
             [contrastive_head[i](cls_head[i](x[i]), x[-1]).reshape(bs, self.nc, -1) for i in range(self.nl)], dim=-1
         )
-        print(boxes.shape, scores.shape, x[-1].shape)
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
         return dict(boxes=boxes, scores=scores, feats=x[:3])
 

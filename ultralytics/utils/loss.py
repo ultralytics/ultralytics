@@ -824,31 +824,25 @@ class TVPDetectLoss:
         preds = self.vp_criterion.parse_output(preds)
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
-        if self.ori_reg_max * 4 + self.ori_nc == preds["feats"][0].shape[1]:
+        if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(3, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
-        preds["boxes"], preds["scores"] = self._get_vp_features(preds["feats"])
+        preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         box_loss = vp_loss[0][1]
         return box_loss, vp_loss[1]
 
-    def _get_vp_features(self, feats: list[torch.Tensor]) -> list[torch.Tensor]:
+    def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
         """Extract visual-prompt features from the model output."""
-        vnc = feats[0].shape[1] - self.ori_reg_max * 4 - self.ori_nc
+        # NOTE: remove empty placeholder
+        scores = preds["scores"][:, self.ori_nc :, :]
+        vnc = scores.shape[1]
 
         self.vp_criterion.nc = vnc
         self.vp_criterion.no = vnc + self.vp_criterion.reg_max * 4
         self.vp_criterion.assigner.num_classes = vnc
-
-        feats = [
-            torch.cat((box, cls_vp), dim=1)
-            for box, _, cls_vp in [xi.split((self.ori_reg_max * 4, self.ori_nc, vnc), dim=1) for xi in feats]
-        ]
-        boxes, scores = torch.cat([xi.view(feats[0].shape[0], self.vp_criterio.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.vp_criterio.nc), 1
-        )
-        return boxes, scores
+        return scores
 
 
 class TVPSegmentLoss(TVPDetectLoss):
@@ -864,11 +858,11 @@ class TVPSegmentLoss(TVPDetectLoss):
         preds = self.vp_criterion.parse_output(preds)
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
-        if self.ori_reg_max * 4 + self.ori_nc == preds["feats"][0].shape[1]:
+        if self.ori_nc == preds["scores"].shape[1]:
             loss = torch.zeros(4, device=self.vp_criterion.device, requires_grad=True)
             return loss, loss.detach()
 
-        preds["boxes"], preds["scores"] = self._get_vp_features(preds["feats"])
+        preds["scores"] = self._get_vp_features(preds)
         vp_loss = self.vp_criterion(preds, batch)
         cls_loss = vp_loss[0][2]
         return cls_loss, vp_loss[1]

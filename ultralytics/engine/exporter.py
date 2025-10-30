@@ -1084,7 +1084,7 @@ class Exporter:
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
         # Add TFLite metadata
         for file in f.rglob("*.tflite"):
-            f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
+            file.unlink() if "quant_with_int16_act.tflite" in str(file) else self._add_tflite_metadata(file)
 
         return str(f), keras_model  # or keras_model = tf.saved_model.load(f, tags=None, options=None)
 

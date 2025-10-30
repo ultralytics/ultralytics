@@ -73,6 +73,7 @@ from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
     E2EDetectLoss,
+    E2ELoss,
     v8ClassificationLoss,
     v8DetectionLoss,
     v8OBBLoss,
@@ -247,7 +248,7 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, v10Detect):
+                if isinstance(m, Detect) and getattr(m, "end2end", False):
                     m.fuse()  # remove one2many head
             self.info(verbose=verbose)
 
@@ -498,7 +499,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2EDetectLoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -532,7 +533,7 @@ class OBBModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
-        return v8OBBLoss(self)
+        return E2ELoss(self, v8OBBLoss) if getattr(self, "end2end", False) else v8OBBLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -566,7 +567,7 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return v8SegmentationLoss(self)
+        return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
 
 
 class PoseModel(DetectionModel):
@@ -609,7 +610,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
-        return v8PoseLoss(self)
+        return E2ELoss(self, v8PoseLoss) if getattr(self, "end2end", False) else v8PoseLoss(self)
 
 
 class ClassificationModel(BaseModel):

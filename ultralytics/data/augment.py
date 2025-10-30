@@ -1158,7 +1158,7 @@ class RandomPerspective:
         a = 0.0
         if isinstance(self.degrees, list) and self.degrees and all(isinstance(x, (int, float)) for x in self.degrees):
             a = random.choice(self.degrees)
-        elif isinstance(self.degrees, (int, float)):        
+        elif isinstance(self.degrees, (int, float)):
             a = random.uniform(-self.degrees, self.degrees)
         # a += random.choice([-180, -90, 0, 90])  # add 90deg rotations to small rotations
         s = random.uniform(1 - self.scale, 1 + self.scale)

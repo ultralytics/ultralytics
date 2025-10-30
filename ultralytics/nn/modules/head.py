@@ -781,7 +781,9 @@ class YOLOEDetect(Detect):
 
     is_fused = False
 
-    def __init__(self, nc: int = 80, embed: int = 512, with_bn: bool = False, ch: tuple = ()):
+    def __init__(
+        self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max=16, end2end=False, ch: tuple = ()
+    ):
         """
         Initialize YOLO detection layer with nc classes and layer channels ch.
 
@@ -791,7 +793,7 @@ class YOLOEDetect(Detect):
             with_bn (bool): Whether to use batch normalization in contrastive head.
             ch (tuple): Tuple of channel sizes from backbone feature maps.
         """
-        super().__init__(nc, ch)
+        super().__init__(nc, reg_max, end2end, ch)
         c3 = max(ch[0], min(self.nc, 100))
         assert c3 <= embed
         assert with_bn
@@ -807,6 +809,8 @@ class YOLOEDetect(Detect):
                 for x in ch
             )
         )
+        if end2end:
+            self.one2one_cv3 = copy.deepcopy(self.cv3)  # overwrite with new cv3
 
         self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
 
@@ -912,28 +916,55 @@ class YOLOEDetect(Detect):
         else:
             return y if self.export else (y, x)
 
-    def forward(self, x: list[torch.Tensor], cls_pe: torch.Tensor, return_mask: bool = False) -> torch.Tensor | tuple:
-        """Process features with class prompt embeddings to generate detections."""
-        if hasattr(self, "lrpc"):  # for prompt-free inference
-            return self.forward_lrpc(x, return_mask)
-        for i in range(self.nl):
-            x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), cls_pe)), 1)
-        if self.training:
-            return x
+    # def forward(self, x: list[torch.Tensor], return_mask: bool = False) -> torch.Tensor | tuple:
+    #     """Process features with class prompt embeddings to generate detections."""
+    #     if hasattr(self, "lrpc"):  # for prompt-free inference
+    #         return self.forward_lrpc(x, return_mask)
+    #     for i in range(self.nl):
+    #         x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), x[-1])), 1)
+    #     if self.training:
+    #         return x
+    #     self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
+    #     y = self._inference(x)
+    #     return y if self.export else (y, x)
+
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for v5/v5/v8/v9/11 backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, contrastive_head=self.cv4)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-one head components."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, contrastive_head=self.cv4)
+
+    def forward_head(self, x, box_head, cls_head, contrastive_head):
+        assert len(x) == 4, f"Expected 4 features including 3 feature maps and 1 text embeddings, but got {len(x)}."
+        if box_head is None or cls_head is None:  # for fused inference
+            return dict()
+        bs = x[0].shape[0]  # batch size
+        boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
+        scores = torch.cat(
+            [contrastive_head[i](cls_head[i](x[i]), x[-1]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1
+        )
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
-        y = self._inference(x)
-        return y if self.export else (y, x)
+        return dict(boxes=boxes, scores=scores, feats=x[:3])
 
     def bias_init(self):
-        """Initialize biases for detection heads."""
-        m = self  # self.model[-1]  # Detect() module
-        # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
-        # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
-        for a, b, c, s in zip(m.cv2, m.cv3, m.cv4, m.stride):  # from
-            a[-1].bias.data[:] = 1.0  # box
-            # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
+        """Initialize Detect() biases, WARNING: requires stride availability."""
+        for i, (a, b, c) in enumerate(
+            zip(self.one2many["box_head"], self.one2many["cls_head"], self.one2many["contrastive_head"])
+        ):
+            a[-1].bias.data[:] = 2.0  # box
             b[-1].bias.data[:] = 0.0
-            c.bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)
+            c[-1].bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+        if self.end2end:
+            for i, (a, b, c) in enumerate(
+                zip(self.one2one["box_head"], self.one2one["cls_head"], self.one2one["contrastive_head"])
+            ):
+                a[-1].bias.data[:] = 2.0  # box
+                b[-1].bias.data[:] = 0.0
+                c[-1].bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 
 class YOLOESegment(YOLOEDetect):

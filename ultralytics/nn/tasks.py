@@ -1203,9 +1203,8 @@ class YOLOEModel(DetectionModel):
                 cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
                 if cls_pe.shape[0] != b or m.export:
                     cls_pe = cls_pe.expand(b, -1, -1)
-                x = m(x, cls_pe)
-            else:
-                x = m(x)  # run
+                x.append(cls_pe)  # adding cls embedding
+            x = m(x)  # run
 
             y.append(x if m.i in self.save else None)  # save output
             if visualize:

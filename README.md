@@ -213,7 +213,7 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb/) for usage examples
 
 <details><summary>Semantic Segment (CityScapse)</summary>
 
-Check the [Semseg Docs](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/main/docs/en/tasks/semseg.md) for usage examples. These models are trained on [Cityscapes](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/main/docs/en/datasets/semseg/cityscapes.md), including 19 classes.
+Check the [Semseg Docs](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/tasks/semseg.md) for usage examples. These models are trained on [Cityscapes](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/docs/en/datasets/semseg/cityscapes.md), including 19 classes.
 
 | Model                                                                                                                           | size<br><sup>(pixels) | IoU<sup>val<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>T4 TensorRT10<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |---------------------------------------------------------------------------------------------------------------------------------|-----------------------|-------------------|--------------------------------|----------------------------------|--------------------|-------------------|

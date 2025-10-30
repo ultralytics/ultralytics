@@ -739,12 +739,14 @@ class LRPCHead(nn.Module):
             mask = pf_score.sigmoid() > conf
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
             cls_feat = self.vocab(cls_feat[:, mask] if conf else cls_feat * mask.unsqueeze(-1).int())
-            return (self.loc(loc_feat), cls_feat.transpose(-1, -2)), mask
+            return self.loc(loc_feat), cls_feat.transpose(-1, -2), mask
         else:
             cls_feat = self.vocab(cls_feat)
             loc_feat = self.loc(loc_feat)
-            return (loc_feat, cls_feat.flatten(2)), torch.ones(
-                cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool
+            return (
+                loc_feat,
+                cls_feat.flatten(2),
+                torch.ones(cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool),
             )
 
 
@@ -878,73 +880,31 @@ class YOLOEDetect(Detect):
         assert vpe.ndim == 3  # (B, N, D)
         return vpe
 
-    def forward_lrpc(self, x: list[torch.Tensor], return_mask: bool = False) -> torch.Tensor | tuple:
-        """Process features with fused text embeddings to generate detections for prompt-free model."""
-        masks = []
-        assert self.is_fused, "Prompt-free inference requires model to be fused!"
-        for i in range(self.nl):
-            cls_feat = self.cv3[i](x[i])
-            loc_feat = self.cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            x[i], mask = self.lrpc[i](
-                cls_feat, loc_feat, 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
-            )
-            masks.append(mask)
-        shape = x[0][0].shape
-        if self.dynamic or self.shape != shape:
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors([b[0] for b in x], self.stride, 0.5))
-            self.shape = shape
-        box = torch.cat([xi[0].view(shape[0], self.reg_max * 4, -1) for xi in x], 2)
-        cls = torch.cat([xi[1] for xi in x], 2)
-
-        if self.export and self.format in {"tflite", "edgetpu"}:
-            # Precompute normalization factor to increase numerical stability
-            # See https://github.com/ultralytics/ultralytics/issues/7371
-            grid_h = shape[2]
-            grid_w = shape[3]
-            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
-            norm = self.strides / (self.stride[0] * grid_size)
-            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        else:
-            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
-
-        mask = torch.cat(masks)
-        y = torch.cat((dbox if self.export and not self.dynamic else dbox[..., mask], cls.sigmoid()), 1)
-
-        if return_mask:
-            return (y, mask) if self.export else ((y, x), mask)
-        else:
-            return y if self.export else (y, x)
-
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
         """Process features with class prompt embeddings to generate detections."""
         if hasattr(self, "lrpc"):  # for prompt-free inference
             return self.forward_lrpc(x[:3])
         return super().forward(x)
 
-    def forward_lrpc_head(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
+    def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
         """Process features with fused text embeddings to generate detections for prompt-free model."""
-        masks = []
-        bs = x[0].shape
+        boxes, scores, index = [], [], []
+        bs = x[0].shape[0]
         cv2 = self.cv2 if not self.end2end else self.one2one_cv2
         cv3 = self.cv3 if not self.end2end else self.one2one_cv2
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
             assert isinstance(self.lrpc[i], LRPCHead)
-            x[i], mask = self.lrpc[i](
+            box, score, idx = self.lrpc[i](
                 cls_feat,
                 loc_feat,
                 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
             )
-            masks.append(mask)
-        masks = torch.cat(masks)
-        preds = dict(
-            boxes=torch.cat([xi[0].view(bs, self.reg_max * 4, -1) for xi in x], 2),
-            scores=torch.cat([xi[1] for xi in x], 2),
-            feats=x,
-            masks=masks,
-        )
+            boxes.append(box.view(bs, self.reg_max * 4, -1))
+            scores.append(score)
+            index.append(idx)
+        preds = dict(boxes=torch.cat(boxes, 2), scores=torch.cat(scores, 2), feats=x, index=torch.cat(index))
         y = self._inference(preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
@@ -1098,9 +1058,9 @@ class YOLOESegment(YOLOEDetect):
         preds = super()._inference(x)
         if hasattr(self, "lrpc"):
             x["mask_coefficient"] = (
-                (x["mask_coefficient"] * preds["masks"].int())
+                (x["mask_coefficient"] * preds["index"].int())
                 if self.export and not self.dynamic
-                else x["mask_coefficient"][..., preds["masks"]]
+                else x["mask_coefficient"][..., preds["index"]]
             )
         return torch.cat([preds, x["mask_coefficient"]], dim=1)
 

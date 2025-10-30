@@ -916,6 +916,12 @@ class YOLOEDetect(Detect):
         else:
             return y if self.export else (y, x)
 
+    def forward(self, x: list[torch.Tensor], return_mask: bool = False) -> torch.Tensor | tuple:
+        """Process features with class prompt embeddings to generate detections."""
+        if hasattr(self, "lrpc"):  # for prompt-free inference
+            return self.forward_lrpc(x, return_mask)
+        return super().forward(x)
+
     # def forward(self, x: list[torch.Tensor], return_mask: bool = False) -> torch.Tensor | tuple:
     #     """Process features with class prompt embeddings to generate detections."""
     #     if hasattr(self, "lrpc"):  # for prompt-free inference
@@ -957,14 +963,14 @@ class YOLOEDetect(Detect):
         ):
             a[-1].bias.data[:] = 2.0  # box
             b[-1].bias.data[:] = 0.0
-            c[-1].bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+            c.bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
         if self.end2end:
             for i, (a, b, c) in enumerate(
                 zip(self.one2one["box_head"], self.one2one["cls_head"], self.one2one["contrastive_head"])
             ):
                 a[-1].bias.data[:] = 2.0  # box
                 b[-1].bias.data[:] = 0.0
-                c[-1].bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
+                c.bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
 
 
 class YOLOESegment(YOLOEDetect):

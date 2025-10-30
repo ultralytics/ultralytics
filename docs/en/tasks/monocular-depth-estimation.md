@@ -27,7 +27,7 @@ YOLO11 pretrained MDE models are shown here. These models extend the standard YO
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Model       | size<br><sup>(pixels) | mAP<sup>val</sup><br>50-95 | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model       | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><br>50-95 | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ----------- | --------------------- | -------------------------- | ------------------ | ----------------- |
 | YOLO11n-mde | 640                   | 51.9                       | 2.6                | 6.6               |
 | YOLO11s-mde | 640                   | 62.6                       | 9.5                | 21.7              |

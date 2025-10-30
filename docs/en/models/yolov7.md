@@ -25,7 +25,7 @@ If we compare YOLOv7-X with 114 fps inference speed to YOLOv5-L (r6.1) with 99 f
 
     === "Detection (COCO)"
 
-        | Model                 | Params<br><sup>(M) | FLOPs<br><sup>(G) | Size<br><sup>(pixels) | FPS     | AP<sup>test / val<br>50-95 | AP<sup>test<br>50 | AP<sup>test<br>75 | AP<sup>test<br>S | AP<sup>test<br>M | AP<sup>test<br>L |
+        | Model                 | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | Size<br><sup>(pixels)</sup> | FPS     | AP<sup>test / val<br>50-95 | AP<sup>test<br>50 | AP<sup>test<br>75 | AP<sup>test<br>S | AP<sup>test<br>M | AP<sup>test<br>L |
         | --------------------- | ------------------ | ----------------- | --------------------- | ------- | -------------------------- | ----------------- | ----------------- | ---------------- | ---------------- | ---------------- |
         | [YOLOX-S][1]          | **9.0**           | **26.8**         | 640                   | **102** | 40.5% / 40.5%              | -                 | -                 | -                | -                | -                |
         | [YOLOX-M][1]          | 25.3              | 73.8             | 640                   | 81      | 47.2% / 46.9%              | -                 | -                 | -                | -                | -                |

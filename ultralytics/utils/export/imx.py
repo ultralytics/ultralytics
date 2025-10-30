@@ -6,12 +6,39 @@ import subprocess
 import types
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import make_anchors
 from ultralytics.utils.torch_utils import copy_attr
+
+# Configuration for Model Compression Toolkit (MCT) quantization
+MCT_CONFIG = {
+    "YOLO11": {
+        "detect": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_21"],
+            "weights_memory": 2585350.2439,
+            "n_layers": 238,
+        },
+        "pose": {
+            "layer_names": ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"],
+            "weights_memory": 2437771.67,
+            "n_layers": 257,
+        },
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 112},
+    },
+    "YOLOv8": {
+        "detect": {"layer_names": ["sub", "mul", "add_6", "cat_17"], "weights_memory": 2550540.8, "n_layers": 168},
+        "pose": {
+            "layer_names": ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"],
+            "weights_memory": 2482451.85,
+            "n_layers": 187,
+        },
+        "classify": {"layer_names": [], "weights_memory": np.inf, "n_layers": 73},
+    },
+}
 
 
 class FXModel(torch.nn.Module):
@@ -200,30 +227,13 @@ def torch2imx(
     tpc = get_target_platform_capabilities(tpc_version="4.0", device_type="imx500")
 
     bit_cfg = mct.core.BitWidthConfig()
-    if "C2PSA" in model.__str__():  # YOLO11
-        if model.task == "detect":
-            layer_names = ["sub", "mul_2", "add_14", "cat_21"]
-            weights_memory = 2585350.2439
-            n_layers = 238  # 238 layers for fused YOLO11n
-        elif model.task == "pose":
-            layer_names = ["sub", "mul_2", "add_14", "cat_22", "cat_23", "mul_4", "add_15"]
-            weights_memory = 2437771.67
-            n_layers = 257  # 257 layers for fused YOLO11n-pose
-    else:  # YOLOv8
-        if model.task == "detect":
-            layer_names = ["sub", "mul", "add_6", "cat_17"]
-            weights_memory = 2550540.8
-            n_layers = 168  # 168 layers for fused YOLOv8n
-        elif model.task == "pose":
-            layer_names = ["add_7", "mul_2", "cat_19", "mul", "sub", "add_6", "cat_18"]
-            weights_memory = 2482451.85
-            n_layers = 187  # 187 layers for fused YOLO11n-pose
+    mct_config = MCT_CONFIG["YOLO11" if "C2PSA" in model.__str__() else "YOLOv8"][model.task]
 
     # Check if the model has the expected number of layers
-    if len(list(model.modules())) != n_layers:
+    if len(list(model.modules())) != mct_config["n_layers"]:
         raise ValueError("IMX export only supported for YOLOv8n and YOLO11n models.")
 
-    for layer_name in layer_names:
+    for layer_name in mct_config["layer_names"]:
         bit_cfg.set_manual_activation_bit_width([mct.core.common.network_editors.NodeNameFilter(layer_name)], 16)
 
     config = mct.core.CoreConfig(
@@ -232,7 +242,7 @@ def torch2imx(
         bit_width_config=bit_cfg,
     )
 
-    resource_utilization = mct.core.ResourceUtilization(weights_memory=weights_memory)
+    resource_utilization = mct.core.ResourceUtilization(weights_memory=mct_config["weights_memory"])
 
     quant_model = (
         mct.gptq.pytorch_gradient_post_training_quantization(  # Perform Gradient-Based Post Training Quantization
@@ -255,13 +265,14 @@ def torch2imx(
         )[0]
     )
 
-    quant_model = NMSWrapper(
-        model=quant_model,
-        score_threshold=conf or 0.001,
-        iou_threshold=iou,
-        max_detections=max_det,
-        task=model.task,
-    )
+    if model.task != "classify":
+        quant_model = NMSWrapper(
+            model=quant_model,
+            score_threshold=conf or 0.001,
+            iou_threshold=iou,
+            max_detections=max_det,
+            task=model.task,
+        )
 
     f = Path(str(file).replace(file.suffix, "_imx_model"))
     f.mkdir(exist_ok=True)

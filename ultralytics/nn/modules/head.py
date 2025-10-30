@@ -1383,4 +1383,4 @@ class v10Detect(Detect):
 
     def fuse(self):
         """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = nn.ModuleList([nn.Identity()] * self.nl)
+        self.cv2 = self.cv3 = None

@@ -10,9 +10,6 @@ import torch
 from ultralytics.utils import IS_JETSON, LOGGER
 from ultralytics.utils.torch_utils import TORCH_2_4
 
-from .imx import torch2imx  # noqa
-
-
 def torch2onnx(
     torch_model: torch.nn.Module,
     im: torch.Tensor,

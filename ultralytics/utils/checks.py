@@ -35,7 +35,6 @@ from ultralytics.utils import (
     MACOS,
     ONLINE,
     PYTHON_VERSION,
-    RKNN_CHIPS,
     ROOT,
     TORCH_VERSION,
     TORCHVISION_VERSION,
@@ -909,27 +908,6 @@ def cuda_is_available() -> bool:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
-
-
-def is_rockchip():
-    """
-    Check if the current environment is running on a Rockchip SoC.
-
-    Returns:
-        (bool): True if running on a Rockchip SoC, False otherwise.
-    """
-    if LINUX and ARM64:
-        try:
-            with open("/proc/device-tree/compatible") as f:
-                dev_str = f.read()
-                *_, soc = dev_str.split(",")
-                if soc.replace("\x00", "") in RKNN_CHIPS:
-                    return True
-        except OSError:
-            return False
-    else:
-        return False
-
 
 def is_intel():
     """

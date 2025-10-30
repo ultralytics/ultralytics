@@ -701,7 +701,7 @@ class Model(torch.nn.Module):
         Args:
             **kwargs (Any): Arbitrary keyword arguments to customize the export process. These are combined with
                 the model's overrides and method defaults. Common arguments include:
-                format (str): Export format (e.g., 'onnx', 'engine', 'coreml').
+                format (str): Export format (e.g., 'onnx', 'engine').
                 half (bool): Export model in half-precision.
                 int8 (bool): Export model in int8 precision.
                 device (str): Device to run the export on.

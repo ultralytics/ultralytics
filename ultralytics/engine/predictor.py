@@ -17,20 +17,8 @@ Usage - sources:
 Usage - formats:
     $ yolo mode=predict model=yolo11n.pt                 # PyTorch
                               yolo11n.torchscript        # TorchScript
-                              yolo11n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                              yolo11n_openvino_model     # OpenVINO
+                              yolo11n.onnx               # ONNX Runtime
                               yolo11n.engine             # TensorRT
-                              yolo11n.mlpackage          # CoreML (macOS-only)
-                              yolo11n_saved_model        # TensorFlow SavedModel
-                              yolo11n.pb                 # TensorFlow GraphDef
-                              yolo11n.tflite             # TensorFlow Lite
-                              yolo11n_edgetpu.tflite     # TensorFlow Edge TPU
-                              yolo11n_paddle_model       # PaddlePaddle
-                              yolo11n.mnn                # MNN
-                              yolo11n_ncnn_model         # NCNN
-                              yolo11n_imx_model          # Sony IMX
-                              yolo11n_rknn_model         # Rockchip RKNN
-                              yolo11n.pte                # PyTorch Executorch
 """
 
 from __future__ import annotations
@@ -197,9 +185,7 @@ class BasePredictor:
         same_shapes = len({x.shape for x in im}) == 1
         letterbox = LetterBox(
             self.imgsz,
-            auto=same_shapes
-            and self.args.rect
-            and (self.model.pt or (getattr(self.model, "dynamic", False) and not self.model.imx)),
+            auto=same_shapes and self.args.rect and (self.model.pt or getattr(self.model, "dynamic", False)),
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -312,9 +298,7 @@ class BasePredictor:
 
             # Warmup model
             if not self.done_warmup:
-                self.model.warmup(
-                    imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, self.model.ch, *self.imgsz)
-                )
+                self.model.warmup(imgsz=(1 if self.model.pt else self.dataset.bs, self.model.ch, *self.imgsz))
                 self.done_warmup = True
 
             self.seen, self.windows, self.batch = 0, [], None
@@ -398,7 +382,6 @@ class BasePredictor:
         self.model = AutoBackend(
             model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),
-            dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.half,
             fuse=True,

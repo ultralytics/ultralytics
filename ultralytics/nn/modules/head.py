@@ -165,16 +165,17 @@ class Detect(nn.Module):
             (torch.Tensor): Concatenated tensor of decoded bounding boxes and class probabilities.
         """
         # Inference path
-        dbox = self._get_decode_boxes(x["feats"], x["boxes"])
+        dbox = self._get_decode_boxes(x)
         return torch.cat((dbox, x["scores"].sigmoid()), 1)
 
-    def _get_decode_boxes(self, feats, boxes):
+    def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
-        shape = feats[0].shape  # BCHW
+        shape = x["feats"][0].shape  # BCHW
         if self.format != "imx" and (self.dynamic or self.shape != shape):
-            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(feats, self.stride, 0.5))
+            self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
+        boxes = x["boxes"]
         if self.export and self.format in {"tflite", "edgetpu"}:
             # Precompute normalization factor to increase numerical stability
             # See https://github.com/ultralytics/ultralytics/issues/7371
@@ -905,7 +906,7 @@ class YOLOEDetect(Detect):
                 loc_feat,
                 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
             )
-            boxes.append(box.view(bs, self.reg_max * 4, -1)[..., idx])
+            boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
         preds = dict(boxes=torch.cat(boxes, 2), scores=torch.cat(scores, 2), feats=x, index=torch.cat(index))
@@ -913,6 +914,11 @@ class YOLOEDetect(Detect):
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+    def _get_decode_boxes(self, x):
+        """Decode predicted bounding boxes for inference."""
+        dbox = super()._get_decode_boxes(x)
+        return dbox if self.export and not self.dynamic else dbox[..., x["index"]]
 
     @property
     def one2many(self):

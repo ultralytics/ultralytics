@@ -710,9 +710,9 @@ def collect_system_info():
     if torch_utils.TORCH_2_3:
         xpu = torch.xpu.is_available()
         if xpu:
-            devices = devices + ("xpu",)
+            devices = (*devices, "xpu")
     if cuda:
-        devices = devices + ("cuda",)
+        devices = (*devices, "cuda")
     check_yolo()
     total, _used, free = shutil.disk_usage("/")
 
@@ -793,7 +793,7 @@ def check_amp(model):
                 x = torch.randn(1).to(device)
                 _ = x.double().pow(2)  # Test if fp64 operations are supported
         except RuntimeError as e:
-            LOGGER.warning(f"{prefix}checks failed ❌. AMP training on {device.type} not supported: {str(e)}")
+            LOGGER.warning(f"{prefix}checks failed ❌. AMP training on {device.type} not supported: {e!s}")
             return False
     else:
         # GPUs that have issues with AMP
@@ -984,7 +984,7 @@ def xpu_device_count() -> int:
         # Take the first line and strip any leading/trailing white space
         json_output = json.loads(output.strip())
         unique_local_ids = {entry["device_id"] for entry in json_output["device_list"]}
-        return int(len(unique_local_ids))
+        return len(unique_local_ids)
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
         # If the command fails, xpu-smi is not found, or output is not an integer, assume no GPUs are available
         return 0

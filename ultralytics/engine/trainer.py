@@ -217,17 +217,17 @@ class BaseTrainer:
         if (
             isinstance(self.args.device, str) and len(self.args.device) and self.device.type in {"cuda"}
         ):  # i.e. device='0' or device='0,1,2,3'
-            world_size = len(self.args.device.split(","))
+            len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)) and self.device.type in {
             "cuda"
         }:  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
-            world_size = len(self.args.device)
+            len(self.args.device)
         elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
-            world_size = 0
+            pass
         elif self.device.type in {"cuda", "xpu"}:  # i.e. device='cuda' or 'xpu'
-            world_size = 1
+            pass
         else:  # i.e. device=None or device=''
-            world_size = 0  # default to device 0
+            pass  # default to device 0
 
         # Run subprocess if DDP training, else train normally
         if self.ddp:

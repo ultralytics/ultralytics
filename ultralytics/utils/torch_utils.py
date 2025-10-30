@@ -79,7 +79,7 @@ def smart_inference_mode():
     return decorate
 
 
-def autocast(enabled: bool, device: str = None):
+def autocast(enabled: bool, device: str | None = None):
     """
     Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 

@@ -91,7 +91,7 @@ def test_predict_sam_xpu():
         assert len(results) > 0
 
     except Exception as e:
-        pytest.skip(f"Skipping SAM test due to: {str(e)}")
+        pytest.skip(f"Skipping SAM test due to: {e!s}")
 
 
 @pytest.mark.skipif(DEVICE == -1, reason="No XPU devices available")
@@ -126,4 +126,4 @@ def test_export_openvino_matrix():
         # Cleanup
         shutil.rmtree(file, ignore_errors=True)
     except Exception as e:
-        pytest.skip(f"Skipping OpenVINO export test for {task} due to: {str(e)}")
+        pytest.skip(f"Skipping OpenVINO export test for {task} due to: {e!s}")

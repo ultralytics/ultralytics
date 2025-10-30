@@ -18,13 +18,13 @@ MODELS = frozenset([*list(TASK2MODEL.values()), "yolo11n-grayscale.pt"])
 __all__ = (
     "CFG",
     "CUDA_DEVICE_COUNT",
+    "CUDA_DEVICE_COUNT",
+    "CUDA_IS_AVAILABLE",
     "CUDA_IS_AVAILABLE",
     "MODEL",
     "SOURCE",
     "SOURCES_LIST",
     "TMP",
-    "CUDA_IS_AVAILABLE",
-    "CUDA_DEVICE_COUNT",
-    "XPU_IS_AVAILABLE",
     "XPU_DEVICE_COUNT",
+    "XPU_IS_AVAILABLE",
 )

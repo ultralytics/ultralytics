@@ -1155,7 +1155,7 @@ class RandomPerspective:
 
         # Rotation and Scale
         R = np.eye(3, dtype=np.float32)
-        a = 0
+        a = 0.0
         if isinstance(self.degrees, list) and self.degrees and all(isinstance(x, (int, float)) for x in self.degrees):
             a = random.choice(self.degrees)
         elif isinstance(self.degrees, (int, float)):

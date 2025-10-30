@@ -502,7 +502,7 @@ class Pose(Detect):
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
         preds = super()._inference(x)
-        return torch.cat([preds, self.kpts_decode(x["kpt"])], dim=1)
+        return torch.cat([preds, self.kpts_decode(x["kpts"])], dim=1)
 
     def forward_head(
         self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, pose_head: torch.nn.Module
@@ -511,8 +511,7 @@ class Pose(Detect):
         preds = super().forward_head(x, box_head, cls_head)
         if pose_head is not None:
             bs = x[0].shape[0]  # batch size
-            preds = super().forward_head(x, box_head, cls_head)
-            preds["kpt"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
+            preds["kpts"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
         return preds
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
@@ -537,9 +536,10 @@ class Pose(Detect):
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = self.cv4 = None
 
-    def kpts_decode(self, bs: int, kpts: torch.Tensor) -> torch.Tensor:
+    def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
         """Decode keypoints from predictions."""
         ndim = self.kpt_shape[1]
+        bs = kpts.shape[0]
         if self.export:
             if self.format in {
                 "tflite",

@@ -8,9 +8,10 @@ keywords: DOTA8 dataset, Ultralytics, YOLO11, object detection, debugging, train
 
 ## Introduction
 
-Cityscapes dataset for YOLO semseg task is a largescale [semantic segment](https://www.ultralytics.com/glossary/semantic-segmentation) dataset composed of 
+Cityscapes dataset for YOLO semseg task is a largescale [semantic segment](https://www.ultralytics.com/glossary/semantic-segmentation) dataset composed of
 5002 images and 20,000 annotation files. All of the images and files are obtained from about 50 cities. The annotation files contain color anotation image,
 instance ID annotation image, class ID annotation image and polygon json file. In YOLO project, there is color annotation file just adopt for taining, validation and test.
+
 ## Dataset YAML
 
 A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the Cityscape dataset, the `CityEscapeYOLO.yaml` file is maintained at [https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityEscapeYOLO.yaml](https://github.com/kuazhangxiaoai/ultralytics-semantic-segment/blob/semseg/ultralytics/cfg/datasets/CityEscapeYOLO.yaml).
@@ -78,7 +79,7 @@ A special note of gratitude to the team behind the DOTA datasets for their comme
 
 ### What is the Cityscaps dataset and how can it be used?
 
-The Cityscaps dataset is a largescale dataset captured from about 50 cities, which is designed for semantic and instance segment task. 
+The Cityscaps dataset is a largescale dataset captured from about 50 cities, which is designed for semantic and instance segment task.
 The dataset contains 5002 fine-annotated images and their annotation files including color annotaion image, class ID annotation image,
 instance ID image and polygon json file. For usage of YOLO semseg task, the image and color annotation image is adopt for taining, validation, and test.
 Learn more about object detection with [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics).

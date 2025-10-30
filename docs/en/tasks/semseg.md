@@ -9,7 +9,7 @@ model_name: yolo11n-seg
 
 <img width="1024" src="https://release-assets.githubusercontent.com/github-production-release-asset/1046723287/b616d16b-d511-469a-a4e1-c28ab36bc909?sp=r&sv=2018-11-09&sr=b&spr=https&se=2025-10-28T07%3A02%3A05Z&rscd=attachment%3B+filename%3Dstuttgart02-2040x500.png&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2025-10-28T06%3A01%3A42Z&ske=2025-10-28T07%3A02%3A05Z&sks=b&skv=2018-11-09&sig=%2F8PDBV%2FWd0M0%2BpxxoAXV55%2Fn%2Bdq4els%2B57QHIKr5RWc%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc2MTYzMjA1NywibmJmIjoxNzYxNjMxNzU3LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.95gwdg58r7sfUDDxin2n4nQ4edqmwMhAJipyIMKPSAI&response-content-disposition=attachment%3B%20filename%3Dstuttgart02-2040x500.png&response-content-type=application%2Foctet-stream" alt="Semantic segmentation examples">
 
-[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) is a fundamental task in the field of computer vision that aims to classify every pixel in an image, thereby achieving a precise partition of different semantic categories within a scene. 
+[Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) is a fundamental task in the field of computer vision that aims to classify every pixel in an image, thereby achieving a precise partition of different semantic categories within a scene.
 
 Unlike object detection, which only identifies the locations and categories of objects, semantic segmentation provides a finer-grained understanding of visual content — enabling models to know not only what is present, but also where it is.
 
@@ -94,19 +94,19 @@ Validate trained YOLO11n-seg model [accuracy](https://www.ultralytics.com/glossa
 
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
-        
+
         metrics.semseg.precision  # precision
         metrics.semseg.recall  # recall
         metrics.semseg.IoU  # IoU
         metrics.semseg.DiceScore  # DiceScore
-        metrics.semseg.MCR # MCR
+        metrics.semseg.MCR  # MCR
         ```
 
     === "CLI"
 
         ```bash
-        yolo semseg val model=yolo11n-semseg.pt  # val official model
-        yolo semseg val model=path/to/best.pt # val custom model
+        yolo semseg val model=yolo11n-semseg.pt # val official model
+        yolo semseg val model=path/to/best.pt   # val custom model
         ```
 
 ## Predict
@@ -163,8 +163,8 @@ Export a YOLO11n-seg model to a different format like ONNX, CoreML, etc.
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n-semseg.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom trained model
+        yolo export model=yolo11n-semseg.pt format=onnx # export official model
+        yolo export model=path/to/best.pt format=onnx   # export custom trained model
         ```
 
 Available YOLO11-seg export formats are in the table below. You can export to any format using the `format` argument, i.e. `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e. `yolo predict model=yolo11n-seg.onnx`. Usage examples are shown for your model after export completes.
@@ -204,7 +204,7 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 ### What is the difference between semantic segmentation and instance segmentation in YOLO11?
 
 Instance segmentation identify the bounding boxes, countours, and categories of objects, whereas semantic segmentation is designed to predict the category of each pixel in the whole image.
-For segmentation of some specific category just like sky, vegetation, etc, instance segmentation is not good at detecting its bounding box and coutour. Semantic segmentation algorithm 
+For segmentation of some specific category just like sky, vegetation, etc, instance segmentation is not good at detecting its bounding box and coutour. Semantic segmentation algorithm
 can easily segment them from the input image.Besides, the semantic segmentation alogrithm usually has fewer costs than instance segmentation.
 
 ### Why use YOLO11 for semantic segmentation?
@@ -235,8 +235,6 @@ Loading and validating a pretrained YOLO semantic segmentation model is straight
         ```bash
         yolo segment val model=yolo11n-semseg.pt
         ```
-
-
 
 ### How can I export a YOLO semantic segmentation model to ONNX format?
 

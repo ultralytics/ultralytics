@@ -828,7 +828,7 @@ class YOLOEDetect(Detect):
     @smart_inference_mode()
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
-        if txt_feats is None:
+        if txt_feats is None:  # means eliminate one2many branch
             self.cv2 = self.cv3 = None
             return
         if self.is_fused:

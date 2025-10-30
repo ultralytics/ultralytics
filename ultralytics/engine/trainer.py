@@ -331,7 +331,7 @@ class BaseTrainer:
             else:
                 self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
 
-        if world_size > 1:
+        if self.world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
         # Check imgsz

@@ -922,17 +922,35 @@ class YOLOEDetect(Detect):
             return self.forward_lrpc(x, return_mask)
         return super().forward(x)
 
-    # def forward(self, x: list[torch.Tensor], return_mask: bool = False) -> torch.Tensor | tuple:
-    #     """Process features with class prompt embeddings to generate detections."""
-    #     if hasattr(self, "lrpc"):  # for prompt-free inference
-    #         return self.forward_lrpc(x, return_mask)
-    #     for i in range(self.nl):
-    #         x[i] = torch.cat((self.cv2[i](x[i]), self.cv4[i](self.cv3[i](x[i]), x[-1])), 1)
-    #     if self.training:
-    #         return x
-    #     self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
-    #     y = self._inference(x)
-    #     return y if self.export else (y, x)
+    def forward_lrpc_head(self, x: list[torch.Tensor], return_mask: bool = False) -> torch.Tensor | tuple:
+        """Process features with fused text embeddings to generate detections for prompt-free model."""
+        masks = []
+        bs = x[0].shape
+        cv2 = self.cv2 if not self.end2end else self.one2one_cv2
+        cv3 = self.cv3 if not self.end2end else self.one2one_cv2
+        for i in range(self.nl):
+            cls_feat = cv3[i](x[i])
+            loc_feat = cv2[i](x[i])
+            assert isinstance(self.lrpc[i], LRPCHead)
+            x[i], mask = self.lrpc[i](
+                cls_feat,
+                loc_feat,
+                0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
+            )
+            masks.append(mask)
+        masks = torch.cat(masks)
+        preds = dict(
+            boxes=torch.cat([xi[0].view(bs, self.reg_max * 4, -1) for xi in x], 2),
+            scores=torch.cat([xi[1] for xi in x], 2),
+            feats=x,
+        )
+        y = self._inference(preds)
+        if self.end2end:
+            y = self.postprocess(y.permute(0, 2, 1))
+        if return_mask:
+            return (y, mask) if self.export else ((y, preds), mask)
+        else:
+            return y if self.export else (y, preds)
 
     @property
     def one2many(self):

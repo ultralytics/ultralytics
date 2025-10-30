@@ -23,7 +23,7 @@ project: # (str, optional) project name for results root
 name: # (str, optional) experiment name; results in 'project/name'
 exist_ok: False # (bool) overwrite existing 'project/name' if True
 pretrained: True # (bool | str) use pretrained weights (bool) or load weights from path (str)
-optimizer: auto # (str) optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, or auto
+optimizer: MuSGD # (str) optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, or auto
 verbose: True # (bool) print verbose logs during training/val
 seed: 0 # (int) random seed for reproducibility
 deterministic: True # (bool) enable deterministic ops; reproducible but may be slower

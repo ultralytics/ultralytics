@@ -169,6 +169,8 @@ class RotatedBboxLoss(BboxLoss):
         target_scores: torch.Tensor,
         target_scores_sum: torch.Tensor,
         fg_mask: torch.Tensor,
+        imgsz: torch.Tensor,
+        stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for rotated bounding boxes."""
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
@@ -181,7 +183,17 @@ class RotatedBboxLoss(BboxLoss):
             loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
         else:
-            loss_dfl = torch.tensor(0.0).to(pred_dist.device)
+            target_ltrb = bbox2dist(anchor_points, xywh2xyxy(target_bboxes[..., :4]))
+            target_ltrb = target_ltrb * stride
+            target_ltrb[..., 0::2] /= imgsz[1]
+            target_ltrb[..., 1::2] /= imgsz[0]
+            pred_dist = pred_dist * stride
+            pred_dist[..., 0::2] /= imgsz[1]
+            pred_dist[..., 1::2] /= imgsz[0]
+            loss_dfl = (
+                F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
+            )
+            loss_dfl = loss_dfl.sum() / target_scores_sum
 
         return loss_iou, loss_dfl
 

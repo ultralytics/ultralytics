@@ -101,10 +101,7 @@ Multi-object tracking is a computer vision technique that involves detecting and
 
 is a fundamental task in the field of computer vision that aims to classify every pixel in an image, thereby achieving a precise partition of different semantic categories within a scene. Unlike object detection, which only identifies the locations and categories of objects, semantic segmentation provides a finer-grained understanding of visual content and enabling models to know not only what is present, but also where it is.
 
-
 - [Cityscapes](semseg/cityscapes.md): A popular semantic segment imagery dataset from 50 cities, which has high quality pixel-level annotations of 5,000 images.
- 
-
 
 ## Contribute New Datasets
 

@@ -27,14 +27,6 @@ YOLO11 pretrained MDE models are shown here. These models extend the standard YO
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
-| Model       | size<br><sup>(pixels)</sup> | mAP<sup>val</sup><br>50-95 | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ----------- | --------------------------- | -------------------------- | ------------------------ | ----------------------- |
-| YOLO11n-mde | 640                         | 51.9                       | 2.6                      | 6.6                     |
-| YOLO11s-mde | 640                         | 62.6                       | 9.5                      | 21.7                    |
-| YOLO11m-mde | 640                         | 64.9                       | 20.1                     | 68.5                    |
-| YOLO11l-mde | 640                         | 53.1                       | 25.4                     | 87.6                    |
-| YOLO11x-mde | 640                         | 63.6                       | 57.0                     | 196.0                   |
-
 - **mAP<sup>val</sup>** values are for single-model single-scale on [KITTI](https://www.cvlibs.net/datasets/kitti/) validation set. <br>Reproduce by `yolo mde val data=kitti_mde.yaml device=0`
 
 ## Train

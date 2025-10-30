@@ -1228,7 +1228,9 @@ class YOLOEModel(DetectionModel):
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = (
-                TVPDetectLoss(self, tal_topk=1 if getattr(self, "end2end", False) else 10)
+                E2ELoss(self, TVPDetectLoss)
+                if getattr(self, "end2end", False)
+                else TVPDetectLoss(self)
                 if visual_prompt
                 else self.init_criterion()
             )
@@ -1280,7 +1282,9 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = (
-                TVPSegmentLoss(self, tal_topk=1 if getattr(self, "end2end", False) else 10)
+                E2ELoss(self, TVPSegmentLoss)
+                if getattr(self, "end2end", False)
+                else TVPSegmentLoss(self)
                 if visual_prompt
                 else self.init_criterion()
             )

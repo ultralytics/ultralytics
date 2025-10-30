@@ -815,13 +815,21 @@ class TVPDetectLoss:
         """Initialize TVPDetectLoss with task-prompt and visual-prompt criteria using the provided model."""
         self.vp_criterion = v8DetectionLoss(model, tal_topk)
         # NOTE: store following info as it's changeable in __call__
+        self.hyp = self.vp_criterion.hyp
         self.ori_nc = self.vp_criterion.nc
         self.ori_no = self.vp_criterion.no
         self.ori_reg_max = self.vp_criterion.reg_max
 
+    def parse_output(self, preds) -> dict[str, torch.Tensor]:
+        """Parse model predictions to extract features."""
+        return self.vp_criterion.parse_output(preds)
+
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt detection."""
-        preds = self.vp_criterion.parse_output(preds)
+        return self.loss(self.parse_output(preds), batch)
+
+    def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Calculate the loss for text-visual prompt detection."""
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
         if self.ori_nc == preds["scores"].shape[1]:
@@ -852,10 +860,14 @@ class TVPSegmentLoss(TVPDetectLoss):
         """Initialize TVPSegmentLoss with task-prompt and visual-prompt criteria using the provided model."""
         super().__init__(model)
         self.vp_criterion = v8SegmentationLoss(model, tal_topk)
+        self.hyp = self.vp_criterion.hyp
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the loss for text-visual prompt segmentation."""
-        preds = self.vp_criterion.parse_output(preds)
+        return self.loss(self.parse_output(preds), batch)
+
+    def loss(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+        """Calculate the loss for text-visual prompt detection."""
         assert self.ori_reg_max == self.vp_criterion.reg_max  # TODO: remove it
 
         if self.ori_nc == preds["scores"].shape[1]:

@@ -1,4 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
+
+from typing import Optional
 
 from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
@@ -7,20 +10,20 @@ from ultralytics.hub.utils import HUB_API_ROOT, HUB_WEB_ROOT, PREFIX
 from ultralytics.utils import LOGGER, SETTINGS, checks
 
 __all__ = (
-    "PREFIX",
     "HUB_WEB_ROOT",
+    "PREFIX",
     "HUBTrainingSession",
-    "login",
-    "logout",
-    "reset_model",
+    "check_dataset",
     "export_fmts_hub",
     "export_model",
     "get_export",
-    "check_dataset",
+    "login",
+    "logout",
+    "reset_model",
 )
 
 
-def login(api_key: str = None, save: bool = True) -> bool:
+def login(api_key: str | None = None, save: bool = True) -> bool:
     """
     Log in to the Ultralytics HUB API using the provided API key.
 
@@ -85,7 +88,7 @@ def export_fmts_hub():
     """Return a list of HUB-supported export formats."""
     from ultralytics.engine.exporter import export_formats
 
-    return list(export_formats()["Argument"][1:]) + ["ultralytics_tflite", "ultralytics_coreml"]
+    return [*list(export_formats()["Argument"][1:]), "ultralytics_tflite", "ultralytics_coreml"]
 
 
 def export_model(model_id: str = "", format: str = "torchscript"):

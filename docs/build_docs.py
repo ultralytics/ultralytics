@@ -20,6 +20,8 @@ Note:
     - Requires Python and MkDocs to be installed and configured.
 """
 
+from __future__ import annotations
+
 import os
 import re
 import shutil
@@ -194,7 +196,7 @@ def update_docs_html():
         shutil.rmtree(macros_dir)
 
 
-def update_docs_soup(content: str, html_file: Path = None, max_title_length: int = 70) -> str:
+def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
     soup = BeautifulSoup(content, "html.parser")
     modified = False
@@ -329,7 +331,7 @@ def minify_files(html: bool = True, css: bool = True, js: bool = True):
         if js:
             import jsmin
     except ImportError as e:
-        LOGGER.info(f"Missing required package: {str(e)}")
+        LOGGER.info(f"Missing required package: {e!s}")
         return
 
     stats = {}

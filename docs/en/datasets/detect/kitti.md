@@ -23,24 +23,25 @@ Ultralytics defines the Kitti dataset configuration using a YAML file. This file
 The dataset typically contains 7,481 training images and 7,518 test images, with annotations covering classes such as Car, Pedestrian, Cyclist, Truck, Tram, and Misc.
 
 ## Usage
+
 To train a YOLO11n model on the Kitti dataset for 100 epochs with an image size of 640, use the following commands. For more details, refer to the Training page.
 
 !!! example "Train Example"
 
     === "Python"
-    
+
         ```python
         from ultralytics import YOLO
-    
+
         # Load a pretrained YOLO11 model
         model = YOLO("yolo11n.pt")
-    
+
         # Train on Kitti dataset
         results = model.train(data="kitti.yaml", epochs=100, imgsz=640)
         ```
-    
+
     === "CLI"
-    
+
         ```bash
         yolo detect train data=kitti.yaml model=yolo11n.pt epochs=100 imgsz=640
         ```
@@ -62,7 +63,7 @@ If you use the Kitti dataset in your research, please cite the following paper:
 !!! quote
 
     === "BibTeX"
-    
+
         ```bibtex
         @article{Geiger2013IJRR,
             author = {Andreas Geiger and Philip Lenz and Christoph Stiller and Raquel Urtasun},

@@ -826,14 +826,18 @@ class YOLOEDetect(Detect):
         self.embed = embed
 
     @smart_inference_mode()
-    def fuse(self, txt_feats: torch.Tensor):
+    def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
+        if txt_feats is None:
+            self.cv2 = self.cv3 = None
+            return
         if self.is_fused:
             return
 
+        cv3 = self.cv3 if not self.end2end else self.one2one_cv3
         assert not self.training
         txt_feats = txt_feats.to(torch.float32).squeeze(0)
-        for cls_head, bn_head in zip(self.cv3, self.cv4):
+        for cls_head, bn_head in zip(cv3, self.cv4):
             assert isinstance(cls_head, nn.Sequential)
             assert isinstance(bn_head, BNContrastiveHead)
             conv = cls_head[-1]
@@ -941,6 +945,7 @@ class YOLOEDetect(Detect):
         scores = torch.cat(
             [contrastive_head[i](cls_head[i](x[i]), x[-1]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1
         )
+        print(boxes.shape, scores.shape)
         self.no = self.nc + self.reg_max * 4  # self.nc could be changed when inference with different texts
         return dict(boxes=boxes, scores=scores, feats=x[:3])
 

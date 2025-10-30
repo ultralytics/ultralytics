@@ -230,6 +230,7 @@ class TorchNMS:
             col_idx = torch.arange(n, device=boxes.device).view(1, -1).expand(n, -1)
             upper_mask = row_idx < col_idx
             ious = ious * upper_mask
+            scores.copy_(scores[sorted_idx])  # update original tensor for NMSModel
             # Zeroing these scores ensures the additional indices would not affect the final results
             scores[~((ious >= iou_threshold).sum(0) <= 0)] = 0
             # NOTE: return indices with fixed length to avoid TFLite reshape error

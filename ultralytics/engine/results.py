@@ -561,7 +561,7 @@ class Results(SimpleClass, DataExportMixin):
                 if pred_boxes and color_mode == "class"
                 else reversed(range(len(pred_masks)))
             )
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
+            annotator.masks(pred_masks.data, colors=[colors(12 if x==0 else 18, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
@@ -574,7 +574,7 @@ class Results(SimpleClass, DataExportMixin):
                     box,
                     label,
                     color=colors(
-                        c
+                        12 if c == 0 else 18
                         if color_mode == "class"
                         else id
                         if id is not None

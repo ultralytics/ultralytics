@@ -409,9 +409,10 @@ class DetectionModel(BaseModel):
 
             def _forward(x):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
+                output = self.forward(x)
                 if self.end2end:
-                    return self.forward(x)["one2many"]
-                return self.forward(x)[0] if isinstance(m, (Segment, YOLOESegment, Pose, OBB)) else self.forward(x)
+                    output = output["one2many"]
+                return output["feats"]
 
             self.model.eval()  # Avoid changing batch statistics until training begins
             m.training = True  # Setting it to True to properly return strides
@@ -1556,7 +1557,7 @@ def parse_model(d, ch, verbose=True):
     # Args
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
-    nc, act, scales = (d.get(x) for x in ("nc", "activation", "scales"))
+    nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     if scales:
@@ -1683,7 +1684,7 @@ def parse_model(d, ch, verbose=True):
         elif m in frozenset(
             {Detect, WorldDetect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB, ImagePoolingAttn, v10Detect}
         ):
-            args.append([ch[x] for x in f])
+            args.extend([end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
             if m in {Detect, YOLOEDetect, Segment, YOLOESegment, Pose, OBB}:

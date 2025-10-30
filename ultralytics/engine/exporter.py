@@ -105,10 +105,6 @@ from ultralytics.utils.checks import (
     is_intel,
     is_sudo_available,
 )
-from ultralytics.utils.downloads import attempt_download_asset
-from ultralytics.utils.export import onnx2engine, torch2imx, torch2onnx
-from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.downloads import get_github_assets, safe_download
 from ultralytics.utils.export import (
     keras2pb,
     onnx2engine,

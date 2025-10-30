@@ -109,7 +109,7 @@ The performance of MobileSAM and the original SAM is illustrated below using bot
 
 ![Image with Box as Prompt](https://github.com/ultralytics/docs/releases/download/0/mask-box.avif)
 
-MobileSAM is approximately 5 times smaller and 7 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is approximately 7 times smaller and 5 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 
 ## Testing MobileSAM in Ultralytics
 
@@ -187,7 +187,7 @@ To automatically annotate your dataset with the Ultralytics framework, use the `
 
 {% include "macros/sam-auto-annotate.md" %}
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If MobileSAM is helpful in your research or development, please consider citing the following paper:
 

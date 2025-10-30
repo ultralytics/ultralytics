@@ -10,6 +10,17 @@ keywords: YOLO11, deployment options, export formats, PyTorch, TensorRT, OpenVIN
 
 You've come a long way on your journey with YOLO11. You've diligently collected data, meticulously annotated it, and put in the hours to train and rigorously evaluate your custom YOLO11 model. Now, it's time to put your model to work for your specific application, use case, or project. But there's a critical decision that stands before you: how to export and deploy your model effectively.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/QkCsj2SvZc4"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Choose the Best Ultralytics YOLO11 Deployment Format for Your Project | TensorRT | OpenVINO 🚀
+</p>
+
 This guide walks you through YOLO11's deployment options and the essential factors to consider to choose the right option for your project.
 
 ## How to Select the Right Deployment Option for Your YOLO11 Model
@@ -191,7 +202,7 @@ NCNN is a high-performance neural network inference framework optimized for the 
 - **Performance Benchmarks**: Highly optimized for mobile platforms, offering efficient inference on ARM-based devices.
 - **Compatibility and Integration**: Suitable for applications on mobile phones and embedded systems with ARM architecture.
 - **Community Support and Ecosystem**: Supported by a niche but active community focused on mobile and embedded ML applications.
-- **Case Studies**: Favoured for mobile applications where efficiency and speed are critical on Android and other ARM-based systems.
+- **Case Studies**: Favored for mobile applications where efficiency and speed are critical on Android and other ARM-based systems.
 - **Maintenance and Updates**: Continuously improved to maintain high performance on a range of ARM devices.
 - **Security Considerations**: Focuses on running locally on the device, leveraging the inherent security of on-device processing.
 - **Hardware Acceleration**: Tailored for ARM CPUs and GPUs, with specific optimizations for these architectures.

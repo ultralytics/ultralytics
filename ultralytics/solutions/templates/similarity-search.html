@@ -35,7 +35,6 @@
         align-items: center;
         gap: 1rem;
         margin-bottom: 3rem;
-        animation: fadeIn 1s ease-in-out;
       }
 
       input[type="text"] {
@@ -78,7 +77,6 @@
         gap: 1.5rem;
         max-width: 1600px;
         margin: auto;
-        animation: fadeInUp 1s ease-in-out;
       }
 
       .card {
@@ -102,30 +100,22 @@
         object-fit: cover;
         display: block;
       }
-
-      @keyframes fadeIn {
-        0% {
-          opacity: 0;
-          transform: scale(0.95);
-        }
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
-
-      @keyframes fadeInUp {
-        0% {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        100% {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
     </style>
   </head>
+  <script>
+    function filterResults(k) {
+      const cards = document.querySelectorAll(".grid .card");
+      cards.forEach((card, idx) => {
+        card.style.display = idx < k ? "block" : "none";
+      });
+      const buttons = document.querySelectorAll(".topk-btn");
+      buttons.forEach((btn) => btn.classList.remove("active"));
+      event.target.classList.add("active");
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      filterResults(10);
+    });
+  </script>
   <body>
     <div style="text-align: center; margin-bottom: 1rem">
       <img
@@ -146,6 +136,23 @@
         required
       />
       <button type="submit">Search</button>
+      {% if results %}
+      <div class="top-k-buttons">
+        <button type="button" class="topk-btn" onclick="filterResults(5)">
+          Top 5
+        </button>
+        <button
+          type="button"
+          class="topk-btn active"
+          onclick="filterResults(10)"
+        >
+          Top 10
+        </button>
+        <button type="button" class="topk-btn" onclick="filterResults(30)">
+          Top 30
+        </button>
+      </div>
+      {% endif %}
     </form>
 
     <!-- Search results grid -->

@@ -10,10 +10,11 @@ import cv2
 import numpy as np
 import pytest
 
-from tests import MODEL, TMP
+from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, LINUX, checks
+from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
+from ultralytics.utils.torch_utils import TORCH_2_4
 
 # Pre-defined arguments values
 SHOW = False
@@ -28,142 +29,9 @@ REGION = [(10, 200), (540, 200), (540, 180), (10, 180)]  # for object counting, 
 HORIZONTAL_LINE = [(10, 200), (540, 200)]  # for object counting
 VERTICAL_LINE = [(320, 0), (320, 400)]  # for object counting
 
-# Test configs for each solution : (name, class, needs_frame_count, video, kwargs)
-SOLUTIONS = [
-    (
-        "ObjectCounter",
-        solutions.ObjectCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "ObjectCounter",
-        solutions.ObjectCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": HORIZONTAL_LINE, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "ObjectCounterVertical",
-        solutions.ObjectCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": VERTICAL_LINE, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "ObjectCounterwithOBB",
-        solutions.ObjectCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": "yolo11n-obb.pt", "show": SHOW},
-    ),
-    (
-        "Heatmap",
-        solutions.Heatmap,
-        False,
-        DEMO_VIDEO,
-        {"colormap": cv2.COLORMAP_PARULA, "model": MODEL, "show": SHOW, "region": None},
-    ),
-    (
-        "HeatmapWithRegion",
-        solutions.Heatmap,
-        False,
-        DEMO_VIDEO,
-        {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "SpeedEstimator",
-        solutions.SpeedEstimator,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "QueueManager",
-        solutions.QueueManager,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "LineAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "line", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
-    ),
-    (
-        "PieAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "pie", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
-    ),
-    (
-        "BarAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "bar", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
-    ),
-    (
-        "AreaAnalytics",
-        solutions.Analytics,
-        True,
-        DEMO_VIDEO,
-        {"analytics_type": "area", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
-    ),
-    ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
-    (
-        "ObjectCropper",
-        solutions.ObjectCropper,
-        False,
-        CROP_VIDEO,
-        {"crop_dir": str(TMP / "cropped-detections"), "model": MODEL, "show": SHOW},
-    ),
-    (
-        "ObjectBlurrer",
-        solutions.ObjectBlurrer,
-        False,
-        DEMO_VIDEO,
-        {"blur_ratio": 0.02, "model": MODEL, "show": SHOW},
-    ),
-    (
-        "InstanceSegmentation",
-        solutions.InstanceSegmentation,
-        False,
-        DEMO_VIDEO,
-        {"model": "yolo11n-seg.pt", "show": SHOW},
-    ),
-    ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW}),
-    (
-        "RegionCounter",
-        solutions.RegionCounter,
-        False,
-        DEMO_VIDEO,
-        {"region": REGION, "model": MODEL, "show": SHOW},
-    ),
-    ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [6, 8, 10], "show": SHOW}),
-    (
-        "ParkingManager",
-        solutions.ParkingManagement,
-        False,
-        PARKING_VIDEO,
-        {"model": str(TMP / PARKING_MODEL), "show": SHOW, "json_file": str(TMP / PARKING_AREAS_JSON)},
-    ),
-    (
-        "StreamlitInference",
-        solutions.Inference,
-        False,
-        None,  # streamlit application don't require video file
-        {},  # streamlit application don't accept arguments
-    ),
-]
 
-
-def process_video(solution, video_path, needs_frame_count=False):
-    """Process video with solution, feeding frames and optional frame count."""
+def process_video(solution, video_path: str, needs_frame_count: bool = False):
+    """Process video with solution, feeding frames and optional frame count to the solution instance."""
     cap = cv2.VideoCapture(video_path)
     assert cap.isOpened(), f"Error reading video file {video_path}"
 
@@ -180,45 +48,175 @@ def process_video(solution, video_path, needs_frame_count=False):
     cap.release()
 
 
-@pytest.mark.skipif(
-    (LINUX and checks.IS_PYTHON_3_11) or IS_RASPBERRYPI,
-    reason="Disabled for testing due to --slow test errors after YOLOE PR.",
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")
+@pytest.mark.parametrize(
+    "name, solution_class, needs_frame_count, video, kwargs",
+    [
+        (
+            "ObjectCounter",
+            solutions.ObjectCounter,
+            False,
+            DEMO_VIDEO,
+            {"region": REGION, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "ObjectCounter",
+            solutions.ObjectCounter,
+            False,
+            DEMO_VIDEO,
+            {"region": HORIZONTAL_LINE, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "ObjectCounterVertical",
+            solutions.ObjectCounter,
+            False,
+            DEMO_VIDEO,
+            {"region": VERTICAL_LINE, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "ObjectCounterwithOBB",
+            solutions.ObjectCounter,
+            False,
+            DEMO_VIDEO,
+            {"region": REGION, "model": "yolo11n-obb.pt", "show": SHOW},
+        ),
+        (
+            "Heatmap",
+            solutions.Heatmap,
+            False,
+            DEMO_VIDEO,
+            {"colormap": cv2.COLORMAP_PARULA, "model": MODEL, "show": SHOW, "region": None},
+        ),
+        (
+            "HeatmapWithRegion",
+            solutions.Heatmap,
+            False,
+            DEMO_VIDEO,
+            {"colormap": cv2.COLORMAP_PARULA, "region": REGION, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "SpeedEstimator",
+            solutions.SpeedEstimator,
+            False,
+            DEMO_VIDEO,
+            {"region": REGION, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "QueueManager",
+            solutions.QueueManager,
+            False,
+            DEMO_VIDEO,
+            {"region": REGION, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "LineAnalytics",
+            solutions.Analytics,
+            True,
+            DEMO_VIDEO,
+            {"analytics_type": "line", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
+        ),
+        (
+            "PieAnalytics",
+            solutions.Analytics,
+            True,
+            DEMO_VIDEO,
+            {"analytics_type": "pie", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
+        ),
+        (
+            "BarAnalytics",
+            solutions.Analytics,
+            True,
+            DEMO_VIDEO,
+            {"analytics_type": "bar", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
+        ),
+        (
+            "AreaAnalytics",
+            solutions.Analytics,
+            True,
+            DEMO_VIDEO,
+            {"analytics_type": "area", "model": MODEL, "show": SHOW, "figsize": (6.4, 3.2)},
+        ),
+        ("TrackZone", solutions.TrackZone, False, DEMO_VIDEO, {"region": REGION, "model": MODEL, "show": SHOW}),
+        (
+            "ObjectCropper",
+            solutions.ObjectCropper,
+            False,
+            CROP_VIDEO,
+            {"temp_crop_dir": "cropped-detections", "model": MODEL, "show": SHOW},
+        ),
+        (
+            "ObjectBlurrer",
+            solutions.ObjectBlurrer,
+            False,
+            DEMO_VIDEO,
+            {"blur_ratio": 0.02, "model": MODEL, "show": SHOW},
+        ),
+        (
+            "InstanceSegmentation",
+            solutions.InstanceSegmentation,
+            False,
+            DEMO_VIDEO,
+            {"model": "yolo11n-seg.pt", "show": SHOW},
+        ),
+        ("VisionEye", solutions.VisionEye, False, DEMO_VIDEO, {"model": MODEL, "show": SHOW}),
+        (
+            "RegionCounter",
+            solutions.RegionCounter,
+            False,
+            DEMO_VIDEO,
+            {"region": REGION, "model": MODEL, "show": SHOW},
+        ),
+        ("AIGym", solutions.AIGym, False, POSE_VIDEO, {"kpts": [6, 8, 10], "show": SHOW}),
+        (
+            "ParkingManager",
+            solutions.ParkingManagement,
+            False,
+            PARKING_VIDEO,
+            {"temp_model": str(PARKING_MODEL), "show": SHOW, "temp_json_file": str(PARKING_AREAS_JSON)},
+        ),
+        (
+            "StreamlitInference",
+            solutions.Inference,
+            False,
+            None,  # streamlit application doesn't require video file
+            {},  # streamlit application doesn't accept arguments
+        ),
+    ],
 )
-@pytest.mark.parametrize("name, solution_class, needs_frame_count, video, kwargs", SOLUTIONS)
-def test_solution(name, solution_class, needs_frame_count, video, kwargs):
-    """Test individual Ultralytics solution."""
+def test_solution(name, solution_class, needs_frame_count, video, kwargs, tmp_path):
+    """Test individual Ultralytics solution with video processing and parameter validation."""
     if video:
         if name != "ObjectCounterVertical":
-            safe_download(url=f"{ASSETS_URL}/{video}", dir=TMP)
+            safe_download(url=f"{ASSETS_URL}/{video}", dir=tmp_path)
         else:
-            safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=TMP)
+            safe_download(url=f"{ASSETS_URL}/{VERTICAL_VIDEO}", dir=tmp_path)
     if name == "ParkingManager":
-        safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=TMP)
-        safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=TMP)
+        safe_download(url=f"{ASSETS_URL}/{PARKING_AREAS_JSON}", dir=tmp_path)
+        safe_download(url=f"{ASSETS_URL}/{PARKING_MODEL}", dir=tmp_path)
+
     elif name == "StreamlitInference":
         if checks.check_imshow():  # do not merge with elif above
             solution_class(**kwargs).inference()  # requires interactive GUI environment
         return
 
+    # Update kwargs to use tmp_path
+    kwargs_updated = {}
+    for key in kwargs:
+        if key.startswith("temp_"):
+            kwargs_updated[key.replace("temp_", "")] = str(tmp_path / kwargs[key])
+        else:
+            kwargs_updated[key] = kwargs[key]
+
     video = VERTICAL_VIDEO if name == "ObjectCounterVertical" else video
     process_video(
-        solution=solution_class(**kwargs),
-        video_path=str(TMP / video),
+        solution=solution_class(**kwargs_updated),
+        video_path=str(tmp_path / video),
         needs_frame_count=needs_frame_count,
     )
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(checks.IS_PYTHON_3_8, reason="Disabled due to unsupported CLIP dependencies.")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-def test_similarity_search():
-    """Test similarity search solution."""
-    searcher = solutions.VisualAISearch()
-    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
-
-
 def test_left_click_selection():
-    """Test distance calculation left click."""
+    """Test distance calculation left click selection functionality."""
     dc = solutions.DistanceCalculation()
     dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
     dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
@@ -226,16 +224,16 @@ def test_left_click_selection():
 
 
 def test_right_click_reset():
-    """Test distance calculation right click."""
+    """Test distance calculation right click reset functionality."""
     dc = solutions.DistanceCalculation()
     dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
-    assert dc.selected_boxes == {}
+    assert not dc.selected_boxes
     assert dc.left_mouse_count == 0
 
 
 def test_parking_json_none():
-    """Test that ParkingManagement skips or errors cleanly when no JSON is provided."""
+    """Test that ParkingManagement handles missing JSON gracefully."""
     im0 = np.zeros((640, 480, 3), dtype=np.uint8)
     try:
         parkingmanager = solutions.ParkingManagement(json_path=None)
@@ -248,7 +246,7 @@ def test_analytics_graph_not_supported():
     """Test that unsupported analytics type raises ModuleNotFoundError."""
     try:
         analytics = solutions.Analytics(analytics_type="test")  # 'test' is unsupported
-        analytics.process(im0=None, frame_number=0)
+        analytics.process(im0=np.zeros((640, 480, 3), dtype=np.uint8), frame_number=0)
         assert False, "Expected ModuleNotFoundError for unsupported chart type"
     except ModuleNotFoundError as e:
         assert "test chart is not supported" in str(e)
@@ -269,7 +267,7 @@ def test_config_update_method_with_invalid_argument():
         obj.update(invalid_key=123)
         assert False, "Expected ValueError for invalid update argument"
     except ValueError as e:
-        assert "❌ invalid_key is not a valid solution argument" in str(e)
+        assert "is not a valid solution argument" in str(e)
 
 
 def test_plot_with_no_masks():
@@ -300,6 +298,16 @@ def test_streamlit_handle_video_upload_creates_file():
     os.remove("ultralytics.mp4")
 
 
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
+def test_similarity_search(tmp_path):
+    """Test similarity search solution with sample images and text query."""
+    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=tmp_path)  # 4 dog images for testing in a zip file
+    searcher = solutions.VisualAISearch(data=str(tmp_path / "4-imgs-similaritysearch"))
+    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
+
+
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_app_init():
     """Test SearchApp initializes with required attributes."""
@@ -308,6 +316,7 @@ def test_similarity_search_app_init():
     assert hasattr(app, "run")
 
 
+@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
 def test_similarity_search_complete(tmp_path):
     """Test VisualAISearch end-to-end with sample image and query."""

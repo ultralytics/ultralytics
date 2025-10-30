@@ -1,5 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
+
 import torch
 
 from ultralytics.data import YOLODataset
@@ -16,6 +21,22 @@ class RTDETRDataset(YOLODataset):
 
     This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
     real-time detection and tracking tasks.
+
+    Attributes:
+        augment (bool): Whether to apply data augmentation.
+        rect (bool): Whether to use rectangular training.
+        use_segments (bool): Whether to use segmentation masks.
+        use_keypoints (bool): Whether to use keypoint annotations.
+        imgsz (int): Target image size for training.
+
+    Methods:
+        load_image: Load one image from dataset index.
+        build_transforms: Build transformation pipeline for the dataset.
+
+    Examples:
+        Initialize an RT-DETR dataset
+        >>> dataset = RTDETRDataset(img_path="path/to/images", imgsz=640)
+        >>> image, hw = dataset.load_image(0)
     """
 
     def __init__(self, *args, data=None, **kwargs):
@@ -27,7 +48,7 @@ class RTDETRDataset(YOLODataset):
 
         Args:
             *args (Any): Variable length argument list passed to the parent YOLODataset class.
-            data (Dict | None): Dictionary containing dataset information. If None, default values will be used.
+            data (dict | None): Dictionary containing dataset information. If None, default values will be used.
             **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
         """
         super().__init__(*args, data=data, **kwargs)
@@ -41,11 +62,12 @@ class RTDETRDataset(YOLODataset):
             rect_mode (bool, optional): Whether to use rectangular mode for batch inference.
 
         Returns:
-            im (numpy.ndarray): The loaded image.
+            im (torch.Tensor): The loaded image.
             resized_hw (tuple): Height and width of the resized image with shape (2,).
 
         Examples:
-            >>> dataset = RTDETRDataset(...)
+            Load an image from the dataset
+            >>> dataset = RTDETRDataset(img_path="path/to/images")
             >>> image, hw = dataset.load_image(0)
         """
         return super().load_image(i=i, rect_mode=rect_mode)
@@ -90,13 +112,22 @@ class RTDETRValidator(DetectionValidator):
     The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
     post-processing, and updates evaluation metrics accordingly.
 
+    Attributes:
+        args (Namespace): Configuration arguments for validation.
+        data (dict): Dataset configuration dictionary.
+
+    Methods:
+        build_dataset: Build an RTDETR Dataset for validation.
+        postprocess: Apply Non-maximum suppression to prediction outputs.
+
     Examples:
+        Initialize and run RT-DETR validation
         >>> from ultralytics.models.rtdetr import RTDETRValidator
         >>> args = dict(model="rtdetr-l.pt", data="coco8.yaml")
         >>> validator = RTDETRValidator(args=args)
         >>> validator()
 
-    Note:
+    Notes:
         For further details on the attributes and methods, refer to the parent DetectionValidator class.
     """
 
@@ -106,7 +137,8 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             img_path (str): Path to the folder containing images.
-            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
+            mode (str, optional): `train` mode or `val` mode, users are able to customize different augmentations for
+                each mode.
             batch (int, optional): Size of batches, this is for `rect`.
 
         Returns:
@@ -124,15 +156,21 @@ class RTDETRValidator(DetectionValidator):
             data=self.data,
         )
 
-    def postprocess(self, preds):
+    def postprocess(
+        self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
+    ) -> list[dict[str, torch.Tensor]]:
         """
         Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (List | Tuple | torch.Tensor): Raw predictions from the model.
+            preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
+                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
 
         Returns:
-            (List[torch.Tensor]): List of processed predictions for each image in batch.
+            (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
+                - 'bboxes': Tensor of shape (N, 4) with bounding box coordinates
+                - 'conf': Tensor of shape (N,) with confidence scores
+                - 'cls': Tensor of shape (N,) with class indices
         """
         if not isinstance(preds, (list, tuple)):  # list for PyTorch inference but list[0] Tensor for export inference
             preds = [preds, None]
@@ -149,43 +187,32 @@ class RTDETRValidator(DetectionValidator):
             pred = pred[score.argsort(descending=True)]
             outputs[i] = pred[score > self.args.conf]
 
-        return outputs
+        return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
-    def _prepare_batch(self, si, batch):
+    def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
         """
-        Prepares a batch for validation by applying necessary transformations.
+        Serialize YOLO predictions to COCO json format.
 
         Args:
-            si (int): Batch index.
-            batch (dict): Batch data containing images and annotations.
-
-        Returns:
-            (dict): Prepared batch with transformed annotations.
+            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
+                with bounding box coordinates, confidence scores, and class predictions.
+            pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        idx = batch["batch_idx"] == si
-        cls = batch["cls"][idx].squeeze(-1)
-        bbox = batch["bboxes"][idx]
-        ori_shape = batch["ori_shape"][si]
-        imgsz = batch["img"].shape[2:]
-        ratio_pad = batch["ratio_pad"][si]
-        if len(cls):
-            bbox = ops.xywh2xyxy(bbox)  # target boxes
-            bbox[..., [0, 2]] *= ori_shape[1]  # native-space pred
-            bbox[..., [1, 3]] *= ori_shape[0]  # native-space pred
-        return {"cls": cls, "bbox": bbox, "ori_shape": ori_shape, "imgsz": imgsz, "ratio_pad": ratio_pad}
-
-    def _prepare_pred(self, pred, pbatch):
-        """
-        Prepares predictions by scaling bounding boxes to original image dimensions.
-
-        Args:
-            pred (torch.Tensor): Raw predictions.
-            pbatch (dict): Prepared batch information.
-
-        Returns:
-            (torch.Tensor): Predictions scaled to original image dimensions.
-        """
-        predn = pred.clone()
-        predn[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        predn[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        return predn.float()
+        path = Path(pbatch["im_file"])
+        stem = path.stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        box = predn["bboxes"].clone()
+        box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
+        box[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
+        box = ops.xyxy2xywh(box)  # xywh
+        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+        for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
+            self.jdict.append(
+                {
+                    "image_id": image_id,
+                    "file_name": path.name,
+                    "category_id": self.class_map[int(c)],
+                    "bbox": [round(x, 3) for x in b],
+                    "score": round(s, 5),
+                }
+            )

@@ -4,9 +4,10 @@ import torch
 from PIL import Image
 
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils import DEFAULT_CFG, checks
+from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import scale_masks
+from ultralytics.utils.torch_utils import TORCH_1_10
 
 from .utils import adjust_bboxes_to_image_border
 
@@ -26,10 +27,9 @@ class FastSAMPredictor(SegmentationPredictor):
         clip_preprocess (Any, optional): CLIP preprocessing function for images, loaded on demand.
 
     Methods:
-        postprocess: Applies box postprocessing for FastSAM predictions.
-        prompt: Performs image segmentation inference based on various prompt types.
-        _clip_inference: Performs CLIP inference to calculate similarity between images and text prompts.
-        set_prompts: Sets prompts to be used during inference.
+        postprocess: Apply postprocessing to FastSAM predictions and handle prompts.
+        prompt: Perform image segmentation inference based on various prompt types.
+        set_prompts: Set prompts to be used during inference.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
@@ -41,7 +41,7 @@ class FastSAMPredictor(SegmentationPredictor):
         optimized for single-class segmentation.
 
         Args:
-            cfg (dict): Configuration for the predictor. Defaults to Ultralytics DEFAULT_CFG.
+            cfg (dict): Configuration for the predictor.
             overrides (dict, optional): Configuration overrides.
             _callbacks (list, optional): List of callback functions.
         """
@@ -53,12 +53,12 @@ class FastSAMPredictor(SegmentationPredictor):
         Apply postprocessing to FastSAM predictions and handle prompts.
 
         Args:
-            preds (List[torch.Tensor]): Raw predictions from the model.
+            preds (list[torch.Tensor]): Raw predictions from the model.
             img (torch.Tensor): Input image tensor that was fed to the model.
-            orig_imgs (List[numpy.ndarray]): Original images before preprocessing.
+            orig_imgs (list[np.ndarray]): Original images before preprocessing.
 
         Returns:
-            (List[Results]): Processed results with prompts applied.
+            (list[Results]): Processed results with prompts applied.
         """
         bboxes = self.prompts.pop("bboxes", None)
         points = self.prompts.pop("points", None)
@@ -81,14 +81,14 @@ class FastSAMPredictor(SegmentationPredictor):
         Perform image segmentation inference based on cues like bounding boxes, points, and text prompts.
 
         Args:
-            results (Results | List[Results]): Original inference results from FastSAM models without any prompts.
-            bboxes (np.ndarray | List, optional): Bounding boxes with shape (N, 4), in XYXY format.
-            points (np.ndarray | List, optional): Points indicating object locations with shape (N, 2), in pixels.
-            labels (np.ndarray | List, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
-            texts (str | List[str], optional): Textual prompts, a list containing string objects.
+            results (Results | list[Results]): Original inference results from FastSAM models without any prompts.
+            bboxes (np.ndarray | list, optional): Bounding boxes with shape (N, 4), in XYXY format.
+            points (np.ndarray | list, optional): Points indicating object locations with shape (N, 2), in pixels.
+            labels (np.ndarray | list, optional): Labels for point prompts, shape (N, ). 1 = foreground, 0 = background.
+            texts (str | list[str], optional): Textual prompts, a list containing string objects.
 
         Returns:
-            (List[Results]): Output results filtered and determined by the provided prompts.
+            (list[Results]): Output results filtered and determined by the provided prompts.
         """
         if bboxes is None and points is None and texts is None:
             return results
@@ -101,7 +101,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 continue
             masks = result.masks.data
             if masks.shape[1:] != result.orig_shape:
-                masks = scale_masks(masks[None], result.orig_shape)[0]
+                masks = (scale_masks(masks[None].float(), result.orig_shape)[0] > 0.5).byte()
             # bboxes prompt
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
@@ -120,7 +120,7 @@ class FastSAMPredictor(SegmentationPredictor):
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
                 assert len(labels) == len(points), (
-                    f"Excepted `labels` got same size as `point`, but got {len(labels)} and {len(points)}"
+                    f"Expected `labels` with same size as `point`, but got {len(labels)} and {len(points)}"
                 )
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
@@ -136,7 +136,7 @@ class FastSAMPredictor(SegmentationPredictor):
                 crop_ims, filter_idx = [], []
                 for i, b in enumerate(result.boxes.xyxy.tolist()):
                     x1, y1, x2, y2 = (int(x) for x in b)
-                    if masks[i].sum() <= 100:
+                    if (masks[i].sum() if TORCH_1_10 else masks[i].sum(0).sum()) <= 100:  # torch 1.9 bug workaround
                         filter_idx.append(i)
                         continue
                     crop_ims.append(Image.fromarray(result.orig_img[y1:y2, x1:x2, ::-1]))
@@ -155,26 +155,20 @@ class FastSAMPredictor(SegmentationPredictor):
         Perform CLIP inference to calculate similarity between images and text prompts.
 
         Args:
-            images (List[PIL.Image]): List of source images, each should be PIL.Image with RGB channel order.
-            texts (List[str]): List of prompt texts, each should be a string object.
+            images (list[PIL.Image]): List of source images, each should be PIL.Image with RGB channel order.
+            texts (list[str]): List of prompt texts, each should be a string object.
 
         Returns:
             (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).
         """
-        try:
-            import clip
-        except ImportError:
-            checks.check_requirements("git+https://github.com/ultralytics/CLIP.git")
-            import clip
-        if (not hasattr(self, "clip_model")) or (not hasattr(self, "clip_preprocess")):
-            self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
-        images = torch.stack([self.clip_preprocess(image).to(self.device) for image in images])
-        tokenized_text = clip.tokenize(texts).to(self.device)
-        image_features = self.clip_model.encode_image(images)
-        text_features = self.clip_model.encode_text(tokenized_text)
-        image_features /= image_features.norm(dim=-1, keepdim=True)  # (N, 512)
-        text_features /= text_features.norm(dim=-1, keepdim=True)  # (M, 512)
-        return (image_features * text_features[:, None]).sum(-1)  # (M, N)
+        from ultralytics.nn.text_model import CLIP
+
+        if not hasattr(self, "clip"):
+            self.clip = CLIP("ViT-B/32", device=self.device)
+        images = torch.stack([self.clip.image_preprocess(image).to(self.device) for image in images])
+        image_features = self.clip.encode_image(images)
+        text_features = self.clip.encode_text(self.clip.tokenize(texts))
+        return text_features @ image_features.T  # (M, N)
 
     def set_prompts(self, prompts):
         """Set prompts to be used during inference."""

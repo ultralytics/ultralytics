@@ -35,22 +35,22 @@ Training YOLO11 models on Google Colab is pretty straightforward. Thanks to the 
 
 When working with Google Colab, you might have a few common questions. Let's answer them.
 
-**Q: Why does my Google Colab session timeout?**  
+**Q: Why does my Google Colab session timeout?**
 A: Google Colab sessions can time out due to inactivity, especially for free users who have a limited session duration.
 
-**Q: Can I increase the session duration in Google Colab?**  
+**Q: Can I increase the session duration in Google Colab?**
 A: Free users face limits, but Google Colab Pro offers extended session durations.
 
-**Q: What should I do if my session closes unexpectedly?**  
+**Q: What should I do if my session closes unexpectedly?**
 A: Regularly save your work to Google Drive or GitHub to avoid losing unsaved progress.
 
-**Q: How can I check my session status and resource usage?**  
+**Q: How can I check my session status and resource usage?**
 A: Colab provides 'RAM Usage' and 'Disk Usage' metrics in the interface to monitor your resources.
 
-**Q: Can I run multiple Colab sessions simultaneously?**  
+**Q: Can I run multiple Colab sessions simultaneously?**
 A: Yes, but be cautious about resource usage to avoid performance issues.
 
-**Q: Does Google Colab have GPU access limitations?**  
+**Q: Does Google Colab have GPU access limitations?**
 A: Yes, free GPU access has limitations, but Google Colab Pro provides more substantial usage options.
 
 ## Key Features of Google Colab
@@ -111,7 +111,7 @@ If you'd like to dive deeper into Google Colab, here are a few resources to guid
 
 We've discussed how you can easily experiment with Ultralytics YOLO11 models on Google Colab. You can use Google Colab to train and evaluate your models on GPUs and TPUs with a few clicks, making it an accessible platform for developers without high-end hardware.
 
-For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+For more details, visit [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).
 
 Interested in more YOLO11 integrations? Visit the [Ultralytics integration guide page](index.md) to explore additional tools and capabilities that can improve your machine-learning projects, or check out [Kaggle integration](kaggle.md) for another cloud-based alternative.
 
@@ -140,7 +140,7 @@ Google Colab sessions timeout due to inactivity, especially for free users. To h
 2. **Save Progress:** Continuously save your work to Google Drive or GitHub.
 3. **Colab Pro:** Consider upgrading to Google Colab Pro for longer session durations.
 
-For more tips on managing your Colab session, visit the [Google Colab FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+For more tips on managing your Colab session, visit the [Google Colab FAQ page](https://research.google.com/colaboratory/faq.html).
 
 ### Can I use custom datasets for training YOLO11 models in Google Colab?
 
@@ -154,4 +154,4 @@ If your Google Colab training session is interrupted:
 2. **Resume Training:** Restart your session and re-run the cells from where the interruption occurred.
 3. **Use Checkpoints:** Incorporate checkpointing in your training script to save progress periodically.
 
-These practices help ensure your progress is secure. Learn more about session management on [Google Colab's FAQ page](https://research.google.com/colaboratory/intl/en-GB/faq.html).
+These practices help ensure your progress is secure. Learn more about session management on [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).

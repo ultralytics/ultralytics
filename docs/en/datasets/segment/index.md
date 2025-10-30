@@ -42,25 +42,13 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 ### Dataset YAML format
 
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
+The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Segmentation Models. Here is an example of the YAML format used for defining a segmentation dataset:
 
-```yaml
-# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco8-seg # dataset root dir (absolute or relative; if relative, it's relative to default datasets_dir)
-train: images/train # train images (relative to 'path') 4 images
-val: images/val # val images (relative to 'path') 4 images
-test: # test images (optional)
+!!! example "ultralytics/cfg/datasets/coco8-seg.yaml"
 
-# Classes (80 COCO classes)
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
-    77: teddy bear
-    78: hair drier
-    79: toothbrush
-```
+    ```yaml
+    --8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
+    ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
 
@@ -95,7 +83,7 @@ Ultralytics YOLO supports various datasets for instance segmentation tasks. Here
 
 - [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.
 - [COCO8-seg](coco8-seg.md): A compact, 8-image subset of COCO designed for quick testing of segmentation model training, ideal for CI checks and workflow validation in the `ultralytics` repository.
-- [COCO128-seg](coco.md): A smaller dataset for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks, containing a subset of 128 COCO images with segmentation annotations.
+- [COCO128-seg](coco128-seg.md): A smaller dataset for [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) tasks, containing a subset of 128 COCO images with segmentation annotations.
 - [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [Crack-seg](crack-seg.md): A dataset tailored for the segmentation of cracks in various surfaces. Essential for infrastructure maintenance and quality control, it provides detailed imagery for training models to identify structural weaknesses.
 - [Package-seg](package-seg.md): A dataset dedicated to the segmentation of different types of packaging materials and shapes. It's particularly useful for logistics and warehouse automation, aiding in the development of systems for package handling and sorting.
@@ -206,15 +194,7 @@ This script converts your COCO dataset annotations to the required YOLO format, 
 To prepare a YAML file for training YOLO models with Ultralytics, you need to define the dataset paths and class names. Here's an example YAML configuration:
 
 ```yaml
-path: ../datasets/coco8-seg # dataset root dir
-train: images/train # train images (relative to 'path')
-val: images/val # val images (relative to 'path')
-
-names:
-    0: person
-    1: bicycle
-    2: car
-    # ...
+--8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
 ```
 
 Ensure you update the paths and class names according to your dataset. For more information, check the [Dataset YAML Format](#dataset-yaml-format) section.

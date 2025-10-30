@@ -7,10 +7,10 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── xView  ← downloads here (20.7 GB)
+#     └── xView ← downloads here (20.7 GB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/xView # dataset root dir
+path: xView # dataset root dir
 train: images/autosplit_train.txt # train images (relative to 'path') 90% of 847 train images
 val: images/autosplit_val.txt # train images (relative to 'path') 10% of 847 train images
 
@@ -85,9 +85,9 @@ download: |
 
   import numpy as np
   from PIL import Image
-  from tqdm import tqdm
 
-  from ultralytics.data.utils import autosplit
+  from ultralytics.utils import TQDM
+  from ultralytics.data.split import autosplit
   from ultralytics.utils.ops import xyxy2xywhn
 
 
@@ -110,7 +110,7 @@ download: |
                            47, 48, 49, -1, 50, 51, -1, 52, -1, -1, -1, 53, 54, -1, 55, -1, -1, 56, -1, 57, -1, 58, 59]
 
       shapes = {}
-      for feature in tqdm(data["features"], desc=f"Converting {fname}"):
+      for feature in TQDM(data["features"], desc=f"Converting {fname}"):
           p = feature["properties"]
           if p["bounds_imcoords"]:
               id = p["image_id"]

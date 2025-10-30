@@ -26,19 +26,18 @@ This repository provides a [Rust](https://www.rust-lang.org/) demo showcasing ke
 <summary>You have two options to link the ONNXRuntime library:</summary>
 
 - **Option 1: Manual Linking**
-
   - For detailed setup instructions, consult the [ONNX Runtime linking documentation](https://ort.pyke.io/setup/linking).
   - **Linux or macOS**:
     1. Download the appropriate ONNX Runtime package from the official [Releases page](https://github.com/microsoft/onnxruntime/releases).
     2. Set up the library path by exporting the `ORT_DYLIB_PATH` environment variable, pointing to the downloaded library file:
-       ```shell
+       ```bash
        # Example path, replace with your actual path
        export ORT_DYLIB_PATH=/path/to/onnxruntime/lib/libonnxruntime.so.1.19.0
        ```
 
 - **Option 2: Automatic Download**
   - Use the `--features auto` flag with Cargo to let the build script handle downloading the library automatically:
-    ```shell
+    ```bash
     cargo run -r --example yolo --features auto
     ```
 
@@ -58,7 +57,7 @@ To enable viewing video frames and saving video inferences, install the `rust-ff
 
 Run the examples using Cargo. The `--` separates Cargo arguments from the example's arguments.
 
-```Shell
+```bash
 # Run a custom model (e.g., YOLOv8 detection)
 cargo run -r -- --task detect --ver v8 --nc 6 --model path/to/your/model.onnx
 
@@ -68,23 +67,23 @@ cargo run -r -- --task classify --ver v8 --scale n --width 224 --height 224 --nc
 cargo run -r -- --task classify --ver v11 --scale n --width 224 --height 224 --nc 1000 # YOLO11 Classification
 
 # Detect examples
-cargo run -r -- --task detect --ver v5 --scale n  # YOLOv5 Detection
-cargo run -r -- --task detect --ver v6 --scale n  # YOLOv6 Detection
-cargo run -r -- --task detect --ver v7 --scale t  # YOLOv7 Detection
-cargo run -r -- --task detect --ver v8 --scale n  # YOLOv8 Detection
-cargo run -r -- --task detect --ver v9 --scale t  # YOLOv9 Detection
-cargo run -r -- --task detect --ver v10 --scale n # YOLOv10 Detection
-cargo run -r -- --task detect --ver v11 --scale n # YOLO11 Detection
+cargo run -r -- --task detect --ver v5 --scale n     # YOLOv5 Detection
+cargo run -r -- --task detect --ver v6 --scale n     # YOLOv6 Detection
+cargo run -r -- --task detect --ver v7 --scale t     # YOLOv7 Detection
+cargo run -r -- --task detect --ver v8 --scale n     # YOLOv8 Detection
+cargo run -r -- --task detect --ver v9 --scale t     # YOLOv9 Detection
+cargo run -r -- --task detect --ver v10 --scale n    # YOLOv10 Detection
+cargo run -r -- --task detect --ver v11 --scale n    # YOLO11 Detection
 cargo run -r -- --task detect --ver rtdetr --scale l # RT-DETR Detection
 
 # Pose examples
-cargo run -r -- --task pose --ver v8 --scale n   # YOLOv8-Pose Estimation
-cargo run -r -- --task pose --ver v11 --scale n  # YOLO11-Pose Estimation
+cargo run -r -- --task pose --ver v8 --scale n  # YOLOv8-Pose Estimation
+cargo run -r -- --task pose --ver v11 --scale n # YOLO11-Pose Estimation
 
 # Segment examples
-cargo run -r -- --task segment --ver v5 --scale n  # YOLOv5-Segment
-cargo run -r -- --task segment --ver v8 --scale n  # YOLOv8-Segment
-cargo run -r -- --task segment --ver v11 --scale n # YOLO11-Segment
+cargo run -r -- --task segment --ver v5 --scale n                              # YOLOv5-Segment
+cargo run -r -- --task segment --ver v8 --scale n                              # YOLOv8-Segment
+cargo run -r -- --task segment --ver v11 --scale n                             # YOLO11-Segment
 cargo run -r -- --task segment --ver v8 --model path/to/FastSAM-s-dyn-f16.onnx # FastSAM Segmentation
 
 # OBB (Oriented Bounding Box) examples

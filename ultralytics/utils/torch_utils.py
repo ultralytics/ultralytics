@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import functools
 import gc
 import math
@@ -10,7 +12,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -25,22 +27,29 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
+    TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
     colorstr,
 )
 from ultralytics.utils.checks import check_version
+from ultralytics.utils.cpu import CPUInfo
+from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
-TORCH_1_9 = check_version(torch.__version__, "1.9.0")
-TORCH_1_13 = check_version(torch.__version__, "1.13.0")
-TORCH_2_0 = check_version(torch.__version__, "2.0.0")
-TORCH_2_4 = check_version(torch.__version__, "2.4.0")
+TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_10 = check_version(TORCH_VERSION, "1.10.0")
+TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
+TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
+TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
+TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
+TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
 TORCHVISION_0_18 = check_version(TORCHVISION_VERSION, "0.18.0")
-if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.4.0 on Windows
+if WINDOWS and check_version(TORCH_VERSION, "==2.4.0"):  # reject version 2.4.0 on Windows
     LOGGER.warning(
         "Known issue with torch==2.4.0 on Windows with CPU, recommend upgrading to torch>=2.4.1 to resolve "
         "https://github.com/ultralytics/ultralytics/issues/15049"
@@ -49,7 +58,7 @@ if WINDOWS and check_version(torch.__version__, "==2.4.0"):  # reject version 2.
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    """Ensures all processes in distributed training wait for the local master (rank 0) to complete a task first."""
+    """Ensure all processes in distributed training wait for the local master (rank 0) to complete a task first."""
     initialized = dist.is_available() and dist.is_initialized()
     use_ids = initialized and dist.get_backend() == "nccl"
 
@@ -61,10 +70,10 @@ def torch_distributed_zero_first(local_rank: int):
 
 
 def smart_inference_mode():
-    """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
+    """Apply torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
 
     def decorate(fn):
-        """Applies appropriate torch decorator for inference mode based on torch version."""
+        """Apply appropriate torch decorator for inference mode based on torch version."""
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -82,7 +91,7 @@ def autocast(enabled: bool, device: str = "cuda"):
 
     Args:
         enabled (bool): Whether to enable automatic mixed precision.
-        device (str, optional): The device to use for autocast. Defaults to 'cuda'.
+        device (str, optional): The device to use for autocast.
 
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
@@ -109,12 +118,7 @@ def get_cpu_info():
 
     if "cpu_info" not in PERSISTENT_CACHE:
         try:
-            import cpuinfo  # pip install py-cpuinfo
-
-            k = "brand_raw", "hardware_raw", "arch_string_raw"  # keys sorted by preference
-            info = cpuinfo.get_cpu_info()  # info dict
-            string = info.get(k[0] if k[0] in info else k[1] if k[1] in info else k[2], "unknown")
-            PERSISTENT_CACHE["cpu_info"] = string.replace("(R)", "").replace("CPU ", "").replace("@ ", "")
+            PERSISTENT_CACHE["cpu_info"] = CPUInfo.name()
         except Exception:
             pass
     return PERSISTENT_CACHE.get("cpu_info", "unknown")
@@ -127,7 +131,7 @@ def get_gpu_info(index):
     return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
 
 
-def select_device(device="", batch=0, newline=False, verbose=True):
+def select_device(device="", newline=False, verbose=True):
     """
     Select the appropriate PyTorch device based on the provided arguments.
 
@@ -136,19 +140,13 @@ def select_device(device="", batch=0, newline=False, verbose=True):
     exception if the requested device(s) are not available.
 
     Args:
-        device (str | torch.device, optional): Device string or torch.device object.
-            Options are 'None', 'cpu', or 'cuda', or '0' or '0,1,2,3'. Defaults to an empty string, which auto-selects
-            the first available GPU, or CPU if no GPU is available.
-        batch (int, optional): Batch size being used in your model.
+        device (str | torch.device, optional): Device string or torch.device object. Options are 'None', 'cpu', or
+            'cuda', or '0' or '0,1,2,3'. Auto-selects the first available GPU, or CPU if no GPU is available.
         newline (bool, optional): If True, adds a newline at the end of the log string.
         verbose (bool, optional): If True, logs the device information.
 
     Returns:
         (torch.device): Selected device.
-
-    Raises:
-        ValueError: If the specified device is not available or if the batch size is not a multiple of the number of
-            devices when using multiple GPUs.
 
     Examples:
         >>> select_device("cuda:0")
@@ -157,13 +155,13 @@ def select_device(device="", batch=0, newline=False, verbose=True):
         >>> select_device("cpu")
         device(type='cpu')
 
-    Note:
+    Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
     if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
         return device
 
-    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{torch.__version__} "
+    s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
     for remove in "cuda:", "none", "(", ")", "[", "]", "'", " ":
         device = device.replace(remove, "")  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -174,7 +172,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
         # Replace each -1 with a selected GPU or remove it
         parts = device.split(",")
-        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_mb=2048)
+        selected = GPUInfo().select_idle_gpu(count=parts.count("-1"), min_memory_fraction=0.2)
         for i in range(len(parts)):
             if parts[i] == "-1":
                 parts[i] = str(selected.pop(0)) if selected else ""
@@ -211,19 +209,7 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
-        n = len(devices)  # device count
-        if n > 1:  # multi-GPU
-            if batch < 1:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    f"please specify a valid batch size multiple of GPU count {n}, i.e. batch={n * 8}."
-                )
-            if batch >= 0 and batch % n != 0:  # check batch_size is divisible by device_count
-                raise ValueError(
-                    f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                    f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}."
-                )
-        space = " " * (len(s) + 1)
+        space = " " * len(s)
         for i, d in enumerate(devices):
             s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
         arg = "cuda:0"
@@ -243,75 +229,78 @@ def select_device(device="", batch=0, newline=False, verbose=True):
 
 
 def time_sync():
-    """PyTorch-accurate time."""
+    """Return PyTorch-accurate time."""
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
 
 
 def fuse_conv_and_bn(conv, bn):
-    """Fuse Conv2d() and BatchNorm2d() layers."""
-    fusedconv = (
-        nn.Conv2d(
-            conv.in_channels,
-            conv.out_channels,
-            kernel_size=conv.kernel_size,
-            stride=conv.stride,
-            padding=conv.padding,
-            dilation=conv.dilation,
-            groups=conv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(conv.weight.device)
-    )
+    """
+    Fuse Conv2d and BatchNorm2d layers for inference optimization.
 
-    # Prepare filters
+    Args:
+        conv (nn.Conv2d): Convolutional layer to fuse.
+        bn (nn.BatchNorm2d): Batch normalization layer to fuse.
+
+    Returns:
+        (nn.Conv2d): The fused convolutional layer with gradients disabled.
+
+    Example:
+        >>> conv = nn.Conv2d(3, 16, 3)
+        >>> bn = nn.BatchNorm2d(16)
+        >>> fused_conv = fuse_conv_and_bn(conv, bn)
+    """
+    # Compute fused weights
     w_conv = conv.weight.view(conv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fusedconv.weight.copy_(torch.mm(w_bn, w_conv).view(fusedconv.weight.shape))
+    conv.weight.data = torch.mm(w_bn, w_conv).view(conv.weight.shape)
 
-    # Prepare spatial bias
-    b_conv = (
-        torch.zeros(conv.weight.shape[0], dtype=conv.weight.dtype, device=conv.weight.device)
-        if conv.bias is None
-        else conv.bias
-    )
+    # Compute fused bias
+    b_conv = torch.zeros(conv.out_channels, device=conv.weight.device) if conv.bias is None else conv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
-    return fusedconv
+    if conv.bias is None:
+        conv.register_parameter("bias", nn.Parameter(fused_bias))
+    else:
+        conv.bias.data = fused_bias
+
+    return conv.requires_grad_(False)
 
 
 def fuse_deconv_and_bn(deconv, bn):
-    """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
-    fuseddconv = (
-        nn.ConvTranspose2d(
-            deconv.in_channels,
-            deconv.out_channels,
-            kernel_size=deconv.kernel_size,
-            stride=deconv.stride,
-            padding=deconv.padding,
-            output_padding=deconv.output_padding,
-            dilation=deconv.dilation,
-            groups=deconv.groups,
-            bias=True,
-        )
-        .requires_grad_(False)
-        .to(deconv.weight.device)
-    )
+    """
+    Fuse ConvTranspose2d and BatchNorm2d layers for inference optimization.
 
-    # Prepare filters
+    Args:
+        deconv (nn.ConvTranspose2d): Transposed convolutional layer to fuse.
+        bn (nn.BatchNorm2d): Batch normalization layer to fuse.
+
+    Returns:
+        (nn.ConvTranspose2d): The fused transposed convolutional layer with gradients disabled.
+
+    Example:
+        >>> deconv = nn.ConvTranspose2d(16, 3, 3)
+        >>> bn = nn.BatchNorm2d(3)
+        >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
+    """
+    # Compute fused weights
     w_deconv = deconv.weight.view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
-    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
+    deconv.weight.data = torch.mm(w_bn, w_deconv).view(deconv.weight.shape)
 
-    # Prepare spatial bias
-    b_conv = torch.zeros(deconv.weight.shape[1], device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    # Compute fused bias
+    b_conv = torch.zeros(deconv.out_channels, device=deconv.weight.device) if deconv.bias is None else deconv.bias
     b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+    fused_bias = torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn
 
-    return fuseddconv
+    if deconv.bias is None:
+        deconv.register_parameter("bias", nn.Parameter(fused_bias))
+    else:
+        deconv.bias.data = fused_bias
+
+    return deconv.requires_grad_(False)
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
@@ -320,12 +309,15 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
     Args:
         model (nn.Module): Model to analyze.
-        detailed (bool, optional): Whether to print detailed layer information. Defaults to False.
-        verbose (bool, optional): Whether to print model information. Defaults to True.
-        imgsz (int | List, optional): Input image size. Defaults to 640.
+        detailed (bool, optional): Whether to print detailed layer information.
+        verbose (bool, optional): Whether to print model information.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
-        (Tuple[int, int, int, float]): Number of layers, parameters, gradients, and GFLOPs.
+        n_l (int): Number of layers.
+        n_p (int): Number of parameters.
+        n_g (int): Number of gradients.
+        flops (float): GFLOPs.
     """
     if not verbose:
         return
@@ -342,10 +334,10 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
             if len(m._parameters):
                 for pn, p in m.named_parameters():
                     LOGGER.info(
-                        f"{i:>5g}{f'{mn}.{pn}':>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}{str(list(p.shape)):>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
+                        f"{i:>5g}{f'{mn}.{pn}':>40}{mt:>20}{p.requires_grad!r:>10}{p.numel():>12g}{list(p.shape)!s:>20}{p.mean():>10.3g}{p.std():>10.3g}{str(p.dtype).replace('torch.', ''):>15}"
                     )
             else:  # layers with no learnable params
-                LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{str([]):>20}{'-':>10}{'-':>10}{'-':>15}")
+                LOGGER.info(f"{i:>5g}{mn:>40}{mt:>20}{False!r:>10}{0:>12g}{[]!s:>20}{'-':>10}{'-':>10}{'-':>15}")
 
     flops = get_flops(model, imgsz)  # imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     fused = " (fused)" if getattr(model, "is_fused", lambda: False)() else ""
@@ -410,7 +402,7 @@ def get_flops(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         (float): The model FLOPs in billions.
@@ -424,7 +416,7 @@ def get_flops(model, imgsz=640):
         return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
-        model = de_parallel(model)
+        model = unwrap_model(model)
         p = next(model.parameters())
         if not isinstance(imgsz, list):
             imgsz = [imgsz, imgsz]  # expand if int/float
@@ -448,14 +440,14 @@ def get_flops_with_torch_profiler(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | List[int], optional): Input image size. Defaults to 640.
+        imgsz (int | list, optional): Input image size.
 
     Returns:
         (float): The model's FLOPs in billions.
     """
     if not TORCH_2_0:  # torch profiler implemented in torch>=2.0
         return 0.0
-    model = de_parallel(model)
+    model = unwrap_model(model)
     p = next(model.parameters())
     if not isinstance(imgsz, list):
         imgsz = [imgsz, imgsz]  # expand if int/float
@@ -491,13 +483,13 @@ def initialize_weights(model):
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
     """
-    Scales and pads an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
+    Scale and pad an image tensor, optionally maintaining aspect ratio and padding to gs multiple.
 
     Args:
         img (torch.Tensor): Input image tensor.
-        ratio (float, optional): Scaling ratio. Defaults to 1.0.
-        same_shape (bool, optional): Whether to maintain the same shape. Defaults to False.
-        gs (int, optional): Grid size for padding. Defaults to 32.
+        ratio (float, optional): Scaling ratio.
+        same_shape (bool, optional): Whether to maintain the same shape.
+        gs (int, optional): Grid size for padding.
 
     Returns:
         (torch.Tensor): Scaled and padded image tensor.
@@ -514,13 +506,13 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):
 
 def copy_attr(a, b, include=(), exclude=()):
     """
-    Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
+    Copy attributes from object 'b' to object 'a', with options to include/exclude certain attributes.
 
     Args:
-        a (object): Destination object to copy attributes to.
-        b (object): Source object to copy attributes from.
-        include (tuple, optional): Attributes to include. If empty, all attributes are included. Defaults to ().
-        exclude (tuple, optional): Attributes to exclude. Defaults to ().
+        a (Any): Destination object to copy attributes to.
+        b (Any): Source object to copy attributes from.
+        include (tuple, optional): Attributes to include. If empty, all attributes are included.
+        exclude (tuple, optional): Attributes to exclude.
     """
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith("_") or k in exclude:
@@ -529,29 +521,14 @@ def copy_attr(a, b, include=(), exclude=()):
             setattr(a, k, v)
 
 
-def get_latest_opset():
-    """
-    Return the second-most recent ONNX opset version supported by this version of PyTorch, adjusted for maturity.
-
-    Returns:
-        (int): The ONNX opset version.
-    """
-    if TORCH_1_13:
-        # If the PyTorch>=1.13, dynamically compute the latest opset minus one using 'symbolic_opset'
-        return max(int(k[14:]) for k in vars(torch.onnx) if "symbolic_opset" in k) - 1
-    # Otherwise for PyTorch<=1.12 return the corresponding predefined opset
-    version = torch.onnx.producer_version.rsplit(".", 1)[0]  # i.e. '2.3'
-    return {"1.12": 15, "1.11": 14, "1.10": 13, "1.9": 12, "1.8": 12}.get(version, 12)
-
-
 def intersect_dicts(da, db, exclude=()):
     """
-    Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
+    Return a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values.
 
     Args:
         da (dict): First dictionary.
         db (dict): Second dictionary.
-        exclude (tuple, optional): Keys to exclude. Defaults to ().
+        exclude (tuple, optional): Keys to exclude.
 
     Returns:
         (dict): Dictionary of intersecting keys with matching shapes.
@@ -561,7 +538,7 @@ def intersect_dicts(da, db, exclude=()):
 
 def is_parallel(model):
     """
-    Returns True if model is of type DP or DDP.
+    Return True if model is of type DP or DDP.
 
     Args:
         model (nn.Module): Model to check.
@@ -572,27 +549,34 @@ def is_parallel(model):
     return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
-def de_parallel(model):
+def unwrap_model(m: nn.Module) -> nn.Module:
     """
-    De-parallelize a model: returns single-GPU model if model is of type DP or DDP.
+    Unwrap compiled and parallel models to get the base model.
 
     Args:
-        model (nn.Module): Model to de-parallelize.
+        m (nn.Module): A model that may be wrapped by torch.compile (._orig_mod) or parallel wrappers such as
+            DataParallel/DistributedDataParallel (.module).
 
     Returns:
-        (nn.Module): De-parallelized model.
+        m (nn.Module): The unwrapped base model without compile or parallel wrappers.
     """
-    return model.module if is_parallel(model) else model
+    while True:
+        if hasattr(m, "_orig_mod") and isinstance(m._orig_mod, nn.Module):
+            m = m._orig_mod
+        elif hasattr(m, "module") and isinstance(m.module, nn.Module):
+            m = m.module
+        else:
+            return m
 
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
     """
-    Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
+    Return a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf.
 
     Args:
-        y1 (float, optional): Initial value. Defaults to 0.0.
-        y2 (float, optional): Final value. Defaults to 1.0.
-        steps (int, optional): Number of steps. Defaults to 100.
+        y1 (float, optional): Initial value.
+        y2 (float, optional): Final value.
+        steps (int, optional): Number of steps.
 
     Returns:
         (function): Lambda function for computing the sinusoidal ramp.
@@ -605,8 +589,8 @@ def init_seeds(seed=0, deterministic=False):
     Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html.
 
     Args:
-        seed (int, optional): Random seed. Defaults to 0.
-        deterministic (bool, optional): Whether to set deterministic algorithms. Defaults to False.
+        seed (int, optional): Random seed.
+        deterministic (bool, optional): Whether to set deterministic algorithms.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -627,7 +611,7 @@ def init_seeds(seed=0, deterministic=False):
 
 
 def unset_deterministic():
-    """Unsets all the configurations applied for deterministic training."""
+    """Unset all the configurations applied for deterministic training."""
     torch.use_deterministic_algorithms(False)
     torch.backends.cudnn.deterministic = False
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
@@ -660,11 +644,11 @@ class ModelEMA:
 
         Args:
             model (nn.Module): Model to create EMA for.
-            decay (float, optional): Maximum EMA decay rate. Defaults to 0.9999.
-            tau (int, optional): EMA decay time constant. Defaults to 2000.
-            updates (int, optional): Initial number of updates. Defaults to 0.
+            decay (float, optional): Maximum EMA decay rate.
+            tau (int, optional): EMA decay time constant.
+            updates (int, optional): Initial number of updates.
         """
-        self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
+        self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
@@ -682,7 +666,7 @@ class ModelEMA:
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = de_parallel(model).state_dict()  # model state_dict
+            msd = unwrap_model(model).state_dict()  # model state_dict
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:  # true for FP16 and FP32
                     v *= d
@@ -691,24 +675,25 @@ class ModelEMA:
 
     def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
         """
-        Updates attributes and saves stripped model with optimizer removed.
+        Update attributes and save stripped model with optimizer removed.
 
         Args:
             model (nn.Module): Model to update attributes from.
-            include (tuple, optional): Attributes to include. Defaults to ().
-            exclude (tuple, optional): Attributes to exclude. Defaults to ("process_group", "reducer").
+            include (tuple, optional): Attributes to include.
+            exclude (tuple, optional): Attributes to exclude.
         """
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict = None) -> dict:
+def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
     Args:
-        f (str | Path): File path to model to strip the optimizer from. Defaults to 'best.pt'.
-        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
+        f (str | Path): File path to model to strip the optimizer from.
+        s (str, optional): File path to save the model with stripped optimizer to. If not provided, 'f' will be
+            overwritten.
         updates (dict, optional): A dictionary of updates to overlay onto the checkpoint before saving.
 
     Returns:
@@ -721,7 +706,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
         >>>    strip_optimizer(f)
     """
     try:
-        x = torch.load(f, map_location=torch.device("cpu"))
+        x = torch_load(f, map_location=torch.device("cpu"))
         assert isinstance(x, dict), "checkpoint is not a Python dictionary"
         assert "model" in x, "'model' missing from checkpoint"
     except Exception as e:
@@ -748,7 +733,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
     # Update other keys
     args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
-    for k in "optimizer", "best_fitness", "ema", "updates":  # keys
+    for k in "optimizer", "best_fitness", "ema", "updates", "scaler":  # keys
         x[k] = None
     x["epoch"] = -1
     x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
@@ -764,7 +749,7 @@ def strip_optimizer(f: Union[str, Path] = "best.pt", s: str = "", updates: dict 
 
 def convert_optimizer_state_dict_to_fp16(state_dict):
     """
-    Converts the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
+    Convert the state_dict of a given optimizer to FP16, focusing on the 'state' key for tensor conversions.
 
     Args:
         state_dict (dict): Optimizer state dictionary.
@@ -790,7 +775,7 @@ def cuda_memory_usage(device=None):
     Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
 
     Args:
-        device (torch.device, optional): The CUDA device to query memory usage for. Defaults to None.
+        device (torch.device, optional): The CUDA device to query memory usage for.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
@@ -811,11 +796,11 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
     Ultralytics speed, memory and FLOPs profiler.
 
     Args:
-        input (torch.Tensor | List[torch.Tensor]): Input tensor(s) to profile.
-        ops (nn.Module | List[nn.Module]): Model or list of operations to profile.
-        n (int, optional): Number of iterations to average. Defaults to 10.
-        device (str | torch.device, optional): Device to profile on. Defaults to None.
-        max_num_obj (int, optional): Maximum number of objects for simulation. Defaults to 0.
+        input (torch.Tensor | list): Input tensor(s) to profile.
+        ops (nn.Module | list): Model or list of operations to profile.
+        n (int, optional): Number of iterations to average.
+        device (str | torch.device, optional): Device to profile on.
+        max_num_obj (int, optional): Maximum number of objects for simulation.
 
     Returns:
         (list): Profile results for each operation.
@@ -881,7 +866,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         mem += cuda_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
-                LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}")
+                LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")
                 results.append([p, flops, mem, tf, tb, s_in, s_out])
             except Exception as e:
                 LOGGER.info(e)
@@ -946,48 +931,81 @@ class EarlyStopping:
         return stop
 
 
-class FXModel(nn.Module):
+def attempt_compile(
+    model: torch.nn.Module,
+    device: torch.device,
+    imgsz: int = 640,
+    use_autocast: bool = False,
+    warmup: bool = False,
+    mode: bool | str = "default",
+) -> torch.nn.Module:
     """
-    A custom model class for torch.fx compatibility.
+    Compile a model with torch.compile and optionally warm up the graph to reduce first-iteration latency.
 
-    This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
-    manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
-    copying.
+    This utility attempts to compile the provided model using the inductor backend with dynamic shapes enabled and an
+    autotuning mode. If compilation is unavailable or fails, the original model is returned unchanged. An optional
+    warmup performs a single forward pass on a dummy input to prime the compiled graph and measure compile/warmup time.
 
-    Attributes:
-        model (nn.Module): The original model's layers.
+    Args:
+        model (torch.nn.Module): Model to compile.
+        device (torch.device): Inference device used for warmup and autocast decisions.
+        imgsz (int, optional): Square input size to create a dummy tensor with shape (1, 3, imgsz, imgsz) for warmup.
+        use_autocast (bool, optional): Whether to run warmup under autocast on CUDA or MPS devices.
+        warmup (bool, optional): Whether to execute a single dummy forward pass to warm up the compiled model.
+        mode (bool | str, optional): torch.compile mode. True → "default", False → no compile, or a string like
+            "default", "reduce-overhead", "max-autotune-no-cudagraphs".
+
+    Returns:
+        model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
+
+    Notes:
+        - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
+        - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
+        - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
+
+    Examples:
+        >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        >>> # Try to compile and warm up a model with a 640x640 input
+        >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
     """
+    if not hasattr(torch, "compile") or not mode:
+        return model
 
-    def __init__(self, model):
-        """
-        Initialize the FXModel.
+    if mode is True:
+        mode = "default"
+    prefix = colorstr("compile:")
+    LOGGER.info(f"{prefix} starting torch.compile with '{mode}' mode...")
+    if mode == "max-autotune":
+        LOGGER.warning(f"{prefix} mode='{mode}' not recommended, using mode='max-autotune-no-cudagraphs' instead")
+        mode = "max-autotune-no-cudagraphs"
+    t0 = time.perf_counter()
+    try:
+        model = torch.compile(model, mode=mode, backend="inductor")
+    except Exception as e:
+        LOGGER.warning(f"{prefix} torch.compile failed, continuing uncompiled: {e}")
+        return model
+    t_compile = time.perf_counter() - t0
 
-        Args:
-            model (nn.Module): The original model to wrap for torch.fx compatibility.
-        """
-        super().__init__()
-        copy_attr(self, model)
-        # Explicitly set `model` since `copy_attr` somehow does not copy it.
-        self.model = model.model
+    t_warm = 0.0
+    if warmup:
+        # Use a single dummy tensor to build the graph shape state and reduce first-iteration latency
+        dummy = torch.zeros(1, 3, imgsz, imgsz, device=device)
+        if use_autocast and device.type == "cuda":
+            dummy = dummy.half()
+        t1 = time.perf_counter()
+        with torch.inference_mode():
+            if use_autocast and device.type in {"cuda", "mps"}:
+                with torch.autocast(device.type):
+                    _ = model(dummy)
+            else:
+                _ = model(dummy)
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        t_warm = time.perf_counter() - t1
 
-    def forward(self, x):
-        """
-        Forward pass through the model.
-
-        This method performs the forward pass through the model, handling the dependencies between layers and saving
-        intermediate outputs.
-
-        Args:
-            x (torch.Tensor): The input tensor to the model.
-
-        Returns:
-            (torch.Tensor): The output tensor from the model.
-        """
-        y = []  # outputs
-        for m in self.model:
-            if m.f != -1:  # if not from previous layer
-                # from earlier layers
-                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-            x = m(x)  # run
-            y.append(x)  # save output
-        return x
+    total = t_compile + t_warm
+    if warmup:
+        LOGGER.info(f"{prefix} complete in {total:.1f}s (compile {t_compile:.1f}s + warmup {t_warm:.1f}s)")
+    else:
+        LOGGER.info(f"{prefix} compile complete in {t_compile:.1f}s (no warmup)")
+    return model

@@ -1,6 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 from collections import defaultdict
+from typing import Any
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors
@@ -16,16 +19,17 @@ class ObjectCounter(BaseSolution):
     Attributes:
         in_count (int): Counter for objects moving inward.
         out_count (int): Counter for objects moving outward.
-        counted_ids (List[int]): List of IDs of objects that have been counted.
-        classwise_counts (Dict[str, Dict[str, int]]): Dictionary for counts, categorized by object class.
+        counted_ids (list[int]): List of IDs of objects that have been counted.
+        classwise_counts (dict[str, dict[str, int]]): Dictionary for counts, categorized by object class.
         region_initialized (bool): Flag indicating whether the counting region has been initialized.
         show_in (bool): Flag to control display of inward count.
         show_out (bool): Flag to control display of outward count.
+        margin (int): Margin for background rectangle size to display counts properly.
 
     Methods:
-        count_objects: Counts objects within a polygonal or linear region.
-        display_counts: Displays object counts on the frame.
-        process: Processes input data (frames or object tracks) and updates counts.
+        count_objects: Count objects within a polygonal or linear region based on their tracks.
+        display_counts: Display object counts on the frame.
+        process: Process input data and update counts.
 
     Examples:
         >>> counter = ObjectCounter()
@@ -34,28 +38,34 @@ class ObjectCounter(BaseSolution):
         >>> print(f"Inward count: {counter.in_count}, Outward count: {counter.out_count}")
     """
 
-    def __init__(self, **kwargs):
-        """Initializes the ObjectCounter class for real-time object counting in video streams."""
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the ObjectCounter class for real-time object counting in video streams."""
         super().__init__(**kwargs)
 
         self.in_count = 0  # Counter for objects moving inward
         self.out_count = 0  # Counter for objects moving outward
         self.counted_ids = []  # List of IDs of objects that have been counted
-        self.classwise_counts = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
+        self.classwise_count = defaultdict(lambda: {"IN": 0, "OUT": 0})  # Dictionary for counts, categorized by class
         self.region_initialized = False  # Flag indicating whether the region has been initialized
 
         self.show_in = self.CFG["show_in"]
         self.show_out = self.CFG["show_out"]
         self.margin = self.line_width * 2  # Scales the background rectangle size to display counts properly
 
-    def count_objects(self, current_centroid, track_id, prev_position, cls):
+    def count_objects(
+        self,
+        current_centroid: tuple[float, float],
+        track_id: int,
+        prev_position: tuple[float, float] | None,
+        cls: int,
+    ) -> None:
         """
-        Counts objects within a polygonal or linear region based on their tracks.
+        Count objects within a polygonal or linear region based on their tracks.
 
         Args:
-            current_centroid (Tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
+            current_centroid (tuple[float, float]): Current centroid coordinates (x, y) in the current frame.
             track_id (int): Unique identifier for the tracked object.
-            prev_position (Tuple[float, float]): Last frame position coordinates (x, y) of the track.
+            prev_position (tuple[float, float], optional): Last frame position coordinates (x, y) of the track.
             cls (int): Class index for classwise count updates.
 
         Examples:
@@ -71,52 +81,47 @@ class ObjectCounter(BaseSolution):
             return
 
         if len(self.region) == 2:  # Linear region (defined as a line segment)
-            line = self.LineString(self.region)  # Check if the line intersects the trajectory of the object
-            if line.intersects(self.LineString([prev_position, current_centroid])):
+            if self.r_s.intersects(self.LineString([prev_position, current_centroid])):
                 # Determine orientation of the region (vertical or horizontal)
                 if abs(self.region[0][0] - self.region[1][0]) < abs(self.region[0][1] - self.region[1][1]):
                     # Vertical region: Compare x-coordinates to determine direction
                     if current_centroid[0] > prev_position[0]:  # Moving right
                         self.in_count += 1
-                        self.classwise_counts[self.names[cls]]["IN"] += 1
+                        self.classwise_count[self.names[cls]]["IN"] += 1
                     else:  # Moving left
                         self.out_count += 1
-                        self.classwise_counts[self.names[cls]]["OUT"] += 1
+                        self.classwise_count[self.names[cls]]["OUT"] += 1
                 # Horizontal region: Compare y-coordinates to determine direction
                 elif current_centroid[1] > prev_position[1]:  # Moving downward
                     self.in_count += 1
-                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                    self.classwise_count[self.names[cls]]["IN"] += 1
                 else:  # Moving upward
                     self.out_count += 1
-                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                    self.classwise_count[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
         elif len(self.region) > 2:  # Polygonal region
-            polygon = self.Polygon(self.region)
-            if polygon.contains(self.Point(current_centroid)):
+            if self.r_s.contains(self.Point(current_centroid)):
                 # Determine motion direction for vertical or horizontal polygons
                 region_width = max(p[0] for p in self.region) - min(p[0] for p in self.region)
                 region_height = max(p[1] for p in self.region) - min(p[1] for p in self.region)
 
-                if (
-                    region_width < region_height
-                    and current_centroid[0] > prev_position[0]
-                    or region_width >= region_height
-                    and current_centroid[1] > prev_position[1]
+                if (region_width < region_height and current_centroid[0] > prev_position[0]) or (
+                    region_width >= region_height and current_centroid[1] > prev_position[1]
                 ):  # Moving right or downward
                     self.in_count += 1
-                    self.classwise_counts[self.names[cls]]["IN"] += 1
+                    self.classwise_count[self.names[cls]]["IN"] += 1
                 else:  # Moving left or upward
                     self.out_count += 1
-                    self.classwise_counts[self.names[cls]]["OUT"] += 1
+                    self.classwise_count[self.names[cls]]["OUT"] += 1
                 self.counted_ids.append(track_id)
 
-    def display_counts(self, plot_im):
+    def display_counts(self, plot_im) -> None:
         """
         Display object counts on the input image or frame.
 
         Args:
-            plot_im (numpy.ndarray): The image or frame to display counts on.
+            plot_im (np.ndarray): The image or frame to display counts on.
 
         Examples:
             >>> counter = ObjectCounter()
@@ -126,13 +131,13 @@ class ObjectCounter(BaseSolution):
         labels_dict = {
             str.capitalize(key): f"{'IN ' + str(value['IN']) if self.show_in else ''} "
             f"{'OUT ' + str(value['OUT']) if self.show_out else ''}".strip()
-            for key, value in self.classwise_counts.items()
-            if value["IN"] != 0 or value["OUT"] != 0
+            for key, value in self.classwise_count.items()
+            if value["IN"] != 0 or (value["OUT"] != 0 and (self.show_in or self.show_out))
         }
         if labels_dict:
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
-    def process(self, im0):
+    def process(self, im0) -> SolutionResults:
         """
         Process input data (frames or object tracks) and update object counts.
 
@@ -140,7 +145,7 @@ class ObjectCounter(BaseSolution):
         object counts, and displays the results on the input image.
 
         Args:
-            im0 (numpy.ndarray): The input image or frame to be processed.
+            im0 (np.ndarray): The input image or frame to be processed.
 
         Returns:
             (SolutionResults): Contains processed image `im0`, 'in_count' (int, count of objects entering the region),
@@ -159,10 +164,6 @@ class ObjectCounter(BaseSolution):
         self.extract_tracks(im0)  # Extract tracks
         self.annotator = SolutionAnnotator(im0, line_width=self.line_width)  # Initialize annotator
 
-        is_obb = getattr(self.tracks[0], "obb", None) is not None  # True if OBB results exist
-        if is_obb:
-            self.boxes = self.track_data.xyxyxyxy.reshape(-1, 4, 2).cpu()
-
         self.annotator.draw_region(
             reg_pts=self.region, color=(104, 0, 123), thickness=self.line_width * 2
         )  # Draw region
@@ -170,10 +171,8 @@ class ObjectCounter(BaseSolution):
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
             # Draw bounding box and counting region
-            self.annotator.box_label(
-                box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True), rotated=is_obb
-            )
-            self.store_tracking_history(track_id, box, is_obb=is_obb)  # Store track history
+            self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
+            self.store_tracking_history(track_id, box)  # Store track history
 
             # Store previous position of track for object counting
             prev_position = None
@@ -190,6 +189,6 @@ class ObjectCounter(BaseSolution):
             plot_im=plot_im,
             in_count=self.in_count,
             out_count=self.out_count,
-            classwise_count=dict(self.classwise_counts),
+            classwise_count=dict(self.classwise_count),
             total_tracks=len(self.track_ids),
         )

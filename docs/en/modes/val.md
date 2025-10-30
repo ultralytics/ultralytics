@@ -85,6 +85,19 @@ Each of these settings plays a vital role in the validation process, allowing fo
 
 ### Example Validation with Arguments
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zHxwDkYShNc"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Export Model Validation Results in CSV, JSON, SQL, Polars DataFrame & More
+</p>
+
+<a href="https://github.com/ultralytics/notebooks/blob/main/notebooks/how-to-export-the-validation-results-into-dataframe-csv-sql-and-other-formats.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Explore model validation and different export methods in Google Colab"></a>
+
 The below examples showcase YOLO model validation with custom arguments in Python and CLI.
 
 !!! example
@@ -107,15 +120,25 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
         yolo val model=yolo11n.pt data=coco8.yaml imgsz=640 batch=16 conf=0.25 iou=0.6 device=0
         ```
 
-The `metrics` object provides the following methods for exporting validation results:
+!!! tip "Export ConfusionMatrix"
 
-| Method      | Return Type | Description                                                                      |
-| ----------- | ----------- | -------------------------------------------------------------------------------- |
-| `to_df()`   | `DataFrame` | Returns the validation results as a structured Pandas DataFrame.                 |
-| `to_csv()`  | `str`       | Exports the validation results in CSV format and returns the CSV string.         |
-| `to_xml()`  | `str`       | Exports the validation results in XML format and returns the XML string.         |
-| `to_html()` | `str`       | Exports the validation results in HTML table format and returns the HTML string. |
-| `to_json()` | `str`       | Exports the validation results in JSON format and returns the JSON string.       |
+    You can also save the ConfusionMatrix results in different formats using the provided code.
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo11n.pt")
+
+    results = model.val(data="coco8.yaml", plots=True)
+    print(results.confusion_matrix.to_df())
+    ```
+
+| Method      | Return Type            | Description                                                                |
+| ----------- | ---------------------- | -------------------------------------------------------------------------- |
+| `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                    |
+| `to_df()`   | `DataFrame`            | Returns the validation results as a structured Polars DataFrame.           |
+| `to_csv()`  | `str`                  | Exports the validation results in CSV format and returns the CSV string.   |
+| `to_json()` | `str`                  | Exports the validation results in JSON format and returns the JSON string. |
 
 For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md/#ultralytics.utils.DataExportMixin).
 
@@ -177,7 +200,11 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 
 ### Can I validate my YOLO11 model using a custom dataset?
 
-Yes, you can validate your YOLO11 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include paths to the [validation data](https://www.ultralytics.com/glossary/validation-data), class names, and other relevant details.
+Yes, you can validate your YOLO11 model using a [custom dataset](https://docs.ultralytics.com/datasets/). Specify the `data` argument with the path to your dataset configuration file. This file should include the path to the [validation data](https://www.ultralytics.com/glossary/validation-data).
+
+!!! note
+
+    Validation is performed using the model's own class names, which you can view using `model.names`, and which may be different to those specified in the dataset configuration file.
 
 Example in Python:
 

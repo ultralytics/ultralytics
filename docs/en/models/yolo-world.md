@@ -79,6 +79,17 @@ This section details the models available with their specific pre-trained weight
 
 The YOLO-World models are easy to integrate into your Python applications. Ultralytics provides user-friendly [Python API](../usage/python.md) and [CLI commands](../usage/cli.md) to streamline development.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/sWEm3dIGKU8"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> YOLO-World Model Usage examples with Ultralytics | Open Vocab, Prompt-Free & others  🚀
+</p>
+
 ### Train Usage
 
 !!! tip
@@ -279,7 +290,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
 | Dataset                                                           | Type                                                        | Samples | Boxes | Annotation Files                                                                                                                           |
 | ----------------------------------------------------------------- | ----------------------------------------------------------- | ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | [Objects365v1](https://opendatalab.com/OpenDataLab/Objects365_v1) | Detection                                                   | 609k    | 9621k | [objects365_train.json](https://opendatalab.com/OpenDataLab/Objects365_v1)                                                                 |
-| [GQA](https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip)  | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         |
+| [GQA](https://cs.stanford.edu/people/dorarad/gqa/about.html)      | [Grounding](https://www.ultralytics.com/glossary/grounding) | 621k    | 3681k | [final_mixed_train_no_coco.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_mixed_train_no_coco.json)         |
 | [Flickr30k](https://shannon.cs.illinois.edu/DenotationGraph/)     | Grounding                                                   | 149k    | 641k  | [final_flickr_separateGT_train.json](https://huggingface.co/GLIPModel/GLIP/blob/main/mdetr_annotations/final_flickr_separateGT_train.json) |
 
 - Val data
@@ -307,12 +318,12 @@ This approach provides a powerful means of customizing state-of-the-art [object 
                 yolo_data=["Objects365.yaml"],
                 grounding_data=[
                     dict(
-                        img_path="../datasets/flickr30k/images",
-                        json_file="../datasets/flickr30k/final_flickr_separateGT_train.json",
+                        img_path="flickr30k/images",
+                        json_file="flickr30k/final_flickr_separateGT_train.json",
                     ),
                     dict(
-                        img_path="../datasets/GQA/images",
-                        json_file="../datasets/GQA/final_mixed_train_no_coco.json",
+                        img_path="GQA/images",
+                        json_file="GQA/final_mixed_train_no_coco.json",
                     ),
                 ],
             ),
@@ -322,7 +333,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We extend our gratitude to the [Tencent AILab Computer Vision Center](https://www.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 
@@ -424,12 +435,12 @@ data = {
         "yolo_data": ["Objects365.yaml"],
         "grounding_data": [
             {
-                "img_path": "../datasets/flickr30k/images",
-                "json_file": "../datasets/flickr30k/final_flickr_separateGT_train.json",
+                "img_path": "flickr30k/images",
+                "json_file": "flickr30k/final_flickr_separateGT_train.json",
             },
             {
-                "img_path": "../datasets/GQA/images",
-                "json_file": "../datasets/GQA/final_mixed_train_no_coco.json",
+                "img_path": "GQA/images",
+                "json_file": "GQA/final_mixed_train_no_coco.json",
             },
         ],
     },

@@ -6,10 +6,10 @@
 # parent
 # ├── ultralytics
 # └── datasets
-#     └── coco-pose  ← downloads here (20.1 GB)
+#     └── coco-pose ← downloads here (20.1 GB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: ../datasets/coco-pose # dataset root dir
+path: coco-pose # dataset root dir
 train: train2017.txt # train images (relative to 'path') 56599 images
 val: val2017.txt # val images (relative to 'path') 2346 images
 test: test-dev2017.txt # 20288 of 40670 images, submit to https://codalab.lisn.upsaclay.fr/competitions/7403
@@ -22,16 +22,38 @@ flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 names:
   0: person
 
+# Keypoint names per class
+kpt_names:
+  0:
+    - nose
+    - left_eye
+    - right_eye
+    - left_ear
+    - right_ear
+    - left_shoulder
+    - right_shoulder
+    - left_elbow
+    - right_elbow
+    - left_wrist
+    - right_wrist
+    - left_hip
+    - right_hip
+    - left_knee
+    - right_knee
+    - left_ankle
+    - right_ankle
+
 # Download script/URL (optional)
 download: |
   from pathlib import Path
 
+  from ultralytics.utils import ASSETS_URL
   from ultralytics.utils.downloads import download
 
   # Download labels
   dir = Path(yaml["path"])  # dataset root dir
-  url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/"
-  urls = [f"{url}coco2017labels-pose.zip"]
+
+  urls = [f"{ASSETS_URL}/coco2017labels-pose.zip"]
   download(urls, dir=dir.parent)
   # Download data
   urls = [

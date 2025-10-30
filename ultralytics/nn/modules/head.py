@@ -901,7 +901,7 @@ class YOLOEDetect(Detect):
                 loc_feat,
                 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001),
             )
-            boxes.append(box.view(bs, self.reg_max * 4, -1))
+            boxes.append(box.view(bs, self.reg_max * 4, -1)[..., idx])
             scores.append(score)
             index.append(idx)
         preds = dict(boxes=torch.cat(boxes, 2), scores=torch.cat(scores, 2), feats=x, index=torch.cat(index))

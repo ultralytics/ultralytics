@@ -54,7 +54,7 @@ The Kitti dataset provides diverse driving scenarios captured from an ego-vehicl
 
 <img src="https://github.com/ultralytics/docs/releases/download/0/kitti-dataset-sample.avif" alt="Kitti sample image" width="800">
 
-These examples showcase the dataset’s rich variety, enabling robust model generalization across diverse real-world conditions.
+These examples showcase the dataset's rich variety, enabling robust model generalization across diverse real-world conditions.
 
 ## Citations and Acknowledgments
 

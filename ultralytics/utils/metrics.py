@@ -738,7 +738,7 @@ def compute_ap(recall: list[float], precision: list[float]) -> tuple[float, np.n
         mrec (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
     # Append sentinel values to beginning and end
-    if  if len(recall) > 0:
+    if len(recall) > 0:
         mrec = np.concatenate(([0.0], recall, [recall[-1]], [1.0]))
         mpre = np.concatenate(([1.0], precision, [0.0], [0.0]))
     else:

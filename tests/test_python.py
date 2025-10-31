@@ -565,7 +565,6 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
         hsv_v=0.4,
         force_color_jitter=force_color_jitter,
         erasing=erasing,
-        degrees=[0],
     )
 
     transformed_image = transform(Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)))

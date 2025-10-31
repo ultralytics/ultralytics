@@ -827,9 +827,6 @@ class Exporter:
         import pnnx
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__} and PNNX {pnnx.__version__}...")
-        # PNNX performs a find and replace to hyphens causing error
-        f_orig = str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}")
-        f = Path(f_orig.replace("-", "_"))
 
         ncnn_args = dict(
             ncnnparam=str(f / "model.ncnn.param"), ncnnbin=str(f / "model.ncnn.bin"), ncnnpy=str(f / "model_ncnn.py")
@@ -852,12 +849,7 @@ class Exporter:
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-
-        # Restore filename with hyphens for guess_model_task
-        if Path(f_orig).exists() and not f.samefile(f_orig):
-            shutil.rmtree(f_orig)
-        shutil.move(f, f_orig)
-        return f_orig
+        return f
 
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):

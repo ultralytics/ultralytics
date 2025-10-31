@@ -108,6 +108,10 @@ The following table lists the default search space parameters for hyperparameter
 
 Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO11n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
+!!! warning
+
+    This example is for **demonstration** only. Hyperparameters derived from short or small-scale tuning runs are rarely optimal for real-world training. In practice, tuning should be performed under settings similar to full training — including comparable datasets, epochs, and augmentations — to ensure reliable and transferable results. Quick tuning may bias parameters toward faster convergence or short-term validation gains that do not generalize.
+
 !!! example
 
     === "Python"

@@ -286,8 +286,8 @@ class TransformerBlock(nn.Module):
     """
     Vision Transformer block based on https://arxiv.org/abs/2010.11929.
 
-    This class implements a complete transformer block with optional convolution layer for channel adjustment,
-    learnable position embedding, and multiple transformer layers.
+    This class implements a complete transformer block with optional convolution layer for channel adjustment, learnable
+    position embedding, and multiple transformer layers.
 
     Attributes:
         conv (Conv, optional): Convolution layer if input and output channels differ.
@@ -365,8 +365,8 @@ class MLP(nn.Module):
     """
     A simple multi-layer perceptron (also called FFN).
 
-    This class implements a configurable MLP with multiple linear layers, activation functions, and optional
-    sigmoid output activation.
+    This class implements a configurable MLP with multiple linear layers, activation functions, and optional sigmoid
+    output activation.
 
     Attributes:
         num_layers (int): Number of layers in the MLP.
@@ -415,8 +415,8 @@ class LayerNorm2d(nn.Module):
     """
     2D Layer Normalization module inspired by Detectron2 and ConvNeXt implementations.
 
-    This class implements layer normalization for 2D feature maps, normalizing across the channel dimension
-    while preserving spatial dimensions.
+    This class implements layer normalization for 2D feature maps, normalizing across the channel dimension while
+    preserving spatial dimensions.
 
     Attributes:
         weight (nn.Parameter): Learnable scale parameter.
@@ -461,8 +461,8 @@ class MSDeformAttn(nn.Module):
     """
     Multiscale Deformable Attention Module based on Deformable-DETR and PaddleDetection implementations.
 
-    This module implements multiscale deformable attention that can attend to features at multiple scales
-    with learnable sampling locations and attention weights.
+    This module implements multiscale deformable attention that can attend to features at multiple scales with learnable
+    sampling locations and attention weights.
 
     Attributes:
         im2col_step (int): Step size for im2col operations.
@@ -718,8 +718,8 @@ class DeformableTransformerDecoder(nn.Module):
     """
     Deformable Transformer Decoder based on PaddleDetection implementation.
 
-    This class implements a complete deformable transformer decoder with multiple decoder layers and prediction
-    heads for bounding box regression and classification.
+    This class implements a complete deformable transformer decoder with multiple decoder layers and prediction heads
+    for bounding box regression and classification.
 
     Attributes:
         layers (nn.ModuleList): List of decoder layers.

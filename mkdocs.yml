@@ -693,8 +693,9 @@ nav:
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
-              - __init__: reference/utils/export/__init__.md
+              - engine: reference/utils/export/engine.md
               - imx: reference/utils/export/imx.md
+              - tensorflow: reference/utils/export/tensorflow.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

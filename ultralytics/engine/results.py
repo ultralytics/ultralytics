@@ -800,9 +800,8 @@ class Results(SimpleClass, DataExportMixin):
 
         Returns:
             (list[dict[str, Any]]): A list of dictionaries, each containing summarized information for a single
-                detection
-                or classification result. The structure of each dictionary varies based on the task type (classification
-                or detection) and available information (boxes, masks, keypoints).
+                detection or classification result. The structure of each dictionary varies based on the task type
+                (classification or detection) and available information (boxes, masks, keypoints).
 
         Examples:
             >>> results = model("image.jpg")

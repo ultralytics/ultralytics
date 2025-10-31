@@ -931,16 +931,16 @@ def colorstr(*input):
     Returns:
         (str): The input string wrapped with ANSI escape codes for the specified color and style.
 
+    Examples:
+        >>> colorstr("blue", "bold", "hello world")
+        >>> "\033[34m\033[1mhello world\033[0m"
+
     Notes:
         Supported Colors and Styles:
         - Basic Colors: 'black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'
         - Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
                        'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
         - Misc: 'end', 'bold', 'underline'
-
-    Examples:
-        >>> colorstr("blue", "bold", "hello world")
-        >>> "\033[34m\033[1mhello world\033[0m"
 
     References:
         https://en.wikipedia.org/wiki/ANSI_escape_code

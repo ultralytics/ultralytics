@@ -153,11 +153,15 @@ CFG_FLOAT_KEYS = frozenset(
         "box",
         "cls",
         "dfl",
-        "degrees",
         "shear",
         "time",
         "workspace",
         "batch",
+    }
+)
+CFG_NUMFLOAT_KEYS = frozenset(
+    {  # integer or float arguments or list of num, i.e. x=2 and x=2.0 and x=[90, 180.0, 0]
+        "degrees",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -363,6 +367,18 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
+            elif k in CFG_NUMFLOAT_KEYS:
+                if not (isinstance(v, FLOAT_OR_INT) or
+                        (isinstance(v, list) and v and all(isinstance(item, FLOAT_OR_INT) for item in v))):                
+                    if hard:
+                        raise TypeError(
+                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5') or list (i.e. '{k}=[90, 180.0, 0]')"
+                        )
+                    if isinstance(v, list):
+                        cfg[k] = [float(item) for item in v]
+                    else:
+                        cfg[k] = float(v)                
             elif k in CFG_FRACTION_KEYS:
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:

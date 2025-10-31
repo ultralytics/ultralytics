@@ -392,7 +392,7 @@ The following benchmarks summarizes how YOLO11 models perform at different Tenso
         | TensorRT (FP16) | ✅      | 39.06                  |
         | TensorRT (INT8) | ✅      | 22.83                  |
 
-## Acknowledgements
+## Acknowledgments
 
 This guide was initially created by our friends at Seeed Studio, Lakshantha and Elaine.
 

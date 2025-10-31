@@ -28,8 +28,8 @@ class SourceTypes:
     """
     Class to represent various types of input sources for predictions.
 
-    This class uses dataclass to define boolean flags for different types of input sources that can be used for
-    making predictions with YOLO models.
+    This class uses dataclass to define boolean flags for different types of input sources that can be used for making
+    predictions with YOLO models.
 
     Attributes:
         stream (bool): Flag indicating if the input source is a video stream.
@@ -55,8 +55,8 @@ class LoadStreams:
     """
     Stream Loader for various types of video streams.
 
-    Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video
-    streams simultaneously, making it suitable for real-time video analysis tasks.
+    Supports RTSP, RTMP, HTTP, and TCP streams. This class handles the loading and processing of multiple video streams
+    simultaneously, making it suitable for real-time video analysis tasks.
 
     Attributes:
         sources (list[str]): The source input paths or URLs for the video streams.
@@ -230,8 +230,8 @@ class LoadScreenshots:
     """
     Ultralytics screenshot dataloader for capturing and processing screen images.
 
-    This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with
-    `yolo predict source=screen`.
+    This class manages the loading of screenshot images for processing with YOLO. It is suitable for use with `yolo
+    predict source=screen`.
 
     Attributes:
         source (str): The source input indicating which screen to capture.
@@ -310,8 +310,8 @@ class LoadImagesAndVideos:
     """
     A class for loading and processing images and videos for YOLO object detection.
 
-    This class manages the loading and pre-processing of image and video data from various sources, including
-    single image files, video files, and lists of image and video paths.
+    This class manages the loading and pre-processing of image and video data from various sources, including single
+    image files, video files, and lists of image and video paths.
 
     Attributes:
         files (list[str]): List of image and video file paths.
@@ -567,8 +567,8 @@ class LoadTensor:
     """
     A class for loading and processing tensor data for object detection tasks.
 
-    This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for
-    further processing in object detection pipelines.
+    This class handles the loading and pre-processing of image data from PyTorch tensors, preparing them for further
+    processing in object detection pipelines.
 
     Attributes:
         im0 (torch.Tensor): The input tensor containing the image(s) with shape (B, C, H, W).

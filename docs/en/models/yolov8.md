@@ -168,7 +168,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for obj
         yolo predict model=yolov8n.pt source=path/to/bus.jpg
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 !!! tip "Ultralytics YOLOv8 Publication"
 

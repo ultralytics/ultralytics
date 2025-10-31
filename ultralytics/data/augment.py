@@ -1557,13 +1557,13 @@ class RandomFlip:
 
         Args:
             labels (dict[str, Any]): A dictionary containing the following keys:
-            'img' (np.ndarray): The image to be flipped.
-            'instances' (ultralytics.utils.instance.Instances): An object containing boxes and optionally keypoints.
+                - 'img' (np.ndarray): The image to be flipped.
+                - 'instances' (ultralytics.utils.instance.Instances): Object containing boxes and optionally keypoints.
 
         Returns:
             (dict[str, Any]): The same dictionary with the flipped image and updated instances:
-            'img' (np.ndarray): The flipped image.
-            'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
+                - 'img' (np.ndarray): The flipped image.
+                - 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
             >>> labels = {"img": np.random.rand(640, 640, 3), "instances": Instances(...)}

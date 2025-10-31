@@ -164,7 +164,8 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
-                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
+                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and
+                class scores.
 
         Returns:
             (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:

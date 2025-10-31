@@ -157,8 +157,8 @@ def onnx2engine(
             """
             Custom INT8 calibrator for TensorRT engine optimization.
 
-            This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration
-            using a dataset. It handles batch generation, caching, and calibration algorithm selection.
+            This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration using
+            a dataset. It handles batch generation, caching, and calibration algorithm selection.
 
             Attributes:
                 dataset: Dataset for calibration.

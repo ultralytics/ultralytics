@@ -22,8 +22,8 @@ class RTDETR(Model):
     """
     Interface for Baidu's RT-DETR model, a Vision Transformer-based real-time object detector.
 
-    This model provides real-time performance with high accuracy. It supports efficient hybrid encoding, IoU-aware
-    query selection, and adaptable inference speed.
+    This model provides real-time performance with high accuracy. It supports efficient hybrid encoding, IoU-aware query
+    selection, and adaptable inference speed.
 
     Attributes:
         model (str): Path to the pre-trained model.

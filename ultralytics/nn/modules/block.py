@@ -425,7 +425,7 @@ class C3Ghost(C3):
             shortcut (bool): Whether to use shortcut connections.
             g (int): Groups for convolutions.
             e (float): Expansion ratio.
-            layer_id (Union[int, None]): Base layer ID which controls attention. If None, attention is disabled
+            layer_id (int | None): Base layer ID which controls attention. If None, attention is disabled
         """
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
@@ -447,7 +447,7 @@ class GhostBottleneck(nn.Module):
             c2 (int): Output channels.
             k (int): Kernel size.
             s (int): Stride.
-            layer_id (Union[int, None]): Layer index.
+            layer_id (int | None): Layer index.
         """
         super().__init__()
         c_ = c2 // 2

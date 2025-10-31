@@ -48,7 +48,7 @@ Ultralytics defines the kitti dataset configuration using a YAML file. This file
 !!! example "ultralytics/cfg/datasets/kitti.yaml"
 
     ```yaml
-      --8<-- "ultralytics/cfg/datasets/kitti.yaml"
+    --8<-- "ultralytics/cfg/datasets/kitti.yaml"
     ```
 
 ## Usage

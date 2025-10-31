@@ -14,9 +14,8 @@ class TwoWayTransformer(nn.Module):
     """
     A Two-Way Transformer module for simultaneous attention to image and query points.
 
-    This class implements a specialized transformer decoder that attends to an input image using queries with
-    supplied positional embeddings. It's useful for tasks like object detection, image segmentation, and point
-    cloud processing.
+    This class implements a specialized transformer decoder that attends to an input image using queries with supplied
+    positional embeddings. It's useful for tasks like object detection, image segmentation, and point cloud processing.
 
     Attributes:
         depth (int): Number of layers in the transformer.
@@ -131,8 +130,8 @@ class TwoWayAttentionBlock(nn.Module):
     A two-way attention block for simultaneous attention to image and query points.
 
     This class implements a specialized transformer block with four main layers: self-attention on sparse inputs,
-    cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention of dense
-    inputs to sparse inputs.
+    cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention of dense inputs to
+    sparse inputs.
 
     Attributes:
         self_attn (Attention): Self-attention layer for queries.
@@ -171,8 +170,8 @@ class TwoWayAttentionBlock(nn.Module):
         Initialize a TwoWayAttentionBlock for simultaneous attention to image and query points.
 
         This block implements a specialized transformer layer with four main components: self-attention on sparse
-        inputs, cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention
-        of dense inputs to sparse inputs.
+        inputs, cross-attention of sparse inputs to dense inputs, MLP block on sparse inputs, and cross-attention of
+        dense inputs to sparse inputs.
 
         Args:
             embedding_dim (int): Channel dimension of the embeddings.
@@ -248,8 +247,8 @@ class Attention(nn.Module):
     """
     An attention layer with downscaling capability for embedding size after projection.
 
-    This class implements a multi-head attention mechanism with the option to downsample the internal
-    dimension of queries, keys, and values.
+    This class implements a multi-head attention mechanism with the option to downsample the internal dimension of
+    queries, keys, and values.
 
     Attributes:
         embedding_dim (int): Dimensionality of input embeddings.

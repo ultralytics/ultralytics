@@ -17,8 +17,8 @@ class YOLOv8:
     """
     YOLOv8 object detection model class for handling ONNX inference and visualization.
 
-    This class provides functionality to load a YOLOv8 ONNX model, perform inference on images,
-    and visualize the detection results with bounding boxes and labels.
+    This class provides functionality to load a YOLOv8 ONNX model, perform inference on images, and visualize the
+    detection results with bounding boxes and labels.
 
     Attributes:
         onnx_model (str): Path to the ONNX model file.
@@ -163,8 +163,8 @@ class YOLOv8:
         """
         Perform post-processing on the model's output to extract and visualize detections.
 
-        This method processes the raw model output to extract bounding boxes, scores, and class IDs.
-        It applies non-maximum suppression to filter overlapping detections and draws the results on the input image.
+        This method processes the raw model output to extract bounding boxes, scores, and class IDs. It applies
+        non-maximum suppression to filter overlapping detections and draws the results on the input image.
 
         Args:
             input_image (np.ndarray): The input image.

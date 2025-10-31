@@ -12,8 +12,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     """
     A mixin class for YOLO-EVP (Enhanced Visual Prompting) predictors.
 
-    This mixin provides common functionality for YOLO models that use visual prompting, including
-    model setup, prompt handling, and preprocessing transformations.
+    This mixin provides common functionality for YOLO models that use visual prompting, including model setup, prompt
+    handling, and preprocessing transformations.
 
     Attributes:
         model (torch.nn.Module): The YOLO model for inference.
@@ -53,8 +53,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         """
         Preprocess images and prompts before inference.
 
-        This method applies letterboxing to the input image and transforms the visual prompts
-        (bounding boxes or masks) accordingly.
+        This method applies letterboxing to the input image and transforms the visual prompts (bounding boxes or masks)
+        accordingly.
 
         Args:
             im (list): List containing a single input image.
@@ -150,8 +150,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
-                of the image to make predictions on. Accepts various types including file paths, URLs, PIL
-                images, numpy arrays, and torch tensors.
+                of the image to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy
+                arrays, and torch tensors.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.

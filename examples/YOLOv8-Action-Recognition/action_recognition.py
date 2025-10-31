@@ -22,8 +22,8 @@ class TorchVisionVideoClassifier:
     """
     Video classifier using pretrained TorchVision models for action recognition.
 
-    This class provides an interface for video classification using various pretrained models from TorchVision's
-    video model collection, supporting models like S3D, R3D, Swin3D, and MViT architectures.
+    This class provides an interface for video classification using various pretrained models from TorchVision's video
+    model collection, supporting models like S3D, R3D, Swin3D, and MViT architectures.
 
     Attributes:
         model (torch.nn.Module): The loaded TorchVision model for video classification.
@@ -164,8 +164,8 @@ class HuggingFaceVideoClassifier:
     """
     Zero-shot video classifier using Hugging Face transformer models.
 
-    This class provides an interface for zero-shot video classification using Hugging Face models, supporting
-    custom label sets and various transformer architectures for video understanding.
+    This class provides an interface for zero-shot video classification using Hugging Face models, supporting custom
+    label sets and various transformer architectures for video understanding.
 
     Attributes:
         fp16 (bool): Whether to use FP16 for inference.
@@ -251,7 +251,7 @@ class HuggingFaceVideoClassifier:
         Perform inference on the given sequences.
 
         Args:
-            sequences (torch.Tensor): The input sequences for the model. Batched video frames with shape (B, T, H, W, C).
+            sequences (torch.Tensor): Batched input video frames with shape (B, T, H, W, C).
 
         Returns:
             (torch.Tensor): The model's output logits.

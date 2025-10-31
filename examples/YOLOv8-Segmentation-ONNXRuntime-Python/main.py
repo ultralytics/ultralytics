@@ -19,8 +19,8 @@ class YOLOv8Seg:
     YOLOv8 segmentation model for performing instance segmentation using ONNX Runtime.
 
     This class implements a YOLOv8 instance segmentation model using ONNX Runtime for inference. It handles
-    preprocessing of input images, running inference with the ONNX model, and postprocessing the results to
-    generate bounding boxes and segmentation masks.
+    preprocessing of input images, running inference with the ONNX model, and postprocessing the results to generate
+    bounding boxes and segmentation masks.
 
     Attributes:
         session (ort.InferenceSession): ONNX Runtime inference session for model execution.

@@ -222,7 +222,7 @@ The `auto_annotate` function takes the path to your images, with optional argume
 
 Auto-annotation with pre-trained models can dramatically cut down the time and effort required for creating high-quality segmentation datasets. This feature is especially beneficial for researchers and developers dealing with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If you find SAM useful in your research or development work, please consider citing our paper:
 

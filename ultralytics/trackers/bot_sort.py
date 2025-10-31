@@ -177,7 +177,7 @@ class BOTSORT(BYTETracker):
         >>> bot_sort.init_track(dets, scores, cls, img)
         >>> bot_sort.multi_predict(tracks)
 
-    Note:
+    Notes:
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 

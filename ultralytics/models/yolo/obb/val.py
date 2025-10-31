@@ -47,8 +47,8 @@ class OBBValidator(DetectionValidator):
         """
         Initialize OBBValidator and set task to 'obb', metrics to OBBMetrics.
 
-        This constructor initializes an OBBValidator instance for validating Oriented Bounding Box (OBB) models.
-        It extends the DetectionValidator class and configures it specifically for the OBB task.
+        This constructor initializes an OBBValidator instance for validating Oriented Bounding Box (OBB) models. It
+        extends the DetectionValidator class and configures it specifically for the OBB task.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to be used for validation.
@@ -84,8 +84,8 @@ class OBBValidator(DetectionValidator):
 
         Returns:
             (dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
-                array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy
-                of predictions compared to the ground truth.
+                array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy of
+                predictions compared to the ground truth.
 
         Examples:
             >>> detections = torch.rand(100, 7)  # 100 sample detections

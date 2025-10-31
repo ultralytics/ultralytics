@@ -139,7 +139,7 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             mask_pos (torch.Tensor): Positive mask with shape (bs, max_num_obj, h*w).
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
-            overlaps (torch.Tensor): Overlaps between predicted and ground truth boxes with shape (bs, max_num_obj, h*w).
+            overlaps (torch.Tensor): Overlaps between predicted vs ground truth boxes with shape (bs, max_num_obj, h*w).
         """
         mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes)
         # Get anchor_align metric, (b, max_num_obj, h*w)
@@ -236,13 +236,12 @@ class TaskAlignedAssigner(nn.Module):
 
         Args:
             gt_labels (torch.Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the
-                                batch size and max_num_obj is the maximum number of objects.
+                batch size and max_num_obj is the maximum number of objects.
             gt_bboxes (torch.Tensor): Ground truth bounding boxes of shape (b, max_num_obj, 4).
             target_gt_idx (torch.Tensor): Indices of the assigned ground truth objects for positive
-                                    anchor points, with shape (b, h*w), where h*w is the total
-                                    number of anchor points.
+                anchor points, with shape (b, h*w), where h*w is the total number of anchor points.
             fg_mask (torch.Tensor): A boolean tensor of shape (b, h*w) indicating the positive
-                              (foreground) anchor points.
+                (foreground) anchor points.
 
         Returns:
             target_labels (torch.Tensor): Target labels for positive anchor points with shape (b, h*w).
@@ -286,9 +285,9 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             (torch.Tensor): Boolean mask of positive anchors, shape (b, n_boxes, h*w).
 
-        Note:
-            b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
-            Bounding box format: [x_min, y_min, x_max, y_max].
+        Notes:
+            - b: batch size, n_boxes: number of ground truth boxes, h: height, w: width.
+            - Bounding box format: [x_min, y_min, x_max, y_max].
         """
         n_anchors = xy_centers.shape[0]
         bs, n_boxes, _ = gt_bboxes.shape

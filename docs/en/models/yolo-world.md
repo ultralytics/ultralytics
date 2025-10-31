@@ -333,7 +333,7 @@ This approach provides a powerful means of customizing state-of-the-art [object 
         model.train(data=data, batch=128, epochs=100, trainer=WorldTrainerFromScratch)
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We extend our gratitude to the [Tencent AILab Computer Vision Center](https://www.tencent.com/) for their pioneering work in real-time open-vocabulary object detection with YOLO-World:
 

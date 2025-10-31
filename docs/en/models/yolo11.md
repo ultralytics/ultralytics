@@ -139,7 +139,7 @@ Note that the example below is for YOLO11 [Detect](../tasks/detect.md) models fo
         yolo predict model=yolo11n.pt source=path/to/bus.jpg
         ```
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 !!! tip "Ultralytics YOLO11 Publication"
 

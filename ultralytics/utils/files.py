@@ -16,8 +16,8 @@ class WorkingDirectory(contextlib.ContextDecorator):
     """
     A context manager and decorator for temporarily changing the working directory.
 
-    This class allows for the temporary change of the working directory using a context manager or decorator.
-    It ensures that the original working directory is restored after the context or decorated function completes.
+    This class allows for the temporary change of the working directory using a context manager or decorator. It ensures
+    that the original working directory is restored after the context or decorated function completes.
 
     Attributes:
         dir (Path | str): The new directory to switch to.
@@ -110,9 +110,9 @@ def increment_path(path: str | Path, exist_ok: bool = False, sep: str = "", mkdi
     """
     Increment a file or directory path, i.e., runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
 
-    If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to
-    the end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the
-    number will be appended directly to the end of the path.
+    If the path exists and `exist_ok` is not True, the path will be incremented by appending a number and `sep` to the
+    end of the path. If the path is a file, the file extension will be preserved. If the path is a directory, the number
+    will be appended directly to the end of the path.
 
     Args:
         path (str | Path): Path to increment.

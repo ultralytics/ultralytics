@@ -365,8 +365,8 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
     Args:
         requirements (Path | str | list[str|tuple] | tuple[str]): Path to a requirements.txt file, a single package
-            requirement as a string, a list of package requirements as strings, or a list containing strings and
-            tuples of interchangeable packages.
+            requirement as a string, a list of package requirements as strings, or a list containing strings and tuples
+            of interchangeable packages.
         exclude (tuple): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.

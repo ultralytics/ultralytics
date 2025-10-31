@@ -73,12 +73,12 @@ def _log_confusion_matrix(validator) -> None:
     """
     Log confusion matrix for a validator using DVCLive.
 
-    This function processes the confusion matrix from a validator object and logs it to DVCLive by converting
-    the matrix into lists of target and prediction labels.
+    This function processes the confusion matrix from a validator object and logs it to DVCLive by converting the matrix
+    into lists of target and prediction labels.
 
     Args:
         validator (BaseValidator): The validator object containing the confusion matrix and class names. Must have
-            attributes: confusion_matrix.matrix, confusion_matrix.task, and names.
+            attributes confusion_matrix.matrix, confusion_matrix.task, and names.
     """
     targets = []
     preds = []
@@ -126,8 +126,8 @@ def on_fit_epoch_end(trainer) -> None:
     """
     Log training metrics, model info, and advance to next step at the end of each fit epoch.
 
-    This function is called at the end of each fit epoch during training. It logs various metrics including
-    training loss items, validation metrics, and learning rates. On the first epoch, it also logs model
+    This function is called at the end of each fit epoch during training. It logs various metrics including training
+    loss items, validation metrics, and learning rates. On the first epoch, it also logs model
     information. Additionally, it logs training and validation plots and advances the DVCLive step counter.
 
     Args:
@@ -160,9 +160,9 @@ def on_train_end(trainer) -> None:
     """
     Log best metrics, plots, and confusion matrix at the end of training.
 
-    This function is called at the conclusion of the training process to log final metrics, visualizations, and
-    model artifacts if DVCLive logging is active. It captures the best model performance metrics, training plots,
-    validation plots, and confusion matrix for later analysis.
+    This function is called at the conclusion of the training process to log final metrics, visualizations, and model
+    artifacts if DVCLive logging is active. It captures the best model performance metrics, training plots, validation
+    plots, and confusion matrix for later analysis.
 
     Args:
         trainer (BaseTrainer): The trainer object containing training state, metrics, and validation results.

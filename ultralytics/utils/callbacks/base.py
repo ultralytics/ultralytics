@@ -197,8 +197,8 @@ def add_integration_callbacks(instance):
 
     This function loads and adds various integration callbacks to the provided instance. The specific callbacks added
     depend on the type of instance provided. All instances receive HUB callbacks, while Trainer instances also receive
-    additional callbacks for various integrations like ClearML, Comet, DVC, MLflow, Neptune, Ray Tune, TensorBoard,
-    and Weights & Biases.
+    additional callbacks for various integrations like ClearML, Comet, DVC, MLflow, Neptune, Ray Tune, TensorBoard, and
+    Weights & Biases.
 
     Args:
         instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added.

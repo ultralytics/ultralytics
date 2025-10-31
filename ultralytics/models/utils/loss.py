@@ -18,8 +18,8 @@ class DETRLoss(nn.Module):
     """
     DETR (DEtection TRansformer) Loss class for calculating various loss components.
 
-    This class computes classification loss, bounding box loss, GIoU loss, and optionally auxiliary losses for the
-    DETR object detection model.
+    This class computes classification loss, bounding box loss, GIoU loss, and optionally auxiliary losses for the DETR
+    object detection model.
 
     Attributes:
         nc (int): Number of classes.

@@ -166,22 +166,8 @@ class Detect(nn.Module):
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape
 
-        if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:  # avoid TF FlexSplitV ops
-            box = x_cat[:, : self.reg_max * 4]
-            cls = x_cat[:, self.reg_max * 4 :]
-        else:
-            box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
-
-        if self.export and self.format in {"tflite", "edgetpu"}:
-            # Precompute normalization factor to increase numerical stability
-            # See https://github.com/ultralytics/ultralytics/issues/7371
-            grid_h = shape[2]
-            grid_w = shape[3]
-            grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=box.device).reshape(1, 4, 1)
-            norm = self.strides / (self.stride[0] * grid_size)
-            dbox = self.decode_bboxes(self.dfl(box) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
-        else:
-            dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
+        box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
         return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):
@@ -391,20 +377,9 @@ class Pose(Detect):
         """Decode keypoints from predictions."""
         ndim = self.kpt_shape[1]
         if self.export:
-            if self.format in {
-                "tflite",
-                "edgetpu",
-            }:  # required for TFLite export to avoid 'PLACEHOLDER_FOR_GREATER_OP_CODES' bug
-                # Precompute normalization factor to increase numerical stability
-                y = kpts.view(bs, *self.kpt_shape, -1)
-                grid_h, grid_w = self.shape[2], self.shape[3]
-                grid_size = torch.tensor([grid_w, grid_h], device=y.device).reshape(1, 2, 1)
-                norm = self.strides / (self.stride[0] * grid_size)
-                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * norm
-            else:
-                # NCNN fix
-                y = kpts.view(bs, *self.kpt_shape, -1)
-                a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
+            # NCNN fix
+            y = kpts.view(bs, *self.kpt_shape, -1)
+            a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
             if ndim == 3:
                 a = torch.cat((a, y[:, :, 2:3].sigmoid()), 2)
             return a.view(bs, self.nk, -1)
@@ -479,8 +454,8 @@ class WorldDetect(Detect):
     """
     Head for integrating YOLO detection models with semantic understanding from text embeddings.
 
-    This class extends the standard Detect head to incorporate text embeddings for enhanced semantic understanding
-    in object detection tasks.
+    This class extends the standard Detect head to incorporate text embeddings for enhanced semantic understanding in
+    object detection tasks.
 
     Attributes:
         cv3 (nn.ModuleList): Convolution layers for embedding features.
@@ -537,8 +512,8 @@ class LRPCHead(nn.Module):
     """
     Lightweight Region Proposal and Classification Head for efficient object detection.
 
-    This head combines region proposal filtering with classification to enable efficient detection with
-    dynamic vocabulary support.
+    This head combines region proposal filtering with classification to enable efficient detection with dynamic
+    vocabulary support.
 
     Attributes:
         vocab (nn.Module): Vocabulary/classification layer.
@@ -790,8 +765,8 @@ class YOLOESegment(YOLOEDetect):
     """
     YOLO segmentation head with text embedding capabilities.
 
-    This class extends YOLOEDetect to include mask prediction capabilities for instance segmentation tasks
-    with text-guided semantic understanding.
+    This class extends YOLOEDetect to include mask prediction capabilities for instance segmentation tasks with
+    text-guided semantic understanding.
 
     Attributes:
         nm (int): Number of masks.
@@ -1186,8 +1161,8 @@ class v10Detect(Detect):
     """
     v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
-    This class implements the YOLOv10 detection head with dual-assignment training and consistent dual predictions
-    for improved efficiency and performance.
+    This class implements the YOLOv10 detection head with dual-assignment training and consistent dual predictions for
+    improved efficiency and performance.
 
     Attributes:
         end2end (bool): End-to-end detection mode.

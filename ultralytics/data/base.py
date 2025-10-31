@@ -24,8 +24,8 @@ class BaseDataset(Dataset):
     """
     Base dataset class for loading and processing image data.
 
-    This class provides core functionality for loading images, caching, and preparing data for training and inference
-    in object detection tasks.
+    This class provides core functionality for loading images, caching, and preparing data for training and inference in
+    object detection tasks.
 
     Attributes:
         img_path (str): Path to the folder containing images.
@@ -311,7 +311,7 @@ class BaseDataset(Dataset):
             b += im.nbytes
             if not os.access(Path(im_file).parent, os.W_OK):
                 self.cache = None
-                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writeable")
+                LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
         total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)

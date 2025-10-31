@@ -11,8 +11,8 @@ class GCPRegions:
     """
     A class for managing and analyzing Google Cloud Platform (GCP) regions.
 
-    This class provides functionality to initialize, categorize, and analyze GCP regions based on their
-    geographical location, tier classification, and network latency.
+    This class provides functionality to initialize, categorize, and analyze GCP regions based on their geographical
+    location, tier classification, and network latency.
 
     Attributes:
         regions (dict[str, tuple[int, str, str]]): A dictionary of GCP regions with their tier, city, and country.

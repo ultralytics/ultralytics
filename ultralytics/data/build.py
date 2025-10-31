@@ -97,8 +97,8 @@ class _RepeatSampler:
     """
     Sampler that repeats forever for infinite iteration.
 
-    This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration
-    over a dataset without recreating the sampler.
+    This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration over a
+    dataset without recreating the sampler.
 
     Attributes:
         sampler (Dataset.sampler): The sampler to repeat.
@@ -119,13 +119,13 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
 
     Unlike PyTorch's DistributedSampler which distributes samples in a round-robin fashion (GPU 0 gets indices
-    [0,2,4,...], GPU 1 gets [1,3,5,...]), this sampler gives each GPU contiguous batches of the dataset
-    (GPU 0 gets batches [0,1,2,...], GPU 1 gets batches [k,k+1,...], etc.). This preserves any ordering or
-    grouping in the original dataset, which is critical when samples are organized by similarity (e.g., images
-    sorted by size to enable efficient batching without padding when using rect=True).
+    [0,2,4,...], GPU 1 gets [1,3,5,...]), this sampler gives each GPU contiguous batches of the dataset (GPU 0 gets
+    batches [0,1,2,...], GPU 1 gets batches [k,k+1,...], etc.). This preserves any ordering or grouping in the original
+    dataset, which is critical when samples are organized by similarity (e.g., images sorted by size to enable efficient
+    batching without padding when using rect=True).
 
-    The sampler handles uneven batch counts by distributing remainder batches to the first few ranks, ensuring
-    all samples are covered exactly once across all GPUs.
+    The sampler handles uneven batch counts by distributing remainder batches to the first few ranks, ensuring all
+    samples are covered exactly once across all GPUs.
 
     Args:
         dataset (torch.utils.data.Dataset): Dataset to sample from. Must implement __len__.
@@ -135,7 +135,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False.
             When True, shuffling is deterministic and controlled by set_epoch() for reproducibility.
 
-    Example:
+    Examples:
         >>> # For validation with size-grouped images
         >>> sampler = ContiguousDistributedSampler(val_dataset, batch_size=32, shuffle=False)
         >>> loader = DataLoader(val_dataset, batch_size=32, sampler=sampler)

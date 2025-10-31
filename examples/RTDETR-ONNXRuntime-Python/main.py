@@ -160,8 +160,8 @@ class RTDETR:
         """
         Preprocess the input image for model inference.
 
-        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes
-        pixel values to [0, 1] range.
+        Loads the image, converts color space from BGR to RGB, resizes to model input dimensions, and normalizes pixel
+        values to [0, 1] range.
 
         Returns:
             (np.ndarray): Preprocessed image data with shape (1, 3, H, W) ready for inference.
@@ -217,8 +217,8 @@ class RTDETR:
         """
         Postprocess model output to extract and visualize detections.
 
-        Applies confidence thresholding, converts bounding box format, scales coordinates to original image
-        dimensions, and draws detection annotations.
+        Applies confidence thresholding, converts bounding box format, scales coordinates to original image dimensions,
+        and draws detection annotations.
 
         Args:
             model_output (list[np.ndarray]): Output tensors from the model inference.

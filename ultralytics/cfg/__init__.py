@@ -368,8 +368,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     )
                 cfg[k] = float(v)
             elif k in CFG_NUMFLOAT_KEYS:
-                if not (isinstance(v, FLOAT_OR_INT) or
-                        (isinstance(v, list) and v and all(isinstance(item, FLOAT_OR_INT) for item in v))):                
+                if not (
+                    isinstance(v, FLOAT_OR_INT)
+                    or (isinstance(v, list) and v and all(isinstance(item, FLOAT_OR_INT) for item in v))
+                ):
                     if hard:
                         raise TypeError(
                             f"'{k}={v}' is of invalid type {type(v).__name__}. "
@@ -378,7 +380,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     if isinstance(v, list):
                         cfg[k] = [float(item) for item in v]
                     else:
-                        cfg[k] = float(v)                
+                        cfg[k] = float(v)
             elif k in CFG_FRACTION_KEYS:
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:

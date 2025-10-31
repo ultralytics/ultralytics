@@ -827,6 +827,7 @@ class Exporter:
         import pnnx
 
         LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__} and PNNX {pnnx.__version__}...")
+        f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
 
         ncnn_args = dict(
             ncnnparam=str(f / "model.ncnn.param"), ncnnbin=str(f / "model.ncnn.bin"), ncnnpy=str(f / "model_ncnn.py")

@@ -10,8 +10,8 @@ class VisionEye(BaseSolution):
     """
     A class to manage object detection and vision mapping in images or video streams.
 
-    This class extends the BaseSolution class and provides functionality for detecting objects,
-    mapping vision points, and annotating results with bounding boxes and labels.
+    This class extends the BaseSolution class and provides functionality for detecting objects, mapping vision points,
+    and annotating results with bounding boxes and labels.
 
     Attributes:
         vision_point (tuple[int, int]): Coordinates (x, y) where vision will view objects and draw tracks.

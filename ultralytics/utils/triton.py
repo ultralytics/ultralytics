@@ -11,8 +11,8 @@ class TritonRemoteModel:
     """
     Client for interacting with a remote Triton Inference Server model.
 
-    This class provides a convenient interface for sending inference requests to a Triton Inference Server
-    and processing the responses. Supports both HTTP and gRPC communication protocols.
+    This class provides a convenient interface for sending inference requests to a Triton Inference Server and
+    processing the responses. Supports both HTTP and gRPC communication protocols.
 
     Attributes:
         endpoint (str): The name of the model on the Triton server.

@@ -171,8 +171,8 @@ class MemoryAttention(nn.Module):
     """
     Memory attention module for processing sequential data with self and cross-attention mechanisms.
 
-    This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
-    for processing sequential data, particularly useful in transformer-like architectures.
+    This class implements a multi-layer attention mechanism that combines self-attention and cross-attention for
+    processing sequential data, particularly useful in transformer-like architectures.
 
     Attributes:
         d_model (int): The dimension of the model's hidden state.
@@ -209,8 +209,8 @@ class MemoryAttention(nn.Module):
         """
         Initialize MemoryAttention with specified layers and normalization for sequential data processing.
 
-        This class implements a multi-layer attention mechanism that combines self-attention and cross-attention
-        for processing sequential data, particularly useful in transformer-like architectures.
+        This class implements a multi-layer attention mechanism that combines self-attention and cross-attention for
+        processing sequential data, particularly useful in transformer-like architectures.
 
         Args:
             d_model (int): The dimension of the model's hidden state.

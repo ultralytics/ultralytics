@@ -19,8 +19,8 @@ class ClassificationValidator(BaseValidator):
     """
     A class extending the BaseValidator class for validation based on a classification model.
 
-    This validator handles the validation process for classification models, including metrics calculation,
-    confusion matrix generation, and visualization of results.
+    This validator handles the validation process for classification models, including metrics calculation, confusion
+    matrix generation, and visualization of results.
 
     Attributes:
         targets (list[torch.Tensor]): Ground truth class labels.
@@ -115,16 +115,16 @@ class ClassificationValidator(BaseValidator):
         """
         Finalize metrics including confusion matrix and processing speed.
 
-        Notes:
-            This method processes the accumulated predictions and targets to generate the confusion matrix,
-            optionally plots it, and updates the metrics object with speed information.
-
         Examples:
             >>> validator = ClassificationValidator()
             >>> validator.pred = [torch.tensor([[0, 1, 2]])]  # Top-3 predictions for one sample
             >>> validator.targets = [torch.tensor([0])]  # Ground truth class
             >>> validator.finalize_metrics()
             >>> print(validator.metrics.confusion_matrix)  # Access the confusion matrix
+
+        Notes:
+            This method processes the accumulated predictions and targets to generate the confusion matrix,
+            optionally plots it, and updates the metrics object with speed information.
         """
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:

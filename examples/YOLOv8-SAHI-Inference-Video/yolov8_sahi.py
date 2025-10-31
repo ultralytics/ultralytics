@@ -66,8 +66,8 @@ class SAHIInference:
         """
         Run object detection on a video using YOLO11 and SAHI.
 
-        The function processes each frame of the video, applies sliced inference using SAHI,
-        and optionally displays and/or saves the results with bounding boxes and labels.
+        The function processes each frame of the video, applies sliced inference using SAHI, and optionally displays
+        and/or saves the results with bounding boxes and labels.
 
         Args:
             weights (str): Model weights' path.

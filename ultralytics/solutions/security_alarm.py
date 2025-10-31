@@ -52,12 +52,12 @@ class SecurityAlarm(BaseSolution):
         """
         Authenticate the email server for sending alert notifications.
 
+        This method initializes a secure connection with the SMTP server and logs in using the provided credentials.
+
         Args:
             from_email (str): Sender's email address.
             password (str): Password for the sender's email account.
             to_email (str): Recipient's email address.
-
-        This method initializes a secure connection with the SMTP server and logs in using the provided credentials.
 
         Examples:
             >>> alarm = SecurityAlarm()
@@ -75,12 +75,12 @@ class SecurityAlarm(BaseSolution):
         """
         Send an email notification with an image attachment indicating the number of objects detected.
 
+        This method encodes the input image, composes the email message with details about the detection, and sends it
+        to the specified recipient.
+
         Args:
             im0 (np.ndarray): The input image or frame to be attached to the email.
             records (int, optional): The number of detected objects to be included in the email message.
-
-        This method encodes the input image, composes the email message with details about the detection, and sends it
-        to the specified recipient.
 
         Examples:
             >>> alarm = SecurityAlarm()
@@ -120,16 +120,16 @@ class SecurityAlarm(BaseSolution):
         """
         Monitor the frame, process object detections, and trigger alerts if thresholds are exceeded.
 
+        This method processes the input frame, extracts detections, annotates the frame with bounding boxes, and sends
+        an email notification if the number of detected objects surpasses the specified threshold and an alert has not
+        already been sent.
+
         Args:
             im0 (np.ndarray): The input image or frame to be processed and annotated.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (total number of tracked objects) and
                 'email_sent' (whether an email alert was triggered).
-
-        This method processes the input frame, extracts detections, annotates the frame with bounding boxes, and sends
-        an email notification if the number of detected objects surpasses the specified threshold and an alert has not
-        already been sent.
 
         Examples:
             >>> alarm = SecurityAlarm()

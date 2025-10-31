@@ -22,8 +22,8 @@ class ConsoleLogger:
     """
     Console output capture with API/file streaming and deduplication.
 
-    Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent
-    deduplication to reduce noise from repetitive console output.
+    Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent deduplication
+    to reduce noise from repetitive console output.
 
     Attributes:
         destination (str | Path): Target destination for streaming (URL or Path object).
@@ -230,8 +230,8 @@ class SystemLogger:
     """
     Log dynamic system metrics for training monitoring.
 
-    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for
-    training performance monitoring and analysis.
+    Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for training
+    performance monitoring and analysis.
 
     Attributes:
         pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
@@ -280,8 +280,8 @@ class SystemLogger:
         """
         Get current system metrics.
 
-        Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics,
-        network I/O statistics, and GPU metrics (if available). Example output:
+        Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
+        statistics, and GPU metrics (if available). Example output:
 
         ```python
         metrics = {
@@ -312,7 +312,7 @@ class SystemLogger:
             - power (int): GPU power consumption in watts
 
         Returns:
-            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with respective usage data.
+            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
         """
         import psutil  # scoped as slow import
 

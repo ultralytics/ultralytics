@@ -118,7 +118,7 @@ def get_windows(
         eps (float, optional): Epsilon value for math operations.
 
     Returns:
-        (np.ndarray): Array of window coordinates with shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
+        (np.ndarray): Array of window coordinates of shape (N, 4) where each row is [x_start, y_start, x_stop, y_stop].
     """
     h, w = im_size
     windows = []

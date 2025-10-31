@@ -30,8 +30,8 @@ def non_max_suppression(
     """
     Perform non-maximum suppression (NMS) on prediction results.
 
-    Applies NMS to filter overlapping bounding boxes based on confidence and IoU thresholds. Supports multiple
-    detection formats including standard boxes, rotated boxes, and masks.
+    Applies NMS to filter overlapping bounding boxes based on confidence and IoU thresholds. Supports multiple detection
+    formats including standard boxes, rotated boxes, and masks.
 
     Args:
         prediction (torch.Tensor): Predictions with shape (batch_size, num_classes + 4 + num_masks, num_boxes)
@@ -231,9 +231,11 @@ class TorchNMS:
             upper_mask = row_idx < col_idx
             ious = ious * upper_mask
             # Zeroing these scores ensures the additional indices would not affect the final results
-            scores[~((ious >= iou_threshold).sum(0) <= 0)] = 0
+            scores_ = scores[sorted_idx]
+            scores_[~((ious >= iou_threshold).sum(0) <= 0)] = 0
+            scores[sorted_idx] = scores_  # update original tensor for NMSModel
             # NOTE: return indices with fixed length to avoid TFLite reshape error
-            pick = torch.topk(scores, scores.shape[0]).indices
+            pick = torch.topk(scores_, scores_.shape[0]).indices
         return sorted_idx[pick]
 
     @staticmethod

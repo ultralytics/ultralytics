@@ -22,8 +22,8 @@ class YOLOv8TFLite:
     """
     A YOLOv8 object detection class using TensorFlow Lite for efficient inference.
 
-    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8
-    models converted to TensorFlow Lite format.
+    This class handles model loading, preprocessing, inference, and visualization of detection results for YOLOv8 models
+    converted to TensorFlow Lite format.
 
     Attributes:
         model (Interpreter): TensorFlow Lite interpreter for the YOLOv8 model.

@@ -38,8 +38,8 @@ class Tuner:
     A class for hyperparameter tuning of YOLO models.
 
     The class evolves YOLO model hyperparameters over a given number of iterations by mutating them according to the
-    search space and retraining the model to evaluate their performance. Supports both local CSV storage and
-    distributed MongoDB Atlas coordination for multi-machine hyperparameter optimization.
+    search space and retraining the model to evaluate their performance. Supports both local CSV storage and distributed
+    MongoDB Atlas coordination for multi-machine hyperparameter optimization.
 
     Attributes:
         space (dict[str, tuple]): Hyperparameter search space containing bounds and scaling factors for mutation.
@@ -186,9 +186,8 @@ class Tuner:
         """
         Initialize MongoDB connection for distributed tuning.
 
-        Connects to MongoDB Atlas for distributed hyperparameter optimization across multiple machines.
-        Each worker saves results to a shared collection and reads the latest best hyperparameters
-        from all workers for evolution.
+        Connects to MongoDB Atlas for distributed hyperparameter optimization across multiple machines. Each worker
+        saves results to a shared collection and reads the latest best hyperparameters from all workers for evolution.
 
         Args:
             mongodb_uri (str): MongoDB connection string, e.g. 'mongodb+srv://username:password@cluster.mongodb.net/'.

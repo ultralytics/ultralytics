@@ -56,8 +56,8 @@ class FastSAM(Model):
         """
         Perform segmentation prediction on image or video source.
 
-        Supports prompted segmentation with bounding boxes, points, labels, and texts. The method packages these
-        prompts and passes them to the parent class predict method for processing.
+        Supports prompted segmentation with bounding boxes, points, labels, and texts. The method packages these prompts
+        and passes them to the parent class predict method for processing.
 
         Args:
             source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image,

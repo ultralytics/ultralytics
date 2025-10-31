@@ -1346,7 +1346,7 @@ def temporary_modules(modules=None, attributes=None):
         >>> import old.module  # this will now import new.module
         >>> from old.module import attribute  # this will now import new.module.attribute
 
-    Note:
+    Notes:
         The changes are only in effect inside the context manager and are undone once the context manager exits.
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.

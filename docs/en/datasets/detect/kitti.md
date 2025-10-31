@@ -21,15 +21,15 @@ In total, the dataset includes 7,481 images, each paired with detailed annotatio
 - **Training set:** Contains 5,985 images with annotated labels used for model training.
 - **Validation set:** Includes 1,496 images with corresponding annotations used for performance evaluation and benchmarking.
 
-!!! Tip "KITTI classes" 
+!!! Tip "KITTI classes"
 
     0. car
     1. van
     2. truck
-    3. pedestrian 
-    4. Person_sitting 
-    5. cyclist 
-    6. tram 
+    3. pedestrian
+    4. Person_sitting
+    5. cyclist
+    6. tram
     7. misc
 
 ## Applications

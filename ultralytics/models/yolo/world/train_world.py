@@ -56,8 +56,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         Initialize a WorldTrainerFromScratch object.
 
-        This initializes a trainer for YOLO-World models from scratch, supporting mixed datasets including both
-        object detection and grounding datasets for vision-language capabilities.
+        This initializes a trainer for YOLO-World models from scratch, supporting mixed datasets including both object
+        detection and grounding datasets for vision-language capabilities.
 
         Args:
             cfg (dict): Configuration dictionary with default parameters for model training.
@@ -90,8 +90,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         Build YOLO Dataset for training or validation.
 
-        This method constructs appropriate datasets based on the mode and input paths, handling both
-        standard YOLO datasets and grounding datasets with different formats.
+        This method constructs appropriate datasets based on the mode and input paths, handling both standard YOLO
+        datasets and grounding datasets with different formats.
 
         Args:
             img_path (list[str] | str): Path to the folder containing images or list of paths.
@@ -125,8 +125,8 @@ class WorldTrainerFromScratch(WorldTrainer):
         """
         Get train and validation paths from data dictionary.
 
-        Processes the data configuration to extract paths for training and validation datasets,
-        handling both YOLO detection datasets and grounding datasets.
+        Processes the data configuration to extract paths for training and validation datasets, handling both YOLO
+        detection datasets and grounding datasets.
 
         Returns:
             train_path (str): Train dataset path.

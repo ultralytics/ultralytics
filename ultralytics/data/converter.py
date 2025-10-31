@@ -130,9 +130,6 @@ def coco80_to_coco91_class() -> list[int]:
     Returns:
         (list[int]): A list of 80 class IDs where each value is the corresponding 91-index class ID.
 
-    References:
-        https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
-
     Examples:
         >>> import numpy as np
         >>> a = np.loadtxt("data/coco.names", dtype="str", delimiter="\n")
@@ -143,6 +140,9 @@ def coco80_to_coco91_class() -> list[int]:
 
         Convert the COCO to darknet format
         >>> x2 = [list(b[i] == a).index(True) if any(b[i] == a) else None for i in range(91)]
+
+    References:
+        https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
     """
     return [
         1,
@@ -540,7 +540,7 @@ def merge_multi_segment(segments: list[list]):
 
     Args:
         segments (list[list]): Original segmentations in COCO's JSON file.
-                               Each element is a list of coordinates, like [segmentation1, segmentation2,...].
+            Each element is a list of coordinates, like [segmentation1, segmentation2,...].
 
     Returns:
         s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
@@ -651,9 +651,9 @@ def create_synthetic_coco_dataset():
     """
     Create a synthetic COCO dataset with random images based on filenames from label lists.
 
-    This function downloads COCO labels, reads image filenames from label list files,
-    creates synthetic images for train2017 and val2017 subsets, and organizes
-    them in the COCO dataset structure. It uses multithreading to generate images efficiently.
+    This function downloads COCO labels, reads image filenames from label list files, creates synthetic images for
+    train2017 and val2017 subsets, and organizes them in the COCO dataset structure. It uses multithreading to generate
+    images efficiently.
 
     Examples:
         >>> from ultralytics.data.converter import create_synthetic_coco_dataset
@@ -707,8 +707,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     """
     Convert RGB images to multispectral images by interpolating across wavelength bands.
 
-    This function takes RGB images and interpolates them to create multispectral images with a specified number
-    of channels. It can process either a single image or a directory of images.
+    This function takes RGB images and interpolates them to create multispectral images with a specified number of
+    channels. It can process either a single image or a directory of images.
 
     Args:
         path (str | Path): Path to an image file or directory containing images to convert.
@@ -759,9 +759,9 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     """
     Convert NDJSON dataset format to Ultralytics YOLO11 dataset structure.
 
-    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO
-    format with separate directories for images and labels. It supports parallel processing for efficient
-    conversion of large datasets and can download images from URLs if they don't exist locally.
+    This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format with
+    separate directories for images and labels. It supports parallel processing for efficient conversion of large
+    datasets and can download images from URLs if they don't exist locally.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names and configuration

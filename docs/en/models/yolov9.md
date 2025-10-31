@@ -183,7 +183,7 @@ This table provides a detailed overview of the YOLOv9 model variants, highlighti
 
     Training YOLOv9 models will require _more_ resources **and** take longer than the equivalent sized [YOLOv8 model](yolov8.md).
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 We would like to acknowledge the YOLOv9 authors for their significant contributions in the field of real-time object detection:
 

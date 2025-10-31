@@ -242,7 +242,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 0.52         | 0.51 \| 0.56       |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 0.52         |                    | 0.52                 | 0.37                    | 1       | 640                   |
@@ -258,7 +258,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-seg.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(M) | mAP<sup>val<br>50-95(M) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(M) | mAP<sup>val<br>50-95(M) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 0.62         | 0.61 \| 0.68       |                      |                         |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 0.63         |                    | 0.52                 | 0.36                    | 0.49                 | 0.31                    | 1       | 640                   |
@@ -274,7 +274,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-cls.engine`
 
-        | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|------------------|--------------|--------------------|-------|-------|---------|-----------------------|
         | FP32      | Predict          | 0.26         | 0.25 \| 0.28       |       |       | 8       | 640                   |
         | FP32      | ImageNet<sup>val | 0.26         |                    | 0.35  | 0.61  | 1       | 640                   |
@@ -290,7 +290,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-pose.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | mAP<sup>val<br>50(P) | mAP<sup>val<br>50-95(P) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 0.54         | 0.53 \| 0.58       |                      |                         |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 0.55         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
@@ -306,7 +306,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n-obb.engine`
 
-        | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|----------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict        | 0.52         | 0.51 \| 0.59       |                      |                         | 8       | 640                   |
         | FP32      | DOTAv1<sup>val | 0.76         |                    | 0.50                 | 0.36                    | 1       | 640                   |
@@ -326,7 +326,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 1.06         | 0.75 \| 1.88       |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 1.37         |                    | 0.52                 | 0.37                    | 1       | 640                   |
@@ -343,7 +343,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 1.76         | 1.69 \| 1.87       |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 1.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
@@ -359,7 +359,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 2.84         | 2.84 \| 2.85       |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 2.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
@@ -379,7 +379,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         !!! note
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pre-trained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels) |
+        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val<br>50(B) | mAP<sup>val<br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
         | FP32      | Predict      | 6.11         | 6.10 \| 6.29       |                      |                         | 8       | 640                   |
         | FP32      | COCO<sup>val | 6.17         |                    | 0.52                 | 0.37                    | 1       | 640                   |

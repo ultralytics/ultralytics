@@ -39,7 +39,7 @@ class ObjectBlurrer(BaseSolution):
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and for configuration.
-                blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
+            blur_ratio (float): Intensity of the blur effect (0.1-1.0, default=0.5).
         """
         super().__init__(**kwargs)
         blur_ratio = self.CFG["blur_ratio"]
@@ -52,8 +52,8 @@ class ObjectBlurrer(BaseSolution):
         """
         Apply a blurring effect to detected objects in the input image.
 
-        This method extracts tracking information, applies blur to regions corresponding to detected objects,
-        and annotates the image with bounding boxes.
+        This method extracts tracking information, applies blur to regions corresponding to detected objects, and
+        annotates the image with bounding boxes.
 
         Args:
             im0 (np.ndarray): The input image containing detected objects.

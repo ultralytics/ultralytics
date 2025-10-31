@@ -1113,7 +1113,8 @@ class Exporter:
 
     @try_export
     def export_executorch(self, prefix=colorstr("ExecuTorch:")):
-        """Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
+        """
+        Exports a model to ExecuTorch (.pte) format into a dedicated directory and saves the required metadata,
         following Ultralytics conventions.
         """
         LOGGER.info(f"\n{prefix} starting export with ExecuTorch...")

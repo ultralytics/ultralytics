@@ -41,7 +41,7 @@ class InstanceSegmentation(BaseSolution):
 
         Args:
             **kwargs (Any): Keyword arguments passed to the BaseSolution parent class.
-                model (str): Model name or path, defaults to "yolo11n-seg.pt".
+            model (str): Model name or path, defaults to "yolo11n-seg.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-seg.pt")
         super().__init__(**kwargs)

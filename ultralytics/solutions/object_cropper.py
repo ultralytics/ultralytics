@@ -37,7 +37,7 @@ class ObjectCropper(BaseSolution):
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent class and used for configuration.
-                crop_dir (str): Path to the directory for saving cropped object images.
+            crop_dir (str): Path to the directory for saving cropped object images.
         """
         super().__init__(**kwargs)
 

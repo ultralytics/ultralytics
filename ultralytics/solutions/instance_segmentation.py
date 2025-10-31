@@ -40,8 +40,8 @@ class InstanceSegmentation(BaseSolution):
         Initialize the InstanceSegmentation class for detecting and annotating segmented instances.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the BaseSolution parent class.
-                model (str): Model name or path, defaults to "yolo11n-seg.pt".
+            **kwargs (Any): Keyword arguments passed to the BaseSolution parent class including:
+                - model (str): Model name or path, defaults to "yolo11n-seg.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-seg.pt")
         super().__init__(**kwargs)

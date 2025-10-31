@@ -849,7 +849,7 @@ class Exporter:
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
-        return f
+        return str(f)
 
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):

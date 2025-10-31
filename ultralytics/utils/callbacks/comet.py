@@ -153,8 +153,8 @@ def _scale_bounding_box_to_original_image_shape(
     """
     Scale bounding box from resized image coordinates to original image coordinates.
 
-    YOLO resizes images during training and the label values are normalized based on this resized shape.
-    This function rescales the bounding box labels to the original image shape.
+    YOLO resizes images during training and the label values are normalized based on this resized shape. This function
+    rescales the bounding box labels to the original image shape.
 
     Args:
         box (torch.Tensor): Bounding box in normalized xywh format.
@@ -205,7 +205,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
             - 'boxes': List of box coordinates [x, y, width, height]
             - 'label': Label string with format "gt_{class_name}"
             - 'score': Confidence score (always 1.0, scaled by _scale_confidence_score)
-        Returns None if no bounding boxes are found for the image.
+            Returns None if no bounding boxes are found for the image.
     """
     indices = batch["batch_idx"] == img_idx
     bboxes = batch["bboxes"][indices]
@@ -360,8 +360,8 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
     """
     Log images to the experiment with optional annotations.
 
-    This function logs images to a Comet ML experiment, optionally including annotation data for visualization
-    such as bounding boxes or segmentation masks.
+    This function logs images to a Comet ML experiment, optionally including annotation data for visualization such as
+    bounding boxes or segmentation masks.
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
@@ -383,8 +383,8 @@ def _log_image_predictions(experiment, validator, curr_step) -> None:
     """
     Log predicted boxes for a single image during training.
 
-    This function logs image predictions to a Comet ML experiment during model validation. It processes
-    validation data and formats both ground truth and prediction annotations for visualization in the Comet
+    This function logs image predictions to a Comet ML experiment during model validation. It processes validation data
+    and formats both ground truth and prediction annotations for visualization in the Comet
     dashboard. The function respects configured limits on the number of images to log.
 
     Args:
@@ -447,8 +447,8 @@ def _log_plots(experiment, trainer) -> None:
     Log evaluation plots and label plots for the experiment.
 
     This function logs various evaluation plots and confusion matrices to the experiment tracking system. It handles
-    different types of metrics (SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics) and logs the appropriate plots
-    for each type.
+    different types of metrics (SegmentMetrics, PoseMetrics, DetMetrics, OBBMetrics) and logs the appropriate plots for
+    each type.
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log plots to.
@@ -520,8 +520,7 @@ def _log_table(experiment, table_path) -> None:
     """
     Logs a table to the provided experiment.
 
-    This function is used to log a table file to the given experiment. The table
-    is identified by its file path.
+    This function is used to log a table file to the given experiment. The table is identified by its file path.
 
     Args:
         experiment (comet_ml.CometExperiment): The experiment object where the table file will be logged.
@@ -552,13 +551,13 @@ def on_fit_epoch_end(trainer) -> None:
     """
     Log model assets at the end of each epoch during training.
 
-    This function is called at the end of each training epoch to log metrics, learning rates, and model information
-    to a Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on
-    configuration settings.
+    This function is called at the end of each training epoch to log metrics, learning rates, and model information to a
+    Comet ML experiment. It also logs model assets, confusion matrices, and image predictions based on configuration
+    settings.
 
     The function retrieves the current Comet ML experiment and logs various training metrics. If it's the first epoch,
-    it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled),
-    and image predictions (if enabled).
+    it also logs model information. On specified save intervals, it logs the model, confusion matrix (if enabled), and
+    image predictions (if enabled).
 
     Args:
         trainer (BaseTrainer): The YOLO trainer object containing training state, metrics, and configuration.

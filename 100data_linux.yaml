@@ -1,9 +1,9 @@
 # YOLO dataset configuration
 
-path: /media/james/Lexar//GITHUB/ultralytics/datasets/100  # base path to dataset
+path: /media/james/Lexar//GITHUB/ultralytics/datasets/100 # base path to dataset
 
 train: /media/james/Lexar//GITHUB/ultralytics/datasets/100/train/images
 val: /media/james/Lexar//GITHUB/ultralytics/datasets/100/val/images
 
-nc: 6  # number of classes
-names: ['car', 'motorcycle', 'tricycle', 'bus', 'van', 'truck']  # class names
+nc: 6 # number of classes
+names: ["car", "motorcycle", "tricycle", "bus", "van", "truck"] # class names

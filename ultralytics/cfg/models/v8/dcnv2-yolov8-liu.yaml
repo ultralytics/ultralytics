@@ -43,7 +43,6 @@
 # - Zhu et al. "Deformable ConvNets v2: More Deformable, Better Results" CVPR 2019
 # - Liu et al. YOLOv8-DCN configuration for vehicle detection
 
-
 nc: 6
 depth_multiple: 0.33
 width_multiple: 0.25

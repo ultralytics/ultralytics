@@ -1,8 +1,8 @@
-path: datasets/25/mydata  # base path to dataset
+path: datasets/25/mydata # base path to dataset
 
-train: images/train     # relative to "path"
+train: images/train # relative to "path"
 val: images/val
-test: images/test 
+test: images/test
 
-nc: 6                   # number of classes
-names: ['car', 'motorcycle', 'tricycle', 'bus', 'van', 'truck']   # class names
+nc: 6 # number of classes
+names: ["car", "motorcycle", "tricycle", "bus", "van", "truck"] # class names

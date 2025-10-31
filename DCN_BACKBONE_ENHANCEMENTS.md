@@ -7,18 +7,19 @@ Beyond basic DCN integration, here are additional modifications you can make to 
 ## 🎯 Current Implementation (Baseline)
 
 **What you have now:**
+
 ```yaml
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, C2f, [128, True]]            # 2 - standard
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3 ✓
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3 ✓
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, C2f, [1024, True]]           # 8 - standard
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]] # 2 - standard
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True]] # 4 - DCN v3 ✓
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]] # 6 - DCN v3 ✓
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2f, [1024, True]] # 8 - standard
+  - [-1, 1, SPPF, [1024, 5]] # 9
 ```
 
 ---
@@ -31,16 +32,16 @@ backbone:
 
 ```yaml
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, DCNv3C2f, [128, True]]       # 2 - DCN v3! (early features)
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3 ✓
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3 ✓
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, DCNv3C2f, [1024, True]]      # 8 - DCN v3! (deep features)
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, DCNv3C2f, [128, True]] # 2 - DCN v3! (early features)
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True]] # 4 - DCN v3 ✓
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]] # 6 - DCN v3 ✓
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, DCNv3C2f, [1024, True]] # 8 - DCN v3! (deep features)
+  - [-1, 1, SPPF, [1024, 5]] # 9
 ```
 
 **Expected improvement:** +2-3% mAP50-95
@@ -56,16 +57,16 @@ backbone:
 
 ```yaml
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2 - keep standard
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4 - keep standard
-  - [-1, 3, C2f, [128, True]]            # 2
-  - [-1, 1, DCNv3Conv, [256, 3, 2]]      # 3-P3/8 - DCN downsample!
-  - [-1, 6, DCNv3C2f, [256, True]]       # 4
-  - [-1, 1, DCNv3Conv, [512, 3, 2]]      # 5-P4/16 - DCN downsample!
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6
-  - [-1, 1, DCNv3Conv, [1024, 3, 2]]     # 7-P5/32 - DCN downsample!
-  - [-1, 3, C2f, [1024, True]]           # 8
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2 - keep standard
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4 - keep standard
+  - [-1, 3, C2f, [128, True]] # 2
+  - [-1, 1, DCNv3Conv, [256, 3, 2]] # 3-P3/8 - DCN downsample!
+  - [-1, 6, DCNv3C2f, [256, True]] # 4
+  - [-1, 1, DCNv3Conv, [512, 3, 2]] # 5-P4/16 - DCN downsample!
+  - [-1, 6, DCNv3C2f, [512, True]] # 6
+  - [-1, 1, DCNv3Conv, [1024, 3, 2]] # 7-P5/32 - DCN downsample!
+  - [-1, 3, C2f, [1024, True]] # 8
+  - [-1, 1, SPPF, [1024, 5]] # 9
 ```
 
 **Expected improvement:** +1-2% mAP50-95
@@ -81,16 +82,16 @@ backbone:
 
 ```yaml
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, C2f, [128, True]]            # 2 - standard (early)
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 6, DeformC2f, [256, True]]      # 4 - DCN v2 (fine details)
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3 (semantic)
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, DCNv3C2f, [1024, True]]      # 8 - DCN v3 (context)
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]] # 2 - standard (early)
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, DeformC2f, [256, True]] # 4 - DCN v2 (fine details)
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]] # 6 - DCN v3 (semantic)
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, DCNv3C2f, [1024, True]] # 8 - DCN v3 (context)
+  - [-1, 1, SPPF, [1024, 5]] # 9
 ```
 
 **Expected improvement:** +3-5% mAP50-95
@@ -108,16 +109,16 @@ backbone:
 
 ```yaml
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, C2f, [128, True]]            # 2
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 6, DCNv3C2f, [256, True, 8]]    # 4 - DCN v3, groups=8 (fine)
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True, 4]]    # 6 - DCN v3, groups=4 (balanced)
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, DCNv3C2f, [1024, True, 2]]   # 8 - DCN v3, groups=2 (global)
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]] # 2
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True, 8]] # 4 - DCN v3, groups=8 (fine)
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True, 4]] # 6 - DCN v3, groups=4 (balanced)
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, DCNv3C2f, [1024, True, 2]] # 8 - DCN v3, groups=2 (global)
+  - [-1, 1, SPPF, [1024, 5]] # 9
 ```
 
 **Note:** This requires modifying `tasks.py` to accept group parameter from YAML
@@ -135,18 +136,18 @@ backbone:
 
 ```yaml
 backbone:
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, C2f, [128, True]]            # 2
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 2, DCNv3C2f, [256, True]]       # 4a - dilation=1
-  - [-1, 2, DCNv3C2f, [256, True]]       # 4b - dilation=2 (wide RF)
-  - [-1, 2, DCNv3C2f, [256, True]]       # 4c - dilation=3 (wider RF)
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, C2f, [1024, True]]           # 8
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]] # 2
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, DCNv3C2f, [256, True]] # 4a - dilation=1
+  - [-1, 2, DCNv3C2f, [256, True]] # 4b - dilation=2 (wide RF)
+  - [-1, 2, DCNv3C2f, [256, True]] # 4c - dilation=3 (wider RF)
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]] # 6
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2f, [1024, True]] # 8
+  - [-1, 1, SPPF, [1024, 5]] # 9
 ```
 
 **Note:** Requires adding dilation parameter support
@@ -178,21 +179,15 @@ class AttentionDCNv3C2f(nn.Module):
             nn.Conv2d(c1, c1 // 16, 1),
             nn.ReLU(inplace=True),
             nn.Conv2d(c1 // 16, c1, 1),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
         # Spatial attention
-        self.spatial_attn = nn.Sequential(
-            nn.Conv2d(2, 1, 7, padding=3),
-            nn.Sigmoid()
-        )
+        self.spatial_attn = nn.Sequential(nn.Conv2d(2, 1, 7, padding=3), nn.Sigmoid())
 
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv((2 + n) * self.c, c2, 1)
-        self.m = nn.ModuleList(
-            DCNv3Bottleneck(self.c, self.c, shortcut, g, k=(3, 3), e=1.0)
-            for _ in range(n)
-        )
+        self.m = nn.ModuleList(DCNv3Bottleneck(self.c, self.c, shortcut, g, k=(3, 3), e=1.0) for _ in range(n))
 
     def forward(self, x):
         # Apply attention
@@ -248,8 +243,9 @@ class DeformableSPPF(nn.Module):
 ```
 
 **In YAML:**
+
 ```yaml
-  - [-1, 1, DeformableSPPF, [1024, 5]]   # 9 - Deformable SPPF
+- [-1, 1, DeformableSPPF, [1024, 5]] # 9 - Deformable SPPF
 ```
 
 **Expected improvement:** +1-2% mAP50-95
@@ -260,40 +256,43 @@ class DeformableSPPF(nn.Module):
 ## 📊 Recommended Enhancement Combinations
 
 ### 🥇 Best for Accuracy (Thesis/Research)
+
 ```yaml
 # Combination: All enhancements except dilation
 # Expected: +8-12% mAP50-95
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2]]
-  - [-1, 3, DCNv3C2f, [128, True]]           # DCN everywhere
-  - [-1, 1, DCNv3Conv, [256, 3, 2]]          # DCN downsample
-  - [-1, 6, AttentionDCNv3C2f, [256, True]]  # Attention + DCN
-  - [-1, 1, DCNv3Conv, [512, 3, 2]]          # DCN downsample
-  - [-1, 6, AttentionDCNv3C2f, [512, True]]  # Attention + DCN
-  - [-1, 1, DCNv3Conv, [1024, 3, 2]]         # DCN downsample
-  - [-1, 3, DCNv3C2f, [1024, True]]          # DCN everywhere
-  - [-1, 1, DeformableSPPF, [1024, 5]]       # Deformable SPPF
+  - [-1, 3, DCNv3C2f, [128, True]] # DCN everywhere
+  - [-1, 1, DCNv3Conv, [256, 3, 2]] # DCN downsample
+  - [-1, 6, AttentionDCNv3C2f, [256, True]] # Attention + DCN
+  - [-1, 1, DCNv3Conv, [512, 3, 2]] # DCN downsample
+  - [-1, 6, AttentionDCNv3C2f, [512, True]] # Attention + DCN
+  - [-1, 1, DCNv3Conv, [1024, 3, 2]] # DCN downsample
+  - [-1, 3, DCNv3C2f, [1024, True]] # DCN everywhere
+  - [-1, 1, DeformableSPPF, [1024, 5]] # Deformable SPPF
 ```
 
 ### 🥈 Best for Speed-Accuracy Balance
+
 ```yaml
 # Combination: DCN at key positions only
 # Expected: +5-7% mAP50-95, ~10% slower
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]
   - [-1, 1, Conv, [128, 3, 2]]
-  - [-1, 3, C2f, [128, True]]                # Standard
+  - [-1, 3, C2f, [128, True]] # Standard
   - [-1, 1, Conv, [256, 3, 2]]
-  - [-1, 6, DCNv3C2f, [256, True]]           # DCN v3
-  - [-1, 1, DCNv3Conv, [512, 3, 2]]          # DCN downsample
-  - [-1, 6, DCNv3C2f, [512, True]]           # DCN v3
+  - [-1, 6, DCNv3C2f, [256, True]] # DCN v3
+  - [-1, 1, DCNv3Conv, [512, 3, 2]] # DCN downsample
+  - [-1, 6, DCNv3C2f, [512, True]] # DCN v3
   - [-1, 1, Conv, [1024, 3, 2]]
-  - [-1, 3, C2f, [1024, True]]               # Standard
-  - [-1, 1, SPPF, [1024, 5]]                 # Standard
+  - [-1, 3, C2f, [1024, True]] # Standard
+  - [-1, 1, SPPF, [1024, 5]] # Standard
 ```
 
 ### 🥉 Best for Real-Time (Production)
+
 ```yaml
 # Combination: Minimal DCN, maximum efficiency
 # Expected: +3-5% mAP50-95, minimal overhead
@@ -302,9 +301,9 @@ backbone:
   - [-1, 1, Conv, [128, 3, 2]]
   - [-1, 3, C2f, [128, True]]
   - [-1, 1, Conv, [256, 3, 2]]
-  - [-1, 6, C2f, [256, True]]                # Standard
+  - [-1, 6, C2f, [256, True]] # Standard
   - [-1, 1, Conv, [512, 3, 2]]
-  - [-1, 6, DCNv3C2f, [512, True]]           # DCN v3 at P4 only
+  - [-1, 6, DCNv3C2f, [512, True]] # DCN v3 at P4 only
   - [-1, 1, Conv, [1024, 3, 2]]
   - [-1, 3, C2f, [1024, True]]
   - [-1, 1, SPPF, [1024, 5]]
@@ -315,14 +314,17 @@ backbone:
 ## 🛠️ Implementation Priority
 
 ### Phase 1: Easy (No code changes needed)
+
 1. ✅ DCN everywhere (just modify YAML)
 2. ✅ Multi-scale DCN v2+v3 (just modify YAML)
 
 ### Phase 2: Medium (Minor code additions)
+
 3. 🔧 DCN downsampling convs (add `DCNv3Conv` with stride=2 support)
 4. 🔧 Deformable SPPF (implement new module)
 
 ### Phase 3: Advanced (Significant development)
+
 5. 🔬 Grouped DCN with varying groups (modify YAML parser)
 6. 🔬 Atrous/Dilated DCN (add dilation parameter support)
 7. 🔬 Attention-enhanced DCN (implement new module)
@@ -333,38 +335,42 @@ backbone:
 
 Based on DCN literature for detection tasks:
 
-| Vehicle Class | Baseline | +DCN Backbone | +All Enhancements |
-|---------------|----------|---------------|-------------------|
-| Car (common) | 75% | 78-80% | 82-85% |
-| Motorcycle (small) | 65% | 70-73% | 75-79% |
-| Tricycle (small) | 63% | 68-71% | 73-77% |
-| Bus (large) | 78% | 80-82% | 83-86% |
-| Van (medium) | 72% | 75-78% | 79-82% |
-| Truck (large) | 76% | 79-81% | 82-85% |
+| Vehicle Class      | Baseline | +DCN Backbone | +All Enhancements |
+| ------------------ | -------- | ------------- | ----------------- |
+| Car (common)       | 75%      | 78-80%        | 82-85%            |
+| Motorcycle (small) | 65%      | 70-73%        | 75-79%            |
+| Tricycle (small)   | 63%      | 68-71%        | 73-77%            |
+| Bus (large)        | 78%      | 80-82%        | 83-86%            |
+| Van (medium)       | 72%      | 75-78%        | 79-82%            |
+| Truck (large)      | 76%      | 79-81%        | 82-85%            |
 
 ---
 
 ## 🎯 Quick Implementation Guide
 
 ### Step 1: Test Current Implementation
+
 ```bash
 python train_backbone_only.py --data data.yaml --epochs 100
 ```
 
 ### Step 2: Try Enhancement 1 (DCN Everywhere)
+
 Create `yolov8-dcnv3-everywhere.yaml` with all C2f → DCNv3C2f
 
 ### Step 3: Try Enhancement 2 (DCN Downsampling)
+
 Modify downsampling convs to use DCNv3Conv
 
 ### Step 4: Compare Results
+
 ```python
 import pandas as pd
 
 results = {
-    'baseline': pd.read_csv('runs/train/baseline/results.csv'),
-    'dcn_backbone': pd.read_csv('runs/train/dcnv3_backbone/results.csv'),
-    'dcn_everywhere': pd.read_csv('runs/train/dcnv3_everywhere/results.csv'),
+    "baseline": pd.read_csv("runs/train/baseline/results.csv"),
+    "dcn_backbone": pd.read_csv("runs/train/dcnv3_backbone/results.csv"),
+    "dcn_everywhere": pd.read_csv("runs/train/dcnv3_everywhere/results.csv"),
 }
 
 # Compare final mAP

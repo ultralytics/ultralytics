@@ -24,35 +24,35 @@ width_multiple: 0.25
 
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, C2f, [128, True]]            # 2 - standard
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, C2f, [1024, True]]           # 8 - standard
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]] # 2 - standard
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True]] # 4 - DCN v3
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]] # 6 - DCN v3
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2f, [1024, True]] # 8 - standard
+  - [-1, 1, SPPF, [1024, 5]] # 9
 
 head:
   # FPN (Feature Pyramid Network) - DCN v3 for top-down fusion
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10
-  - [[-1, 6], 1, Concat, [1]]                   # 11 - concat P4
-  - [-1, 3, DCNv3C2f, [512]]                    # 12 - DCN v3! (top-down P5→P4)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 10
+  - [[-1, 6], 1, Concat, [1]] # 11 - concat P4
+  - [-1, 3, DCNv3C2f, [512]] # 12 - DCN v3! (top-down P5→P4)
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13
-  - [[-1, 4], 1, Concat, [1]]                   # 14 - concat P3
-  - [-1, 3, DCNv3C2f, [256]]                    # 15 - DCN v3! (top-down P4→P3)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13
+  - [[-1, 4], 1, Concat, [1]] # 14 - concat P3
+  - [-1, 3, DCNv3C2f, [256]] # 15 - DCN v3! (top-down P4→P3)
 
   # PAN (Path Aggregation Network) - Standard C2f
-  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - downsample
-  - [[-1, 12], 1, Concat, [1]]                  # 17 - concat P4
-  - [-1, 3, C2f, [512]]                         # 18 - Standard (bottom-up P3→P4)
+  - [-1, 1, Conv, [256, 3, 2]] # 16 - downsample
+  - [[-1, 12], 1, Concat, [1]] # 17 - concat P4
+  - [-1, 3, C2f, [512]] # 18 - Standard (bottom-up P3→P4)
 
-  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - downsample
-  - [[-1, 9], 1, Concat, [1]]                   # 20 - concat P5
-  - [-1, 3, C2f, [1024]]                        # 21 - Standard (bottom-up P4→P5)
+  - [-1, 1, Conv, [512, 3, 2]] # 19 - downsample
+  - [[-1, 9], 1, Concat, [1]] # 20 - concat P5
+  - [-1, 3, C2f, [1024]] # 21 - Standard (bottom-up P4→P5)
 
   # Detection head
-  - [[15, 18, 21], 1, Detect, [nc]]             # 22 Detect(P3, P4, P5)
+  - [[15, 18, 21], 1, Detect, [nc]] # 22 Detect(P3, P4, P5)

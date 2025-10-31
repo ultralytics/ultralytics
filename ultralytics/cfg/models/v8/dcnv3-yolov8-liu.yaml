@@ -48,41 +48,41 @@ width_multiple: 0.25
 backbone:
   # [from, repeats, module, args]
   # Early layers: Standard convolutions (low-level features)
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2 - Edge detection
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4 - Texture patterns
-  - [-1, 3, C2f, [128, True]]            # 2 - Standard: features too simple (Wang et al. 2023)
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2 - Edge detection
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4 - Texture patterns
+  - [-1, 3, C2f, [128, True]] # 2 - Standard: features too simple (Wang et al. 2023)
 
   # Middle layers: DCN v3 for adaptive multi-scale learning
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8 - Transition to semantic features
-  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3! Group-wise learning (Wang et al. 2023, Sec. 3.2)
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16 - Transition
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3! Critical layer, softmax attention (Wang et al. 2023)
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8 - Transition to semantic features
+  - [-1, 6, DCNv3C2f, [256, True]] # 4 - DCN v3! Group-wise learning (Wang et al. 2023, Sec. 3.2)
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16 - Transition
+  - [-1, 6, DCNv3C2f, [512, True]] # 6 - DCN v3! Critical layer, softmax attention (Wang et al. 2023)
 
   # Deep layers: Standard convolutions (large receptive field)
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32 - High-level semantics
-  - [-1, 3, C2f, [1024, True]]           # 8 - Standard: large RF sufficient
-  - [-1, 1, SPPF, [1024, 5]]             # 9 - Spatial pyramid pooling
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32 - High-level semantics
+  - [-1, 3, C2f, [1024, True]] # 8 - Standard: large RF sufficient
+  - [-1, 1, SPPF, [1024, 5]] # 9 - Spatial pyramid pooling
 
 head:
   # FPN (Feature Pyramid Network) - Strategic DCN v3 placement
   # Design based on InternImage: DCN v3 for critical fusion points
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10 - Upsample P5→P4
-  - [[-1, 6], 1, Concat, [1]]                   # 11 - Concat P4 from DCN v3 backbone
-  - [-1, 3, DCNv3C2f, [512]]                    # 12 - DCN v3! Adaptive P5-P4 fusion (Wang et al. 2023)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 10 - Upsample P5→P4
+  - [[-1, 6], 1, Concat, [1]] # 11 - Concat P4 from DCN v3 backbone
+  - [-1, 3, DCNv3C2f, [512]] # 12 - DCN v3! Adaptive P5-P4 fusion (Wang et al. 2023)
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13 - Upsample P4→P3
-  - [[-1, 4], 1, Concat, [1]]                   # 14 - Concat P3 from DCN v3 backbone
-  - [-1, 3, C2f, [256]]                         # 15 (P3/8-small) - Standard: small objects
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13 - Upsample P4→P3
+  - [[-1, 4], 1, Concat, [1]] # 14 - Concat P3 from DCN v3 backbone
+  - [-1, 3, C2f, [256]] # 15 (P3/8-small) - Standard: small objects
 
   # PAN (Path Aggregation Network) - Standard convolutions
   # Rationale: Backbone DCN v3 already provides adaptive multi-scale features
-  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - Downsample P3→P4
-  - [[-1, 12], 1, Concat, [1]]                  # 17 - Concat from FPN P4
-  - [-1, 3, C2f, [512]]                         # 18 (P4/16-medium) - Standard
+  - [-1, 1, Conv, [256, 3, 2]] # 16 - Downsample P3→P4
+  - [[-1, 12], 1, Concat, [1]] # 17 - Concat from FPN P4
+  - [-1, 3, C2f, [512]] # 18 (P4/16-medium) - Standard
 
-  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - Downsample P4→P5
-  - [[-1, 9], 1, Concat, [1]]                   # 20 - Concat from backbone P5
-  - [-1, 3, C2f, [1024]]                        # 21 (P5/32-large) - Standard
+  - [-1, 1, Conv, [512, 3, 2]] # 19 - Downsample P4→P5
+  - [[-1, 9], 1, Concat, [1]] # 20 - Concat from backbone P5
+  - [-1, 3, C2f, [1024]] # 21 (P5/32-large) - Standard
 
   # Detection Head - Standard (no adaptive sampling needed)
-  - [[15, 18, 21], 1, Detect, [nc]]             # 22 - Multi-scale detection heads
+  - [[15, 18, 21], 1, Detect, [nc]] # 22 - Multi-scale detection heads

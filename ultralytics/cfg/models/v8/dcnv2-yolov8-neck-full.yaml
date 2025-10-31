@@ -62,38 +62,38 @@ width_multiple: 0.25
 
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2 - Standard: downsampling
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4 - Standard: downsampling
-  - [-1, 3, C2f, [128, True]]            # 2 - Standard: early features too simple
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8 - Standard: downsampling
-  - [-1, 6, DeformC2f, [256, True]]      # 4 - DCN v2! Small-medium objects
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16 - Standard: downsampling
-  - [-1, 6, DeformC2f, [512, True]]      # 6 - DCN v2! Medium-large objects
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32 - Standard: downsampling
-  - [-1, 3, C2f, [1024, True]]           # 8 - Standard: large receptive field sufficient
-  - [-1, 1, SPPF, [1024, 5]]             # 9 - Spatial Pyramid Pooling
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2 - Standard: downsampling
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4 - Standard: downsampling
+  - [-1, 3, C2f, [128, True]] # 2 - Standard: early features too simple
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8 - Standard: downsampling
+  - [-1, 6, DeformC2f, [256, True]] # 4 - DCN v2! Small-medium objects
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16 - Standard: downsampling
+  - [-1, 6, DeformC2f, [512, True]] # 6 - DCN v2! Medium-large objects
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32 - Standard: downsampling
+  - [-1, 3, C2f, [1024, True]] # 8 - Standard: large receptive field sufficient
+  - [-1, 1, SPPF, [1024, 5]] # 9 - Spatial Pyramid Pooling
 
 head:
   # FPN (Feature Pyramid Network) - DCN v2 for top-down fusion
   # Rationale: Top-down enriches coarse P5 features with fine P3/P4 details
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10 - Upsample P5→P4
-  - [[-1, 6], 1, Concat, [1]]                   # 11 - Concat P4 (from DCN backbone)
-  - [-1, 3, DeformC2f, [512]]                   # 12 - DCN v2! (top-down P5→P4 fusion)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 10 - Upsample P5→P4
+  - [[-1, 6], 1, Concat, [1]] # 11 - Concat P4 (from DCN backbone)
+  - [-1, 3, DeformC2f, [512]] # 12 - DCN v2! (top-down P5→P4 fusion)
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13 - Upsample P4→P3
-  - [[-1, 4], 1, Concat, [1]]                   # 14 - Concat P3 (from DCN backbone)
-  - [-1, 3, DeformC2f, [256]]                   # 15 - DCN v2! (top-down P4→P3 fusion, small objects)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13 - Upsample P4→P3
+  - [[-1, 4], 1, Concat, [1]] # 14 - Concat P3 (from DCN backbone)
+  - [-1, 3, DeformC2f, [256]] # 15 - DCN v2! (top-down P4→P3 fusion, small objects)
 
   # PAN (Path Aggregation Network) - DCN v2 for bottom-up refinement
   # Rationale: Bottom-up aggregates fine details into coarse features
   # DCN v2 adapts to geometric variations during this refinement process
-  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - Downsample P3→P4
-  - [[-1, 12], 1, Concat, [1]]                  # 17 - Concat P4
-  - [-1, 3, DeformC2f, [512]]                   # 18 (P4/16-medium) - DCN v2! (bottom-up P3→P4 refinement)
+  - [-1, 1, Conv, [256, 3, 2]] # 16 - Downsample P3→P4
+  - [[-1, 12], 1, Concat, [1]] # 17 - Concat P4
+  - [-1, 3, DeformC2f, [512]] # 18 (P4/16-medium) - DCN v2! (bottom-up P3→P4 refinement)
 
-  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - Downsample P4→P5
-  - [[-1, 9], 1, Concat, [1]]                   # 20 - Concat P5
-  - [-1, 3, DeformC2f, [1024]]                  # 21 (P5/32-large) - DCN v2! (bottom-up P4→P5 refinement)
+  - [-1, 1, Conv, [512, 3, 2]] # 19 - Downsample P4→P5
+  - [[-1, 9], 1, Concat, [1]] # 20 - Concat P5
+  - [-1, 3, DeformC2f, [1024]] # 21 (P5/32-large) - DCN v2! (bottom-up P4→P5 refinement)
 
   # Detection Head
-  - [[15, 18, 21], 1, Detect, [nc]]             # 22 - Multi-scale detection (P3, P4, P5)
+  - [[15, 18, 21], 1, Detect, [nc]] # 22 - Multi-scale detection (P3, P4, P5)

@@ -86,37 +86,37 @@ width_multiple: 0.25
 
 backbone:
   # [from, repeats, module, args]
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4
-  - [-1, 3, C2f, [128, True]]            # 2 - standard
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8
-  - [-1, 6, DCNv3C2f, [256, True]]       # 4 - DCN v3
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16
-  - [-1, 6, DCNv3C2f, [512, True]]       # 6 - DCN v3
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32
-  - [-1, 3, C2f, [1024, True]]           # 8 - standard
-  - [-1, 1, SPPF, [1024, 5]]             # 9
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 3, C2f, [128, True]] # 2 - standard
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 6, DCNv3C2f, [256, True]] # 4 - DCN v3
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 6, DCNv3C2f, [512, True]] # 6 - DCN v3
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 3, C2f, [1024, True]] # 8 - standard
+  - [-1, 1, SPPF, [1024, 5]] # 9
 
 head:
   # FPN (Feature Pyramid Network) - ALL DCN v3 with group-wise learning
   # Top-down pathway with adaptive multi-scale fusion (Lin et al. 2017 + Wang et al. 2023)
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10 - Upsample P5→P4
-  - [[-1, 6], 1, Concat, [1]]                   # 11 - Concat P4 from DCN v3 backbone
-  - [-1, 3, DCNv3C2f, [512]]                    # 12 - DCN v3! Adaptive P5-P4 fusion (Wang et al. 2023, Sec. 3.2)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 10 - Upsample P5→P4
+  - [[-1, 6], 1, Concat, [1]] # 11 - Concat P4 from DCN v3 backbone
+  - [-1, 3, DCNv3C2f, [512]] # 12 - DCN v3! Adaptive P5-P4 fusion (Wang et al. 2023, Sec. 3.2)
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13 - Upsample P4→P3
-  - [[-1, 4], 1, Concat, [1]]                   # 14 - Concat P3 from DCN v3 backbone
-  - [-1, 3, DCNv3C2f, [256]]                    # 15 - DCN v3! Adaptive P4-P3 fusion, softmax attention (P3/8-small)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13 - Upsample P4→P3
+  - [[-1, 4], 1, Concat, [1]] # 14 - Concat P3 from DCN v3 backbone
+  - [-1, 3, DCNv3C2f, [256]] # 15 - DCN v3! Adaptive P4-P3 fusion, softmax attention (P3/8-small)
 
   # PAN (Path Aggregation Network) - ALL DCN v3 with shared offsets
   # Bottom-up pathway with adaptive feature aggregation (Liu et al. 2018 + Wang et al. 2023)
-  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - Downsample P3→P4
-  - [[-1, 12], 1, Concat, [1]]                  # 17 - Concat from FPN P4
-  - [-1, 3, DCNv3C2f, [512]]                    # 18 - DCN v3! Adaptive P3-P4 fusion (P4/16-medium)
+  - [-1, 1, Conv, [256, 3, 2]] # 16 - Downsample P3→P4
+  - [[-1, 12], 1, Concat, [1]] # 17 - Concat from FPN P4
+  - [-1, 3, DCNv3C2f, [512]] # 18 - DCN v3! Adaptive P3-P4 fusion (P4/16-medium)
 
-  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - Downsample P4→P5
-  - [[-1, 9], 1, Concat, [1]]                   # 20 - Concat from backbone P5
-  - [-1, 3, DCNv3C2f, [1024]]                   # 21 - DCN v3! Adaptive P4-P5 fusion (P5/32-large)
+  - [-1, 1, Conv, [512, 3, 2]] # 19 - Downsample P4→P5
+  - [[-1, 9], 1, Concat, [1]] # 20 - Concat from backbone P5
+  - [-1, 3, DCNv3C2f, [1024]] # 21 - DCN v3! Adaptive P4-P5 fusion (P5/32-large)
 
   # Detection Head - Standard (classification/regression don't need adaptive sampling)
-  - [[15, 18, 21], 1, Detect, [nc]]             # 22 - Multi-scale detection heads
+  - [[15, 18, 21], 1, Detect, [nc]] # 22 - Multi-scale detection heads

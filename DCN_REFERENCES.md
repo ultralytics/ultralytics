@@ -7,6 +7,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 📚 Primary DCN Papers
 
 ### 1. Deformable Convolutional Networks (DCN v1)
+
 **Title:** Deformable Convolutional Networks
 **Authors:** Jifeng Dai, Haozhi Qi, Yuwen Xiong, Yi Li, Guodong Zhang, Han Hu, Yichen Wei
 **Conference:** ICCV 2017 (International Conference on Computer Vision)
@@ -14,11 +15,13 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Code:** https://github.com/msracver/Deformable-ConvNets
 
 **Key Contributions:**
+
 - Introduced learnable 2D offsets for sampling locations
 - Adaptive receptive field based on input content
 - Deformable RoI pooling for object detection
 
 **Citation:**
+
 ```bibtex
 @inproceedings{dai2017deformable,
   title={Deformable convolutional networks},
@@ -32,6 +35,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 2. Deformable ConvNets v2 (DCN v2) ⭐ Used in this implementation
+
 **Title:** Deformable ConvNets v2: More Deformable, Better Results
 **Authors:** Xizhou Zhu, Han Hu, Stephen Lin, Jifeng Dai
 **Conference:** CVPR 2019 (Computer Vision and Pattern Recognition)
@@ -39,12 +43,14 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Code:** https://github.com/msracver/Deformable-ConvNets
 
 **Key Contributions:**
+
 - Added modulation mechanism (importance weights)
 - More deformable convolution stages
 - Better performance on detection and segmentation
 - Output channels: 3 × k × k (2 × k × k offsets + k × k modulation)
 
 **Citation:**
+
 ```bibtex
 @inproceedings{zhu2019deformable,
   title={Deformable convnets v2: More deformable, better results},
@@ -58,6 +64,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 3. InternImage - DCN v3 ⭐ Used in this implementation
+
 **Title:** InternImage: Exploring Large-Scale Vision Foundation Models with Deformable Convolutions
 **Authors:** Wenhai Wang, Jifeng Dai, Zhe Chen, Zhenhang Huang, Zhiqi Li, Xizhou Zhu, Xiaowei Hu, Tong Lu, Lewei Lu, Hongsheng Li, Xiaogang Wang, Yu Qiao
 **Conference:** CVPR 2023 (Computer Vision and Pattern Recognition)
@@ -65,6 +72,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Code:** https://github.com/OpenGVLab/InternImage
 
 **Key Contributions:**
+
 - DCN v3 with group-wise deformable convolution
 - Shared offset prediction across groups
 - Softmax normalization instead of sigmoid
@@ -72,6 +80,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 - Better efficiency and stability
 
 **Citation:**
+
 ```bibtex
 @inproceedings{wang2023internimage,
   title={InternImage: Exploring large-scale vision foundation models with deformable convolutions},
@@ -87,6 +96,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 🏗️ Architecture & Backbone Papers
 
 ### 4. YOLOv8 (Ultralytics)
+
 **Title:** YOLOv8 - Ultralytics
 **Organization:** Ultralytics
 **Year:** 2023
@@ -94,12 +104,14 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Code:** https://github.com/ultralytics/ultralytics
 
 **Key Features:**
+
 - State-of-the-art object detection
 - C2f module (CSP bottleneck with 2 convolutions)
 - Anchor-free detection head
 - Multiple model sizes (n, s, m, l, x)
 
 **Citation:**
+
 ```bibtex
 @software{yolov8_ultralytics,
   author = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
@@ -114,6 +126,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 5. CSPNet (Cross Stage Partial Network)
+
 **Title:** CSPNet: A New Backbone that can Enhance Learning Capability of CNN
 **Authors:** Chien-Yao Wang, Hong-Yuan Mark Liao, Yueh-Hua Wu, Ping-Yang Chen, Jun-Wei Hsieh, I-Hau Yeh
 **Conference:** CVPR 2020 Workshops
@@ -121,11 +134,13 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Code:** https://github.com/WongKinYiu/CrossStagePartialNetworks
 
 **Key Contributions:**
+
 - Dual-path architecture for gradient flow
 - Reduces computational bottleneck
 - Improves learning capability
 
 **Citation:**
+
 ```bibtex
 @inproceedings{wang2020cspnet,
   title={CSPNet: A new backbone that can enhance learning capability of CNN},
@@ -139,17 +154,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 6. Feature Pyramid Networks (FPN)
+
 **Title:** Feature Pyramid Networks for Object Detection
 **Authors:** Tsung-Yi Lin, Piotr Dollár, Ross Girshick, Kaiming He, Bharath Hariharan, Serge Belongie
 **Conference:** CVPR 2017
 **Paper:** https://arxiv.org/abs/1612.03144
 
 **Key Contributions:**
+
 - Top-down pathway for multi-scale features
 - Lateral connections for feature fusion
 - Improved detection at multiple scales
 
 **Citation:**
+
 ```bibtex
 @inproceedings{lin2017feature,
   title={Feature pyramid networks for object detection},
@@ -163,17 +181,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 7. Path Aggregation Network (PANet)
+
 **Title:** Path Aggregation Network for Instance Segmentation
 **Authors:** Shu Liu, Lu Qi, Haifang Qin, Jianping Shi, Jiaya Jia
 **Conference:** CVPR 2018
 **Paper:** https://arxiv.org/abs/1803.01534
 
 **Key Contributions:**
+
 - Bottom-up path augmentation
 - Adaptive feature pooling
 - Better information flow
 
 **Citation:**
+
 ```bibtex
 @inproceedings{liu2018path,
   title={Path aggregation network for instance segmentation},
@@ -189,12 +210,14 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 🔬 Related Works & Optimization
 
 ### 8. Spatial Pyramid Pooling (SPP/SPPF)
+
 **Title:** Spatial Pyramid Pooling in Deep Convolutional Networks for Visual Recognition
 **Authors:** Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
 **Conference:** ECCV 2014
 **Paper:** https://arxiv.org/abs/1406.4729
 
 **Citation:**
+
 ```bibtex
 @inproceedings{he2015spatial,
   title={Spatial pyramid pooling in deep convolutional networks for visual recognition},
@@ -209,17 +232,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 9. Residual Networks (ResNet)
+
 **Title:** Deep Residual Learning for Image Recognition
 **Authors:** Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
 **Conference:** CVPR 2016
 **Paper:** https://arxiv.org/abs/1512.03385
 
 **Key Contributions:**
+
 - Residual connections (skip connections)
 - Bottleneck architecture
 - Enables training of very deep networks
 
 **Citation:**
+
 ```bibtex
 @inproceedings{he2016deep,
   title={Deep residual learning for image recognition},
@@ -233,12 +259,14 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 10. Offset-Decoupled Deformable Convolution
+
 **Title:** Towards Understanding the Generalization of Deep Learning: Perspective from Loss Landscapes
 **Authors:** Lei Zhang, Yun Tian, et al.
 **Conference/Journal:** arXiv 2022
 **Paper:** Various works on DCN initialization
 
 **Key Contribution:**
+
 - Zero-initialization of offset predictors
 - Improves training stability
 - Better convergence
@@ -250,17 +278,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 🚗 Vehicle Detection & Applications
 
 ### 11. MMCV - Computer Vision Foundation Library
+
 **Title:** MMCV: OpenMMLab Computer Vision Foundation
 **Organization:** OpenMMLab
 **Documentation:** https://mmcv.readthedocs.io/
 **Code:** https://github.com/open-mmlab/mmcv
 
 **Key Features:**
+
 - Optimized DCN v2 CUDA implementation
 - ModulatedDeformConv2d operator
 - Used in MMDetection, MMSegmentation
 
 **Citation:**
+
 ```bibtex
 @misc{mmcv,
   title={MMCV: OpenMMLab Computer Vision Foundation},
@@ -273,17 +304,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 12. Object Detection in Crowded Scenes
+
 **Title:** Detection in Crowded Scenes: One Proposal, Multiple Predictions
 **Authors:** Xuangeng Chu, et al.
 **Conference:** CVPR 2020
 **Paper:** https://arxiv.org/abs/2003.09163
 
 **Relevance:**
+
 - Handling dense vehicle scenarios
 - Occlusion robustness
 - Multiple object interactions
 
 **Citation:**
+
 ```bibtex
 @inproceedings{chu2020detection,
   title={Detection in crowded scenes: One proposal, multiple predictions},
@@ -299,12 +333,14 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 📖 Additional Reading & Surveys
 
 ### 13. Object Detection Survey
+
 **Title:** Object Detection in 20 Years: A Survey
 **Authors:** Zhengxia Zou, Zhenwei Shi, Yuhong Guo, Jieping Ye
 **Journal:** IEEE TPAMI 2023
 **Paper:** https://arxiv.org/abs/1905.05055
 
 **Citation:**
+
 ```bibtex
 @article{zou2023object,
   title={Object detection in 20 years: A survey},
@@ -320,17 +356,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 14. Attention Mechanisms Survey
+
 **Title:** An Attentive Survey of Attention Models
 **Authors:** Sneha Chaudhari, et al.
 **Journal:** ACM TIST 2021
 **Paper:** https://arxiv.org/abs/1904.02874
 
 **Relevance:**
+
 - Attention for DCN enhancement
 - Channel and spatial attention
 - Feature refinement
 
 **Citation:**
+
 ```bibtex
 @article{chaudhari2021attentive,
   title={An attentive survey of attention models},
@@ -348,6 +387,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 🛠️ Implementation References
 
 ### 15. PyTorch - Deep Learning Framework
+
 **Title:** PyTorch: An Imperative Style, High-Performance Deep Learning Library
 **Authors:** Adam Paszke, et al.
 **Conference:** NeurIPS 2019
@@ -355,6 +395,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Code:** https://github.com/pytorch/pytorch
 
 **Citation:**
+
 ```bibtex
 @article{paszke2019pytorch,
   title={Pytorch: An imperative style, high-performance deep learning library},
@@ -368,17 +409,20 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ---
 
 ### 16. TorchVision - Computer Vision for PyTorch
+
 **Title:** TorchVision: PyTorch's Computer Vision Library
 **Organization:** PyTorch
 **Documentation:** https://pytorch.org/vision/
 **Code:** https://github.com/pytorch/vision
 
 **Features:**
+
 - DeformConv2d implementation (DCN v1)
 - Pre-trained models
 - Vision transforms
 
 **Citation:**
+
 ```bibtex
 @misc{torchvision,
   title={TorchVision: PyTorch's Computer Vision library},
@@ -393,6 +437,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 📊 Datasets & Benchmarks
 
 ### 17. COCO Dataset
+
 **Title:** Microsoft COCO: Common Objects in Context
 **Authors:** Tsung-Yi Lin, et al.
 **Conference:** ECCV 2014
@@ -400,6 +445,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 **Website:** https://cocodataset.org/
 
 **Citation:**
+
 ```bibtex
 @inproceedings{lin2014microsoft,
   title={Microsoft coco: Common objects in context},
@@ -437,23 +483,27 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 📝 Key References Summary
 
 ### For Introduction/Background:
+
 1. **Dai et al. (2017)** - DCN v1 introduction
 2. **Zhu et al. (2019)** - DCN v2 with modulation
 3. **Wang et al. (2023)** - DCN v3/InternImage
 4. **Ultralytics (2023)** - YOLOv8 baseline
 
 ### For Methodology:
+
 5. **Wang et al. (2020)** - CSPNet architecture
 6. **Lin et al. (2017)** - FPN for multi-scale
 7. **Liu et al. (2018)** - PANet for feature fusion
 8. **He et al. (2016)** - Residual connections
 
 ### For Implementation:
+
 9. **MMCV (OpenMMLab)** - DCN v2 CUDA implementation
 10. **TorchVision** - PyTorch DCN operators
 11. **Paszke et al. (2019)** - PyTorch framework
 
 ### For Evaluation:
+
 12. **Lin et al. (2014)** - COCO metrics
 13. **Zou et al. (2023)** - Object detection survey
 
@@ -462,6 +512,7 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 ## 🔗 Additional Resources
 
 ### GitHub Repositories:
+
 - **Original DCN v1/v2:** https://github.com/msracver/Deformable-ConvNets
 - **InternImage (DCN v3):** https://github.com/OpenGVLab/InternImage
 - **MMCV:** https://github.com/open-mmlab/mmcv
@@ -469,11 +520,13 @@ Comprehensive bibliography for DCN v1, v2, v3 and related works used in this imp
 - **Your Implementation:** [Add your GitHub repo here]
 
 ### Documentation:
+
 - **DCN v2 Documentation:** https://mmcv.readthedocs.io/en/latest/api.html#mmcv.ops.ModulatedDeformConv2d
 - **YOLOv8 Docs:** https://docs.ultralytics.com/
 - **PyTorch DCN:** https://pytorch.org/vision/main/generated/torchvision.ops.DeformConv2d.html
 
 ### Tutorials & Blogs:
+
 - **Understanding DCN:** https://towardsdatascience.com/review-dcn-deformable-convolutional-networks
 - **YOLOv8 Custom Training:** https://docs.ultralytics.com/modes/train/
 
@@ -594,12 +647,15 @@ Save this as `references.bib`:
 ## 📌 Quick Reference Card
 
 **For your thesis introduction:**
+
 > "Deformable Convolutional Networks (DCN) were first introduced by Dai et al. [1] in 2017, which added learnable 2D offsets to standard convolutions..."
 
 **For methodology section:**
+
 > "We implement DCN v2 [2] with modulation mechanism and DCN v3 [3] from InternImage, integrated into the YOLOv8 [4] architecture..."
 
 **For implementation details:**
+
 > "Our implementation uses MMCV [9] for optimized CUDA operations and PyTorch [11] as the deep learning framework..."
 
 ---

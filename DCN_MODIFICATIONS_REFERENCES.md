@@ -7,17 +7,20 @@ Complete bibliography for all the modifications, enhancements, and techniques us
 ## 🔧 Core Modifications & Fixes
 
 ### 1. Grouped Convolutions in DCN
+
 **Title:** Group Normalization
 **Authors:** Yuxin Wu, Kaiming He
 **Conference:** ECCV 2018
 **Paper:** https://arxiv.org/abs/1803.08494
 
 **Relevance:**
+
 - Theoretical foundation for grouped operations
 - Channel grouping for efficient computation
 - Our implementation uses grouped DCN (g > 1)
 
 **Citation:**
+
 ```bibtex
 @inproceedings{wu2018group,
   title={Group normalization},
@@ -29,6 +32,7 @@ Complete bibliography for all the modifications, enhancements, and techniques us
 ```
 
 **How we use it:**
+
 - Implemented grouped DCN with `groups` parameter
 - Fixed channel calculations: `groups × (3*k*k or 2*k*k)`
 - Allows multi-scale feature learning within layers
@@ -36,6 +40,7 @@ Complete bibliography for all the modifications, enhancements, and techniques us
 ---
 
 ### 2. Zero-Initialization of Offset Predictors
+
 **Title:** Rethinking the Inception Architecture for Computer Vision
 **Authors:** Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jon Shlens, Zbigniew Wojna
 **Conference:** CVPR 2016
@@ -48,11 +53,13 @@ Complete bibliography for all the modifications, enhancements, and techniques us
 **Paper:** http://proceedings.mlr.press/v9/glorot10a.html
 
 **Relevance:**
+
 - Zero-init ensures DCN behaves like standard conv at training start
 - Improves training stability and convergence
 - Critical for grouped DCN
 
 **Citation:**
+
 ```bibtex
 @inproceedings{szegedy2016rethinking,
   title={Rethinking the inception architecture for computer vision},
@@ -73,6 +80,7 @@ Complete bibliography for all the modifications, enhancements, and techniques us
 ```
 
 **Our implementation:**
+
 ```python
 # Zero initialization for training stability
 nn.init.constant_(self.offset_mask_conv.weight, 0.0)
@@ -82,6 +90,7 @@ nn.init.constant_(self.offset_mask_conv.bias, 0.0)
 ---
 
 ### 3. Multi-Backend DCN Support (MMCV, TorchVision, Fallback)
+
 **Title:** MMCV: OpenMMLab Computer Vision Foundation
 **Organization:** OpenMMLab
 **Paper/Docs:** https://mmcv.readthedocs.io/
@@ -92,11 +101,13 @@ nn.init.constant_(self.offset_mask_conv.bias, 0.0)
 **Docs:** https://pytorch.org/vision/stable/ops.html
 
 **Relevance:**
+
 - Cross-platform compatibility
 - Graceful degradation when CUDA ops unavailable
 - Our implementation supports 3 backends
 
 **Citation:**
+
 ```bibtex
 @misc{mmcv2018,
   title={MMCV: OpenMMLab Computer Vision Foundation},
@@ -118,17 +129,20 @@ nn.init.constant_(self.offset_mask_conv.bias, 0.0)
 ## 🏗️ Architectural Modifications
 
 ### 4. CSP (Cross Stage Partial) with DCN
+
 **Title:** CSPNet: A New Backbone that can Enhance Learning Capability of CNN
 **Authors:** Chien-Yao Wang, Hong-Yuan Mark Liao, Yueh-Hua Wu, Ping-Yang Chen, Jun-Wei Hsieh, I-Hau Yeh
 **Conference:** CVPR 2020 Workshops
 **Paper:** https://arxiv.org/abs/1911.11929
 
 **Relevance:**
+
 - Base architecture for C2f and DeformC2f modules
 - Dual-path gradient flow
 - Our DeformC2f integrates DCN into CSP architecture
 
 **Citation:**
+
 ```bibtex
 @inproceedings{wang2020cspnet,
   title={CSPNet: A new backbone that can enhance learning capability of CNN},
@@ -140,6 +154,7 @@ nn.init.constant_(self.offset_mask_conv.bias, 0.0)
 ```
 
 **Our contribution:**
+
 - `DeformC2f`: CSP + DCN v2
 - `DCNv3C2f`: CSP + DCN v3
 - Proper channel flow: `(2 + n) × c`
@@ -147,17 +162,20 @@ nn.init.constant_(self.offset_mask_conv.bias, 0.0)
 ---
 
 ### 5. Bottleneck Architecture with DCN
+
 **Title:** Deep Residual Learning for Image Recognition
 **Authors:** Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
 **Conference:** CVPR 2016
 **Paper:** https://arxiv.org/abs/1512.03385
 
 **Relevance:**
+
 - Bottleneck design pattern (1×1 → 3×3 → 1×1)
 - Our DeformBottleneck uses DCN in the 3×3 layer
 - Efficient computation with channel reduction
 
 **Citation:**
+
 ```bibtex
 @inproceedings{he2016deep,
   title={Deep residual learning for image recognition},
@@ -169,6 +187,7 @@ nn.init.constant_(self.offset_mask_conv.bias, 0.0)
 ```
 
 **Our implementation:**
+
 ```python
 class DeformBottleneck:
     # 1×1 conv (channel reduction)
@@ -182,17 +201,20 @@ class DeformBottleneck:
 ---
 
 ### 6. Batch Normalization in DCN Layers
+
 **Title:** Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift
 **Authors:** Sergey Ioffe, Christian Szegedy
 **Conference:** ICML 2015
 **Paper:** https://arxiv.org/abs/1502.03167
 
 **Relevance:**
+
 - Training stability for DCN layers
 - Reduces internal covariate shift
 - Critical for convergence with deformable operations
 
 **Citation:**
+
 ```bibtex
 @inproceedings{ioffe2015batch,
   title={Batch normalization: Accelerating deep network training by reducing internal covariate shift},
@@ -205,6 +227,7 @@ class DeformBottleneck:
 ```
 
 **Our implementation:**
+
 - Added BatchNorm after every DeformConv
 - Improves training stability with adaptive offsets
 
@@ -213,17 +236,20 @@ class DeformBottleneck:
 ## 🎯 Neck Modifications
 
 ### 7. DCN in Feature Pyramid Networks (FPN)
+
 **Title:** Feature Pyramid Networks for Object Detection
 **Authors:** Tsung-Yi Lin, Piotr Dollár, Ross Girshick, Kaiming He, Bharath Hariharan, Serge Belongie
 **Conference:** CVPR 2017
 **Paper:** https://arxiv.org/abs/1612.03144
 
 **Relevance:**
+
 - Base architecture for neck design
 - Top-down pathway for multi-scale fusion
 - Our modification: Replace C2f with DCNv3C2f in FPN
 
 **Citation:**
+
 ```bibtex
 @inproceedings{lin2017feature,
   title={Feature pyramid networks for object detection},
@@ -235,6 +261,7 @@ class DeformBottleneck:
 ```
 
 **Our neck variants:**
+
 - FPN only with DCN
 - PAN only with DCN
 - Strategic: DCN at P4 only
@@ -243,17 +270,20 @@ class DeformBottleneck:
 ---
 
 ### 8. DCN in Path Aggregation Network (PAN)
+
 **Title:** Path Aggregation Network for Instance Segmentation
 **Authors:** Shu Liu, Lu Qi, Haifang Qin, Jianping Shi, Jiaya Jia
 **Conference:** CVPR 2018
 **Paper:** https://arxiv.org/abs/1803.01534
 
 **Relevance:**
+
 - Bottom-up pathway for feature refinement
 - Better information propagation
 - Our modification: Replace C2f with DCNv3C2f in PAN
 
 **Citation:**
+
 ```bibtex
 @inproceedings{liu2018path,
   title={Path aggregation network for instance segmentation},
@@ -269,17 +299,20 @@ class DeformBottleneck:
 ## 🚀 Advanced Enhancements
 
 ### 9. Attention Mechanisms with DCN
+
 **Title:** CBAM: Convolutional Block Attention Module
 **Authors:** Sanghyun Woo, Jongchan Park, Joon-Young Lee, In So Kweon
 **Conference:** ECCV 2018
 **Paper:** https://arxiv.org/abs/1807.06521
 
 **Relevance:**
+
 - Channel and spatial attention
 - Can be combined with DCN for enhanced features
 - Proposed in DCN_BACKBONE_ENHANCEMENTS.md
 
 **Citation:**
+
 ```bibtex
 @inproceedings{woo2018cbam,
   title={Cbam: Convolutional block attention module},
@@ -291,6 +324,7 @@ class DeformBottleneck:
 ```
 
 **Proposed enhancement:**
+
 ```python
 class AttentionDCNv3C2f:
     # Channel attention → Spatial attention → DCNv3C2f
@@ -300,17 +334,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 10. Squeeze-and-Excitation Networks (Channel Attention)
+
 **Title:** Squeeze-and-Excitation Networks
 **Authors:** Jie Hu, Li Shen, Gang Sun
 **Conference:** CVPR 2018
 **Paper:** https://arxiv.org/abs/1709.01507
 
 **Relevance:**
+
 - Channel-wise attention mechanism
 - Recalibrates channel features
 - Can enhance DCN offset prediction
 
 **Citation:**
+
 ```bibtex
 @inproceedings{hu2018squeeze,
   title={Squeeze-and-excitation networks},
@@ -324,17 +361,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 11. Spatial Pyramid Pooling (SPPF)
+
 **Title:** Spatial Pyramid Pooling in Deep Convolutional Networks for Visual Recognition
 **Authors:** Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
 **Conference:** ECCV 2014
 **Paper:** https://arxiv.org/abs/1406.4729
 
 **Relevance:**
+
 - Multi-scale feature pooling
 - Used in YOLOv8 backbone (SPPF - fast version)
 - Proposed: Deformable SPPF with adaptive pooling
 
 **Citation:**
+
 ```bibtex
 @inproceedings{he2015spatial,
   title={Spatial pyramid pooling in deep convolutional networks for visual recognition},
@@ -349,17 +389,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 12. Atrous/Dilated Convolutions
+
 **Title:** Rethinking Atrous Convolution for Semantic Image Segmentation
 **Authors:** Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam
 **Paper:** https://arxiv.org/abs/1706.05587
 **Conference:** CVPR 2017 (DeepLab v3)
 
 **Relevance:**
+
 - Multi-rate receptive fields
 - Proposed: Atrous DCN for wider context
 - Captures features at multiple scales
 
 **Citation:**
+
 ```bibtex
 @article{chen2017rethinking,
   title={Rethinking atrous convolution for semantic image segmentation},
@@ -374,17 +417,20 @@ class AttentionDCNv3C2f:
 ## 🔬 Optimization & Training Techniques
 
 ### 13. Mixed Precision Training
+
 **Title:** Mixed Precision Training
 **Authors:** Paulius Micikevicius, Sharan Narang, Jonah Alben, et al.
 **Conference:** ICLR 2018
 **Paper:** https://arxiv.org/abs/1710.03740
 
 **Relevance:**
+
 - Faster training with FP16
 - Reduced memory usage
 - Compatible with DCN operations
 
 **Citation:**
+
 ```bibtex
 @inproceedings{micikevicius2018mixed,
   title={Mixed precision training},
@@ -397,17 +443,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 14. Learning Rate Scheduling
+
 **Title:** Cyclical Learning Rates for Training Neural Networks
 **Authors:** Leslie N. Smith
 **Conference:** WACV 2017
 **Paper:** https://arxiv.org/abs/1506.01186
 
 **Relevance:**
+
 - Adaptive learning rate strategies
 - Important for DCN convergence
 - Used in training scripts
 
 **Citation:**
+
 ```bibtex
 @inproceedings{smith2017cyclical,
   title={Cyclical learning rates for training neural networks},
@@ -422,6 +471,7 @@ class AttentionDCNv3C2f:
 ---
 
 ### 15. Data Augmentation Strategies
+
 **Title:** AutoAugment: Learning Augmentation Strategies from Data
 **Authors:** Ekin D. Cubuk, Barret Zoph, Dandelion Mane, Vijay Vasudevan, Quoc V. Le
 **Conference:** CVPR 2019
@@ -433,11 +483,13 @@ class AttentionDCNv3C2f:
 **Paper:** https://arxiv.org/abs/2004.10934
 
 **Relevance:**
+
 - Data augmentation for vehicle detection
 - Mosaic augmentation in training
 - Improves generalization with DCN
 
 **Citation:**
+
 ```bibtex
 @inproceedings{cubuk2019autoaugment,
   title={Autoaugment: Learning augmentation strategies from data},
@@ -460,17 +512,20 @@ class AttentionDCNv3C2f:
 ## 🚗 Vehicle Detection Specific
 
 ### 16. Small Object Detection
+
 **Title:** Feature-fused SSD: fast detection for small objects
 **Authors:** Guimei Cao, Xuemei Xie, Wenzhe Yang, Quan Liao, Guangming Shi, Jinjian Wu
 **Conference:** Graphical Models 2020
 **Paper:** https://arxiv.org/abs/1709.05054
 
 **Relevance:**
+
 - Detecting small vehicles (motorcycles, tricycles)
 - Multi-scale feature fusion
 - DCN improves small object localization
 
 **Citation:**
+
 ```bibtex
 @article{cao2020feature,
   title={Feature-fused SSD: fast detection for small objects},
@@ -486,17 +541,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 17. Occlusion Handling in Dense Scenes
+
 **Title:** Occlusion-aware R-CNN: Detecting Pedestrians in a Crowd
 **Authors:** Shifeng Zhang, Longyin Wen, Xiao Bian, Zhen Lei, Stan Z. Li
 **Conference:** ECCV 2018
 **Paper:** https://arxiv.org/abs/1807.08407
 
 **Relevance:**
+
 - Dense traffic scenarios
 - Occluded vehicle detection
 - DCN's adaptive sampling helps with occlusions
 
 **Citation:**
+
 ```bibtex
 @inproceedings{zhang2018occlusion,
   title={Occlusion-aware r-cnn: detecting pedestrians in a crowd},
@@ -510,17 +568,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 18. Multi-Class Object Detection
+
 **Title:** Focal Loss for Dense Object Detection
 **Authors:** Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, Piotr Dollár
 **Conference:** ICCV 2017
 **Paper:** https://arxiv.org/abs/1708.02002
 
 **Relevance:**
+
 - Class imbalance in detection
 - 6 vehicle classes with varying frequencies
 - Focal loss for hard examples
 
 **Citation:**
+
 ```bibtex
 @inproceedings{lin2017focal,
   title={Focal loss for dense object detection},
@@ -536,17 +597,20 @@ class AttentionDCNv3C2f:
 ## 📊 Evaluation Metrics & Analysis
 
 ### 19. COCO Evaluation Metrics
+
 **Title:** Microsoft COCO: Common Objects in Context
 **Authors:** Tsung-Yi Lin, Michael Maire, Serge Belongie, et al.
 **Conference:** ECCV 2014
 **Paper:** https://arxiv.org/abs/1405.0312
 
 **Relevance:**
+
 - mAP50-95 metric
 - Multi-scale evaluation
 - Standard benchmark for object detection
 
 **Citation:**
+
 ```bibtex
 @inproceedings{lin2014microsoft,
   title={Microsoft coco: Common objects in context},
@@ -561,17 +625,20 @@ class AttentionDCNv3C2f:
 ---
 
 ### 20. Ablation Studies Methodology
+
 **Title:** Understanding Deep Learning Requires Rethinking Generalization
 **Authors:** Chiyuan Zhang, Samy Bengio, Moritz Hardt, Benjamin Recht, Oriol Vinyals
 **Conference:** ICLR 2017
 **Paper:** https://arxiv.org/abs/1611.03530
 
 **Relevance:**
+
 - Systematic ablation study design
 - Component-wise analysis
 - Our work: DCN v2 vs v3, backbone vs neck, etc.
 
 **Citation:**
+
 ```bibtex
 @inproceedings{zhang2017understanding,
   title={Understanding deep learning requires rethinking generalization},
@@ -586,17 +653,20 @@ class AttentionDCNv3C2f:
 ## 🛠️ Implementation Best Practices
 
 ### 21. Efficient PyTorch Implementation
+
 **Title:** PyTorch: An Imperative Style, High-Performance Deep Learning Library
 **Authors:** Adam Paszke, Sam Gross, Francisco Massa, et al.
 **Conference:** NeurIPS 2019
 **Paper:** https://arxiv.org/abs/1912.01703
 
 **Relevance:**
+
 - Framework for implementation
 - Dynamic computation graphs
 - CUDA operations
 
 **Citation:**
+
 ```bibtex
 @article{paszke2019pytorch,
   title={Pytorch: An imperative style, high-performance deep learning library},
@@ -610,19 +680,21 @@ class AttentionDCNv3C2f:
 ---
 
 ### 22. Runtime Assertions & Debugging
+
 **Title:** Debugging Deep Learning Models
 **Reference:** Best practices from software engineering
 
 **Relevance:**
+
 - Runtime shape assertions in our code
 - Catches configuration errors early
 - Better error messages
 
 **Our implementation:**
+
 ```python
 assert offset_mask.shape[1] == expected_channels, (
-    f"Offset/mask channel mismatch in DeformConv: "
-    f"got {offset_mask.shape[1]}, expected {expected_channels}"
+    f"Offset/mask channel mismatch in DeformConv: got {offset_mask.shape[1]}, expected {expected_channels}"
 )
 ```
 
@@ -630,18 +702,18 @@ assert offset_mask.shape[1] == expected_channels, (
 
 ## 📝 Summary of Modifications & Their References
 
-| Modification | Key Reference | Impact |
-|-------------|---------------|--------|
-| **Grouped DCN** | Wu & He (2018) - Group Norm | +2-4% mAP |
-| **Zero-init offsets** | Glorot & Bengio (2010), Szegedy et al. (2016) | Training stability |
-| **Multi-backend support** | MMCV, TorchVision | Cross-platform |
-| **CSP + DCN** | Wang et al. (2020) - CSPNet | Efficient gradient flow |
-| **Bottleneck design** | He et al. (2016) - ResNet | Computational efficiency |
-| **BatchNorm in DCN** | Ioffe & Szegedy (2015) | Convergence speed |
-| **DCN in FPN** | Lin et al. (2017) | +3-5% mAP on small objects |
-| **DCN in PAN** | Liu et al. (2018) | Better feature fusion |
-| **Attention + DCN** | Woo et al. (2018) - CBAM | +4-8% mAP (proposed) |
-| **Runtime assertions** | Software engineering best practices | Error detection |
+| Modification              | Key Reference                                 | Impact                     |
+| ------------------------- | --------------------------------------------- | -------------------------- |
+| **Grouped DCN**           | Wu & He (2018) - Group Norm                   | +2-4% mAP                  |
+| **Zero-init offsets**     | Glorot & Bengio (2010), Szegedy et al. (2016) | Training stability         |
+| **Multi-backend support** | MMCV, TorchVision                             | Cross-platform             |
+| **CSP + DCN**             | Wang et al. (2020) - CSPNet                   | Efficient gradient flow    |
+| **Bottleneck design**     | He et al. (2016) - ResNet                     | Computational efficiency   |
+| **BatchNorm in DCN**      | Ioffe & Szegedy (2015)                        | Convergence speed          |
+| **DCN in FPN**            | Lin et al. (2017)                             | +3-5% mAP on small objects |
+| **DCN in PAN**            | Liu et al. (2018)                             | Better feature fusion      |
+| **Attention + DCN**       | Woo et al. (2018) - CBAM                      | +4-8% mAP (proposed)       |
+| **Runtime assertions**    | Software engineering best practices           | Error detection            |
 
 ---
 
@@ -794,21 +866,26 @@ Save as `modifications_references.bib`:
 ## 🎯 Quick Reference Card for Your Thesis
 
 **When discussing grouped DCN:**
+
 > "We implement grouped deformable convolutions following the principles of group normalization (Wu & He, 2018), extending the standard DCN formulation to support channel grouping..."
 
 **When discussing initialization:**
+
 > "To ensure training stability, we initialize all offset predictors to zero (Glorot & Bengio, 2010; Szegedy et al., 2016), allowing the network to start with standard convolution behavior..."
 
 **When discussing architecture:**
+
 > "We integrate DCN into the CSPNet architecture (Wang et al., 2020) and apply it to both FPN (Lin et al., 2017) and PAN (Liu et al., 2018) components..."
 
 **When discussing vehicle detection:**
+
 > "For small object detection such as motorcycles and tricycles, we leverage DCN's adaptive receptive field, which has been shown effective for small objects (Cao et al., 2020)..."
 
 ---
 
 **Total References for Modifications:** 22 papers
 **Most Important for Modifications:**
+
 1. Wu & He (2018) - Grouped operations
 2. Glorot & Bengio (2010) - Initialization
 3. Wang et al. (2020) - CSPNet integration

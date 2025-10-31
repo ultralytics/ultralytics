@@ -59,42 +59,42 @@ width_multiple: 0.25
 backbone:
   # [from, repeats, module, args]
   # Early layers: Standard convolutions (low-level features don't benefit from DCN)
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2 - Edge detection (Krizhevsky et al. 2012)
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4 - Texture patterns
-  - [-1, 3, C2f, [128, True]]            # 2 - Standard: features too simple for DCN (Zhu et al. 2019)
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2 - Edge detection (Krizhevsky et al. 2012)
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4 - Texture patterns
+  - [-1, 3, C2f, [128, True]] # 2 - Standard: features too simple for DCN (Zhu et al. 2019)
 
   # Middle layers: DCN v2 for adaptive geometric modeling
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8 - Transition to semantic features
-  - [-1, 6, DeformC2f, [256, True]]      # 4 - DCN v2! Handles small-medium objects (Zhu et al. 2019, Sec. 4.2)
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16 - Transition
-  - [-1, 6, DeformC2f, [512, True]]      # 6 - DCN v2! Critical layer for deformation (Zhu et al. 2019, Table 1)
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8 - Transition to semantic features
+  - [-1, 6, DeformC2f, [256, True]] # 4 - DCN v2! Handles small-medium objects (Zhu et al. 2019, Sec. 4.2)
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16 - Transition
+  - [-1, 6, DeformC2f, [512, True]] # 6 - DCN v2! Critical layer for deformation (Zhu et al. 2019, Table 1)
 
   # Deep layers: Standard convolutions (large receptive field sufficient)
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32 - High-level semantics
-  - [-1, 3, C2f, [1024, True]]           # 8 - Standard: 256×256 RF, DCN not needed
-  - [-1, 1, SPPF, [1024, 5]]             # 9 - Spatial pyramid pooling (He et al. 2015)
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32 - High-level semantics
+  - [-1, 3, C2f, [1024, True]] # 8 - Standard: 256×256 RF, DCN not needed
+  - [-1, 1, SPPF, [1024, 5]] # 9 - Spatial pyramid pooling (He et al. 2015)
 
 head:
   # FPN (Feature Pyramid Network) - Top-down pathway (Lin et al. 2017)
   # Strategic DCN placement for adaptive multi-scale fusion
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10 - Upsample P5→P4
-  - [[-1, 6], 1, Concat, [1]]                   # 11 - Concat P4 from DCN backbone
-  - [-1, 3, DeformC2f, [512]]                   # 12 - DCN v2! Adaptive P4-P5 fusion (Zhu et al. 2019)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 10 - Upsample P5→P4
+  - [[-1, 6], 1, Concat, [1]] # 11 - Concat P4 from DCN backbone
+  - [-1, 3, DeformC2f, [512]] # 12 - DCN v2! Adaptive P4-P5 fusion (Zhu et al. 2019)
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13 - Upsample P4→P3
-  - [[-1, 4], 1, Concat, [1]]                   # 14 - Concat P3 from DCN backbone
-  - [-1, 3, C2f, [256]]                         # 15 (P3/8-small) - Standard: sufficient for small objects
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 13 - Upsample P4→P3
+  - [[-1, 4], 1, Concat, [1]] # 14 - Concat P3 from DCN backbone
+  - [-1, 3, C2f, [256]] # 15 (P3/8-small) - Standard: sufficient for small objects
 
   # PAN (Path Aggregation Network) - Bottom-up pathway (Liu et al. 2018)
   # Standard convolutions - backbone DCN already provides adaptive features
-  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - Downsample P3→P4
-  - [[-1, 12], 1, Concat, [1]]                  # 17 - Concat from FPN P4
-  - [-1, 3, C2f, [512]]                         # 18 (P4/16-medium) - Standard: leverages DCN features
+  - [-1, 1, Conv, [256, 3, 2]] # 16 - Downsample P3→P4
+  - [[-1, 12], 1, Concat, [1]] # 17 - Concat from FPN P4
+  - [-1, 3, C2f, [512]] # 18 (P4/16-medium) - Standard: leverages DCN features
 
-  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - Downsample P4→P5
-  - [[-1, 9], 1, Concat, [1]]                   # 20 - Concat from backbone P5
-  - [-1, 3, C2f, [1024]]                        # 21 (P5/32-large) - Standard: large objects
+  - [-1, 1, Conv, [512, 3, 2]] # 19 - Downsample P4→P5
+  - [[-1, 9], 1, Concat, [1]] # 20 - Concat from backbone P5
+  - [-1, 3, C2f, [1024]] # 21 (P5/32-large) - Standard: large objects
 
   # Detection Head - Standard (no DCN needed for final prediction)
   # Rationale: Classification/regression don't benefit from adaptive sampling
-  - [[15, 18, 21], 1, Detect, [nc]]             # 22 - Multi-scale detection heads
+  - [[15, 18, 21], 1, Detect, [nc]] # 22 - Multi-scale detection heads

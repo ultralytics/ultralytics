@@ -13,12 +13,14 @@ import torch.nn as nn
 try:
     from mmcv.ops import DeformConv2d as MMCVDeformConv2d
     from mmcv.ops import ModulatedDeformConv2d as MMCVModulatedDeformConv2d
+
     MMCV_AVAILABLE = True
 except (ImportError, ModuleNotFoundError):
     MMCV_AVAILABLE = False
     # Use torchvision's deformable conv (supports CPU/MPS/CUDA)
     try:
         from torchvision.ops import DeformConv2d as TVDeformConv2d
+
         TORCHVISION_DCN_AVAILABLE = True
     except ImportError:
         TORCHVISION_DCN_AVAILABLE = False
@@ -26,6 +28,7 @@ except (ImportError, ModuleNotFoundError):
 # Import DCNv3 from OpenGVLab's InternImage (CUDA-optimized)
 try:
     from dcnv3 import DCNv3 as DCNv3_Op
+
     DCNV3_AVAILABLE = True
 except ImportError:
     DCNV3_AVAILABLE = False
@@ -205,6 +208,7 @@ class DeformConv(nn.Module):
         Zhu et al. "Deformable ConvNets v2: More Deformable, Better Results" CVPR 2019
         Zhang et al. "Offset-decoupled deformable convolution" 2022
     """
+
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, modulated=True):
         super().__init__()
         if p is None:
@@ -225,16 +229,17 @@ class DeformConv(nn.Module):
                 self.conv = MMCVModulatedDeformConv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=False)
             else:
                 self.conv = MMCVDeformConv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=False)
-            self.backend = 'mmcv'
+            self.backend = "mmcv"
         elif TORCHVISION_DCN_AVAILABLE and not modulated:
             # TorchVision implementation (CPU/MPS/CUDA support, non-modulated only)
             self.conv = TVDeformConv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=False)
-            self.backend = 'torchvision'
+            self.backend = "torchvision"
         else:
             # Standard convolution fallback when no DCN backend is available
             self.conv = nn.Conv2d(c1, c2, k, stride=s, padding=p, dilation=d, groups=g, bias=False)
-            self.backend = 'standard'
+            self.backend = "standard"
             import warnings
+
             warnings.warn(
                 f"DeformConv: No DCN backend available (MMCV: {MMCV_AVAILABLE}, TorchVision: {TORCHVISION_DCN_AVAILABLE}). "
                 f"Using standard Conv2d. Install mmcv-full for CUDA support or torchvision>=0.11 for CPU/MPS support."
@@ -247,10 +252,9 @@ class DeformConv(nn.Module):
         # Outputs: g * 2*k*k (offsets only) or g * 3*k*k (offsets + modulation masks)
         # Only created when using actual deformable conv backends
         # Reference: Zhu et al. (2019) Section 3.2 - "Modulated Deformable Convolution"
-        if self.backend != 'standard':
+        if self.backend != "standard":
             offset_channels = self.groups * (
-                3 * self.k * self.k if modulated and self.backend == 'mmcv'
-                else 2 * self.k * self.k
+                3 * self.k * self.k if modulated and self.backend == "mmcv" else 2 * self.k * self.k
             )
             self.offset_mask_conv = nn.Conv2d(
                 c1,
@@ -276,7 +280,7 @@ class DeformConv(nn.Module):
             f"DeformConv: Input spatial dims {x.shape[2:]} smaller than kernel size {self.k}"
         )
 
-        if self.backend == 'standard':
+        if self.backend == "standard":
             # Standard convolution fallback
             out = self.conv(x)
         else:
@@ -285,8 +289,7 @@ class DeformConv(nn.Module):
 
             # Verify offset/mask channels match expected configuration
             expected_channels = self.groups * (
-                3 * self.k * self.k if self.modulated and self.backend == 'mmcv'
-                else 2 * self.k * self.k
+                3 * self.k * self.k if self.modulated and self.backend == "mmcv" else 2 * self.k * self.k
             )
             assert offset_mask.shape[1] == expected_channels, (
                 f"Offset/mask channel mismatch in DeformConv: "
@@ -295,7 +298,7 @@ class DeformConv(nn.Module):
             )
 
             off_ch = self.groups * 2 * self.k * self.k
-            if self.modulated and self.backend == 'mmcv':
+            if self.modulated and self.backend == "mmcv":
                 # Modulated DCN: split into offsets and modulation masks
                 # Reference: Zhu et al. (2019) Equation 4
                 o1 = offset_mask[:, :off_ch, :, :]
@@ -308,7 +311,7 @@ class DeformConv(nn.Module):
 
                 # Sigmoid activation for modulation masks (range [0,1])
                 # Reference: Zhu et al. (2019) Section 3.2
-                mask = offset_mask[:, off_ch:off_ch + self.groups * self.k * self.k, :, :].sigmoid()
+                mask = offset_mask[:, off_ch : off_ch + self.groups * self.k * self.k, :, :].sigmoid()
                 out = self.conv(x, o1, mask)
             else:
                 # Non-modulated DCN: offsets only
@@ -327,7 +330,8 @@ class DeformConv(nn.Module):
 
 
 class DeformBottleneck(nn.Module):
-    """Bottleneck block with DCN v2 (Modulated Deformable Convolution).
+    """
+    Bottleneck block with DCN v2 (Modulated Deformable Convolution).
 
     Architecture: input → Conv1x1(reduce) → DCNv2_3x3 → (+skip) → output
 
@@ -382,7 +386,8 @@ class DeformBottleneck(nn.Module):
 
 
 class DeformC2f(nn.Module):
-    """C2f block with DCN v2 (Modulated Deformable Convolution) + CSP architecture.
+    """
+    C2f block with DCN v2 (Modulated Deformable Convolution) + CSP architecture.
 
     Combines:
     1. DCN v2 (Zhu et al., 2019) - Adaptive spatial sampling with modulation
@@ -447,8 +452,7 @@ class DeformC2f(nn.Module):
 
         # Process one path through n deformable bottlenecks
         self.m = nn.ModuleList(
-            DeformBottleneck(self.c, self.c, shortcut, g, k=(3, 3), e=1.0, modulated=modulated)
-            for _ in range(n)
+            DeformBottleneck(self.c, self.c, shortcut, g, k=(3, 3), e=1.0, modulated=modulated) for _ in range(n)
         )
 
         # Merge all paths: (2 from split + n from bottlenecks) * c → c2 channels
@@ -513,9 +517,11 @@ class DCNv3Conv(nn.Module):
         Code: https://github.com/OpenGVLab/InternImage
     """
 
-    def __init__(self, c1, c2, k=3, s=1, p=None, g=1, d=1, kernel_size=3,
-                 dw_kernel_size=None, center_feature_scale=False):
-        """Initialize DCN v3 layer.
+    def __init__(
+        self, c1, c2, k=3, s=1, p=None, g=1, d=1, kernel_size=3, dw_kernel_size=None, center_feature_scale=False
+    ):
+        """
+        Initialize DCN v3 layer.
 
         Args:
             c1 (int): Input channels
@@ -554,20 +560,21 @@ class DCNv3Conv(nn.Module):
                 dilation=d,
                 group=g,
                 offset_scale=1.0,
-                act_layer='GELU',
-                norm_layer='LN',
+                act_layer="GELU",
+                norm_layer="LN",
                 dw_kernel_size=self.dw_kernel_size,
                 center_feature_scale=center_feature_scale,
             )
-            self.backend = 'dcnv3'
+            self.backend = "dcnv3"
         else:
             # Standard convolution fallback when DCNv3 is not available
             self.dcn = nn.Conv2d(c1, c2, k, s, p, dilation=d, groups=1, bias=False)
-            self.backend = 'standard'
+            self.backend = "standard"
             import warnings
+
             warnings.warn(
-                f"DCNv3: CUDA implementation not found. Using standard convolution. "
-                f"Install DCNv3 for deformable convolution: pip install DCNv3 (from OpenGVLab/InternImage)"
+                "DCNv3: CUDA implementation not found. Using standard convolution. "
+                "Install DCNv3 for deformable convolution: pip install DCNv3 (from OpenGVLab/InternImage)"
             )
 
         self.bn = nn.BatchNorm2d(c2)
@@ -583,7 +590,7 @@ class DCNv3Conv(nn.Module):
             f"DCNv3Conv: Input spatial dims {x.shape[2:]} smaller than kernel size {self.kernel_size}"
         )
 
-        if self.backend == 'standard':
+        if self.backend == "standard":
             out = self.dcn(x)
         else:
             # DCNv3 handles offset prediction and sampling internally
@@ -597,7 +604,8 @@ class DCNv3Conv(nn.Module):
 
 
 class DCNv3Bottleneck(nn.Module):
-    """Bottleneck block with DCN v3 (from InternImage).
+    """
+    Bottleneck block with DCN v3 (from InternImage).
 
     Architecture: input → Conv1x1(reduce) → DCNv3_3x3 → (+skip) → output
 
@@ -616,9 +624,9 @@ class DCNv3Bottleneck(nn.Module):
         with Deformable Convolutions" CVPR 2023
     """
 
-    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5,
-                 kernel_size=3, center_feature_scale=False):
-        """Initialize DCN v3 Bottleneck.
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5, kernel_size=3, center_feature_scale=False):
+        """
+        Initialize DCN v3 Bottleneck.
 
         Args:
             c1 (int): Input channels
@@ -637,8 +645,7 @@ class DCNv3Bottleneck(nn.Module):
         self.cv1 = Conv(c1, c_, k[0], 1)
 
         # 3x3 DCN v3 for adaptive spatial sampling
-        self.cv2 = DCNv3Conv(c_, c2, k[1], 1, g=g, kernel_size=kernel_size,
-                             center_feature_scale=center_feature_scale)
+        self.cv2 = DCNv3Conv(c_, c2, k[1], 1, g=g, kernel_size=kernel_size, center_feature_scale=center_feature_scale)
 
         # Residual connection when dimensions match
         self.add = shortcut and c1 == c2
@@ -649,7 +656,8 @@ class DCNv3Bottleneck(nn.Module):
 
 
 class DCNv3C2f(nn.Module):
-    """C2f block with DCN v3 (from InternImage) + CSP architecture.
+    """
+    C2f block with DCN v3 (from InternImage) + CSP architecture.
 
     Combines:
     1. DCN v3 (Wang et al., 2023) - Large-scale deformable convolution
@@ -672,9 +680,9 @@ class DCNv3C2f(nn.Module):
         with Deformable Convolutions" CVPR 2023
     """
 
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5,
-                 kernel_size=3, center_feature_scale=False):
-        """Initialize DCNv3C2f with CSP architecture.
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, kernel_size=3, center_feature_scale=False):
+        """
+        Initialize DCNv3C2f with CSP architecture.
 
         Args:
             c1 (int): Input channels
@@ -694,8 +702,16 @@ class DCNv3C2f(nn.Module):
 
         # Process one path through n DCN v3 bottlenecks
         self.m = nn.ModuleList(
-            DCNv3Bottleneck(self.c, self.c, shortcut, g, k=(3, 3), e=1.0,
-                           kernel_size=kernel_size, center_feature_scale=center_feature_scale)
+            DCNv3Bottleneck(
+                self.c,
+                self.c,
+                shortcut,
+                g,
+                k=(3, 3),
+                e=1.0,
+                kernel_size=kernel_size,
+                center_feature_scale=center_feature_scale,
+            )
             for _ in range(n)
         )
 
@@ -703,7 +719,8 @@ class DCNv3C2f(nn.Module):
         self.cv2 = Conv((2 + n) * self.c, c2, 1)
 
     def forward(self, x):
-        """Forward pass with CSP architecture.
+        """
+        Forward pass with CSP architecture.
 
         Args:
             x (torch.Tensor): Input tensor (B, c1, H, W)

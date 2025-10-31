@@ -1,11 +1,12 @@
 from ultralytics import YOLO
 
+
 def train_yolo():
     # Load model from YAML (training from scratch)
     model = YOLO("ultralytics/cfg/models/v8/yolov8m.yaml")
 
     # Train
-    results = model.train(
+    model.train(
         data="mydata.yaml",  # dataset config
         epochs=300,
         patience=50,
@@ -14,6 +15,7 @@ def train_yolo():
     )
 
     print("✅ Training completed. Check runs/detect/train/ for results.")
+
 
 if __name__ == "__main__":
     train_yolo()

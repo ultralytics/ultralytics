@@ -89,7 +89,7 @@ class RTDETRDataset(YOLODataset):
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([])
+            transforms = Compose([lambda x: {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}])
         transforms.append(
             Format(
                 bbox_format="xywh",
@@ -164,7 +164,8 @@ class RTDETRValidator(DetectionValidator):
 
         Args:
             preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
-                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
+                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and
+                class scores.
 
         Returns:
             (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:

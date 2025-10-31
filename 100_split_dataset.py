@@ -3,7 +3,7 @@ import os, shutil, random
 from pathlib import Path
 
 # Configuration
-base_dir = Path('datasets') / '100%'  # root for this dataset variant
+base_dir = Path('datasets') / 'real_100'  # root for this dataset variant
 raw_dir = base_dir / 'raw'
 train_dir = base_dir / 'train'
 val_dir = base_dir / 'val'

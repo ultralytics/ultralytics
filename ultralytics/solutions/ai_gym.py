@@ -59,11 +59,9 @@ class AIGym(BaseSolution):
             im0 (np.ndarray): Input image for processing.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`,
-                'workout_count' (list of completed reps),
-                'workout_stage' (list of current stages),
-                'workout_angle' (list of angles), and
-                'total_tracks' (total number of tracked individuals).
+            (SolutionResults): Contains processed image `plot_im`, 'workout_count' (list of completed reps),
+            'workout_stage' (list of current stages), 'workout_angle' (list of angles), and 'total_tracks'
+            (total number of tracked individuals).
 
         Examples:
             >>> gym = AIGym()

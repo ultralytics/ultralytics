@@ -1680,9 +1680,9 @@ class LetterBox:
             image (np.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
 
         Returns:
-            (dict[str, Any] | nd.ndarray): If 'labels' is provided, returns an updated dictionary with the resized and
+            (dict[str, Any] | np.ndarray): If 'labels' is provided, returns an updated dictionary with the resized and
                 padded image, updated labels, and additional metadata. If 'labels' is empty, returns the resized and
-                padded image.
+                padded image only.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))

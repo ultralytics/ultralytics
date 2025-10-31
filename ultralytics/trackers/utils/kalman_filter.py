@@ -8,8 +8,8 @@ class KalmanFilterXYAH:
     """
     A KalmanFilterXYAH class for tracking bounding boxes in image space using a Kalman filter.
 
-    Implements a simple Kalman filter for tracking bounding boxes in image space. The 8-dimensional state space
-    (x, y, a, h, vx, vy, va, vh) contains the bounding box center position (x, y), aspect ratio a, height h, and their
+    Implements a simple Kalman filter for tracking bounding boxes in image space. The 8-dimensional state space (x, y,
+    a, h, vx, vy, va, vh) contains the bounding box center position (x, y), aspect ratio a, height h, and their
     respective velocities. Object motion follows a constant velocity model, and bounding box location (x, y, a, h) is
     taken as a direct observation of the state space (linear observation model).
 
@@ -70,7 +70,8 @@ class KalmanFilterXYAH:
                 and height h.
 
         Returns:
-            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector (8-dimensional) of the new track. Unobserved velocities are initialized to 0
+                mean.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -101,7 +102,8 @@ class KalmanFilterXYAH:
 
         Args:
             mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
-            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
+            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time
+                step.
 
         Returns:
             mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.
@@ -252,11 +254,12 @@ class KalmanFilterXYAH:
         Args:
             mean (np.ndarray): Mean vector over the state distribution (8 dimensional).
             covariance (np.ndarray): Covariance of the state distribution (8x8 dimensional).
-            measurements (np.ndarray): An (N, 4) matrix of N measurements, each in format (x, y, a, h) where (x, y) is the
-                bounding box center position, a the aspect ratio, and h the height.
-            only_position (bool, optional): If True, distance computation is done with respect to box center position only.
-            metric (str, optional): The metric to use for calculating the distance. Options are 'gaussian' for the squared
-                Euclidean distance and 'maha' for the squared Mahalanobis distance.
+            measurements (np.ndarray): An (N, 4) matrix of N measurements, each in format (x, y, a, h) where (x, y) is
+                the bounding box center position, a the aspect ratio, and h the height.
+            only_position (bool, optional): If True, distance computation is done with respect to box center position
+                only.
+            metric (str, optional): The metric to use for calculating the distance. Options are 'gaussian' for the
+                squared Euclidean distance and 'maha' for the squared Mahalanobis distance.
 
         Returns:
             (np.ndarray): Returns an array of length N, where the i-th element contains the squared distance between
@@ -290,9 +293,9 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
     """
     A KalmanFilterXYWH class for tracking bounding boxes in image space using a Kalman filter.
 
-    Implements a Kalman filter for tracking bounding boxes with state space (x, y, w, h, vx, vy, vw, vh), where
-    (x, y) is the center position, w is the width, h is the height, and vx, vy, vw, vh are their respective velocities.
-    The object motion follows a constant velocity model, and the bounding box location (x, y, w, h) is taken as a direct
+    Implements a Kalman filter for tracking bounding boxes with state space (x, y, w, h, vx, vy, vw, vh), where (x, y)
+    is the center position, w is the width, h is the height, and vx, vy, vw, vh are their respective velocities. The
+    object motion follows a constant velocity model, and the bounding box location (x, y, w, h) is taken as a direct
     observation of the state space (linear observation model).
 
     Attributes:
@@ -322,10 +325,12 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         Create track from unassociated measurement.
 
         Args:
-            measurement (np.ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and height.
+            measurement (np.ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and
+                height.
 
         Returns:
-            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0 mean.
+            mean (np.ndarray): Mean vector (8 dimensional) of the new track. Unobserved velocities are initialized to 0
+                mean.
             covariance (np.ndarray): Covariance matrix (8x8 dimensional) of the new track.
 
         Examples:
@@ -367,7 +372,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
 
         Args:
             mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
-            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time step.
+            covariance (np.ndarray): The 8x8-dimensional covariance matrix of the object state at the previous time
+                step.
 
         Returns:
             mean (np.ndarray): Mean vector of the predicted state. Unobserved velocities are initialized to 0 mean.

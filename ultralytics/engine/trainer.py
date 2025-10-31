@@ -952,7 +952,7 @@ class BaseTrainer:
         elif name == "SGD":
             optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
         elif name == "MuSGD":
-            optimizer = MuSGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+            optimizer = MuSGD(g[2], lr=lr, momentum=momentum, nesterov=True, muon=self.args.muon_w, sgd=self.args.sgd_w)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers {optimizers}. "

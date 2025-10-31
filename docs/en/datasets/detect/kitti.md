@@ -66,7 +66,7 @@ You can also perform evaluation, inference, and export tasks directly from the c
 
 ## Sample Images and Annotations
 
-The Kitti dataset provides diverse driving scenarios. Each image includes bounding box annotations for 2D object detection tasks. These examples showcase the dataset’s rich variety, enabling robust model generalization across diverse real-world conditions.
+The Kitti dataset provides diverse driving scenarios. Each image includes bounding box annotations for 2D object detection tasks. These examples showcase the dataset's rich variety, enabling robust model generalization across diverse real-world conditions.
 
 <img src="https://github.com/ultralytics/docs/releases/download/0/kitti-dataset-sample.avif" alt="Kitti sample image" width="800">
 

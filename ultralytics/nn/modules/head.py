@@ -454,8 +454,8 @@ class WorldDetect(Detect):
     """
     Head for integrating YOLO detection models with semantic understanding from text embeddings.
 
-    This class extends the standard Detect head to incorporate text embeddings for enhanced semantic understanding
-    in object detection tasks.
+    This class extends the standard Detect head to incorporate text embeddings for enhanced semantic understanding in
+    object detection tasks.
 
     Attributes:
         cv3 (nn.ModuleList): Convolution layers for embedding features.
@@ -512,8 +512,8 @@ class LRPCHead(nn.Module):
     """
     Lightweight Region Proposal and Classification Head for efficient object detection.
 
-    This head combines region proposal filtering with classification to enable efficient detection with
-    dynamic vocabulary support.
+    This head combines region proposal filtering with classification to enable efficient detection with dynamic
+    vocabulary support.
 
     Attributes:
         vocab (nn.Module): Vocabulary/classification layer.
@@ -765,8 +765,8 @@ class YOLOESegment(YOLOEDetect):
     """
     YOLO segmentation head with text embedding capabilities.
 
-    This class extends YOLOEDetect to include mask prediction capabilities for instance segmentation tasks
-    with text-guided semantic understanding.
+    This class extends YOLOEDetect to include mask prediction capabilities for instance segmentation tasks with
+    text-guided semantic understanding.
 
     Attributes:
         nm (int): Number of masks.
@@ -1161,8 +1161,8 @@ class v10Detect(Detect):
     """
     v10 Detection head from https://arxiv.org/pdf/2405.14458.
 
-    This class implements the YOLOv10 detection head with dual-assignment training and consistent dual predictions
-    for improved efficiency and performance.
+    This class implements the YOLOv10 detection head with dual-assignment training and consistent dual predictions for
+    improved efficiency and performance.
 
     Attributes:
         end2end (bool): End-to-end detection mode.

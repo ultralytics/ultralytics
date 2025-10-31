@@ -1299,12 +1299,6 @@ class RandomPerspective:
 
         Args:
             labels (dict[str, Any]): A dictionary containing image data and annotations.
-                Must include:
-                    'img' (np.ndarray): The input image.
-                    'cls' (np.ndarray): Class labels.
-                    'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
-                May include:
-                    'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
 
         Returns:
             (dict[str, Any]): Transformed labels dictionary containing:
@@ -1323,6 +1317,14 @@ class RandomPerspective:
             ... }
             >>> result = transform(labels)
             >>> assert result["img"].shape[:2] == result["resized_shape"]
+
+        Notes:
+            'labels' arg must include:
+                - 'img' (np.ndarray): The input image.
+                - 'cls' (np.ndarray): Class labels.
+                - 'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
+            May include:
+                - 'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
         """
         if self.pre_transform and "mosaic_border" not in labels:
             labels = self.pre_transform(labels)

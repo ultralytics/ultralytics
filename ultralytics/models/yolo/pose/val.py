@@ -17,8 +17,8 @@ class PoseValidator(DetectionValidator):
     """
     A class extending the DetectionValidator class for validation based on a pose model.
 
-    This validator is specifically designed for pose estimation tasks, handling keypoints and implementing
-    specialized metrics for pose evaluation.
+    This validator is specifically designed for pose estimation tasks, handling keypoints and implementing specialized
+    metrics for pose evaluation.
 
     Attributes:
         sigma (np.ndarray): Sigma values for OKS calculation, either OKS_SIGMA or ones divided by number of keypoints.
@@ -122,10 +122,9 @@ class PoseValidator(DetectionValidator):
         """
         Postprocess YOLO predictions to extract and reshape keypoints for pose estimation.
 
-        This method extends the parent class postprocessing by extracting keypoints from the 'extra'
-        field of predictions and reshaping them according to the keypoint shape configuration.
-        The keypoints are reshaped from a flattened format to the proper dimensional structure
-        (typically [N, 17, 3] for COCO pose format).
+        This method extends the parent class postprocessing by extracting keypoints from the 'extra' field of
+        predictions and reshaping them according to the keypoint shape configuration. The keypoints are reshaped from a
+        flattened format to the proper dimensional structure (typically [N, 17, 3] for COCO pose format).
 
         Args:
             preds (torch.Tensor): Raw prediction tensor from the YOLO pose model containing
@@ -138,10 +137,10 @@ class PoseValidator(DetectionValidator):
                 - 'cls': Class predictions
                 - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
 
-        Note:
-            If no keypoints are present in a prediction (empty keypoints), that prediction
-            is skipped and continues to the next one. The keypoints are extracted from the
-            'extra' field which contains additional task-specific data beyond basic detection.
+        Notes:
+            If no keypoints are present in a prediction (empty keypoints), that prediction is skipped and continues
+            to the next one. The keypoints are extracted from the 'extra' field which contains additional
+            task-specific data beyond basic detection.
         """
         preds = super().postprocess(preds)
         for pred in preds:
@@ -207,7 +206,7 @@ class PoseValidator(DetectionValidator):
         Save YOLO pose detections to a text file in normalized coordinates.
 
         Args:
-            predn (dict[str, torch.Tensor]): Dictionary containing predictions with keys 'bboxes', 'conf', 'cls' and 'keypoints.
+            predn (dict[str, torch.Tensor]): Prediction dict with keys 'bboxes', 'conf', 'cls' and 'keypoints.
             save_conf (bool): Whether to save confidence scores.
             shape (tuple[int, int]): Shape of the original image (height, width).
             file (Path): Output file path to save detections.
@@ -230,8 +229,8 @@ class PoseValidator(DetectionValidator):
         """
         Convert YOLO predictions to COCO JSON format.
 
-        This method takes prediction tensors and a filename, converts the bounding boxes from YOLO format
-        to COCO format, and appends the results to the internal JSON dictionary (self.jdict).
+        This method takes prediction tensors and a filename, converts the bounding boxes from YOLO format to COCO
+        format, and appends the results to the internal JSON dictionary (self.jdict).
 
         Args:
             predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', 'cls',

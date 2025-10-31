@@ -29,8 +29,8 @@ class BaseTransform:
     """
     Base class for image transformations in the Ultralytics library.
 
-    This class serves as a foundation for implementing various image processing operations, designed to be
-    compatible with both classification and semantic segmentation tasks.
+    This class serves as a foundation for implementing various image processing operations, designed to be compatible
+    with both classification and semantic segmentation tasks.
 
     Methods:
         apply_image: Apply image transformations to labels.
@@ -48,8 +48,8 @@ class BaseTransform:
         """
         Initialize the BaseTransform object.
 
-        This constructor sets up the base transformation object, which can be extended for specific image
-        processing tasks. It is designed to be compatible with both classification and semantic segmentation.
+        This constructor sets up the base transformation object, which can be extended for specific image processing
+        tasks. It is designed to be compatible with both classification and semantic segmentation.
 
         Examples:
             >>> transform = BaseTransform()
@@ -124,9 +124,9 @@ class BaseTransform:
         """
         Apply all label transformations to an image, instances, and semantic masks.
 
-        This method orchestrates the application of various transformations defined in the BaseTransform class
-        to the input labels. It sequentially calls the apply_image and apply_instances methods to process the
-        image and object instances, respectively.
+        This method orchestrates the application of various transformations defined in the BaseTransform class to the
+        input labels. It sequentially calls the apply_image and apply_instances methods to process the image and object
+        instances, respectively.
 
         Args:
             labels (dict): A dictionary containing image data and annotations. Expected keys include 'img' for
@@ -321,8 +321,8 @@ class BaseMixTransform:
     """
     Base class for mix transformations like Cutmix, MixUp and Mosaic.
 
-    This class provides a foundation for implementing mix transformations on datasets. It handles the
-    probability-based application of transforms and manages the mixing of multiple images and labels.
+    This class provides a foundation for implementing mix transformations on datasets. It handles the probability-based
+    application of transforms and manages the mixing of multiple images and labels.
 
     Attributes:
         dataset (Any): The dataset object containing images and labels.
@@ -372,8 +372,8 @@ class BaseMixTransform:
         """
         Apply pre-processing transforms and cutmix/mixup/mosaic transforms to labels data.
 
-        This method determines whether to apply the mix transform based on a probability factor. If applied, it
-        selects additional images, applies pre-transforms if specified, and then performs the mix transform.
+        This method determines whether to apply the mix transform based on a probability factor. If applied, it selects
+        additional images, applies pre-transforms if specified, and then performs the mix transform.
 
         Args:
             labels (dict[str, Any]): A dictionary containing label data for an image.
@@ -448,8 +448,8 @@ class BaseMixTransform:
         """
         Update label text and class IDs for mixed labels in image augmentation.
 
-        This method processes the 'texts' and 'cls' fields of the input labels dictionary and any mixed labels,
-        creating a unified set of text labels and updating class IDs accordingly.
+        This method processes the 'texts' and 'cls' fields of the input labels dictionary and any mixed labels, creating
+        a unified set of text labels and updating class IDs accordingly.
 
         Args:
             labels (dict[str, Any]): A dictionary containing label information, including 'texts' and 'cls' fields,
@@ -493,8 +493,8 @@ class Mosaic(BaseMixTransform):
     """
     Mosaic augmentation for image datasets.
 
-    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
-    The augmentation is applied to a dataset with a given probability.
+    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
+    augmentation is applied to a dataset with a given probability.
 
     Attributes:
         dataset: The dataset on which the mosaic augmentation is applied.
@@ -523,8 +523,8 @@ class Mosaic(BaseMixTransform):
         """
         Initialize the Mosaic augmentation object.
 
-        This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
-        The augmentation is applied to a dataset with a given probability.
+        This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
+        augmentation is applied to a dataset with a given probability.
 
         Args:
             dataset (Any): The dataset on which the mosaic augmentation is applied.
@@ -549,8 +549,8 @@ class Mosaic(BaseMixTransform):
         """
         Return a list of random indexes from the dataset for mosaic augmentation.
 
-        This method selects random image indexes either from a buffer or from the entire dataset, depending on
-        the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
+        This method selects random image indexes either from a buffer or from the entire dataset, depending on the
+        'buffer' parameter. It is used to choose images for creating mosaic augmentations.
 
         Returns:
             (list[int]): A list of random image indexes. The length of the list is n-1, where n is the number
@@ -570,9 +570,9 @@ class Mosaic(BaseMixTransform):
         """
         Apply mosaic augmentation to the input image and labels.
 
-        This method combines multiple images (3, 4, or 9) into a single mosaic image based on the 'n' attribute.
-        It ensures that rectangular annotations are not present and that there are other images available for
-        mosaic augmentation.
+        This method combines multiple images (3, 4, or 9) into a single mosaic image based on the 'n' attribute. It
+        ensures that rectangular annotations are not present and that there are other images available for mosaic
+        augmentation.
 
         Args:
             labels (dict[str, Any]): A dictionary containing image data and annotations. Expected keys include:
@@ -599,13 +599,13 @@ class Mosaic(BaseMixTransform):
         """
         Create a 1x3 image mosaic by combining three images.
 
-        This method arranges three images in a horizontal layout, with the main image in the center and two
-        additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
+        This method arranges three images in a horizontal layout, with the main image in the center and two additional
+        images on either side. It's part of the Mosaic augmentation technique used in object detection.
 
         Args:
             labels (dict[str, Any]): A dictionary containing image and label information for the main (center) image.
-                Must include 'img' key with the image array, and 'mix_labels' key with a list of two
-                dictionaries containing information for the side images.
+                Must include 'img' key with the image array, and 'mix_labels' key with a list of two dictionaries
+                containing information for the side images.
 
         Returns:
             (dict[str, Any]): A dictionary with the mosaic image and updated labels. Keys include:
@@ -658,16 +658,17 @@ class Mosaic(BaseMixTransform):
         """
         Create a 2x2 image mosaic from four input images.
 
-        This method combines four images into a single mosaic image by placing them in a 2x2 grid. It also
-        updates the corresponding labels for each image in the mosaic.
+        This method combines four images into a single mosaic image by placing them in a 2x2 grid. It also updates the
+        corresponding labels for each image in the mosaic.
 
         Args:
-            labels (dict[str, Any]): A dictionary containing image data and labels for the base image (index 0) and three
-                additional images (indices 1-3) in the 'mix_labels' key.
+            labels (dict[str, Any]): A dictionary containing image data and labels for the base image (index 0) and
+                three additional images (indices 1-3) in the 'mix_labels' key.
 
         Returns:
-            (dict[str, Any]): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
-                image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
+            (dict[str, Any]): A dictionary containing the mosaic image and updated labels. The 'img' key contains the
+                mosaic image as a numpy array, and other keys contain the combined and adjusted labels for all
+                four images.
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
@@ -716,19 +717,20 @@ class Mosaic(BaseMixTransform):
         """
         Create a 3x3 image mosaic from the input image and eight additional images.
 
-        This method combines nine images into a single mosaic image. The input image is placed at the center,
-        and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
+        This method combines nine images into a single mosaic image. The input image is placed at the center, and eight
+        additional images from the dataset are placed around it in a 3x3 grid pattern.
 
         Args:
             labels (dict[str, Any]): A dictionary containing the input image and its associated labels. It should have
-                the following keys:
+            the following keys:
                 - 'img' (np.ndarray): The input image.
                 - 'resized_shape' (tuple[int, int]): The shape of the resized image (height, width).
                 - 'mix_labels' (list[dict]): A list of dictionaries containing information for the additional
-                  eight images, each with the same structure as the input labels.
+            eight images, each with the same structure as the input labels.
 
         Returns:
-            (dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following keys:
+            (dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following
+            keys:
                 - 'img' (np.ndarray): The final mosaic image.
                 - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
@@ -815,8 +817,8 @@ class Mosaic(BaseMixTransform):
         """
         Concatenate and process labels for mosaic augmentation.
 
-        This method combines labels from multiple images used in mosaic augmentation, clips instances to the
-        mosaic border, and removes zero-area boxes.
+        This method combines labels from multiple images used in mosaic augmentation, clips instances to the mosaic
+        border, and removes zero-area boxes.
 
         Args:
             mosaic_labels (list[dict[str, Any]]): A list of label dictionaries for each image in the mosaic.
@@ -889,8 +891,8 @@ class MixUp(BaseMixTransform):
         """
         Initialize the MixUp augmentation object.
 
-        MixUp is an image augmentation technique that combines two images by taking a weighted sum of their pixel
-        values and labels. This implementation is designed for use with the Ultralytics YOLO framework.
+        MixUp is an image augmentation technique that combines two images by taking a weighted sum of their pixel values
+        and labels. This implementation is designed for use with the Ultralytics YOLO framework.
 
         Args:
             dataset (Any): The dataset to which MixUp augmentation will be applied.
@@ -908,8 +910,8 @@ class MixUp(BaseMixTransform):
         """
         Apply MixUp augmentation to the input labels.
 
-        This method implements the MixUp augmentation technique as described in the paper
-        "mixup: Beyond Empirical Risk Minimization" (https://arxiv.org/abs/1710.09412).
+        This method implements the MixUp augmentation technique as described in the paper "mixup: Beyond Empirical Risk
+        Minimization" (https://arxiv.org/abs/1710.09412).
 
         Args:
             labels (dict[str, Any]): A dictionary containing the original image and label information.
@@ -933,8 +935,8 @@ class CutMix(BaseMixTransform):
     """
     Apply CutMix augmentation to image datasets as described in the paper https://arxiv.org/abs/1905.04899.
 
-    CutMix combines two images by replacing a random rectangular region of one image with the corresponding region from another image,
-    and adjusts the labels proportionally to the area of the mixed region.
+    CutMix combines two images by replacing a random rectangular region of one image with the corresponding region from
+    another image, and adjusts the labels proportionally to the area of the mixed region.
 
     Attributes:
         dataset (Any): The dataset to which CutMix augmentation will be applied.
@@ -1051,9 +1053,9 @@ class RandomPerspective:
     """
     Implement random perspective and affine transformations on images and corresponding annotations.
 
-    This class applies random rotations, translations, scaling, shearing, and perspective transformations
-    to images and their associated bounding boxes, segments, and keypoints. It can be used as part of an
-    augmentation pipeline for object detection and instance segmentation tasks.
+    This class applies random rotations, translations, scaling, shearing, and perspective transformations to images and
+    their associated bounding boxes, segments, and keypoints. It can be used as part of an augmentation pipeline for
+    object detection and instance segmentation tasks.
 
     Attributes:
         degrees (float): Maximum absolute degree range for random rotations.
@@ -1123,9 +1125,9 @@ class RandomPerspective:
         """
         Apply a sequence of affine transformations centered around the image center.
 
-        This function performs a series of geometric transformations on the input image, including
-        translation, perspective change, rotation, scaling, and shearing. The transformations are
-        applied in a specific order to maintain consistency.
+        This function performs a series of geometric transformations on the input image, including translation,
+        perspective change, rotation, scaling, and shearing. The transformations are applied in a specific order to
+        maintain consistency.
 
         Args:
             img (np.ndarray): Input image to be transformed.
@@ -1187,8 +1189,8 @@ class RandomPerspective:
         """
         Apply affine transformation to bounding boxes.
 
-        This function applies an affine transformation to a set of bounding boxes using the provided
-        transformation matrix.
+        This function applies an affine transformation to a set of bounding boxes using the provided transformation
+        matrix.
 
         Args:
             bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4), where N is the number
@@ -1221,8 +1223,8 @@ class RandomPerspective:
         """
         Apply affine transformations to segments and generate new bounding boxes.
 
-        This function applies affine transformations to input segments and generates new bounding boxes based on
-        the transformed segments. It clips the transformed segments to fit within the new bounding boxes.
+        This function applies affine transformations to input segments and generates new bounding boxes based on the
+        transformed segments. It clips the transformed segments to fit within the new bounding boxes.
 
         Args:
             segments (np.ndarray): Input segments with shape (N, M, 2), where N is the number of segments and M is the
@@ -1291,18 +1293,12 @@ class RandomPerspective:
         """
         Apply random perspective and affine transformations to an image and its associated labels.
 
-        This method performs a series of transformations including rotation, translation, scaling, shearing,
-        and perspective distortion on the input image and adjusts the corresponding bounding boxes, segments,
-        and keypoints accordingly.
+        This method performs a series of transformations including rotation, translation, scaling, shearing, and
+        perspective distortion on the input image and adjusts the corresponding bounding boxes, segments, and keypoints
+        accordingly.
 
         Args:
             labels (dict[str, Any]): A dictionary containing image data and annotations.
-                Must include:
-                    'img' (np.ndarray): The input image.
-                    'cls' (np.ndarray): Class labels.
-                    'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
-                May include:
-                    'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
 
         Returns:
             (dict[str, Any]): Transformed labels dictionary containing:
@@ -1321,6 +1317,14 @@ class RandomPerspective:
             ... }
             >>> result = transform(labels)
             >>> assert result["img"].shape[:2] == result["resized_shape"]
+
+        Notes:
+            'labels' arg must include:
+                - 'img' (np.ndarray): The input image.
+                - 'cls' (np.ndarray): Class labels.
+                - 'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
+            May include:
+                - 'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
         """
         if self.pre_transform and "mosaic_border" not in labels:
             labels = self.pre_transform(labels)
@@ -1377,9 +1381,9 @@ class RandomPerspective:
         """
         Compute candidate boxes for further processing based on size and aspect ratio criteria.
 
-        This method compares boxes before and after augmentation to determine if they meet specified
-        thresholds for width, height, aspect ratio, and area. It's used to filter out boxes that have
-        been overly distorted or reduced by the augmentation process.
+        This method compares boxes before and after augmentation to determine if they meet specified thresholds for
+        width, height, aspect ratio, and area. It's used to filter out boxes that have been overly distorted or reduced
+        by the augmentation process.
 
         Args:
             box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where n is the
@@ -1459,8 +1463,8 @@ class RandomHSV:
         """
         Apply random HSV augmentation to an image within predefined limits.
 
-        This method modifies the input image by randomly adjusting its Hue, Saturation, and Value (HSV) channels.
-        The adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
+        This method modifies the input image by randomly adjusting its Hue, Saturation, and Value (HSV) channels. The
+        adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
 
         Args:
             labels (dict[str, Any]): A dictionary containing image data and metadata. Must include an 'img' key with
@@ -1499,8 +1503,8 @@ class RandomFlip:
     """
     Apply a random horizontal or vertical flip to an image with a given probability.
 
-    This class performs random image flipping and updates corresponding instance annotations such as
-    bounding boxes and keypoints.
+    This class performs random image flipping and updates corresponding instance annotations such as bounding boxes and
+    keypoints.
 
     Attributes:
         p (float): Probability of applying the flip. Must be between 0 and 1.
@@ -1521,8 +1525,8 @@ class RandomFlip:
         """
         Initialize the RandomFlip class with probability and direction.
 
-        This class applies a random horizontal or vertical flip to an image with a given probability.
-        It also updates any instances (bounding boxes, keypoints, etc.) accordingly.
+        This class applies a random horizontal or vertical flip to an image with a given probability. It also updates
+        any instances (bounding boxes, keypoints, etc.) accordingly.
 
         Args:
             p (float): The probability of applying the flip. Must be between 0 and 1.
@@ -1548,19 +1552,18 @@ class RandomFlip:
         Apply random flip to an image and update any instances like bounding boxes or keypoints accordingly.
 
         This method randomly flips the input image either horizontally or vertically based on the initialized
-        probability and direction. It also updates the corresponding instances (bounding boxes, keypoints) to
-        match the flipped image.
+        probability and direction. It also updates the corresponding instances (bounding boxes, keypoints) to match the
+        flipped image.
 
         Args:
             labels (dict[str, Any]): A dictionary containing the following keys:
-                'img' (np.ndarray): The image to be flipped.
-                'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and
-                    optionally keypoints.
+                - 'img' (np.ndarray): The image to be flipped.
+                - 'instances' (ultralytics.utils.instance.Instances): Object containing boxes and optionally keypoints.
 
         Returns:
             (dict[str, Any]): The same dictionary with the flipped image and updated instances:
-                'img' (np.ndarray): The flipped image.
-                'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
+                - 'img' (np.ndarray): The flipped image.
+                - 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
             >>> labels = {"img": np.random.rand(640, 640, 3), "instances": Instances(...)}
@@ -1594,8 +1597,8 @@ class LetterBox:
     """
     Resize image and padding for detection, instance segmentation, pose.
 
-    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates
-    corresponding labels and bounding boxes.
+    This class resizes and pads images to a specified shape while preserving aspect ratio. It also updates corresponding
+    labels and bounding boxes.
 
     Attributes:
         new_shape (tuple): Target shape (height, width) for resizing.
@@ -1672,13 +1675,14 @@ class LetterBox:
         aspect ratio and adding padding to fit the new shape. It also updates any associated labels accordingly.
 
         Args:
-            labels (dict[str, Any] | None): A dictionary containing image data and associated labels, or empty dict if None.
+            labels (dict[str, Any] | None): A dictionary containing image data and associated labels, or empty dict if
+                None.
             image (np.ndarray | None): The input image as a numpy array. If None, the image is taken from 'labels'.
 
         Returns:
-            (dict[str, Any] | nd.ndarray): If 'labels' is provided, returns an updated dictionary with the resized and padded image,
-                updated labels, and additional metadata. If 'labels' is empty, returns the resized
-                and padded image.
+            (dict[str, Any] | np.ndarray): If 'labels' is provided, returns an updated dictionary with the resized and
+                padded image, updated labels, and additional metadata. If 'labels' is empty, returns the resized and
+                padded image only.
 
         Examples:
             >>> letterbox = LetterBox(new_shape=(640, 640))
@@ -1747,8 +1751,8 @@ class LetterBox:
         """
         Update labels after applying letterboxing to an image.
 
-        This method modifies the bounding box coordinates of instances in the labels
-        to account for resizing and padding applied during letterboxing.
+        This method modifies the bounding box coordinates of instances in the labels to account for resizing and padding
+        applied during letterboxing.
 
         Args:
             labels (dict[str, Any]): A dictionary containing image labels and instances.
@@ -2392,9 +2396,9 @@ class RandomLoadText:
     """
     Randomly sample positive and negative texts and update class indices accordingly.
 
-    This class is responsible for sampling texts from a given set of class texts, including both positive
-    (present in the image) and negative (not present in the image) samples. It updates the class indices
-    to reflect the sampled texts and can optionally pad the text list to a fixed length.
+    This class is responsible for sampling texts from a given set of class texts, including both positive (present in
+    the image) and negative (not present in the image) samples. It updates the class indices to reflect the sampled
+    texts and can optionally pad the text list to a fixed length.
 
     Attributes:
         prompt_format (str): Format string for text prompts.
@@ -2425,15 +2429,14 @@ class RandomLoadText:
         """
         Initialize the RandomLoadText class for randomly sampling positive and negative texts.
 
-        This class is designed to randomly sample positive texts and negative texts, and update the class
-        indices accordingly to the number of samples. It can be used for text-based object detection tasks.
+        This class is designed to randomly sample positive texts and negative texts, and update the class indices
+        accordingly to the number of samples. It can be used for text-based object detection tasks.
 
         Args:
             prompt_format (str): Format string for the prompt. The format string should
                 contain a single pair of curly braces {} where the text will be inserted.
             neg_samples (tuple[int, int]): A range to randomly sample negative texts. The first integer
-                specifies the minimum number of negative samples, and the second integer specifies the
-                maximum.
+                specifies the minimum number of negative samples, and the second integer specifies the maximum.
             max_samples (int): The maximum number of different text samples in one image.
             padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always
                 be equal to max_samples.
@@ -2465,12 +2468,13 @@ class RandomLoadText:
         """
         Randomly sample positive and negative texts and update class indices accordingly.
 
-        This method samples positive texts based on the existing class labels in the image, and randomly
-        selects negative texts from the remaining classes. It then updates the class indices to match the
-        new sampled text order.
+        This method samples positive texts based on the existing class labels in the image, and randomly selects
+        negative texts from the remaining classes. It then updates the class indices to match the new sampled text
+        order.
 
         Args:
-            labels (dict[str, Any]): A dictionary containing image labels and metadata. Must include 'texts' and 'cls' keys.
+            labels (dict[str, Any]): A dictionary containing image labels and metadata. Must include 'texts' and 'cls'
+                keys.
 
         Returns:
             (dict[str, Any]): Updated labels dictionary with new 'cls' and 'texts' entries.
@@ -2531,13 +2535,14 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
     """
     Apply a series of image transformations for training.
 
-    This function creates a composition of image augmentation techniques to prepare images for YOLO training.
-    It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
+    This function creates a composition of image augmentation techniques to prepare images for YOLO training. It
+    includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
 
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.
         imgsz (int): The target image size for resizing.
-        hyp (IterableSimpleNamespace): A dictionary of hyperparameters controlling various aspects of the transformations.
+        hyp (IterableSimpleNamespace): A dictionary of hyperparameters controlling various aspects of the
+            transformations.
         stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
@@ -2606,9 +2611,9 @@ def classify_transforms(
     """
     Create a composition of image transforms for classification tasks.
 
-    This function generates a sequence of torchvision transforms suitable for preprocessing images
-    for classification models during evaluation or inference. The transforms include resizing,
-    center cropping, conversion to tensor, and normalization.
+    This function generates a sequence of torchvision transforms suitable for preprocessing images for classification
+    models during evaluation or inference. The transforms include resizing, center cropping, conversion to tensor, and
+    normalization.
 
     Args:
         size (int | tuple): The target size for the transformed image. If an int, it defines the shortest edge. If a
@@ -2755,8 +2760,8 @@ class ClassifyLetterBox:
     """
     A class for resizing and padding images for classification tasks.
 
-    This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]).
-    It resizes and pads images to a specified size while maintaining the original aspect ratio.
+    This class is designed to be part of a transformation pipeline, e.g., T.Compose([LetterBox(size), ToTensor()]). It
+    resizes and pads images to a specified size while maintaining the original aspect ratio.
 
     Attributes:
         h (int): Target height of the image.
@@ -2892,8 +2897,8 @@ class CenterCrop:
         """
         Apply center cropping to an input image.
 
-        This method resizes and crops the center of the image using a letterbox method. It maintains the aspect
-        ratio of the original image while fitting it into the specified dimensions.
+        This method resizes and crops the center of the image using a letterbox method. It maintains the aspect ratio of
+        the original image while fitting it into the specified dimensions.
 
         Args:
             im (np.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a
@@ -2946,8 +2951,8 @@ class ToTensor:
         Initialize the ToTensor object for converting images to PyTorch tensors.
 
         This class is designed to be used as part of a transformation pipeline for image preprocessing in the
-        Ultralytics YOLO framework. It converts numpy arrays or PIL Images to PyTorch tensors, with an option
-        for half-precision (float16) conversion.
+        Ultralytics YOLO framework. It converts numpy arrays or PIL Images to PyTorch tensors, with an option for
+        half-precision (float16) conversion.
 
         Args:
             half (bool): If True, converts the tensor to half precision (float16).
@@ -2966,9 +2971,9 @@ class ToTensor:
         """
         Transform an image from a numpy array to a PyTorch tensor.
 
-        This method converts the input image from a numpy array to a PyTorch tensor, applying optional
-        half-precision conversion and normalization. The image is transposed from HWC to CHW format and
-        the color channels are reversed from BGR to RGB.
+        This method converts the input image from a numpy array to a PyTorch tensor, applying optional half-precision
+        conversion and normalization. The image is transposed from HWC to CHW format and the color channels are reversed
+        from BGR to RGB.
 
         Args:
             im (np.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.

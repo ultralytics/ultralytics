@@ -99,7 +99,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 ## Datasets Integrations
 
-- [Roboflow](roboflow.md): Facilitate dataset labelling and management for Ultralytics models, offering annotation tools to label images.
+- [Roboflow](roboflow.md): Facilitate dataset labeling and management for Ultralytics models, offering annotation tools to label images.
 
 ### Export Formats
 

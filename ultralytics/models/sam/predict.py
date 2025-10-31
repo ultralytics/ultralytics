@@ -842,8 +842,8 @@ class SAM2Predictor(Predictor):
         Perform inference on image features using the SAM2 model.
 
         Args:
-            features (torch.Tensor | dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2 model image encoder, it
-                could also be a dictionary including:
+            features (torch.Tensor | dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2
+                model image encoder, it could also be a dictionary including:
                 - image_embed (torch.Tensor): Image embedding with shape (B, C, H, W).
                 - high_res_feats (list[torch.Tensor]): List of high-resolution feature maps from the backbone, each with shape (B, C, H, W).
             points (np.ndarray | list[list[float]] | None): Object location points with shape (N, 2), in pixels.

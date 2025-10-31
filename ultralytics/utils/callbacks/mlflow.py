@@ -54,6 +54,7 @@ def on_pretrain_routine_end(trainer):
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The training object with arguments and parameters to log.
+
     Notes:
         MLFLOW_TRACKING_URI: The URI for MLflow tracking. If not set, defaults to 'runs/mlflow'.
         MLFLOW_EXPERIMENT_NAME: The name of the MLflow experiment. If not set, defaults to trainer.args.project.

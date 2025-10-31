@@ -59,7 +59,6 @@ class SecurityAlarm(BaseSolution):
             password (str): Password for the sender's email account.
             to_email (str): Recipient's email address.
 
-
         Examples:
             >>> alarm = SecurityAlarm()
             >>> alarm.authenticate("sender@example.com", "password123", "recipient@example.com")
@@ -76,8 +75,8 @@ class SecurityAlarm(BaseSolution):
         """
         Send an email notification with an image attachment indicating the number of objects detected.
 
-        This method encodes the input image, composes the email message with details about the detection, and
-        sends it to the specified recipient.
+        This method encodes the input image, composes the email message with details about the detection, and sends it
+        to the specified recipient.
 
         Args:
             im0 (np.ndarray): The input image or frame to be attached to the email.
@@ -131,7 +130,6 @@ class SecurityAlarm(BaseSolution):
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (total number of tracked objects) and
                 'email_sent' (whether an email alert was triggered).
-
 
         Examples:
             >>> alarm = SecurityAlarm()

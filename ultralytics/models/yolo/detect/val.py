@@ -236,10 +236,17 @@ class DetectionValidator(BaseValidator):
             for stats_dict in gathered_stats:
                 for key in merged_stats.keys():
                     merged_stats[key].extend(stats_dict[key])
+            gathered_jdict = [None] * dist.get_world_size()
+            dist.gather_object(self.jdict, gathered_jdict, dst=0)
+            self.jdict = []
+            for jdict in gathered_jdict:
+                self.jdict.extend(jdict)
             self.metrics.stats = merged_stats
             self.seen = len(self.dataloader.dataset)  # total image count from dataset
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
+            dist.gather_object(self.jdict, None, dst=0)
+            self.jdict = []
             self.metrics.clear_stats()
 
     def get_stats(self) -> dict[str, Any]:
@@ -282,7 +289,8 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' and 'cls' keys.
 
         Returns:
-            (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for 10 IoU levels.
+            (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for
+                10 IoU levels.
         """
         if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
             return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
@@ -464,9 +472,9 @@ class DetectionValidator(BaseValidator):
         """
         Evaluate COCO/LVIS metrics using faster-coco-eval library.
 
-        Performs evaluation using the faster-coco-eval library to compute mAP metrics
-        for object detection. Updates the provided stats dictionary with computed metrics
-        including mAP50, mAP50-95, and LVIS-specific metrics if applicable.
+        Performs evaluation using the faster-coco-eval library to compute mAP metrics for object detection. Updates the
+        provided stats dictionary with computed metrics including mAP50, mAP50-95, and LVIS-specific metrics if
+        applicable.
 
         Args:
             stats (dict[str, Any]): Dictionary to store computed metrics and statistics.

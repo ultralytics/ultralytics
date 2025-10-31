@@ -170,8 +170,8 @@ class SearchApp:
     """
     A Flask-based web interface for semantic image search with natural language queries.
 
-    This class provides a clean, responsive frontend that enables users to input natural language queries and
-    instantly view the most relevant images retrieved from the indexed database.
+    This class provides a clean, responsive frontend that enables users to input natural language queries and instantly
+    view the most relevant images retrieved from the indexed database.
 
     Attributes:
         render_template: Flask template rendering function.

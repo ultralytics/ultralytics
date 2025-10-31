@@ -6,13 +6,17 @@ keywords: kitti, Ultralytics, dataset, object detection, 3D vision, YOLO11, trai
 
 # KITTI Dataset
 
-The kitti dataset is one of the most influential benchmark datasets for autonomous driving and computer vision. Released by the Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago, it contains stereo camera, LiDAR, and GPS/IMU data collected from real-world driving scenarios. 
+The kitti dataset is one of the most influential benchmark datasets for autonomous driving and computer vision. Released by the Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago, it contains stereo camera, LiDAR, and GPS/IMU data collected from real-world driving scenarios.
 
 It is widely used for evaluating algorithms in object detection, depth estimation, optical flow, and visual odometry. The dataset is fully compatible with Ultralytics YOLO11 for 2D object detection tasks and can be easily integrated into the Ultralytics platform for training and evaluation.
 
 ## Dataset Structure
 
-In total, the dataset includes 7,481 images, each paired with detailed annotations for objects such as cars, pedestrians, cyclists, and other road elements. The images capture a variety of urban, rural, and highway scenes, making it suitable for multiple vision-based perception tasks like object detection and 3D localization. The dataset is divided into two main subsets:
+!!! warning
+
+    Kitti original test set is excluded here since it does not contain ground-truth annotations.
+
+In total, the dataset includes 7,481 images, each paired with detailed annotations for objects such as cars, pedestrians, cyclists, and other road elements. The dataset is divided into two main subsets:
 
 - **Training set:** Contains 5,985 images with annotated labels used for model training.
 - **Validation set:** Includes 1,496 images with corresponding annotations used for performance evaluation and benchmarking.
@@ -21,10 +25,10 @@ In total, the dataset includes 7,481 images, each paired with detailed annotatio
 
 Kitti dataset enables advancements in autonomous driving and robotics, supporting tasks like:
 
-- **Autonomous Vehicle Perception**: Training models to detect and track vehicles, pedestrians, and obstacles for safe navigation in self-driving systems.
-- **3D Scene Understanding**: Supporting depth estimation, stereo vision, and 3D object localization to help machines understand spatial environments.
-- **Optical Flow and Motion Prediction**: Enabling motion analysis to predict the movement of objects and improve trajectory planning in dynamic environments.
-- **Computer Vision Benchmarking**: Serving as a standard benchmark for evaluating performance across multiple vision tasks, including object detection, and tracking.
+- **Autonomous vehicle perception**: Training models to detect and track vehicles, pedestrians, and obstacles for safe navigation in self-driving systems.
+- **3D scene understanding**: Supporting depth estimation, stereo vision, and 3D object localization to help machines understand spatial environments.
+- **Optical flow and motion prediction**: Enabling motion analysis to predict the movement of objects and improve trajectory planning in dynamic environments.
+- **Computer vision benchmarking**: Serving as a standard benchmark for evaluating performance across multiple vision tasks, including object detection, and tracking.
 
 ## Dataset YAML
 
@@ -64,7 +68,7 @@ You can also perform evaluation, [inference](../../modes/predict.md), and [expor
 
 ## Sample Images and Annotations
 
-The kitti dataset provides diverse driving scenarios. Each image includes bounding box annotations for 2D object detection tasks. These examples showcase the dataset rich variety, enabling robust model generalization across diverse real-world conditions.
+The kitti dataset provides diverse driving scenarios. Each image includes bounding box annotations for 2D object detection tasks. The example showcase the dataset rich variety, enabling robust model generalization across diverse real-world conditions.
 
 <img src="https://github.com/ultralytics/docs/releases/download/0/kitti-dataset-sample.avif" alt="Kitti sample image" width="800">
 

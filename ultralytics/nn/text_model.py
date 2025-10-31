@@ -50,8 +50,8 @@ class CLIP(TextModel):
     """
     Implements OpenAI's CLIP (Contrastive Language-Image Pre-training) text encoder.
 
-    This class provides a text encoder based on OpenAI's CLIP model, which can convert text into feature vectors
-    that are aligned with corresponding image features in a shared embedding space.
+    This class provides a text encoder based on OpenAI's CLIP model, which can convert text into feature vectors that
+    are aligned with corresponding image features in a shared embedding space.
 
     Attributes:
         model (clip.model.CLIP): The loaded CLIP model.
@@ -74,8 +74,8 @@ class CLIP(TextModel):
         """
         Initialize the CLIP text encoder.
 
-        This class implements the TextModel interface using OpenAI's CLIP model for text encoding. It loads
-        a pre-trained CLIP model of the specified size and prepares it for text encoding tasks.
+        This class implements the TextModel interface using OpenAI's CLIP model for text encoding. It loads a
+        pre-trained CLIP model of the specified size and prepares it for text encoding tasks.
 
         Args:
             size (str): Model size identifier (e.g., 'ViT-B/32').
@@ -140,8 +140,8 @@ class CLIP(TextModel):
         """
         Encode preprocessed images into normalized feature vectors.
 
-        This method processes preprocessed image inputs through the CLIP model to generate feature vectors, which are then
-        normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
+        This method processes preprocessed image inputs through the CLIP model to generate feature vectors, which are
+        then normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
 
         Args:
             image (PIL.Image | torch.Tensor): Preprocessed image input. If a PIL Image is provided, it will be
@@ -302,8 +302,8 @@ class MobileCLIPTS(TextModel):
         """
         Initialize the MobileCLIP TorchScript text encoder.
 
-        This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for
-        efficient text encoding with optimized inference performance.
+        This class implements the TextModel interface using Apple's MobileCLIP model in TorchScript format for efficient
+        text encoding with optimized inference performance.
 
         Args:
             device (torch.device): Device to load the model on.

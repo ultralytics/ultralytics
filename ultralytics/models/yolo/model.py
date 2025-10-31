@@ -402,10 +402,15 @@ class YOLOE(Model):
             assert "bboxes" in visual_prompts and "cls" in visual_prompts, (
                 f"Expected 'bboxes' and 'cls' in visual prompts, but got {visual_prompts.keys()}"
             )
-            assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
-                f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
-                f"{len(visual_prompts['cls'])} respectively"
-            )
+            if isinstance(refer_image, list):  # multiple reference images
+                assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]) == len(refer_image), (
+                    "Expected number of prompts to be equal to number of reference images."
+                )
+            else:
+                assert len(visual_prompts["bboxes"]) == len(visual_prompts["cls"]), (
+                    f"Expected equal number of bounding boxes and classes, but got {len(visual_prompts['bboxes'])} and "
+                    f"{len(visual_prompts['cls'])} respectively"
+                )
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(
                     overrides={
@@ -422,8 +427,8 @@ class YOLOE(Model):
                 )
 
             num_cls = (
-                max(len(set(c)) for c in visual_prompts["cls"])
-                if isinstance(source, list) and refer_image is None  # means multiple images
+                max(max(c) + 1 for c in visual_prompts["cls"])
+                if isinstance(visual_prompts["cls"], list)  # means multiple images
                 else len(set(visual_prompts["cls"]))
             )
             self.model.model[-1].nc = num_cls

@@ -618,7 +618,7 @@ class Exporter:
                 input_names=["images"],
                 output_names=output_names,
                 dynamic=dynamic or None,
-                dynamo=dynamo and not self.args.nms,
+                dynamo=dynamo,
             )
 
         # Checks
@@ -1521,6 +1521,8 @@ class NMSModel(torch.nn.Module):
         kwargs = dict(device=pred.device, dtype=pred.dtype)
         bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
+        if self.dynamo():
+            pred = torch.nn.functional.pad(pred, [0, 0, 0, 0, 0, 1])  # add an extra 0-pred
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
             pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
@@ -1533,7 +1535,7 @@ class NMSModel(torch.nn.Module):
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
-            if self.is_tf or (self.args.format == "onnx" and self.obb):
+            if self.is_tf or (self.args.format == "onnx" and self.obb) or self.dynamo():
                 # TFLite GatherND error if mask is empty
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
@@ -1572,7 +1574,10 @@ class NMSModel(torch.nn.Module):
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
                 score,
                 self.args.iou,
-            )[: self.args.max_det]
+            )
+            if self.dynamo():
+                keep = torch.nn.functional.pad(keep, (0, self.args.max_det), value=mask.shape[0] - 1)  # repeat the final index as pad
+            keep = keep[: self.args.max_det]
             dets = torch.cat(
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )
@@ -1580,3 +1585,9 @@ class NMSModel(torch.nn.Module):
             pad = (0, 0, 0, self.args.max_det - dets.shape[0])
             out[i] = torch.nn.functional.pad(dets, pad)
         return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]
+    
+    def dynamo(self):
+        """Check if export is using dynamo."""
+        if hasattr(torch, "compiler") and hasattr(torch.compiler, "is_exporting"):
+            return torch.compiler.is_exporting()
+        return False

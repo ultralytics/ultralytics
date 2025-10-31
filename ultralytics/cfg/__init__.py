@@ -159,7 +159,7 @@ CFG_FLOAT_KEYS = frozenset(
         "batch",
     }
 )
-CFG_NUMFLOAT_KEYS = frozenset(
+CFG_NUMLIST_KEYS = frozenset(
     {  # integer or float arguments or list of num, i.e. x=2 and x=2.0 and x=[90, 180.0, 0]
         "degrees",
     }
@@ -367,7 +367,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
                 cfg[k] = float(v)
-            elif k in CFG_NUMFLOAT_KEYS:
+            elif k in CFG_NUMLIST_KEYS:
                 if not (
                     isinstance(v, FLOAT_OR_INT)
                     or (isinstance(v, list) and v and all(isinstance(item, FLOAT_OR_INT) for item in v))

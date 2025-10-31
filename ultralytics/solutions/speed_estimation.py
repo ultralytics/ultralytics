@@ -12,9 +12,9 @@ class SpeedEstimator(BaseSolution):
     """
     A class to estimate the speed of objects in a real-time video stream based on their tracks.
 
-    This class extends the BaseSolution class and provides functionality for estimating object speeds using
-    tracking data in video streams. Speed is calculated based on pixel displacement over time and converted
-    to real-world units using a configurable meters-per-pixel scale factor.
+    This class extends the BaseSolution class and provides functionality for estimating object speeds using tracking
+    data in video streams. Speed is calculated based on pixel displacement over time and converted to real-world units
+    using a configurable meters-per-pixel scale factor.
 
     Attributes:
         fps (float): Video frame rate for time calculations.

@@ -104,8 +104,8 @@ class BaseModel(torch.nn.Module):
     """
     Base class for all YOLO models in the Ultralytics family.
 
-    This class provides common functionality for YOLO models including forward pass handling, model fusion,
-    information display, and weight loading capabilities.
+    This class provides common functionality for YOLO models including forward pass handling, model fusion, information
+    display, and weight loading capabilities.
 
     Attributes:
         model (torch.nn.Module): The neural network model.
@@ -353,8 +353,8 @@ class DetectionModel(BaseModel):
     """
     YOLO detection model.
 
-    This class implements the YOLO detection architecture, handling model initialization, forward pass,
-    augmented inference, and loss computation for object detection tasks.
+    This class implements the YOLO detection architecture, handling model initialization, forward pass, augmented
+    inference, and loss computation for object detection tasks.
 
     Attributes:
         yaml (dict): Model configuration dictionary.
@@ -510,8 +510,8 @@ class OBBModel(DetectionModel):
     """
     YOLO Oriented Bounding Box (OBB) model.
 
-    This class extends DetectionModel to handle oriented bounding box detection tasks, providing specialized
-    loss computation for rotated object detection.
+    This class extends DetectionModel to handle oriented bounding box detection tasks, providing specialized loss
+    computation for rotated object detection.
 
     Methods:
         __init__: Initialize YOLO OBB model.
@@ -544,8 +544,8 @@ class SegmentationModel(DetectionModel):
     """
     YOLO segmentation model.
 
-    This class extends DetectionModel to handle instance segmentation tasks, providing specialized
-    loss computation for pixel-level object detection and segmentation.
+    This class extends DetectionModel to handle instance segmentation tasks, providing specialized loss computation for
+    pixel-level object detection and segmentation.
 
     Methods:
         __init__: Initialize YOLO segmentation model.
@@ -578,8 +578,8 @@ class PoseModel(DetectionModel):
     """
     YOLO pose model.
 
-    This class extends DetectionModel to handle human pose estimation tasks, providing specialized
-    loss computation for keypoint detection and pose estimation.
+    This class extends DetectionModel to handle human pose estimation tasks, providing specialized loss computation for
+    keypoint detection and pose estimation.
 
     Attributes:
         kpt_shape (tuple): Shape of keypoints data (num_keypoints, num_dimensions).
@@ -621,8 +621,8 @@ class ClassificationModel(BaseModel):
     """
     YOLO classification model.
 
-    This class implements the YOLO classification architecture for image classification tasks,
-    providing model initialization, configuration, and output reshaping capabilities.
+    This class implements the YOLO classification architecture for image classification tasks, providing model
+    initialization, configuration, and output reshaping capabilities.
 
     Attributes:
         yaml (dict): Model configuration dictionary.
@@ -858,8 +858,8 @@ class WorldModel(DetectionModel):
     """
     YOLOv8 World Model.
 
-    This class implements the YOLOv8 World model for open-vocabulary object detection, supporting text-based
-    class specification and CLIP model integration for zero-shot detection capabilities.
+    This class implements the YOLOv8 World model for open-vocabulary object detection, supporting text-based class
+    specification and CLIP model integration for zero-shot detection capabilities.
 
     Attributes:
         txt_feats (torch.Tensor): Text feature embeddings for classes.
@@ -994,8 +994,8 @@ class YOLOEModel(DetectionModel):
     """
     YOLOE detection model.
 
-    This class implements the YOLOE architecture for efficient object detection with text and visual prompts,
-    supporting both prompt-based and prompt-free inference modes.
+    This class implements the YOLOE architecture for efficient object detection with text and visual prompts, supporting
+    both prompt-based and prompt-free inference modes.
 
     Attributes:
         pe (torch.Tensor): Prompt embeddings for classes.
@@ -1243,8 +1243,8 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
     """
     YOLOE segmentation model.
 
-    This class extends YOLOEModel to handle instance segmentation tasks with text and visual prompts,
-    providing specialized loss computation for pixel-level object detection and segmentation.
+    This class extends YOLOEModel to handle instance segmentation tasks with text and visual prompts, providing
+    specialized loss computation for pixel-level object detection and segmentation.
 
     Methods:
         __init__: Initialize YOLOE segmentation model.
@@ -1291,8 +1291,8 @@ class Ensemble(torch.nn.ModuleList):
     """
     Ensemble of models.
 
-    This class allows combining multiple YOLO models into an ensemble for improved performance through
-    model averaging or other ensemble techniques.
+    This class allows combining multiple YOLO models into an ensemble for improved performance through model averaging
+    or other ensemble techniques.
 
     Methods:
         __init__: Initialize an ensemble of models.
@@ -1339,9 +1339,9 @@ def temporary_modules(modules=None, attributes=None):
     """
     Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
 
-    This function can be used to change the module paths during runtime. It's useful when refactoring code,
-    where you've moved a module from one location to another, but you still want to support the old import
-    paths for backwards compatibility.
+    This function can be used to change the module paths during runtime. It's useful when refactoring code, where you've
+    moved a module from one location to another, but you still want to support the old import paths for backwards
+    compatibility.
 
     Args:
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
@@ -1352,7 +1352,7 @@ def temporary_modules(modules=None, attributes=None):
         >>> import old.module  # this will now import new.module
         >>> from old.module import attribute  # this will now import new.module.attribute
 
-    Note:
+    Notes:
         The changes are only in effect inside the context manager and are undone once the context manager exits.
         Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
         applications or libraries. Use this function with caution.

@@ -175,8 +175,8 @@ class SAM2MaskDecoder(nn.Module):
     """
     Transformer-based decoder for predicting instance segmentation masks from image and prompt embeddings.
 
-    This class extends the functionality of the MaskDecoder, incorporating additional features such as
-    high-resolution feature processing, dynamic multimask output, and object score prediction.
+    This class extends the functionality of the MaskDecoder, incorporating additional features such as high-resolution
+    feature processing, dynamic multimask output, and object score prediction.
 
     Attributes:
         transformer_dim (int): Channel dimension of the transformer.
@@ -236,8 +236,8 @@ class SAM2MaskDecoder(nn.Module):
         """
         Initialize the SAM2MaskDecoder module for predicting instance segmentation masks.
 
-        This decoder extends the functionality of MaskDecoder, incorporating additional features such as
-        high-resolution feature processing, dynamic multimask output, and object score prediction.
+        This decoder extends the functionality of MaskDecoder, incorporating additional features such as high-resolution
+        feature processing, dynamic multimask output, and object score prediction.
 
         Args:
             transformer_dim (int): Channel dimension of the transformer.
@@ -461,10 +461,10 @@ class SAM2MaskDecoder(nn.Module):
         """
         Dynamically select the most stable mask output based on stability scores and IoU predictions.
 
-        This method is used when outputting a single mask. If the stability score from the current single-mask
-        output (based on output token 0) falls below a threshold, it instead selects from multi-mask outputs
-        (based on output tokens 1-3) the mask with the highest predicted IoU score. This ensures a valid mask
-        for both clicking and tracking scenarios.
+        This method is used when outputting a single mask. If the stability score from the current single-mask output
+        (based on output token 0) falls below a threshold, it instead selects from multi-mask outputs (based on output
+        tokens 1-3) the mask with the highest predicted IoU score. This ensures a valid mask for both clicking and
+        tracking scenarios.
 
         Args:
             all_mask_logits (torch.Tensor): Logits for all predicted masks, shape (B, N, H, W) where B is

@@ -43,8 +43,8 @@ class AGLU(nn.Module):
         """
         Apply the Adaptive Gated Linear Unit (AGLU) activation function.
 
-        This forward method implements the AGLU activation function with learnable parameters lambda and kappa.
-        The function applies a transformation that adaptively combines linear and non-linear components.
+        This forward method implements the AGLU activation function with learnable parameters lambda and kappa. The
+        function applies a transformation that adaptively combines linear and non-linear components.
 
         Args:
             x (torch.Tensor): Input tensor to apply the activation function to.

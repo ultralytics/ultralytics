@@ -158,7 +158,7 @@ def export_formats():
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
         ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
-        ["ExecuTorch", "executorch", "_executorch_model", False, False, ["batch"]],
+        ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
 

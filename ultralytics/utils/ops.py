@@ -76,8 +76,8 @@ def segment2box(segment, width: int = 640, height: int = 640):
     """
     Convert segment coordinates to bounding box coordinates.
 
-    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates.
-    Applies inside-image constraint and clips coordinates when necessary.
+    Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates. Applies
+    inside-image constraint and clips coordinates when necessary.
 
     Args:
         segment (torch.Tensor): Segment coordinates in format (N, 2) where N is number of points.
@@ -106,8 +106,8 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding: bool = T
     """
     Rescale bounding boxes from one image shape to another.
 
-    Rescales bounding boxes from img1_shape to img0_shape, accounting for padding and aspect ratio changes.
-    Supports both xyxy and xywh box formats.
+    Rescales bounding boxes from img1_shape to img0_shape, accounting for padding and aspect ratio changes. Supports
+    both xyxy and xywh box formats.
 
     Args:
         img1_shape (tuple): Shape of the source image (height, width).
@@ -212,8 +212,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     """
     Rescale masks to original image size.
 
-    Takes resized and padded masks and rescales them back to the original image dimensions, removing any padding
-    that was applied during preprocessing.
+    Takes resized and padded masks and rescales them back to the original image dimensions, removing any padding that
+    was applied during preprocessing.
 
     Args:
         masks (np.ndarray): Resized and padded masks with shape [H, W, N] or [H, W, 3].

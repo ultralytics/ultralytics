@@ -30,8 +30,8 @@ class PosePredictor(DetectionPredictor):
         """
         Initialize PosePredictor for pose estimation tasks.
 
-        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific
-        warnings for Apple MPS.
+        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
+        for Apple MPS.
 
         Args:
             cfg (Any): Configuration for the predictor.

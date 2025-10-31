@@ -30,8 +30,8 @@ def generate_ddp_file(trainer):
     """
     Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
 
-    This function creates a temporary Python file that enables distributed training across multiple GPUs.
-    The file contains the necessary configuration to initialize the trainer in a distributed environment.
+    This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
+    contains the necessary configuration to initialize the trainer in a distributed environment.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.
@@ -111,8 +111,8 @@ def ddp_cleanup(trainer, file):
     """
     Delete temporary file if created during distributed data parallel (DDP) training.
 
-    This function checks if the provided file contains the trainer's ID in its name, indicating it was created
-    as a temporary file for DDP training, and deletes it if so.
+    This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a
+    temporary file for DDP training, and deletes it if so.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer used for distributed training.

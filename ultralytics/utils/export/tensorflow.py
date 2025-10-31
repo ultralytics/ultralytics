@@ -79,9 +79,9 @@ def onnx2saved_model(
     Returns:
         (keras.Model): Converted Keras model.
 
-    Note:
-        Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
-        Removes temporary files and renames quantized models after conversion.
+    Notes:
+        - Requires onnx2tf package. Downloads calibration data if INT8 quantization is enabled.
+        - Removes temporary files and renames quantized models after conversion.
     """
     # Pre-download calibration file to fix https://github.com/PINTO0309/onnx2tf/issues/545
     onnx2tf_file = Path("calibration_image_sample_data_20x128x128x3_float32.npy")

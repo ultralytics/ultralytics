@@ -144,8 +144,8 @@ class YOLOEDetectValidator(DetectionValidator):
         Run validation on the model using either text or visual prompt embeddings.
 
         This method validates the model using either text prompts or visual prompts, depending on the load_vp flag. It
-        supports validation during training (using a trainer object) or standalone validation with a provided model.
-        For visual prompts, reference data can be specified to extract embeddings from a different dataset.
+        supports validation during training (using a trainer object) or standalone validation with a provided model. For
+        visual prompts, reference data can be specified to extract embeddings from a different dataset.
 
         Args:
             trainer (object, optional): Trainer object containing the model and device.

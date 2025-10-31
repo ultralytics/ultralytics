@@ -136,6 +136,7 @@ class PoseValidator(DetectionValidator):
                 - 'conf': Confidence scores
                 - 'cls': Class predictions
                 - 'keypoints': Reshaped keypoint coordinates with shape (-1, *self.kpt_shape)
+
         Notes:
             If no keypoints are present in a prediction (empty keypoints), that prediction is skipped and continues
             to the next one. The keypoints are extracted from the 'extra' field which contains additional

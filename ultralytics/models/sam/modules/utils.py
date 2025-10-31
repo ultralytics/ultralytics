@@ -92,8 +92,8 @@ def init_t_xy(end_x: int, end_y: int):
     """
     Initialize 1D and 2D coordinate tensors for a grid of specified dimensions.
 
-    This function creates coordinate tensors for a grid with dimensions end_x × end_y. It generates a linear index tensor
-    and corresponding x and y coordinate tensors.
+    This function creates coordinate tensors for a grid with dimensions end_x × end_y. It generates a linear index
+    tensor and corresponding x and y coordinate tensors.
 
     Args:
         end_x (int): Width of the grid (number of columns).
@@ -120,8 +120,8 @@ def compute_axial_cis(dim: int, end_x: int, end_y: int, theta: float = 10000.0):
     """
     Compute axial complex exponential positional encodings for 2D spatial positions in a grid.
 
-    This function generates complex exponential positional encodings for a 2D grid of spatial positions,
-    using separate frequency components for the x and y dimensions.
+    This function generates complex exponential positional encodings for a 2D grid of spatial positions, using separate
+    frequency components for the x and y dimensions.
 
     Args:
         dim (int): Dimension of the positional encoding.
@@ -153,8 +153,8 @@ def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
     """
     Reshape frequency tensor for broadcasting with input tensor.
 
-    Reshapes a frequency tensor to ensure dimensional compatibility for broadcasting with an input tensor.
-    This function is typically used in positional encoding operations.
+    Reshapes a frequency tensor to ensure dimensional compatibility for broadcasting with an input tensor. This function
+    is typically used in positional encoding operations.
 
     Args:
         freqs_cis (torch.Tensor): Frequency tensor with shape matching the last two dimensions of x.
@@ -254,13 +254,13 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: tuple[in
     """
     Unpartition windowed sequences into original sequences and remove padding.
 
-    This function reverses the windowing process, reconstructing the original input from windowed segments
-    and removing any padding that was added during the windowing process.
+    This function reverses the windowing process, reconstructing the original input from windowed segments and removing
+    any padding that was added during the windowing process.
 
     Args:
         windows (torch.Tensor): Input tensor of windowed sequences with shape (B * num_windows, window_size,
-            window_size, C), where B is the batch size, num_windows is the number of windows, window_size is
-            the size of each window, and C is the number of channels.
+            window_size, C), where B is the batch size, num_windows is the number of windows, window_size is the size of
+            each window, and C is the number of channels.
         window_size (int): Size of each window.
         pad_hw (tuple[int, int]): Padded height and width (Hp, Wp) of the input before windowing.
         hw (tuple[int, int]): Original height and width (H, W) of the input before padding and windowing.

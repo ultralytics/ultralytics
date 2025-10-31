@@ -262,7 +262,7 @@ class YOLODataset(BaseDataset):
         Returns:
             (dict): Updated label dictionary with instances.
 
-        Note:
+        Notes:
             cls is not with bboxes now, classification and semantic segmentation need an independent cls label
             Can also support classification and semantic segmentation by adding or removing dict keys there.
         """
@@ -320,8 +320,8 @@ class YOLOMultiModalDataset(YOLODataset):
     """
     Dataset class for loading object detection and/or segmentation labels in YOLO format with multi-modal support.
 
-    This class extends YOLODataset to add text information for multi-modal model training, enabling models to
-    process both image and text data.
+    This class extends YOLODataset to add text information for multi-modal model training, enabling models to process
+    both image and text data.
 
     Methods:
         update_labels_info: Add text information for multi-modal model training.
@@ -421,8 +421,8 @@ class GroundingDataset(YOLODataset):
     """
     Dataset class for object detection tasks using annotations from a JSON file in grounding format.
 
-    This dataset is designed for grounding tasks where annotations are provided in a JSON file rather than
-    the standard YOLO format text files.
+    This dataset is designed for grounding tasks where annotations are provided in a JSON file rather than the standard
+    YOLO format text files.
 
     Attributes:
         json_file (str): Path to the JSON file containing annotations.
@@ -469,20 +469,20 @@ class GroundingDataset(YOLODataset):
         """
         Verify the number of instances in the dataset matches expected counts.
 
-        This method checks if the total number of bounding box instances in the provided
-        labels matches the expected count for known datasets. It performs validation
-        against a predefined set of datasets with known instance counts.
+        This method checks if the total number of bounding box instances in the provided labels matches the expected
+        count for known datasets. It performs validation against a predefined set of datasets with known instance
+        counts.
 
         Args:
             labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary
-                contains dataset annotations. Each label dict must have a 'bboxes' key with
-                a numpy array or tensor containing bounding box coordinates.
+                contains dataset annotations. Each label dict must have a 'bboxes' key with a numpy array or tensor
+                containing bounding box coordinates.
 
         Raises:
             AssertionError: If the actual instance count doesn't match the expected count
                 for a recognized dataset.
 
-        Note:
+        Notes:
             For unrecognized datasets (those not in the predefined expected_counts),
             a warning is logged and verification is skipped.
         """
@@ -664,8 +664,8 @@ class YOLOConcatDataset(ConcatDataset):
     """
     Dataset as a concatenation of multiple datasets.
 
-    This class is useful to assemble different existing datasets for YOLO training, ensuring they use the same
-    collation function.
+    This class is useful to assemble different existing datasets for YOLO training, ensuring they use the same collation
+    function.
 
     Methods:
         collate_fn: Static method that collates data samples into batches using YOLODataset's collation function.
@@ -723,7 +723,7 @@ class ClassificationDataset:
         cache_ram (bool): Indicates if caching in RAM is enabled.
         cache_disk (bool): Indicates if caching on disk is enabled.
         samples (list): A list of tuples, each containing the path to an image, its class index, path to its .npy cache
-                        file (if caching on disk), and optionally the loaded image array (if caching in RAM).
+            file (if caching on disk), and optionally the loaded image array (if caching in RAM).
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.

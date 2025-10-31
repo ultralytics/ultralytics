@@ -15,8 +15,8 @@ class Analytics(BaseSolution):
     """
     A class for creating and updating various types of charts for visual analytics.
 
-    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts
-    based on object detection and tracking data.
+    This class extends BaseSolution to provide functionality for generating line, bar, pie, and area charts based on
+    object detection and tracking data.
 
     Attributes:
         type (str): The type of analytics chart to generate ('line', 'bar', 'pie', or 'area').

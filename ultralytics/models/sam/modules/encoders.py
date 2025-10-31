@@ -311,8 +311,7 @@ class PromptEncoder(nn.Module):
 
         Args:
             points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
-                tensor contains coordinates with shape (B, N, 2), and the second tensor contains labels with
-                shape (B, N).
+                tensor contains coordinates of shape (B, N, 2), and the second tensor contains labels of shape (B, N).
             boxes (torch.Tensor | None): Boxes to embed with shape (B, M, 2, 2), where M is the number of boxes.
             masks (torch.Tensor | None): Masks to embed with shape (B, 1, H, W).
 
@@ -357,8 +356,8 @@ class MemoryEncoder(nn.Module):
     """
     Encode pixel features and masks into a memory representation for efficient image segmentation.
 
-    This class processes pixel-level features and masks, fusing them to generate encoded memory representations
-    suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
+    This class processes pixel-level features and masks, fusing them to generate encoded memory representations suitable
+    for downstream tasks in image segmentation models like SAM (Segment Anything Model).
 
     Attributes:
         mask_downsampler (MaskDownSampler): Module for downsampling input masks.
@@ -442,8 +441,8 @@ class ImageEncoder(nn.Module):
     """
     Encode images using a trunk-neck architecture, producing multiscale features and positional encodings.
 
-    This class combines a trunk network for feature extraction with a neck network for feature refinement
-    and positional encoding generation. It can optionally discard the lowest resolution features.
+    This class combines a trunk network for feature extraction with a neck network for feature refinement and positional
+    encoding generation. It can optionally discard the lowest resolution features.
 
     Attributes:
         trunk (nn.Module): The trunk network for initial feature extraction.
@@ -472,8 +471,8 @@ class ImageEncoder(nn.Module):
         """
         Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
 
-        This encoder combines a trunk network for feature extraction with a neck network for feature refinement
-        and positional encoding generation. It can optionally discard the lowest resolution features.
+        This encoder combines a trunk network for feature extraction with a neck network for feature refinement and
+        positional encoding generation. It can optionally discard the lowest resolution features.
 
         Args:
             trunk (nn.Module): The trunk network for initial feature extraction.
@@ -516,8 +515,8 @@ class FpnNeck(nn.Module):
     """
     A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
 
-    This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
-    similar to ViT positional embedding interpolation.
+    This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to ViT
+    positional embedding interpolation.
 
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
@@ -553,8 +552,8 @@ class FpnNeck(nn.Module):
         """
         Initialize a modified Feature Pyramid Network (FPN) neck.
 
-        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing,
-        similar to ViT positional embedding interpolation.
+        This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
+        ViT positional embedding interpolation.
 
         Args:
             d_model (int): Dimension of the model.
@@ -659,9 +658,9 @@ class Hiera(nn.Module):
     """
     Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks.
 
-    This class implements a Hiera model, which is a hierarchical vision transformer architecture designed for
-    efficient multiscale feature extraction. It uses a series of transformer blocks organized into stages,
-    with optional pooling and global attention mechanisms.
+    This class implements a Hiera model, which is a hierarchical vision transformer architecture designed for efficient
+    multiscale feature extraction. It uses a series of transformer blocks organized into stages, with optional pooling
+    and global attention mechanisms.
 
     Attributes:
         window_spec (tuple[int, ...]): Window sizes for each stage.
@@ -718,9 +717,9 @@ class Hiera(nn.Module):
         """
         Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
 
-        Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction
-        in image processing tasks. It uses a series of transformer blocks organized into stages, with optional
-        pooling and global attention mechanisms.
+        Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction in
+        image processing tasks. It uses a series of transformer blocks organized into stages, with optional pooling and
+        global attention mechanisms.
 
         Args:
             embed_dim (int): Initial embedding dimension for the model.
@@ -731,7 +730,8 @@ class Hiera(nn.Module):
             stages (tuple[int, ...]): Number of blocks per stage.
             dim_mul (float): Dimension multiplier factor at stage transitions.
             head_mul (float): Head multiplier factor at stage transitions.
-            window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding background.
+            window_pos_embed_bkg_spatial_size (tuple[int, int]): Spatial size for window positional embedding
+                background.
             window_spec (tuple[int, ...]): Window sizes for each stage when not using global attention.
             global_att_blocks (tuple[int, ...]): Indices of blocks that use global attention.
             return_interm_layers (bool): Whether to return intermediate layer outputs.

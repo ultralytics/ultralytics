@@ -99,7 +99,7 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
 ---
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 !!! tip "Ultralytics YOLO26 Publication"
 

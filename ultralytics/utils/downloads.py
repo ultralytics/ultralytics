@@ -145,9 +145,9 @@ def unzip_file(
     """
     Unzip a *.zip file to the specified path, excluding specified files.
 
-    If the zipfile does not contain a single top-level directory, the function will create a new
-    directory with the same name as the zipfile (without the extension) to extract its contents.
-    If a path is not provided, the function will use the parent directory of the zipfile as the default path.
+    If the zipfile does not contain a single top-level directory, the function will create a new directory with the same
+    name as the zipfile (without the extension) to extract its contents. If a path is not provided, the function will
+    use the parent directory of the zipfile as the default path.
 
     Args:
         file (str | Path): The path to the zipfile to be extracted.

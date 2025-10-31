@@ -1127,8 +1127,8 @@ class Masks(BaseTensor):
 
         Returns:
             (list[np.ndarray]): A list of numpy arrays, where each array contains the normalized xy-coordinates
-                of a single segmentation mask. Each array has shape (N, 2), where N is the number of points in the mask
-                contour.
+                of a single segmentation mask. Each array has shape (N, 2), where N is the number of points in the
+                mask contour.
 
         Examples:
             >>> results = model("image.jpg")
@@ -1277,8 +1277,8 @@ class Keypoints(BaseTensor):
 
         Returns:
             (torch.Tensor | None): A tensor containing confidence scores for each keypoint if available,
-                otherwise None. Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,) for single
-                detection.
+                otherwise None. Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,) for
+                single detection.
 
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 3), orig_shape=(640, 640))  # 1 detection, 17 keypoints

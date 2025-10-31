@@ -443,8 +443,8 @@ class SAM2Model(torch.nn.Module):
             mask_inputs (torch.Tensor | None): Mask of shape (B, 1, H*16, W*16), float or bool, with the
                 same spatial size as the image.
             high_res_features (list[torch.Tensor] | None): List of two feature maps with shapes
-                (B, C, 4*H, 4*W) and (B, C, 2*H, 2*W) respectively, used as high-resolution feature maps for SAM
-                decoder.
+                (B, C, 4*H, 4*W) and (B, C, 2*H, 2*W) respectively, used as high-resolution feature maps for
+                SAM decoder.
             multimask_output (bool): If True, output 3 candidate masks and their IoU estimates; if False,
                 output only 1 mask and its IoU estimate.
 

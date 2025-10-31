@@ -180,8 +180,8 @@ def get_default_callbacks():
 
     Returns:
         (dict): Dictionary of default callbacks for various training events. Each key represents an event during the
-            training process, and the corresponding value is a list of callback functions executed when that event
-            occurs.
+            training process, and the corresponding value is a list of callback functions executed when that
+            event occurs.
 
     Examples:
         >>> callbacks = get_default_callbacks()

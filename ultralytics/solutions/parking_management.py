@@ -233,8 +233,8 @@ class ParkingManagement(BaseSolution):
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'filled_slots' (number of occupied parking slots),
-                'available_slots' (number of available parking slots), and 'total_tracks' (total number of tracked
-                objects).
+                'available_slots' (number of available parking slots), and 'total_tracks' (total number of
+                tracked objects).
 
         Examples:
             >>> parking_manager = ParkingManagement(json_file="parking_regions.json")

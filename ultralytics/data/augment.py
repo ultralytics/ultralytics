@@ -667,8 +667,8 @@ class Mosaic(BaseMixTransform):
 
         Returns:
             (dict[str, Any]): A dictionary containing the mosaic image and updated labels. The 'img' key contains the
-                mosaic image as a numpy array, and other keys contain the combined and adjusted labels for all four
-                images.
+                mosaic image as a numpy array, and other keys contain the combined and adjusted labels for all
+                four images.
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)

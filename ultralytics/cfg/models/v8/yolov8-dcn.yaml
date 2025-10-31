@@ -1,100 +1,35 @@
-# YOLOv8 with DCN v2 (BACKBONE + NECK DCN - RECOMMENDED)
-# Reference: Zhu et al. "Deformable ConvNets v2: More Deformable, Better Results" CVPR 2019
-#
-# ┌──────────────────────────────────────────────────────────────────────────┐
-# │ KEY DIFFERENCE vs yolov8-dcn-liu.yaml:                                   │
-# │ ✓ This config: DCN in BACKBONE (P3/P4) + NECK FPN (P4 fusion)           │
-# │ ✓ yolov8-dcn-liu: DCN ONLY in BACKBONE (P3/P4), no neck DCN             │
-# │                                                                           │
-# │ DCN Layers:                                                               │
-# │ - yolov8-dcn.yaml (THIS):   3 DCN layers (backbone + neck) - RECOMMENDED │
-# │ - yolov8-dcn-liu.yaml:      2 DCN layers (backbone only) - SIMPLER       │
-# │                                                                           │
-# │ Why THIS config is RECOMMENDED:                                          │
-# │ ✓ +1-3% higher mAP than Liu config (neck DCN improves fusion)            │
-# │ ✓ Better multi-scale feature alignment (FPN P4 fusion is adaptive)       │
-# │ ✓ Strategic DCN placement (Zhu et al. 2019 best practices)               │
-# │ ✓ Best balance: performance vs computation                               │
-# │                                                                           │
-# │ When to use yolov8-dcn-liu.yaml instead:                                 │
-# │ ✓ Following Liu et al. paper exactly (research reproduction)             │
-# │ ✓ Minimal DCN overhead needed                                            │
-# │ ✓ Edge deployment (every FLOPs counts)                                   │
-# └──────────────────────────────────────────────────────────────────────────┘
-#
-# DCN v2 Key Features (Zhu et al. 2019):
-# - Learnable 2D offsets: Adaptive receptive fields (Sec. 3.2, Eq. 4)
-# - Modulation masks: Importance weighting for sampling positions (Sec. 3.2)
-# - Zero-initialized offsets: Training stability (Zhang et al. 2022, Sec. 3.3)
-# - CSP architecture: Efficient gradient flow (Wang et al. 2020)
-#
-# Architecture Design Philosophy:
-# 1. Backbone: DCN v2 at P3/P4 - handles geometric deformation (Zhu et al. 2019, Table 1)
-# 2. Neck FPN: DCN v2 at P4 fusion - adaptive multi-scale alignment (UNIQUE to this config!)
-# 3. Neck PAN: Standard Conv - backbone+FPN DCN already provides adaptive features
-# 4. Detection head: Standard - offsets not needed for final prediction
-#
-# Why DCN at P3/P4 + FPN P4?
-# - Backbone P3: Small-medium objects benefit from adaptive sampling
-# - Backbone P4: Medium-large objects - critical layer (Zhu et al. 2019, Sec. 4.2)
-# - Neck FPN P4: Adaptive fusion of P5→P4 features (improves scale alignment)
-# - Backbone P5: Large receptive field sufficient - standard conv avoids overhead
-# - Neck PAN: Standard - leverages adaptive features from backbone+FPN DCN
-#
-# Expected Performance (based on Zhu et al. 2019, Table 2 + ablations):
-# - mAP50-95: +4-11% improvement over baseline YOLOv8n
-# - +1-3% higher than yolov8-dcn-liu.yaml (due to neck DCN)
-# - Best for: Vehicle detection with scale/pose variation, occlusions, multi-scale fusion
-#
-# Classes: car, motorcycle, tricycle, bus, van, truck (6 classes)
-# References:
-# - Zhu et al. "Deformable ConvNets v2: More Deformable, Better Results" CVPR 2019
-# - Zhang et al. "Offset-decoupled deformable convolution" 2022
-# - Wang et al. "CSPNet: A New Backbone" CVPRW 2020
+#liu et al
 
 nc: 6
 depth_multiple: 0.33
 width_multiple: 0.25
 
 backbone:
-  # [from, repeats, module, args]
-  # Early layers: Standard convolutions (low-level features don't benefit from DCN)
-  - [-1, 1, Conv, [64, 3, 2]]            # 0-P1/2 - Edge detection (Krizhevsky et al. 2012)
-  - [-1, 1, Conv, [128, 3, 2]]           # 1-P2/4 - Texture patterns
-  - [-1, 3, C2f, [128, True]]            # 2 - Standard: features too simple for DCN (Zhu et al. 2019)
-
-  # Middle layers: DCN v2 for adaptive geometric modeling
-  - [-1, 1, Conv, [256, 3, 2]]           # 3-P3/8 - Transition to semantic features
-  - [-1, 6, DeformC2f, [256, True]]      # 4 - DCN v2! Handles small-medium objects (Zhu et al. 2019, Sec. 4.2)
-  - [-1, 1, Conv, [512, 3, 2]]           # 5-P4/16 - Transition
-  - [-1, 6, DeformC2f, [512, True]]      # 6 - DCN v2! Critical layer for deformation (Zhu et al. 2019, Table 1)
-
-  # Deep layers: Standard convolutions (large receptive field sufficient)
-  - [-1, 1, Conv, [1024, 3, 2]]          # 7-P5/32 - High-level semantics
-  - [-1, 3, C2f, [1024, True]]           # 8 - Standard: 256×256 RF, DCN not needed
-  - [-1, 1, SPPF, [1024, 5]]             # 9 - Spatial pyramid pooling (He et al. 2015)
+  # [from, number, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]            # 0  P1/2
+  - [-1, 1, DeformC2f, [128, 3]]         # 1  P2/4
+  - [-1, 1, Conv, [128, 3, 2]]           # 2  downsample -> P3/8
+  - [-1, 2, C2f, [256, 6]]               # 3  P3/8
+  - [-1, 1, Conv, [256, 3, 2]]           # 4  downsample -> P4/16
+  - [-1, 2, DeformC2f, [512, 6]]         # 5  P4/16
+  - [-1, 1, Conv, [512, 3, 2]]           # 6  downsample -> P5/32
+  - [-1, 1, SPPF, [1024, 5]]             # 7  P5/32
 
 head:
-  # FPN (Feature Pyramid Network) - Top-down pathway (Lin et al. 2017)
-  # Strategic DCN placement for adaptive multi-scale fusion
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 10 - Upsample P5→P4
-  - [[-1, 6], 1, Concat, [1]]                   # 11 - Concat P4 from DCN backbone
-  - [-1, 3, DeformC2f, [512]]                   # 12 - DCN v2! Adaptive P4-P5 fusion (Zhu et al. 2019)
+  - [-1, 1, Conv, [512, 1, 1]]           # 8
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]   # 9  -> P4/16
+  - [[-1, 5], 1, Concat, [1]]            # 10 (P5 up + P4)
 
-  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 13 - Upsample P4→P3
-  - [[-1, 4], 1, Concat, [1]]                   # 14 - Concat P3 from DCN backbone
-  - [-1, 3, C2f, [256]]                         # 15 (P3/8-small) - Standard: sufficient for small objects
+  - [-1, 2, DeformC2f, [512, 3]]         # 11  P4/16
+  - [-1, 1, Conv, [256, 1, 1]]           # 12
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]   # 13  -> P3/8
 
-  # PAN (Path Aggregation Network) - Bottom-up pathway (Liu et al. 2018)
-  # Standard convolutions - backbone DCN already provides adaptive features
-  - [-1, 1, Conv, [256, 3, 2]]                  # 16 - Downsample P3→P4
-  - [[-1, 12], 1, Concat, [1]]                  # 17 - Concat from FPN P4
-  - [-1, 3, C2f, [512]]                         # 18 (P4/16-medium) - Standard: leverages DCN features
+  - [[-1, 3], 1, Concat, [1]]            # 14 (P4 up + P3)
+  - [-1, 2, C2f, [256, 3]]               # 15  P3/8
+  - [-1, 1, Conv, [128, 1, 1]]           # 16
+  
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]   # 17  -> P2/4
+  - [[-1, 1], 1, Concat, [1]]            # 18 (P3 up + P2)
+  - [-1, 2, C2f, [128, 3]]               # 19  P2/4
 
-  - [-1, 1, Conv, [512, 3, 2]]                  # 19 - Downsample P4→P5
-  - [[-1, 9], 1, Concat, [1]]                   # 20 - Concat from backbone P5
-  - [-1, 3, C2f, [1024]]                        # 21 (P5/32-large) - Standard: large objects
-
-  # Detection Head - Standard (no DCN needed for final prediction)
-  # Rationale: Classification/regression don't benefit from adaptive sampling
-  - [[15, 18, 21], 1, Detect, [nc]]             # 22 - Multi-scale detection heads
+  - [[15, 11, 8], 1, Detect, [nc]]       # 20 (P3, P4, P5)

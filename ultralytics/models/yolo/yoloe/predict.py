@@ -132,7 +132,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
     def inference(self, im, *args, **kwargs):
         """
-        Run inference with visual prompts.
+        Run inference with visual prompts, supporting multimodal fusion.
 
         Args:
             im (torch.Tensor): Input image tensor.
@@ -142,6 +142,24 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Returns:
             (torch.Tensor): Model prediction results.
         """
+        from .fusion import fuse_tpe_vpe
+
+        mode = kwargs.pop("fuse_prompts", None)  # None | "concat" | "sum"
+        alpha = kwargs.pop("fuse_alpha", 0.5)
+        fuse_map = kwargs.pop("fuse_map", None)
+        tpe = getattr(self.model, "pe", None)
+
+        if mode in {"sum"} and tpe is not None and getattr(self, "prompts", None) is not None:
+            # Two-pass inference: get VPE first, then fuse with TPE
+            vpe_embed = self.model(im, vpe=self.prompts, return_vpe=True)
+            tpe_fused = fuse_tpe_vpe(tpe, vpe_embed, mode=mode, alpha=alpha, fuse_map=fuse_map)
+            return super().inference(im, tpe=tpe_fused, *args, **kwargs)
+
+        if mode == "concat" and tpe is not None and getattr(self, "prompts", None) is not None:
+            # Concurrent inference with both TPE and VPE
+            return super().inference(im, tpe=tpe, vpe=self.prompts, *args, **kwargs)
+
+        # Default behavior: use only visual prompts
         return super().inference(im, vpe=self.prompts, *args, **kwargs)
 
     def get_vpe(self, source):

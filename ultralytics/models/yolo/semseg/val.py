@@ -111,11 +111,6 @@ class SemSegValidator(DetectionValidator):
         for i in range(nc):
             pred_mask = pred_mask_for_category[i, :]
             gt_mask = gt_mask_for_catgory[i, :]
-            if i == 15:
-                gt_mask.max()
-                vis_gt_mask = (gt_mask.reshape(512, 512).cpu().numpy() * 255).astype(np.uint8)
-                cv2.imwrite("E:/afk/mask_gt.png", vis_gt_mask)
-                # cv2.waitKey()
             ious[i] = mask_iou(pred_mask[None, :], gt_mask[None, :])
         return ious
 

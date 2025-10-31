@@ -55,8 +55,8 @@ class YOLO(Model):
         """
         Initialize a YOLO model.
 
-        This constructor initializes a YOLO model, automatically switching to specialized model types
-        (YOLOWorld or YOLOE) based on the model filename.
+        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
+        YOLOE) based on the model filename.
 
         Args:
             model (str | Path | Model): Model name or path to model file, or existing Model instance.
@@ -139,9 +139,9 @@ class YOLOWorld(Model):
     """
     YOLO-World object detection model.
 
-    YOLO-World is an open-vocabulary object detection model that can detect objects based on text descriptions
-    without requiring training on specific classes. It extends the YOLO architecture to support real-time
-    open-vocabulary detection.
+    YOLO-World is an open-vocabulary object detection model that can detect objects based on text descriptions without
+    requiring training on specific classes. It extends the YOLO architecture to support real-time open-vocabulary
+    detection.
 
     Attributes:
         model: The loaded YOLO-World model instance.
@@ -165,8 +165,8 @@ class YOLOWorld(Model):
         """
         Initialize YOLOv8-World model with a pre-trained model file.
 
-        Loads a YOLOv8-World model for object detection. If no custom class names are provided, it assigns default
-        COCO class names.
+        Loads a YOLOv8-World model for object detection. If no custom class names are provided, it assigns default COCO
+        class names.
 
         Args:
             model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
@@ -213,8 +213,8 @@ class YOLOE(Model):
     """
     YOLOE object detection and segmentation model.
 
-    YOLOE is an enhanced YOLO model that supports both object detection and instance segmentation tasks with
-    improved performance and additional features like visual and text positional embeddings.
+    YOLOE is an enhanced YOLO model that supports both object detection and instance segmentation tasks with improved
+    performance and additional features like visual and text positional embeddings.
 
     Attributes:
         model: The loaded YOLOE model instance.
@@ -282,8 +282,8 @@ class YOLOE(Model):
         """
         Get visual positional embeddings for the given image and visual features.
 
-        This method extracts positional embeddings from visual features based on the input image. It requires
-        that the model is an instance of YOLOEModel.
+        This method extracts positional embeddings from visual features based on the input image. It requires that the
+        model is an instance of YOLOEModel.
 
         Args:
             img (torch.Tensor): Input image tensor.
@@ -305,8 +305,8 @@ class YOLOE(Model):
         """
         Set vocabulary and class names for the YOLOE model.
 
-        This method configures the vocabulary and class names used by the model for text processing and
-        classification tasks. The model must be an instance of YOLOEModel.
+        This method configures the vocabulary and class names used by the model for text processing and classification
+        tasks. The model must be an instance of YOLOEModel.
 
         Args:
             vocab (list[str]): Vocabulary list containing tokens or words used by the model for text processing.

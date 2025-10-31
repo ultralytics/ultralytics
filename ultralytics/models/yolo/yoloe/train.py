@@ -22,8 +22,8 @@ class YOLOETrainer(DetectionTrainer):
     """
     A trainer class for YOLOE object detection models.
 
-    This class extends DetectionTrainer to provide specialized training functionality for YOLOE models,
-    including custom model initialization, validation, and dataset building with multi-modal support.
+    This class extends DetectionTrainer to provide specialized training functionality for YOLOE models, including custom
+    model initialization, validation, and dataset building with multi-modal support.
 
     Attributes:
         loss_names (tuple): Names of loss components used during training.
@@ -109,8 +109,8 @@ class YOLOEPETrainer(DetectionTrainer):
     """
     Fine-tune YOLOE model using linear probing approach.
 
-    This trainer freezes most model layers and only trains specific projection layers for efficient
-    fine-tuning on new datasets while preserving pretrained features.
+    This trainer freezes most model layers and only trains specific projection layers for efficient fine-tuning on new
+    datasets while preserving pretrained features.
 
     Methods:
         get_model: Initialize YOLOEModel with frozen layers except projection layers.
@@ -163,8 +163,8 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
     """
     Train YOLOE models from scratch with text embedding support.
 
-    This trainer combines YOLOE training capabilities with world training features, enabling
-    training from scratch with text embeddings and grounding datasets.
+    This trainer combines YOLOE training capabilities with world training features, enabling training from scratch with
+    text embeddings and grounding datasets.
 
     Methods:
         build_dataset: Build datasets for training with grounding support.
@@ -175,8 +175,8 @@ class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
         """
         Build YOLO Dataset for training or validation.
 
-        This method constructs appropriate datasets based on the mode and input paths, handling both
-        standard YOLO datasets and grounding datasets with different formats.
+        This method constructs appropriate datasets based on the mode and input paths, handling both standard YOLO
+        datasets and grounding datasets with different formats.
 
         Args:
             img_path (list[str] | str): Path to the folder containing images or list of paths.
@@ -219,8 +219,8 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
     """
     Train prompt-free YOLOE model.
 
-    This trainer combines linear probing capabilities with from-scratch training for prompt-free
-    YOLOE models that don't require text prompts during inference.
+    This trainer combines linear probing capabilities with from-scratch training for prompt-free YOLOE models that don't
+    require text prompts during inference.
 
     Methods:
         get_validator: Return standard DetectionValidator for validation.
@@ -243,9 +243,9 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         """
         Set text embeddings for datasets to accelerate training by caching category names.
 
-        This method collects unique category names from all datasets, generates text embeddings for them,
-        and caches these embeddings to improve training efficiency. The embeddings are stored in a file
-        in the parent directory of the first dataset's image path.
+        This method collects unique category names from all datasets, generates text embeddings for them, and caches
+        these embeddings to improve training efficiency. The embeddings are stored in a file in the parent directory of
+        the first dataset's image path.
 
         Args:
             datasets (list[Dataset]): List of datasets containing category names to process.
@@ -263,8 +263,8 @@ class YOLOEVPTrainer(YOLOETrainerFromScratch):
     """
     Train YOLOE model with visual prompts.
 
-    This trainer extends YOLOETrainerFromScratch to support visual prompt-based training,
-    where visual cues are provided alongside images to guide the detection process.
+    This trainer extends YOLOETrainerFromScratch to support visual prompt-based training, where visual cues are provided
+    alongside images to guide the detection process.
 
     Methods:
         build_dataset: Build dataset with visual prompt loading transforms.

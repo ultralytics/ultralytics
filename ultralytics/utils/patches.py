@@ -124,8 +124,8 @@ def torch_save(*args, **kwargs):
     """
     Save PyTorch objects with retry mechanism for robustness.
 
-    This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur
-    due to device flushing delays or antivirus scanning.
+    This function wraps torch.save with 3 retries and exponential backoff in case of save failures, which can occur due
+    to device flushing delays or antivirus scanning.
 
     Args:
         *args (Any): Positional arguments to pass to torch.save.

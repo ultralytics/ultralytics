@@ -37,10 +37,18 @@ def export_onnx(
     Notes:
         Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
+    dims = None
+    if dynamic:
+        dims = {
+            0: 1 * torch.export.Dim("batch", min=1),
+            2: 32 * torch.export.Dim("height", min=1),
+            3: 32 * torch.export.Dim("width", min=1),
+        }
     kwargs = (
         dict(
-            dynamo=dynamo and not dynamic,  # TorchDynamo-based export
+            dynamo=dynamo,  # TorchDynamo-based export
             external_data=False,  # do not create .onnx.data file
+            dynamic_shapes={"x": dims} if dynamic else None,
         )
         if check_version(torch.__version__, ">=2.8.0")
         else {}

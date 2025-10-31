@@ -41,8 +41,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """
     Cleanup operations after pytest session.
 
-    This function is automatically called by pytest at the end of the entire test session. It removes certain files
-    and directories used during testing.
+    This function is automatically called by pytest at the end of the entire test session. It removes certain files and
+    directories used during testing.
 
     Args:
         terminalreporter: The terminal reporter object used for terminal output.

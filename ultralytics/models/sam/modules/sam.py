@@ -26,8 +26,8 @@ class SAMModel(nn.Module):
     """
     Segment Anything Model (SAM) for object segmentation tasks.
 
-    This class combines image encoders, prompt encoders, and mask decoders to predict object masks from images
-    and input prompts.
+    This class combines image encoders, prompt encoders, and mask decoders to predict object masks from images and input
+    prompts.
 
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
@@ -101,8 +101,8 @@ class SAM2Model(torch.nn.Module):
     """
     SAM2Model class for Segment Anything Model 2 with memory-based video object segmentation capabilities.
 
-    This class extends the functionality of SAM to handle video sequences, incorporating memory mechanisms
-    for temporal consistency and efficient tracking of objects across frames.
+    This class extends the functionality of SAM to handle video sequences, incorporating memory mechanisms for temporal
+    consistency and efficient tracking of objects across frames.
 
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
@@ -436,15 +436,15 @@ class SAM2Model(torch.nn.Module):
         Args:
             backbone_features (torch.Tensor): Image features with shape (B, C, H, W).
             point_inputs (dict[str, torch.Tensor] | None): Dictionary containing point prompts.
-                'point_coords': Tensor of shape (B, P, 2) with float32 dtype, containing absolute
-                    pixel-unit coordinates in (x, y) format for P input points.
-                'point_labels': Tensor of shape (B, P) with int32 dtype, where 1 means positive clicks,
-                    0 means negative clicks, and -1 means padding.
+            'point_coords': Tensor of shape (B, P, 2) with float32 dtype, containing absolute
+                pixel-unit coordinates in (x, y) format for P input points.
+            'point_labels': Tensor of shape (B, P) with int32 dtype, where 1 means positive clicks,
+                0 means negative clicks, and -1 means padding.
             mask_inputs (torch.Tensor | None): Mask of shape (B, 1, H*16, W*16), float or bool, with the
                 same spatial size as the image.
             high_res_features (list[torch.Tensor] | None): List of two feature maps with shapes
-                (B, C, 4*H, 4*W) and (B, C, 2*H, 2*W) respectively, used as high-resolution feature maps
-                for SAM decoder.
+                (B, C, 4*H, 4*W) and (B, C, 2*H, 2*W) respectively, used as high-resolution feature maps for
+                SAM decoder.
             multimask_output (bool): If True, output 3 candidate masks and their IoU estimates; if False,
                 output only 1 mask and its IoU estimate.
 

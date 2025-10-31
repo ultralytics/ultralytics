@@ -101,8 +101,8 @@ def run(
     Run object detection and counting within specified regions using YOLO and ByteTrack.
 
     This function performs real-time object detection, tracking, and counting within user-defined polygonal or
-    rectangular regions. It supports interactive region manipulation, multiple counting areas, and both live viewing
-    and video saving capabilities.
+    rectangular regions. It supports interactive region manipulation, multiple counting areas, and both live viewing and
+    video saving capabilities.
 
     Args:
         weights (str): Path to the YOLO model weights file.

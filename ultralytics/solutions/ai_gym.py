@@ -36,8 +36,8 @@ class AIGym(BaseSolution):
         Initialize AIGym for workout monitoring using pose estimation and predefined angles.
 
         Args:
-            **kwargs (Any): Keyword arguments passed to the parent class constructor.
-            model (str): Model name or path, defaults to "yolo11n-pose.pt".
+            **kwargs (Any): Keyword arguments passed to the parent class constructor including:
+                - model (str): Model name or path, defaults to "yolo11n-pose.pt".
         """
         kwargs["model"] = kwargs.get("model", "yolo11n-pose.pt")
         super().__init__(**kwargs)

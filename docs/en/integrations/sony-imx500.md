@@ -41,6 +41,7 @@ Currently, you can only export models that include the following tasks to IMX500
 
 - [Object detection](https://docs.ultralytics.com/tasks/detect/)
 - [Pose estimation](https://docs.ultralytics.com/tasks/pose/)
+- [Classification](https://docs.ultralytics.com/tasks/classify/)
 
 ## Usage Examples
 
@@ -110,6 +111,36 @@ Export an Ultralytics YOLO11 model to IMX500 format and run inference with the e
          yolo predict model=yolo11n-pose_imx_model source='https://ultralytics.com/images/bus.jpg'
          ```
 
+!!! example "Classification"
+
+    === "Python"
+
+         ```python
+         from ultralytics import YOLO
+
+         # Load a YOLO11n-cls PyTorch model
+         model = YOLO("yolo11n-cls.pt")
+
+         # Export the model
+         model.export(format="imx", data="imagenet10")  # exports with PTQ quantization by default
+
+         # Load the exported model
+         imx_model = YOLO("yolo11n-cls_imx_model")
+
+         # Run inference
+         results = imx_model("https://ultralytics.com/images/bus.jpg", imgsz=224)
+         ```
+
+    === "CLI"
+
+         ```bash
+         # Export a YOLO11n-cls PyTorch model to imx format with Post-Training Quantization (PTQ)
+         yolo export model=yolo11n-cls.pt format=imx data=imagenet10
+
+         # Run inference with the exported model
+         yolo predict model=yolo11n-cls_imx_model source='https://ultralytics.com/images/bus.jpg' imgsz=224
+         ```
+
 !!! warning
 
     The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
@@ -157,6 +188,18 @@ The export process will create an ONNX model for quantization validation, along 
         ├── yolo11n-pose_imx.onnx
         ├── yolo11n-pose_imx_MemoryReport.json
         └── yolo11n-pose_imx.pbtxt
+        ```
+
+    === "Classification"
+
+        ```bash
+        yolo11n-cls_imx_model
+        ├── dnnParams.xml
+        ├── labels.txt
+        ├── packerOut.zip
+        ├── yolo11n-cls_imx.onnx
+        ├── yolo11n-cls_imx_MemoryReport.json
+        └── yolo11n-cls_imx.pbtxt
         ```
 
 ## Using IMX500 Export in Deployment
@@ -299,20 +342,70 @@ Step 5: Run YOLO11 object detection and pose estimation by using the below scrip
                 frame.display()
         ```
 
+    === "Classification"
+
+        ```python
+        import cv2
+        import numpy as np
+        from modlib.apps import Annotator
+        from modlib.devices import AiCamera
+        from modlib.models import COLOR_FORMAT, MODEL_TYPE, Model
+        from modlib.models.post_processors import pp_cls
+
+
+        class YOLOClassification(Model):
+            """YOLO classification model for IMX500 deployment."""
+
+            def __init__(self):
+                """Initialize the YOLO classification model for IMX500 deployment."""
+                super().__init__(
+                    model_file="yolo11n-cls_imx_model/packerOut.zip",  # replace with proper directory
+                    model_type=MODEL_TYPE.CONVERTED,
+                    color_format=COLOR_FORMAT.RGB,
+                    preserve_aspect_ratio=False,
+                )
+
+                self.labels = np.genfromtxt("yolo11n-cls_imx_model/labels.txt", dtype=str, delimiter="\n")
+
+            def post_process(self, output_tensors):
+                """Post-process the output tensors for classification."""
+                return pp_cls(output_tensors)
+
+
+        device = AiCamera()
+        model = YOLOClassification()
+        device.deploy(model)
+
+        annotator = Annotator()
+
+        with device as stream:
+            for frame in stream:
+                for i, label in enumerate([model.labels[id] for id in frame.detections.class_id[:3]]):
+                    text = f"{i + 1}. {label}: {frame.detections.confidence[i]:.2f}"
+                    cv2.putText(frame.image, text, (50, 30 + 40 * (i + 1)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 0, 100), 2)
+
+                frame.display()
+        ```
+
 ## Benchmarks
 
-YOLOv8n, YOLO11n, YOLOv8n-pose and YOLO11n-pose benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
+YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchmarks below were run by the Ultralytics team on Raspberry Pi AI Camera with `imx` model format measuring speed and accuracy.
 
-| Model        | Format | Status | Size of `packerOut.zip` (MB) | mAP50-95(B) | Inference time (ms/im) |
-| ------------ | ------ | ------ | ---------------------------- | ----------- | ---------------------- |
-| YOLOv8n      | imx    | ✅     | 2.1                          | 0.470       | 58.79                  |
-| YOLO11n      | imx    | ✅     | 2.2                          | 0.517       | 58.82                  |
-| YOLOv8n-pose | imx    | ✅     | 2.0                          | 0.687       | 58.79                  |
-| YOLO11n-pose | imx    | ✅     | 2.1                          | 0.788       | 62.50                  |
+| Model        | Format | Size (pixels) | Size of `packerOut.zip` (MB) | mAP50-95(B) | Inference time (ms/im) |
+| ------------ | ------ | ------------- | ---------------------------- | ----------- | ---------------------- |
+| YOLOv8n      | imx    | 640           | 2.1                          | 0.470       | 58.79                  |
+| YOLO11n      | imx    | 640           | 2.2                          | 0.517       | 58.82                  |
+| YOLOv8n-pose | imx    | 640           | 2.0                          | 0.687       | 58.79                  |
+| YOLO11n-pose | imx    | 640           | 2.1                          | 0.788       | 62.50                  |
+
+| Model       | Format | Size (pixels) | Size of `packerOut.zip` (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
+| ----------- | ------ | ------------- | ---------------------------- | ---------- | ---------- | ---------------------- |
+| YOLOv8n-cls | imx    | 224           | 2.3                          | 0.25       | 0.5        | 33.31                  |
+| YOLO11n-cls | imx    | 224           | 2.3                          | 0.25       | 0.417      | 33.31                  |
 
 !!! note
 
-    Validation for the above benchmarks were done using COCO128 dataset for detection models and COCO8-Pose dataset for pose estimation models
+    Validation for the above benchmarks were done using COCO128 dataset for detection models, COCO8-Pose dataset for pose estimation models and ImageNet10 for classification models.
 
 ## What's Under the Hood?
 

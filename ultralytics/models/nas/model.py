@@ -21,8 +21,8 @@ class NAS(Model):
     """
     YOLO-NAS model for object detection.
 
-    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
-    It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
+    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine. It
+    is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO-NAS model.

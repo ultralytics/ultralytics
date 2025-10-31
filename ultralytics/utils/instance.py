@@ -189,9 +189,9 @@ class Instances:
     """
     Container for bounding boxes, segments, and keypoints of detected objects in an image.
 
-    This class provides a unified interface for handling different types of object annotations including bounding
-    boxes, segmentation masks, and keypoints. It supports various operations like scaling, normalization, clipping,
-    and format conversion.
+    This class provides a unified interface for handling different types of object annotations including bounding boxes,
+    segmentation masks, and keypoints. It supports various operations like scaling, normalization, clipping, and format
+    conversion.
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.

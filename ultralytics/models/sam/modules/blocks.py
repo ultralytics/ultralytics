@@ -55,9 +55,8 @@ class MaskDownSampler(nn.Module):
     """
     A mask downsampling and embedding module for efficient processing of input masks.
 
-    This class implements a mask downsampler that progressively reduces the spatial dimensions of input masks
-    while expanding their channel dimensions using convolutional layers, layer normalization, and activation
-    functions.
+    This class implements a mask downsampler that progressively reduces the spatial dimensions of input masks while
+    expanding their channel dimensions using convolutional layers, layer normalization, and activation functions.
 
     Attributes:
         encoder (nn.Sequential): A sequential container of convolutional layers, layer normalization, and
@@ -115,8 +114,8 @@ class CXBlock(nn.Module):
     """
     ConvNeXt Block for efficient feature extraction in convolutional neural networks.
 
-    This block implements a modified version of the ConvNeXt architecture, offering improved performance and
-    flexibility in feature extraction.
+    This block implements a modified version of the ConvNeXt architecture, offering improved performance and flexibility
+    in feature extraction.
 
     Attributes:
         dwconv (nn.Conv2d): Depthwise or standard 2D convolution layer.
@@ -265,9 +264,9 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
     """
     A two-way attention block for performing self-attention and cross-attention in both directions.
 
-    This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on
-    sparse inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and
-    cross-attention from dense to sparse inputs.
+    This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on sparse inputs,
+    cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and cross-attention from dense to sparse
+    inputs.
 
     Attributes:
         self_attn (Attention): Self-attention layer for queries.
@@ -303,8 +302,8 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
         Initialize a SAM2TwoWayAttentionBlock for performing self-attention and cross-attention in two directions.
 
         This block extends the TwoWayAttentionBlock and consists of four main components: self-attention on sparse
-        inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and cross-attention
-        from dense to sparse inputs.
+        inputs, cross-attention from sparse to dense inputs, an MLP block on sparse inputs, and cross-attention from
+        dense to sparse inputs.
 
         Args:
             embedding_dim (int): The channel dimension of the embeddings.
@@ -328,9 +327,9 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
     """
     A Two-Way Transformer module for simultaneous attention to image and query points.
 
-    This class extends the TwoWayTransformer, implementing a specialized transformer decoder that attends to an
-    input image using queries with supplied positional embeddings. It is particularly useful for tasks like
-    object detection, image segmentation, and point cloud processing.
+    This class extends the TwoWayTransformer, implementing a specialized transformer decoder that attends to an input
+    image using queries with supplied positional embeddings. It is particularly useful for tasks like object detection,
+    image segmentation, and point cloud processing.
 
     Attributes:
         depth (int): Number of layers in the transformer.
@@ -365,8 +364,8 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
         """
         Initialize a SAM2TwoWayTransformer instance.
 
-        This transformer decoder attends to an input image using queries with supplied positional embeddings.
-        It is designed for tasks like object detection, image segmentation, and point cloud processing.
+        This transformer decoder attends to an input image using queries with supplied positional embeddings. It is
+        designed for tasks like object detection, image segmentation, and point cloud processing.
 
         Args:
             depth (int): Number of layers in the transformer.
@@ -406,8 +405,8 @@ class RoPEAttention(Attention):
     """
     Implements rotary position encoding for attention mechanisms in transformer architectures.
 
-    This class extends the base Attention class by incorporating Rotary Position Encoding (RoPE) to enhance
-    the positional awareness of the attention mechanism.
+    This class extends the base Attention class by incorporating Rotary Position Encoding (RoPE) to enhance the
+    positional awareness of the attention mechanism.
 
     Attributes:
         compute_cis (Callable): Function to compute axial complex numbers for rotary encoding.
@@ -504,9 +503,9 @@ class MultiScaleAttention(nn.Module):
     """
     Implements multiscale self-attention with optional query pooling for efficient feature extraction.
 
-    This class provides a flexible implementation of multiscale attention, allowing for optional
-    downsampling of query features through pooling. It's designed to enhance the model's ability to
-    capture multiscale information in visual tasks.
+    This class provides a flexible implementation of multiscale attention, allowing for optional downsampling of query
+    features through pooling. It's designed to enhance the model's ability to capture multiscale information in visual
+    tasks.
 
     Attributes:
         dim (int): Input dimension of the feature map.
@@ -584,8 +583,8 @@ class MultiScaleBlock(nn.Module):
     """
     A multiscale attention block with window partitioning and query pooling for efficient vision transformers.
 
-    This class implements a multiscale attention mechanism with optional window partitioning and downsampling,
-    designed for use in vision transformer architectures.
+    This class implements a multiscale attention mechanism with optional window partitioning and downsampling, designed
+    for use in vision transformer architectures.
 
     Attributes:
         dim (int): Input dimension of the block.
@@ -699,8 +698,8 @@ class PositionEmbeddingSine(nn.Module):
     """
     A module for generating sinusoidal positional embeddings for 2D inputs like images.
 
-    This class implements sinusoidal position encoding for 2D spatial positions, which can be used in
-    transformer-based models for computer vision tasks.
+    This class implements sinusoidal position encoding for 2D spatial positions, which can be used in transformer-based
+    models for computer vision tasks.
 
     Attributes:
         num_pos_feats (int): Number of positional features (half of the embedding dimension).
@@ -881,9 +880,9 @@ class Block(nn.Module):
     """
     Transformer block with support for window attention and residual propagation.
 
-    This class implements a transformer block that can use either global or windowed self-attention,
-    followed by a feed-forward network. It supports relative positional embeddings and is designed
-    for use in vision transformer architectures.
+    This class implements a transformer block that can use either global or windowed self-attention, followed by a
+    feed-forward network. It supports relative positional embeddings and is designed for use in vision transformer
+    architectures.
 
     Attributes:
         norm1 (nn.Module): First normalization layer.
@@ -920,9 +919,9 @@ class Block(nn.Module):
         """
         Initialize a transformer block with optional window attention and relative positional embeddings.
 
-        This constructor sets up a transformer block that can use either global or windowed self-attention,
-        followed by a feed-forward network. It supports relative positional embeddings and is designed
-        for use in vision transformer architectures.
+        This constructor sets up a transformer block that can use either global or windowed self-attention, followed by
+        a feed-forward network. It supports relative positional embeddings and is designed for use in vision transformer
+        architectures.
 
         Args:
             dim (int): Number of input channels.
@@ -981,9 +980,9 @@ class REAttention(nn.Module):
     """
     Relative Position Attention module for efficient self-attention in transformer architectures.
 
-    This class implements a multi-head attention mechanism with relative positional embeddings, designed
-    for use in vision transformer models. It supports optional query pooling and window partitioning
-    for efficient processing of large inputs.
+    This class implements a multi-head attention mechanism with relative positional embeddings, designed for use in
+    vision transformer models. It supports optional query pooling and window partitioning for efficient processing of
+    large inputs.
 
     Attributes:
         num_heads (int): Number of attention heads.
@@ -1017,8 +1016,8 @@ class REAttention(nn.Module):
         """
         Initialize a Relative Position Attention module for transformer-based architectures.
 
-        This module implements multi-head attention with optional relative positional encodings, designed
-        specifically for vision tasks in transformer models.
+        This module implements multi-head attention with optional relative positional encodings, designed specifically
+        for vision tasks in transformer models.
 
         Args:
             dim (int): Number of input channels.
@@ -1073,9 +1072,9 @@ class PatchEmbed(nn.Module):
     """
     Image to Patch Embedding module for vision transformer architectures.
 
-    This module converts an input image into a sequence of patch embeddings using a convolutional layer.
-    It is commonly used as the first layer in vision transformer architectures to transform image data
-    into a suitable format for subsequent transformer blocks.
+    This module converts an input image into a sequence of patch embeddings using a convolutional layer. It is commonly
+    used as the first layer in vision transformer architectures to transform image data into a suitable format for
+    subsequent transformer blocks.
 
     Attributes:
         proj (nn.Conv2d): Convolutional layer for projecting image patches to embeddings.
@@ -1102,8 +1101,8 @@ class PatchEmbed(nn.Module):
         """
         Initialize the PatchEmbed module for converting image patches to embeddings.
 
-        This module is typically used as the first layer in vision transformer architectures to transform
-        image data into a suitable format for subsequent transformer blocks.
+        This module is typically used as the first layer in vision transformer architectures to transform image data
+        into a suitable format for subsequent transformer blocks.
 
         Args:
             kernel_size (tuple[int, int]): Size of the convolutional kernel for patch extraction.

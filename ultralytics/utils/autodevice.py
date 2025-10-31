@@ -12,9 +12,9 @@ class GPUInfo:
     """
     Manages NVIDIA GPU information via pynvml with robust error handling.
 
-    Provides methods to query detailed GPU statistics (utilization, memory, temp, power) and select the most idle
-    GPUs based on configurable criteria. It safely handles the absence or initialization failure of the pynvml
-    library by logging warnings and disabling related features, preventing application crashes.
+    Provides methods to query detailed GPU statistics (utilization, memory, temp, power) and select the most idle GPUs
+    based on configurable criteria. It safely handles the absence or initialization failure of the pynvml library by
+    logging warnings and disabling related features, preventing application crashes.
 
     Includes fallback logic using `torch.cuda` for basic device counting if NVML is unavailable during GPU
     selection. Manages NVML initialization and shutdown internally.

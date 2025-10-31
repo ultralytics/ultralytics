@@ -13,8 +13,8 @@ class DistanceCalculation(BaseSolution):
     """
     A class to calculate distance between two objects in a real-time video stream based on their tracks.
 
-    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance
-    between them in a video stream using YOLO object detection and tracking.
+    This class extends BaseSolution to provide functionality for selecting objects and calculating the distance between
+    them in a video stream using YOLO object detection and tracking.
 
     Attributes:
         left_mouse_count (int): Counter for left mouse button clicks.
@@ -72,16 +72,16 @@ class DistanceCalculation(BaseSolution):
         """
         Process a video frame and calculate the distance between two selected bounding boxes.
 
-        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance
-        between two user-selected objects if they have been chosen.
+        This method extracts tracks from the input frame, annotates bounding boxes, and calculates the distance between
+        two user-selected objects if they have been chosen.
 
         Args:
             im0 (np.ndarray): The input image frame to process.
 
         Returns:
             (SolutionResults): Contains processed image `plot_im`, `total_tracks` (int) representing the total number
-                of tracked objects, and `pixels_distance` (float) representing the distance between selected objects
-                in pixels.
+                of tracked objects, and `pixels_distance` (float) representing the distance between selected objects in
+                pixels.
 
         Examples:
             >>> import numpy as np

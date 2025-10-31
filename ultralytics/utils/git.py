@@ -11,9 +11,9 @@ class GitRepo:
     Represent a local Git repository and expose branch, commit, and remote metadata.
 
     This class discovers the repository root by searching for a .git entry from the given path upward, resolves the
-    actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not
-    invoke the git binary and therefore works in restricted environments. All metadata properties are resolved
-    lazily and cached; construct a new instance to refresh state.
+    actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not invoke
+    the git binary and therefore works in restricted environments. All metadata properties are resolved lazily and
+    cached; construct a new instance to refresh state.
 
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.

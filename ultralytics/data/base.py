@@ -24,8 +24,8 @@ class BaseDataset(Dataset):
     """
     Base dataset class for loading and processing image data.
 
-    This class provides core functionality for loading images, caching, and preparing data for training and inference
-    in object detection tasks.
+    This class provides core functionality for loading images, caching, and preparing data for training and inference in
+    object detection tasks.
 
     Attributes:
         img_path (str): Path to the folder containing images.

@@ -14,8 +14,8 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     """
     Split classification dataset into train and val directories in a new directory.
 
-    Creates a new directory '{source_dir}_split' with train/val subdirectories, preserving the original class
-    structure with an 80/20 split by default.
+    Creates a new directory '{source_dir}_split' with train/val subdirectories, preserving the original class structure
+    with an 80/20 split by default.
 
     Directory structure:
         Before:

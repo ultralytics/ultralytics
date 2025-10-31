@@ -64,8 +64,8 @@ def _plot_curve(
     """
     Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb.
-    The curve can represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
+    This function generates a metric curve based on input data and logs the visualization to wandb. The curve can
+    represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
@@ -108,8 +108,8 @@ def _log_plots(plots, step):
     """
     Log plots to WandB at a specific step if they haven't been logged already.
 
-    This function checks each plot in the input dictionary against previously processed plots and logs
-    new or updated plots to WandB at the specified step.
+    This function checks each plot in the input dictionary against previously processed plots and logs new or updated
+    plots to WandB at the specified step.
 
     Args:
         plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries

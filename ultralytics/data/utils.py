@@ -54,8 +54,8 @@ def check_file_speeds(
     """
     Check dataset file access speed and provide performance feedback.
 
-    This function tests the access speed of dataset files by measuring ping (stat call) time and read speed.
-    It samples up to 5 files from the provided list and warns if access times exceed the threshold.
+    This function tests the access speed of dataset files by measuring ping (stat call) time and read speed. It samples
+    up to 5 files from the provided list and warns if access times exceed the threshold.
 
     Args:
         files (list[str]): List of file paths to check for access speed.
@@ -254,10 +254,10 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
     """
     Visualize YOLO annotations (bounding boxes and class labels) on an image.
 
-    This function reads an image and its corresponding annotation file in YOLO format, then
-    draws bounding boxes around detected objects and labels them with their respective class names.
-    The bounding box colors are assigned based on the class ID, and the text color is dynamically
-    adjusted for readability, depending on the background color's luminance.
+    This function reads an image and its corresponding annotation file in YOLO format, then draws bounding boxes around
+    detected objects and labels them with their respective class names. The bounding box colors are assigned based on
+    the class ID, and the text color is dynamically adjusted for readability, depending on the background color's
+    luminance.
 
     Args:
         image_path (str): The path to the image file to annotate, and it can be in formats supported by PIL.
@@ -303,7 +303,7 @@ def polygon2mask(
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+            N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
@@ -328,7 +328,7 @@ def polygons2masks(
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
         polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-                                     N is the number of polygons, and M is the number of points such that M % 2 = 0.
+            N is the number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
@@ -487,8 +487,8 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     """
     Check a classification dataset such as Imagenet.
 
-    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information.
-    If the dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
+    This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information. If the
+    dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
         dataset (str | Path): The name of the dataset.
@@ -600,10 +600,6 @@ class HUBDatasetStats:
         get_json: Return dataset JSON for Ultralytics HUB.
         process_images: Compress images for Ultralytics HUB.
 
-    Note:
-        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
-        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
-
     Examples:
         >>> from ultralytics.data.utils import HUBDatasetStats
         >>> stats = HUBDatasetStats("path/to/coco8.zip", task="detect")  # detect dataset
@@ -613,6 +609,10 @@ class HUBDatasetStats:
         >>> stats = HUBDatasetStats("path/to/imagenet10.zip", task="classify")  # classification dataset
         >>> stats.get_json(save=True)
         >>> stats.process_images()
+
+    Notes:
+        Download *.zip files from https://github.com/ultralytics/hub/tree/main/example_datasets
+        i.e. https://github.com/ultralytics/hub/raw/main/example_datasets/coco8.zip for coco8.zip.
     """
 
     def __init__(self, path: str = "coco8.yaml", task: str = "detect", autodownload: bool = False):

@@ -118,8 +118,8 @@ class WorldTrainer(DetectionTrainer):
         """
         Set text embeddings for datasets to accelerate training by caching category names.
 
-        This method collects unique category names from all datasets, then generates and caches text embeddings
-        for these categories to improve training efficiency.
+        This method collects unique category names from all datasets, then generates and caches text embeddings for
+        these categories to improve training efficiency.
 
         Args:
             datasets (list[Any]): List of datasets from which to extract category names.

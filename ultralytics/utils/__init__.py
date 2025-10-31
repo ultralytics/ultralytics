@@ -179,11 +179,11 @@ class DataExportMixin:
         Export results or metrics to CSV string format.
 
         Args:
-           normalize (bool, optional): Normalize numeric values.
-           decimals (int, optional): Decimal precision.
+            normalize (bool, optional): Normalize numeric values.
+            decimals (int, optional): Decimal precision.
 
         Returns:
-           (str): CSV content as string.
+            (str): CSV content as string.
         """
         import polars as pl
 
@@ -224,8 +224,8 @@ class SimpleClass:
     """
     A simple base class for creating objects with string representations of their attributes.
 
-    This class provides a foundation for creating objects that can be easily printed or represented as strings,
-    showing all their non-callable attributes. It's useful for debugging and introspection of object states.
+    This class provides a foundation for creating objects that can be easily printed or represented as strings, showing
+    all their non-callable attributes. It's useful for debugging and introspection of object states.
 
     Methods:
         __str__: Return a human-readable string representation of the object.
@@ -278,9 +278,9 @@ class IterableSimpleNamespace(SimpleNamespace):
     """
     An iterable SimpleNamespace class that provides enhanced functionality for attribute access and iteration.
 
-    This class extends the SimpleNamespace class with additional methods for iteration, string representation,
-    and attribute access. It is designed to be used as a convenient container for storing and accessing
-    configuration parameters.
+    This class extends the SimpleNamespace class with additional methods for iteration, string representation, and
+    attribute access. It is designed to be used as a convenient container for storing and accessing configuration
+    parameters.
 
     Methods:
         __iter__: Return an iterator of key-value pairs from the namespace's attributes.
@@ -392,9 +392,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
     """
     Set up logging with UTF-8 encoding and configurable verbosity.
 
-    This function configures logging for the Ultralytics library, setting the appropriate logging level and
-    formatter based on the verbosity flag and the current process rank. It handles special cases for Windows
-    environments where UTF-8 encoding might not be the default.
+    This function configures logging for the Ultralytics library, setting the appropriate logging level and formatter
+    based on the verbosity flag and the current process rank. It handles special cases for Windows environments where
+    UTF-8 encoding might not be the default.
 
     Args:
         name (str): Name of the logger.
@@ -926,10 +926,14 @@ def colorstr(*input):
 
     Args:
         *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
-                      and the last string is the one to be colored.
+            and the last string is the one to be colored.
 
     Returns:
         (str): The input string wrapped with ANSI escape codes for the specified color and style.
+
+    Examples:
+        >>> colorstr("blue", "bold", "hello world")
+        >>> "\033[34m\033[1mhello world\033[0m"
 
     Notes:
         Supported Colors and Styles:
@@ -937,10 +941,6 @@ def colorstr(*input):
         - Bright Colors: 'bright_black', 'bright_red', 'bright_green', 'bright_yellow',
                        'bright_blue', 'bright_magenta', 'bright_cyan', 'bright_white'
         - Misc: 'end', 'bold', 'underline'
-
-    Examples:
-        >>> colorstr("blue", "bold", "hello world")
-        >>> "\033[34m\033[1mhello world\033[0m"
 
     References:
         https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -1033,8 +1033,8 @@ class Retry(contextlib.ContextDecorator):
     Retry class for function execution with exponential backoff.
 
     This decorator can be used to retry a function on exceptions, up to a specified number of times with an
-    exponentially increasing delay between retries. It's useful for handling transient failures in network
-    operations or other unreliable processes.
+    exponentially increasing delay between retries. It's useful for handling transient failures in network operations or
+    other unreliable processes.
 
     Attributes:
         times (int): Maximum number of retry attempts.
@@ -1077,9 +1077,9 @@ def threaded(func):
     """
     Multi-thread a target function by default and return the thread or function result.
 
-    This decorator provides flexible execution of the target function, either in a separate thread or synchronously.
-    By default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument
-    which is removed from kwargs before calling the function.
+    This decorator provides flexible execution of the target function, either in a separate thread or synchronously. By
+    default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument which
+    is removed from kwargs before calling the function.
 
     Args:
         func (callable): The function to be potentially executed in a separate thread.

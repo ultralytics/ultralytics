@@ -28,9 +28,9 @@ class SAM(Model):
     """
     SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
 
-    This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for
-    promptable segmentation with versatility in image analysis. It supports various prompts such as bounding
-    boxes, points, or labels, and features zero-shot performance capabilities.
+    This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for promptable
+    segmentation with versatility in image analysis. It supports various prompts such as bounding boxes, points, or
+    labels, and features zero-shot performance capabilities.
 
     Attributes:
         model (torch.nn.Module): The loaded SAM model.
@@ -114,8 +114,8 @@ class SAM(Model):
         """
         Perform segmentation prediction on the given image or video source.
 
-        This method is an alias for the 'predict' method, providing a convenient way to call the SAM model
-        for segmentation tasks.
+        This method is an alias for the 'predict' method, providing a convenient way to call the SAM model for
+        segmentation tasks.
 
         Args:
             source (str | PIL.Image | np.ndarray | None): Path to the image or video file, or a PIL.Image

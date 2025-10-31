@@ -96,14 +96,14 @@ def autocast(enabled: bool, device: str = "cuda"):
     Returns:
         (torch.amp.autocast): The appropriate autocast context manager.
 
-    Notes:
-        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
-        - For older versions, it uses `torch.cuda.autocast`.
-
     Examples:
         >>> with autocast(enabled=True):
         ...     # Your mixed precision operations here
         ...     pass
+
+    Notes:
+        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
+        - For older versions, it uses `torch.cuda.autocast`.
     """
     if TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
@@ -246,7 +246,7 @@ def fuse_conv_and_bn(conv, bn):
     Returns:
         (nn.Conv2d): The fused convolutional layer with gradients disabled.
 
-    Example:
+    Examples:
         >>> conv = nn.Conv2d(3, 16, 3)
         >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
@@ -280,7 +280,7 @@ def fuse_deconv_and_bn(deconv, bn):
     Returns:
         (nn.ConvTranspose2d): The fused transposed convolutional layer with gradients disabled.
 
-    Example:
+    Examples:
         >>> deconv = nn.ConvTranspose2d(16, 3, 3)
         >>> bn = nn.BatchNorm2d(3)
         >>> fused_deconv = fuse_deconv_and_bn(deconv, bn)
@@ -396,9 +396,8 @@ def get_flops(model, imgsz=640):
     """
     Calculate FLOPs (floating point operations) for a model in billions.
 
-    Attempts two calculation methods: first with a stride-based tensor for efficiency,
-    then falls back to full image size if needed (e.g., for RTDETR models). Returns 0.0
-    if thop library is unavailable or calculation fails.
+    Attempts two calculation methods: first with a stride-based tensor for efficiency, then falls back to full image
+    size if needed (e.g., for RTDETR models). Returns 0.0 if thop library is unavailable or calculation fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
@@ -622,8 +621,8 @@ class ModelEMA:
     """
     Updated Exponential Moving Average (EMA) implementation.
 
-    Keeps a moving average of everything in the model state_dict (parameters and buffers).
-    For EMA details see References.
+    Keeps a moving average of everything in the model state_dict (parameters and buffers). For EMA details see
+    References.
 
     To disable EMA set the `enabled` attribute to `False`.
 
@@ -770,9 +769,9 @@ def cuda_memory_usage(device=None):
     """
     Monitor and manage CUDA memory usage.
 
-    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory.
-    It then yields a dictionary containing memory usage information, which can be updated by the caller.
-    Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
+    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory. It then
+    yields a dictionary containing memory usage information, which can be updated by the caller. Finally, it updates the
+    dictionary with the amount of memory reserved by CUDA on the specified device.
 
     Args:
         device (torch.device, optional): The CUDA device to query memory usage for.
@@ -958,15 +957,15 @@ def attempt_compile(
     Returns:
         model (torch.nn.Module): Compiled model if compilation succeeds, otherwise the original unmodified model.
 
-    Notes:
-        - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
-        - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
-        - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
-
     Examples:
         >>> device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         >>> # Try to compile and warm up a model with a 640x640 input
         >>> model = attempt_compile(model, device=device, imgsz=640, use_autocast=True, warmup=True)
+
+    Notes:
+        - If the current PyTorch build does not provide torch.compile, the function returns the input model immediately.
+        - Warmup runs under torch.inference_mode and may use torch.autocast for CUDA/MPS to align compute precision.
+        - CUDA devices are synchronized after warmup to account for asynchronous kernel execution.
     """
     if not hasattr(torch, "compile") or not mode:
         return model

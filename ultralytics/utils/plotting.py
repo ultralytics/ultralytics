@@ -23,8 +23,8 @@ class Colors:
     """
     Ultralytics color palette for visualization and plotting.
 
-    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to
-    RGB values and accessing predefined color schemes for object detection and pose estimation.
+    This class provides methods to work with the Ultralytics color palette, including converting hex color codes to RGB
+    values and accessing predefined color schemes for object detection and pose estimation.
 
     Attributes:
         palette (list[tuple]): List of RGB color tuples for general use.
@@ -435,7 +435,7 @@ class Annotator:
             conf_thres (float, optional): Confidence threshold.
             kpt_color (tuple, optional): Keypoint color (B, G, R).
 
-        Note:
+        Notes:
             - `kpt_line=True` currently only supports human pose plotting.
             - Modifies self.im in-place.
             - If self.pil is True, converts image to numpy array and back to PIL.
@@ -644,9 +644,9 @@ def save_one_box(
     """
     Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
-    This function takes a bounding box and an image, and then saves a cropped portion of the image according
-    to the bounding box. Optionally, the crop can be squared, and the function allows for gain and padding
-    adjustments to the bounding box.
+    This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
+    bounding box. Optionally, the crop can be squared, and the function allows for gain and padding adjustments to the
+    bounding box.
 
     Args:
         xyxy (torch.Tensor | list): A tensor or list representing the bounding box in xyxy format.
@@ -703,7 +703,8 @@ def plot_images(
     Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
-        labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks', 'keypoints', 'batch_idx', 'img'.
+        labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks',
+            'keypoints', 'batch_idx', 'img'.
         images (torch.Tensor | np.ndarray]): Batch of images to plot. Shape: (batch_size, channels, height, width).
         paths (Optional[list[str]]): List of file paths for each image in the batch.
         fname (str): Output filename for the plotted image grid.
@@ -717,7 +718,7 @@ def plot_images(
     Returns:
         (np.ndarray): Plotted image grid as a numpy array if save is False, None otherwise.
 
-    Note:
+    Notes:
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
 

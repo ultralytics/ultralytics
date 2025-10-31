@@ -180,9 +180,8 @@ def torch2imx(
     """
     Export YOLO model to IMX format for deployment on Sony IMX500 devices.
 
-    This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it
-    to IMX format compatible with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n
-    models for detection and pose estimation tasks.
+    This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it to IMX format compatible
+    with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n models for detection and pose estimation tasks.
 
     Args:
         model (torch.nn.Module): The YOLO model to export. Must be YOLOv8n or YOLO11n.
@@ -202,12 +201,12 @@ def torch2imx(
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.
 
-    Example:
+    Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
         >>> path, _ = export_imx(model, "model.imx", conf=0.25, iou=0.45, max_det=300)
 
-    Note:
+    Notes:
         - Requires model_compression_toolkit, onnx, edgemdt_tpc, and sony_custom_layers packages
         - Only supports YOLOv8n and YOLO11n models (detection and pose tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file

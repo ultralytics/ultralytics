@@ -71,8 +71,8 @@ class BasePredictor:
     """
     A base class for creating predictors.
 
-    This class provides the foundation for prediction functionality, handling model setup, inference,
-    and result processing across various input sources.
+    This class provides the foundation for prediction functionality, handling model setup, inference, and result
+    processing across various input sources.
 
     Attributes:
         args (SimpleNamespace): Configuration for the predictor.
@@ -233,8 +233,8 @@ class BasePredictor:
         """
         Method used for Command Line Interface (CLI) prediction.
 
-        This function is designed to run predictions using the CLI. It sets up the source and model, then processes
-        the inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
+        This function is designed to run predictions using the CLI. It sets up the source and model, then processes the
+        inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
         generator without storing results.
 
         Args:
@@ -242,7 +242,7 @@ class BasePredictor:
                 Source for inference.
             model (str | Path | torch.nn.Module, optional): Model for inference.
 
-        Note:
+        Notes:
             Do not modify this function or remove the generator. The generator ensures that no outputs are
             accumulated in memory, which is critical for preventing memory issues during long-running predictions.
         """

@@ -177,7 +177,7 @@ def test_semseg():
     pred = semseg.SemSegPredictor(cfg=cfg)
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
-    result = pred(source=ASSETS, model=trainer.best)
+    pred(source=ASSETS, model=trainer.best)
 
     # export smoke test
-    model = YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+    YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")

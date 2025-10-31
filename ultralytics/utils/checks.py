@@ -5,6 +5,7 @@ from __future__ import annotations
 import functools
 import glob
 import inspect
+import json
 import math
 import os
 import platform
@@ -48,6 +49,7 @@ from ultralytics.utils import (
     colorstr,
     downloads,
     is_github_action_running,
+    torch_utils,
     url2file,
 )
 
@@ -692,7 +694,7 @@ def check_yolo(verbose=True, device=""):
 
 def collect_system_info():
     """
-    Collect and print relevant system information including OS, Python, RAM, CPU, and CUDA.
+    Collect and print relevant system information including OS, Python, RAM, CPU, XPU and/or CUDA.
 
     Returns:
         (dict): Dictionary containing system information.
@@ -703,7 +705,14 @@ def collect_system_info():
     from ultralytics.utils.torch_utils import get_cpu_info, get_gpu_info
 
     gib = 1 << 30  # bytes per GiB
+    devices = tuple()
     cuda = torch.cuda.is_available()
+    if torch_utils.TORCH_2_3:
+        xpu = torch.xpu.is_available()
+        if xpu:
+            devices = (*devices, "xpu")
+    if cuda:
+        devices = (*devices, "cuda")
     check_yolo()
     total, _used, free = shutil.disk_usage("/")
 
@@ -717,9 +726,11 @@ def collect_system_info():
         "Disk": f"{(total - free) / gib:.1f}/{total / gib:.1f} GB",
         "CPU": get_cpu_info(),
         "CPU count": os.cpu_count(),
-        "GPU": get_gpu_info(index=0) if cuda else None,
-        "GPU count": torch.cuda.device_count() if cuda else None,
+        "GPU(s)": get_gpu_info(devices=devices, index=0) if cuda else None,
+        "CUDA GPU count": torch.cuda.device_count() if cuda else None,
+        "XPU GPU count": torch.xpu.device_count() if torch_utils.TORCH_2_3 and xpu else None,
         "CUDA": torch.version.cuda if cuda else None,
+        "XPU": torch.version.xpu if torch_utils.TORCH_2_3 and xpu else None,
     }
     LOGGER.info("\n" + "\n".join(f"{k:<23}{v}" for k, v in info_dict.items()) + "\n")
 
@@ -776,6 +787,14 @@ def check_amp(model):
     prefix = colorstr("AMP: ")
     if device.type in {"cpu", "mps"}:
         return False  # AMP only used on CUDA devices
+    elif device.type == "xpu":
+        try:
+            with torch.autocast("xpu"):
+                x = torch.randn(1).to(device)
+                _ = x.double().pow(2)  # Test if fp64 operations are supported
+        except RuntimeError as e:
+            LOGGER.warning(f"{prefix}checks failed ❌. AMP training on {device.type} not supported: {e!s}")
+            return False
     else:
         # GPUs that have issues with AMP
         pattern = re.compile(
@@ -795,7 +814,7 @@ def check_amp(model):
         batch = [im] * 8
         imgsz = max(256, int(model.stride.max() * 4))  # max stride P5-32 and P6-64
         a = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # FP32 inference
-        with autocast(enabled=True):
+        with autocast(enabled=True, device=str(device)):
             b = m(batch, imgsz=imgsz, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
@@ -950,6 +969,35 @@ def is_intel():
         return "intel" in result.stdout.lower()
     except Exception:  # broad clause to capture all Intel GPU exception types
         return False
+
+
+def xpu_device_count() -> int:
+    """
+    Get the number of INTEL GPUs available in the environment.
+
+    Returns:
+        (int): The number of INTEL GPUs available.
+    """
+    try:
+        # Run the xpu-smi command and capture its output
+        output = subprocess.check_output(["xpu-smi", "discovery", "-j"], encoding="utf-8")
+        # Take the first line and strip any leading/trailing white space
+        json_output = json.loads(output.strip())
+        unique_local_ids = {entry["device_id"] for entry in json_output["device_list"]}
+        return len(unique_local_ids)
+    except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+        # If the command fails, xpu-smi is not found, or output is not an integer, assume no GPUs are available
+        return 0
+
+
+def xpu_device_available() -> bool:
+    """
+    Check if XPU is available in the environment.
+
+    Returns:
+        (bool): True if one or more INTEL GPUs are available, False otherwise.
+    """
+    return xpu_device_count() > 0
 
 
 def is_sudo_available() -> bool:

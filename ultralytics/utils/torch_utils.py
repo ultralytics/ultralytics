@@ -37,13 +37,14 @@ from ultralytics.utils.cpu import CPUInfo
 from ultralytics.utils.patches import torch_load
 
 # Version checks (all default to version>=min_version)
-TORCH_1_9 = check_version(TORCH_VERSION, "1.9.0")
+TORCH_1_9 = check_version(torch.__version__, "1.9.0")
 TORCH_1_10 = check_version(TORCH_VERSION, "1.10.0")
 TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
-TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
-TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
+TORCH_1_13 = check_version(torch.__version__, "1.13.0")
+TORCH_2_0 = check_version(torch.__version__, "2.0.0")
 TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
-TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
+TORCH_2_3 = check_version(torch.__version__, "2.3.0")
+TORCH_2_4 = check_version(torch.__version__, "2.4.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
@@ -82,7 +83,7 @@ def smart_inference_mode():
     return decorate
 
 
-def autocast(enabled: bool, device: str = "cuda"):
+def autocast(enabled: bool, device: str | None = None):
     """
     Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
@@ -97,7 +98,8 @@ def autocast(enabled: bool, device: str = "cuda"):
         (torch.amp.autocast): The appropriate autocast context manager.
 
     Notes:
-        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
+        - For PyTorch versions 2.4 and newer, it uses `torch.autocast`.
+        - For PyTorch versions 1.13-2.3, it uses `torch.amp.autocast`.
         - For older versions, it uses `torch.cuda.autocast`.
 
     Examples:
@@ -105,7 +107,9 @@ def autocast(enabled: bool, device: str = "cuda"):
         ...     # Your mixed precision operations here
         ...     pass
     """
-    if TORCH_1_13:
+    if TORCH_2_4:
+        return torch.autocast(device, enabled=enabled)
+    elif TORCH_1_13:
         return torch.amp.autocast(device, enabled=enabled)
     else:
         return torch.cuda.amp.autocast(enabled)
@@ -125,10 +129,15 @@ def get_cpu_info():
 
 
 @functools.lru_cache
-def get_gpu_info(index):
-    """Return a string with system GPU information, i.e. 'Tesla T4, 15102MiB'."""
-    properties = torch.cuda.get_device_properties(index)
-    return f"{properties.name}, {properties.total_memory / (1 << 20):.0f}MiB"
+def get_gpu_info(devices: tuple, index):
+    """Return a string with system GPU(s) information, i.e. 'Tesla T4, 15102MiB'."""
+    properties = []
+    if "cuda" in devices:
+        properties.append(torch.cuda.get_device_properties(index))
+    if "xpu" in devices:
+        properties.append(torch.xpu.get_device_properties(index))
+    result = " ".join([f"{prop.name}, {prop.total_memory / (1 << 20):.0f}MiB\n" for prop in properties])
+    return result
 
 
 def select_device(device="", newline=False, verbose=True):
@@ -180,7 +189,8 @@ def select_device(device="", newline=False, verbose=True):
 
     cpu = device == "cpu"
     mps = device in {"mps", "mps:0"}  # Apple Metal Performance Shaders (MPS)
-    if cpu or mps:
+    xpu = device in {"xpu", "xpu:0"}  # Intel dGPU
+    if any([cpu, mps, xpu]):
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         if device == "cuda":
@@ -207,16 +217,18 @@ def select_device(device="", newline=False, verbose=True):
                 f"{install}"
             )
 
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
+    if not all([cpu, mps, xpu]) and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):
-            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(i)})\n"  # bytes to MB
+            s += f"{'' if i == 0 else space}CUDA:{d} ({get_gpu_info(('cuda',), i)})\n"  # bytes to MB
         arg = "cuda:0"
     elif mps and TORCH_2_0 and torch.backends.mps.is_available():
         # Prefer MPS if available
         s += f"MPS ({get_cpu_info()})\n"
         arg = "mps"
+    elif xpu:
+        arg = "xpu:0"
     else:  # revert to CPU
         s += f"CPU ({get_cpu_info()})\n"
         arg = "cpu"
@@ -232,6 +244,9 @@ def time_sync():
     """Return PyTorch-accurate time."""
     if torch.cuda.is_available():
         torch.cuda.synchronize()
+    elif TORCH_2_3:
+        if torch.xpu.is_available():
+            torch.xpu.synchronize()
     return time.time()
 
 
@@ -595,6 +610,9 @@ def init_seeds(seed=0, deterministic=False):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    if TORCH_2_3:
+        torch.xpu.manual_seed(seed)
+        torch.xpu.manual_seed_all(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
     # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
@@ -766,29 +784,35 @@ def convert_optimizer_state_dict_to_fp16(state_dict):
 
 
 @contextmanager
-def cuda_memory_usage(device=None):
+def device_memory_usage(device=None):
     """
-    Monitor and manage CUDA memory usage.
+    Monitor and manage CUDA/XPU device memory usage.
 
-    This function checks if CUDA is available and, if so, empties the CUDA cache to free up unused memory.
+    This function checks if CUDA or XPU is available and, if so, empties the CUDA/XPU cache to free up unused memory.
     It then yields a dictionary containing memory usage information, which can be updated by the caller.
-    Finally, it updates the dictionary with the amount of memory reserved by CUDA on the specified device.
+    Finally, it updates the dictionary with the amount of memory reserved by CUDA/XPU on the specified device.
 
     Args:
-        device (torch.device, optional): The CUDA device to query memory usage for.
+        device (torch.device, optional): The CUDA or XPU device to query memory usage for.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, which will be updated with the reserved memory.
     """
-    cuda_info = dict(memory=0)
-    if torch.cuda.is_available():
+    device_info = dict(memory=0)
+    if device.type in device.type in {"cuda", "cuda:0"}:
         torch.cuda.empty_cache()
         try:
-            yield cuda_info
+            yield device_info
         finally:
-            cuda_info["memory"] = torch.cuda.memory_reserved(device)
+            device_info["memory"] = torch.cuda.memory_reserved(device)
+    elif device.type in {"xpu", "xpu:0"}:
+        torch.xpu.empty_cache()
+        try:
+            yield device_info
+        finally:
+            device_info["memory"] = torch.xpu.memory_reserved(device)
     else:
-        yield cuda_info
+        yield device_info
 
 
 def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
@@ -825,7 +849,10 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         f"{'input':>24s}{'output':>24s}"
     )
     gc.collect()  # attempt to free unused memory
-    torch.cuda.empty_cache()
+    if device.type in {"xpu", "xpu:0"}:
+        torch.xpu.empty_cache()
+    elif device.type in {"cuda", "cuda:0"}:
+        torch.cuda.empty_cache()
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
         x.requires_grad = True
@@ -841,7 +868,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
             try:
                 mem = 0
                 for _ in range(n):
-                    with cuda_memory_usage(device) as cuda_info:
+                    with device_memory_usage(device) as device_info:
                         t[0] = time_sync()
                         y = m(x)
                         t[1] = time_sync()
@@ -851,11 +878,11 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         except Exception:  # no backward method
                             # print(e)  # for debug
                             t[2] = float("nan")
-                    mem += cuda_info["memory"] / 1e9  # (GB)
+                    mem += device_info["memory"] / 1e9  # (GB)
                     tf += (t[1] - t[0]) * 1000 / n  # ms per op forward
                     tb += (t[2] - t[1]) * 1000 / n  # ms per op backward
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
-                        with cuda_memory_usage(device) as cuda_info:
+                        with device_memory_usage(device) as device_info:
                             torch.randn(
                                 x.shape[0],
                                 max_num_obj,
@@ -863,7 +890,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                                 device=device,
                                 dtype=torch.float32,
                             )
-                        mem += cuda_info["memory"] / 1e9  # (GB)
+                        mem += device_info["memory"] / 1e9  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else "list" for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
                 LOGGER.info(f"{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{s_in!s:>24s}{s_out!s:>24s}")
@@ -873,7 +900,10 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                 results.append(None)
             finally:
                 gc.collect()  # attempt to free unused memory
-                torch.cuda.empty_cache()
+                if device.type in {"xpu", "xpu:0"}:
+                    torch.xpu.empty_cache()
+                elif device.type in {"cuda", "cuda:0"}:
+                    torch.cuda.empty_cache()
     return results
 
 

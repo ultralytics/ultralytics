@@ -214,6 +214,21 @@ class BaseTrainer:
 
     def train(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
+        if (
+            isinstance(self.args.device, str) and len(self.args.device) and self.device.type in {"cuda"}
+        ):  # i.e. device='0' or device='0,1,2,3'
+            len(self.args.device.split(","))
+        elif isinstance(self.args.device, (tuple, list)) and self.device.type in {
+            "cuda"
+        }:  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+            len(self.args.device)
+        elif self.args.device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+            pass
+        elif self.device.type in {"cuda", "xpu"}:  # i.e. device='cuda' or 'xpu'
+            pass
+        else:  # i.e. device=None or device=''
+            pass  # default to device 0
+
         # Run subprocess if DDP training, else train normally
         if self.ddp:
             # Argument checks
@@ -300,9 +315,22 @@ class BaseTrainer:
         if RANK > -1 and self.world_size > 1:  # DDP
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+
+        if self.device.type == "cuda":
+            self.scaler = (
+                torch.amp.GradScaler("cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
+        elif self.device.type == "xpu":
+            self.scaler = torch.amp.GradScaler(self.device, enabled=self.amp)
+        else:
+            # Handle CPU, MPS and other devices
+            if TORCH_2_4:
+                self.scaler = torch.amp.GradScaler(device="cpu", enabled=self.amp)
+            else:
+                self.scaler = torch.cuda.amp.GradScaler(enabled=self.amp)
+
         if self.world_size > 1:
             self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
 
@@ -414,7 +442,7 @@ class BaseTrainer:
                             x["momentum"] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
                 # Forward
-                with autocast(self.amp):
+                with autocast(self.amp, self.device.type):
                     batch = self.preprocess_batch(batch)
                     if self.args.compile:
                         # Decouple inference and loss calculations for improved compile performance
@@ -528,6 +556,7 @@ class BaseTrainer:
         """Calculate optimal batch size based on model and device memory constraints."""
         return check_train_batch_size(
             model=self.model,
+            device_type=self.device.type,
             imgsz=self.args.imgsz,
             amp=self.amp,
             batch=self.batch_size,
@@ -541,7 +570,11 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
-        elif self.device.type != "cpu":
+        elif self.device.type == "xpu":
+            memory = torch.xpu.memory_reserved()
+            if fraction:
+                total = torch.xpu.get_device_properties(self.device).total_memory
+        elif self.device.type == "cuda":
             memory = torch.cuda.memory_reserved()
             if fraction:
                 total = torch.cuda.get_device_properties(self.device).total_memory
@@ -558,6 +591,8 @@ class BaseTrainer:
             torch.mps.empty_cache()
         elif self.device.type == "cpu":
             return
+        elif self.device.type == "xpu":
+            torch.xpu.empty_cache()
         else:
             torch.cuda.empty_cache()
 

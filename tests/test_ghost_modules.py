@@ -2,12 +2,9 @@
 
 import time
 import warnings
-from pathlib import Path
 
 import pytest
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.onnx
 from torch.jit import TracerWarning
 
@@ -46,10 +43,11 @@ def _export_onnx(model, x, path, opset=13, const_fold=True, input_name="input", 
 
 
 class TestGhostConv:
-    """Test suite for GhostConv module.
+    """
+    Test suite for GhostConv module.
 
-    Tests the forward pass, TorchScript/ONNX export, BC for old/new APIs, gradient flow,
-    and original-mode equivalence regression.
+    Tests the forward pass, TorchScript/ONNX export, BC for old/new APIs, gradient flow, and original-mode equivalence
+    regression.
     """
 
     @pytest.mark.parametrize("mode", ["original", "attn"])
@@ -102,30 +100,29 @@ class TestGhostConv:
         """Default mode is 'original' (gate OFF by default)."""
         model = GhostConv(32, 64)
 
-        assert model.mode == 'original', "Default mode should be 'original'"
-        assert not hasattr(model, 'short_conv'), "Attention components should not exist in default mode"
-        assert not hasattr(model, 'gate'), "Gate should not exist in default mode"
+        assert model.mode == "original", "Default mode should be 'original'"
+        assert not hasattr(model, "short_conv"), "Attention components should not exist in default mode"
+        assert not hasattr(model, "gate"), "Gate should not exist in default mode"
 
     def test_ghostconv_backward_compatibility(self):
         """Backward compatibility: old API GhostConv(c1, c2, k, s) and new API."""
         # Old API: GhostConv(c1, c2, k, s) -> should default to 'original'
         model_old = GhostConv(32, 64, 3, 1)
-        assert model_old.mode == 'original'
+        assert model_old.mode == "original"
 
         # New API: GhostConv(c1, c2, k, s, mode='attn')
-        model_new = GhostConv(32, 64, 3, 1, mode='attn')
-        assert model_new.mode == 'attn'
+        model_new = GhostConv(32, 64, 3, 1, mode="attn")
+        assert model_new.mode == "attn"
 
         # Backward compatibility: allow explicit mode as last positional arg.
         # Some implementations support this, some do not.
         try:
-            model_last_arg = GhostConv(32, 64, 3, 1, 'original')
-            assert model_last_arg.mode == 'original'
+            model_last_arg = GhostConv(32, 64, 3, 1, "original")
+            assert model_last_arg.mode == "original"
         except TypeError:
             # If positional passing is not supported, verify keyword still works.
-            model_kw = GhostConv(32, 64, 3, 1, mode='original')
-            assert model_kw.mode == 'original'
-
+            model_kw = GhostConv(32, 64, 3, 1, mode="original")
+            assert model_kw.mode == "original"
 
     @pytest.mark.parametrize("mode", ["original", "attn"])
     def test_ghostconv_gradient_flow(self, mode, device):
@@ -148,7 +145,7 @@ class TestGhostConv:
     def test_ghostconv_original_equivalence(self, device):
         """Regression: 'original' mode equals torch.cat((cv1(x), cv2(cv1(x))), 1)."""
         c1, c2 = 64, 128
-        model = GhostConv(c1, c2, mode='original').to(device)
+        model = GhostConv(c1, c2, mode="original").to(device)
         model.eval()
 
         x = torch.randn(2, c1, 16, 16).to(device)
@@ -212,7 +209,7 @@ class TestGhostConv:
     @pytest.mark.parametrize("mode", ["original", "attn"])
     def test_ghostconv_onnx_runtime(self, mode, tmp_export_dir):
         """Test ONNX Runtime inference matches PyTorch (opset 12)."""
-        onnx = pytest.importorskip("onnx")
+        pytest.importorskip("onnx")
         ort = pytest.importorskip("onnxruntime")
 
         c1, c2 = 32, 64
@@ -235,12 +232,7 @@ class TestGhostConv:
         out_ort = session.run(None, {input_name: x.numpy()})[0]
 
         assert out_ort.shape == out_torch.shape
-        torch.testing.assert_close(
-            torch.from_numpy(out_ort),
-            torch.from_numpy(out_torch),
-            rtol=1e-3,
-            atol=1e-4
-        )
+        torch.testing.assert_close(torch.from_numpy(out_ort), torch.from_numpy(out_torch), rtol=1e-3, atol=1e-4)
 
 
 class TestGhostBottleneck:
@@ -476,8 +468,6 @@ class TestGhostPerformance:
     @pytest.mark.parametrize("mode", ["original", "attn"])
     def test_ghostconv_inference_time(self, mode, device):
         """Benchmark GhostConv inference time."""
-        import time
-
         c1, c2 = 64, 128
         batch_size = 8
         img_size = 224
@@ -494,7 +484,7 @@ class TestGhostPerformance:
             for _ in range(num_warmup):
                 _ = model(x)
 
-        if device.type == 'cuda':
+        if device.type == "cuda":
             torch.cuda.synchronize()
 
         # Benchmark
@@ -503,7 +493,7 @@ class TestGhostPerformance:
             for _ in range(num_runs):
                 _ = model(x)
 
-        if device.type == 'cuda':
+        if device.type == "cuda":
             torch.cuda.synchronize()
 
         end_time = time.perf_counter()

@@ -29,6 +29,18 @@ def _assert_close(actual, expected, rtol=1e-5, atol=1e-8):
         )
 
 
+# Helper: check if onnxscript is available and compatible
+def _can_use_onnxscript():
+    """Check if onnxscript can be imported (may fail on Python 3.8 due to typing issues)."""
+    try:
+        import onnxscript  # noqa: F401
+
+        return True
+    except (ImportError, TypeError):
+        # TypeError: 'ABCMeta' object is not subscriptable on Python 3.8
+        return False
+
+
 @pytest.fixture
 def device():
     """Return available device (CUDA if available, else CPU)."""
@@ -200,7 +212,8 @@ class TestGhostConv:
     def test_ghostconv_onnx_export(self, mode, tmp_export_dir):
         """Test ONNX export (opset 13, no dynamo)."""
         onnx = pytest.importorskip("onnx")
-        pytest.importorskip("onnxscript")
+        if not _can_use_onnxscript():
+            pytest.skip("onnxscript not available or incompatible with current Python version")
 
         c1, c2 = 32, 64
         model = GhostConv(c1, c2, mode=mode).cpu()
@@ -225,7 +238,8 @@ class TestGhostConv:
     def test_ghostconv_onnx_runtime(self, mode, tmp_export_dir):
         """Test ONNX Runtime inference matches PyTorch (opset 12)."""
         pytest.importorskip("onnx")
-        pytest.importorskip("onnxscript")
+        if not _can_use_onnxscript():
+            pytest.skip("onnxscript not available or incompatible with current Python version")
         ort = pytest.importorskip("onnxruntime")
 
         c1, c2 = 32, 64
@@ -354,7 +368,8 @@ class TestGhostBottleneck:
     def test_ghostbottleneck_onnx_export(self, k, s, tmp_export_dir):
         """ONNX export for GhostBottleneck (opset 13)."""
         onnx = pytest.importorskip("onnx")
-        pytest.importorskip("onnxscript")
+        if not _can_use_onnxscript():
+            pytest.skip("onnxscript not available or incompatible with current Python version")
 
         model = GhostBottleneck(64, 64, k=k, s=s).cpu()
         model.eval()
@@ -463,7 +478,8 @@ class TestC3Ghost:
     def test_c3ghost_onnx_export(self, tmp_export_dir):
         """ONNX export for C3Ghost (opset 12)."""
         onnx = pytest.importorskip("onnx")
-        pytest.importorskip("onnxscript")
+        if not _can_use_onnxscript():
+            pytest.skip("onnxscript not available or incompatible with current Python version")
 
         model = C3Ghost(64, 64).cpu()
         model.eval()

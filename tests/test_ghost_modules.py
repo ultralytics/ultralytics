@@ -15,6 +15,20 @@ warnings.filterwarnings("ignore", category=TracerWarning)
 warnings.filterwarnings("ignore", message="Unknown pytest.mark.slow")
 
 
+# Helper: backward-compatible tensor comparison (torch.testing.assert_close added in 1.9.0)
+def _assert_close(actual, expected, rtol=1e-5, atol=1e-8):
+    """Backward-compatible assertion for tensor closeness."""
+    if hasattr(torch.testing, "assert_close"):
+        torch.testing.assert_close(actual, expected, rtol=rtol, atol=atol)
+    else:
+        # Fallback for PyTorch < 1.9.0
+        assert torch.allclose(actual, expected, rtol=rtol, atol=atol), (
+            f"Tensors are not close.\n"
+            f"Max diff: {(actual - expected).abs().max().item()}\n"
+            f"Mean diff: {(actual - expected).abs().mean().item()}"
+        )
+
+
 @pytest.fixture
 def device():
     """Return available device (CUDA if available, else CPU)."""
@@ -156,7 +170,7 @@ class TestGhostConv:
             # Manual computation: use the model's internal convs to guarantee consistent weights
             out_manual = torch.cat([model.cv1(x), model.cv2(model.cv1(x))], 1)
 
-        torch.testing.assert_close(out_model, out_manual, rtol=1e-5, atol=1e-6)
+        _assert_close(out_model, out_manual, rtol=1e-5, atol=1e-6)
 
     @pytest.mark.parametrize("mode", ["original", "attn"])
     def test_ghostconv_torchscript_trace(self, mode, tmp_export_dir):
@@ -180,12 +194,13 @@ class TestGhostConv:
                 out_orig = model(x)
                 out_traced = loaded_model(x)
 
-            torch.testing.assert_close(out_orig, out_traced, rtol=1e-5, atol=1e-5)
+            _assert_close(out_orig, out_traced, rtol=1e-5, atol=1e-5)
 
     @pytest.mark.parametrize("mode", ["original", "attn"])
     def test_ghostconv_onnx_export(self, mode, tmp_export_dir):
         """Test ONNX export (opset 13, no dynamo)."""
         onnx = pytest.importorskip("onnx")
+        pytest.importorskip("onnxscript")
 
         c1, c2 = 32, 64
         model = GhostConv(c1, c2, mode=mode).cpu()
@@ -210,6 +225,7 @@ class TestGhostConv:
     def test_ghostconv_onnx_runtime(self, mode, tmp_export_dir):
         """Test ONNX Runtime inference matches PyTorch (opset 12)."""
         pytest.importorskip("onnx")
+        pytest.importorskip("onnxscript")
         ort = pytest.importorskip("onnxruntime")
 
         c1, c2 = 32, 64
@@ -232,7 +248,7 @@ class TestGhostConv:
         out_ort = session.run(None, {input_name: x.numpy()})[0]
 
         assert out_ort.shape == out_torch.shape
-        torch.testing.assert_close(torch.from_numpy(out_ort), torch.from_numpy(out_torch), rtol=1e-3, atol=1e-4)
+        _assert_close(torch.from_numpy(out_ort), torch.from_numpy(out_torch), rtol=1e-3, atol=1e-4)
 
 
 class TestGhostBottleneck:
@@ -332,12 +348,13 @@ class TestGhostBottleneck:
             out_orig = model(x)
             out_traced = loaded_model(x)
 
-        torch.testing.assert_close(out_orig, out_traced, rtol=1e-5, atol=1e-5)
+        _assert_close(out_orig, out_traced, rtol=1e-5, atol=1e-5)
 
     @pytest.mark.parametrize("k,s", [(3, 1), (3, 2)])
     def test_ghostbottleneck_onnx_export(self, k, s, tmp_export_dir):
         """ONNX export for GhostBottleneck (opset 13)."""
         onnx = pytest.importorskip("onnx")
+        pytest.importorskip("onnxscript")
 
         model = GhostBottleneck(64, 64, k=k, s=s).cpu()
         model.eval()
@@ -441,11 +458,12 @@ class TestC3Ghost:
             out_orig = model(x)
             out_traced = loaded_model(x)
 
-        torch.testing.assert_close(out_orig, out_traced, rtol=1e-5, atol=1e-5)
+        _assert_close(out_orig, out_traced, rtol=1e-5, atol=1e-5)
 
     def test_c3ghost_onnx_export(self, tmp_export_dir):
         """ONNX export for C3Ghost (opset 12)."""
         onnx = pytest.importorskip("onnx")
+        pytest.importorskip("onnxscript")
 
         model = C3Ghost(64, 64).cpu()
         model.eval()

@@ -42,8 +42,7 @@ MCT_CONFIG = {
 
 
 class FXModel(torch.nn.Module):
-    """
-    A custom model class for torch.fx compatibility.
+    """A custom model class for torch.fx compatibility.
 
     This class extends `torch.nn.Module` and is designed to ensure compatibility with torch.fx for tracing and graph
     manipulation. It copies attributes from an existing model and explicitly sets the model attribute to ensure proper
@@ -54,8 +53,7 @@ class FXModel(torch.nn.Module):
     """
 
     def __init__(self, model, imgsz=(640, 640)):
-        """
-        Initialize the FXModel.
+        """Initialize the FXModel.
 
         Args:
             model (nn.Module): The original model to wrap for torch.fx compatibility.
@@ -68,8 +66,7 @@ class FXModel(torch.nn.Module):
         self.imgsz = imgsz
 
     def forward(self, x):
-        """
-        Forward pass through the model.
+        """Forward pass through the model.
 
         This method performs the forward pass through the model, handling the dependencies between layers and saving
         intermediate outputs.
@@ -128,8 +125,7 @@ class NMSWrapper(torch.nn.Module):
         max_detections: int = 300,
         task: str = "detect",
     ):
-        """
-        Initialize NMSWrapper with PyTorch Module and NMS parameters.
+        """Initialize NMSWrapper with PyTorch Module and NMS parameters.
 
         Args:
             model (torch.nn.Module): Model instance.
@@ -177,8 +173,7 @@ def torch2imx(
     dataset=None,
     prefix: str = "",
 ):
-    """
-    Export YOLO model to IMX format for deployment on Sony IMX500 devices.
+    """Export YOLO model to IMX format for deployment on Sony IMX500 devices.
 
     This function quantizes a YOLO model using Model Compression Toolkit (MCT) and exports it to IMX format compatible
     with Sony IMX500 edge devices. It supports both YOLOv8n and YOLO11n models for detection and pose estimation tasks.
@@ -190,8 +185,8 @@ def torch2imx(
         iou (float): IoU threshold for NMS post-processing.
         max_det (int): Maximum number of detections to return.
         metadata (dict | None, optional): Metadata to embed in the ONNX model. Defaults to None.
-        gptq (bool, optional): Whether to use Gradient-Based Post Training Quantization.
-            If False, uses standard Post Training Quantization. Defaults to False.
+        gptq (bool, optional): Whether to use Gradient-Based Post Training Quantization. If False, uses standard Post
+            Training Quantization. Defaults to False.
         dataset (optional): Representative dataset for quantization calibration. Defaults to None.
         prefix (str, optional): Logging prefix string. Defaults to "".
 

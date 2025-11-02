@@ -11,7 +11,8 @@ from ultralytics.utils.plotting import colors
 
 
 class RegionCounter(BaseSolution):
-    """A class for real-time counting of objects within user-defined regions in a video stream.
+    """
+    A class for real-time counting of objects within user-defined regions in a video stream.
 
     This class inherits from `BaseSolution` and provides functionality to define polygonal regions in a video frame,
     track objects, and count those objects that pass through each defined region. Useful for applications requiring
@@ -58,7 +59,8 @@ class RegionCounter(BaseSolution):
         region_color: tuple[int, int, int],
         text_color: tuple[int, int, int],
     ) -> dict[str, Any]:
-        """Add a new region to the counting list based on the provided template with specific attributes.
+        """
+        Add a new region to the counting list based on the provided template with specific attributes.
 
         Args:
             name (str): Name assigned to the new region.
@@ -92,7 +94,8 @@ class RegionCounter(BaseSolution):
             region["prepared_polygon"] = self.prep(region["polygon"])
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """Process the input frame to detect and count objects within each defined region.
+        """
+        Process the input frame to detect and count objects within each defined region.
 
         Args:
             im0 (np.ndarray): Input image frame where objects and regions are annotated.

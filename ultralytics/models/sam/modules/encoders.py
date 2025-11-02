@@ -21,7 +21,8 @@ from .blocks import (
 
 
 class ImageEncoderViT(nn.Module):
-    """An image encoder using Vision Transformer (ViT) architecture for encoding images into a compact latent space.
+    """
+    An image encoder using Vision Transformer (ViT) architecture for encoding images into a compact latent space.
 
     This class processes images by splitting them into patches, applying transformer blocks, and generating a final
     encoded representation through a neck module.
@@ -63,7 +64,8 @@ class ImageEncoderViT(nn.Module):
         window_size: int = 0,
         global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
-        """Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
+        """
+        Initialize an ImageEncoderViT instance for encoding images using Vision Transformer architecture.
 
         Args:
             img_size (int): Input image size, assumed to be square.
@@ -154,7 +156,8 @@ class ImageEncoderViT(nn.Module):
 
 
 class PromptEncoder(nn.Module):
-    """Encode different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
+    """
+    Encode different types of prompts for input to SAM's mask decoder, producing sparse and dense embeddings.
 
     Attributes:
         embed_dim (int): Dimension of the embeddings.
@@ -190,7 +193,8 @@ class PromptEncoder(nn.Module):
         mask_in_chans: int,
         activation: type[nn.Module] = nn.GELU,
     ) -> None:
-        """Initialize the PromptEncoder module for encoding various types of prompts.
+        """
+        Initialize the PromptEncoder module for encoding various types of prompts.
 
         Args:
             embed_dim (int): The dimension of the embeddings.
@@ -232,7 +236,8 @@ class PromptEncoder(nn.Module):
         self.no_mask_embed = nn.Embedding(1, embed_dim)
 
     def get_dense_pe(self) -> torch.Tensor:
-        """Return the dense positional encoding used for encoding point prompts.
+        """
+        Return the dense positional encoding used for encoding point prompts.
 
         Generate a positional encoding for a dense set of points matching the shape of the image
         encoding. The encoding is used to provide spatial information to the model when processing point prompts.
@@ -301,7 +306,8 @@ class PromptEncoder(nn.Module):
         boxes: torch.Tensor | None,
         masks: torch.Tensor | None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Embed different types of prompts, returning both sparse and dense embeddings.
+        """
+        Embed different types of prompts, returning both sparse and dense embeddings.
 
         Args:
             points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first tensor
@@ -347,7 +353,8 @@ class PromptEncoder(nn.Module):
 
 
 class MemoryEncoder(nn.Module):
-    """Encode pixel features and masks into a memory representation for efficient image segmentation.
+    """
+    Encode pixel features and masks into a memory representation for efficient image segmentation.
 
     This class processes pixel-level features and masks, fusing them to generate encoded memory representations suitable
     for downstream tasks in image segmentation models like SAM (Segment Anything Model).
@@ -377,7 +384,8 @@ class MemoryEncoder(nn.Module):
         out_dim,
         in_dim=256,  # in_dim of pix_feats
     ):
-        """Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
+        """
+        Initialize the MemoryEncoder for encoding pixel features and masks into memory representations.
 
         This encoder processes pixel-level features and masks, fusing them to generate encoded memory representations
         suitable for downstream tasks in image segmentation models like SAM (Segment Anything Model).
@@ -430,7 +438,8 @@ class MemoryEncoder(nn.Module):
 
 
 class ImageEncoder(nn.Module):
-    """Encode images using a trunk-neck architecture, producing multiscale features and positional encodings.
+    """
+    Encode images using a trunk-neck architecture, producing multiscale features and positional encodings.
 
     This class combines a trunk network for feature extraction with a neck network for feature refinement and positional
     encoding generation. It can optionally discard the lowest resolution features.
@@ -459,7 +468,8 @@ class ImageEncoder(nn.Module):
         neck: nn.Module,
         scalp: int = 0,
     ):
-        """Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
+        """
+        Initialize the ImageEncoder with trunk and neck networks for feature extraction and refinement.
 
         This encoder combines a trunk network for feature extraction with a neck network for feature refinement and
         positional encoding generation. It can optionally discard the lowest resolution features.
@@ -502,7 +512,8 @@ class ImageEncoder(nn.Module):
 
 
 class FpnNeck(nn.Module):
-    """A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
+    """
+    A Feature Pyramid Network (FPN) neck variant for multiscale feature fusion in object detection models.
 
     This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to ViT
     positional embedding interpolation.
@@ -538,7 +549,8 @@ class FpnNeck(nn.Module):
         fuse_type: str = "sum",
         fpn_top_down_levels: list[int] | None = None,
     ):
-        """Initialize a modified Feature Pyramid Network (FPN) neck.
+        """
+        Initialize a modified Feature Pyramid Network (FPN) neck.
 
         This FPN variant removes the output convolution and uses bicubic interpolation for feature resizing, similar to
         ViT positional embedding interpolation.
@@ -590,7 +602,8 @@ class FpnNeck(nn.Module):
         self.fpn_top_down_levels = list(fpn_top_down_levels)
 
     def forward(self, xs: list[torch.Tensor]):
-        """Perform forward pass through the Feature Pyramid Network (FPN) neck.
+        """
+        Perform forward pass through the Feature Pyramid Network (FPN) neck.
 
         This method processes a list of input tensors from the backbone through the FPN, applying lateral connections
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
@@ -642,7 +655,8 @@ class FpnNeck(nn.Module):
 
 
 class Hiera(nn.Module):
-    """Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks.
+    """
+    Hierarchical vision transformer for efficient multiscale feature extraction in image processing tasks.
 
     This class implements a Hiera model, which is a hierarchical vision transformer architecture designed for efficient
     multiscale feature extraction. It uses a series of transformer blocks organized into stages, with optional pooling
@@ -700,7 +714,8 @@ class Hiera(nn.Module):
         ),
         return_interm_layers=True,  # return feats from every stage
     ):
-        """Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
+        """
+        Initialize a Hiera model, a hierarchical vision transformer for efficient multiscale feature extraction.
 
         Hiera is a hierarchical vision transformer architecture designed for efficient multiscale feature extraction in
         image processing tasks. It uses a series of transformer blocks organized into stages, with optional pooling and
@@ -801,7 +816,8 @@ class Hiera(nn.Module):
         return pos_embed
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
-        """Perform forward pass through Hiera model, extracting multiscale features from input images.
+        """
+        Perform forward pass through Hiera model, extracting multiscale features from input images.
 
         Args:
             x (torch.Tensor): Input tensor with shape (B, C, H, W) representing a batch of images.

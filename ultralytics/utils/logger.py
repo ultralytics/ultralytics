@@ -19,8 +19,7 @@ if RANK in {-1, 0} and DEFAULT_LOG_PATH.exists():
 
 
 class ConsoleLogger:
-    """
-    Console output capture with API/file streaming and deduplication.
+    """Console output capture with API/file streaming and deduplication.
 
     Captures stdout/stderr output and streams it to either an API endpoint or local file, with intelligent deduplication
     to reduce noise from repetitive console output.
@@ -53,8 +52,7 @@ class ConsoleLogger:
     """
 
     def __init__(self, destination):
-        """
-        Initialize with API endpoint or local file path.
+        """Initialize with API endpoint or local file path.
 
         Args:
             destination (str | Path): API endpoint URL (http/https) or local file path for streaming output.
@@ -227,8 +225,7 @@ class ConsoleLogger:
 
 
 class SystemLogger:
-    """
-    Log dynamic system metrics for training monitoring.
+    """Log dynamic system metrics for training monitoring.
 
     Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for training
     performance monitoring and analysis.
@@ -277,8 +274,7 @@ class SystemLogger:
             return False
 
     def get_metrics(self):
-        """
-        Get current system metrics.
+        """Get current system metrics.
 
         Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
         statistics, and GPU metrics (if available). Example output:

@@ -19,8 +19,7 @@ def auto_annotate(
     classes: list[int] | None = None,
     output_dir: str | Path | None = None,
 ) -> None:
-    """
-    Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
+    """Automatically annotate images using a YOLO object detection model and a SAM segmentation model.
 
     This function processes images in a specified directory, detects objects using a YOLO model, and then generates
     segmentation masks using a SAM model. The resulting annotations are saved as text files in YOLO format.

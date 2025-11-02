@@ -8,8 +8,7 @@ import time
 
 
 class GCPRegions:
-    """
-    A class for managing and analyzing Google Cloud Platform (GCP) regions.
+    """A class for managing and analyzing Google Cloud Platform (GCP) regions.
 
     This class provides functionality to initialize, categorize, and analyze GCP regions based on their geographical
     location, tier classification, and network latency.
@@ -82,8 +81,7 @@ class GCPRegions:
 
     @staticmethod
     def _ping_region(region: str, attempts: int = 1) -> tuple[str, float, float, float, float]:
-        """
-        Ping a specified GCP region and measure network latency statistics.
+        """Ping a specified GCP region and measure network latency statistics.
 
         Args:
             region (str): The GCP region identifier to ping (e.g., 'us-central1').
@@ -126,8 +124,7 @@ class GCPRegions:
         tier: int | None = None,
         attempts: int = 1,
     ) -> list[tuple[str, float, float, float, float]]:
-        """
-        Determine the GCP regions with the lowest latency based on ping tests.
+        """Determine the GCP regions with the lowest latency based on ping tests.
 
         Args:
             top (int, optional): Number of top regions to return.

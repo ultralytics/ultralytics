@@ -8,8 +8,7 @@ import numpy as np
 
 
 class TritonRemoteModel:
-    """
-    Client for interacting with a remote Triton Inference Server model.
+    """Client for interacting with a remote Triton Inference Server model.
 
     This class provides a convenient interface for sending inference requests to a Triton Inference Server and
     processing the responses. Supports both HTTP and gRPC communication protocols.
@@ -38,8 +37,7 @@ class TritonRemoteModel:
     """
 
     def __init__(self, url: str, endpoint: str = "", scheme: str = ""):
-        """
-        Initialize the TritonRemoteModel for interacting with a remote Triton Inference Server.
+        """Initialize the TritonRemoteModel for interacting with a remote Triton Inference Server.
 
         Arguments may be provided individually or parsed from a collective 'url' argument of the form
         <scheme>://<netloc>/<endpoint>/<task_name>
@@ -88,16 +86,15 @@ class TritonRemoteModel:
         self.metadata = eval(config.get("parameters", {}).get("metadata", {}).get("string_value", "None"))
 
     def __call__(self, *inputs: np.ndarray) -> list[np.ndarray]:
-        """
-        Call the model with the given inputs and return inference results.
+        """Call the model with the given inputs and return inference results.
 
         Args:
-            *inputs (np.ndarray): Input data to the model. Each array should match the expected shape and type
-                for the corresponding model input.
+            *inputs (np.ndarray): Input data to the model. Each array should match the expected shape and type for the
+                corresponding model input.
 
         Returns:
-            (list[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list
-                corresponds to one of the model's output tensors.
+            (list[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list corresponds to
+                one of the model's output tensors.
 
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")

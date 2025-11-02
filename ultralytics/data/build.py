@@ -35,8 +35,7 @@ from ultralytics.utils.torch_utils import TORCH_2_0
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """
-    Dataloader that reuses workers for infinite iteration.
+    """Dataloader that reuses workers for infinite iteration.
 
     This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
     for training loops that need to iterate through the dataset multiple times without recreating workers.
@@ -94,8 +93,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
 
 class _RepeatSampler:
-    """
-    Sampler that repeats forever for infinite iteration.
+    """Sampler that repeats forever for infinite iteration.
 
     This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration over a
     dataset without recreating the sampler.
@@ -115,8 +113,7 @@ class _RepeatSampler:
 
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):
-    """
-    Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
+    """Distributed sampler that assigns contiguous batch-aligned chunks of the dataset to each GPU.
 
     Unlike PyTorch's DistributedSampler which distributes samples in a round-robin fashion (GPU 0 gets indices
     [0,2,4,...], GPU 1 gets [1,3,5,...]), this sampler gives each GPU contiguous batches of the dataset (GPU 0 gets
@@ -132,8 +129,8 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
         batch_size (int, optional): Batch size used by dataloader. Defaults to dataset batch size.
         rank (int, optional): Rank of current process. Defaults to current rank.
-        shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False.
-            When True, shuffling is deterministic and controlled by set_epoch() for reproducibility.
+        shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False. When True,
+            shuffling is deterministic and controlled by set_epoch() for reproducibility.
 
     Examples:
         >>> # For validation with size-grouped images
@@ -202,8 +199,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         return end_idx - start_idx
 
     def set_epoch(self, epoch):
-        """
-        Set the epoch for this sampler to ensure different shuffling patterns across epochs.
+        """Set the epoch for this sampler to ensure different shuffling patterns across epochs.
 
         Args:
             epoch (int): Epoch number to use as the random seed for shuffling.
@@ -289,8 +285,7 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
 ):
-    """
-    Create and return an InfiniteDataLoader or DataLoader for training or validation.
+    """Create and return an InfiniteDataLoader or DataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -337,8 +332,7 @@ def build_dataloader(
 
 
 def check_source(source):
-    """
-    Check the type of input source and return corresponding flag values.
+    """Check the type of input source and return corresponding flag values.
 
     Args:
         source (str | int | Path | list | tuple | np.ndarray | PIL.Image | torch.Tensor): The input source to check.
@@ -386,8 +380,7 @@ def check_source(source):
 
 
 def load_inference_source(source=None, batch: int = 1, vid_stride: int = 1, buffer: bool = False, channels: int = 3):
-    """
-    Load an inference source for object detection and apply necessary transformations.
+    """Load an inference source for object detection and apply necessary transformations.
 
     Args:
         source (str | Path | torch.Tensor | PIL.Image | np.ndarray, optional): The input source for inference.

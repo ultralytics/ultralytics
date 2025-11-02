@@ -10,8 +10,7 @@ import cv2
 
 @dataclass
 class SolutionConfig:
-    """
-    Manages configuration parameters for Ultralytics Vision AI solutions.
+    """Manages configuration parameters for Ultralytics Vision AI solutions.
 
     The SolutionConfig class serves as a centralized configuration container for all the Ultralytics solution modules:
     https://docs.ultralytics.com/solutions/#solutions. It leverages Python `dataclass` for clear, type-safe, and

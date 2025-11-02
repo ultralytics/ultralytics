@@ -4,7 +4,12 @@ from ultralytics.models.yolo.segment import SegmentationValidator
 
 
 class FastSAMValidator(SegmentationValidator):
+<<<<<<< HEAD
     """Custom validation class for FastSAM (Segment Anything Model) segmentation in the Ultralytics YOLO framework.
+=======
+    """
+    Custom validation class for Fast SAM (Segment Anything Model) segmentation in Ultralytics YOLO framework.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
     Extends the SegmentationValidator class, customizing the validation process specifically for FastSAM. This class
     sets the task to 'segment' and uses the SegmentMetrics for evaluation. Additionally, plotting features are disabled
@@ -22,7 +27,8 @@ class FastSAMValidator(SegmentationValidator):
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
-        """Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.
+        """
+        Initialize the FastSAMValidator class, setting the task to 'segment' and metrics to SegmentMetrics.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.

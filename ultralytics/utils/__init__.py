@@ -148,7 +148,8 @@ STR_OR_PATH = (str, Path)
 
 
 class DataExportMixin:
-    """Mixin class for exporting validation metrics or prediction results in various formats.
+    """
+    Mixin class for exporting validation metrics or prediction results in various formats.
 
     This class provides utilities to export performance metrics (e.g., mAP, precision, recall) or prediction results
     from classification, object detection, segmentation, or pose estimation tasks into various formats: Polars
@@ -169,7 +170,12 @@ class DataExportMixin:
     """
 
     def to_df(self, normalize=False, decimals=5):
+<<<<<<< HEAD
         """Create a Polars DataFrame from the prediction results summary or validation metrics.
+=======
+        """
+        Create a polars DataFrame from the prediction results summary or validation metrics.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Args:
             normalize (bool, optional): Normalize numerical values for easier comparison.
@@ -183,7 +189,8 @@ class DataExportMixin:
         return pl.DataFrame(self.summary(normalize=normalize, decimals=decimals))
 
     def to_csv(self, normalize=False, decimals=5):
-        """Export results or metrics to CSV string format.
+        """
+        Export results or metrics to CSV string format.
 
         Args:
             normalize (bool, optional): Normalize numeric values.
@@ -214,7 +221,8 @@ class DataExportMixin:
             return df_str.write_csv()
 
     def to_json(self, normalize=False, decimals=5):
-        """Export results to JSON format.
+        """
+        Export results to JSON format.
 
         Args:
             normalize (bool, optional): Normalize numeric values.
@@ -227,7 +235,8 @@ class DataExportMixin:
 
 
 class SimpleClass:
-    """A simple base class for creating objects with string representations of their attributes.
+    """
+    A simple base class for creating objects with string representations of their attributes.
 
     This class provides a foundation for creating objects that can be easily printed or represented as strings, showing
     all their non-callable attributes. It's useful for debugging and introspection of object states.
@@ -280,7 +289,8 @@ class SimpleClass:
 
 
 class IterableSimpleNamespace(SimpleNamespace):
-    """An iterable SimpleNamespace class that provides enhanced functionality for attribute access and iteration.
+    """
+    An iterable SimpleNamespace class that provides enhanced functionality for attribute access and iteration.
 
     This class extends the SimpleNamespace class with additional methods for iteration, string representation, and
     attribute access. It is designed to be used as a convenient container for storing and accessing configuration
@@ -339,7 +349,8 @@ class IterableSimpleNamespace(SimpleNamespace):
 
 
 def plt_settings(rcparams=None, backend="Agg"):
-    """Decorator to temporarily set rc parameters and the backend for a plotting function.
+    """
+    Decorator to temporarily set rc parameters and the backend for a plotting function.
 
     Args:
         rcparams (dict, optional): Dictionary of rc parameters to set.
@@ -392,7 +403,8 @@ def plt_settings(rcparams=None, backend="Agg"):
 
 
 def set_logging(name="LOGGING_NAME", verbose=True):
-    """Set up logging with UTF-8 encoding and configurable verbosity.
+    """
+    Set up logging with UTF-8 encoding and configurable verbosity.
 
     This function configures logging for the Ultralytics library, setting the appropriate logging level and formatter
     based on the verbosity flag and the current process rank. It handles special cases for Windows environments where
@@ -471,7 +483,8 @@ def emojis(string=""):
 
 
 class ThreadingLocked:
-    """A decorator class for ensuring thread-safe execution of a function or method.
+    """
+    A decorator class for ensuring thread-safe execution of a function or method.
 
     This class can be used as a decorator to make sure that if the decorated function is called from multiple threads,
     only one thread at a time will be able to execute the function.
@@ -504,7 +517,8 @@ class ThreadingLocked:
 
 
 class YAML:
-    """YAML utility class for efficient file operations with automatic C-implementation detection.
+    """
+    YAML utility class for efficient file operations with automatic C-implementation detection.
 
     This class provides optimized YAML loading and saving operations using PyYAML's fastest available implementation
     (C-based when possible). It implements a singleton pattern with lazy initialization, allowing direct class method
@@ -554,7 +568,8 @@ class YAML:
 
     @classmethod
     def save(cls, file="data.yaml", data=None, header=""):
-        """Save Python object as YAML file.
+        """
+        Save Python object as YAML file.
 
         Args:
             file (str | Path): Path to save YAML file.
@@ -583,7 +598,8 @@ class YAML:
 
     @classmethod
     def load(cls, file="data.yaml", append_filename=False):
-        """Load YAML file to Python object with robust error handling.
+        """
+        Load YAML file to Python object with robust error handling.
 
         Args:
             file (str | Path): Path to YAML file.
@@ -617,7 +633,8 @@ class YAML:
 
     @classmethod
     def print(cls, yaml_file):
-        """Pretty print YAML file or object to console.
+        """
+        Pretty print YAML file or object to console.
 
         Args:
             yaml_file (str | Path | dict): Path to YAML file or dict to print.
@@ -640,7 +657,8 @@ DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def read_device_model() -> str:
-    """Read the device model information from the system and cache it for quick access.
+    """
+    Read the device model information from the system and cache it for quick access.
 
     Returns:
         (str): Kernel release information.
@@ -649,7 +667,8 @@ def read_device_model() -> str:
 
 
 def is_ubuntu() -> bool:
-    """Check if the OS is Ubuntu.
+    """
+    Check if the OS is Ubuntu.
 
     Returns:
         (bool): True if OS is Ubuntu, False otherwise.
@@ -688,7 +707,8 @@ def is_debian(codenames: list[str] | None | str = None) -> list[bool] | bool:
 
 
 def is_colab():
-    """Check if the current script is running inside a Google Colab notebook.
+    """
+    Check if the current script is running inside a Google Colab notebook.
 
     Returns:
         (bool): True if running inside a Colab notebook, False otherwise.
@@ -697,7 +717,8 @@ def is_colab():
 
 
 def is_kaggle():
-    """Check if the current script is running inside a Kaggle kernel.
+    """
+    Check if the current script is running inside a Kaggle kernel.
 
     Returns:
         (bool): True if running inside a Kaggle kernel, False otherwise.
@@ -706,7 +727,8 @@ def is_kaggle():
 
 
 def is_jupyter():
-    """Check if the current script is running inside a Jupyter Notebook.
+    """
+    Check if the current script is running inside a Jupyter Notebook.
 
     Returns:
         (bool): True if running inside a Jupyter Notebook, False otherwise.
@@ -719,7 +741,8 @@ def is_jupyter():
 
 
 def is_runpod():
-    """Check if the current script is running inside a RunPod container.
+    """
+    Check if the current script is running inside a RunPod container.
 
     Returns:
         (bool): True if running in RunPod, False otherwise.
@@ -728,7 +751,8 @@ def is_runpod():
 
 
 def is_docker() -> bool:
-    """Determine if the script is running inside a Docker container.
+    """
+    Determine if the script is running inside a Docker container.
 
     Returns:
         (bool): True if the script is running inside a Docker container, False otherwise.
@@ -740,7 +764,8 @@ def is_docker() -> bool:
 
 
 def is_raspberrypi() -> bool:
-    """Determine if the Python environment is running on a Raspberry Pi.
+    """
+    Determine if the Python environment is running on a Raspberry Pi.
 
     Returns:
         (bool): True if running on a Raspberry Pi, False otherwise.
@@ -750,7 +775,8 @@ def is_raspberrypi() -> bool:
 
 @lru_cache(maxsize=3)
 def is_jetson(jetpack=None) -> bool:
-    """Determine if the Python environment is running on an NVIDIA Jetson device.
+    """
+    Determine if the Python environment is running on an NVIDIA Jetson device.
 
     Args:
         jetpack (int | None): If specified, check for specific JetPack version (4, 5, 6).
@@ -770,7 +796,8 @@ def is_jetson(jetpack=None) -> bool:
 
 
 def is_online() -> bool:
-    """Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
+    """
+    Fast online check using DNS (v4/v6) resolution (Cloudflare + Google).
 
     Returns:
         (bool): True if connection is successful, False otherwise.
@@ -788,7 +815,8 @@ def is_online() -> bool:
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
-    """Determine if the file at the given filepath is part of a pip package.
+    """
+    Determine if the file at the given filepath is part of a pip package.
 
     Args:
         filepath (str): The filepath to check.
@@ -806,7 +834,8 @@ def is_pip_package(filepath: str = __name__) -> bool:
 
 
 def is_dir_writeable(dir_path: str | Path) -> bool:
-    """Check if a directory is writable.
+    """
+    Check if a directory is writable.
 
     Args:
         dir_path (str | Path): The path to the directory.
@@ -818,7 +847,8 @@ def is_dir_writeable(dir_path: str | Path) -> bool:
 
 
 def is_pytest_running():
-    """Determine whether pytest is currently running or not.
+    """
+    Determine whether pytest is currently running or not.
 
     Returns:
         (bool): True if pytest is running, False otherwise.
@@ -827,7 +857,8 @@ def is_pytest_running():
 
 
 def is_github_action_running() -> bool:
-    """Determine if the current environment is a GitHub Actions runner.
+    """
+    Determine if the current environment is a GitHub Actions runner.
 
     Returns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
@@ -836,7 +867,8 @@ def is_github_action_running() -> bool:
 
 
 def get_default_args(func):
-    """Return a dictionary of default arguments for a function.
+    """
+    Return a dictionary of default arguments for a function.
 
     Args:
         func (callable): The function to inspect.
@@ -849,7 +881,8 @@ def get_default_args(func):
 
 
 def get_ubuntu_version():
-    """Retrieve the Ubuntu version if the OS is Ubuntu.
+    """
+    Retrieve the Ubuntu version if the OS is Ubuntu.
 
     Returns:
         (str): Ubuntu version or None if not an Ubuntu OS.
@@ -863,7 +896,8 @@ def get_ubuntu_version():
 
 
 def get_user_config_dir(sub_dir="Ultralytics"):
-    """Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
+    """
+    Return a writable config dir, preferring YOLO_CONFIG_DIR and being OS-aware.
 
     Args:
         sub_dir (str): The name of the subdirectory to create.
@@ -923,7 +957,8 @@ SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
 def colorstr(*input):
-    r"""Color a string based on the provided color and style arguments using ANSI escape codes.
+    r"""
+    Color a string based on the provided color and style arguments using ANSI escape codes.
 
     This function can be called in two ways:
         - colorstr('color', 'style', 'your string')
@@ -978,7 +1013,8 @@ def colorstr(*input):
 
 
 def remove_colorstr(input_string):
-    """Remove ANSI escape codes from a string, effectively un-coloring it.
+    """
+    Remove ANSI escape codes from a string, effectively un-coloring it.
 
     Args:
         input_string (str): The string to remove color and style from.
@@ -995,7 +1031,8 @@ def remove_colorstr(input_string):
 
 
 class TryExcept(contextlib.ContextDecorator):
-    """Ultralytics TryExcept class for handling exceptions gracefully.
+    """
+    Ultralytics TryExcept class for handling exceptions gracefully.
 
     This class can be used as a decorator or context manager to catch exceptions and optionally print warning messages.
     It allows code to continue execution even when exceptions occur, which is useful for non-critical operations.
@@ -1034,7 +1071,8 @@ class TryExcept(contextlib.ContextDecorator):
 
 
 class Retry(contextlib.ContextDecorator):
-    """Retry class for function execution with exponential backoff.
+    """
+    Retry class for function execution with exponential backoff.
 
     This decorator can be used to retry a function on exceptions, up to a specified number of times with an
     exponentially increasing delay between retries. It's useful for handling transient failures in network operations or
@@ -1078,7 +1116,8 @@ class Retry(contextlib.ContextDecorator):
 
 
 def threaded(func):
-    """Multi-thread a target function by default and return the thread or function result.
+    """
+    Multi-thread a target function by default and return the thread or function result.
 
     This decorator provides flexible execution of the target function, either in a separate thread or synchronously. By
     default, the function runs in a thread, but this can be controlled via the 'threaded=False' keyword argument which
@@ -1112,7 +1151,8 @@ def threaded(func):
 
 
 def set_sentry():
-    """Initialize the Sentry SDK for error tracking and reporting.
+    """
+    Initialize the Sentry SDK for error tracking and reporting.
 
     Only used if sentry_sdk package is installed and sync=True in settings. Run 'yolo settings' to see and update
     settings.
@@ -1144,7 +1184,8 @@ def set_sentry():
         return
 
     def before_send(event, hint):
-        """Modify the event before sending it to Sentry based on specific exception types and messages.
+        """
+        Modify the event before sending it to Sentry based on specific exception types and messages.
 
         Args:
             event (dict): The event dictionary containing information about the error.
@@ -1180,7 +1221,8 @@ def set_sentry():
 
 
 class JSONDict(dict):
-    """A dictionary-like class that provides JSON persistence for its contents.
+    """
+    A dictionary-like class that provides JSON persistence for its contents.
 
     This class extends the built-in dictionary to automatically save its contents to a JSON file whenever they are
     modified. It ensures thread-safe operations using a lock and handles JSON serialization of Path objects.
@@ -1273,7 +1315,8 @@ class JSONDict(dict):
 
 
 class SettingsManager(JSONDict):
-    """SettingsManager class for managing and persisting Ultralytics settings.
+    """
+    SettingsManager class for managing and persisting Ultralytics settings.
 
     This class extends JSONDict to provide JSON persistence for settings, ensuring thread-safe operations and default
     values. It validates settings on initialization and provides methods to update or reset settings. The settings

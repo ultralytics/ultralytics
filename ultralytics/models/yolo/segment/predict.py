@@ -6,7 +6,8 @@ from ultralytics.utils import DEFAULT_CFG, ops
 
 
 class SegmentationPredictor(DetectionPredictor):
-    """A class extending the DetectionPredictor class for prediction based on a segmentation model.
+    """
+    A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
     This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
     prediction results.
@@ -30,7 +31,8 @@ class SegmentationPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
+        """
+        Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
 
         This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
         prediction results.
@@ -44,7 +46,8 @@ class SegmentationPredictor(DetectionPredictor):
         self.args.task = "segment"
 
     def postprocess(self, preds, img, orig_imgs):
-        """Apply non-max suppression and process segmentation detections for each image in the input batch.
+        """
+        Apply non-max suppression and process segmentation detections for each image in the input batch.
 
         Args:
             preds (tuple): Model predictions, containing bounding boxes, scores, classes, and mask coefficients.
@@ -64,7 +67,8 @@ class SegmentationPredictor(DetectionPredictor):
         return super().postprocess(preds[0], img, orig_imgs, protos=protos)
 
     def construct_results(self, preds, img, orig_imgs, protos):
-        """Construct a list of result objects from the predictions.
+        """
+        Construct a list of result objects from the predictions.
 
         Args:
             preds (list[torch.Tensor]): List of predicted bounding boxes, scores, and masks.
@@ -82,7 +86,8 @@ class SegmentationPredictor(DetectionPredictor):
         ]
 
     def construct_result(self, pred, img, orig_img, img_path, proto):
-        """Construct a single result object from the prediction.
+        """
+        Construct a single result object from the prediction.
 
         Args:
             pred (torch.Tensor): The predicted bounding boxes, scores, and masks.

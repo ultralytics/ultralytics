@@ -5,7 +5,8 @@ import scipy.linalg
 
 
 class KalmanFilterXYAH:
-    """A KalmanFilterXYAH class for tracking bounding boxes in image space using a Kalman filter.
+    """
+    A KalmanFilterXYAH class for tracking bounding boxes in image space using a Kalman filter.
 
     Implements a simple Kalman filter for tracking bounding boxes in image space. The 8-dimensional state space (x, y,
     a, h, vx, vy, va, vh) contains the bounding box center position (x, y), aspect ratio a, height h, and their
@@ -36,7 +37,8 @@ class KalmanFilterXYAH:
     """
 
     def __init__(self):
-        """Initialize Kalman filter model matrices with motion and observation uncertainty weights.
+        """
+        Initialize Kalman filter model matrices with motion and observation uncertainty weights.
 
         The Kalman filter is initialized with an 8-dimensional state space (x, y, a, h, vx, vy, va, vh), where (x, y)
         represents the bounding box center position, 'a' is the aspect ratio, 'h' is the height, and their respective
@@ -56,7 +58,8 @@ class KalmanFilterXYAH:
         self._std_weight_velocity = 1.0 / 160
 
     def initiate(self, measurement: np.ndarray):
-        """Create a track from an unassociated measurement.
+        """
+        Create a track from an unassociated measurement.
 
         Args:
             measurement (np.ndarray): Bounding box coordinates (x, y, a, h) with center position (x, y), aspect ratio a,
@@ -90,7 +93,8 @@ class KalmanFilterXYAH:
         return mean, covariance
 
     def predict(self, mean: np.ndarray, covariance: np.ndarray):
-        """Run Kalman filter prediction step.
+        """
+        Run Kalman filter prediction step.
 
         Args:
             mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
@@ -127,7 +131,8 @@ class KalmanFilterXYAH:
         return mean, covariance
 
     def project(self, mean: np.ndarray, covariance: np.ndarray):
-        """Project state distribution to measurement space.
+        """
+        Project state distribution to measurement space.
 
         Args:
             mean (np.ndarray): The state's mean vector (8 dimensional array).
@@ -156,7 +161,8 @@ class KalmanFilterXYAH:
         return mean, covariance + innovation_cov
 
     def multi_predict(self, mean: np.ndarray, covariance: np.ndarray):
-        """Run Kalman filter prediction step for multiple object states (Vectorized version).
+        """
+        Run Kalman filter prediction step for multiple object states (Vectorized version).
 
         Args:
             mean (np.ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
@@ -196,7 +202,8 @@ class KalmanFilterXYAH:
         return mean, covariance
 
     def update(self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray):
-        """Run Kalman filter correction step.
+        """
+        Run Kalman filter correction step.
 
         Args:
             mean (np.ndarray): The predicted state's mean vector (8 dimensional).
@@ -235,7 +242,8 @@ class KalmanFilterXYAH:
         only_position: bool = False,
         metric: str = "maha",
     ) -> np.ndarray:
-        """Compute gating distance between state distribution and measurements.
+        """
+        Compute gating distance between state distribution and measurements.
 
         A suitable distance threshold can be obtained from `chi2inv95`. If `only_position` is False, the chi-square
         distribution has 4 degrees of freedom, otherwise 2.
@@ -279,7 +287,8 @@ class KalmanFilterXYAH:
 
 
 class KalmanFilterXYWH(KalmanFilterXYAH):
-    """A KalmanFilterXYWH class for tracking bounding boxes in image space using a Kalman filter.
+    """
+    A KalmanFilterXYWH class for tracking bounding boxes in image space using a Kalman filter.
 
     Implements a Kalman filter for tracking bounding boxes with state space (x, y, w, h, vx, vy, vw, vh), where (x, y)
     is the center position, w is the width, h is the height, and vx, vy, vw, vh are their respective velocities. The
@@ -309,7 +318,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
     """
 
     def initiate(self, measurement: np.ndarray):
-        """Create track from unassociated measurement.
+        """
+        Create track from unassociated measurement.
 
         Args:
             measurement (np.ndarray): Bounding box coordinates (x, y, w, h) with center position (x, y), width, and
@@ -354,7 +364,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         return mean, covariance
 
     def predict(self, mean: np.ndarray, covariance: np.ndarray):
-        """Run Kalman filter prediction step.
+        """
+        Run Kalman filter prediction step.
 
         Args:
             mean (np.ndarray): The 8-dimensional mean vector of the object state at the previous time step.
@@ -391,7 +402,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         return mean, covariance
 
     def project(self, mean: np.ndarray, covariance: np.ndarray):
-        """Project state distribution to measurement space.
+        """
+        Project state distribution to measurement space.
 
         Args:
             mean (np.ndarray): The state's mean vector (8 dimensional array).
@@ -420,7 +432,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         return mean, covariance + innovation_cov
 
     def multi_predict(self, mean: np.ndarray, covariance: np.ndarray):
-        """Run Kalman filter prediction step (Vectorized version).
+        """
+        Run Kalman filter prediction step (Vectorized version).
 
         Args:
             mean (np.ndarray): The Nx8 dimensional mean matrix of the object states at the previous time step.
@@ -460,7 +473,8 @@ class KalmanFilterXYWH(KalmanFilterXYAH):
         return mean, covariance
 
     def update(self, mean: np.ndarray, covariance: np.ndarray, measurement: np.ndarray):
-        """Run Kalman filter correction step.
+        """
+        Run Kalman filter correction step.
 
         Args:
             mean (np.ndarray): The predicted state's mean vector (8 dimensional).

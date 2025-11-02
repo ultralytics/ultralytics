@@ -16,7 +16,8 @@ def is_noninteractive_console() -> bool:
 
 
 class TQDM:
-    """Lightweight zero-dependency progress bar for Ultralytics.
+    """
+    Lightweight zero-dependency progress bar for Ultralytics.
 
     Provides clean, rich-style progress bars suitable for various environments including Weights & Biases, console
     outputs, and other logging systems. Features zero external dependencies, clean single-line output, rich-style
@@ -93,7 +94,8 @@ class TQDM:
         initial: int = 0,
         **kwargs,
     ) -> None:
-        """Initialize the TQDM progress bar with specified configuration options.
+        """
+        Initialize the TQDM progress bar with specified configuration options.
 
         Args:
             iterable (object, optional): Iterable to wrap with progress bar.

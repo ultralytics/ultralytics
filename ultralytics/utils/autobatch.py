@@ -20,7 +20,8 @@ def check_train_batch_size(
     batch: int | float = -1,
     max_num_obj: int = 1,
 ) -> int:
-    """Compute optimal YOLO training batch size using the autobatch() function.
+    """
+    Compute optimal YOLO training batch size using the autobatch() function.
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
@@ -49,7 +50,8 @@ def autobatch(
     batch_size: int = DEFAULT_CFG.batch,
     max_num_obj: int = 1,
 ) -> int:
-    """Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
+    """
+    Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
     Args:
         model (torch.nn.Module): YOLO model to compute batch size for.

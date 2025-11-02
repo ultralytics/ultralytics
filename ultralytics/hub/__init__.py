@@ -23,7 +23,8 @@ __all__ = (
 
 
 def login(api_key: str | None = None, save: bool = True) -> bool:
-    """Log in to the Ultralytics HUB API using the provided API key.
+    """
+    Log in to the Ultralytics HUB API using the provided API key.
 
     The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY
     environment variable if successfully authenticated.
@@ -90,7 +91,8 @@ def export_fmts_hub():
 
 
 def export_model(model_id: str = "", format: str = "torchscript"):
-    """Export a model to a specified format for deployment via the Ultralytics HUB API.
+    """
+    Export a model to a specified format for deployment via the Ultralytics HUB API.
 
     Args:
         model_id (str): The ID of the model to export. An empty string will use the default model.
@@ -115,7 +117,8 @@ def export_model(model_id: str = "", format: str = "torchscript"):
 
 
 def get_export(model_id: str = "", format: str = "torchscript"):
-    """Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
+    """
+    Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
 
     Args:
         model_id (str): The ID of the model to retrieve from Ultralytics HUB.
@@ -144,7 +147,8 @@ def get_export(model_id: str = "", format: str = "torchscript"):
 
 
 def check_dataset(path: str, task: str) -> None:
-    """Check HUB dataset Zip file for errors before upload.
+    """
+    Check HUB dataset Zip file for errors before upload.
 
     Args:
         path (str): Path to data.zip (with data.yaml inside data.zip).

@@ -16,7 +16,8 @@ if TYPE_CHECKING:
 
 
 def find_free_network_port() -> int:
-    """Find a free port on localhost.
+    """
+    Find a free port on localhost.
 
     It is useful in single-node training when we don't want to connect to a real main node but have to set the
     `MASTER_PORT` environment variable.
@@ -31,8 +32,14 @@ def find_free_network_port() -> int:
         return s.getsockname()[1]  # port
 
 
+<<<<<<< HEAD
 def generate_ddp_file(trainer: BaseTrainer) -> str:
     """Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
+=======
+def generate_ddp_file(trainer):
+    """
+    Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
     This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
     contains the necessary configuration to initialize the trainer in a distributed environment.
@@ -81,8 +88,14 @@ if __name__ == "__main__":
     return file.name
 
 
+<<<<<<< HEAD
 def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     """Generate command for distributed training.
+=======
+def generate_ddp_command(trainer):
+    """
+    Generate command for distributed training.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
@@ -111,8 +124,14 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     return cmd, file
 
 
+<<<<<<< HEAD
 def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """Delete temporary file if created during distributed data parallel (DDP) training.
+=======
+def ddp_cleanup(trainer, file):
+    """
+    Delete temporary file if created during distributed data parallel (DDP) training.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
     This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a
     temporary file for DDP training, and deletes it if so.

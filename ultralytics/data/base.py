@@ -21,7 +21,8 @@ from ultralytics.utils.patches import imread
 
 
 class BaseDataset(Dataset):
-    """Base dataset class for loading and processing image data.
+    """
+    Base dataset class for loading and processing image data.
 
     This class provides core functionality for loading images, caching, and preparing data for training and inference in
     object detection tasks.
@@ -86,7 +87,8 @@ class BaseDataset(Dataset):
         fraction: float = 1.0,
         channels: int = 3,
     ):
-        """Initialize BaseDataset with given configuration and options.
+        """
+        Initialize BaseDataset with given configuration and options.
 
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
@@ -148,7 +150,8 @@ class BaseDataset(Dataset):
         self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
-        """Read image files from the specified path.
+        """
+        Read image files from the specified path.
 
         Args:
             img_path (str | list[str]): Path or list of paths to image directories or files.
@@ -185,7 +188,8 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: list[int] | None) -> None:
-        """Update labels to include only specified classes.
+        """
+        Update labels to include only specified classes.
 
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
@@ -208,7 +212,8 @@ class BaseDataset(Dataset):
                 self.labels[i]["cls"][:, 0] = 0
 
     def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
-        """Load an image from dataset index 'i'.
+        """
+        Load an image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
@@ -283,7 +288,8 @@ class BaseDataset(Dataset):
             np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
 
     def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
-        """Check if there's enough disk space for caching images.
+        """
+        Check if there's enough disk space for caching images.
 
         Args:
             safety_margin (float): Safety margin factor for disk space calculation.
@@ -318,7 +324,8 @@ class BaseDataset(Dataset):
         return True
 
     def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
-        """Check if there's enough RAM for caching images.
+        """
+        Check if there's enough RAM for caching images.
 
         Args:
             safety_margin (float): Safety margin factor for RAM calculation.
@@ -376,7 +383,8 @@ class BaseDataset(Dataset):
         return self.transforms(self.get_image_and_label(index))
 
     def get_image_and_label(self, index: int) -> dict[str, Any]:
-        """Get and return label information from the dataset.
+        """
+        Get and return label information from the dataset.
 
         Args:
             index (int): Index of the image to retrieve.
@@ -404,7 +412,8 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp: dict[str, Any] | None = None):
-        """Users can customize augmentations here.
+        """
+        Users can customize augmentations here.
 
         Examples:
             >>> if self.augment:
@@ -417,7 +426,8 @@ class BaseDataset(Dataset):
         raise NotImplementedError
 
     def get_labels(self) -> list[dict[str, Any]]:
-        """Users can customize their own format here.
+        """
+        Users can customize their own format here.
 
         Examples:
             Ensure output is a dictionary with the following keys:

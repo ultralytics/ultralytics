@@ -339,7 +339,8 @@ CSS_COMMENT = re.compile(r"/\*[\s\S]*?\*/")
 
 
 def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
-    """Remove comments and empty lines from a string of code, preserving newlines and URLs.
+    """
+    Remove comments and empty lines from a string of code, preserving newlines and URLs.
 
     Args:
         content (str): Code content to process.

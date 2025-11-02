@@ -22,7 +22,8 @@ except (ImportError, AssertionError, TypeError, AttributeError):
 
 
 def _log_scalars(scalars: dict, step: int = 0) -> None:
-    """Log scalar values to TensorBoard.
+    """
+    Log scalar values to TensorBoard.
 
     Args:
         scalars (dict): Dictionary of scalar values to log to TensorBoard. Keys are scalar names and values are the
@@ -41,7 +42,8 @@ def _log_scalars(scalars: dict, step: int = 0) -> None:
 
 @smart_inference_mode()
 def _log_tensorboard_graph(trainer) -> None:
-    """Log model graph to TensorBoard.
+    """
+    Log model graph to TensorBoard.
 
     This function attempts to visualize the model architecture in TensorBoard by tracing the model with a dummy input
     tensor. It first tries a simple method suitable for YOLO models, and if that fails, falls back to a more complex

@@ -13,7 +13,12 @@ from ultralytics.utils.checks import check_requirements
 
 
 class ConsoleLogger:
+<<<<<<< HEAD
     """Console output capture with batched streaming to file, API, or custom callback.
+=======
+    """
+    Console output capture with API/file streaming and deduplication.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
     Captures stdout/stderr output and streams it with intelligent deduplication and configurable batching.
 
@@ -42,8 +47,14 @@ class ConsoleLogger:
         >>> logger.start_capture()
     """
 
+<<<<<<< HEAD
     def __init__(self, destination=None, batch_size=1, flush_interval=5.0, on_flush=None):
         """Initialize console logger with optional batching.
+=======
+    def __init__(self, destination):
+        """
+        Initialize with API endpoint or local file path.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Args:
             destination (str | Path | None): API endpoint URL (http/https), local file path, or None.
@@ -286,7 +297,8 @@ class ConsoleLogger:
 
 
 class SystemLogger:
-    """Log dynamic system metrics for training monitoring.
+    """
+    Log dynamic system metrics for training monitoring.
 
     Captures real-time system metrics including CPU, RAM, disk I/O, network I/O, and NVIDIA GPU statistics for training
     performance monitoring and analysis.
@@ -345,8 +357,14 @@ class SystemLogger:
                 LOGGER.warning(f"SystemLogger NVML init failed: {e}")
             return False
 
+<<<<<<< HEAD
     def get_metrics(self, rates=False):
         """Get current system metrics including CPU, RAM, disk, network, and GPU usage.
+=======
+    def get_metrics(self):
+        """
+        Get current system metrics.
+>>>>>>> 92fbd46a (Auto-format by https://ultralytics.com/actions)
 
         Collects comprehensive system metrics including CPU usage, RAM usage, disk I/O statistics, network I/O
         statistics, and GPU metrics (if available).

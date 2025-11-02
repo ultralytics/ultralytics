@@ -12,7 +12,8 @@ from ultralytics.utils import DEFAULT_CFG, RANK
 
 
 class OBBTrainer(yolo.detect.DetectionTrainer):
-    """A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
+    """
+    A class extending the DetectionTrainer class for training based on an Oriented Bounding Box (OBB) model.
 
     This trainer specializes in training YOLO models that detect oriented bounding boxes, which are useful for detecting
     objects at arbitrary angles rather than just axis-aligned rectangles.
@@ -33,7 +34,8 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict | None = None, _callbacks: list[Any] | None = None):
-        """Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
+        """
+        Initialize an OBBTrainer object for training Oriented Bounding Box (OBB) models.
 
         Args:
             cfg (dict, optional): Configuration dictionary for the trainer. Contains training parameters and model
@@ -50,7 +52,8 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
     def get_model(
         self, cfg: str | dict | None = None, weights: str | Path | None = None, verbose: bool = True
     ) -> OBBModel:
-        """Return OBBModel initialized with specified config and weights.
+        """
+        Return OBBModel initialized with specified config and weights.
 
         Args:
             cfg (str | dict, optional): Model configuration. Can be a path to a YAML config file, a dictionary

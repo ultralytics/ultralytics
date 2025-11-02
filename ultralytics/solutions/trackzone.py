@@ -10,7 +10,8 @@ from ultralytics.utils.plotting import colors
 
 
 class TrackZone(BaseSolution):
-    """A class to manage region-based object tracking in a video stream.
+    """
+    A class to manage region-based object tracking in a video stream.
 
     This class extends the BaseSolution class and provides functionality for tracking objects within a specific region
     defined by a polygonal area. Objects outside the region are excluded from tracking.
@@ -36,7 +37,8 @@ class TrackZone(BaseSolution):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """Initialize the TrackZone class for tracking objects within a defined region in video streams.
+        """
+        Initialize the TrackZone class for tracking objects within a defined region in video streams.
 
         Args:
             **kwargs (Any): Additional keyword arguments passed to the parent class.
@@ -47,7 +49,8 @@ class TrackZone(BaseSolution):
         self.mask = None
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """Process the input frame to track objects within a defined region.
+        """
+        Process the input frame to track objects within a defined region.
 
         This method initializes the annotator, creates a mask for the specified region, extracts tracks only from the
         masked area, and updates tracking information. Objects outside the region are ignored.

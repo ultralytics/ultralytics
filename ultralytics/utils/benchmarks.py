@@ -63,8 +63,7 @@ def benchmark(
     format="",
     **kwargs,
 ):
-    """
-    Benchmark a YOLO model across different formats for speed and accuracy.
+    """Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
         model (str | Path): Path to the model file or directory.
@@ -79,8 +78,8 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric,
-            and inference time.
+        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric, and
+            inference time.
 
     Examples:
         Benchmark a YOLO model with default settings:
@@ -227,8 +226,7 @@ def benchmark(
 
 
 class RF100Benchmark:
-    """
-    Benchmark YOLO model performance across various formats for speed and accuracy.
+    """Benchmark YOLO model performance across various formats for speed and accuracy.
 
     This class provides functionality to benchmark YOLO models on the RF100 dataset collection.
 
@@ -253,8 +251,7 @@ class RF100Benchmark:
         self.val_metrics = ["class", "images", "targets", "precision", "recall", "map50", "map95"]
 
     def set_key(self, api_key: str):
-        """
-        Set Roboflow API key for processing.
+        """Set Roboflow API key for processing.
 
         Args:
             api_key (str): The API key.
@@ -270,8 +267,7 @@ class RF100Benchmark:
         self.rf = Roboflow(api_key=api_key)
 
     def parse_dataset(self, ds_link_txt: str = "datasets_links.txt"):
-        """
-        Parse dataset links and download datasets.
+        """Parse dataset links and download datasets.
 
         Args:
             ds_link_txt (str): Path to the file containing dataset links.
@@ -315,8 +311,7 @@ class RF100Benchmark:
         YAML.dump(yaml_data, path)
 
     def evaluate(self, yaml_path: str, val_log_file: str, eval_log_file: str, list_ind: int):
-        """
-        Evaluate model performance on validation results.
+        """Evaluate model performance on validation results.
 
         Args:
             yaml_path (str): Path to the YAML configuration file.
@@ -373,8 +368,7 @@ class RF100Benchmark:
 
 
 class ProfileModels:
-    """
-    ProfileModels class for profiling different models on ONNX and TensorRT.
+    """ProfileModels class for profiling different models on ONNX and TensorRT.
 
     This class profiles the performance of different models, returning results such as model speed and FLOPs.
 
@@ -417,8 +411,7 @@ class ProfileModels:
         trt: bool = True,
         device: torch.device | str | None = None,
     ):
-        """
-        Initialize the ProfileModels class for profiling models.
+        """Initialize the ProfileModels class for profiling models.
 
         Args:
             paths (list[str]): List of paths of the models to be profiled.
@@ -449,8 +442,7 @@ class ProfileModels:
         self.device = device if isinstance(device, torch.device) else select_device(device)
 
     def run(self):
-        """
-        Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
+        """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
 
         Returns:
             (list[dict]): List of dictionaries containing profiling results for each model.
@@ -504,8 +496,7 @@ class ProfileModels:
         return output
 
     def get_files(self):
-        """
-        Return a list of paths for all relevant model files given by the user.
+        """Return a list of paths for all relevant model files given by the user.
 
         Returns:
             (list[Path]): List of Path objects for the model files.
@@ -531,8 +522,7 @@ class ProfileModels:
 
     @staticmethod
     def iterative_sigma_clipping(data: np.ndarray, sigma: float = 2, max_iters: int = 3):
-        """
-        Apply iterative sigma clipping to data to remove outliers.
+        """Apply iterative sigma clipping to data to remove outliers.
 
         Args:
             data (np.ndarray): Input data array.
@@ -552,8 +542,7 @@ class ProfileModels:
         return data
 
     def profile_tensorrt_model(self, engine_file: str, eps: float = 1e-3):
-        """
-        Profile YOLO model performance with TensorRT, measuring average run time and standard deviation.
+        """Profile YOLO model performance with TensorRT, measuring average run time and standard deviation.
 
         Args:
             engine_file (str): Path to the TensorRT engine file.
@@ -596,8 +585,7 @@ class ProfileModels:
         return not all(isinstance(dim, int) and dim >= 0 for dim in tensor_shape)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):
-        """
-        Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
+        """Profile an ONNX model, measuring average inference time and standard deviation across multiple runs.
 
         Args:
             onnx_file (str): Path to the ONNX model file.
@@ -676,8 +664,7 @@ class ProfileModels:
         t_engine: tuple[float, float],
         model_info: tuple[float, float, float, float],
     ):
-        """
-        Generate a table row string with model performance metrics.
+        """Generate a table row string with model performance metrics.
 
         Args:
             model_name (str): Name of the model.
@@ -701,8 +688,7 @@ class ProfileModels:
         t_engine: tuple[float, float],
         model_info: tuple[float, float, float, float],
     ):
-        """
-        Generate a dictionary of profiling results.
+        """Generate a dictionary of profiling results.
 
         Args:
             model_name (str): Name of the model.
@@ -724,8 +710,7 @@ class ProfileModels:
 
     @staticmethod
     def print_table(table_rows: list[str]):
-        """
-        Print a formatted table of model profiling results.
+        """Print a formatted table of model profiling results.
 
         Args:
             table_rows (list[str]): List of formatted table row strings.

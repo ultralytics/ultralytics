@@ -194,8 +194,8 @@ class Detect(nn.Module):
         """Post-process YOLO model predictions.
 
         Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extras) with last dimension
-                format [x, y, w, h, class_probs].
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extras) with last
+                dimension format [x, y, w, h, class_probs].
             max_det (int): Maximum detections per image.
             nc (int, optional): Number of classes.
 

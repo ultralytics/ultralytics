@@ -12,8 +12,7 @@ from ultralytics.utils import DEFAULT_CFG, LOGGER
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training YOLO pose estimation models.
+    """A class extending the DetectionTrainer class for training YOLO pose estimation models.
 
     This trainer specializes in handling pose estimation tasks, managing model training, validation, and visualization
     of pose keypoints alongside bounding boxes.
@@ -39,8 +38,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks=None):
-        """
-        Initialize a PoseTrainer object for training YOLO pose estimation models.
+        """Initialize a PoseTrainer object for training YOLO pose estimation models.
 
         Args:
             cfg (dict, optional): Default configuration dictionary containing training parameters.
@@ -68,8 +66,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         weights: str | Path | None = None,
         verbose: bool = True,
     ) -> PoseModel:
-        """
-        Get pose estimation model with specified configuration and weights.
+        """Get pose estimation model with specified configuration and weights.
 
         Args:
             cfg (str | Path | dict, optional): Model configuration file path or dictionary.
@@ -105,8 +102,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         )
 
     def get_dataset(self) -> dict[str, Any]:
-        """
-        Retrieve the dataset and ensure it contains the required `kpt_shape` key.
+        """Retrieve the dataset and ensure it contains the required `kpt_shape` key.
 
         Returns:
             (dict): A dictionary containing the training/validation/test dataset and category names.

@@ -14,8 +14,7 @@ def run_ray_tune(
     max_samples: int = 10,
     **train_args,
 ):
-    """
-    Run hyperparameter tuning using Ray Tune.
+    """Run hyperparameter tuning using Ray Tune.
 
     Args:
         model (YOLO): Model to run the tuner on.

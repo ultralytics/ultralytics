@@ -51,8 +51,7 @@ def img2label_paths(img_paths: list[str]) -> list[str]:
 def check_file_speeds(
     files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
-    """
-    Check dataset file access speed and provide performance feedback.
+    """Check dataset file access speed and provide performance feedback.
 
     This function tests the access speed of dataset files by measuring ping (stat call) time and read speed. It samples
     up to 5 files from the provided list and warns if access times exceed the threshold.
@@ -251,8 +250,7 @@ def verify_image_label(args: tuple) -> list:
 
 
 def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
-    """
-    Visualize YOLO annotations (bounding boxes and class labels) on an image.
+    """Visualize YOLO annotations (bounding boxes and class labels) on an image.
 
     This function reads an image and its corresponding annotation file in YOLO format, then draws bounding boxes around
     detected objects and labels them with their respective class names. The bounding box colors are assigned based on
@@ -297,13 +295,12 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
 def polygon2mask(
     imgsz: tuple[int, int], polygons: list[np.ndarray], color: int = 1, downsample_ratio: int = 1
 ) -> np.ndarray:
-    """
-    Convert a list of polygons to a binary mask of the specified image size.
+    """Convert a list of polygons to a binary mask of the specified image size.
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-            N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
@@ -322,13 +319,12 @@ def polygon2mask(
 def polygons2masks(
     imgsz: tuple[int, int], polygons: list[np.ndarray], color: int, downsample_ratio: int = 1
 ) -> np.ndarray:
-    """
-    Convert a list of polygons to a set of binary masks of the specified image size.
+    """Convert a list of polygons to a set of binary masks of the specified image size.
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-            N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
@@ -368,8 +364,7 @@ def polygons2masks_overlap(
 
 
 def find_dataset_yaml(path: Path) -> Path:
-    """
-    Find and return the YAML file associated with a Detect, Segment or Pose dataset.
+    """Find and return the YAML file associated with a Detect, Segment or Pose dataset.
 
     This function searches for a YAML file at the root level of the provided directory first, and if not found, it
     performs a recursive search. It prefers YAML files that have the same stem as the provided path.
@@ -389,8 +384,7 @@ def find_dataset_yaml(path: Path) -> Path:
 
 
 def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]:
-    """
-    Download, verify, and/or unzip a dataset if not found locally.
+    """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
     unzip the dataset. It then reads and parses the accompanying YAML data, ensuring key requirements are met and also
@@ -484,8 +478,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
 
 
 def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
-    """
-    Check a classification dataset such as Imagenet.
+    """Check a classification dataset such as Imagenet.
 
     This function accepts a `dataset` name and attempts to retrieve the corresponding dataset information. If the
     dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
@@ -581,8 +574,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
 
 
 class HUBDatasetStats:
-    """
-    A class for generating HUB dataset JSON and `-hub` dataset directory.
+    """A class for generating HUB dataset JSON and `-hub` dataset directory.
 
     Args:
         path (str): Path to data.yaml or data.zip (with data.yaml inside data.zip).
@@ -748,10 +740,9 @@ class HUBDatasetStats:
 
 
 def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, quality: int = 50):
-    """
-    Compress a single image file to reduced size while preserving its aspect ratio and quality using either the Python
-    Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will not be
-    resized.
+    """Compress a single image file to reduced size while preserving its aspect ratio and quality using either the
+    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it
+    will not be resized.
 
     Args:
         f (str): The path to the input image file.

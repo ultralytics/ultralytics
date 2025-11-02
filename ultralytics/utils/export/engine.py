@@ -20,8 +20,7 @@ def torch2onnx(
     output_names: list[str] = ["output0"],
     dynamic: bool | dict = False,
 ) -> None:
-    """
-    Export a PyTorch model to ONNX format.
+    """Export a PyTorch model to ONNX format.
 
     Args:
         torch_model (torch.nn.Module): The PyTorch model to export.
@@ -64,8 +63,7 @@ def onnx2engine(
     verbose: bool = False,
     prefix: str = "",
 ) -> None:
-    """
-    Export a YOLO model to TensorRT engine format.
+    """Export a YOLO model to TensorRT engine format.
 
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
@@ -154,8 +152,7 @@ def onnx2engine(
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
         class EngineCalibrator(trt.IInt8Calibrator):
-            """
-            Custom INT8 calibrator for TensorRT engine optimization.
+            """Custom INT8 calibrator for TensorRT engine optimization.
 
             This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration using
             a dataset. It handles batch generation, caching, and calibration algorithm selection.

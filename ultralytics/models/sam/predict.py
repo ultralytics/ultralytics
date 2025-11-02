@@ -38,8 +38,7 @@ from .amg import (
 
 
 class Predictor(BasePredictor):
-    """
-    Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
+    """Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
 
     This class extends BasePredictor and implements the Segment Anything Model (SAM) for advanced image segmentation
     tasks. It supports various input prompts like points, bounding boxes, and masks for fine-grained control over
@@ -81,8 +80,7 @@ class Predictor(BasePredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the Predictor with configuration, overrides, and callbacks.
+        """Initialize the Predictor with configuration, overrides, and callbacks.
 
         Sets up the Predictor object for SAM (Segment Anything Model) and applies any configuration overrides or
         callbacks provided. Initializes task-specific settings for SAM, such as retina_masks being set to True for
@@ -109,8 +107,7 @@ class Predictor(BasePredictor):
         self.segment_all = False
 
     def preprocess(self, im):
-        """
-        Preprocess the input image for model inference.
+        """Preprocess the input image for model inference.
 
         This method prepares the input image by applying transformations and normalization. It supports both
         torch.Tensor and list of np.ndarray as input formats.
@@ -142,8 +139,7 @@ class Predictor(BasePredictor):
         return im
 
     def pre_transform(self, im):
-        """
-        Perform initial transformations on the input image for preprocessing.
+        """Perform initial transformations on the input image for preprocessing.
 
         This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
         batched inference is not supported; hence the list length should be 1.
@@ -169,8 +165,7 @@ class Predictor(BasePredictor):
         return [letterbox(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
-        """
-        Perform image segmentation inference based on the given input cues, using the currently loaded image.
+        """Perform image segmentation inference based on the given input cues, using the currently loaded image.
 
         This method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt encoder,
         and mask decoder for real-time and promptable segmentation tasks.
@@ -208,8 +203,7 @@ class Predictor(BasePredictor):
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)
 
     def prompt_inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False):
-        """
-        Perform image segmentation inference based on input cues using SAM's specialized architecture.
+        """Perform image segmentation inference based on input cues using SAM's specialized architecture.
 
         This internal function leverages the Segment Anything Model (SAM) for prompt-based, real-time segmentation. It
         processes various input prompts such as bounding boxes, points, and masks to generate segmentation masks.
@@ -248,8 +242,7 @@ class Predictor(BasePredictor):
         masks=None,
         multimask_output=False,
     ):
-        """
-        Perform inference on image features using the SAM model.
+        """Perform inference on image features using the SAM model.
 
         Args:
             features (torch.Tensor): Extracted image features with shape (B, C, H, W) from the SAM model image encoder.
@@ -281,8 +274,7 @@ class Predictor(BasePredictor):
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
     def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
-        """
-        Prepare and transform the input prompts for processing based on the destination shape.
+        """Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
             dst_shape (tuple[int, int]): The target shape (height, width) for the prompts.
@@ -346,8 +338,7 @@ class Predictor(BasePredictor):
         stability_score_offset=0.95,
         crop_nms_thresh=0.7,
     ):
-        """
-        Perform image segmentation using the Segment Anything Model (SAM).
+        """Perform image segmentation using the Segment Anything Model (SAM).
 
         This method segments an entire image into constituent parts by leveraging SAM's advanced architecture and
         real-time performance capabilities. It can optionally work on image crops for finer segmentation.
@@ -445,8 +436,7 @@ class Predictor(BasePredictor):
         return pred_masks, pred_scores, pred_bboxes
 
     def setup_model(self, model=None, verbose=True):
-        """
-        Initialize the Segment Anything Model (SAM) for inference.
+        """Initialize the Segment Anything Model (SAM) for inference.
 
         This method sets up the SAM model by allocating it to the appropriate device and initializing the necessary
         parameters for image normalization and other Ultralytics compatibility settings.
@@ -484,8 +474,7 @@ class Predictor(BasePredictor):
         return build_sam(self.args.model)
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Post-process SAM's inference outputs to generate object detection masks and bounding boxes.
+        """Post-process SAM's inference outputs to generate object detection masks and bounding boxes.
 
         This method scales masks and boxes to the original image size and applies a threshold to the mask
         predictions. It leverages SAM's advanced architecture for real-time, promptable segmentation tasks.
@@ -499,8 +488,8 @@ class Predictor(BasePredictor):
             orig_imgs (list[np.ndarray] | torch.Tensor): The original, unprocessed images.
 
         Returns:
-            (list[Results]): List of Results objects containing detection masks, bounding boxes, and other
-                metadata for each processed image.
+            (list[Results]): List of Results objects containing detection masks, bounding boxes, and other metadata for
+                each processed image.
 
         Examples:
             >>> predictor = Predictor()
@@ -537,15 +526,14 @@ class Predictor(BasePredictor):
         return results
 
     def setup_source(self, source):
-        """
-        Set up the data source for inference.
+        """Set up the data source for inference.
 
         This method configures the data source from which images will be fetched for inference. It supports various
         input types such as image files, directories, video files, and other compatible data sources.
 
         Args:
-            source (str | Path | None): The path or identifier for the image data source. Can be a file path,
-                directory path, URL, or other supported source types.
+            source (str | Path | None): The path or identifier for the image data source. Can be a file path, directory
+                path, URL, or other supported source types.
 
         Examples:
             >>> predictor = Predictor()
@@ -562,16 +550,15 @@ class Predictor(BasePredictor):
             super().setup_source(source)
 
     def set_image(self, image):
-        """
-        Preprocess and set a single image for inference.
+        """Preprocess and set a single image for inference.
 
         This method prepares the model for inference on a single image by setting up the model if not already
         initialized, configuring the data source, and preprocessing the image for feature extraction. It ensures that
         only one image is set at a time and extracts image features for subsequent use.
 
         Args:
-            image (str | np.ndarray): Path to the image file as a string, or a numpy array representing
-                an image read by cv2.
+            image (str | np.ndarray): Path to the image file as a string, or a numpy array representing an image read by
+                cv2.
 
         Raises:
             AssertionError: If more than one image is attempted to be set.
@@ -613,8 +600,7 @@ class Predictor(BasePredictor):
 
     @staticmethod
     def remove_small_regions(masks, min_area=0, nms_thresh=0.7):
-        """
-        Remove small disconnected regions and holes from segmentation masks.
+        """Remove small disconnected regions and holes from segmentation masks.
 
         This function performs post-processing on segmentation masks generated by the Segment Anything Model (SAM). It
         removes small disconnected regions and holes from the input masks, and then performs Non-Maximum Suppression
@@ -675,8 +661,7 @@ class Predictor(BasePredictor):
         masks=None,
         multimask_output=False,
     ):
-        """
-        Perform prompts preprocessing and inference on provided image features using the SAM model.
+        """Perform prompts preprocessing and inference on provided image features using the SAM model.
 
         Args:
             features (torch.Tensor | dict[str, Any]): Extracted image features from the SAM/SAM2 model image encoder.
@@ -714,8 +699,7 @@ class Predictor(BasePredictor):
 
 
 class SAM2Predictor(Predictor):
-    """
-    SAM2Predictor class for advanced image segmentation using Segment Anything Model 2 architecture.
+    """SAM2Predictor class for advanced image segmentation using Segment Anything Model 2 architecture.
 
     This class extends the base Predictor class to implement SAM2-specific functionality for image segmentation tasks.
     It provides methods for model initialization, feature extraction, and prompt-based inference.
@@ -755,8 +739,7 @@ class SAM2Predictor(Predictor):
         return build_sam(self.args.model)
 
     def _prepare_prompts(self, dst_shape, src_shape, bboxes=None, points=None, labels=None, masks=None):
-        """
-        Prepare and transform the input prompts for processing based on the destination shape.
+        """Prepare and transform the input prompts for processing based on the destination shape.
 
         Args:
             dst_shape (tuple[int, int]): The target shape (height, width) for the prompts.
@@ -790,8 +773,7 @@ class SAM2Predictor(Predictor):
         return points, labels, masks
 
     def set_image(self, image):
-        """
-        Preprocess and set a single image for inference using the SAM2 model.
+        """Preprocess and set a single image for inference using the SAM2 model.
 
         This method initializes the model if not already done, configures the data source to the specified image, and
         preprocesses the image for feature extraction. It supports setting only one image at a time.
@@ -847,8 +829,7 @@ class SAM2Predictor(Predictor):
         multimask_output=False,
         img_idx=-1,
     ):
-        """
-        Perform inference on image features using the SAM2 model.
+        """Perform inference on image features using the SAM2 model.
 
         Args:
             features (torch.Tensor | dict[str, Any]): Extracted image features with shape (B, C, H, W) from the SAM2
@@ -892,8 +873,7 @@ class SAM2Predictor(Predictor):
 
 
 class SAM2VideoPredictor(SAM2Predictor):
-    """
-    SAM2VideoPredictor to handle user interactions with videos and manage inference states.
+    """SAM2VideoPredictor to handle user interactions with videos and manage inference states.
 
     This class extends the functionality of SAM2Predictor to support video processing and maintains the state of
     inference operations. It includes configurations for managing non-overlapping masks, clearing memory for
@@ -929,8 +909,7 @@ class SAM2VideoPredictor(SAM2Predictor):
     # fill_hole_area = 8  # not used
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the predictor with configuration and optional overrides.
+        """Initialize the predictor with configuration and optional overrides.
 
         This constructor initializes the SAM2VideoPredictor with a given configuration, applies any specified overrides,
         and sets up the inference state along with certain flags that control the behavior of the predictor.
@@ -953,8 +932,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.callbacks["on_predict_start"].append(self.init_state)
 
     def get_model(self):
-        """
-        Retrieve and configure the model with binarization enabled.
+        """Retrieve and configure the model with binarization enabled.
 
         Notes:
             This method overrides the base class implementation to set the binarize flag to True.
@@ -964,10 +942,9 @@ class SAM2VideoPredictor(SAM2Predictor):
         return model
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None):
-        """
-        Perform image segmentation inference based on the given input cues, using the currently loaded image. This
-        method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt encoder, and
-        mask decoder for real-time and promptable segmentation tasks.
+        """Perform image segmentation inference based on the given input cues, using the currently loaded image. This
+        method leverages SAM's (Segment Anything Model) architecture consisting of image encoder, prompt
+        encoder, and mask decoder for real-time and promptable segmentation tasks.
 
         Args:
             im (torch.Tensor): The preprocessed input image in tensor format, with shape (N, C, H, W).
@@ -1037,8 +1014,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Post-process the predictions to apply non-overlapping constraints if required.
+        """Post-process the predictions to apply non-overlapping constraints if required.
 
         This method extends the post-processing functionality by applying non-overlapping constraints to the predicted
         masks if the `non_overlap_masks` flag is set to True. This ensures that the masks do not overlap, which can be
@@ -1072,8 +1048,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         masks=None,
         frame_idx=0,
     ):
-        """
-        Add new points or masks to a specific frame for a given object ID.
+        """Add new points or masks to a specific frame for a given object ID.
 
         This method updates the inference state with new prompts (points or masks) for a specified object and frame
         index. It ensures that the prompts are either points or masks, but not both, and updates the internal state
@@ -1169,8 +1144,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     @smart_inference_mode()
     def propagate_in_video_preflight(self):
-        """
-        Prepare inference_state and consolidate temporary outputs before tracking.
+        """Prepare inference_state and consolidate temporary outputs before tracking.
 
         This method marks the start of tracking, disallowing the addition of new objects until the session is reset. It
         consolidates temporary outputs from `temp_output_dict_per_obj` and merges them into `output_dict`. Additionally,
@@ -1240,8 +1214,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     @staticmethod
     def init_state(predictor):
-        """
-        Initialize an inference state for the predictor.
+        """Initialize an inference state for the predictor.
 
         This function sets up the initial state required for performing inference on video data. It includes
         initializing various dictionaries and ordered dictionaries that will store inputs, outputs, and other metadata
@@ -1287,8 +1260,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         predictor.inference_state = inference_state
 
     def get_im_features(self, im, batch=1):
-        """
-        Extract and process image features using SAM2's image encoder for subsequent segmentation tasks.
+        """Extract and process image features using SAM2's image encoder for subsequent segmentation tasks.
 
         Args:
             im (torch.Tensor): The input image tensor.
@@ -1315,8 +1287,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         return vis_feats, vis_pos_embed, feat_sizes
 
     def _obj_id_to_idx(self, obj_id):
-        """
-        Map client-side object id to model-side object index.
+        """Map client-side object id to model-side object index.
 
         Args:
             obj_id (int): The unique identifier of the object provided by the client side.
@@ -1378,8 +1349,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         run_mem_encoder,
         prev_sam_mask_logits=None,
     ):
-        """
-        Run tracking on a single frame based on current inputs and previous memory.
+        """Run tracking on a single frame based on current inputs and previous memory.
 
         Args:
             output_dict (dict): The dictionary containing the output states of the tracking process.
@@ -1442,8 +1412,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         return current_out
 
     def _get_maskmem_pos_enc(self, out_maskmem_pos_enc):
-        """
-        Cache and manage the positional encoding for mask memory across frames and objects.
+        """Cache and manage the positional encoding for mask memory across frames and objects.
 
         This method optimizes storage by caching the positional encoding (`maskmem_pos_enc`) for mask memory, which is
         constant across frames and objects, thus reducing the amount of redundant information stored during an inference
@@ -1452,8 +1421,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         batch size.
 
         Args:
-            out_maskmem_pos_enc (list[torch.Tensor] | None): The positional encoding for mask memory.
-                Should be a list of tensors or None.
+            out_maskmem_pos_enc (list[torch.Tensor] | None): The positional encoding for mask memory. Should be a list
+                of tensors or None.
 
         Returns:
             (list[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
@@ -1486,8 +1455,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         is_cond=False,
         run_mem_encoder=False,
     ):
-        """
-        Consolidate per-object temporary outputs into a single output for all objects.
+        """Consolidate per-object temporary outputs into a single output for all objects.
 
         This method combines the temporary outputs for each object on a given frame into a unified
         output. It fills in any missing objects either from the main output dictionary or leaves
@@ -1497,8 +1465,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             frame_idx (int): The index of the frame for which to consolidate outputs.
             is_cond (bool, optional): Indicates if the frame is considered a conditioning frame.
-            run_mem_encoder (bool, optional): Specifies whether to run the memory encoder after
-                consolidating the outputs.
+            run_mem_encoder (bool, optional): Specifies whether to run the memory encoder after consolidating the
+                outputs.
 
         Returns:
             (dict): A consolidated output dictionary containing the combined results for all objects.
@@ -1587,8 +1555,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         return consolidated_out
 
     def _get_empty_mask_ptr(self, frame_idx):
-        """
-        Get a dummy object pointer based on an empty mask on the current frame.
+        """Get a dummy object pointer based on an empty mask on the current frame.
 
         Args:
             frame_idx (int): The index of the current frame for which to generate the dummy object pointer.
@@ -1618,8 +1585,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         return current_out["obj_ptr"]
 
     def _run_memory_encoder(self, batch_size, high_res_masks, object_score_logits, is_mask_from_pts):
-        """
-        Run the memory encoder on masks.
+        """Run the memory encoder on masks.
 
         This is usually after applying non-overlapping constraints to object scores. Since their scores changed, their
         memory also needs to be computed again with the memory encoder.
@@ -1651,8 +1617,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         ), maskmem_pos_enc
 
     def _add_output_per_object(self, frame_idx, current_out, storage_key):
-        """
-        Split a multi-object output into per-object output slices and add them into Output_Dict_Per_Obj.
+        """Split a multi-object output into per-object output slices and add them into Output_Dict_Per_Obj.
 
         The resulting slices share the same tensor storage.
 
@@ -1682,8 +1647,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             obj_output_dict[storage_key][frame_idx] = obj_out
 
     def _clear_non_cond_mem_around_input(self, frame_idx):
-        """
-        Remove the non-conditioning memory around the input frame.
+        """Remove the non-conditioning memory around the input frame.
 
         When users provide correction clicks, the surrounding frames' non-conditioning memories can still contain
         outdated object appearance information and could confuse the model. This method clears those non-conditioning
@@ -1703,8 +1667,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
 
 class SAM2DynamicInteractivePredictor(SAM2Predictor):
-    """
-    SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
+    """SAM2DynamicInteractivePredictor extends SAM2Predictor to support dynamic interactions with video frames or a
     sequence of images.
 
     Attributes:
@@ -1736,8 +1699,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         max_obj_num: int = 3,
         _callbacks: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Initialize the predictor with configuration and optional overrides.
+        """Initialize the predictor with configuration and optional overrides.
 
         This constructor initializes the SAM2DynamicInteractivePredictor with a given configuration, applies any
         specified overrides
@@ -1783,12 +1745,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         obj_ids: list[int] | None = None,
         update_memory: bool = False,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Perform inference on a single image with optional bounding boxes, masks, points and object IDs. It has two
-        modes: one is to run inference on a single image without updating the memory, and the other is to update the
-        memory with the provided prompts and object IDs. When update_memory is True, it will update the memory with the
-        provided prompts and obj_ids. When update_memory is False, it will only run inference on the provided image
-        without updating the memory.
+        """Perform inference on a single image with optional bounding boxes, masks, points and object IDs. It has two
+        modes: one is to run inference on a single image without updating the memory, and the other is to update
+        the memory with the provided prompts and object IDs. When update_memory is True, it will update the
+        memory with the provided prompts and obj_ids. When update_memory is False, it will only run inference on
+        the provided image without updating the memory.
 
         Args:
             im (torch.Tensor | np.ndarray): The input image tensor or numpy array.
@@ -1842,8 +1803,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
     def get_im_features(self, img: torch.Tensor | np.ndarray) -> None:
-        """
-        Initialize the image state by processing the input image and extracting features.
+        """Initialize the image state by processing the input image and extracting features.
 
         Args:
             img (torch.Tensor | np.ndarray): The input image tensor or numpy array.
@@ -1866,8 +1826,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         labels: torch.Tensor | None = None,
         masks: torch.Tensor | None = None,
     ) -> None:
-        """
-        Append the imgState to the memory_bank and update the memory for the model.
+        """Append the imgState to the memory_bank and update the memory for the model.
 
         Args:
             obj_ids (list[int]): List of object IDs corresponding to the prompts.
@@ -1941,12 +1900,11 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.memory_bank.append(consolidated_out)
 
     def _prepare_memory_conditioned_features(self, obj_idx: int | None) -> torch.Tensor:
-        """
-        Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
-        prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features for all
-        objects in the image. If there is no memory, it will directly add a no-memory embedding to the current vision
-        features. If there is memory, it will use the memory features from previous frames to condition the current
-        vision features using a transformer attention mechanism.
+        """Prepare the memory-conditioned features for the current image state. If obj_idx is provided, it supposes to
+        prepare features for a specific prompted object in the image. If obj_idx is None, it prepares features
+        for all objects in the image. If there is no memory, it will directly add a no-memory embedding to the
+        current vision features. If there is memory, it will use the memory features from previous frames to
+        condition the current vision features using a transformer attention mechanism.
 
         Args:
             obj_idx (int | None): The index of the object for which to prepare the features.
@@ -1989,8 +1947,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         return memory, memory_pos_embed
 
     def _obj_id_to_idx(self, obj_id: int) -> int | None:
-        """
-        Map client-side object id to model-side object index.
+        """Map client-side object id to model-side object index.
 
         Args:
             obj_id (int): The client-side object ID.
@@ -2007,8 +1964,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         label: torch.Tensor | None = None,
         mask: torch.Tensor | None = None,
     ) -> dict[str, Any]:
-        """
-        Tracking step for the current image state to predict masks.
+        """Tracking step for the current image state to predict masks.
 
         This method processes the image features and runs the SAM heads to predict masks. If obj_idx is provided, it
         processes the features for a specific prompted object in the image. If obj_idx is None, it processes the

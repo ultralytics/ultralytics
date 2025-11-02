@@ -242,7 +242,8 @@ CFG_BOOL_KEYS = frozenset(
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
-    """Convert a configuration object to a dictionary.
+    """
+    Convert a configuration object to a dictionary.
 
     Args:
         cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted. Can be a file path, a string, a
@@ -278,7 +279,8 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
 def get_cfg(
     cfg: str | Path | dict | SimpleNamespace = DEFAULT_CFG_DICT, overrides: dict | None = None
 ) -> SimpleNamespace:
-    """Load and merge configuration data from a file or dictionary, with optional overrides.
+    """
+    Load and merge configuration data from a file or dictionary, with optional overrides.
 
     Args:
         cfg (str | Path | dict | SimpleNamespace): Configuration data source. Can be a file path, dictionary, or
@@ -325,7 +327,8 @@ def get_cfg(
 
 
 def check_cfg(cfg: dict, hard: bool = True) -> None:
-    """Check configuration argument types and values for the Ultralytics library.
+    """
+    Check configuration argument types and values for the Ultralytics library.
 
     This function validates the types and values of configuration arguments, ensuring correctness and converting them if
     necessary. It checks for specific key types defined in global variables such as `CFG_FLOAT_KEYS`,
@@ -386,7 +389,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
 
 
 def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
-    """Return the directory path for saving outputs, derived from arguments or default settings.
+    """
+    Return the directory path for saving outputs, derived from arguments or default settings.
 
     Args:
         args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task', 'mode',
@@ -417,7 +421,8 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
 
 def _handle_deprecation(custom: dict) -> dict:
-    """Handle deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
+    """
+    Handle deprecated configuration keys by mapping them to current equivalents with deprecation warnings.
 
     Args:
         custom (dict): Configuration dictionary potentially containing deprecated keys.
@@ -460,7 +465,8 @@ def _handle_deprecation(custom: dict) -> dict:
 
 
 def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -> None:
-    """Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
+    """
+    Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
 
     Args:
@@ -499,7 +505,8 @@ def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -
 
 
 def merge_equals_args(args: list[str]) -> list[str]:
-    """Merge arguments around isolated '=' in a list of strings and join fragments with brackets.
+    """
+    Merge arguments around isolated '=' in a list of strings and join fragments with brackets.
 
     This function handles the following cases:
         1. ['arg', '=', 'val'] becomes ['arg=val']
@@ -558,7 +565,8 @@ def merge_equals_args(args: list[str]) -> list[str]:
 
 
 def handle_yolo_hub(args: list[str]) -> None:
-    """Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
+    """
+    Handle Ultralytics HUB command-line interface (CLI) commands for authentication.
 
     This function processes Ultralytics HUB CLI commands such as login and logout. It should be called when executing a
     script with arguments related to HUB authentication.
@@ -587,7 +595,8 @@ def handle_yolo_hub(args: list[str]) -> None:
 
 
 def handle_yolo_settings(args: list[str]) -> None:
-    """Handle YOLO settings command-line interface (CLI) commands.
+    """
+    Handle YOLO settings command-line interface (CLI) commands.
 
     This function processes YOLO settings CLI commands such as reset and updating individual settings. It should be
     called when executing a script with arguments related to YOLO settings management.
@@ -629,7 +638,8 @@ def handle_yolo_settings(args: list[str]) -> None:
 
 
 def handle_yolo_solutions(args: list[str]) -> None:
-    """Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
+    """
+    Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
 
     Args:
         args (list[str]): Command-line arguments for configuring and running the Ultralytics YOLO solutions.
@@ -738,7 +748,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
 
 
 def parse_key_value_pair(pair: str = "key=value") -> tuple:
-    """Parse a key-value pair string into separate key and value components.
+    """
+    Parse a key-value pair string into separate key and value components.
 
     Args:
         pair (str): A string containing a key-value pair in the format "key=value".
@@ -771,7 +782,8 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
 
 
 def smart_value(v: str) -> Any:
-    """Convert a string representation of a value to its appropriate Python type.
+    """
+    Convert a string representation of a value to its appropriate Python type.
 
     This function attempts to convert a given string into a Python object of the most appropriate type. It handles
     conversions to None, bool, int, float, and other types that can be evaluated safely.
@@ -815,7 +827,8 @@ def smart_value(v: str) -> Any:
 
 
 def entrypoint(debug: str = "") -> None:
-    """Ultralytics entrypoint function for parsing and executing command-line arguments.
+    """
+    Ultralytics entrypoint function for parsing and executing command-line arguments.
 
     This function serves as the main entry point for the Ultralytics CLI, parsing command-line arguments and executing
     the corresponding tasks such as training, validation, prediction, exporting models, and more.
@@ -987,7 +1000,8 @@ def entrypoint(debug: str = "") -> None:
 
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg() -> None:
-    """Copy the default configuration file and create a new one with '_copy' appended to its name.
+    """
+    Copy the default configuration file and create a new one with '_copy' appended to its name.
 
     This function duplicates the existing default configuration file (DEFAULT_CFG_PATH) and saves it with '_copy'
     appended to its name in the current working directory. It provides a convenient way to create a custom configuration

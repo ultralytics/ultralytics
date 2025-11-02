@@ -24,8 +24,7 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
 
 
 class Events:
-    """
-    Collect and send anonymous usage analytics with rate-limiting.
+    """Collect and send anonymous usage analytics with rate-limiting.
 
     Event collection and transmission are enabled when sync is enabled in settings, the current process is rank -1 or 0,
     tests are not running, the environment is online, and the installation source is either pip or the official
@@ -71,8 +70,7 @@ class Events:
         )
 
     def __call__(self, cfg, device=None) -> None:
-        """
-        Queue an event and flush the queue asynchronously when the rate limit elapses.
+        """Queue an event and flush the queue asynchronously when the rate limit elapses.
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.

@@ -450,8 +450,7 @@ class Model(torch.nn.Module):
         self.model.fuse()
 
     def metadata(self) -> Dict:
-        """
-        Returns the metadata of the model.
+        """Returns the metadata of the model.
 
         This method returns the metadata of the model, including information about the model's task, configuration,
         and other relevant details. The metadata is returned as a dictionary, which can be printed or used for

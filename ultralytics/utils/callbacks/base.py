@@ -175,7 +175,8 @@ default_callbacks = {
 
 
 def get_default_callbacks():
-    """Get the default callbacks for Ultralytics training, validation, prediction, and export processes.
+    """
+    Get the default callbacks for Ultralytics training, validation, prediction, and export processes.
 
     Returns:
         (dict): Dictionary of default callbacks for various training events. Each key represents an event during the
@@ -191,7 +192,8 @@ def get_default_callbacks():
 
 
 def add_integration_callbacks(instance):
-    """Add integration callbacks to the instance's callbacks dictionary.
+    """
+    Add integration callbacks to the instance's callbacks dictionary.
 
     This function loads and adds various integration callbacks to the provided instance. The specific callbacks added
     depend on the type of instance provided. All instances receive HUB callbacks, while Trainer instances also receive

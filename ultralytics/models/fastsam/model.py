@@ -12,7 +12,8 @@ from .val import FastSAMValidator
 
 
 class FastSAM(Model):
-    """FastSAM model interface for segment anything tasks.
+    """
+    FastSAM model interface for segment anything tasks.
 
     This class extends the base Model class to provide specific functionality for the FastSAM (Fast Segment Anything
     Model) implementation, allowing for efficient and accurate image segmentation with optional prompting support.
@@ -52,7 +53,8 @@ class FastSAM(Model):
         texts: list | None = None,
         **kwargs: Any,
     ):
-        """Perform segmentation prediction on image or video source.
+        """
+        Perform segmentation prediction on image or video source.
 
         Supports prompted segmentation with bounding boxes, points, labels, and texts. The method packages these prompts
         and passes them to the parent class predict method for processing.

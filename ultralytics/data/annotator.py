@@ -35,8 +35,8 @@ def auto_annotate(
         imgsz (int): Input image resize dimension.
         max_det (int): Maximum number of detections per image.
         classes (list[int], optional): Filter predictions to specified class IDs, returning only relevant detections.
-        output_dir (str | Path, optional): Directory to save the annotated results. If None, creates a default
-            directory based on the input data path.
+        output_dir (str | Path, optional): Directory to save the annotated results. If None, creates a default directory
+            based on the input data path.
 
     Examples:
         >>> from ultralytics.data.annotator import auto_annotate

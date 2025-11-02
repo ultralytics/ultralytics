@@ -79,8 +79,8 @@ def benchmark(
         **kwargs (Any): Additional keyword arguments for exporter.
 
     Returns:
-        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric,
-            and inference time.
+        (polars.DataFrame): A polars DataFrame with benchmark results for each format, including file size, metric, and
+            inference time.
 
     Examples:
         Benchmark a YOLO model with default settings:

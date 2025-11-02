@@ -44,8 +44,8 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Set the visual prompts for the model.
 
         Args:
-            prompts (dict): Dictionary containing class indices and bounding boxes or masks.
-                Must include a 'cls' key with class indices.
+            prompts (dict): Dictionary containing class indices and bounding boxes or masks. Must include a 'cls' key
+                with class indices.
         """
         self.prompts = prompts
 
@@ -149,9 +149,9 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         Process the source to get the visual prompt embeddings (VPE).
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
-                of the image to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy
-                arrays, and torch tensors.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image to
+                make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors.
 
         Returns:
             (torch.Tensor): The visual prompt embeddings (VPE) from the model.

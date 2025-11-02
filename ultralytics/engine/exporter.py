@@ -1415,8 +1415,8 @@ class NMSModel(torch.nn.Module):
             x (torch.Tensor): The preprocessed tensor with shape (N, 3, H, W).
 
         Returns:
-            (torch.Tensor): List of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the
-                number of detections after NMS.
+            (torch.Tensor): List of detections, each an (N, max_det, 4 + 2 + extra_shape) Tensor where N is the number
+                of detections after NMS.
         """
         from functools import partial
 

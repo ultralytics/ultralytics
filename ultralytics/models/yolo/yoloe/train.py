@@ -54,8 +54,8 @@ class YOLOETrainer(DetectionTrainer):
         Return a YOLOEModel initialized with the specified configuration and weights.
 
         Args:
-            cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key,
-                a direct path to a YAML file, or None to use default configuration.
+            cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key, a direct
+                path to a YAML file, or None to use default configuration.
             weights (str | Path, optional): Path to pretrained weights file to load into the model.
             verbose (bool): Whether to display model information during initialization.
 

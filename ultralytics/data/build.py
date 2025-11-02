@@ -132,8 +132,8 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         num_replicas (int, optional): Number of distributed processes. Defaults to world size.
         batch_size (int, optional): Batch size used by dataloader. Defaults to dataset batch size.
         rank (int, optional): Rank of current process. Defaults to current rank.
-        shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False.
-            When True, shuffling is deterministic and controlled by set_epoch() for reproducibility.
+        shuffle (bool, optional): Whether to shuffle indices within each rank's chunk. Defaults to False. When True,
+            shuffling is deterministic and controlled by set_epoch() for reproducibility.
 
     Examples:
         >>> # For validation with size-grouped images

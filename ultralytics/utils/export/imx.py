@@ -190,8 +190,8 @@ def torch2imx(
         iou (float): IoU threshold for NMS post-processing.
         max_det (int): Maximum number of detections to return.
         metadata (dict | None, optional): Metadata to embed in the ONNX model. Defaults to None.
-        gptq (bool, optional): Whether to use Gradient-Based Post Training Quantization.
-            If False, uses standard Post Training Quantization. Defaults to False.
+        gptq (bool, optional): Whether to use Gradient-Based Post Training Quantization. If False, uses standard Post
+            Training Quantization. Defaults to False.
         dataset (optional): Representative dataset for quantization calibration. Defaults to None.
         prefix (str, optional): Logging prefix string. Defaults to "".
 

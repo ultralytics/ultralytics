@@ -474,13 +474,12 @@ class GroundingDataset(YOLODataset):
         counts.
 
         Args:
-            labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary
-                contains dataset annotations. Each label dict must have a 'bboxes' key with a numpy array or tensor
-                containing bounding box coordinates.
+            labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary contains dataset
+                annotations. Each label dict must have a 'bboxes' key with a numpy array or tensor containing bounding
+                box coordinates.
 
         Raises:
-            AssertionError: If the actual instance count doesn't match the expected count
-                for a recognized dataset.
+            AssertionError: If the actual instance count doesn't match the expected count for a recognized dataset.
 
         Notes:
             For unrecognized datasets (those not in the predefined expected_counts),

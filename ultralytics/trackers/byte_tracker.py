@@ -58,8 +58,8 @@ class STrack(BaseTrack):
         Initialize a new STrack instance.
 
         Args:
-            xywh (list[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where
-                (x, y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
+            xywh (list[float]): Bounding box coordinates and dimensions in the format (x, y, w, h, [a], idx), where (x,
+                y) is the center, (w, h) are width and height, [a] is optional aspect ratio, and idx is the id.
             score (float): Confidence score of the detection.
             cls (Any): Class label for the detected object.
 

@@ -105,9 +105,9 @@ class HungarianMatcher(nn.Module):
             gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
 
         Returns:
-            (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple
-                (index_i, index_j), where index_i is the tensor of indices of the selected predictions (in order) and
-                index_j is the tensor of indices of the corresponding selected ground truth targets (in order).
+            (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i,
+                index_j), where index_i is the tensor of indices of the selected predictions (in order) and index_j is
+                the tensor of indices of the corresponding selected ground truth targets (in order).
             For each batch element, it holds: len(index_i) = len(index_j) = min(num_queries, num_target_boxes).
         """
         bs, nq, nc = pred_scores.shape
@@ -205,9 +205,9 @@ def get_cdn_group(
     boxes and class labels. It generates both positive and negative samples to improve model robustness.
 
     Args:
-        batch (dict[str, Any]): Batch dictionary containing 'gt_cls' (torch.Tensor with shape (num_gts,)),
-            'gt_bboxes' (torch.Tensor with shape (num_gts, 4)), and 'gt_groups' (list[int]) indicating number of ground
-            truths per image.
+        batch (dict[str, Any]): Batch dictionary containing 'gt_cls' (torch.Tensor with shape (num_gts,)), 'gt_bboxes'
+            (torch.Tensor with shape (num_gts, 4)), and 'gt_groups' (list[int]) indicating number of ground truths
+            per image.
         num_classes (int): Total number of object classes.
         num_queries (int): Number of object queries.
         class_embed (torch.Tensor): Class embedding weights to map labels to embedding space.

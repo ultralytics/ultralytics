@@ -92,12 +92,12 @@ class TritonRemoteModel:
         Call the model with the given inputs and return inference results.
 
         Args:
-            *inputs (np.ndarray): Input data to the model. Each array should match the expected shape and type
-                for the corresponding model input.
+            *inputs (np.ndarray): Input data to the model. Each array should match the expected shape and type for the
+                corresponding model input.
 
         Returns:
-            (list[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list
-                corresponds to one of the model's output tensors.
+            (list[np.ndarray]): Model outputs with the same dtype as the input. Each element in the list corresponds to
+                one of the model's output tensors.
 
         Examples:
             >>> model = TritonRemoteModel(url="localhost:8000", endpoint="yolov8", scheme="http")

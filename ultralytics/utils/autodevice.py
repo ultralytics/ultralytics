@@ -21,12 +21,12 @@ class GPUInfo:
 
     Attributes:
         pynvml (module | None): The `pynvml` module if successfully imported and initialized, otherwise `None`.
-        nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded,
-            False otherwise.
+        nvml_available (bool): Indicates if `pynvml` is ready for use. True if import and `nvmlInit()` succeeded, False
+            otherwise.
         gpu_stats (list[dict[str, Any]]): A list of dictionaries, each holding stats for one GPU, populated on
-        initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%),
-            'memory_used' (MiB), 'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W),
-            'power_limit' (W or 'N/A'). Empty if NVML is unavailable or queries fail.
+        initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%), 'memory_used' (MiB),
+            'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W), 'power_limit' (W or 'N/A').
+            Empty if NVML is unavailable or queries fail.
 
     Methods:
         refresh_stats: Refresh the internal gpu_stats list by querying NVML.

@@ -49,8 +49,8 @@ class HUBTrainingSession:
         Initialize the HUBTrainingSession with the provided model identifier.
 
         Args:
-            identifier (str): Model identifier used to initialize the HUB training session. It can be a URL string
-                or a model key with specific format.
+            identifier (str): Model identifier used to initialize the HUB training session. It can be a URL string or a
+                model key with specific format.
 
         Raises:
             ValueError: If the provided model identifier is invalid.

@@ -246,8 +246,8 @@ def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:
     Convert a configuration object to a dictionary.
 
     Args:
-        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted. Can be a file path,
-            a string, a dictionary, or a SimpleNamespace object.
+        cfg (str | Path | dict | SimpleNamespace): Configuration object to be converted. Can be a file path, a string, a
+            dictionary, or a SimpleNamespace object.
 
     Returns:
         (dict): Configuration object in dictionary format.
@@ -393,10 +393,10 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
     Return the directory path for saving outputs, derived from arguments or default settings.
 
     Args:
-        args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task',
-            'mode', and 'save_dir'.
-        name (str | None): Optional name for the output directory. If not provided, it defaults to 'args.name'
-            or the 'args.mode'.
+        args (SimpleNamespace): Namespace object containing configurations such as 'project', 'name', 'task', 'mode',
+            and 'save_dir'.
+        name (str | None): Optional name for the output directory. If not provided, it defaults to 'args.name' or the
+            'args.mode'.
 
     Returns:
         (Path): Directory path where outputs should be saved.
@@ -572,8 +572,8 @@ def handle_yolo_hub(args: list[str]) -> None:
     script with arguments related to HUB authentication.
 
     Args:
-        args (list[str]): A list of command line arguments. The first argument should be either 'login'
-            or 'logout'. For 'login', an optional second argument can be the API key.
+        args (list[str]): A list of command line arguments. The first argument should be either 'login' or 'logout'. For
+            'login', an optional second argument can be the API key.
 
     Examples:
         $ yolo login YOUR_API_KEY
@@ -792,8 +792,8 @@ def smart_value(v: str) -> Any:
         v (str): The string representation of the value to be converted.
 
     Returns:
-        (Any): The converted value. The type can be None, bool, int, float, or the original string if no conversion
-            is applicable.
+        (Any): The converted value. The type can be None, bool, int, float, or the original string if no conversion is
+            applicable.
 
     Examples:
         >>> smart_value("42")

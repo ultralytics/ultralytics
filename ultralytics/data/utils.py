@@ -302,8 +302,8 @@ def polygon2mask(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-            N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
@@ -327,8 +327,8 @@ def polygons2masks(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where
-            N is the number of polygons, and M is the number of points such that M % 2 = 0.
+        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array with shape (N, M), where N is the
+            number of polygons, and M is the number of points such that M % 2 = 0.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 

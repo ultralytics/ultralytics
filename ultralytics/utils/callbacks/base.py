@@ -201,8 +201,8 @@ def add_integration_callbacks(instance):
     Weights & Biases.
 
     Args:
-        instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added.
-            The type of instance determines which callbacks are loaded.
+        instance (Trainer | Predictor | Validator | Exporter): The object instance to which callbacks will be added. The
+            type of instance determines which callbacks are loaded.
 
     Examples:
         >>> from ultralytics.engine.trainer import BaseTrainer

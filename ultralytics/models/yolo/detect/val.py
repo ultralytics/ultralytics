@@ -114,8 +114,8 @@ class DetectionValidator(BaseValidator):
             preds (torch.Tensor): Raw predictions from the model.
 
         Returns:
-            (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains
-                'bboxes', 'conf', 'cls', and 'extra' tensors.
+            (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',
+                'cls', and 'extra' tensors.
         """
         outputs = nms.non_max_suppression(
             preds,
@@ -402,8 +402,8 @@ class DetectionValidator(BaseValidator):
         Serialize YOLO predictions to COCO json format.
 
         Args:
-            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
-                with bounding box coordinates, confidence scores, and class predictions.
+            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys with
+                bounding box coordinates, confidence scores, and class predictions.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Examples:
@@ -480,10 +480,10 @@ class DetectionValidator(BaseValidator):
             stats (dict[str, Any]): Dictionary to store computed metrics and statistics.
             pred_json (str | Path]): Path to JSON file containing predictions in COCO format.
             anno_json (str | Path]): Path to JSON file containing ground truth annotations in COCO format.
-            iou_types (str | list[str]]): IoU type(s) for evaluation. Can be single string or list of strings.
-                Common values include "bbox", "segm", "keypoints". Defaults to "bbox".
-            suffix (str | list[str]]): Suffix to append to metric names in stats dictionary. Should correspond
-                to iou_types if multiple types provided. Defaults to "Box".
+            iou_types (str | list[str]]): IoU type(s) for evaluation. Can be single string or list of strings. Common
+                values include "bbox", "segm", "keypoints". Defaults to "bbox".
+            suffix (str | list[str]]): Suffix to append to metric names in stats dictionary. Should correspond to
+                iou_types if multiple types provided. Defaults to "Box".
 
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.

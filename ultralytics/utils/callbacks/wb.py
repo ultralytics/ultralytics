@@ -112,8 +112,8 @@ def _log_plots(plots, step):
     plots to WandB at the specified step.
 
     Args:
-        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries
-            containing plot metadata including timestamps.
+        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries containing plot
+            metadata including timestamps.
         step (int): The step/epoch at which to log the plots in the WandB run.
 
     Notes:

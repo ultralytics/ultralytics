@@ -499,8 +499,8 @@ class Predictor(BasePredictor):
             orig_imgs (list[np.ndarray] | torch.Tensor): The original, unprocessed images.
 
         Returns:
-            (list[Results]): List of Results objects containing detection masks, bounding boxes, and other
-                metadata for each processed image.
+            (list[Results]): List of Results objects containing detection masks, bounding boxes, and other metadata for
+                each processed image.
 
         Examples:
             >>> predictor = Predictor()
@@ -544,8 +544,8 @@ class Predictor(BasePredictor):
         input types such as image files, directories, video files, and other compatible data sources.
 
         Args:
-            source (str | Path | None): The path or identifier for the image data source. Can be a file path,
-                directory path, URL, or other supported source types.
+            source (str | Path | None): The path or identifier for the image data source. Can be a file path, directory
+                path, URL, or other supported source types.
 
         Examples:
             >>> predictor = Predictor()
@@ -570,8 +570,8 @@ class Predictor(BasePredictor):
         only one image is set at a time and extracts image features for subsequent use.
 
         Args:
-            image (str | np.ndarray): Path to the image file as a string, or a numpy array representing
-                an image read by cv2.
+            image (str | np.ndarray): Path to the image file as a string, or a numpy array representing an image read by
+                cv2.
 
         Raises:
             AssertionError: If more than one image is attempted to be set.
@@ -1452,8 +1452,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         batch size.
 
         Args:
-            out_maskmem_pos_enc (list[torch.Tensor] | None): The positional encoding for mask memory.
-                Should be a list of tensors or None.
+            out_maskmem_pos_enc (list[torch.Tensor] | None): The positional encoding for mask memory. Should be a list
+                of tensors or None.
 
         Returns:
             (list[torch.Tensor]): The positional encoding for mask memory, either cached or expanded.
@@ -1497,8 +1497,8 @@ class SAM2VideoPredictor(SAM2Predictor):
         Args:
             frame_idx (int): The index of the frame for which to consolidate outputs.
             is_cond (bool, optional): Indicates if the frame is considered a conditioning frame.
-            run_mem_encoder (bool, optional): Specifies whether to run the memory encoder after
-                consolidating the outputs.
+            run_mem_encoder (bool, optional): Specifies whether to run the memory encoder after consolidating the
+                outputs.
 
         Returns:
             (dict): A consolidated output dictionary containing the combined results for all objects.

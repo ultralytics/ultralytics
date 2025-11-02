@@ -55,8 +55,8 @@ class SegmentationPredictor(DetectionPredictor):
             orig_imgs (list | torch.Tensor | np.ndarray): Original image or batch of images.
 
         Returns:
-            (list): List of Results objects containing the segmentation predictions for each image in the batch.
-                Each Results object includes both bounding boxes and segmentation masks.
+            (list): List of Results objects containing the segmentation predictions for each image in the batch. Each
+                Results object includes both bounding boxes and segmentation masks.
 
         Examples:
             >>> predictor = SegmentationPredictor(overrides=dict(model="yolo11n-seg.pt"))
@@ -77,8 +77,8 @@ class SegmentationPredictor(DetectionPredictor):
             protos (list[torch.Tensor]): List of prototype masks.
 
         Returns:
-            (list[Results]): List of result objects containing the original images, image paths, class names,
-                bounding boxes, and masks.
+            (list[Results]): List of result objects containing the original images, image paths, class names, bounding
+                boxes, and masks.
         """
         return [
             self.construct_result(pred, img, orig_img, img_path, proto)

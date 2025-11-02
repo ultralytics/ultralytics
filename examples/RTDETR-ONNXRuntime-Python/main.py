@@ -85,8 +85,8 @@ class RTDETR:
             img_path (str): Path to the input image.
             conf_thres (float, optional): Confidence threshold for filtering detections.
             iou_thres (float, optional): IoU threshold for non-maximum suppression.
-            class_names (Optional[str], optional): Path to a YAML file containing class names.
-                If None, uses COCO dataset classes.
+            class_names (Optional[str], optional): Path to a YAML file containing class names. If None, uses COCO
+                dataset classes.
         """
         self.model_path = model_path
         self.img_path = img_path
@@ -194,8 +194,8 @@ class RTDETR:
         Convert bounding boxes from center format to corner format.
 
         Args:
-            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in
-                (center_x, center_y, width, height) format.
+            boxes (np.ndarray): Array of shape (N, 4) where each row represents a bounding box in (center_x, center_y,
+                width, height) format.
 
         Returns:
             (np.ndarray): Array of shape (N, 4) with bounding boxes in (x_min, y_min, x_max, y_max) format.

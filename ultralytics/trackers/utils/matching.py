@@ -111,8 +111,8 @@ def embedding_distance(tracks: list, detections: list, metric: str = "cosine") -
         metric (str): Metric for distance computation. Supported metrics include 'cosine', 'euclidean', etc.
 
     Returns:
-        (np.ndarray): Cost matrix computed based on embeddings with shape (N, M), where N is the number of tracks
-            and M is the number of detections.
+        (np.ndarray): Cost matrix computed based on embeddings with shape (N, M), where N is the number of tracks and M
+            is the number of detections.
 
     Examples:
         Compute the embedding distance between tracks and detections using cosine metric

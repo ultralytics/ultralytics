@@ -188,10 +188,10 @@ def apply_rotary_enc(
     Args:
         xq (torch.Tensor): Query tensor to encode with positional information.
         xk (torch.Tensor): Key tensor to encode with positional information.
-        freqs_cis (torch.Tensor): Complex-valued frequency components for rotary encoding with shape matching the
-            last two dimensions of xq.
-        repeat_freqs_k (bool, optional): Whether to repeat frequency components along sequence length dimension
-            to match key sequence length.
+        freqs_cis (torch.Tensor): Complex-valued frequency components for rotary encoding with shape matching the last
+            two dimensions of xq.
+        repeat_freqs_k (bool, optional): Whether to repeat frequency components along sequence length dimension to match
+            key sequence length.
 
     Returns:
         xq_out (torch.Tensor): Query tensor with rotary positional encoding applied.
@@ -266,8 +266,8 @@ def window_unpartition(windows: torch.Tensor, window_size: int, pad_hw: tuple[in
         hw (tuple[int, int]): Original height and width (H, W) of the input before padding and windowing.
 
     Returns:
-        (torch.Tensor): Unpartitioned sequences with shape (B, H, W, C), where B is the batch size, H and W
-            are the original height and width, and C is the number of channels.
+        (torch.Tensor): Unpartitioned sequences with shape (B, H, W, C), where B is the batch size, H and W are the
+            original height and width, and C is the number of channels.
 
     Examples:
         >>> windows = torch.rand(32, 8, 8, 64)  # 32 windows of size 8x8 with 64 channels
@@ -295,12 +295,11 @@ def get_rel_pos(q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor
     Args:
         q_size (int): Size of the query.
         k_size (int): Size of the key.
-        rel_pos (torch.Tensor): Relative position embeddings with shape (L, C), where L is the maximum relative
-            distance and C is the embedding dimension.
+        rel_pos (torch.Tensor): Relative position embeddings with shape (L, C), where L is the maximum relative distance
+            and C is the embedding dimension.
 
     Returns:
-        (torch.Tensor): Extracted positional embeddings according to relative positions, with shape (q_size,
-            k_size, C).
+        (torch.Tensor): Extracted positional embeddings according to relative positions, with shape (q_size, k_size, C).
 
     Examples:
         >>> q_size, k_size = 8, 16
@@ -354,8 +353,8 @@ def add_decomposed_rel_pos(
         k_size (tuple[int, int]): Spatial sequence size of key k as (k_h, k_w).
 
     Returns:
-        (torch.Tensor): Updated attention map with added relative positional embeddings, shape
-            (B, q_h * q_w, k_h * k_w).
+        (torch.Tensor): Updated attention map with added relative positional embeddings, shape (B, q_h * q_w, k_h *
+            k_w).
 
     Examples:
         >>> B, C, q_h, q_w, k_h, k_w = 1, 64, 8, 8, 8, 8

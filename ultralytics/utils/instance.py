@@ -107,8 +107,8 @@ class Bboxes:
         Multiply bounding box coordinates by scale factor(s).
 
         Args:
-            scale (int | tuple | list): Scale factor(s) for four coordinates. If int, the same scale is applied to
-                all coordinates.
+            scale (int | tuple | list): Scale factor(s) for four coordinates. If int, the same scale is applied to all
+                coordinates.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -124,8 +124,8 @@ class Bboxes:
         Add offset to bounding box coordinates.
 
         Args:
-            offset (int | tuple | list): Offset(s) for four coordinates. If int, the same offset is applied to
-                all coordinates.
+            offset (int | tuple | list): Offset(s) for four coordinates. If int, the same offset is applied to all
+                coordinates.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -462,8 +462,8 @@ class Instances:
             axis (int, optional): The axis along which the arrays will be concatenated.
 
         Returns:
-            (Instances): A new Instances object containing the concatenated bounding boxes, segments, and keypoints
-                if present.
+            (Instances): A new Instances object containing the concatenated bounding boxes, segments, and keypoints if
+                present.
 
         Notes:
             The `Instances` objects in the list should have the same properties, such as the format of the bounding

@@ -50,8 +50,8 @@ class YOLOv8Seg:
             onnx_model (str): Path to the ONNX model file.
             conf (float, optional): Confidence threshold for filtering detections.
             iou (float, optional): IoU threshold for non-maximum suppression.
-            imgsz (int | tuple[int, int], optional): Input image size of the model. Can be an integer for square
-                input or a tuple for rectangular input.
+            imgsz (int | tuple[int, int], optional): Input image size of the model. Can be an integer for square input
+                or a tuple for rectangular input.
         """
         self.session = ort.InferenceSession(
             onnx_model,
@@ -117,8 +117,8 @@ class YOLOv8Seg:
             new_shape (tuple[int, int]): The target shape for resizing as (height, width).
 
         Returns:
-            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and
-                normalized to [0, 1].
+            (np.ndarray): Preprocessed image ready for model inference, with shape (1, 3, height, width) and normalized
+                to [0, 1].
         """
         img = self.letterbox(img, new_shape)
         img = img[..., ::-1].transpose([2, 0, 1])[None]  # BGR to RGB, BHWC to BCHW

@@ -95,8 +95,8 @@ def bbox_iou(
     Args:
         box1 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
         box2 (torch.Tensor): A tensor representing one or more bounding boxes, with the last dimension being 4.
-        xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
-            (x1, y1, x2, y2) format.
+        xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in (x1, y1,
+            x2, y2) format.
         GIoU (bool, optional): If True, calculate Generalized IoU.
         DIoU (bool, optional): If True, calculate Distance IoU.
         CIoU (bool, optional): If True, calculate Complete IoU.
@@ -153,8 +153,8 @@ def mask_iou(mask1: torch.Tensor, mask2: torch.Tensor, eps: float = 1e-7) -> tor
     Args:
         mask1 (torch.Tensor): A tensor of shape (N, n) where N is the number of ground truth objects and n is the
             product of image width and height.
-        mask2 (torch.Tensor): A tensor of shape (M, n) where M is the number of predicted objects and n is the
-            product of image width and height.
+        mask2 (torch.Tensor): A tensor of shape (M, n) where M is the number of predicted objects and n is the product
+            of image width and height.
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
@@ -345,8 +345,8 @@ class ConfusionMatrix(DataExportMixin):
 
         Args:
             mtype (str): Match type identifier ('TP', 'FP', 'FN' or 'GT').
-            batch (dict[str, Any]): Batch data containing detection results with keys
-                like 'bboxes', 'cls', 'conf', 'keypoints', 'masks'.
+            batch (dict[str, Any]): Batch data containing detection results with keys like 'bboxes', 'cls', 'conf',
+                'keypoints', 'masks'.
             idx (int): Index of the specific detection to append from the batch.
 
         Notes:
@@ -1079,8 +1079,8 @@ class DetMetrics(SimpleClass, DataExportMixin):
         Update statistics by appending new values to existing stat collections.
 
         Args:
-            stat (dict[str, any]): Dictionary containing new statistical values to append.
-                Keys should match existing keys in self.stats.
+            stat (dict[str, any]): Dictionary containing new statistical values to append. Keys should match existing
+                keys in self.stats.
         """
         for k in self.stats.keys():
             self.stats[k].append(stat[k])

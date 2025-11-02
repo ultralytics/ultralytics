@@ -467,8 +467,8 @@ class SAM2MaskDecoder(nn.Module):
         tracking scenarios.
 
         Args:
-            all_mask_logits (torch.Tensor): Logits for all predicted masks, shape (B, N, H, W) where B is
-                batch size, N is number of masks (typically 4), and H, W are mask dimensions.
+            all_mask_logits (torch.Tensor): Logits for all predicted masks, shape (B, N, H, W) where B is batch size, N
+                is number of masks (typically 4), and H, W are mask dimensions.
             all_iou_scores (torch.Tensor): Predicted IoU scores for all masks, shape (B, N).
 
         Returns:

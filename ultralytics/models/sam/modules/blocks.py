@@ -59,8 +59,8 @@ class MaskDownSampler(nn.Module):
     expanding their channel dimensions using convolutional layers, layer normalization, and activation functions.
 
     Attributes:
-        encoder (nn.Sequential): A sequential container of convolutional layers, layer normalization, and
-            activation functions for downsampling and embedding masks.
+        encoder (nn.Sequential): A sequential container of convolutional layers, layer normalization, and activation
+            functions for downsampling and embedding masks.
 
     Methods:
         forward: Downsamples and encodes input mask to embed_dim channels.

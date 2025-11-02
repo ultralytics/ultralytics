@@ -136,8 +136,8 @@ class GCPRegions:
             attempts (int, optional): Number of ping attempts per region.
 
         Returns:
-            (list[tuple[str, float, float, float, float]]): List of tuples containing region information and
-                latency statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
+            (list[tuple[str, float, float, float, float]]): List of tuples containing region information and latency
+                statistics. Each tuple contains (region, mean_latency, std_dev, min_latency, max_latency).
 
         Examples:
             >>> regions = GCPRegions()

@@ -144,8 +144,8 @@ class CLIP(TextModel):
         then normalized to unit length. These normalized vectors can be used for text-image similarity comparisons.
 
         Args:
-            image (PIL.Image | torch.Tensor): Preprocessed image input. If a PIL Image is provided, it will be
-                converted to a tensor using the model's image preprocessing function.
+            image (PIL.Image | torch.Tensor): Preprocessed image input. If a PIL Image is provided, it will be converted
+                to a tensor using the model's image preprocessing function.
             dtype (torch.dtype, optional): Data type for output features.
 
         Returns:

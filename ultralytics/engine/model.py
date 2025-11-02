@@ -93,11 +93,10 @@ class Model(torch.nn.Module):
         important attributes of the model and prepares it for operations like training, prediction, or export.
 
         Args:
-            model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a
-                model name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
+            model (str | Path | Model): Path or name of the model to load or create. Can be a local file path, a model
+                name from Ultralytics HUB, a Triton Server model, or an already initialized Model instance.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
-            verbose (bool): If True, enables verbose output during the model's initialization and subsequent
-                operations.
+            verbose (bool): If True, enables verbose output during the model's initialization and subsequent operations.
 
         Raises:
             FileNotFoundError: If the specified model file does not exist or is inaccessible.
@@ -167,15 +166,15 @@ class Model(torch.nn.Module):
         with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of
-                the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or
-                a list/tuple of these.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+                to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or a list/tuple
+                of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
-                Results object.
+            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
+                object.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
@@ -244,8 +243,8 @@ class Model(torch.nn.Module):
         Args:
             cfg (str): Path to the model configuration file in YAML format.
             task (str, optional): The specific task for the model. If None, it will be inferred from the config.
-            model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of
-                creating a new one.
+            model (torch.nn.Module, optional): A custom model instance. If provided, it will be used instead of creating
+                a new one.
             verbose (bool): If True, displays model information during loading.
 
         Raises:
@@ -432,8 +431,8 @@ class Model(torch.nn.Module):
             verbose (bool): If True, prints the information. If False, returns the information as a list.
 
         Returns:
-            (list[str]): A list of strings containing various types of information about the model, including
-                model summary, layer details, and parameter counts. Empty if verbose is True.
+            (list[str]): A list of strings containing various types of information about the model, including model
+                summary, layer details, and parameter counts. Empty if verbose is True.
 
         Examples:
             >>> model = Model("yolo11n.pt")
@@ -476,8 +475,8 @@ class Model(torch.nn.Module):
         source. It allows customization of the embedding process through various keyword arguments.
 
         Args:
-            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for
-                generating embeddings. Can be a file path, URL, PIL image, numpy array, etc.
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for generating
+                embeddings. Can be a file path, URL, PIL image, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
@@ -509,17 +508,17 @@ class Model(torch.nn.Module):
         of image sources and can operate in a streaming mode.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source
-                of the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL images,
-                numpy arrays, and torch tensors.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+                to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
-            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions.
-                If None, the method uses a default predictor.
+            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
+                None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process.
 
         Returns:
-            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a
-                Results object.
+            (list[ultralytics.engine.results.Results]): A list of prediction results, each encapsulated in a Results
+                object.
 
         Examples:
             >>> model = YOLO("yolo11n.pt")
@@ -655,8 +654,8 @@ class Model(torch.nn.Module):
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:
-            (dict): A dictionary containing the results of the benchmarking process, including metrics for
-                different export formats.
+            (dict): A dictionary containing the results of the benchmarking process, including metrics for different
+                export formats.
 
         Raises:
             AssertionError: If the model is not a PyTorch model.
@@ -861,8 +860,8 @@ class Model(torch.nn.Module):
         model to a different device or changing its precision.
 
         Args:
-            fn (Callable): A function to be applied to the model's tensors. This is typically a method like
-                to(), cpu(), cuda(), half(), or float().
+            fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
+                cuda(), half(), or float().
 
         Returns:
             (Model): The model instance with the function applied and updated attributes.
@@ -966,10 +965,10 @@ class Model(torch.nn.Module):
         model at various stages of its lifecycle.
 
         Args:
-            event (str): The name of the event to attach the callback to. Must be a valid event name recognized
-                by the Ultralytics framework.
-            func (Callable): The callback function to be registered. This function will be called when the
-                specified event occurs.
+            event (str): The name of the event to attach the callback to. Must be a valid event name recognized by the
+                Ultralytics framework.
+            func (Callable): The callback function to be registered. This function will be called when the specified
+                event occurs.
 
         Raises:
             ValueError: If the event name is not recognized or is invalid.

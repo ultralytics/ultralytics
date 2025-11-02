@@ -59,8 +59,8 @@ class TrackZone(BaseSolution):
             im0 (np.ndarray): The input image or frame to be processed.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (int) representing the
-                total number of tracked objects within the defined region.
+            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (int) representing the total number
+                of tracked objects within the defined region.
 
         Examples:
             >>> tracker = TrackZone()

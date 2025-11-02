@@ -205,8 +205,8 @@ class TaskAlignedAssigner(nn.Module):
         Args:
             metrics (torch.Tensor): A tensor of shape (b, max_num_obj, h*w), where b is the batch size, max_num_obj is
                 the maximum number of objects, and h*w represents the total number of anchor points.
-            topk_mask (torch.Tensor, optional): An optional boolean tensor of shape (b, max_num_obj, topk), where
-                topk is the number of top candidates to consider. If not provided, the top-k values are automatically
+            topk_mask (torch.Tensor, optional): An optional boolean tensor of shape (b, max_num_obj, topk), where topk
+                is the number of top candidates to consider. If not provided, the top-k values are automatically
                 computed based on the given metrics.
 
         Returns:
@@ -235,13 +235,13 @@ class TaskAlignedAssigner(nn.Module):
         Compute target labels, target bounding boxes, and target scores for the positive anchor points.
 
         Args:
-            gt_labels (torch.Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the
-                batch size and max_num_obj is the maximum number of objects.
+            gt_labels (torch.Tensor): Ground truth labels of shape (b, max_num_obj, 1), where b is the batch size and
+                max_num_obj is the maximum number of objects.
             gt_bboxes (torch.Tensor): Ground truth bounding boxes of shape (b, max_num_obj, 4).
-            target_gt_idx (torch.Tensor): Indices of the assigned ground truth objects for positive
-                anchor points, with shape (b, h*w), where h*w is the total number of anchor points.
-            fg_mask (torch.Tensor): A boolean tensor of shape (b, h*w) indicating the positive
-                (foreground) anchor points.
+            target_gt_idx (torch.Tensor): Indices of the assigned ground truth objects for positive anchor points, with
+                shape (b, h*w), where h*w is the total number of anchor points.
+            fg_mask (torch.Tensor): A boolean tensor of shape (b, h*w) indicating the positive (foreground) anchor
+                points.
 
         Returns:
             target_labels (torch.Tensor): Target labels for positive anchor points with shape (b, h*w).

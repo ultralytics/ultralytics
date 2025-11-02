@@ -79,12 +79,12 @@ class OBBValidator(DetectionValidator):
         Args:
             preds (dict[str, torch.Tensor]): Prediction dictionary containing 'cls' and 'bboxes' keys with detected
                 class labels and bounding boxes.
-            batch (dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth
-                class labels and bounding boxes.
+            batch (dict[str, torch.Tensor]): Batch dictionary containing 'cls' and 'bboxes' keys with ground truth class
+                labels and bounding boxes.
 
         Returns:
-            (dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy
-                array with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy of
+            (dict[str, np.ndarray]): Dictionary containing 'tp' key with the correct prediction matrix as a numpy array
+                with shape (N, 10), which includes 10 IoU levels for each detection, indicating the accuracy of
                 predictions compared to the ground truth.
 
         Examples:
@@ -170,8 +170,8 @@ class OBBValidator(DetectionValidator):
         Convert YOLO predictions to COCO JSON format with rotated bounding box information.
 
         Args:
-            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys
-                with bounding box coordinates, confidence scores, and class predictions.
+            predn (dict[str, torch.Tensor]): Prediction dictionary containing 'bboxes', 'conf', and 'cls' keys with
+                bounding box coordinates, confidence scores, and class predictions.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Notes:

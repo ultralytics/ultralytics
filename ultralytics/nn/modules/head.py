@@ -133,8 +133,8 @@ class Detect(nn.Module):
             x (list[torch.Tensor]): Input feature maps from different levels.
 
         Returns:
-            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs.
-                Inference mode returns processed detections or tuple with detections and raw outputs.
+            outputs (dict | tuple): Training mode returns dict with one2many and one2one outputs. Inference mode returns
+                processed detections or tuple with detections and raw outputs.
         """
         x_detach = [xi.detach() for xi in x]
         one2one = [

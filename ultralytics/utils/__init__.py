@@ -925,8 +925,8 @@ def colorstr(*input):
     In the second form, 'blue' and 'bold' will be applied by default.
 
     Args:
-        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments,
-            and the last string is the one to be colored.
+        *input (str | Path): A sequence of strings where the first n-1 strings are color and style arguments, and the
+            last string is the one to be colored.
 
     Returns:
         (str): The input string wrapped with ANSI escape codes for the specified color and style.

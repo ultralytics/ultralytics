@@ -144,8 +144,8 @@ class Analytics(BaseSolution):
 
         Args:
             frame_number (int): The current frame number.
-            count_dict (dict[str, int], optional): Dictionary with class names as keys and counts as values for
-                multiple classes. If None, updates a single line graph.
+            count_dict (dict[str, int], optional): Dictionary with class names as keys and counts as values for multiple
+                classes. If None, updates a single line graph.
             plot (str): Type of the plot. Options are 'line', 'bar', 'pie', or 'area'.
 
         Returns:

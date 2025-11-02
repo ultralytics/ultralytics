@@ -255,8 +255,8 @@ class BasePredictor:
         Set up source and inference mode.
 
         Args:
-            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor):
-                Source for inference.
+            source (str | Path | list[str] | list[Path] | list[np.ndarray] | np.ndarray | torch.Tensor): Source for
+                inference.
         """
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(

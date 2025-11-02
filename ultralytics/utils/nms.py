@@ -52,8 +52,8 @@ def non_max_suppression(
         return_idxs (bool): Whether to return the indices of kept detections.
 
     Returns:
-        output (list[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks)
-            containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
+        output (list[torch.Tensor]): List of detections per image with shape (num_boxes, 6 + num_masks) containing (x1,
+            y1, x2, y2, confidence, class, mask1, mask2, ...).
         keepi (list[torch.Tensor]): Indices of kept detections if return_idxs=True.
     """
     # Checks

@@ -243,8 +243,8 @@ class PromptEncoder(nn.Module):
         encoding. The encoding is used to provide spatial information to the model when processing point prompts.
 
         Returns:
-            (torch.Tensor): Positional encoding tensor with shape (1, embed_dim, H, W), where H and W are the
-                height and width of the image embedding size, respectively.
+            (torch.Tensor): Positional encoding tensor with shape (1, embed_dim, H, W), where H and W are the height and
+                width of the image embedding size, respectively.
 
         Examples:
             >>> prompt_encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
@@ -310,8 +310,8 @@ class PromptEncoder(nn.Module):
         Embed different types of prompts, returning both sparse and dense embeddings.
 
         Args:
-            points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first
-                tensor contains coordinates of shape (B, N, 2), and the second tensor contains labels of shape (B, N).
+            points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first tensor
+                contains coordinates of shape (B, N, 2), and the second tensor contains labels of shape (B, N).
             boxes (torch.Tensor | None): Boxes to embed with shape (B, M, 2, 2), where M is the number of boxes.
             masks (torch.Tensor | None): Masks to embed with shape (B, 1, H, W).
 
@@ -612,8 +612,8 @@ class FpnNeck(nn.Module):
             xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
 
         Returns:
-            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape
-                (B, d_model, H, W).
+            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape (B, d_model, H,
+                W).
             pos (list[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:

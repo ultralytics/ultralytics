@@ -25,8 +25,8 @@ def coco91_to_coco80_class() -> list[int]:
     Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
-        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value
-            is the corresponding 91-index class ID.
+        (list[int]): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
+            corresponding 91-index class ID.
     """
     return [
         0,
@@ -539,8 +539,8 @@ def merge_multi_segment(segments: list[list]):
     This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments (list[list]): Original segmentations in COCO's JSON file.
-            Each element is a list of coordinates, like [segmentation1, segmentation2,...].
+        segments (list[list]): Original segmentations in COCO's JSON file. Each element is a list of coordinates, like
+            [segmentation1, segmentation2,...].
 
     Returns:
         s (list[np.ndarray]): A list of connected segments represented as NumPy arrays.
@@ -590,8 +590,8 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
 
     Args:
         im_dir (str | Path): Path to image directory to convert.
-        save_dir (str | Path, optional): Path to save the generated labels, labels will be saved
-            into `labels-segment` in the same directory level of `im_dir` if save_dir is None.
+        save_dir (str | Path, optional): Path to save the generated labels, labels will be saved into `labels-segment`
+            in the same directory level of `im_dir` if save_dir is None.
         sam_model (str): Segmentation model to use for intermediate segmentation data.
         device (int | str, optional): The specific device to run SAM models.
 
@@ -769,8 +769,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
     Args:
         ndjson_path (Union[str, Path]): Path to the input NDJSON file containing dataset information.
-        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset
-            will be saved. If None, uses the parent directory of the NDJSON file. Defaults to None.
+        output_path (Optional[Union[str, Path]], optional): Directory where the converted YOLO dataset will be saved. If
+            None, uses the parent directory of the NDJSON file. Defaults to None.
 
     Returns:
         (Path): Path to the generated data.yaml file that can be used for YOLO training.

@@ -119,10 +119,10 @@ def multi_scale_deformable_attn_pytorch(
     Args:
         value (torch.Tensor): The value tensor with shape (bs, num_keys, num_heads, embed_dims).
         value_spatial_shapes (torch.Tensor): Spatial shapes of the value tensor with shape (num_levels, 2).
-        sampling_locations (torch.Tensor): The sampling locations with shape
-            (bs, num_queries, num_heads, num_levels, num_points, 2).
-        attention_weights (torch.Tensor): The attention weights with shape
-            (bs, num_queries, num_heads, num_levels, num_points).
+        sampling_locations (torch.Tensor): The sampling locations with shape (bs, num_queries, num_heads, num_levels,
+            num_points, 2).
+        attention_weights (torch.Tensor): The attention weights with shape (bs, num_queries, num_heads, num_levels,
+            num_points).
 
     Returns:
         (torch.Tensor): The output tensor with shape (bs, num_queries, embed_dims).

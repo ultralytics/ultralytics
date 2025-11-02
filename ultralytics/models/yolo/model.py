@@ -60,8 +60,8 @@ class YOLO(Model):
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo11n.pt', 'yolo11n.yaml'.
-            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'.
-                Defaults to auto-detection based on model.
+            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
+                to auto-detection based on model.
             verbose (bool): Display model info on load.
 
         Examples:
@@ -377,15 +377,15 @@ class YOLOE(Model):
         Run prediction on images, videos, directories, streams, etc.
 
         Args:
-            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
-                directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
-            stream (bool): Whether to stream the prediction results. If True, results are yielded as a
-                generator as they are computed.
-            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
-                'bboxes' and 'cls' keys when non-empty.
+            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths, directory
+                paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
+            stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
+                are computed.
+            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
+                and 'cls' keys when non-empty.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
-                loaded based on the task.
+            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
+                based on the task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

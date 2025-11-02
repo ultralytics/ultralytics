@@ -295,10 +295,10 @@ def safe_download(
 
     Args:
         url (str): The URL of the file to be downloaded.
-        file (str, optional): The filename of the downloaded file.
-            If not provided, the file will be saved with the same name as the URL.
-        dir (str | Path, optional): The directory to save the downloaded file.
-            If not provided, the file will be saved in the current working directory.
+        file (str, optional): The filename of the downloaded file. If not provided, the file will be saved with the same
+            name as the URL.
+        dir (str | Path, optional): The directory to save the downloaded file. If not provided, the file will be saved
+            in the current working directory.
         unzip (bool, optional): Whether to unzip the downloaded file.
         delete (bool, optional): Whether to delete the downloaded file after unzipping.
         curl (bool, optional): Whether to use curl command line tool for downloading.

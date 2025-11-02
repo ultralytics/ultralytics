@@ -64,8 +64,8 @@ class BaseTransform:
         logic. In its base form, it returns the input labels unchanged.
 
         Args:
-            labels (Any): The input labels to be transformed. The exact type and structure of labels may
-                vary depending on the specific implementation.
+            labels (Any): The input labels to be transformed. The exact type and structure of labels may vary depending
+                on the specific implementation.
 
         Returns:
             (Any): The transformed labels. In the base implementation, this is identical to the input.
@@ -129,8 +129,8 @@ class BaseTransform:
         instances, respectively.
 
         Args:
-            labels (dict): A dictionary containing image data and annotations. Expected keys include 'img' for
-                the image data, and 'instances' for object instances.
+            labels (dict): A dictionary containing image data and annotations. Expected keys include 'img' for the image
+                data, and 'instances' for object instances.
 
         Returns:
             (dict): The input labels dictionary with transformed image and instances.
@@ -189,8 +189,8 @@ class Compose:
         This method sequentially applies each transformation in the Compose object's transforms to the input data.
 
         Args:
-            data (Any): The input data to be transformed. This can be of any type, depending on the
-                transformations in the list.
+            data (Any): The input data to be transformed. This can be of any type, depending on the transformations in
+                the list.
 
         Returns:
             (Any): The transformed data after applying all transformations in sequence.
@@ -452,8 +452,8 @@ class BaseMixTransform:
         a unified set of text labels and updating class IDs accordingly.
 
         Args:
-            labels (dict[str, Any]): A dictionary containing label information, including 'texts' and 'cls' fields,
-                and optionally a 'mix_labels' field with additional label dictionaries.
+            labels (dict[str, Any]): A dictionary containing label information, including 'texts' and 'cls' fields, and
+                optionally a 'mix_labels' field with additional label dictionaries.
 
         Returns:
             (dict[str, Any]): The updated labels dictionary with unified text labels and updated class IDs.
@@ -553,8 +553,8 @@ class Mosaic(BaseMixTransform):
         'buffer' parameter. It is used to choose images for creating mosaic augmentations.
 
         Returns:
-            (list[int]): A list of random image indexes. The length of the list is n-1, where n is the number
-                of images used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
+            (list[int]): A list of random image indexes. The length of the list is n-1, where n is the number of images
+                used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
@@ -1193,8 +1193,8 @@ class RandomPerspective:
         matrix.
 
         Args:
-            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4), where N is the number
-                of bounding boxes.
+            bboxes (np.ndarray): Bounding boxes in xyxy format with shape (N, 4), where N is the number of bounding
+                boxes.
             M (np.ndarray): Affine transformation matrix with shape (3, 3).
 
         Returns:
@@ -1264,8 +1264,8 @@ class RandomPerspective:
         boundaries after transformation.
 
         Args:
-            keypoints (np.ndarray): Array of keypoints with shape (N, 17, 3), where N is the number of instances,
-                17 is the number of keypoints per instance, and 3 represents (x, y, visibility).
+            keypoints (np.ndarray): Array of keypoints with shape (N, 17, 3), where N is the number of instances, 17 is
+                the number of keypoints per instance, and 3 represents (x, y, visibility).
             M (np.ndarray): 3x3 affine transformation matrix.
 
         Returns:
@@ -1386,21 +1386,20 @@ class RandomPerspective:
         by the augmentation process.
 
         Args:
-            box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where n is the
-                number of boxes. Format is [x1, y1, x2, y2] in absolute coordinates.
-            box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is
-                [x1, y1, x2, y2] in absolute coordinates.
-            wh_thr (int): Width and height threshold in pixels. Boxes smaller than this in either
-                dimension are rejected.
-            ar_thr (int): Aspect ratio threshold. Boxes with an aspect ratio greater than this
-                value are rejected.
-            area_thr (float): Area ratio threshold. Boxes with an area ratio (new/old) less than
-                this value are rejected.
+            box1 (np.ndarray): Original boxes before augmentation, shape (4, N) where n is the number of boxes. Format
+                is [x1, y1, x2, y2] in absolute coordinates.
+            box2 (np.ndarray): Augmented boxes after transformation, shape (4, N). Format is [x1, y1, x2, y2] in
+                absolute coordinates.
+            wh_thr (int): Width and height threshold in pixels. Boxes smaller than this in either dimension are
+                rejected.
+            ar_thr (int): Aspect ratio threshold. Boxes with an aspect ratio greater than this value are rejected.
+            area_thr (float): Area ratio threshold. Boxes with an area ratio (new/old) less than this value are
+                rejected.
             eps (float): Small epsilon value to prevent division by zero.
 
         Returns:
-            (np.ndarray): Boolean array of shape (n) indicating which boxes are candidates.
-                True values correspond to boxes that meet all criteria.
+            (np.ndarray): Boolean array of shape (n) indicating which boxes are candidates. True values correspond to
+                boxes that meet all criteria.
 
         Examples:
             >>> random_perspective = RandomPerspective()
@@ -1467,8 +1466,8 @@ class RandomHSV:
         adjustments are made within the limits set by hgain, sgain, and vgain during initialization.
 
         Args:
-            labels (dict[str, Any]): A dictionary containing image data and metadata. Must include an 'img' key with
-                the image as a numpy array.
+            labels (dict[str, Any]): A dictionary containing image data and metadata. Must include an 'img' key with the
+                image as a numpy array.
 
         Returns:
             (dict[str, Any]): A dictionary containing the mixed image and adjusted labels.
@@ -2433,13 +2432,13 @@ class RandomLoadText:
         accordingly to the number of samples. It can be used for text-based object detection tasks.
 
         Args:
-            prompt_format (str): Format string for the prompt. The format string should
-                contain a single pair of curly braces {} where the text will be inserted.
-            neg_samples (tuple[int, int]): A range to randomly sample negative texts. The first integer
-                specifies the minimum number of negative samples, and the second integer specifies the maximum.
+            prompt_format (str): Format string for the prompt. The format string should contain a single pair of curly
+                braces {} where the text will be inserted.
+            neg_samples (tuple[int, int]): A range to randomly sample negative texts. The first integer specifies the
+                minimum number of negative samples, and the second integer specifies the maximum.
             max_samples (int): The maximum number of different text samples in one image.
-            padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always
-                be equal to max_samples.
+            padding (bool): Whether to pad texts to max_samples. If True, the number of texts will always be equal to
+                max_samples.
             padding_value (str): The padding text to use when padding is True.
 
         Attributes:
@@ -2788,8 +2787,8 @@ class ClassifyLetterBox:
         pads images to a specified size while maintaining the original aspect ratio.
 
         Args:
-            size (int | tuple[int, int]): Target size for the letterboxed image. If an int, a square image of
-                (size, size) is created. If a tuple, it should be (height, width).
+            size (int | tuple[int, int]): Target size for the letterboxed image. If an int, a square image of (size,
+                size) is created. If a tuple, it should be (height, width).
             auto (bool): If True, automatically calculates the short side based on stride.
             stride (int): The stride value, used when 'auto' is True.
 
@@ -2822,8 +2821,8 @@ class ClassifyLetterBox:
             im (np.ndarray): Input image as a numpy array with shape (H, W, C).
 
         Returns:
-            (np.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are
-                the target height and width respectively.
+            (np.ndarray): Resized and padded image as a numpy array with shape (hs, ws, 3), where hs and ws are the
+                target height and width respectively.
 
         Examples:
             >>> letterbox = ClassifyLetterBox(size=(640, 640))
@@ -2877,8 +2876,8 @@ class CenterCrop:
         It performs a center crop on input images to a specified size.
 
         Args:
-            size (int | tuple[int, int]): The desired output size of the crop. If size is an int, a square crop
-                (size, size) is made. If size is a sequence like (h, w), it is used as the output size.
+            size (int | tuple[int, int]): The desired output size of the crop. If size is an int, a square crop (size,
+                size) is made. If size is a sequence like (h, w), it is used as the output size.
 
         Returns:
             (None): This method initializes the object and does not return anything.
@@ -2901,8 +2900,8 @@ class CenterCrop:
         the original image while fitting it into the specified dimensions.
 
         Args:
-            im (np.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a
-                PIL Image object.
+            im (np.ndarray | PIL.Image.Image): The input image as a numpy array of shape (H, W, C) or a PIL Image
+                object.
 
         Returns:
             (np.ndarray): The center-cropped and resized image as a numpy array of shape (self.h, self.w, C).
@@ -2979,8 +2978,8 @@ class ToTensor:
             im (np.ndarray): Input image as a numpy array with shape (H, W, C) in RGB order.
 
         Returns:
-            (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized
-                to [0, 1] with shape (C, H, W) in RGB order.
+            (torch.Tensor): The transformed image as a PyTorch tensor in float32 or float16, normalized to [0, 1] with
+                shape (C, H, W) in RGB order.
 
         Examples:
             >>> transform = ToTensor(half=True)

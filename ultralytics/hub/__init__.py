@@ -30,8 +30,8 @@ def login(api_key: str | None = None, save: bool = True) -> bool:
     environment variable if successfully authenticated.
 
     Args:
-        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from
-            SETTINGS or HUB_API_KEY environment variable.
+        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from SETTINGS
+            or HUB_API_KEY environment variable.
         save (bool, optional): Whether to save the API key to SETTINGS if authentication is successful.
 
     Returns:
@@ -122,8 +122,7 @@ def get_export(model_id: str = "", format: str = "torchscript"):
 
     Args:
         model_id (str): The ID of the model to retrieve from Ultralytics HUB.
-        format (str): The export format to retrieve. Must be one of the supported formats returned by
-            export_fmts_hub().
+        format (str): The export format to retrieve. Must be one of the supported formats returned by export_fmts_hub().
 
     Returns:
         (dict): JSON response containing the exported model information.

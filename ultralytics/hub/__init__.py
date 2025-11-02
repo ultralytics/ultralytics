@@ -23,15 +23,14 @@ __all__ = (
 
 
 def login(api_key: str | None = None, save: bool = True) -> bool:
-    """
-    Log in to the Ultralytics HUB API using the provided API key.
+    """Log in to the Ultralytics HUB API using the provided API key.
 
     The session is not stored; a new session is created when needed using the saved SETTINGS or the HUB_API_KEY
     environment variable if successfully authenticated.
 
     Args:
-        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from
-            SETTINGS or HUB_API_KEY environment variable.
+        api_key (str, optional): API key to use for authentication. If not provided, it will be retrieved from SETTINGS
+            or HUB_API_KEY environment variable.
         save (bool, optional): Whether to save the API key to SETTINGS if authentication is successful.
 
     Returns:
@@ -91,8 +90,7 @@ def export_fmts_hub():
 
 
 def export_model(model_id: str = "", format: str = "torchscript"):
-    """
-    Export a model to a specified format for deployment via the Ultralytics HUB API.
+    """Export a model to a specified format for deployment via the Ultralytics HUB API.
 
     Args:
         model_id (str): The ID of the model to export. An empty string will use the default model.
@@ -117,13 +115,11 @@ def export_model(model_id: str = "", format: str = "torchscript"):
 
 
 def get_export(model_id: str = "", format: str = "torchscript"):
-    """
-    Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
+    """Retrieve an exported model in the specified format from Ultralytics HUB using the model ID.
 
     Args:
         model_id (str): The ID of the model to retrieve from Ultralytics HUB.
-        format (str): The export format to retrieve. Must be one of the supported formats returned by
-            export_fmts_hub().
+        format (str): The export format to retrieve. Must be one of the supported formats returned by export_fmts_hub().
 
     Returns:
         (dict): JSON response containing the exported model information.
@@ -148,8 +144,7 @@ def get_export(model_id: str = "", format: str = "torchscript"):
 
 
 def check_dataset(path: str, task: str) -> None:
-    """
-    Check HUB dataset Zip file for errors before upload.
+    """Check HUB dataset Zip file for errors before upload.
 
     Args:
         path (str): Path to data.zip (with data.yaml inside data.zip).

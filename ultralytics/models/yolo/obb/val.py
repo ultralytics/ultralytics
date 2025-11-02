@@ -95,7 +95,7 @@ class OBBValidator(DetectionValidator):
         return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
 
     def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
-        """
+        """Postprocess OBB predictions.
 
         Args:
             preds (torch.Tensor): Raw predictions from the model.

@@ -7,8 +7,7 @@ from ultralytics.utils.plotting import colors
 
 
 class QueueManager(BaseSolution):
-    """
-    Manages queue counting in real-time video streams based on object tracks.
+    """Manages queue counting in real-time video streams based on object tracks.
 
     This class extends BaseSolution to provide functionality for tracking and counting objects within a specified region
     in video frames.
@@ -46,8 +45,7 @@ class QueueManager(BaseSolution):
         self.region_length = len(self.region)  # Store region length for further usage
 
     def process(self, im0) -> SolutionResults:
-        """
-        Process queue management for a single frame of video.
+        """Process queue management for a single frame of video.
 
         Args:
             im0 (np.ndarray): Input image for processing, typically a frame from a video stream.

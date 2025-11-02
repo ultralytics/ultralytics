@@ -145,7 +145,7 @@ def on_fit_epoch_end(trainer):
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     if trainer.epoch == 0:
         wb.run.log(model_info_for_loggers(trainer), step=trainer.epoch + 1)
-    wb.run.log({}, commit=True)  # manual commit
+    wb.run.log({}, commit=True)  # force sync
 
 
 def on_train_epoch_end(trainer):

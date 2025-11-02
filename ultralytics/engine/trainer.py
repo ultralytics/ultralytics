@@ -63,8 +63,7 @@ from ultralytics.utils.torch_utils import (
 
 
 class BaseTrainer:
-    """
-    A base class for creating trainers.
+    """A base class for creating trainers.
 
     This class provides the foundation for training YOLO models, handling the training loop, validation, checkpointing,
     and various training utilities. It supports both single-GPU and multi-GPU distributed training.
@@ -114,8 +113,7 @@ class BaseTrainer:
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the BaseTrainer class.
+        """Initialize the BaseTrainer class.
 
         Args:
             cfg (str, optional): Path to a configuration file.
@@ -620,8 +618,7 @@ class BaseTrainer:
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
 
     def get_dataset(self):
-        """
-        Get train and validation datasets from data dictionary.
+        """Get train and validation datasets from data dictionary.
 
         Returns:
             (dict): A dictionary containing the training/validation/test dataset and category names.
@@ -656,8 +653,7 @@ class BaseTrainer:
         return data
 
     def setup_model(self):
-        """
-        Load, create, or download model for any task.
+        """Load, create, or download model for any task.
 
         Returns:
             (dict): Optional checkpoint to resume training from.
@@ -690,8 +686,7 @@ class BaseTrainer:
         return batch
 
     def validate(self):
-        """
-        Run validation on val set using self.validator.
+        """Run validation on val set using self.validator.
 
         Returns:
             metrics (dict): Dictionary of validation metrics.
@@ -726,8 +721,7 @@ class BaseTrainer:
         raise NotImplementedError("build_dataset function not implemented in trainer")
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Return a loss dict with labeled training loss items tensor.
+        """Return a loss dict with labeled training loss items tensor.
 
         Notes:
             This is not needed for classification but necessary for segmentation & detection
@@ -895,18 +889,16 @@ class BaseTrainer:
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """
-        Construct an optimizer for the given model.
+        """Construct an optimizer for the given model.
 
         Args:
             model (torch.nn.Module): The model for which to build an optimizer.
-            name (str, optional): The name of the optimizer to use. If 'auto', the optimizer is selected
-                based on the number of iterations.
+            name (str, optional): The name of the optimizer to use. If 'auto', the optimizer is selected based on the
+                number of iterations.
             lr (float, optional): The learning rate for the optimizer.
             momentum (float, optional): The momentum factor for the optimizer.
             decay (float, optional): The weight decay for the optimizer.
-            iterations (float, optional): The number of iterations, which determines the optimizer if
-                name is 'auto'.
+            iterations (float, optional): The number of iterations, which determines the optimizer if name is 'auto'.
 
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.

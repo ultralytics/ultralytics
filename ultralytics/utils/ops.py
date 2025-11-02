@@ -487,8 +487,7 @@ def resample_segments(segments, n: int = 1000):
 
 
 def crop_mask_soft(masks, boxes, soft_pixels=6):
-    """
-    Crop masks with soft boundary transitions.
+    """Crop masks with soft boundary transitions.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).

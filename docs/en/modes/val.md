@@ -166,7 +166,7 @@ dist.destroy_process_group()
 Then launch the validation script with the following command:
 
 ```bash
-CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 multi_gpu_val.py
+CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.run --nproc_per_node 2 multi_gpu_val.py
 ```
 
 Here, `CUDA_VISIBLE_DEVICES` should be set to the GPUs you want the validation to run on, while `nproc_per_node` specifies the number of GPUs that are being used.

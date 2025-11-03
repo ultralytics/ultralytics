@@ -596,7 +596,7 @@ class Exporter:
             data=data,
             fraction=self.args.fraction,
             task=self.model.task,
-            imgsz=self.imgsz[0],
+            imgsz=max(self.imgsz),
             augment=False,
             batch_size=self.args.batch,
         )
@@ -1057,12 +1057,11 @@ class Exporter:
         images = None
         if self.args.int8 and self.args.data:
             images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = (
-                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
-                .permute(0, 2, 3, 1)
-                .numpy()
-                .astype(np.float32)
-            )
+            images = torch.cat(images, 0)
+            if self.imgsz[0] != self.imgsz[1]:
+                hpad, wpad = ((self.imgsz - np.array(images.shape[2:])) // 2).astype(int)
+                images = torch.nn.functional.pad(images, (wpad, wpad, hpad, hpad), value=114)
+            images = images.permute(0, 2, 3, 1).numpy()
 
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):

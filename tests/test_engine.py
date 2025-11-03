@@ -29,7 +29,7 @@ def test_export():
 
 def test_detect():
     """Test YOLO object detection training, validation, and prediction functionality."""
-    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 1, "save": False, "degrees": [0]}
     cfg = get_cfg(DEFAULT_CFG)
     cfg.data = "coco8.yaml"
     cfg.imgsz = 32

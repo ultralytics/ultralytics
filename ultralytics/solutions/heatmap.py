@@ -12,7 +12,8 @@ from ultralytics.solutions.solutions import SolutionAnnotator, SolutionResults
 
 
 class Heatmap(ObjectCounter):
-    """A class to draw heatmaps in real-time video streams based on object tracks.
+    """
+    A class to draw heatmaps in real-time video streams based on object tracks.
 
     This class extends the ObjectCounter class to generate and visualize heatmaps of object movements in video
     streams. It uses tracked object positions to create a cumulative heatmap effect over time.
@@ -35,7 +36,8 @@ class Heatmap(ObjectCounter):
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """Initialize the Heatmap class for real-time video stream heatmap generation based on object tracks.
+        """
+        Initialize the Heatmap class for real-time video stream heatmap generation based on object tracks.
 
         Args:
             **kwargs (Any): Keyword arguments passed to the parent ObjectCounter class.
@@ -51,7 +53,8 @@ class Heatmap(ObjectCounter):
         self.heatmap = None
 
     def heatmap_effect(self, box: list[float]) -> None:
-        """Efficiently calculate heatmap area and effect location for applying colormap.
+        """
+        Efficiently calculate heatmap area and effect location for applying colormap.
 
         Args:
             box (list[float]): Bounding box coordinates [x0, y0, x1, y1].
@@ -72,7 +75,8 @@ class Heatmap(ObjectCounter):
         self.heatmap[y0:y1, x0:x1][within_radius] += 2
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """Generate heatmap for each frame using Ultralytics tracking.
+        """
+        Generate heatmap for each frame using Ultralytics tracking.
 
         Args:
             im0 (np.ndarray): Input image array for processing.

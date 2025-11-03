@@ -25,7 +25,8 @@ from .predict import Predictor, SAM2Predictor
 
 
 class SAM(Model):
-    """SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
+    """
+    SAM (Segment Anything Model) interface class for real-time image segmentation tasks.
 
     This class provides an interface to the Segment Anything Model (SAM) from Ultralytics, designed for promptable
     segmentation with versatility in image analysis. It supports various prompts such as bounding boxes, points, or
@@ -48,7 +49,8 @@ class SAM(Model):
     """
 
     def __init__(self, model: str = "sam_b.pt") -> None:
-        """Initialize the SAM (Segment Anything Model) instance.
+        """
+        Initialize the SAM (Segment Anything Model) instance.
 
         Args:
             model (str): Path to the pre-trained SAM model file. File should have a .pt or .pth extension.
@@ -66,7 +68,8 @@ class SAM(Model):
         super().__init__(model=model, task="segment")
 
     def _load(self, weights: str, task=None):
-        """Load the specified weights into the SAM model.
+        """
+        Load the specified weights into the SAM model.
 
         Args:
             weights (str): Path to the weights file. Should be a .pt or .pth file containing the model parameters.
@@ -81,7 +84,8 @@ class SAM(Model):
         self.model = build_sam(weights)
 
     def predict(self, source, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
-        """Perform segmentation prediction on the given image or video source.
+        """
+        Perform segmentation prediction on the given image or video source.
 
         Args:
             source (str | PIL.Image | np.ndarray): Path to the image or video file, or a PIL.Image object, or a
@@ -107,7 +111,8 @@ class SAM(Model):
         return super().predict(source, stream, prompts=prompts, **kwargs)
 
     def __call__(self, source=None, stream: bool = False, bboxes=None, points=None, labels=None, **kwargs):
-        """Perform segmentation prediction on the given image or video source.
+        """
+        Perform segmentation prediction on the given image or video source.
 
         This method is an alias for the 'predict' method, providing a convenient way to call the SAM model for
         segmentation tasks.
@@ -132,7 +137,8 @@ class SAM(Model):
         return self.predict(source, stream, bboxes, points, labels, **kwargs)
 
     def info(self, detailed: bool = False, verbose: bool = True):
-        """Log information about the SAM model.
+        """
+        Log information about the SAM model.
 
         Args:
             detailed (bool): If True, displays detailed information about the model layers and operations.
@@ -150,7 +156,8 @@ class SAM(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, type[Predictor]]]:
-        """Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
+        """
+        Provide a mapping from the 'segment' task to its corresponding 'Predictor'.
 
         Returns:
             (dict[str, dict[str, Type[Predictor]]]): A dictionary mapping the 'segment' task to its corresponding

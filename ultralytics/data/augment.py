@@ -1844,6 +1844,7 @@ class Albumentations:
         - If the package is not installed or an error occurs during initialization, the transform will be set to None.
         - Spatial transforms are handled differently and require special processing for bounding boxes.
     """
+
     def __init__(self, p: float = 1.0, transforms: list | None = None) -> None:
         """Initialize the Albumentations transform object for YOLO bbox formatted parameters.
 

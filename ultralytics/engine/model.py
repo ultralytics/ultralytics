@@ -742,7 +742,6 @@ class Model(torch.nn.Module):
                 - patience (int): Epochs to wait for no observable improvement for early stopping of training.
                 - augmentations (List[Callable]): List of augmentation functions to apply during training.
 
-
         Returns:
             (dict | None): Training metrics if available and training is successful; otherwise, None.
 

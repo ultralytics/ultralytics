@@ -6,7 +6,7 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, simpl
 
 # Ultralytics YOLO26
 
-!!! note "Preview Only ⚠️"
+!!! note "Coming Soon ⚠️"
 
     🚧 YOLO26 models are still under development and not yet released. Performance numbers shown here are **previews only**.
     Final downloads and releases will follow soon — stay updated via [YOLO Vision 2025](https://www.ultralytics.com/events/yolovision).
@@ -99,7 +99,7 @@ This unified framework ensures YOLO26 is applicable across real-time detection, 
 
 ---
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 !!! tip "Ultralytics YOLO26 Publication"
 

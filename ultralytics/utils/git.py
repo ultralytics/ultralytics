@@ -7,13 +7,12 @@ from pathlib import Path
 
 
 class GitRepo:
-    """
-    Represent a local Git repository and expose branch, commit, and remote metadata.
+    """Represent a local Git repository and expose branch, commit, and remote metadata.
 
     This class discovers the repository root by searching for a .git entry from the given path upward, resolves the
-    actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not
-    invoke the git binary and therefore works in restricted environments. All metadata properties are resolved
-    lazily and cached; construct a new instance to refresh state.
+    actual .git directory (including worktrees), and reads Git metadata directly from on-disk files. It does not invoke
+    the git binary and therefore works in restricted environments. All metadata properties are resolved lazily and
+    cached; construct a new instance to refresh state.
 
     Attributes:
         root (Path | None): Repository root directory containing the .git entry; None if not in a repository.
@@ -39,8 +38,7 @@ class GitRepo:
     """
 
     def __init__(self, path: Path = Path(__file__).resolve()):
-        """
-        Initialize a Git repository context by discovering the repository root from a starting path.
+        """Initialize a Git repository context by discovering the repository root from a starting path.
 
         Args:
             path (Path, optional): File or directory path used as the starting point to locate the repository root.
@@ -51,7 +49,7 @@ class GitRepo:
     @staticmethod
     def _find_root(p: Path) -> Path | None:
         """Return repo root or None."""
-        return next((d for d in [p] + list(p.parents) if (d / ".git").exists()), None)
+        return next((d for d in [p, *list(p.parents)] if (d / ".git").exists()), None)
 
     @staticmethod
     def _gitdir(root: Path) -> Path | None:

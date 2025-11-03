@@ -11,8 +11,7 @@ from ultralytics.utils.plotting import colors
 
 
 class RegionCounter(BaseSolution):
-    """
-    A class for real-time counting of objects within user-defined regions in a video stream.
+    """A class for real-time counting of objects within user-defined regions in a video stream.
 
     This class inherits from `BaseSolution` and provides functionality to define polygonal regions in a video frame,
     track objects, and count those objects that pass through each defined region. Useful for applications requiring
@@ -21,8 +20,8 @@ class RegionCounter(BaseSolution):
     Attributes:
         region_template (dict): Template for creating new counting regions with default attributes including name,
             polygon coordinates, and display colors.
-        counting_regions (list): List storing all defined regions, where each entry is based on `region_template`
-            and includes specific region settings like name, coordinates, and color.
+        counting_regions (list): List storing all defined regions, where each entry is based on `region_template` and
+            includes specific region settings like name, coordinates, and color.
         region_counts (dict): Dictionary storing the count of objects for each named region.
 
     Methods:
@@ -59,8 +58,7 @@ class RegionCounter(BaseSolution):
         region_color: tuple[int, int, int],
         text_color: tuple[int, int, int],
     ) -> dict[str, Any]:
-        """
-        Add a new region to the counting list based on the provided template with specific attributes.
+        """Add a new region to the counting list based on the provided template with specific attributes.
 
         Args:
             name (str): Name assigned to the new region.
@@ -94,15 +92,14 @@ class RegionCounter(BaseSolution):
             region["prepared_polygon"] = self.prep(region["polygon"])
 
     def process(self, im0: np.ndarray) -> SolutionResults:
-        """
-        Process the input frame to detect and count objects within each defined region.
+        """Process the input frame to detect and count objects within each defined region.
 
         Args:
             im0 (np.ndarray): Input image frame where objects and regions are annotated.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (int, total number of tracked objects),
-                and 'region_counts' (dict, counts of objects per region).
+            (SolutionResults): Contains processed image `plot_im`, 'total_tracks' (int, total number of tracked
+                objects), and 'region_counts' (dict, counts of objects per region).
         """
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)

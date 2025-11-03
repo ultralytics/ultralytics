@@ -158,6 +158,7 @@ dist.init_process_group()
 
 model = YOLO("yolo11n.pt")  # load your model
 results = model.val(data="coco128.yaml")  # no need to specify device
+
 dist.destroy_process_group()
 ```
 

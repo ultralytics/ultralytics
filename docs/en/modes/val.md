@@ -142,6 +142,33 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
 For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md/#ultralytics.utils.DataExportMixin).
 
+# Multi-GPU Validation
+
+You can run validation on validation with `torch.distributed.run`. First, create a validation script as follows:
+
+```python
+# Save as multi_gpu_val.py
+import torch
+import torch.distributed as dist
+from ultralytics import YOLO
+from ultralytics.utils import RANK
+
+torch.cuda.set_device(RANK)
+dist.init_process_group()
+
+model = YOLO("yolo11n.pt")  # load your model
+results = model.val(data="coco128.yaml")  # no need to specify device
+dist.destroy_process_group()
+```
+
+Then launch the validation script with the following command:
+
+```bash
+CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node 2 multi_gpu_val.py
+```
+
+Here, `CUDA_VISIBLE_DEVICES` should be set to the GPUs you want the validation to run on, while `nproc_per_node` specifies the number of GPUs that are being used.
+
 ## FAQ
 
 ### How do I validate my YOLO11 model with Ultralytics?

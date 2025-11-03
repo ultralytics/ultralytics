@@ -506,9 +506,9 @@ def resample_segments(segments, n: int = 1000):
     return segments
 
 
-def crop_mask(masks, boxes):
-    """
-    Crop masks to bounding box regions.
+def crop_mask(masks: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
+    """Crop masks to bounding box regions.
+
 
     Args:
         masks (torch.Tensor): Masks with shape (N, H, W).
@@ -517,8 +517,10 @@ def crop_mask(masks, boxes):
     Returns:
         (torch.Tensor): Cropped masks.
     """
+    if boxes.device != masks.device:
+        boxes = boxes.to(masks.device)
     n, h, w = masks.shape
-    if n < 50:  # faster for fewer masks (predict)
+    if n < 50 and not masks.is_cuda:  # faster for fewer masks (predict)
         for i, (x1, y1, x2, y2) in enumerate(boxes.round().int()):
             masks[i, :y1] = 0
             masks[i, y2:] = 0

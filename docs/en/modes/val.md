@@ -152,9 +152,9 @@ import torch
 import torch.distributed as dist
 
 from ultralytics import YOLO
-from ultralytics.utils import RANK
+from ultralytics.utils import LOCAL_RANK
 
-torch.cuda.set_device(RANK)
+torch.cuda.set_device(LOCAL_RANK)
 dist.init_process_group()
 
 model = YOLO("yolo11n.pt")  # load your model

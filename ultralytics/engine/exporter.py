@@ -596,7 +596,7 @@ class Exporter:
             data=data,
             fraction=self.args.fraction,
             task=self.model.task,
-            imgsz=max(self.imgsz),
+            imgsz=min(self.imgsz),
             augment=False,
             batch_size=self.args.batch,
         )
@@ -1061,7 +1061,7 @@ class Exporter:
             if self.imgsz[0] != self.imgsz[1]:
                 hpad, wpad = ((self.imgsz - np.array(images.shape[2:])) // 2).astype(int)
                 images = torch.nn.functional.pad(images, (wpad, wpad, hpad, hpad), value=114)
-            images = images.permute(0, 2, 3, 1).numpy()
+            images = images.permute(0, 2, 3, 1).numpy()  # NHWC
 
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):

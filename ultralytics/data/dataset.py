@@ -44,6 +44,9 @@ from .utils import (
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
 DATASET_CACHE_VERSION = "1.0.3"
+# CACHE_SUFFIX=".cache"
+# CACHE_SUFFIX=".merged.cache" #
+CACHE_SUFFIX=".cache" # refine
 
 
 class YOLODataset(BaseDataset):
@@ -167,7 +170,7 @@ class YOLODataset(BaseDataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         self.label_files = img2label_paths(self.im_files)
-        cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
+        cache_path = Path(self.label_files[0]).parent.with_suffix(CACHE_SUFFIX)
         try:
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
@@ -453,6 +456,8 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
+        assert CACHE_SUFFIX in {".cache", ".merged.cache", ".updated.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
+
     def get_img_files(self, img_path: str) -> list:
         """
         The image files would be read in `get_labels` function, return empty list here.
@@ -565,7 +570,7 @@ class GroundingDataset(YOLODataset):
                                 .reshape(-1)
                                 .tolist()
                             )
-                        s = [cls, *s]
+                        s = [cls] + s
                         segments.append(s)
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
 
@@ -588,6 +593,12 @@ class GroundingDataset(YOLODataset):
                 }
             )
         x["hash"] = get_hash(self.json_file)
+
+
+        if CACHE_SUFFIX == ".merged.cache":
+            x["labels"] = self.run_merge_labels(x["labels"])
+
+
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -598,7 +609,7 @@ class GroundingDataset(YOLODataset):
         Returns:
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
-        cache_path = Path(self.json_file).with_suffix(".cache")
+        cache_path = Path(self.json_file).with_suffix(CACHE_SUFFIX)
         try:
             cache, _ = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
@@ -607,7 +618,10 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-        self.verify_labels(labels)
+
+        if CACHE_SUFFIX == ".cache":
+            self.verify_labels(labels)
+
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")

@@ -35,8 +35,7 @@ class PoseDetector:
         return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
     def detect_position(self, keypoints):
-        """
-        Determine the person's location based on keypoints.
+        """Determine the person's location based on keypoints.
 
         Keypoints YOLO Pose (COCO format):
         0: nose, 1-2: eyes, 3-4: ears

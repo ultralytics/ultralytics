@@ -9,8 +9,7 @@ from ultralytics.utils.checks import check_requirements
 
 
 class GPUInfo:
-    """
-    Manages NVIDIA GPU information via pynvml with robust error handling.
+    """Manages NVIDIA GPU information via pynvml with robust error handling.
 
     Provides methods to query detailed GPU statistics (utilization, memory, temp, power) and select the most idle GPUs
     based on configurable criteria. It safely handles the absence or initialization failure of the pynvml library by
@@ -137,8 +136,7 @@ class GPUInfo:
     def select_idle_gpu(
         self, count: int = 1, min_memory_fraction: float = 0, min_util_fraction: float = 0
     ) -> list[int]:
-        """
-        Select the most idle GPUs based on utilization and free memory.
+        """Select the most idle GPUs based on utilization and free memory.
 
         Args:
             count (int): The number of idle GPUs to select.

@@ -150,6 +150,7 @@ You can run validation on multiple GPUs with `torch.distributed.run`. First, cre
 # Save as multi_gpu_val.py
 import torch
 import torch.distributed as dist
+
 from ultralytics import YOLO
 from ultralytics.utils import RANK
 

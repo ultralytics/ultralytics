@@ -144,7 +144,7 @@ For more details see the [`DataExportMixin` class documentation](../reference/ut
 
 # Multi-GPU Validation
 
-You can run validation on validation with `torch.distributed.run`. First, create a validation script as follows:
+You can run validation on multiple GPUs with `torch.distributed.run`. First, create a validation script as follows:
 
 ```python
 # Save as multi_gpu_val.py

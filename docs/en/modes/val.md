@@ -142,7 +142,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
 For more details see the [`DataExportMixin` class documentation](../reference/utils/__init__.md/#ultralytics.utils.DataExportMixin).
 
-# Multi-GPU Validation
+## Multi-GPU Validation
 
 You can run validation on multiple GPUs with `torch.distributed.run`. First, create a validation script as follows:
 

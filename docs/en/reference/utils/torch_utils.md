@@ -23,6 +23,14 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils.get_world_size
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils.setup_ddp
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.smart_inference_mode
 
 <br><br><hr><br>

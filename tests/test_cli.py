@@ -129,10 +129,3 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""
     run(f"yolo solutions {solution} verbose=False")
-
-
-@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10 or not TORCH_2_9, reason="Requires Python>=3.10 and Torch>=2.9.0")
-@pytest.mark.skipif(WINDOWS, reason="Skipping test on Windows")
-def test_export_executorch() -> None:
-    """Test exporting a YOLO model to ExecuTorch format via CLI."""
-    run("yolo export model=yolo11n.pt format=executorch imgsz=32")

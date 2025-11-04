@@ -10,7 +10,7 @@ import random
 import time
 from contextlib import contextmanager
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +27,7 @@ from ultralytics.utils import (
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
+    RANK,
     TORCH_VERSION,
     TORCHVISION_VERSION,
     WINDOWS,
@@ -67,6 +68,33 @@ def torch_distributed_zero_first(local_rank: int):
     yield
     if initialized and local_rank == 0:
         dist.barrier(device_ids=[local_rank]) if use_ids else dist.barrier()
+
+
+def get_world_size(device: str) -> int:
+    """Determine world size from the passed devices."""
+    if isinstance(device, str) and len(device):  # i.e. device='0' or device='0,1,2,3'
+        world_size = len(device.split(","))
+    elif isinstance(device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
+        world_size = len(device)
+    elif device in {"cpu", "mps"}:  # i.e. device='cpu' or 'mps'
+        world_size = 0
+    elif torch.cuda.is_available():  # i.e. device=None or device='' or device=number
+        world_size = 1  # default to device 0
+    else:  # i.e. device=None or device=''
+        world_size = 0
+    return world_size
+
+
+def setup_ddp():
+    """Initialize and set the DistributedDataParallel parameters for training."""
+    if not dist.is_initialized():
+        torch.cuda.set_device(RANK)
+        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        dist.init_process_group(
+            backend="nccl" if dist.is_nccl_available() else "gloo",
+            timeout=timedelta(seconds=10800),  # 3 hours
+            rank=RANK,
+        )
 
 
 def smart_inference_mode():

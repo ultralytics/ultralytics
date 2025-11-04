@@ -36,8 +36,15 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
+from ultralytics.utils.dist import run_ddp
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model
+from ultralytics.utils.torch_utils import (
+    attempt_compile,
+    get_world_size,
+    select_device,
+    smart_inference_mode,
+    unwrap_model,
+)
 
 
 class BaseValidator:
@@ -153,17 +160,22 @@ class BaseValidator:
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
         else:
+            self.world_size = get_world_size(self.args.device)
+            if self.world_size > 1 and RANK == -1:
+                self.model = model
+                run_ddp(self)
+                return
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
+            self.device = select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK)
             model = AutoBackend(
                 model=model or self.args.model,
-                device=select_device(self.args.device) if RANK == -1 else torch.device("cuda", RANK),
+                device=self.device,
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.half,
             )
-            self.device = model.device  # update device
             self.args.half = model.fp16  # update half
             stride, pt, jit = model.stride, model.pt, model.jit
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
@@ -183,7 +195,9 @@ class BaseValidator:
             if not (pt or (getattr(model, "dynamic", False) and not model.imx)):
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
-            self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
+            self.dataloader = self.dataloader or self.get_dataloader(
+                self.data.get(self.args.split), self.args.batch // self.world_size
+            )
 
             model.eval()
             if self.args.compile:

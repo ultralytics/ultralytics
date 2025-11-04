@@ -233,27 +233,27 @@ The Ultralytics team benchmarked YOLO11 models, comparing speed and accuracy bet
 
 **Solution**: ExecuTorch requires Python 3.10 or higher. Upgrade your Python installation:
 
-    ```bash
-    # Using conda
-    conda create -n executorch python=3.10
-    conda activate executorch
-    ```
+```bash
+# Using conda
+conda create -n executorch python=3.10
+conda activate executorch
+```
 
 **Issue**: `Export fails during first run`
 
 **Solution**: ExecuTorch may need to download and compile components on first use. Ensure you have:
 
-    ```bash
-    pip install --upgrade executorch
-    ```
+```bash
+pip install --upgrade executorch
+```
 
 **Issue**: `Import errors for ExecuTorch modules`
 
 **Solution**: Ensure ExecuTorch is properly installed:
 
-    ```bash
-    pip install executorch --force-reinstall
-    ```
+```bash
+pip install executorch --force-reinstall
+```
 
 For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [ExecuTorch Documentation](https://pytorch.org/executorch/stable/getting-started-setup.html).
 
@@ -275,18 +275,18 @@ Key takeaways:
 
 Export a YOLO11 model to ExecuTorch using either Python or CLI:
 
-    ```python
-    from ultralytics import YOLO
+```python
+from ultralytics import YOLO
 
-    model = YOLO("yolo11n.pt")
-    model.export(format="executorch")
-    ```
+model = YOLO("yolo11n.pt")
+model.export(format="executorch")
+```
 
 or
 
-    ```bash
-    yolo export model=yolo11n.pt format=executorch
-    ```
+```bash
+yolo export model=yolo11n.pt format=executorch
+```
 
 ### What are the system requirements for ExecuTorch export?
 

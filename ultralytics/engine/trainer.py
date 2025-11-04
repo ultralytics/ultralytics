@@ -814,7 +814,7 @@ class BaseTrainer:
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
-                
+
                 # Handle augmentations parameter for resume: check if user provided custom augmentations
                 if "augmentations" in overrides:
                     # User provided new augmentations during resume, use those

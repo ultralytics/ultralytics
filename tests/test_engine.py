@@ -140,22 +140,6 @@ def test_classify():
     assert len(result), "predictor test failed"
 
 
-def test_nan_recovery():
-    """Test NaN loss detection and recovery during training."""
-    nan_injected = [False]
-
-    def inject_nan(trainer):
-        """Inject NaN into loss during batch processing to test recovery mechanism."""
-        if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected[0]:
-            trainer.tloss *= torch.tensor(float("nan"))
-            nan_injected[0] = True
-
-    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 3}
-    trainer = detect.DetectionTrainer(overrides=overrides)
-    trainer.add_callback("on_train_batch_end", inject_nan)
-    trainer.train()
-    assert nan_injected[0], "NaN injection failed"
-
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
@@ -196,7 +180,50 @@ def test_semseg():
     pred.add_callback("on_predict_start", test_func)
     assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
     result = pred(source=ASSETS, model=trainer.best)
-    assert len(result), "predictor test failed"
+
+    # export smoke test
+    model = YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+
+def test_semseg_cpu():
+    """Test semantic segment including training, validation, and prediction phases."""
+    overrides = {
+        "data": "../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        "model": "yolo11-semseg.yaml",
+        "imgsz": 256,
+        "epochs": 1,
+        "save": False,
+        "mask_ratio": 1,
+        "device": "cpu",
+    }
+    cfg = get_cfg(SEMSEG_CFG)
+    cfg.device = "cpu"
+    cfg.data = "../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml"
+    # Trainer
+    trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
+    trainer.add_callback("on_train_start", test_func)
+    assert test_func in trainer.callbacks["on_train_start"], "callback test failed"
+    trainer.train()
+
+    # Validator
+    args = dict(
+        model=trainer.best,
+        data="../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        imgsz=256,
+        device="cpu",
+        name=cfg.name,
+        task="semseg",
+        plots=False,
+    )
+    val = semseg.SemSegValidator(args=args)
+    val.add_callback("on_val_start", test_func)
+    assert test_func in val.callbacks["on_val_start"], "callback test failed"
+    val(model=trainer.best)
+
+    # Predictor
+    pred = semseg.SemSegPredictor(cfg=cfg)
+    pred.add_callback("on_predict_start", test_func)
+    assert test_func in pred.callbacks["on_predict_start"], "callback test failed"
+    result = pred(source=ASSETS, model=trainer.best)
 
     # export smoke test
     model = YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")

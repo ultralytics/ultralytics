@@ -704,7 +704,7 @@ class Mosaic(BaseMixTransform):
 
         Returns:
             (dict[str, Any]): A dictionary containing the mosaic image and updated labels. It includes the following
-            keys:
+                keys:
                 - 'img' (np.ndarray): The final mosaic image.
                 - Other keys from the input labels, updated to reflect the new mosaic arrangement.
 
@@ -1507,13 +1507,14 @@ class RandomFlip:
 
         Args:
             labels (dict[str, Any]): A dictionary containing the following keys:
-                - 'img' (np.ndarray): The image to be flipped.
-                - 'instances' (ultralytics.utils.instance.Instances): Object containing boxes and optionally keypoints.
+            -'img' (np.ndarray): The image to be flipped.
+            - 'instances' (ultralytics.utils.instance.Instances): Object containing  boxes and optionally
+                keypoints.
 
         Returns:
             (dict[str, Any]): The same dictionary with the flipped image and updated instances:
-                - 'img' (np.ndarray): The flipped image.
-                - 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
+            -'img' (np.ndarray): The flipped image.
+            - 'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
             >>> labels = {"img": np.random.rand(640, 640, 3), "instances": Instances(...)}
@@ -2916,11 +2917,10 @@ class ToTensor:
 
 # ---------------------------------------------------------semantic-segmetation---------------------------------------------------#
 class SemSegMosaic(BaseMixTransform):
-    """
-    SemSegMosaic augmentation for Semantic segment task.
+    """SemSegMosaic augmentation for Semantic segment task.
 
-    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
-    The augmentation is applied to a dataset with a given probability.
+    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image. The
+    augmentation is applied to a dataset with a given probability.
 
     Attributes:
         dataset: The dataset on which the mosaic augmentation is applied.
@@ -2946,8 +2946,7 @@ class SemSegMosaic(BaseMixTransform):
     """
 
     def __init__(self, dataset, imgsz=1024, p=1.0, n=4):
-        """
-        Initializes the Mosaic augmentation object.
+        """Initializes the Mosaic augmentation object.
 
         This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
         The augmentation is applied to a dataset with a given probability.
@@ -2972,19 +2971,17 @@ class SemSegMosaic(BaseMixTransform):
         self.n = n
 
     def get_indexes(self, buffer=True):
-        """
-        Returns a List of random indexes from the dataset for mosaic augmentation.
+        """Returns a List of random indexes from the dataset for mosaic augmentation.
 
         This method selects random image indexes either from a buffer or from the entire dataset, depending on
         the 'buffer' parameter. It is used to choose images for creating mosaic augmentations.
 
         Args:
-            buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire
-                dataset.
+            buffer (bool): If True, selects images from the dataset buffer. If False, selects from the entire dataset.
 
         Returns:
-            (List[int]): A List of random image indexes. The length of the List is n-1, where n is the number
-                of images used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
+            (List[int]): A List of random image indexes. The length of the List is n-1, where n is the number of images
+                used in the mosaic (either 3 or 8, depending on whether n is 4 or 9).
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
@@ -2997,8 +2994,7 @@ class SemSegMosaic(BaseMixTransform):
             return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
     def _mix_transform(self, labels):
-        """
-        Applies mosaic augmentation to the input image and labels.
+        """Applies mosaic augmentation to the input image and labels.
 
         This method combines multiple images (3, 4, or 9) into a single mosaic image based on the 'n' attribute.
         It ensures that rectangular annotations are not present and that there are other images available for
@@ -3026,16 +3022,15 @@ class SemSegMosaic(BaseMixTransform):
         )  # This code is modified for mosaic3 method.
 
     def _mosaic3(self, labels):
-        """
-        Creates a 1x3 image mosaic by combining three images.
+        """Creates a 1x3 image mosaic by combining three images.
 
         This method arranges three images in a horizontal layout, with the main image in the center and two
         additional images on either side. It's part of the Mosaic augmentation technique used in object detection.
 
         Args:
-            labels (Dict): A dictionary containing image and label information for the main (center) image.
-                Must include 'img' key with the image array, and 'mix_labels' key with a List of two
-                dictionaries containing information for the side images.
+            labels (Dict): A dictionary containing image and label information for the main (center) image. Must include
+                'img' key with the image array, and 'mix_labels' key with a List of two dictionaries containing
+                information for the side images.
 
         Returns:
             (Dict): A dictionary with the mosaic image and updated labels. Keys include:
@@ -3090,8 +3085,7 @@ class SemSegMosaic(BaseMixTransform):
         return final_labels
 
     def _mosaic4(self, labels):
-        """
-        Creates a 2x2 image mosaic from four input images.
+        """Creates a 2x2 image mosaic from four input images.
 
         This method combines four images into a single mosaic image by placing them in a 2x2 grid. It also
         updates the corresponding labels for each image in the mosaic.
@@ -3101,8 +3095,8 @@ class SemSegMosaic(BaseMixTransform):
                 additional images (indices 1-3) in the 'mix_labels' key.
 
         Returns:
-            (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic
-                image as a numpy array, and other keys contain the combined and adjusted labels for all four images.
+            (Dict): A dictionary containing the mosaic image and updated labels. The 'img' key contains the mosaic image
+                as a numpy array, and other keys contain the combined and adjusted labels for all four images.
 
         Examples:
             >>> mosaic = Mosaic(dataset, imgsz=640, p=1.0, n=4)
@@ -3153,8 +3147,7 @@ class SemSegMosaic(BaseMixTransform):
         return final_labels
 
     def _mosaic9(self, labels):
-        """
-        Creates a 3x3 image mosaic from the input image and eight additional images.
+        """Creates a 3x3 image mosaic from the input image and eight additional images.
 
         This method combines nine images into a single mosaic image. The input image is placed at the center,
         and eight additional images from the dataset are placed around it in a 3x3 grid pattern.
@@ -3231,8 +3224,7 @@ class SemSegMosaic(BaseMixTransform):
 
     @staticmethod
     def _update_labels(labels, padw, padh):
-        """
-        Updates label coordinates with padding values.
+        """Updates label coordinates with padding values.
 
         This method adjusts the bounding box coordinates of object instances in the labels by adding padding
         values. It also denormalizes the coordinates if they were previously normalized.
@@ -3257,8 +3249,7 @@ class SemSegMosaic(BaseMixTransform):
         return labels
 
     def _cat_labels(self, mosaic_labels):
-        """
-        Concatenates and processes labels for mosaic augmentation.
+        """Concatenates and processes labels for mosaic augmentation.
 
         This method combines labels from multiple images used in mosaic augmentation, clips instances to the
         mosaic border, and removes zero-area boxes.
@@ -3310,11 +3301,10 @@ class SemSegMosaic(BaseMixTransform):
 
 
 class SemSegRandomFlip:
-    """
-    Applies a random horizontal or vertical flip to an image with a given probability.
+    """Applies a random horizontal or vertical flip to an image with a given probability.
 
-    This class performs random image flipping and updates corresponding instance annotations such as
-    bounding boxes and keypoints.
+    This class performs random image flipping and updates corresponding instance annotations such as bounding boxes and
+    keypoints.
 
     Attributes:
         p (float): Probability of applying the flip. Must be between 0 and 1.
@@ -3332,8 +3322,7 @@ class SemSegRandomFlip:
     """
 
     def __init__(self, p=0.5, direction="horizontal", flip_idx=None) -> None:
-        """
-        Initializes the RandomFlip class with probability and direction.
+        """Initializes the RandomFlip class with probability and direction.
 
         This class applies a random horizontal or vertical flip to an image with a given probability.
         It also updates any instances (bounding boxes, keypoints, etc.) accordingly.
@@ -3358,8 +3347,7 @@ class SemSegRandomFlip:
         self.flip_idx = flip_idx
 
     def __call__(self, labels):
-        """
-        Applies random flip to an image and updates any instances like bounding boxes or keypoints accordingly.
+        """Applies random flip to an image and updates any instances like bounding boxes or keypoints accordingly.
 
         This method randomly flips the input image either horizontally or vertically based on the initialized
         probability and direction. It also updates the corresponding instances (bounding boxes, keypoints) to
@@ -3367,14 +3355,14 @@ class SemSegRandomFlip:
 
         Args:
             labels (Dict): A dictionary containing the following keys:
-                'img' (numpy.ndarray): The image to be flipped.
-                'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and
-                    optionally keypoints.
+            'img' (numpy.ndarray): The image to be flipped.
+            'instances' (ultralytics.utils.instance.Instances): An object containing bounding boxes and optionally
+                keypoints.
 
         Returns:
             (Dict): The same dictionary with the flipped image and updated instances:
-                'img' (numpy.ndarray): The flipped image.
-                'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
+            'img' (numpy.ndarray): The flipped image.
+            'instances' (ultralytics.utils.instance.Instances): Updated instances matching the flipped image.
 
         Examples:
             >>> labels = {"img": np.random.rand(640, 640, 3), "instances": Instances(...)}
@@ -3408,12 +3396,11 @@ class SemSegRandomFlip:
 
 
 class SemSegRandomPerspective(RandomPerspective):
-    """
-    Implement random perspective and affine transformations on images and corresponding annotations.
+    """Implement random perspective and affine transformations on images and corresponding annotations.
 
-    This class applies random rotations, translations, scaling, shearing, and perspective transformations
-    to images and their associated bounding boxes, segments, and keypoints. It can be used as part of an
-    augmentation pipeline for object detection and instance segmentation tasks.
+    This class applies random rotations, translations, scaling, shearing, and perspective transformations to images and
+    their associated bounding boxes, segments, and keypoints. It can be used as part of an augmentation pipeline for
+    object detection and instance segmentation tasks.
 
     Attributes:
         degrees (float): Maximum absolute degree range for random rotations.
@@ -3448,21 +3435,21 @@ class SemSegRandomPerspective(RandomPerspective):
         pre_transform=None,
         num_classes=20,
     ):
-        """
-        Initialize RandomPerspective object with transformation parameters. This class implements random perspective and
-        affine transformations on images and masks. Transformations include rotation, translation, scaling, and
-        shearing.
+        """Initialize RandomPerspective object with transformation parameters. This class implements random perspective
+        and affine transformations on images and masks. Transformations include rotation, translation, scaling,
+        and shearing.
 
         Args:
-                degrees (float): Degree range for random rotations.
-                translate (float): Fraction of total width and height for random translation.
-                scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
-                shear (float): Shear intensity (angle in degrees).
-                perspective (float): Perspective distortion factor.
-                border (Tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
-                pre_transform (Callable | None): Function/transform to apply to the image before starting the random
-                    transformation.
-                num_classes: number of categories
+            degrees (float): Degree range for random rotations.
+            translate (float): Fraction of total width and height for random translation.
+            scale (float): Scaling factor interval, e.g., a scale factor of 0.5 allows a resize between 50%-150%.
+            shear (float): Shear intensity (angle in degrees).
+            perspective (float): Perspective distortion factor.
+            border (Tuple[int, int]): Tuple specifying mosaic border (top/bottom, left/right).
+            pre_transform (Callable | None): Function/transform to apply to the image before starting the random
+                transformation.
+            num_classes: number of categories
+
         Examples:
             >>> transform = RandomPerspective(degrees=10.0, translate=0.1, scale=0.5, shear=5.0)
             >>> result = transform(labels)  # Apply random perspective to labels.
@@ -3471,8 +3458,7 @@ class SemSegRandomPerspective(RandomPerspective):
         self.num_classes = num_classes
 
     def affine_transform(self, img, msk, border):
-        """
-        Applies a sequence of affine transformations centered around the image center.
+        """Applies a sequence of affine transformations centered around the image center.
 
         This function performs a series of geometric transformations on the input image, including
         translation, perspective change, rotation, scaling, and shearing. The transformations are
@@ -3556,8 +3542,7 @@ class SemSegRandomPerspective(RandomPerspective):
         return img, new_msk, M, s
 
     def __call__(self, labels):
-        """
-        Applies random perspective and affine transformations to an image and its associated labels.
+        """Applies random perspective and affine transformations to an image and its associated labels.
 
         This method performs a series of transformations including rotation, translation, scaling, shearing,
         and perspective distortion on the input image and adjusts the corresponding masks.
@@ -3565,11 +3550,11 @@ class SemSegRandomPerspective(RandomPerspective):
         Args:
             labels (Dict): A dictionary containing image data and annotations.
                 Must include:
-                    'img' (ndarray): The input image.
-                    'cls' (ndarray): Class labels.
-                    'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
+            'img' (ndarray): The input image.
+            'cls' (ndarray): Class labels.
+            'instances' (Instances): Object instances with bounding boxes, segments, and keypoints.
                 May include:
-                    'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.
+            'mosaic_border' (Tuple[int, int]): Border size for mosaic augmentation.
 
         Returns:
             (Dict): Transformed labels dictionary containing:
@@ -3635,8 +3620,7 @@ class SemSegRandomPerspective(RandomPerspective):
 
 
 class SemSegFormat:
-    """
-    A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
+    """A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
 
     This class standardizes image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
 
@@ -3675,8 +3659,7 @@ class SemSegFormat:
         batch_idx=True,
         bgr=0.0,
     ):
-        """
-        Initializes the Format class with given parameters for image and instance annotation formatting.
+        """Initializes the Format class with given parameters for image and instance annotation formatting.
 
         This class standardizes image and instance annotations for object detection, instance segmentation, and pose
         estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
@@ -3719,8 +3702,7 @@ class SemSegFormat:
         self.bgr = bgr
 
     def __call__(self, labels):
-        """
-        Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
+        """Formats image annotations for object detection, instance segmentation, and pose estimation tasks.
 
         This method standardizes the image and instance annotations to be used by the `collate_fn` in PyTorch
         DataLoader. It processes the input labels dictionary, converting annotations to the specified format and
@@ -3785,8 +3767,7 @@ class SemSegFormat:
         return labels
 
     def _format_img(self, img):
-        """
-        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+        """Formats an image for YOLO from a Numpy array to a PyTorch tensor.
 
         This function performs the following operations:
         1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
@@ -3816,8 +3797,7 @@ class SemSegFormat:
         return img
 
     def _format_mask(self, mask):
-        """
-        Formats an image for YOLO from a Numpy array to a PyTorch tensor.
+        """Formats an image for YOLO from a Numpy array to a PyTorch tensor.
 
         This function performs the following operations:
         1. Ensures the image has 3 dimensions (adds a channel dimension if needed).
@@ -3848,8 +3828,7 @@ class SemSegFormat:
         return mask
 
     def _format_segments(self, instances, cls, w, h):
-        """
-        Converts polygon segments to bitmap masks.
+        """Converts polygon segments to bitmap masks.
 
         Args:
             instances (Instances): Object containing segment information.
@@ -3859,9 +3838,9 @@ class SemSegFormat:
 
         Returns:
             (Tuple): Tuple containing:
-                masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
-                instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
-                cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
+            masks (numpy.ndarray): Bitmap masks with shape (N, H, W) or (1, H, W) if mask_overlap is True.
+            instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
+            cls (numpy.ndarray): Updated class labels, sorted if mask_overlap is True.
 
         Notes:
             - If self.mask_overlap is True, masks are overlapped and sorted by area.
@@ -3881,11 +3860,10 @@ class SemSegFormat:
 
 
 def semseg_transforms(dataset, imgsz, hyp, stretch=False):
-    """
-    Applies a series of image transformations for training.
+    """Applies a series of image transformations for training.
 
-    This function creates a composition of image augmentation techniques to prepare images for YOLO training.
-    It includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
+    This function creates a composition of image augmentation techniques to prepare images for YOLO training. It
+    includes operations such as mosaic, copy-paste, random perspective, mixup, and various color adjustments.
 
     Args:
         dataset (Dataset): The dataset object containing image data and annotations.

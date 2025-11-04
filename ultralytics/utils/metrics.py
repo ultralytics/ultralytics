@@ -1559,14 +1559,13 @@ class OBBMetrics(DetMetrics):
 
 # ----------------------------------------------Semantic Segment Metrics----------------------------------------------------------------#
 def mask_precision(mask1, mask2, eps=1e-7):
-    """
-    Compute precision for semantic segmentation task
+    """Compute precision for semantic segmentation task.
+
     Args:
         mask1(torch.Tensor[height, width]): prediction mask, which is output from model
         mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
         eps: a tiny number.
-
-    Returns: precision(torch.Tensor)
+        Returns: precision(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
@@ -1577,14 +1576,13 @@ def mask_precision(mask1, mask2, eps=1e-7):
 
 
 def mask_accuracy(mask1, mask2, eps=1e-7):
-    """
-    Compute accuracy for semantic segmentation task
+    """Compute accuracy for semantic segmentation task.
+
     Args:
         mask1(torch.Tensor[height, width]): prediction mask, which is output from model
         mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
         eps: a tiny number.
-
-    Returns: accuracy(torch.Tensor)
+        Returns: accuracy(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
@@ -1595,14 +1593,13 @@ def mask_accuracy(mask1, mask2, eps=1e-7):
 
 
 def mask_recall(mask1, mask2, eps=1e-7):
-    """
-    Compute recall for semantic segmentation task
+    """Compute recall for semantic segmentation task.
+
     Args:
         mask1(torch.Tensor[height, width]): prediction mask, which is output from model
         mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
         eps: a tiny number.
-
-    Returns: recall(torch.Tensor)
+        Returns: recall(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fn = torch.matmul(mask1, 1 - mask2.T).clamp_(0).sum()
@@ -1613,14 +1610,13 @@ def mask_recall(mask1, mask2, eps=1e-7):
 
 
 def mask_mcr(mask1, mask2, eps=1e-7):
-    """
-    Compute MCR for semantic segmentation task
+    """Compute MCR for semantic segmentation task.
+
     Args:
         mask1(torch.Tensor[height, width]): prediction mask, which is output from model
         mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
         eps: a tiny number.
-
-    Returns: MCR(torch.Tensor)
+        Returns: MCR(torch.Tensor)
     """
     fp = torch.matmul(mask1, 1 - mask2.T).clamp_(0)
     fn = torch.matmul(1 - mask1, mask2.T).clamp_(0)
@@ -1629,14 +1625,13 @@ def mask_mcr(mask1, mask2, eps=1e-7):
 
 
 def dice_score(mask1, mask2, eps=1e-7):
-    """
-    Compute DICE-SCORE for semantic segmentation task
+    """Compute DICE-SCORE for semantic segmentation task.
+
     Args:
         mask1(torch.Tensor[height, width]): prediction mask, which is output from model
         mask2(torch.Tensor[height, width]): groundtruth mask, which is provided by dataset
         eps: a tiny number.
-
-    Returns: DICE-SCORE(torch.Tensor)
+        Returns: DICE-SCORE(torch.Tensor)
     """
     tp = torch.matmul(mask1, mask2.T).clamp_(0).sum()
     fp = torch.matmul(1 - mask1, mask2.T).clamp_(0).sum()
@@ -1700,8 +1695,7 @@ class SemSegMetric(Metric):
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):
-        """
-        Updates the evaluation metrics of the model with a new set of results.
+        """Updates the evaluation metrics of the model with a new set of results.
 
         Args:
             results (tuple): A tuple containing the following evaluation metrics:
@@ -1710,7 +1704,6 @@ class SemSegMetric(Metric):
                 - iou (list):IoU for each class. Shape: (nc,).
                 - dice_score (list): AP scores for all classes and all IoU thresholds. Shape: (nc, 10).
                 - mcr (list): Index of class for each AP score. Shape: (nc,).
-
         Side Effects:
             Updates the class attributes `self.p`, `self.r`, `self.f1`, `self.all_ap`, and `self.ap_class_index` based
             on the values provided in the `results` tuple.
@@ -1719,8 +1712,7 @@ class SemSegMetric(Metric):
 
 
 class SemSegMetrics(SimpleClass):
-    """
-    Utility class for computing semantic segment metrics such as precision, recall, mIoU, dice-score, MCR.
+    """Utility class for computing semantic segment metrics such as precision, recall, mIoU, dice-score, MCR.
 
     Attributes:
         names (Dict[int, str]): A dictionary of class names.
@@ -1751,8 +1743,7 @@ class SemSegMetrics(SimpleClass):
         self.task = "semseg"
 
     def process(self, precision: np.ndarray, recall, mIoU, dice_score, mcr):
-        """
-        Processes the detection and segmentation metrics over the given set of predictions.
+        """Processes the detection and segmentation metrics over the given set of predictions.
 
         Args:
             precision (list): List of precision.

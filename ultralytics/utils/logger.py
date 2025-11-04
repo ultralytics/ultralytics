@@ -308,7 +308,8 @@ class SystemLogger:
             - power (int): GPU power consumption in watts
 
         Returns:
-            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage data.
+            metrics (dict): System metrics containing 'cpu', 'ram', 'disk', 'network', 'gpus' with usage
+                data.
         """
         import psutil  # scoped as slow import
 

@@ -687,8 +687,7 @@ class SemanticDataset(BaseDataset):
     """Semantic Segmentation Dataset."""
 
     def __init__(self, *args, data=None, task="semseg", **kwargs):
-        """
-        Initialize a SemanticDataset object.
+        """Initialize a SemanticDataset object.
 
         Args:
             args: arguments with list
@@ -708,8 +707,7 @@ class SemanticDataset(BaseDataset):
         return [im_file.replace("image", "annotation") for im_file in im_files]
 
     def cache_labels(self, path=Path("./labels.cache")):
-        """
-        Load annotations mask from a JSON file each image.
+        """Load annotations mask from a JSON file each image.
 
         Args:
             path (Path): Path where to save the cache file.
@@ -887,10 +885,9 @@ class SemanticDataset(BaseDataset):
         return results
 
     def update_labels_info(self, label):
-        """
-        Custom your label format here.
+        """Custom your label format here.
 
-        Note:
+        Notes:
             cls is not with bboxes now, classification and semantic segmentation need an independent cls label
             Can also support classification and semantic segmentation by adding or removing dict keys there.
         """

@@ -1559,7 +1559,8 @@ class TorchVision(nn.Module):
     Args:
         model (str): Name of the torchvision model to load.
         weights (str, optional): Pre-trained weights to load. Default is "DEFAULT".
-        unwrap (bool, optional): Unwraps the model to a sequential containing all but the last `truncate` layers.
+        unwrap (bool, optional): Unwraps the model to a sequential containing all but the last `truncate`
+            layers.
         truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 2.
         split (bool, optional): Returns output from intermediate child modules as list. Default is False.
 

@@ -34,7 +34,7 @@ import torch.distributed as dist
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
 from ultralytics.utils.dist import run_ddp
 from ultralytics.utils.ops import Profile
@@ -43,6 +43,7 @@ from ultralytics.utils.torch_utils import (
     get_world_size,
     select_device,
     smart_inference_mode,
+    torch_distributed_zero_first,
     unwrap_model,
 )
 
@@ -183,12 +184,13 @@ class BaseValidator:
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 
-            if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
-                self.data = check_det_dataset(self.args.data)
-            elif self.args.task == "classify":
-                self.data = check_cls_dataset(self.args.data, split=self.args.split)
-            else:
-                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
+            with torch_distributed_zero_first(LOCAL_RANK):
+                if str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
+                    self.data = check_det_dataset(self.args.data)
+                elif self.args.task == "classify":
+                    self.data = check_cls_dataset(self.args.data, split=self.args.split)
+                else:
+                    raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 
             if self.device.type in {"cpu", "mps"}:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading

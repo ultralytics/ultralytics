@@ -467,6 +467,7 @@ def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None, a
         base (dict): The base configuration dictionary containing valid keys.
         custom (dict): The custom configuration dictionary to be checked for alignment.
         e (Exception | None): Optional error instance passed by the calling function.
+        allowed_custom_keys (set | None): Optional set of additional keys that are allowed in the custom dictionary.
 
     Raises:
         SystemExit: If mismatched keys are found between the custom and base dictionaries.

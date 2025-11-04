@@ -459,7 +459,7 @@ def _handle_deprecation(custom: dict) -> dict:
     return custom
 
 
-def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -> None:
+def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None, allowed_custom_keys: set = None) -> None:
     """Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
 
@@ -487,7 +487,8 @@ def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
     # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms
-    allowed_custom_keys = {"augmentations"}
+    if allowed_custom_keys is None:
+        allowed_custom_keys = {"augmentations"}
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches
 

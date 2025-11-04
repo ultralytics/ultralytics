@@ -196,7 +196,7 @@ class BaseValidator:
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
             self.dataloader = self.dataloader or self.get_dataloader(
-                self.data.get(self.args.split), self.args.batch // self.world_size
+                self.data.get(self.args.split), self.args.batch // max(self.world_size, 1)
             )
 
             model.eval()

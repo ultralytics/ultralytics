@@ -138,10 +138,11 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            # Save run args, excluding non-serializable parameters
+            # Save run args, serializing augmentations as reprs for resume compatibility
             args_dict = vars(self.args).copy()
-            if "augmentations" in args_dict:
-                args_dict.pop("augmentations")  # Remove non-serializable Albumentations transforms
+            if "augmentations" in args_dict and args_dict["augmentations"] is not None:
+                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
+                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
@@ -817,6 +818,22 @@ class BaseTrainer:
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
+                
+                # Handle augmentations parameter for resume: check if user provided custom augmentations
+                if "augmentations" in overrides:
+                    # User provided new augmentations during resume, use those
+                    self.args.augmentations = overrides["augmentations"]
+                elif "augmentations" in ckpt_args and ckpt_args["augmentations"] is not None:
+                    # Augmentations were saved in checkpoint as reprs but can't be restored automatically
+                    LOGGER.warning(
+                        "⚠️ Custom Albumentations transforms were used in the original training run but are not "
+                        "being restored. To preserve custom augmentations when resuming, you must pass the "
+                        "'augmentations' parameter again. Example: model.train(resume=True, augmentations=custom_transforms)"
+                    )
+                    self.args.augmentations = None  # Fall back to default augmentations
+                else:
+                    # No custom augmentations in original run, proceed normally
+                    self.args.augmentations = None
 
             except Exception as e:
                 raise FileNotFoundError(

@@ -67,6 +67,15 @@ You can customize each parameter using the Python API, the command line interfac
             erasing=0.0,
             auto_augment=None,
         )
+
+        # Training with custom Albumentations transforms (Python API only)
+        import albumentations as A
+
+        custom_transforms = [
+            A.Blur(blur_limit=7, p=0.5),
+            A.CLAHE(clip_limit=4.0, p=0.5),
+        ]
+        model.train(data="coco.yaml", epochs=100, augmentations=custom_transforms)
         ```
 
     === "CLI"
@@ -372,6 +381,113 @@ Then launch the training with the Python API:
 | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_identity.avif" alt="augmentation_identity" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex1.avif" alt="erasing_ex1_augmentation" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex2.avif" alt="erasing_ex2_augmentation" width="85%"/> | <img src="https://github.com/ultralytics/docs/releases/download/0/augmentation_erasing_ex3.avif" alt="erasing_ex3_augmentation" width="85%"/> |
 
+## Advanced Augmentation Features
+
+### Custom Albumentations Transforms (`augmentations`)
+
+- **Type**: `list` of Albumentations transforms
+- **Default**: `None`
+- **Usage**: Allows you to provide custom [Albumentations](https://albumentations.ai/) transforms for data augmentation using the Python API. This parameter accepts a list of Albumentations transform objects that will be applied during training instead of the default Albumentations transforms.
+- **Purpose**: Provides fine-grained control over data augmentation strategies by leveraging the extensive library of Albumentations transforms. This is particularly useful when you need specialized augmentations beyond the built-in YOLO options, such as advanced color adjustments, noise injection, or domain-specific transformations.
+- **Ultralytics' implementation**: [Albumentations](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Albumentations)
+
+!!! example "Custom Albumentations Example"
+
+    === "Python API"
+
+        ```python
+        import albumentations as A
+
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolo11n.pt")
+
+        # Define custom Albumentations transforms
+        custom_transforms = [
+            A.Blur(blur_limit=7, p=0.5),
+            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.CLAHE(clip_limit=4.0, p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+            A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+        ]
+
+        # Train with custom Albumentations transforms
+        model.train(
+            data="coco8.yaml",
+            epochs=100,
+            augmentations=custom_transforms,  # Pass custom transforms
+            imgsz=640,
+        )
+        ```
+
+    === "More Advanced Example"
+
+        ```python
+        import albumentations as A
+
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolo11n.pt")
+
+        # Define advanced custom Albumentations transforms with specific parameters
+        advanced_transforms = [
+            A.OneOf(
+                [
+                    A.MotionBlur(blur_limit=7, p=1.0),
+                    A.MedianBlur(blur_limit=7, p=1.0),
+                    A.GaussianBlur(blur_limit=7, p=1.0),
+                ],
+                p=0.3,
+            ),
+            A.OneOf(
+                [
+                    A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+                    A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
+                ],
+                p=0.2,
+            ),
+            A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, brightness_by_max=True, p=0.5),
+            A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+            A.CoarseDropout(
+                max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
+            ),
+        ]
+
+        # Train with advanced custom transforms
+        model.train(
+            data="coco8.yaml",
+            epochs=100,
+            augmentations=advanced_transforms,
+            imgsz=640,
+        )
+        ```
+
+**Key Points:**
+
+- **Python API Only**: Custom Albumentations transforms are currently supported only through the Python API. They cannot be specified via CLI or YAML configuration files.
+- **Replaces Default Transforms**: When you provide custom transforms via the `augmentations` parameter, they completely replace the default Albumentations transforms. **The default YOLO augmentations (like `mosaic`, `hsv_h`, `hsv_s`, `degrees`, etc.) remain active and are applied independently**.
+- **Bounding Box Compatibility**: Be cautious when using spatial transforms (transforms that change the geometry of the image). Ultralytics handles bounding box adjustments automatically, but some complex transforms may require additional configuration.
+- **Extensive Library**: Albumentations offers over 70+ different transforms. Explore the [Albumentations documentation](https://albumentations.ai/docs/) to discover all available options.
+- **Performance Consideration**: Adding too many augmentations or using computationally expensive transforms can slow down training. Start with a small set and monitor training speed.
+
+**Common Use Cases:**
+
+- **Medical Imaging**: Apply specialized transforms like elastic deformations or grid distortions for X-ray or MRI image augmentation
+- **Aerial/Satellite Imagery**: Use transforms optimized for overhead perspectives
+- **Low-Light Conditions**: Apply noise and brightness adjustments to simulate challenging lighting
+- **Industrial Inspection**: Add defect-like patterns or texture variations for quality control applications
+
+**Compatibility Notes:**
+
+- Requires Albumentations version 1.0.3 or higher
+- Compatible with all YOLO detection and segmentation tasks
+- Not applicable for classification tasks (classification uses a different augmentation pipeline)
+
+For more information about Albumentations and available transforms, visit the [official Albumentations documentation](https://albumentations.ai/docs/).
+
 ## FAQ
 
 ### There are too many augmentations to choose from. How do I know which ones to use?
@@ -389,6 +505,8 @@ In short: keep it simple. Start with a small set of augmentations and gradually 
 If the `albumentations` package is installed, Ultralytics automatically applies a set of extra image augmentations using it. These augmentations are handled internally and require no additional configuration.
 
 You can find the full list of applied transformations in our [technical documentation](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.Albumentations), as well as in our [Albumentations integration guide](https://docs.ultralytics.com/integrations/albumentations/). Note that only the augmentations with a probability `p` greater than `0` are active. These are purposefully applied at low frequencies to mimic real-world visual artifacts, such as blur or grayscale effects.
+
+You can also provide your own custom Albumentations transforms using the Python API. See the [Advanced Augmentation Features](#advanced-augmentation-features) section for more details.
 
 ### When starting a training, I don't see any reference to albumentations. Why?
 

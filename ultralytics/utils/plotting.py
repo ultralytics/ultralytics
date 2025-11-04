@@ -1068,8 +1068,7 @@ def plot_masks(
     conf_thres: float = 0.25,
     one_hot=False,
 ) -> np.ndarray | None:
-    """
-    Plot image and mask for semseg task.
+    """Plot image and mask for semseg task.
 
     Args:
         images: Batch of images to plot. Shape: (batch_size, channels, height, width).
@@ -1095,7 +1094,7 @@ def plot_masks(
     Returns:
         np.ndarray: Plotted image grid as a numpy array if save is False, None otherwise.
 
-    Note:
+    Notes:
         This function supports both tensor and numpy array inputs. It will automatically
         convert tensor inputs to numpy arrays for processing.
     """

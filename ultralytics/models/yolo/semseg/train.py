@@ -16,10 +16,9 @@ from ultralytics.utils.torch_utils import unwrap_model
 
 
 class SemSegTrainer(yolo.detect.DetectionTrainer):
-    """
-    A class extending the DetectionTrainer class for training based on a segmentation model.
+    """A class extending the DetectionTrainer class for training based on a segmentation model.
 
-    Example:
+    Examples:
         ```python
         from ultralytics.models.yolo.segment import SegmentationTrainer
 
@@ -71,8 +70,7 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
         return batch
 
     def build_dataset(self, img_path, mode="train", batch=None):
-        """
-        Build RSI Dataset.
+        """Build RSI Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -90,8 +88,7 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
         )
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Returns a loss dict with labelled training loss items tensor.
+        """Returns a loss dict with labelled training loss items tensor.
 
         Not needed for classification but necessary for segmentation & detection
         """

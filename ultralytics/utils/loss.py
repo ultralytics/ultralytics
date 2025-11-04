@@ -19,8 +19,7 @@ from .tal import bbox2dist, rbox2dist
 
 
 class VarifocalLoss(nn.Module):
-    """
-    Varifocal loss by Zhang et al.
+    """Varifocal loss by Zhang et al.
 
     Implements the Varifocal Loss function for addressing class imbalance in object detection by focusing on
     hard-to-classify examples and balancing positive/negative samples.
@@ -1234,7 +1233,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         return cls_loss, vp_loss[1]
 
 class SemSegLoss:
-    """Criterion  for computing training losses for semantic segmentation task."""
+    """Criterion for computing training losses for semantic segmentation task."""
 
     def __init__(self, model, alpha=0.3, beta=0.7):
         """Initialize Segment Loss and criteria using the provided model."""

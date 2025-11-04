@@ -168,7 +168,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         self.total_size = len(dataset)
         self.num_batches = math.ceil(self.total_size / self.batch_size)
 
-    def _get_rank_indices(self) -> None:
+    def _get_rank_indices(self) -> tuple[int, int]:
         """Calculate the start and end sample indices for this rank."""
         # Calculate which batches this rank handles
         batches_per_rank_base = self.num_batches // self.num_replicas

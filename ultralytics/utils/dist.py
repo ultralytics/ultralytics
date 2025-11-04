@@ -64,7 +64,7 @@ if __name__ == "__main__":
     if hasattr(obj, "train"):
         content += f"""
     trainer = {name}(cfg=cfg, overrides=overrides)
-    trainer.args.model = {getattr(obj, "hub_session"), "model_url", obj.args.model}
+    trainer.args.model = "{getattr(obj.hub_session, "model_url", obj.args.model)}"
     results = trainer.train()
 """
     else:

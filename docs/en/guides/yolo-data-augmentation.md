@@ -468,7 +468,7 @@ Then launch the training with the Python API:
 **Key Points:**
 
 - **Python API Only**: Custom Albumentations transforms are currently supported only through the Python API. They cannot be specified via CLI or YAML configuration files.
-- **Replaces Default Transforms**: When you provide custom transforms via the `augmentations` parameter, they completely replace the default Albumentations transforms. The default YOLO augmentations (like `hsv_h`, `hsv_s`, `degrees`, etc.) remain active and are applied independently.
+- **Replaces Default Transforms**: When you provide custom transforms via the `augmentations` parameter, they completely replace the default Albumentations transforms. **The default YOLO augmentations (like `mosaic`, `hsv_h`, `hsv_s`, `degrees`, etc.) remain active and are applied independently**.
 - **Bounding Box Compatibility**: Be cautious when using spatial transforms (transforms that change the geometry of the image). Ultralytics handles bounding box adjustments automatically, but some complex transforms may require additional configuration.
 - **Extensive Library**: Albumentations offers over 70+ different transforms. Explore the [Albumentations documentation](https://albumentations.ai/docs/) to discover all available options.
 - **Performance Consideration**: Adding too many augmentations or using computationally expensive transforms can slow down training. Start with a small set and monitor training speed.

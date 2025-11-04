@@ -137,8 +137,7 @@ class Bboxes:
 
     @classmethod
     def concatenate(cls, boxes_list: list[Bboxes], axis: int = 0) -> Bboxes:
-        """
-        Concatenate a list of Bboxes objects into a single Bboxes object.
+        """Concatenate a list of Bboxes objects into a single Bboxes object.
 
         Args:
             boxes_list (list[Bboxes]): A list of Bboxes objects to concatenate.

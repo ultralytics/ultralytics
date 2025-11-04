@@ -215,7 +215,7 @@ class MuSGD(optim.Optimizer):
                 # generate weight updates in distributed fashion
                 for i, p in enumerate(group["params"]):
                     lr = (
-                        group["lr"] * 2
+                        group["lr"] * 3
                         if group["param_names"] is not None
                         and "cv3" in group["param_names"][i]
                         and "23" in group["param_names"][i]
@@ -249,7 +249,7 @@ class MuSGD(optim.Optimizer):
             else:  # SGD
                 for i, p in enumerate(group["params"]):
                     lr = (
-                        group["lr"] * 2
+                        group["lr"] * 3
                         if group["param_names"] is not None
                         and "cv3" in group["param_names"][i]
                         and "23" in group["param_names"][i]

@@ -337,7 +337,9 @@ def build_dataloader(
     )
 
 
-def check_source(source: str | int | Path | list | tuple | np.ndarray | Image.Image | torch.Tensor) -> tuple[bool]:
+def check_source(
+    source: str | int | Path | list | tuple | np.ndarray | Image.Image | torch.Tensor,
+) -> tuple[Any, bool, bool, bool, bool, bool]:
     """Check the type of input source and return corresponding flag values.
 
     Args:

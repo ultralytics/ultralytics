@@ -14,7 +14,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 from PIL import Image
-from torch.utils.data import dataloader, distributed, Dataset
+from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import GroundingDataset, YOLODataset, YOLOMultiModalDataset
@@ -147,9 +147,9 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
     def __init__(
         self,
         dataset: Dataset,
-        num_replicas: int = None,
-        batch_size: int = None,
-        rank: int = None,
+        num_replicas: int | None = None,
+        batch_size: int | None = None,
+        rank: int | None = None,
         shuffle: bool = False,
     ) -> None:
         """Initialize the sampler with dataset and distributed training parameters."""

@@ -178,7 +178,7 @@ class BaseTrainer:
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.world_size = get_world_size(self.args.device)
-        self.ddp = self.world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.ddp = self.world_size > 1 and RANK == -1
 
         # Run subprocess if DDP training, else train normally
         if RANK in {-1, 0} and not self.ddp:

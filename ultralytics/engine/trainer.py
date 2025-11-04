@@ -827,9 +827,6 @@ class BaseTrainer:
                         "'augmentations' parameter again. Example: model.train(resume=True, augmentations=custom_transforms)"
                     )
                     self.args.augmentations = None  # Fall back to default augmentations
-                else:
-                    # No custom augmentations in original run, proceed normally
-                    self.args.augmentations = None
 
             except Exception as e:
                 raise FileNotFoundError(

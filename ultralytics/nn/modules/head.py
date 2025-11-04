@@ -1194,14 +1194,10 @@ class v10Detect(Detect):
 
 
 class ContextGather(nn.Module):
-    """
-    The implementation for context gather block
-    Input:
-        N X C X H X W
-    Parameters:
-        cls_num       : the number of classes
-        scale         : the scale factor for probability map
-    Return:
+    """The implementation for context gather block Input: N X C X H X W Parameters: cls_num : the number of classes
+    scale : the scale factor for probability map.
+
+    Returns:
         N X C X H X W.
     """
 
@@ -1212,8 +1208,8 @@ class ContextGather(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, feats, probs):
-        """
-        Forward methods of context attention module
+        """Forward methods of context attention module.
+
         Args:
             feats: feature map
             probs: probability map.
@@ -1231,18 +1227,12 @@ class ContextGather(nn.Module):
 
 
 class _ObjectAttentionBlock(nn.Module):
-    """
-    The basic implementation for object context block
-    Input:
-        N X C X H X W
-    Parameters:
-        in_channels       : the dimension of the input feature map
-        key_channels      : the dimension after the key/query transform
-        scale             : choose the scale to downsample the input feature maps (save memory cost)
-        use_gt            : whether use the ground truth label map to compute the similarity map
-        fetch_attention   : whether return the estimated similarity map
-        bn_type           : specify the bn type
-    Return:
+    """The basic implementation for object context block Input: N X C X H X W Parameters: in_channels : the dimension of
+    the input feature map key_channels : the dimension after the key/query transform scale : choose the scale to
+    downsample the input feature maps (save memory cost) use_gt : whether use the ground truth label map to compute
+    the similarity map fetch_attention : whether return the estimated similarity map bn_type : specify the bn type.
+
+    Returns:
         N X C X H X W.
     """
 
@@ -1302,13 +1292,12 @@ class ObjectAttentionBlock2D(_ObjectAttentionBlock):
 
 
 class SpatialOCR(nn.Module):
-    """
-    Implementation of the OCR module:
-    We aggregate the global object representation to update the representation for each pixel.
+    """Implementation of the OCR module: We aggregate the global object representation to update the representation for
+    each pixel.
 
-    use_gt=True: whether use the ground-truth label to compute the ideal object contextual representations.
-    use_bg=True: use the ground-truth label to compute the ideal background context to augment the representations.
-    use_oc=True: use object context or not.
+    use_gt=True: whether use the ground-truth label to compute the ideal object contextual representations. use_bg=True:
+    use the ground-truth label to compute the ideal background context to augment the representations. use_oc=True: use
+    object context or not.
     """
 
     def __init__(
@@ -1368,8 +1357,7 @@ class SpatialOCR(nn.Module):
 
 
 class SemanticSegment(nn.Module):
-    """
-    YOLO Semseg head for senmantic models.
+    """YOLO Semseg head for senmantic models.
 
     This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
 
@@ -1388,8 +1376,8 @@ class SemanticSegment(nn.Module):
     """
 
     def __init__(self, nc=80, ns=8, npr=256, ch=()):
-        """
-        Initialize for semantic segment modular
+        """Initialize for semantic segment modular.
+
         Args:
             nc(int): number of classes
             ns(int): stride
@@ -1414,8 +1402,8 @@ class SemanticSegment(nn.Module):
         )
 
     def forward(self, x):
-        """
-        Model forward function of semantic segment modular
+        """Model forward function of semantic segment modular.
+
         Args:
             x(list): features from backbone or neck.
 

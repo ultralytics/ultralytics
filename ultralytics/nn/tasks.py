@@ -1692,6 +1692,7 @@ def yaml_model_load(path, with_model_scale=True):
     Args:
         path (str | Path): Path to the YAML file.
         with_model_scale (bool): is model define with scale
+
     Returns:
         (dict): Model dictionary.
     """

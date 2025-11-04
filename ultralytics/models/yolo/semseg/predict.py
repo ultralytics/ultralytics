@@ -15,8 +15,7 @@ from ultralytics.utils import DEFAULT_CFG, SEMSEG_CFG, YAML
 from ultralytics.data.utils import check_det_dataset
 
 class SemSegPredictor(DetectionPredictor):
-    """
-    A class extending the DetectionPredictor class for prediction based on a segmentation model.
+    """A class extending the DetectionPredictor class for prediction based on a segmentation model.
 
     This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
     prediction results.
@@ -40,8 +39,7 @@ class SemSegPredictor(DetectionPredictor):
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """
-        Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
+        """Initialize the SegmentationPredictor with configuration, overrides, and callbacks.
 
         This class specializes in processing segmentation model outputs, handling both bounding boxes and masks in the
         prediction results.
@@ -56,8 +54,7 @@ class SemSegPredictor(DetectionPredictor):
         self.data = check_det_dataset(self.args.data)["yaml_file"]
 
     def postprocess(self, preds, img, orig_imgs):
-        """
-        Apply non-max suppression and process segmentation detections for each image in the input batch.
+        """Apply non-max suppression and process segmentation detections for each image in the input batch.
 
         Args:
             preds (tuple): Model predictions, containing bounding boxes, scores, classes, and mask coefficients.
@@ -65,8 +62,8 @@ class SemSegPredictor(DetectionPredictor):
             orig_imgs (list | torch.Tensor | np.ndarray): Original image or batch of images.
 
         Returns:
-            (list): List of Results objects containing the segmentation predictions for each image in the batch.
-                Each Results object includes both bounding boxes and segmentation masks.
+            (list): List of Results objects containing the segmentation predictions for each image in the batch. Each
+                Results object includes both bounding boxes and segmentation masks.
 
         Examples:
             >>> predictor = SegmentationPredictor(overrides=dict(model="yolo11n-seg.pt"))
@@ -83,8 +80,7 @@ class SemSegPredictor(DetectionPredictor):
         return result_list
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
-        """
-        Write inference results to a file or directory.
+        """Write inference results to a file or directory.
 
         Args:
             i (int): Index of the current image in the batch.
@@ -141,8 +137,8 @@ class SemSegPredictor(DetectionPredictor):
         return string
 
     def plot_predict_samples(self, image, masks, nc, colors, fname, mname, one_hot=True, overlap=False):
-        """
-        Plot and visualize the predicting results
+        """Plot and visualize the predicting results.
+
         Args:
             image(torch.Tensor| numpy.ndarray): input image
             masks: (torch.Tensor| numpy.ndarray): predict mask

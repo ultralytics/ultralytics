@@ -859,8 +859,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
 
 
 def split(image, mask, img_size, slide):
-    """
-    Split image and color mask of CityEcapse for YOLO
+    """Split image and color mask of CityEcapse for YOLO.
+
     Args:
         image: image of CityEcapse dataset
         mask: mask of CityEcapse dataset
@@ -903,8 +903,8 @@ def split(image, mask, img_size, slide):
 
 
 def CityEcapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
-    """
-    This function is designed for converting official CityEcapse dataset to YOLO CityEcapse dataset
+    """This function is designed for converting official CityEcapse dataset to YOLO CityEcapse dataset.
+
     Args:
         cityecpse_path: the root directory of official CityEcapse dataset
         yolo_data_path: the root directory of yolo CityEcapse dataset
@@ -1027,8 +1027,7 @@ def YOLO2CityEcapse(
     yh=512,
     yw=1024,
 ):
-    """
-    This function is designed for converting YOLO format to CityEcapse format, which can be upload to CityEcapse
+    """This function is designed for converting YOLO format to CityEcapse format, which can be upload to CityEcapse
     evaluation server. The image and annotation file must have the same filename.
 
     Args:
@@ -1040,6 +1039,7 @@ def YOLO2CityEcapse(
         overlap: overlap when splitting images,
         yh: height of yolo format of whole image
         yw: width of yolo format of whole image
+
     Returns:
         None.
     """

@@ -459,7 +459,9 @@ def _handle_deprecation(custom: dict) -> dict:
     return custom
 
 
-def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None, allowed_custom_keys: set | None = None) -> None:
+def check_dict_alignment(
+    base: dict, custom: dict, e: Exception | None = None, allowed_custom_keys: set | None = None
+) -> None:
     """Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
 

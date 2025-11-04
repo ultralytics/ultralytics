@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Optional
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -459,7 +459,7 @@ def _handle_deprecation(custom: dict) -> dict:
     return custom
 
 
-def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None, allowed_custom_keys: set = None) -> None:
+def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None, allowed_custom_keys: set | None = None) -> None:
     """Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
 

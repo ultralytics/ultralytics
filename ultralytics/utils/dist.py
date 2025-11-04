@@ -29,12 +29,13 @@ def find_free_network_port() -> int:
 def generate_ddp_file(obj):
     """Generate a DDP (Distributed Data Parallel) file for multi-GPU training/validation.
 
-    This function creates a temporary Python file that enables distributed training/validation across multiple GPUs. The file
-    contains the necessary configuration to initialize the trainer/validator in a distributed environment.
+    This function creates a temporary Python file that enables distributed training/validation across multiple GPUs. The
+    file contains the necessary configuration to initialize the trainer/validator in a distributed environment.
 
     Args:
-        obj (ultralytics.engine.trainer.BaseTrainer | ultralytics.engine.validator.BaseValidator): The trainer/validator containing training/validation configuration and arguments.
-            Must have args attribute and be a class instance.
+        obj (ultralytics.engine.trainer.BaseTrainer | ultralytics.engine.validator.BaseValidator): The trainer/validator
+            containing training/validation configuration and arguments. Must have args attribute and be a
+            class instance.
 
     Returns:
         (str): Path to the generated temporary DDP file.
@@ -88,7 +89,8 @@ def generate_ddp_command(obj):
     """Generate command for distributed training/validation.
 
     Args:
-        obj (ultralytics.engine.trainer.BaseTrainer | ultralytics.engine.validator.BaseValidator): The trainer/validator containing configuration for distributed training.
+        obj (ultralytics.engine.trainer.BaseTrainer | ultralytics.engine.validator.BaseValidator): The trainer/validator
+            containing configuration for distributed training.
 
     Returns:
         cmd (list[str]): The command to execute for distributed training.
@@ -117,11 +119,12 @@ def generate_ddp_command(obj):
 def ddp_cleanup(obj, file):
     """Delete temporary file if created during distributed data parallel (DDP) training/validation.
 
-    This function checks if the provided file contains the trainer's/validator's ID in its name, indicating it was created as a
-    temporary file for DDP training, and deletes it if so.
+    This function checks if the provided file contains the trainer's/validator's ID in its name, indicating it was
+    created as a temporary file for DDP training, and deletes it if so.
 
     Args:
-        obj (ultralytics.engine.trainer.BaseTrainer | ultralytics.engine.validator.BaseValidator): The trainer/validator used for distributed training/validation.
+        obj (ultralytics.engine.trainer.BaseTrainer | ultralytics.engine.validator.BaseValidator): The trainer/validator
+            used for distributed training/validation.
         file (str): Path to the file that might need to be deleted.
 
     Examples:

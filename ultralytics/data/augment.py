@@ -1938,10 +1938,8 @@ class Albumentations:
             }  # from https://albumentations.ai/docs/getting_started/transforms_and_targets/#spatial-level-transforms
 
             # Transforms, use custom transforms if provided, otherwise use defaults
-            if transforms is not None:
-                T = transforms
-            else:
-                T = [
+            T = (
+                [
                     A.Blur(p=0.01),
                     A.MedianBlur(p=0.01),
                     A.ToGray(p=0.01),
@@ -1950,6 +1948,9 @@ class Albumentations:
                     A.RandomGamma(p=0.0),
                     A.ImageCompression(quality_range=(75, 100), p=0.0),
                 ]
+                if transforms is None
+                else transforms
+            )
 
             # Compose transforms
             self.contains_spatial = any(transform.__class__.__name__ in spatial_transforms for transform in T)

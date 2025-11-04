@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+from __future__ import annotations
 
 import os
 import shutil
@@ -107,11 +108,10 @@ def generate_ddp_command(trainer):
 def generate_distributed_validation_file(validator):
     """Generate a temporary helper file to run distributed (multi-process) validation.
 
-    This creates a small Python script under ``USER_CONFIG_DIR/DDP`` which imports the validator
-    class, instantiates it with the validator's `args` (passed as ``overrides``), and runs the
-    offline validation entrypoint. This is intended to be executed with ``torch.distributed.run``
-    (or the legacy ``torch.distributed.launch``) to spawn one process per GPU for parallel
-    validation/inference. Note: this is for inference/validation only — it does not perform
+    This creates a small Python script under ``USER_CONFIG_DIR/DDP`` which imports the validator class, instantiates it
+    with the validator's `args` (passed as ``overrides``), and runs the offline validation entrypoint. This is intended
+    to be executed with ``torch.distributed.run`` (or the legacy ``torch.distributed.launch``) to spawn one process per
+    GPU for parallel validation/inference. Note: this is for inference/validation only — it does not perform
     DistributedDataParallel (DDP) model wrapping or gradient synchronization.
 
     Args:
@@ -120,7 +120,6 @@ def generate_distributed_validation_file(validator):
     Returns:
         str: Path to the generated temporary Python file.
     """
-
     # Derive import path for the validator class
     module, name = f"{validator.__class__.__module__}.{validator.__class__.__name__}".rsplit(".", 1)
 
@@ -149,7 +148,6 @@ if __name__ == "__main__":
     return file.name
 
 
-
 def generate_distributed_validation_command(validator):
     """Generate the command list to run distributed (multi-process) validation.
 
@@ -159,7 +157,6 @@ def generate_distributed_validation_command(validator):
     Returns:
         tuple[list[str], str]: (command args list, path to the generated temp file)
     """
-
     # Calculate world size
     world_size = validator.world_size
     if world_size <= 1:
@@ -202,6 +199,7 @@ def ddp_cleanup(trainer, file):
 
 def decide_world_size(device: str | tuple) -> int:
     import torch
+
     if isinstance(device, str) and len(device):  # i.e. device='0' or device='0,1,2,3'
         world_size = len(device.split(","))
     elif isinstance(device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
@@ -212,5 +210,5 @@ def decide_world_size(device: str | tuple) -> int:
         world_size = 1  # default to device 0
     else:  # i.e. device=None or device=''
         world_size = 0
-    
+
     return world_size

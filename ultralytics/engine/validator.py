@@ -22,27 +22,35 @@ Usage - formats:
                           yolo11n_imx_model          # Sony IMX
                           yolo11n_rknn_model         # Rockchip RKNN
 """
+
+from __future__ import annotations
+
+import json
 import os
 import subprocess
-from datetime import timedelta
-import json
 import time
+from datetime import timedelta
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 import torch
 import torch.distributed as dist
-from typing import Optional, Callable
 
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.utils import LOGGER, RANK, LOCAL_RANK, TQDM, callbacks, colorstr, emojis
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
 from ultralytics.utils.checks import check_imgsz
+from ultralytics.utils.dist import ddp_cleanup, decide_world_size, generate_distributed_validation_command
 from ultralytics.utils.ops import Profile
-from ultralytics.utils.dist import decide_world_size, ddp_cleanup, generate_distributed_validation_command
-from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_inference_mode, unwrap_model, torch_distributed_zero_first
-
+from ultralytics.utils.torch_utils import (
+    attempt_compile,
+    select_device,
+    smart_inference_mode,
+    torch_distributed_zero_first,
+    unwrap_model,
+)
 
 
 class BaseValidator:
@@ -164,7 +172,7 @@ class BaseValidator:
             world_size=self.world_size,
         )
 
-    def _setup_model(self, model_nn: Optional[torch.nn.Module]) -> AutoBackend:
+    def _setup_model(self, model_nn: torch.nn.Module | None) -> AutoBackend:
         """Load, create, or download model for any task.
 
         Returns:
@@ -180,7 +188,7 @@ class BaseValidator:
             data=self.args.data,
             fp16=self.args.half,
         )
-        
+
         if self.args.compile:
             model = attempt_compile(model, device=self.device)
 
@@ -199,7 +207,7 @@ class BaseValidator:
 
         return data
 
-    def _setup_validation(self, model_nn: Optional[torch.nn.Module] = None):
+    def _setup_validation(self, model_nn: torch.nn.Module | None = None):
         """Build dataloaders and optimizer on correct rank process."""
         self.model = self._setup_model(model_nn)
         self.stride = self.model.stride  # used in get_dataloader() for padding
@@ -218,7 +226,9 @@ class BaseValidator:
         # Subclasses will use LOCAL_RANK to construct loader
         self.dataloader = self.get_dataloader(self.data.get(self.args.split), local_batch_size)
 
-        self.model.warmup(imgsz=(1 if self.model.pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+        self.model.warmup(
+            imgsz=(1 if self.model.pt else self.args.batch, self.data["channels"], imgsz, imgsz)
+        )  # warmup
 
     def do_offline_validation(self):
         """Allow device='', device=None on Multi-GPU systems to default to device=0."""
@@ -230,7 +240,7 @@ class BaseValidator:
                     "Autobatch with batch<1 not supported for Multi-GPU training, "
                     "please specify a valid batch size multiple of GPU count (self.world_size), i.e. batch=(self.world_size * 8)."
                 )
-            
+
             # Command: spawn multiple processes for distributed (multi-process) validation
             cmd, file = generate_distributed_validation_command(self)
             try:
@@ -283,7 +293,7 @@ class BaseValidator:
             else:
                 return self.do_offline_validation()
 
-    def _do_val_single_worker(self, model: torch.nn.Module, label_loss_items: Optional[Callable], augment: bool = False):
+    def _do_val_single_worker(self, model: torch.nn.Module, label_loss_items: Callable | None, augment: bool = False):
         self.run_callbacks("on_val_start")
         dt = (
             Profile(device=self.device),

@@ -123,7 +123,7 @@ def keras2pb(keras_model, file: Path, prefix=""):
     """Convert a Keras model to TensorFlow GraphDef (.pb) format.
 
     Args:
-        keras_model(tf_keras): Keras model to convert to frozen graph format.
+        keras_model (keras.Model): Keras model to convert to frozen graph format.
         file (Path): Output file path (suffix will be changed to .pb).
         prefix (str, optional): Logging prefix. Defaults to "".
 

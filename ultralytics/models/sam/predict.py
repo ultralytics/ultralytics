@@ -1727,12 +1727,8 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
 
         # Initialize the object index set and mappings
         self.obj_idx_set = set()
-        self.obj_id_to_idx = OrderedDict()
-        self.obj_idx_to_id = OrderedDict()
+        self.obj_id_to_idx = self.obj_idx_to_id = OrderedDict(enumerate(range(max_obj_num)))
         self._max_obj_num = max_obj_num
-        for i in range(self._max_obj_num):
-            self.obj_id_to_idx[i + 1] = i
-            self.obj_idx_to_id[i] = i + 1
 
     @smart_inference_mode()
     def inference(

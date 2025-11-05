@@ -900,7 +900,7 @@ def split(image, mask, img_size, slide):
     return patches_img, patches_msk, lefts, ups
 
 
-def CityEcapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
+def Cityscapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
     """This function is designed for converting official CityEcapse dataset to YOLO CityEcapse dataset.
 
     Args:
@@ -1015,7 +1015,7 @@ def CityEcapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
     print("all done")
 
 
-def YOLO2CityEcapse(
+def YOLO2Cityscapse(
     image_dir: str,
     annotation_color_dir: str,
     cityecapse_image_dir: str,

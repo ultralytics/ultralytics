@@ -143,7 +143,7 @@ def test_classify():
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
-        "data": "CityEscapeYOLO.yaml",
+        "data": "CityscapeYOLO.yaml",
         "model": "yolo11-semseg.yaml",
         "imgsz": 512,
         "epochs": 1,
@@ -153,7 +153,7 @@ def test_semseg():
     }
     cfg = get_cfg(SEMSEG_CFG)
     cfg.device = -1
-    cfg.data = cfg.data or "CityEscapeYOLO.yaml"
+    cfg.data = cfg.data or "CityscapeYOLO.yaml"
     # Trainer
     trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
     trainer.add_callback("on_train_start", test_func)
@@ -163,7 +163,7 @@ def test_semseg():
     # Validator
     args = dict(
         model=trainer.best,
-        data="CityEscapeYOLO.yaml",
+        data="CityscapeYOLO.yaml",
         imgsz=512,
         device=cfg.device,
         name=cfg.name,

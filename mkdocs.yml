@@ -694,6 +694,7 @@ nav:
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
+              - end2end: reference/utils/export/end2end.md
               - engine: reference/utils/export/engine.md
               - imx: reference/utils/export/imx.md
               - tensorflow: reference/utils/export/tensorflow.md

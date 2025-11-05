@@ -1,5 +1,9 @@
-import torch
+from __future__ import annotations
+
 from types import MethodType
+
+import torch
+
 from ultralytics.nn.tasks import DetectionModel
 
 

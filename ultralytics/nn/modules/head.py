@@ -191,6 +191,7 @@ class Detect(nn.Module):
     @staticmethod
     def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor:
         """Post-process YOLO model predictions.
+
         Args:
             preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
                 format [x, y, w, h, class_probs].
@@ -198,6 +199,7 @@ class Detect(nn.Module):
 
 
             nc (int, optional): Number of classes.
+
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
                 dimension format [x, y, w, h, max_class_prob, class_index].

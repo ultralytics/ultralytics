@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from __future__ import annotations
 
 from types import MethodType
@@ -34,8 +36,8 @@ def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor
     """Post-process YOLO model predictions with support for extras.
 
     Args:
-        preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extras) with last
-            dimension format [x, y, w, h, class_probs].
+        preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extras) with last dimension
+            format [x, y, w, h, class_probs].
         max_det (int): Maximum detections per image.
         nc (int, optional): Number of classes.
 

@@ -443,7 +443,7 @@ def build_semantic_dataset(
     data: dict[str, Any],
     mode: str = "train",
     rect: bool = False,
-    stride: int = 32
+    stride: int = 32,
 ):
     """Build and return a YOLO dataset based on configuration parameters."""
     dataset = SemanticDataset

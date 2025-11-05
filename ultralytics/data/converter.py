@@ -908,6 +908,7 @@ def Cityscapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
         yolo_data_path: the root directory of yolo CityEcapse dataset
         img_size: image size of CityEcapseYOLO dataset.
         ratio: resized ratio for image
+
     Returns:
         None
     """

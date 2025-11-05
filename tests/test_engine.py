@@ -189,7 +189,7 @@ def test_semseg_cpu():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
         "data": "../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
-        "model": "yolo11-semseg.yaml",
+        "model": "../ultralytics/cfg/models/11/yolo11-semseg.yaml",
         "imgsz": 256,
         "epochs": 1,
         "save": False,

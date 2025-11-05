@@ -53,6 +53,6 @@ def end2end_wrapper(model: DetectionModel) -> DetectionModel:
     Returns:
         model (DetectionModel): Patched end2end model.
     """
-    if getattr(model.model[-1], "end2end"):
+    if getattr(model.model[-1], "end2end", False):
         model.model[-1].forward_end2end = MethodType(_forward_end2end_nopost, model.model[-1])
     return model

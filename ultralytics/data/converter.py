@@ -907,7 +907,7 @@ def Cityscapse2YOLO(cityecpse_path, yolo_data_path, img_size=512, ratio=0.5):
         cityecpse_path: the root directory of official CityEcapse dataset
         yolo_data_path: the root directory of yolo CityEcapse dataset
         img_size: image size of CityEcapseYOLO dataset.
-
+        ratio: resized ratio for image
     Returns:
         None
     """
@@ -1022,21 +1022,18 @@ def YOLO2Cityscapse(
     cityecapse_annotation_dir: str,
     type="color",
     overlap=0.5,
-    yh=512,
-    yw=1024,
 ):
     """This function is designed for converting YOLO format to CityEcapse format, which can be upload to CityEcapse
     evaluation server. The image and annotation file must have the same filename.
 
     Args:
         image_dir: image directory
+        annotation_color_dir: annotation color image
         annotation_dir: annotation directory
         cityecapse_image_dir: directory for saving cityecapse image
         cityecapse_annotation_dir: directory for saving cityecapse annotation
         type: convert type for cityEcapse, including color, classId
         overlap: overlap when splitting images,
-        yh: height of yolo format of whole image
-        yw: width of yolo format of whole image
 
     Returns:
         None.
@@ -1140,13 +1137,3 @@ def YOLO2Cityscapse(
             cv2.imwrite(os.path.join(cityecapse_annotation_dir, main_name + "_labelIds.png"), annotation_labelId)
         else:
             cv2.imwrite(os.path.join(cityecapse_annotation_dir, main_name + "_color.png"), n_image)
-
-
-if __name__ == "__main__":
-    YOLO2CityEcapse(
-        "D:\\workspace\\python\\ultralytics-semantic-segment\\runs\\semseg\\run\\predict6\\image",
-        "D:\\workspace\\python\\ultralytics-semantic-segment\\runs\\semseg\\run\\predict6\\mask",
-        "D:\\workspace\\python\\ultralytics-semantic-segment\\runs\\semseg\\run\\predict6\\orig_image",
-        "D:\\workspace\\python\\ultralytics-semantic-segment\\runs\\semseg\\run\\predict6\\orig_mask_labelIds",
-        "labelId",
-    )

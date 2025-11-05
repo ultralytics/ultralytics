@@ -827,7 +827,9 @@ class Exporter:
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
 
         ncnn_args = dict(
-            ncnnparam=str(f / "model.ncnn.param"), ncnnbin=str(f / "model.ncnn.bin"), ncnnpy=str(f / "model_ncnn.py")
+            ncnnparam=(f / "model.ncnn.param").as_posix(),
+            ncnnbin=(f / "model.ncnn.bin").as_posix(),
+            ncnnpy=(f / "model_ncnn.py").as_posix(),
         )
 
         pnnx_args = dict(
@@ -841,9 +843,7 @@ class Exporter:
         f.mkdir(exist_ok=True)  # make ncnn_model directory
         pnnx.export(self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type)
 
-        # Remove debug files
-        pnnx_files = pnnx_args.values()
-        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
+        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_args.values()):
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

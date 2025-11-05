@@ -3817,13 +3817,7 @@ class SemSegFormat:
             >>> print(formatted_img.shape)
             torch.Size([3, 100, 100])
         """
-        # mask[mask > 1] = 0
-        # ss = np.sum(mask, axis=-1) == 0
-        # mask[ss, -1] = 1
-        mask = mask.transpose(2, 0, 1)
-        mask = np.ascontiguousarray(mask if random.uniform(0, 1) > self.bgr else mask)
-        mask = torch.from_numpy(mask)
-        return mask
+        return torch.from_numpy(np.ascontiguousarray(mask.transpose(2, 0, 1)))
 
     def _format_segments(self, instances, cls, w, h):
         """Converts polygon segments to bitmap masks.

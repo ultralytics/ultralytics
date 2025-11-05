@@ -443,11 +443,10 @@ def build_semantic_dataset(
     data: dict[str, Any],
     mode: str = "train",
     rect: bool = False,
-    stride: int = 32,
-    multi_modal: bool = False,
+    stride: int = 32
 ):
     """Build and return a YOLO dataset based on configuration parameters."""
-    dataset = SemanticDataset if multi_modal else SemanticDataset
+    dataset = SemanticDataset
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,

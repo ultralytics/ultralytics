@@ -231,6 +231,7 @@ def test_semseg_cpu():
 
 
 def test_semseg_yolo_cpu():
+    """Test semantic segment including training, validation, and prediction phases."""
     from ultralytics import YOLO
 
     m = YOLO("yolo11n-semseg.yaml", task="semseg")

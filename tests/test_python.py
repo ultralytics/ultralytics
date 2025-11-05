@@ -721,7 +721,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)
     data["channels"] = 1  # add additional channels key for grayscale
-    YAML.save(grayscale_data, data)
+    YAML.save(data=data, file=grayscale_data)
     # remove npy files in train/val splits if exists, might be created by previous tests
     for split in {"train", "val"}:
         for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):

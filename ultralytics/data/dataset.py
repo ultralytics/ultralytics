@@ -170,7 +170,7 @@ class YOLODataset(BaseDataset):
             files = self.label_files + self.im_files
             if not check_file_speeds(self.im_files, prefix=self.prefix):
                 files = TQDM(files, f"{self.prefix}Checking cache file integrity")
-            assert cache["hash"] == get_hash(files)
+            assert cache["hash"] == get_hash(files)  # identical hash
         except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
 

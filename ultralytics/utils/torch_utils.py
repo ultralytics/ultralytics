@@ -156,8 +156,12 @@ def select_device(device="", newline=False, verbose=True):
     Notes:
         Sets the 'CUDA_VISIBLE_DEVICES' environment variable for specifying which GPUs to use.
     """
-    if isinstance(device, torch.device) or str(device).startswith(("tpu", "intel")):
+    if isinstance(device, torch.device):
         return device
+    if device.startswith(("tpu", "intel")):
+        return device
+    if device == "npu":
+        return torch.device("npu")
 
     s = f"Ultralytics {__version__} 🚀 Python-{PYTHON_VERSION} torch-{TORCH_VERSION} "
     device = str(device).lower()
@@ -205,7 +209,9 @@ def select_device(device="", newline=False, verbose=True):
                 f"{install}"
             )
 
-    if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
+    if device == "npu":
+        arg = "npu"
+    elif not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(",") if device else "0"  # i.e. "0,1" -> ["0", "1"]
         space = " " * len(s)
         for i, d in enumerate(devices):

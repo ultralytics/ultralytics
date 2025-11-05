@@ -178,6 +178,7 @@ class BaseTrainer:
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        # TODO: ddp for ascend
         if isinstance(self.args.device, str) and len(self.args.device):  # i.e. device='0' or device='0,1,2,3'
             world_size = len(self.args.device.split(","))
         elif isinstance(self.args.device, (tuple, list)):  # i.e. device=[0, 1, 2, 3] (multi-GPU from CLI is list)
@@ -250,6 +251,7 @@ class BaseTrainer:
         torch.cuda.set_device(RANK)
         self.device = torch.device("cuda", RANK)
         os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        ## TODO: hccl from ascend
         dist.init_process_group(
             backend="nccl" if dist.is_nccl_available() else "gloo",
             timeout=timedelta(seconds=10800),  # 3 hours
@@ -298,6 +300,7 @@ class BaseTrainer:
         if RANK > -1 and self.world_size > 1:  # DDP
             dist.broadcast(self.amp.int(), src=0)  # broadcast from rank 0 to all other ranks; gloo errors with boolean
         self.amp = bool(self.amp)  # as boolean
+        # TODO: ascend
         self.scaler = (
             torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
         )
@@ -539,6 +542,8 @@ class BaseTrainer:
             memory = torch.mps.driver_allocated_memory()
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
+        elif self.device.type == "npu":
+            return torch.npu.memory.memory_allocated() / 2**30
         elif self.device.type != "cpu":
             memory = torch.cuda.memory_reserved()
             if fraction:

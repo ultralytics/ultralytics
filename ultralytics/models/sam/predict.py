@@ -1111,6 +1111,7 @@ class SAM2VideoPredictor(SAM2Predictor):
 
             if prev_out is not None and prev_out.get("pred_masks") is not None:
                 prev_sam_mask_logits = prev_out["pred_masks"].to(
+                    # TODO: enable non_blocking for ascend as well, search for all non_blocking
                     device=self.device, non_blocking=self.device.type == "cuda"
                 )
                 # Clamp the scale of prev_sam_mask_logits to avoid rare numerical issues.

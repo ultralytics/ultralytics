@@ -753,7 +753,7 @@ def check_amp(model):
 
     device = next(model.parameters()).device  # get model device
     prefix = colorstr("AMP: ")
-    if device.type in {"cpu", "mps"}:
+    if device.type in {"cpu", "mps", "npu"}:
         return False  # AMP only used on CUDA devices
     else:
         # GPUs that have issues with AMP

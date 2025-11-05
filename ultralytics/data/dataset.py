@@ -805,9 +805,7 @@ class ClassificationDataset:
         try:
             message = (
                 f"{self.prefix}Checking cache file integrity"
-                if not check_file_speeds(
-                    [file for (file, _) in self.samples[:5]], prefix=self.prefix
-                )
+                if not check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)
                 else ""
             )
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file

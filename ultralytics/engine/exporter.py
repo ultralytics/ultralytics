@@ -831,11 +831,11 @@ class Exporter:
         )
 
         pnnx_args = dict(
-            ptpath=str(f / "model.pt"),
-            pnnxparam=str(f / "model.pnnx.param"),
-            pnnxbin=str(f / "model.pnnx.bin"),
-            pnnxpy=str(f / "model_pnnx.py"),
-            pnnxonnx=str(f / "model.pnnx.onnx"),
+            ptpath=(f / "model.pt").as_posix(),
+            pnnxparam=(f / "model.pnnx.param").as_posix(),
+            pnnxbin=(f / "model.pnnx.bin").as_posix(),
+            pnnxpy=(f / "model_pnnx.py").as_posix(),
+            pnnxonnx=(f / "model.pnnx.onnx").as_posix(),
         )
 
         f.mkdir(exist_ok=True)  # make ncnn_model directory

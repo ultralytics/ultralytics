@@ -8,10 +8,11 @@ import random
 import subprocess
 import time
 import zipfile
+from collections.abc import Iterable
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Any, Iterable
+from typing import Any
 
 import cv2
 import numpy as np

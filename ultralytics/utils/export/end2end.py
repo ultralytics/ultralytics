@@ -51,7 +51,7 @@ def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor
     return torch.cat([boxes[i, pi], scores[..., None], (index % nc)[..., None].float(), extras[i, pi]], dim=-1)
 
 
-def end2end_wrapper(model: DetectionModel) -> None:
+def end2end_wrapper(model: DetectionModel) -> DetectionModel:
     """Patch end2end forward pass to remove postprocessing.
     
     Args:

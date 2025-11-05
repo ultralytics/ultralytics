@@ -616,6 +616,7 @@ class AutoBackend(nn.Module):
             kpt_names = metadata.get("kpt_names")
             end2end = metadata.get("args", {}).get("nms", False)
             dynamic = metadata.get("args", {}).get("dynamic", dynamic)
+            max_det = metadata.get("args", {}).get("max_det", 300)
             ch = metadata.get("channels", 3)
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"Metadata not found for 'model={w}'")
@@ -779,6 +780,10 @@ class AutoBackend(nn.Module):
                 ex.input(self.net.input_names()[0], mat_in)
                 # WARNING: 'output_names' sorted as a temporary fix for https://github.com/pnnx/pnnx/issues/130
                 y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
+            if self.end2end:
+                from ultralytics.utils.export.end2end import postprocess
+
+                y[0] = postprocess(torch.from_numpy(y[0]).permute(0, 2, 1), self.max_det, len(self.names))
 
         # NVIDIA Triton Inference Server
         elif self.triton:

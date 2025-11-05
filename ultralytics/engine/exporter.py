@@ -457,10 +457,14 @@ class Exporter:
             from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
-        if tflite or edgetpu:
+        elif tflite or edgetpu:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
+        elif ncnn:
+            from ultralytics.utils.export.end2end import end2end_wrapper
+
+            model = end2end_wrapper(model)
         for m in model.modules():
             if isinstance(m, Classify):
                 m.export = True
@@ -511,9 +515,10 @@ class Exporter:
             "batch": self.args.batch,
             "imgsz": self.imgsz,
             "names": model.names,
-            "args": {k: v for k, v in self.args if k in fmt_keys},
+            "args": {k: v for k, v in self.args if k in [*fmt_keys, "max_det"]},
             "channels": model.yaml.get("channels", 3),
         }  # model metadata
+        self.metadata["args"].update({"nms": self.args.nms or getattr(model, "end2end", False)})
         if dla is not None:
             self.metadata["dla"] = dla  # make sure `AutoBackend` uses correct dla device if it has one
         if model.task == "pose":

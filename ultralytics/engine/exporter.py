@@ -457,10 +457,14 @@ class Exporter:
             from ultralytics.utils.export.imx import FXModel
 
             model = FXModel(model, self.imgsz)
-        if tflite or edgetpu:
+        elif tflite or edgetpu:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
+        elif ncnn:
+            from ultralytics.utils.export.end2end import end2end_wrapper
+
+            model = end2end_wrapper(model)
         for m in model.modules():
             if isinstance(m, Classify):
                 m.export = True

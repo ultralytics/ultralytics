@@ -781,9 +781,9 @@ class AutoBackend(nn.Module):
                 # WARNING: 'output_names' sorted as a temporary fix for https://github.com/pnnx/pnnx/issues/130
                 y = [np.array(ex.extract(x)[1])[None] for x in sorted(self.net.output_names())]
             if self.end2end:
-                from ultralytics.nn.modules.head import Detect
+                from ultralytics.utils.export.end2end import postprocess
 
-                y[0] = Detect.postprocess(torch.from_numpy(y[0]).permute(0, 2, 1), self.max_det, len(self.names))
+                y[0] = postprocess(torch.from_numpy(y[0]).permute(0, 2, 1), self.max_det, len(self.names))
 
         # NVIDIA Triton Inference Server
         elif self.triton:

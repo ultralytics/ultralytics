@@ -219,7 +219,7 @@ class MuSGD(optim.Optimizer):
                     lr = (
                         group["lr"] * self.cls_w
                         if group["param_names"] is not None
-                        and "cv3" in group["param_names"][i]
+                        # and "cv3" in group["param_names"][i]
                         and "23" in group["param_names"][i]
                         else group["lr"]
                     )
@@ -253,7 +253,7 @@ class MuSGD(optim.Optimizer):
                     lr = (
                         group["lr"] * self.cls_w
                         if group["param_names"] is not None
-                        and "cv3" in group["param_names"][i]
+                        # and "cv3" in group["param_names"][i]
                         and "23" in group["param_names"][i]
                         else group["lr"]
                     )

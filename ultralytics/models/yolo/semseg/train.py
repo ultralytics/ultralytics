@@ -124,7 +124,7 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train a YOLO segmentation model based on passed arguments."""
     model = cfg.model or "yolo11-semseg.yaml"
-    data = cfg.data or "CityEscapeYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or "CityscapeYOLO.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ""
     cfg.name = os.path.join(cfg.name, "train")
 

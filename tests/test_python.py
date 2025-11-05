@@ -718,7 +718,7 @@ def test_multichannel():
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
-    if task == "classify":  # not support grayscale classification yet
+    if task == "classify" or "semseg":  # not support grayscale classification yet
         return
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)

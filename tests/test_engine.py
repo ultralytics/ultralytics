@@ -228,3 +228,12 @@ def test_semseg_cpu():
 
     # export smoke test
     YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+
+def test_semseg_yolo_cpu():
+    from ultralytics import YOLO
+
+    m = YOLO("yolo11n-semseg.yaml", task="semseg")
+    m.train(data="ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+            task="semseg", imgsz=256, epochs=1, device="cpu", workers=0, batch=2)
+    m.val(task="semseg", device="cpu", imgsz=256, rect=False)
+    m.export(format="onnx")

@@ -21,7 +21,7 @@ __all__ = (
     "YOLOMultiModalDataset",
     "build_dataloader",
     "build_grounding",
+    "build_semantic_dataset",
     "build_yolo_dataset",
     "load_inference_source",
-    "build_semantic_dataset",
 )

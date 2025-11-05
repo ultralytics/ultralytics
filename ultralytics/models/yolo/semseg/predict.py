@@ -132,8 +132,6 @@ class SemSegPredictor(DetectionPredictor):
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
         if self.args.show:
             self.show(str(p))
-        if self.args.save:
-            self.save_predicted_images(self.save_dir / p.name, frame)
 
         return string
 

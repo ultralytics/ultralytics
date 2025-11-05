@@ -7,9 +7,9 @@ task: semseg # (str) YOLO task, i.e. detect, segment, classify, pose, obb,semseg
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: D:/workspace/python/ultralytics-semantic-segment/ultralytics/cfg/models/11/yolo11-semseg.yaml # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
-data: D:/workspace/python/ultralytics-semantic-segment/ultralytics/cfg/datasets/CityscapeYOLO.yaml # (str, optional) path to data file, i.e. coco8.yaml
-epochs: 1 # (int) number of epochs to train for
+model: # (str, optional) path to model file, i.e. yolov8n.pt, yolov8n.yaml
+data: # (str, optional) path to data file, i.e. coco8.yaml
+epochs: 100 # (int) number of epochs to train for
 time: # (float, optional) number of hours to train for, overrides epochs if supplied
 patience: 100 # (int) epochs to wait for no observable improvement for early stopping of training
 batch: 2 # (int) number of images per batch (-1 for AutoBatch)

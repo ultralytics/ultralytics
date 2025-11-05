@@ -634,8 +634,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
     """Process YOLO solutions arguments and run the specified computer vision solutions pipeline.
 
     Args:
-        args (list[str]): Command-line arguments for configuring and running the Ultralytics YOLO
-        solutions.
+        args (list[str]): Command-line arguments for configuring and running the Ultralytics YOLO solutions.
 
     Examples:
         Run people counting solution with default settings:

@@ -845,6 +845,7 @@ class TVPSegmentLoss(TVPDetectLoss):
         cls_loss = vp_loss[0][2]
         return cls_loss, vp_loss[1]
 
+
 class SemSegLoss:
     """Criterion for computing training losses for semantic segmentation task."""
 

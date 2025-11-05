@@ -811,22 +811,20 @@ class BaseTrainer:
                     "batch",
                     "device",
                     "close_mosaic",
+                    "augmentations",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
                 # Handle augmentations parameter for resume: check if user provided custom augmentations
-                if "augmentations" in overrides:
-                    # User provided new augmentations during resume, use those
-                    self.args.augmentations = overrides["augmentations"]
-                elif "augmentations" in ckpt_args and ckpt_args["augmentations"] is not None:
+                if "augmentations" in ckpt_args and ckpt_args["augmentations"] is not None:
                     # Augmentations were saved in checkpoint as reprs but can't be restored automatically
                     LOGGER.warning(
-                        "⚠️ Custom Albumentations transforms were used in the original training run but are not "
-                        "being restored. To preserve custom augmentations when resuming, you must pass the "
-                        "'augmentations' parameter again. Example: model.train(resume=True, augmentations=custom_transforms)"
+                        "Custom Albumentations transforms were used in the original training run but are not "
+                        "being restored. To preserve custom augmentations when resuming, you need to pass the "
+                        "'augmentations' parameter again to get expected results. Example: \n"
+                        f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
                     )
-                    self.args.augmentations = None  # Fall back to default augmentations
 
             except Exception as e:
                 raise FileNotFoundError(

@@ -11,6 +11,7 @@ import numpy as np
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
 from ultralytics.utils import plt_settings
 
+
 class Analytics(BaseSolution):
     """A class for creating and updating various types of charts for visual analytics.
 

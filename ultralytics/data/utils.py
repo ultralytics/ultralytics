@@ -797,7 +797,6 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")
 
-
 def mask2polygon(mask, downsample_ratio=1):
     """Get polygon from mask."""
     mask_gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY) if len(mask.shape) == 3 and mask.shape[2] == 3 else mask

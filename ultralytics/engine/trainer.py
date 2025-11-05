@@ -965,6 +965,7 @@ class BaseTrainer:
                 muon=self.args.muon_w,
                 sgd=self.args.sgd_w,
                 param_names=pn[2],
+                cls_w=self.args.cls_w,
             )
         else:
             raise NotImplementedError(

@@ -53,10 +53,10 @@ def postprocess(preds: torch.Tensor, max_det: int, nc: int = 80) -> torch.Tensor
 
 def end2end_wrapper(model: DetectionModel) -> DetectionModel:
     """Patch end2end forward pass to remove postprocessing.
-    
+
     Args:
         model (DetectionModel): YOLO end2end model to patch.
-    
+
     Returns:
         model (DetectionModel): Patched end2end model.
     """

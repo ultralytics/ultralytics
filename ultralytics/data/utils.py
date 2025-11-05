@@ -11,7 +11,7 @@ import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from typing import Any
+from typing import Any, Iterable
 
 import cv2
 import numpy as np
@@ -127,10 +127,10 @@ def check_file_speeds(
         return False
 
 
-def get_hash(paths: list[str], message="") -> str:
+def get_hash(paths: list[str] | Iterable) -> str:
     """Return a single hash value of a list of paths (files or dirs)."""
     size = 0
-    for p in TQDM(paths, desc=message, disable=not message):
+    for p in paths:
         try:
             size += os.stat(p).st_size
         except OSError:

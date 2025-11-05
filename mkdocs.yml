@@ -341,6 +341,7 @@ nav:
           - African-wildlife: datasets/detect/african-wildlife.md
           - Signature: datasets/detect/signature.md
           - Medical-pills: datasets/detect/medical-pills.md
+          - KITTI: datasets/detect/kitti.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md

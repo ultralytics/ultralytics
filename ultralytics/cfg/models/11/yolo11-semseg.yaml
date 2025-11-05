@@ -2,7 +2,7 @@
 # YOLO11-seg instance segmentation model. For Usage examples see https://docs.ultralytics.com/tasks/segment
 
 # Parameters
-nc: 19 # number of classes
+nc: 20 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolo11n-seg.yaml' will call yolo11-seg.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.50, 0.25, 1024] # summary: 355 layers, 2876848 parameters, 2876832 gradients, 10.5 GFLOPs

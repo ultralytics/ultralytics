@@ -140,7 +140,7 @@ class BaseTrainer:
             self.args.save_dir = str(self.save_dir)
             # Save run args, serializing augmentations as reprs for resume compatibility
             args_dict = vars(self.args).copy()
-            if "augmentations" in args_dict and args_dict["augmentations"] is not None:
+            if args_dict.get("augmentations") is not None:
                 # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
                 args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
@@ -817,7 +817,7 @@ class BaseTrainer:
                         setattr(self.args, k, overrides[k])
 
                 # Handle augmentations parameter for resume: check if user provided custom augmentations
-                if "augmentations" in ckpt_args and ckpt_args["augmentations"] is not None:
+                if ckpt_args.get("augmentations") is not None:
                     # Augmentations were saved in checkpoint as reprs but can't be restored automatically
                     LOGGER.warning(
                         "Custom Albumentations transforms were used in the original training run but are not "

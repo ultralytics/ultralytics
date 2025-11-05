@@ -24,5 +24,4 @@ __all__ = (
     "build_semantic_dataset",
     "build_yolo_dataset",
     "load_inference_source",
-    "build_semantic_dataset",
 )

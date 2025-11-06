@@ -45,8 +45,9 @@ You can customize each parameter using the Python API, the command line interfac
     === "Python"
 
         ```python
-        from ultralytics import YOLO
         import albumentations as A
+
+        from ultralytics import YOLO
 
         # Load a model
         model = YOLO("yolo11n.pt")

@@ -20,10 +20,12 @@ use change_onnx_mate.py add onnx mate
 
 ## use model
 
-look ott_check_for_int8.cpp and ott_check_for_int8.h
+this dir is an android project if you want run this demo, please do some prepare and use android studio open it
 
-you can get some build help from CMakeLists.txt
+### prepare onnxruntime
 
-## add
+you need down onnxruntime for android from https://repo1.maven.org/maven2/com/microsoft/onnxruntime/onnxruntime-android/1.23.2/onnxruntime-android-1.23.2.aar and unzip it copy "jni" and "headers" into "onnxruntime_sdk"
 
-this code pass by android studio with cmake
+### prepare opencv
+
+you need down opencv for android from https://github.com/opencv/opencv/releases/download/4.12.0/opencv-4.12.0-android-sdk.zip and unzip it copy all from ”OpenCV-android-sdk“ into OpenCV-android-sdk

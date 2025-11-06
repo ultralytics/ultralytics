@@ -3,7 +3,6 @@
 //
 
 #include "ott_check_for_int8.h"
-#include "ott_check.h"
 #include <unordered_set>
 #include <opencv2/opencv.hpp>
 #include <onnxruntime_cxx_api.h>
@@ -65,16 +64,17 @@ bool OttCheckForInt8::Init(const std::vector<char>& model_data, int bit_core_num
 
     Ort::SessionOptions so;
     so.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+#ifdef ENABLE_NNAPI
 
-/*
     uint32_t nnapi_flags = 0;
     nnapi_flags |= NNAPI_FLAG_USE_FP16;
     Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_Nnapi(so, nnapi_flags));
-*/
-
-/*    std::unordered_map<std::string,std::string> xnnopt;
+#endif
+#ifdef ENABLE_XNNPACK
+    std::unordered_map<std::string,std::string> xnnopt;
     xnnopt.insert(std::pair<std::string,std::string>("intra_op_num_threads", std::to_string(bit_core_number)));
-    so.AppendExecutionProvider("XNNPACK", xnnopt);*/
+    so.AppendExecutionProvider("XNNPACK", xnnopt);
+#endif
     try {
         session = new Ort::Session(*env, model_data.data(), model_data.size(), so);
     } catch (const std::exception& e) {
@@ -82,7 +82,7 @@ bool OttCheckForInt8::Init(const std::vector<char>& model_data, int bit_core_num
         return false;
     }
 
-    // 解析类别名称
+    // prepare meta to get class and input info
     Ort::ModelMetadata meta_data = session->GetModelMetadata();
     Ort::AllocatorWithDefaultOptions allocator;
     Ort::AllocatedStringPtr prop_value = meta_data.LookupCustomMetadataMapAllocated("names", allocator);
@@ -106,11 +106,11 @@ bool OttCheckForInt8::Init(const std::vector<char>& model_data, int bit_core_num
         class_names.push_back(cut2[0]);
     }
 
-    // 获取输入输出信息（适配NHWC格式）
+    // get input and output info
     size_t det_num_input_nodes = session->GetInputCount();
     size_t det_num_output_nodes = session->GetOutputCount();
 
-    // 处理输入节点（NHWC格式：1xHxWx3）
+    // deal input (NHWC formate:1xHxWx3)
     for (int i = 0; i < det_num_input_nodes; i++) {
         auto input_name = session->GetInputNameAllocated(i, allocator);
         input_names.push_back(input_name.get());
@@ -121,7 +121,7 @@ bool OttCheckForInt8::Init(const std::vector<char>& model_data, int bit_core_num
         input_node_dims.push_back(input_dims);
     }
 
-    // 处理输出节点
+    // deal output
     for (int i = 0; i < det_num_output_nodes; i++) {
         auto output_name = session->GetOutputNameAllocated(i, allocator);
         output_names.push_back(output_name.get());
@@ -132,12 +132,11 @@ bool OttCheckForInt8::Init(const std::vector<char>& model_data, int bit_core_num
         output_node_dims.push_back(output_dims);
     }
 
-    // 从NHWC输入维度获取宽高（shape为[1, H, W, 3]）
+    // get H and W (shape is[1, H, W, 3])
     if (!input_node_dims.empty() && input_node_dims[0].size() == 4) {
-        ott_input_h = static_cast<int>(input_node_dims[0][1]);  // NHWC的H在索引1
-        ott_input_w = static_cast<int>(input_node_dims[0][2]);  // NHWC的W在索引2
+        ott_input_h = static_cast<int>(input_node_dims[0][1]);
+        ott_input_w = static_cast<int>(input_node_dims[0][2]);
     }
-    // 处理动态维度（-1）
     if (ott_input_w <= 0) ott_input_w = 640;
     if (ott_input_h <= 0) ott_input_h = 640;
 
@@ -172,11 +171,11 @@ bool OttCheckForInt8::RunOnnx(cv::Mat& inputData, std::vector<Ort::Value>& outDa
         return false;
     }
 
-    // NHWC输入形状：[1, H, W, 3]
+    // NHWC input shape：[1, H, W, 3]
     std::array<int64_t, 4> input_shape_info{1, ott_input_h, ott_input_w, 3};
-    size_t tpixels = ott_input_h * ott_input_w * 3;  // H*W*3的总元素数
+    size_t tpixels = ott_input_h * ott_input_w * 3;  // H*W*3 is count of item
 
-    // 检查输入数据格式是否正确（CV_32F, HxWx3）
+    // check input（CV_32F, HxWx3）
     if (inputData.type() != CV_32FC3 ||
         inputData.rows != ott_input_h ||
         inputData.cols != ott_input_w) {
@@ -188,7 +187,7 @@ bool OttCheckForInt8::RunOnnx(cv::Mat& inputData, std::vector<Ort::Value>& outDa
         auto allocator_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
                 allocator_info,
-                inputData.ptr<float>(),  // 直接使用HxWx3的float数据指针
+                inputData.ptr<float>(),  // use HxWx3 float ptr
                 tpixels,
                 input_shape_info.data(),
                 input_shape_info.size()
@@ -222,7 +221,7 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
 
     auto output_tensor_info = outData[0].GetTensorTypeAndShapeInfo();
     auto output_dims = output_tensor_info.GetShape();
-    if (output_dims.size() != 3) {  // 假设输出形状为[1, C, N]
+    if (output_dims.size() != 3) {
         return {};
     }
 
@@ -308,8 +307,8 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
         }
     }
 
-    std::vector<OttCheckAns> and;
-    and.reserve(final_indices.size());
+    std::vector<OttCheckAns> ans;
+    ans.reserve(final_indices.size());
     for (int idx : final_indices) {
         const cv::Rect& box = boxes[idx];
         int id = classIds[idx];
@@ -321,42 +320,38 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
         tmpAns.score = score;
         tmpAns.startPoint = {static_cast<double>(box.x), static_cast<double>(box.y)};
         tmpAns.endPoint = {static_cast<double>(box.x + box.width), static_cast<double>(box.y + box.height)};
-        and.push_back(std::move(tmpAns));
+        ans.push_back(std::move(tmpAns));
     }
 
-    return and;
+    return ans;
 }
 
-bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& and) {
+bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& ans) {
     if (env == nullptr || session == nullptr || input.empty()) {
         return false;
     }
-    and.clear();
+    ans.clear();
 
     float scale_ratio;
     int pad_x, pad_y;
-    // 1. 缩放+填充（保持宽高比）
+
     cv::Mat preprocessed = PreprocessResizePad(input, scale_ratio, pad_x, pad_y);
     if (preprocessed.empty()) {
         return false;
     }
 
-    // 2. 转换为RGB（NHWC通常期望RGB通道顺序）
     cv::Mat rgb_mat;
     cv::cvtColor(preprocessed, rgb_mat, cv::COLOR_BGR2RGB);
 
-    // 3. 转换为float并归一化到[0,1]（替代blobFromImage的NCHW转换）
-    rgb_mat.convertTo(rgb_mat, CV_32F, 1.0 / 255.0);  // 直接在HxWx3上处理
+    rgb_mat.convertTo(rgb_mat, CV_32F, 1.0 / 255.0);
 
-    // 4. 执行ONNX推理
     std::vector<Ort::Value> outData;
     if (!RunOnnx(rgb_mat, outData)) {
         return false;
     }
 
-    // 5. 解析输出结果
     const float conf_thre = 0.5f;
-    and = DealOnnxOutWithExportNmsFalseFaster(outData, conf_thre, scale_ratio, scale_ratio, pad_x, pad_y);
+    ans = DealOnnxOutWithExportNmsFalseFaster(outData, conf_thre, scale_ratio, scale_ratio, pad_x, pad_y);
     outData.clear();
 
     return true;

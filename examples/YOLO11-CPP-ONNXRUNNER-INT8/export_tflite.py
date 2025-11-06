@@ -13,5 +13,14 @@ model.export(
     batch=1,  # 指定批处理大小
     nms=False,
     fraction=1,
-    device="cpu",  # 指定导出设备为CPU或GPU,对应参数为"cpu","0"
 )
+
+# model = torch.jit.load("best.torchscript")
+# input_names = 'images'
+# output_names = 'output0'
+# torch_input = torch.randn(1, 3, 640, 640)
+# torch.onnx.export(model, torch_input, 'best.onnx')
+
+# model = onnx.load("best.onnx")
+# model_fp16 = float16.convert_float_to_float16(model, keep_io_types=True)
+# onnx.save(model_fp16, "king_game_fp16.onnx")

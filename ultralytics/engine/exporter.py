@@ -1128,10 +1128,10 @@ class Exporter:
             im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
             return np.expand_dims(im, 0) if im.ndim == 3 else im
         
-        # this is for YOLO11 series
-        # config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False)
-        # this is for YOLOv8
-        config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True)
+        if "C2PSA" in self.model.__str__(): # YOLO11
+            config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False)
+        else: # YOLOv8
+            config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True, resources_used=0.25, aipu_cores_used=1, multicore_mode="batch")
         
         qmodel = compiler.quantize(
             model=onnx_path,

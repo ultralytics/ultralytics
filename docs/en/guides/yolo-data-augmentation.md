@@ -46,6 +46,7 @@ You can customize each parameter using the Python API, the command line interfac
 
         ```python
         from ultralytics import YOLO
+        import albumentations as A
 
         # Load a model
         model = YOLO("yolo11n.pt")
@@ -69,8 +70,6 @@ You can customize each parameter using the Python API, the command line interfac
         )
 
         # Training with custom Albumentations transforms (Python API only)
-        import albumentations as A
-
         custom_transforms = [
             A.Blur(blur_limit=7, p=0.5),
             A.CLAHE(clip_limit=4.0, p=0.5),

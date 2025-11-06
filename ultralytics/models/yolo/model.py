@@ -250,7 +250,7 @@ class YOLOE(Model):
             task (str, optional): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
             class_mode (str): Method to aggregate embeddings in the memory bank for predict_memory function. Options
-            are: "prototype" mode: each class has a unique prototype embedding, which is the mean of all visual prompt
+                are: "prototype" mode: each class has a unique prototype embedding, which is the mean of all visual prompt
                 embeddings for that class. If the class is not an object-only prompt (i.e., it has a text label), the
                 prototype embedding is a weighted combination of the visual prototype and the text embedding, controlled
                 by the `vp_weight` parameter during prediction. This mode is efficient and works well when

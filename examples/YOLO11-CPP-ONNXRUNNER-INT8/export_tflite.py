@@ -13,5 +13,5 @@ model.export(
     batch=1,  # 指定批处理大小
     nms=False,
     fraction=1,
-    device="cpu"        # 指定导出设备为CPU或GPU,对应参数为"cpu","0"
+    device="cpu",  # 指定导出设备为CPU或GPU,对应参数为"cpu","0"
 )

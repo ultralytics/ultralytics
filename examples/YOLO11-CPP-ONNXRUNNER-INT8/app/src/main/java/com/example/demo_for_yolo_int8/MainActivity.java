@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         ott.InitOtt(onnxPath);
         long startTime = System.currentTimeMillis();
         for(int i = 0; i<100; i++) {
-            OttCheckAns[] ans = ott.ProcessOtt(bitmap);
+            OttCheckAns[] and = ott.ProcessOtt(bitmap);
         }
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;

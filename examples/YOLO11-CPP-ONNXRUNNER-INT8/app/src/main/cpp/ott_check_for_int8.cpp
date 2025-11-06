@@ -110,7 +110,7 @@ bool OttCheckForInt8::Init(const std::vector<char>& model_data, int bit_core_num
     size_t det_num_input_nodes = session->GetInputCount();
     size_t det_num_output_nodes = session->GetOutputCount();
 
-    // deal input (NHWC formate:1xHxWx3)
+    // deal input (NHWC format:1xHxWx3)
     for (int i = 0; i < det_num_input_nodes; i++) {
         auto input_name = session->GetInputNameAllocated(i, allocator);
         input_names.push_back(input_name.get());
@@ -307,8 +307,8 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
         }
     }
 
-    std::vector<OttCheckAns> ans;
-    ans.reserve(final_indices.size());
+    std::vector<OttCheckAns> and;
+    and.reserve(final_indices.size());
     for (int idx : final_indices) {
         const cv::Rect& box = boxes[idx];
         int id = classIds[idx];
@@ -320,17 +320,17 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
         tmpAns.score = score;
         tmpAns.startPoint = {static_cast<double>(box.x), static_cast<double>(box.y)};
         tmpAns.endPoint = {static_cast<double>(box.x + box.width), static_cast<double>(box.y + box.height)};
-        ans.push_back(std::move(tmpAns));
+        and.push_back(std::move(tmpAns));
     }
 
-    return ans;
+    return and;
 }
 
-bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& ans) {
+bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& and) {
     if (env == nullptr || session == nullptr || input.empty()) {
         return false;
     }
-    ans.clear();
+    and.clear();
 
     float scale_ratio;
     int pad_x, pad_y;
@@ -351,7 +351,7 @@ bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& an
     }
 
     const float conf_thre = 0.5f;
-    ans = DealOnnxOutWithExportNmsFalseFaster(outData, conf_thre, scale_ratio, scale_ratio, pad_x, pad_y);
+    and = DealOnnxOutWithExportNmsFalseFaster(outData, conf_thre, scale_ratio, scale_ratio, pad_x, pad_y);
     outData.clear();
 
     return true;

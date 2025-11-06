@@ -243,8 +243,7 @@ class YOLOE(Model):
         verbose: bool = False,
         class_mode: str = "prototype",
     ) -> None:
-        """
-        Initialize YOLOE model with a pre-trained model file.
+        """Initialize YOLOE model with a pre-trained model file.
 
         Args:
             model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.

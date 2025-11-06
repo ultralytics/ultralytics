@@ -22,7 +22,7 @@ public:
         return class_names;
     }
     // 注意input格式为BGR
-    bool Process(const cv::Mat& input, std::vector<OttCheckAns>& ans);
+    bool Process(const cv::Mat& input, std::vector<OttCheckAns>& and);
 private:
     static std::string RemoveOuterBrackets(const std::string& input);
     static std::vector<std::string> Split(const std::string& input, char delimiter);

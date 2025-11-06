@@ -260,7 +260,7 @@ It offers three significant enhancements:
         predictor = SAM2DynamicInteractivePredictor(overrides=overrides, max_obj_num=10)
 
         # Define a category by box prompt
-        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[1], update_memory=True)
+        predictor(source="image1.jpg", bboxes=[[100, 100, 200, 200]], obj_ids=[0], update_memory=True)
 
         # Detect this particular object in a new image
         results = predictor(source="image2.jpg")
@@ -269,7 +269,7 @@ It offers three significant enhancements:
         results = predictor(
             source="image4.jpg",
             bboxes=[[300, 300, 400, 400]],  # New object
-            obj_ids=[2],  # New object ID
+            obj_ids=[1],  # New object ID
             update_memory=True,  # Add to memory
         )
         # Perform inference
@@ -281,7 +281,7 @@ It offers three significant enhancements:
             source="image6.jpg",
             points=[[150, 150]],  # Refinement point
             labels=[1],  # Positive point
-            obj_ids=[2],  # Same object ID
+            obj_ids=[1],  # Same object ID
             update_memory=True,  # Update memory with new information
         )
         # Perform inference on new image
@@ -397,7 +397,7 @@ Despite its strengths, SAM 2 has certain limitations:
 - **Efficiency with Multiple Objects**: Segmentation efficiency decreases when processing multiple objects simultaneously due to the lack of inter-object communication.
 - **Detail [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: May miss fine details, especially with fast-moving objects. Additional prompts can partially address this issue, but temporal smoothness is not guaranteed.
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If SAM 2 is a crucial part of your research or development work, please cite it using the following reference:
 

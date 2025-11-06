@@ -341,6 +341,7 @@ nav:
           - African-wildlife: datasets/detect/african-wildlife.md
           - Signature: datasets/detect/signature.md
           - Medical-pills: datasets/detect/medical-pills.md
+          - KITTI: datasets/detect/kitti.md
       - Segmentation:
           - datasets/segment/index.md
           - COCO: datasets/segment/coco.md
@@ -491,6 +492,7 @@ nav:
       - Seeed Studio reCamera: integrations/seeedstudio-recamera.md
       - Gradio: integrations/gradio.md
       - Roboflow: integrations/roboflow.md
+      - ExecuTorch: integrations/executorch.md
   - HUB:
       - hub/index.md
       - Web:
@@ -692,8 +694,9 @@ nav:
           - errors: reference/utils/errors.md
           - events: reference/utils/events.md
           - export:
-              - __init__: reference/utils/export/__init__.md
+              - engine: reference/utils/export/engine.md
               - imx: reference/utils/export/imx.md
+              - tensorflow: reference/utils/export/tensorflow.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

@@ -11,8 +11,7 @@ from .val import YOLOESegValidator
 
 
 class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
-    """
-    Trainer class for YOLOE segmentation models.
+    """Trainer class for YOLOE segmentation models.
 
     This class combines YOLOETrainer and SegmentationTrainer to provide training functionality specifically for YOLOE
     segmentation models, enabling both object detection and instance segmentation capabilities.
@@ -24,8 +23,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return YOLOESegModel initialized with specified config and weights.
+        """Return YOLOESegModel initialized with specified config and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration dictionary or YAML file path.
@@ -49,8 +47,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
         return model
 
     def get_validator(self):
-        """
-        Create and return a validator for YOLOE segmentation model evaluation.
+        """Create and return a validator for YOLOE segmentation model evaluation.
 
         Returns:
             (YOLOESegValidator): Validator for YOLOE segmentation models.
@@ -62,8 +59,7 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
 
 
 class YOLOEPESegTrainer(SegmentationTrainer):
-    """
-    Fine-tune YOLOESeg model in linear probing way.
+    """Fine-tune YOLOESeg model in linear probing way.
 
     This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach, which involves freezing
     most of the model and only training specific layers for efficient adaptation to new tasks.
@@ -73,8 +69,7 @@ class YOLOEPESegTrainer(SegmentationTrainer):
     """
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """
-        Return YOLOESegModel initialized with specified config and weights for linear probing.
+        """Return YOLOESegModel initialized with specified config and weights for linear probing.
 
         Args:
             cfg (dict | str, optional): Model configuration dictionary or YAML file path.

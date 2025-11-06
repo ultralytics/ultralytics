@@ -79,8 +79,35 @@ After installing the necessary packages, you're ready to start using Albumentati
         # Load a pre-trained model
         model = YOLO("yolo11n.pt")
 
-        # Train the model
+        # Train the model with default augmentations
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "Custom Transforms (Python API only)"
+
+        ```python
+        import albumentations as A
+
+        from ultralytics import YOLO
+
+        # Load a pre-trained model
+        model = YOLO("yolo11n.pt")
+
+        # Define custom Albumentations transforms
+        custom_transforms = [
+            A.Blur(blur_limit=7, p=0.5),
+            A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+            A.CLAHE(clip_limit=4.0, p=0.5),
+            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+        ]
+
+        # Train the model with custom Albumentations transforms
+        results = model.train(
+            data="coco8.yaml",
+            epochs=100,
+            imgsz=640,
+            augmentations=custom_transforms,  # Pass custom transforms
+        )
         ```
 
 Next, let's take look a closer look at the specific augmentations that are applied during training.
@@ -142,6 +169,85 @@ Here are the parameters and values used in this integration:
 The image below shows an example of the CLAHE transformation applied.
 
 <img width="760" alt="An Example of the CLAHE Augmentation" src="https://github.com/ultralytics/docs/releases/download/0/albumentations-CLAHE.avif">
+
+## Using Custom Albumentations Transforms
+
+While the default Albumentations integration provides a solid set of augmentations, you may want to customize the transforms for your specific use case. With Ultralytics YOLO11, you can easily pass custom Albumentations transforms via the Python API using the `augmentations` parameter.
+
+### How to Define Custom Transforms
+
+You can define your own list of Albumentations transforms and pass them to the training function. This replaces the default Albumentations transforms while keeping all other YOLO augmentations (like `hsv_h`, `degrees`, `mosaic`, etc.) active.
+
+Here's an example with more advanced transforms:
+
+```python
+import albumentations as A
+
+from ultralytics import YOLO
+
+# Load model
+model = YOLO("yolo11n.pt")
+
+# Define custom transforms with various augmentation techniques
+custom_transforms = [
+    # Blur variations
+    A.OneOf(
+        [
+            A.MotionBlur(blur_limit=7, p=1.0),
+            A.MedianBlur(blur_limit=7, p=1.0),
+            A.GaussianBlur(blur_limit=7, p=1.0),
+        ],
+        p=0.3,
+    ),
+    # Noise variations
+    A.OneOf(
+        [
+            A.GaussNoise(var_limit=(10.0, 50.0), p=1.0),
+            A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
+        ],
+        p=0.2,
+    ),
+    # Color and contrast adjustments
+    A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=0.5),
+    A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
+    A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+    # Simulate occlusions
+    A.CoarseDropout(
+        max_holes=8, max_height=32, max_width=32, min_holes=1, min_height=8, min_width=8, fill_value=0, p=0.2
+    ),
+]
+
+# Train with custom transforms
+results = model.train(
+    data="coco8.yaml",
+    epochs=100,
+    imgsz=640,
+    augmentations=custom_transforms,
+)
+```
+
+### Important Considerations
+
+When using custom Albumentations transforms, keep these points in mind:
+
+- **Python API Only**: Custom transforms can only be passed through the Python API, not via CLI or YAML configuration files.
+- **Replaces Defaults**: Your custom transforms will completely replace the default Albumentations transforms. Other YOLO augmentations remain active.
+- **Bounding Box Handling**: Ultralytics automatically handles bounding box adjustments for most transforms, but complex spatial transforms may require additional testing.
+- **Performance**: Some transforms are computationally expensive. Monitor training speed and adjust accordingly.
+- **Task Compatibility**: Custom Albumentations transforms work with detection and segmentation tasks but not with classification (which uses a different augmentation pipeline).
+
+### Use Cases for Custom Transforms
+
+Different applications benefit from different augmentation strategies:
+
+- **Medical Imaging**: Use elastic deformations, grid distortions, and specialized noise patterns
+- **Aerial/Satellite Imagery**: Apply transforms that simulate different altitudes, weather conditions, and lighting angles
+- **Low-Light Scenarios**: Emphasize noise addition and brightness adjustments to train robust models for challenging lighting
+- **Industrial Inspection**: Add texture variations and simulated defects for quality control applications
+
+For a complete list of available transforms and their parameters, visit the [Albumentations documentation](https://albumentations.ai/docs/api_reference/full_reference/).
+
+For more detailed examples and best practices on using custom Albumentations transforms with YOLO11, see the [YOLO Data Augmentation guide](../guides/yolo-data-augmentation.md#custom-albumentations-transforms-augmentations).
 
 ## Keep Learning about Albumentations
 

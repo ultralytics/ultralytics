@@ -75,7 +75,7 @@ def _log_confusion_matrix(validator) -> None:
 
     Args:
         validator (BaseValidator): The validator object containing the confusion matrix and class names. Must have
-        attributes confusion_matrix.matrix, confusion_matrix.task, and names.
+            attributes confusion_matrix.matrix, confusion_matrix.task, and names.
     """
     targets = []
     preds = []

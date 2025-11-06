@@ -1795,6 +1795,7 @@ class ContextGather(nn.Module):
 
     def forward(self, feats, probs):
         """Forward methods of context attention module.
+
         Args:
             feats: feature map
             probs: probability map.
@@ -1942,8 +1943,7 @@ class SpatialOCR(nn.Module):
 
 
 class SemanticSegment(nn.Module):
-    """
-    YOLO Semseg head for senmantic models.
+    """YOLO Semseg head for senmantic models.
 
     This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
 
@@ -1963,6 +1963,7 @@ class SemanticSegment(nn.Module):
 
     def __init__(self, nc=80, ns=8, npr=256, ch=()):
         """Initialize for semantic segment modular.
+
         Args:
             nc(int): number of classes
             ns(int): stride
@@ -1988,6 +1989,7 @@ class SemanticSegment(nn.Module):
 
     def forward(self, x):
         """Model forward function of semantic segment modular.
+
         Args:
             x(list): features from backbone or neck.
 

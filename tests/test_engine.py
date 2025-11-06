@@ -3,8 +3,6 @@
 import sys
 from unittest import mock
 
-import torch
-
 from tests import MODEL
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg

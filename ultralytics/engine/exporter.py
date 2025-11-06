@@ -1129,7 +1129,7 @@ class Exporter:
             return np.expand_dims(im, 0) if im.ndim == 3 else im
         
         if "C2PSA" in self.model.__str__(): # YOLO11
-            config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False)
+            config = CompilerConfig(ptq_scheme="per_tensor_min_max", ignore_weight_buffers=False, resources_used=0.25, aipu_cores_used=1, multicore_mode="batch")
         else: # YOLOv8
             config = CompilerConfig(tiling_depth=6, split_buffer_promotion=True, resources_used=0.25, aipu_cores_used=1, multicore_mode="batch")
         

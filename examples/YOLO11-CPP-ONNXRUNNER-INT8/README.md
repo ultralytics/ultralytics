@@ -24,6 +24,4 @@ look ott_check_for_int8.cpp and ott_check_for_int8.h
 
 you can get some build help from CMakeLists.txt
 
-
-
 I have read the CLA Document and I hereby sign the CLA by WangHHY19931001

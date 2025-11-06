@@ -1119,9 +1119,8 @@ class Exporter:
         export_path = Path(f"{Path(onnx_path).stem}_axelera_model")
         export_path.mkdir(exist_ok=True)
                 
-        # assert not self.args.dynamic, f"Axelera does not support Dynamic tensor")
-        # assert not self.args.int8, f("Axelera only support int8 datapath")
-        
+        assert not self.args.dynamic, "Axelera does not support Dynamic tensor"
+        assert not self.args.int8, "Axelera only supports int8 input; the model runs in mixed precision on hardware"
         
         def transform_fn(data_item) -> np.ndarray:
             data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item

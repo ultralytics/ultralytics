@@ -1,7 +1,8 @@
 # Android ONNX INT8 (NNAPI/ORT)
 
 ## export way
-### frist use export_tflite.py to export best int8 tflite model
+
+### first use export_tflite.py to export best int8 tflite model
 
 1、in root of ultralytics dir create "datasets/YOLODataset" dir and set train in this dir
 

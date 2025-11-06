@@ -249,7 +249,17 @@ class YOLOE(Model):
             model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
             task (str, optional): Task type for the model. Auto-detected if None.
             verbose (bool): If True, prints additional information during initialization.
-            class_mode (str): Method to aggregate embeddings in the memory bank for predict_memory function. Options are: "prototype" mode: each class has a unique prototype embedding, which is the mean of all visual prompt embeddings for that class. If the class is not an object-only prompt (i.e., it has a text label), the prototype embedding is a weighted combination of the visual prototype and the text embedding, controlled by the `vp_weight` parameter during prediction. This mode is efficient and works well when each class can be represented by a single prototype. "retrieval" mode: each class can have multiple embeddings (single text embedding and multiple visual prompt embeddings). During inference, the similarity between each detected box and all embeddings for each class is computed, and the maximum similarity is used as the final similarity score for that class. Note that the computation cost is higher as the number of embeddings increases. Under this setting, vp_weight is not used since the text and visual prompt embeddings are not combined.
+            class_mode (str): Method to aggregate embeddings in the memory bank for predict_memory function. Options
+                are: "prototype" mode: each class has a unique prototype embedding, which is the mean of all visual
+                prompt embeddings for that class. If the class is not an object-only prompt (i.e., it has a text label),
+                the prototype embedding is a weighted combination of the visual prototype and the text embedding,
+                controlled by the `vp_weight` parameter during prediction. This mode is efficient and works well when
+                each class can be represented by a single prototype. "retrieval" mode: each class can have multiple
+                embeddings (single text embedding and multiple visual prompt embeddings). During inference, the
+                similarity between each detected box and all embeddings for each class is computed, and the maximum
+                similarity is used as the final similarity score for that class. Note that the computation cost is
+                higher as the number of embeddings increases. Under this setting, vp_weight is not used since the text
+                and visual prompt embeddings are not combined.
         """
         super().__init__(model=model, task=task, verbose=verbose)
         self.class_mode = class_mode
@@ -459,21 +469,22 @@ class YOLOE(Model):
         vp_weight: float = 0.5,
         **kwargs,
     ):
-        """
-        Run prediction on images, videos, directories, streams, etc. when visual prompts are given, the prompt
-        embeddings are extracted and stored in a memory bank, which is then used to update the model's class embeddings.
-        when no visual prompts are given, the model do prediction based on the memory bank if exists.
+        """Run prediction on images, videos, directories, streams, etc. when visual prompts are given, the prompt
+        embeddings are extracted and stored in a memory bank, which is then used to update the model's class
+        embeddings. when no visual prompts are given, the model do prediction based on the memory bank
+        if exists.
 
         Args:
-            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths,
-                directory paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
-            stream (bool): Whether to stream the prediction results. If True, results are yielded as a
-                generator as they are computed.
-            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include
-                'bboxes' and 'cls' keys when non-empty.
-            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically
-                loaded based on the task.
-            vp_weight (float): Weight for visual prompt embeddings when merging with text embeddings. Default is 0.5. It is only used when class_mode is 'prototype' and the class is not an object-only prompt.
+            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. Accepts image paths, directory
+                paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
+            stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
+                are computed.
+            visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'
+                and 'cls' keys when non-empty.
+            predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
+                based on the task.
+            vp_weight (float): Weight for visual prompt embeddings when merging with text embeddings. Default is 0.5. It
+                is only used when class_mode is 'prototype' and the class is not an object-only prompt.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

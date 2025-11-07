@@ -168,7 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function fixLanguageLinks() {
     const path = location.pathname;
     const links = document.querySelectorAll(".md-select__link");
-    if (!links.length) return;
+    if (!links.length) {
+      return;
+    }
 
     const langs = [];
     let defaultLink = null;
@@ -176,13 +178,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Extract language codes
     links.forEach((link) => {
       const href = link.getAttribute("href");
-      if (!href) return;
+      if (!href) {
+        return;
+      }
 
       const url = new URL(href, location.origin);
       const match = url.pathname.match(/^\/([a-z]{2})\/?$/);
 
-      if (match) langs.push({ code: match[1], link });
-      else if (url.pathname === "/" || url.pathname === "") defaultLink = link;
+      if (match) {
+        langs.push({ code: match[1], link });
+      } else if (url.pathname === "/" || url.pathname === "") {
+        defaultLink = link;
+      }
     });
 
     // Find current language and base path
@@ -198,7 +205,9 @@ document.addEventListener("DOMContentLoaded", () => {
     langs.forEach(
       (lang) => (lang.link.href = location.origin + "/" + lang.code + basePath),
     );
-    if (defaultLink) defaultLink.href = location.origin + basePath;
+    if (defaultLink) {
+      defaultLink.href = location.origin + basePath;
+    }
   }
 
   // Run immediately

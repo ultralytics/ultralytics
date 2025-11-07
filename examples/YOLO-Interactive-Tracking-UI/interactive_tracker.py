@@ -84,14 +84,14 @@ def extend_line_from_edge(mid_x: int, mid_y: int, direction: str, img_shape: tup
         end_y (int): Y-coordinate of the endpoint.
     """
     h, w = img_shape[:2]
-    if direction == "left":
+    if direction == "down":
+        return mid_x, h - 1
+    elif direction == "left":
         return 0, mid_y
     elif direction == "right":
         return w - 1, mid_y
     elif direction == "up":
         return mid_x, 0
-    elif direction == "down":
-        return mid_x, h - 1
     else:
         return mid_x, mid_y
 

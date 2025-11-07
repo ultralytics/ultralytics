@@ -722,8 +722,8 @@ def is_jetson(jetpack=None) -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    if jetson := ("tegra" in DEVICE_MODEL):
-        if jetpack:
+    if jetpack:
+        if jetson := ("tegra" in DEVICE_MODEL):
             try:
                 content = open("/etc/nv_tegra_release").read()
                 version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping

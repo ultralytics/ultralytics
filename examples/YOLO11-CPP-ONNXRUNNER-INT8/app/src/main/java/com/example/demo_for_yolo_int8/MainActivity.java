@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         AssetManager assetManager = getAssets();
         InputStream inputStream = null;
         try {
-            inputStream = assetManager.open("test_2400_1080.png");
+            inputStream = assetManager.open("test_2400_1080.jpg");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         ott.InitOtt(onnxPath);
         long startTime = System.currentTimeMillis();
         for(int i = 0; i<100; i++) {
-            OttCheckAns[] and = ott.ProcessOtt(bitmap);
+            OttCheckAns[] ottans = ott.ProcessOtt(bitmap);
         }
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;

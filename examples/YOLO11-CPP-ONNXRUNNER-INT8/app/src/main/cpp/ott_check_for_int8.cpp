@@ -307,8 +307,8 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
         }
     }
 
-    std::vector<OttCheckAns> and;
-    and.reserve(final_indices.size());
+    std::vector<OttCheckAns> retans;
+    retans.reserve(final_indices.size());
     for (int idx : final_indices) {
         const cv::Rect& box = boxes[idx];
         int id = classIds[idx];
@@ -320,17 +320,17 @@ std::vector<OttCheckAns> OttCheckForInt8::DealOnnxOutWithExportNmsFalseFaster(
         tmpAns.score = score;
         tmpAns.startPoint = {static_cast<double>(box.x), static_cast<double>(box.y)};
         tmpAns.endPoint = {static_cast<double>(box.x + box.width), static_cast<double>(box.y + box.height)};
-        and.push_back(std::move(tmpAns));
+        retans.push_back(std::move(tmpAns));
     }
 
-    return and;
+    return retans;
 }
 
-bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& and) {
+bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& retans) {
     if (env == nullptr || session == nullptr || input.empty()) {
         return false;
     }
-    and.clear();
+    retans.clear();
 
     float scale_ratio;
     int pad_x, pad_y;
@@ -351,7 +351,7 @@ bool OttCheckForInt8::Process(const cv::Mat& input, std::vector<OttCheckAns>& an
     }
 
     const float conf_thre = 0.5f;
-    and = DealOnnxOutWithExportNmsFalseFaster(outData, conf_thre, scale_ratio, scale_ratio, pad_x, pad_y);
+    retans = DealOnnxOutWithExportNmsFalseFaster(outData, conf_thre, scale_ratio, scale_ratio, pad_x, pad_y);
     outData.clear();
 
     return true;

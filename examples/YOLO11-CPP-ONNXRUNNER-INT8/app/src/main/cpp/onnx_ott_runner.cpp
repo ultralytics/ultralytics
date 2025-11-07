@@ -115,9 +115,9 @@ namespace {
     std::vector<char> GetJavaByte(JNIEnv *env, jbyteArray array){
         jsize length = env->GetArrayLength(array);
         jbyte* bytes = env->GetByteArrayElements(array, nullptr);
-        std::vector<char> and(bytes, bytes + length);
+        std::vector<char> retans(bytes, bytes + length);
         env->ReleaseByteArrayElements(array, bytes, 0);
-        return and;
+        return retans;
     }
 
     jobjectArray ToJavaOttCheckAns(JNIEnv *env, const std::vector<OttCheckAns>& input){
@@ -204,10 +204,10 @@ Java_com_example_demo_1for_1yolo_1int8_OttRunner_Process(JNIEnv *env, jobject th
         return nullptr;
     }
     auto input_img= ReadIntArraryToMat(env, bitmap);
-    std::vector<OttCheckAns> and;
-    if(!ptr->Process(input_img,and)){
+    std::vector<OttCheckAns> cppretans;
+    if(!ptr->Process(input_img,cppretans)){
         return nullptr;
     }
-    jobjectArray ret_ans = ToJavaOttCheckAns(env, and);
+    jobjectArray ret_ans = ToJavaOttCheckAns(env, cppretans);
     return ret_ans;
 }

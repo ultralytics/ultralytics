@@ -29,3 +29,7 @@ you need down onnxruntime for android from https://repo1.maven.org/maven2/com/mi
 ### prepare opencv
 
 you need down opencv for android from https://github.com/opencv/opencv/releases/download/4.12.0/opencv-4.12.0-android-sdk.zip and unzip it copy all from ”OpenCV-android-sdk“ into OpenCV-android-sdk
+
+### copyright
+
+app/src/main/assets/test_2400_1080.jpg  is a screenshot from the king game, and its copyright belongs to Tencent. It is used here only to demonstrate the effectiveness of the model.

@@ -722,7 +722,7 @@ def is_jetson(jetpack=None) -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
-    jetson = ("tegra" in DEVICE_MODEL)
+    jetson = "tegra" in DEVICE_MODEL
     if jetson and jetpack:
         try:
             content = open("/etc/nv_tegra_release").read()

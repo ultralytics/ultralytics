@@ -1959,7 +1959,9 @@ class Albumentations:
                 self.transform = A.Compose(
                     T,
                     bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]),
-                    keypoint_params=A.KeypointParams(format="xy", label_fields=["keypoint_labels"], remove_invisible=False),
+                    keypoint_params=A.KeypointParams(
+                        format="xy", label_fields=["keypoint_labels"], remove_invisible=False
+                    ),
                 )
             else:
                 self.transform = A.Compose(T)
@@ -2015,10 +2017,10 @@ class Albumentations:
                 labels["instances"].convert_bbox("xywh")
                 labels["instances"].normalize(*im.shape[:2][::-1])
                 bboxes = labels["instances"].bboxes
-                
+
                 # Prepare transform arguments
                 transform_args = {"image": im, "bboxes": bboxes, "class_labels": cls}
-                
+
                 # Add keypoints if present (for pose tasks)
                 keypoints = labels["instances"].keypoints
                 if keypoints is not None and len(keypoints):
@@ -2028,7 +2030,7 @@ class Albumentations:
                     keypoint_labels = [i for i in range(len(kpts_xy))]  # Create labels for each keypoint
                     transform_args["keypoints"] = kpts_xy
                     transform_args["keypoint_labels"] = keypoint_labels
-                
+
                 # Add segments if present (for segmentation tasks)
                 segments = labels["instances"].segments
                 if segments is not None and len(segments):
@@ -2039,29 +2041,29 @@ class Albumentations:
                     masks = [polygons2masks([seg], h, w)[0] for seg in segments] if len(segments) else []
                     if masks:
                         transform_args["masks"] = masks
-                
+
                 # Apply transformation
                 new = self.transform(**transform_args)
-                
+
                 if len(new["class_labels"]) > 0:  # skip update if no bbox in new im
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"])
                     bboxes = np.array(new["bboxes"], dtype=np.float32)
-                    
+
                     # Update keypoints if they were transformed
                     if keypoints is not None and len(keypoints) and "keypoints" in new:
                         # Reshape back to (N, num_kpts, 2) and restore visibility if it existed
                         num_instances = len(cls)
                         num_kpts_per_instance = keypoints.shape[1]
                         new_kpts = np.array(new["keypoints"]).reshape(num_instances, num_kpts_per_instance, 2)
-                        
+
                         # Preserve visibility information if it existed (3rd dimension)
                         if keypoints.shape[2] == 3:
                             visibility = keypoints[..., 2:3]  # Keep original visibility
                             new_kpts = np.concatenate([new_kpts, visibility], axis=2)
-                        
+
                         labels["instances"].keypoints = new_kpts
-                    
+
                     # Update segments if they were transformed
                     if segments is not None and len(segments) and "masks" in new:
                         # Convert masks back to segments
@@ -2070,7 +2072,7 @@ class Albumentations:
                             segs = masks2segments(mask[None])[0]  # Convert single mask
                             new_segments.append(segs if len(segs) else segments[0])  # Fallback to original if empty
                         labels["instances"].segments = new_segments
-                
+
                 labels["instances"].update(bboxes=bboxes)
         else:
             labels["img"] = self.transform(image=labels["img"])["image"]  # transformed
@@ -2693,7 +2695,7 @@ def classify_augmentations(
     Examples:
         >>> transforms = classify_augmentations(size=224, auto_augment="randaugment")
         >>> augmented_image = transforms(original_image)
-        
+
         >>> import albumentations as A
         >>> custom_transforms = [A.Blur(p=0.5), A.CLAHE(p=0.3)]
         >>> transforms = classify_augmentations(size=224, augmentations=custom_transforms)
@@ -2714,20 +2716,20 @@ def classify_augmentations(
         primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
     secondary_tfl = []
-    
+
     # Add custom Albumentations transforms if provided
     if augmentations is not None:
         try:
             import albumentations as A
             from albumentations.pytorch import ToTensorV2
-            
+
             # Wrap Albumentations in a torchvision-compatible transform
             class AlbumentationsTransform:
                 """Wrapper to use Albumentations transforms with torchvision pipeline."""
-                
+
                 def __init__(self, transform):
                     self.transform = transform
-                
+
                 def __call__(self, img):
                     """Apply Albumentations transform to PIL image."""
                     # Convert PIL to numpy array
@@ -2736,7 +2738,7 @@ def classify_augmentations(
                     augmented = self.transform(image=img_np)
                     # Convert back to PIL
                     return Image.fromarray(augmented["image"])
-            
+
             # Create Albumentations compose
             alb_transform = A.Compose(augmentations)
             secondary_tfl.append(AlbumentationsTransform(alb_transform))
@@ -2745,7 +2747,7 @@ def classify_augmentations(
             LOGGER.warning("Albumentations not installed. Custom augmentations will be ignored.")
         except Exception as e:
             LOGGER.warning(f"Error setting up custom Albumentations: {e}")
-    
+
     disable_color_jitter = False
     if auto_augment:
         assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"

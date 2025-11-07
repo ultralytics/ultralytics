@@ -484,11 +484,11 @@ Then launch the training with the Python API:
 
 - Requires Albumentations version 1.0.3 or higher
 - **Fully compatible with all YOLO tasks:**
-  - ✅ Detection tasks
-  - ✅ Segmentation tasks (including segment transformations)
-  - ✅ Pose estimation tasks (including keypoint transformations)
-  - ✅ OBB (Oriented Bounding Box) tasks
-  - ✅ Classification tasks
+    - ✅ Detection tasks
+    - ✅ Segmentation tasks (including segment transformations)
+    - ✅ Pose estimation tasks (including keypoint transformations)
+    - ✅ OBB (Oriented Bounding Box) tasks
+    - ✅ Classification tasks
 
 For more information about Albumentations and available transforms, visit the [official Albumentations documentation](https://albumentations.ai/docs/).
 

@@ -188,8 +188,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (match) {
         langs.push({ code: match[1], link });
       } else if (url.pathname === "/" || url.pathname === "") {
-               defaultLink = link;
-             }
+        defaultLink = link;
+      }
     });
 
     // Find current language and base path

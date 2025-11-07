@@ -9,7 +9,7 @@ class ChartWidget {
   }
 
   init() {
-    const {canvas} = this.chart;
+    const { canvas } = this.chart;
     const container = canvas.parentElement;
     container.style.position = "relative";
 
@@ -57,7 +57,7 @@ class ChartWidget {
     const tip = this.toolbar.querySelector(".tip");
 
     this.toolbar.addEventListener("click", (e) => {
-      const {action} = e.target.closest("button").dataset;
+      const { action } = e.target.closest("button").dataset;
       if (action === "png") {
         this.downloadPNG();
       }

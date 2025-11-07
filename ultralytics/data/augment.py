@@ -2721,7 +2721,6 @@ def classify_augmentations(
     if augmentations is not None:
         try:
             import albumentations as A
-            from albumentations.pytorch import ToTensorV2
 
             # Wrap Albumentations in a torchvision-compatible transform
             class AlbumentationsTransform:

@@ -35,7 +35,7 @@ class FastSAM(Model):
         >>> results = model.predict("image.jpg", bboxes=[[100, 100, 200, 200]])
     """
 
-    def __init__(self, model: str = "FastSAM-x.pt"):
+    def __init__(self, model: str | Path = "FastSAM-x.pt"):
         """Initialize the FastSAM model with the specified pre-trained weights."""
         if str(model) == "FastSAM.pt":
             model = "FastSAM-x.pt"

@@ -469,10 +469,10 @@ class BaseTrainer:
 
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
-                final_epoch = epoch + 1 >= self.epochs
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
             # Validation
+            final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                 self._clear_memory(threshold=0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
@@ -760,9 +760,9 @@ class BaseTrainer:
         n = len(metrics) + 2  # number of cols
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time", *keys])).rstrip(",") + "\n")  # header
+        s = "" if self.csv.exists() else ("%s," * n % ("epoch", "time", *keys)).rstrip(",") + "\n"
         with open(self.csv, "a", encoding="utf-8") as f:
-            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t, *vals])).rstrip(",") + "\n")
+            f.write(s + ("%.6g," * n % (self.epoch + 1, t, *vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""

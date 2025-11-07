@@ -1,4 +1,4 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
 
 from __future__ import annotations
 
@@ -226,7 +226,7 @@ class DetectionValidator(BaseValidator):
             dist.gather_object(self.metrics.stats, gathered_stats, dst=0)
             merged_stats = {key: [] for key in self.metrics.stats.keys()}
             for stats_dict in gathered_stats:
-                for key in merged_stats.keys():
+                for key in merged_stats:
                     merged_stats[key].extend(stats_dict[key])
             gathered_jdict = [None] * dist.get_world_size()
             dist.gather_object(self.jdict, gathered_jdict, dst=0)

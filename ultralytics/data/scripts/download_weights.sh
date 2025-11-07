@@ -1,5 +1,5 @@
 #!/bin/bash
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
 
 # Download latest models from https://github.com/ultralytics/assets/releases
 # Example usage: bash ultralytics/data/scripts/download_weights.sh

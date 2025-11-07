@@ -1,4 +1,4 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
 """
 Train a model on a dataset.
 
@@ -760,9 +760,13 @@ class BaseTrainer:
         n = len(metrics) + 2  # number of cols
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time", *keys])).rstrip(",") + "\n")  # header
+        s = (
+            ""
+            if self.csv.exists()
+            else ("%s," * n % ("epoch", "time", *keys)).rstrip(",") + "\n"
+        )
         with open(self.csv, "a", encoding="utf-8") as f:
-            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t, *vals])).rstrip(",") + "\n")
+            f.write(s + ("%.6g," * n % (self.epoch + 1, t, *vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""

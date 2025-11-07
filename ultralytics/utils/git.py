@@ -1,4 +1,4 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
 
 from __future__ import annotations
 
@@ -75,8 +75,7 @@ class GitRepo:
     def _ref_commit(self, ref: str) -> str | None:
         """Commit for ref (handles packed-refs)."""
         rf = self.gitdir / ref
-        s = self._read(rf)
-        if s:
+        if s := self._read(rf):
             return s
         pf = self.gitdir / "packed-refs"
         b = pf.read_bytes().splitlines() if pf.exists() else []

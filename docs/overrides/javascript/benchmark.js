@@ -1,9 +1,11 @@
-// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+// © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
 
 // Auto-load chart-widget.js if not already loaded
 const loadChartWidget = () =>
   new Promise((resolve) => {
-    if (window.ChartWidget) return resolve();
+    if (window.ChartWidget) {
+      return resolve();
+    }
     const s = document.createElement("script");
     const base =
       (

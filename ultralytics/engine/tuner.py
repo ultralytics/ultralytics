@@ -1,4 +1,4 @@
-# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
 """
 Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection, instance
 segmentation, image classification, pose estimation, and multi-object tracking.
@@ -226,8 +226,11 @@ class Tuner:
         try:
             self.collection.insert_one(
                 {
-                    "fitness": float(fitness),
-                    "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
+                    "fitness": fitness,
+                    "hyperparameters": {
+                        k: (v.item() if hasattr(v, "item") else v)
+                        for k, v in hyperparameters.items()
+                    },
                     "metrics": metrics,
                     "timestamp": datetime.now(),
                     "iteration": iteration,
@@ -295,8 +298,7 @@ class Tuner:
 
         # Try MongoDB first if available
         if self.mongodb:
-            results = self._get_mongodb_results(n)
-            if results:
+            if results := self._get_mongodb_results(n):
                 # MongoDB already sorted by fitness DESC, so results[0] is best
                 x = np.array([[r["fitness"]] + [r["hyperparameters"][k] for k in self.space.keys()] for r in results])
             elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere

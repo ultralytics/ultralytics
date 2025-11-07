@@ -32,4 +32,4 @@ you need down opencv for android from https://github.com/opencv/opencv/releases/
 
 ### copyright
 
-app/src/main/assets/test_2400_1080.jpg  is a screenshot from the king game, and its copyright belongs to Tencent. It is used here only to demonstrate the effectiveness of the model.
+app/src/main/assets/test_2400_1080.jpg is a screenshot from the king game, and its copyright belongs to Tencent. It is used here only to demonstrate the effectiveness of the model.

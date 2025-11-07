@@ -1,4 +1,5 @@
-# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 
 def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
     """Adjust bounding boxes to stick to image border if they are within a certain threshold.

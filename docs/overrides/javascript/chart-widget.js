@@ -1,4 +1,4 @@
-// © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 //Reusable Chart.js toolbar widget with download functionality
 class ChartWidget {
@@ -9,7 +9,7 @@ class ChartWidget {
   }
 
   init() {
-    const {canvas} = this.chart;
+    const { canvas } = this.chart;
     const container = canvas.parentElement;
     container.style.position = "relative";
 
@@ -57,7 +57,7 @@ class ChartWidget {
     const tip = this.toolbar.querySelector(".tip");
 
     this.toolbar.addEventListener("click", (e) => {
-      const {action} = e.target.closest("button").dataset;
+      const { action } = e.target.closest("button").dataset;
       if (action === "png") {
         this.downloadPNG();
       }

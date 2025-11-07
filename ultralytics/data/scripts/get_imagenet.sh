@@ -1,5 +1,5 @@
 #!/bin/bash
-# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Download ILSVRC2012 ImageNet dataset https://image-net.org
 # Example usage: bash data/scripts/get_imagenet.sh

@@ -1,4 +1,4 @@
-# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection, instance
 segmentation, image classification, pose estimation, and multi-object tracking.
@@ -227,10 +227,7 @@ class Tuner:
             self.collection.insert_one(
                 {
                     "fitness": fitness,
-                    "hyperparameters": {
-                        k: (v.item() if hasattr(v, "item") else v)
-                        for k, v in hyperparameters.items()
-                    },
+                    "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
                     "metrics": metrics,
                     "timestamp": datetime.now(),
                     "iteration": iteration,

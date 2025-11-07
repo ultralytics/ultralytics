@@ -1,5 +1,5 @@
 #!/bin/bash
-# © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Download COCO128 dataset https://www.kaggle.com/ultralytics/coco128 (first 128 images from COCO train2017)
 # Example usage: bash data/scripts/get_coco128.sh

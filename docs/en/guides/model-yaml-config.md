@@ -117,8 +117,8 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | Module        | Purpose                              | Source                                                                                         | Arguments                               |
 | ------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------- |
 | `Conv`        | Convolution + BatchNorm + Activation | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py) | `[out_ch, kernel, stride, pad, groups]` |
-| `nn.Upsample` | Spatial upsampling                   | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Upsample.html)                    | `[size, scale_factor, mode]`            |
-| `nn.Identity` | Pass-through operation               | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Identity.html)                    | `[]`                                    |
+| `nn.Upsample` | Spatial upsampling                   | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Upsample.html)               | `[size, scale_factor, mode]`            |
+| `nn.Identity` | Pass-through operation               | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Identity.html)               | `[]`                                    |
 
 ### Composite Blocks
 

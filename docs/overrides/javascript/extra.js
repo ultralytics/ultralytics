@@ -1,4 +1,4 @@
-// © 2014-2025 Ultralytics Inc. 🚀 All rights reserved. CONFIDENTIAL: Unauthorized use or distribution prohibited.
+// Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 // Apply theme colors based on dark/light mode
 const applyTheme = (isDark) => {
@@ -188,8 +188,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (match) {
         langs.push({ code: match[1], link });
       } else if (url.pathname === "/" || url.pathname === "") {
-               defaultLink = link;
-             }
+        defaultLink = link;
+      }
     });
 
     // Find current language and base path

@@ -413,17 +413,19 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 f"--index-strategy=unsafe-best-match --break-system-packages --prerelease=allow"
             )
             try:
-                return subprocess.check_output(base, shell=True, stderr=subprocess.PIPE, text=True)
+                return subprocess.check_output(base, shell=True, stderr=subprocess.STDOUT, text=True)
             except subprocess.CalledProcessError as e:
-                if e.stderr and "No virtual environment found" in e.stderr:
+                if e.output and "No virtual environment found" in e.output:
                     return subprocess.check_output(
                         base.replace("uv pip install", "uv pip install --system"),
                         shell=True,
-                        stderr=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
                         text=True,
                     )
                 raise
-        return subprocess.check_output(f"pip install --no-cache-dir {packages} {commands}", shell=True, text=True)
+        return subprocess.check_output(
+            f"pip install --no-cache-dir {packages} {commands}", shell=True, stderr=subprocess.STDOUT, text=True
+        )
 
     s = " ".join(f'"{x}"' for x in pkgs)  # console string
     if s:

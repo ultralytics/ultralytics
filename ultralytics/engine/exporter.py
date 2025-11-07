@@ -154,7 +154,7 @@ def export_formats():
         ["MNN", "mnn", ".mnn", True, True, ["batch", "half", "int8"]],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "half"]],
         ["IMX", "imx", "_imx_model", True, True, ["int8", "fraction", "nms"]],
-        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name"]],
+        ["RKNN", "rknn", "_rknn_model", False, False, ["batch", "name", "qt_datasets", "do_quantization", "quantized_dtype", "quantized_algorithm"]],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments"], zip(*x)))
@@ -1157,11 +1157,17 @@ class Exporter:
         f = self.export_onnx()
         export_path = Path(f"{Path(f).stem}_rknn_model")
         export_path.mkdir(exist_ok=True)
+        dataset_file = self.args.qt_datasets
+        # Apply quantization only if do_quantization is True and dataset is available
+        do_quant = self.args.do_quantization and bool(dataset_file)
 
+        
         rknn = RKNN(verbose=False)
-        rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=self.args.name)
+        rknn.config(mean_values=[[0, 0, 0]], std_values=[[255, 255, 255]], target_platform=self.args.name, quantized_dtype=self.args.quantized_dtype, quantized_algorithm=self.args.quantized_algorithm)
         rknn.load_onnx(model=f)
-        rknn.build(do_quantization=False)  # TODO: Add quantization support
+        # Use qt_datasets if provided, otherwise use default dataset file
+        
+        rknn.build(do_quantization=do_quant, dataset=dataset_file if do_quant else None)
         f = f.replace(".onnx", f"-{self.args.name}.rknn")
         rknn.export_rknn(f"{export_path / f}")
         YAML.save(export_path / "metadata.yaml", self.metadata)

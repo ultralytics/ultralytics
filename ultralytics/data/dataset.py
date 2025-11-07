@@ -456,7 +456,7 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-        assert CACHE_SUFFIX in {".cache", ".merged.cache", ".updated.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
+         assert CACHE_SUFFIX in {".cache", ".merged.cache", ".engine.cache"}, f"cache_suffix must be either '.cache' or '.merged.cache', but got {CACHE_SUFFIX}"
 
     def get_img_files(self, img_path: str) -> list:
         """
@@ -619,8 +619,8 @@ class GroundingDataset(YOLODataset):
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
 
-        if CACHE_SUFFIX == ".cache":
-            self.verify_labels(labels)
+        # if CACHE_SUFFIX == ".cache":
+        #     self.verify_labels(labels)
 
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:

@@ -70,13 +70,9 @@ class CPUInfo:
         """Normalize and prettify a raw CPU descriptor string."""
         s = re.sub(r"\s+", " ", s.strip())
         s = s.replace("(TM)", "").replace("(tm)", "").replace("(R)", "").replace("(r)", "").strip()
-        # Normalize common Intel pattern to 'Model Freq'
-        m = re.search(r"(Intel.*?i\d[\w-]*) CPU @ ([\d.]+GHz)", s, re.I)
-        if m:
+        if m := re.search(r"(Intel.*?i\d[\w-]*) CPU @ ([\d.]+GHz)", s, re.I):
             return f"{m.group(1)} {m.group(2)}"
-        # Normalize common AMD Ryzen pattern to 'Model Freq'
-        m = re.search(r"(AMD.*?Ryzen.*?[\w-]*) CPU @ ([\d.]+GHz)", s, re.I)
-        if m:
+        if m := re.search(r"(AMD.*?Ryzen.*?[\w-]*) CPU @ ([\d.]+GHz)", s, re.I):
             return f"{m.group(1)} {m.group(2)}"
         return s
 

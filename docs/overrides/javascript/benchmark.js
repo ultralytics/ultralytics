@@ -3,7 +3,9 @@
 // Auto-load chart-widget.js if not already loaded
 const loadChartWidget = () =>
   new Promise((resolve) => {
-    if (window.ChartWidget) return resolve();
+    if (window.ChartWidget) {
+      return resolve();
+    }
     const s = document.createElement("script");
     const base =
       (

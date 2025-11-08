@@ -12,7 +12,7 @@ keywords: Coral Edge TPU, Raspberry Pi, YOLO11, Ultralytics, TensorFlow Lite, ML
 
 ## What is a Coral Edge TPU?
 
-The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inference for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite models. Read more at the [Coral Edge TPU home page](https://coral.ai/products/accelerator).
+The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your system. It enables low-power, high-performance ML inference for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Lite models. Read more at the [Coral Edge TPU home page](https://developers.google.com/coral).
 
 <p align="center">
   <br>
@@ -31,13 +31,13 @@ Many people want to run their models on an embedded or mobile device such as a R
 
 ## Edge TPU on Raspberry Pi with TensorFlow Lite (New)⭐
 
-The [existing guide](https://coral.ai/docs/accelerator/get-started/) by Coral on how to use the Edge TPU with a Raspberry Pi is outdated, and the current Coral Edge TPU runtime builds do not work with the current TensorFlow Lite runtime versions anymore. In addition to that, Google seems to have completely abandoned the Coral project, and there have not been any updates between 2021 and 2025. This guide will show you how to get the Edge TPU working with the latest versions of the TensorFlow Lite runtime and an updated Coral Edge TPU runtime on a Raspberry Pi single board computer (SBC).
+The [existing guide](https://gweb-coral-full.uc.r.appspot.com/docs/accelerator/get-started/) by Coral on how to use the Edge TPU with a Raspberry Pi is outdated, and the current Coral Edge TPU runtime builds do not work with the current TensorFlow Lite runtime versions anymore. In addition to that, Google seems to have completely abandoned the Coral project, and there have not been any updates between 2021 and 2025. This guide will show you how to get the Edge TPU working with the latest versions of the TensorFlow Lite runtime and an updated Coral Edge TPU runtime on a Raspberry Pi single board computer (SBC).
 
 ## Prerequisites
 
 - [Raspberry Pi 4B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (2GB or more recommended) or [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) (Recommended)
 - [Raspberry Pi OS](https://www.raspberrypi.com/software/) Bullseye/Bookworm (64-bit) with desktop (Recommended)
-- [Coral USB Accelerator](https://coral.ai/products/accelerator/)
+- [Coral USB Accelerator](https://developers.google.com/coral)
 - A non-ARM based platform for exporting an Ultralytics [PyTorch](https://www.ultralytics.com/glossary/pytorch) model
 
 ## Installation Walkthrough
@@ -205,7 +205,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 ### What is a Coral Edge TPU and how does it enhance Raspberry Pi's performance with Ultralytics YOLO11?
 
-The Coral Edge TPU is a compact device designed to add an Edge TPU coprocessor to your system. This coprocessor enables low-power, high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) inference, particularly optimized for TensorFlow Lite models. When using a Raspberry Pi, the Edge TPU accelerates ML model inference, significantly boosting performance, especially for Ultralytics YOLO11 models. You can read more about the Coral Edge TPU on their [home page](https://coral.ai/products/accelerator).
+The Coral Edge TPU is a compact device designed to add an Edge TPU coprocessor to your system. This coprocessor enables low-power, high-performance [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) inference, particularly optimized for TensorFlow Lite models. When using a Raspberry Pi, the Edge TPU accelerates ML model inference, significantly boosting performance, especially for Ultralytics YOLO11 models. You can read more about the Coral Edge TPU on their [home page](https://developers.google.com/coral).
 
 ### How do I install the Coral Edge TPU runtime on a Raspberry Pi?
 

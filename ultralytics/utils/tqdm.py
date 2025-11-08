@@ -148,7 +148,7 @@ class TQDM:
         self.start_t = time.time()
         self.last_rate = 0.0
         self.closed = False
-        self.is_bytes = unit_scale and unit in ("B", "bytes")
+        self.is_bytes = unit_scale and unit in {"B", "bytes"}
         self.scales = (
             [(1073741824, "GB/s"), (1048576, "MB/s"), (1024, "KB/s")]
             if self.is_bytes
@@ -248,10 +248,8 @@ class TQDM:
             percent = (self.n / self.total) * 100
             n_str = self._format_num(self.n)
             t_str = self._format_num(self.total)
-            if self.is_bytes:
-                # Collapse suffix only when identical (e.g. "5.4/5.4MB")
-                if n_str[-2] == t_str[-2]:
-                    n_str = n_str.rstrip("KMGTPB")  # Remove unit suffix from current if different than total
+            if self.is_bytes and n_str[-2] == t_str[-2]:  # Collapse suffix only when identical (e.g. "5.4/5.4MB")
+                n_str = n_str.rstrip("KMGTPB")
         else:
             percent = 0.0
             n_str, t_str = self._format_num(self.n), "?"

@@ -1474,7 +1474,9 @@ class NMSModel(torch.nn.Module):
                 self.args.iou,
             )
             if self.dynamo():
-                keep = torch.nn.functional.pad(keep, (0, self.args.max_det), value=mask.shape[0] - 1)  # repeat the final index as pad
+                keep = torch.nn.functional.pad(
+                    keep, (0, self.args.max_det), value=mask.shape[0] - 1
+                )  # repeat the final index as pad
             keep = keep[: self.args.max_det]
             dets = torch.cat(
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1

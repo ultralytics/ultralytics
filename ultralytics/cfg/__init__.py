@@ -31,6 +31,7 @@ from ultralytics.utils import (
     colorstr,
     deprecation_warn,
     vscode_msg,
+    STR_OR_PATH
 )
 
 # Define valid solutions

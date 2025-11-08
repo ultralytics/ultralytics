@@ -20,7 +20,8 @@ Examples:
 from .custom_blocks import (
     ConvAttnLite,
     MyConvBlock,
-    CoordAttConv
+    CoordAttConv,
+    ConvAttnDeform,
 )
 
 from .block import (
@@ -119,6 +120,7 @@ __all__ = (
     "ConvAttnLite",
     "MyConvBlock",
     "CoordAttConv",
+    "ConvAttnDeform",
     "LightConv",
     "RepConv",
     "DWConv",

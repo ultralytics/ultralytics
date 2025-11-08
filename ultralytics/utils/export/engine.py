@@ -45,7 +45,7 @@ def torch2onnx(
         }
     kwargs = (
         dict(
-            dynamo=TORCH_2_9,  # TorchDynamo-based export
+            dynamo=TORCH_2_9 and dynamo,  # TorchDynamo-based export
             external_data=False,  # do not create .onnx.data file
             dynamic_shapes={"x": dims} if dynamic else None,
         )

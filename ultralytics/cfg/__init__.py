@@ -24,6 +24,7 @@ from ultralytics.utils import (
     RUNS_DIR,
     SETTINGS,
     SETTINGS_FILE,
+    STR_OR_PATH,
     TESTS_RUNNING,
     YAML,
     IterableSimpleNamespace,
@@ -31,7 +32,6 @@ from ultralytics.utils import (
     colorstr,
     deprecation_warn,
     vscode_msg,
-    STR_OR_PATH
 )
 
 # Define valid solutions

@@ -18,7 +18,7 @@ Examples:
 """
 
 from .custom_blocks import (
-    CoordAttConv
+    ConvAttnDeform
 )
 
 from .block import (
@@ -114,7 +114,7 @@ __all__ = (
     "AIFI",
     "Conv",
     "Conv2",
-    "CoordAttConv",
+    "ConvAttnDeform",
     "LightConv",
     "RepConv",
     "DWConv",

@@ -18,6 +18,7 @@ from ultralytics.nn.modules import (
     C2PSA,
     C3,
     C3TR,
+    ConvAttnDeform,
     ELAN1,
     OBB,
     OBB26,
@@ -72,7 +73,6 @@ from ultralytics.nn.modules import (
     YOLOESegment,
     YOLOESegment26,
     v10Detect,
-    MyConvBlock,
 )
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
@@ -1577,6 +1577,7 @@ def parse_model(d, ch, verbose=True):
         {
             Classify,
             Conv,
+            ConvAttnDeform,
             ConvTranspose,
             GhostConv,
             Bottleneck,

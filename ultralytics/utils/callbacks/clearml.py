@@ -15,8 +15,7 @@ except (ImportError, AssertionError):
 
 
 def _log_debug_samples(files, title: str = "Debug Samples") -> None:
-    """
-    Log files (images) as debug samples in the ClearML task.
+    """Log files (images) as debug samples in the ClearML task.
 
     Args:
         files (list[Path]): A list of file paths in PosixPath format.
@@ -35,8 +34,7 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
 
 
 def _log_plot(title: str, plot_path: str) -> None:
-    """
-    Log an image as a plot in the plot section of ClearML.
+    """Log an image as a plot in the plot section of ClearML.
 
     Args:
         title (str): The title of the plot.

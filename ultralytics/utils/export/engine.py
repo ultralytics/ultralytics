@@ -8,10 +8,10 @@ from pathlib import Path
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
 
 
-def export_onnx(
+def torch2onnx(
     torch_model: torch.nn.Module,
     im: torch.Tensor,
     onnx_file: str,
@@ -21,8 +21,7 @@ def export_onnx(
     dynamic: bool | dict = False,
     dynamo: bool = True,
 ) -> None:
-    """
-    Export a PyTorch model to ONNX format.
+    """Export a PyTorch model to ONNX format.
 
     Args:
         torch_model (torch.nn.Module): The PyTorch model to export.
@@ -46,11 +45,11 @@ def export_onnx(
         }
     kwargs = (
         dict(
-            dynamo=dynamo,  # TorchDynamo-based export
+            dynamo=TORCH_2_9,  # TorchDynamo-based export
             external_data=False,  # do not create .onnx.data file
             dynamic_shapes={"x": dims} if dynamic else None,
         )
-        if check_version(torch.__version__, ">=2.8.0")
+        if TORCH_2_4
         else {}
     )
     torch.onnx.export(
@@ -67,7 +66,7 @@ def export_onnx(
     )
 
 
-def export_engine(
+def onnx2engine(
     onnx_file: str,
     engine_file: str | None = None,
     workspace: int | None = None,
@@ -81,8 +80,7 @@ def export_engine(
     verbose: bool = False,
     prefix: str = "",
 ) -> None:
-    """
-    Export a YOLO model to TensorRT engine format.
+    """Export a YOLO model to TensorRT engine format.
 
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
@@ -107,7 +105,7 @@ def export_engine(
         INT8 calibration requires a dataset and generates a calibration cache.
         Metadata is serialized and written to the engine file if provided.
     """
-    import tensorrt as trt  # noqa
+    import tensorrt as trt
 
     engine_file = engine_file or Path(onnx_file).with_suffix(".engine")
 
@@ -118,12 +116,12 @@ def export_engine(
     # Engine builder
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
-    workspace = int((workspace or 0) * (1 << 30))
+    workspace_bytes = int((workspace or 0) * (1 << 30))
     is_trt10 = int(trt.__version__.split(".", 1)[0]) >= 10  # is TensorRT >= 10
-    if is_trt10 and workspace > 0:
-        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace)
-    elif workspace > 0:  # TensorRT versions 7, 8
-        config.max_workspace_size = workspace
+    if is_trt10 and workspace_bytes > 0:
+        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace_bytes)
+    elif workspace_bytes > 0:  # TensorRT versions 7, 8
+        config.max_workspace_size = workspace_bytes
     flag = 1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
     network = builder.create_network(flag)
     half = builder.platform_has_fast_fp16 and half
@@ -171,11 +169,10 @@ def export_engine(
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
         class EngineCalibrator(trt.IInt8Calibrator):
-            """
-            Custom INT8 calibrator for TensorRT engine optimization.
+            """Custom INT8 calibrator for TensorRT engine optimization.
 
-            This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration
-            using a dataset. It handles batch generation, caching, and calibration algorithm selection.
+            This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration using
+            a dataset. It handles batch generation, caching, and calibration algorithm selection.
 
             Attributes:
                 dataset: Dataset for calibration.

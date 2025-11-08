@@ -19,8 +19,7 @@ from .utils.kalman_filter import KalmanFilterXYWH
 
 
 class BOTrack(STrack):
-    """
-    An extended version of the STrack class for YOLO, adding object tracking features.
+    """An extended version of the STrack class for YOLO, adding object tracking features.
 
     This class extends the STrack class to include additional functionalities for object tracking, such as feature
     smoothing, Kalman filter prediction, and reactivation of tracks.
@@ -57,8 +56,7 @@ class BOTrack(STrack):
     def __init__(
         self, xywh: np.ndarray, score: float, cls: int, feat: np.ndarray | None = None, feat_history: int = 50
     ):
-        """
-        Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
+        """Initialize a BOTrack object with temporal parameters, such as feature history, alpha, and current features.
 
         Args:
             xywh (np.ndarray): Bounding box coordinates in xywh format (center x, center y, width, height).
@@ -154,8 +152,7 @@ class BOTrack(STrack):
 
 
 class BOTSORT(BYTETracker):
-    """
-    An extended version of the BYTETracker class for YOLO, designed for object tracking with ReID and GMC algorithm.
+    """An extended version of the BYTETracker class for YOLO, designed for object tracking with ReID and GMC algorithm.
 
     Attributes:
         proximity_thresh (float): Threshold for spatial proximity (IoU) between tracks and detections.
@@ -177,13 +174,12 @@ class BOTSORT(BYTETracker):
         >>> bot_sort.init_track(dets, scores, cls, img)
         >>> bot_sort.multi_predict(tracks)
 
-    Note:
+    Notes:
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 
     def __init__(self, args: Any, frame_rate: int = 30):
-        """
-        Initialize BOTSORT object with ReID module and GMC algorithm.
+        """Initialize BOTSORT object with ReID module and GMC algorithm.
 
         Args:
             args (Any): Parsed command-line arguments containing tracking parameters.
@@ -253,8 +249,7 @@ class ReID:
     """YOLO model as encoder for re-identification."""
 
     def __init__(self, model: str):
-        """
-        Initialize encoder for re-identification.
+        """Initialize encoder for re-identification.
 
         Args:
             model (str): Path to the YOLO model for re-identification.

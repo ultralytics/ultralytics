@@ -52,7 +52,6 @@ class ConvAttnLite(nn.Module):
         expand_ratio: float = 1.5,
         attn_reduction: Optional[int] = 16,
     ) -> None:
-        """Construct an inverted bottleneck-style conv block with attention."""
         super().__init__()
         if g != 1:
             raise ValueError("ConvAttnLite does not support grouped convolutions.")
@@ -101,7 +100,6 @@ class ConvAttnLite(nn.Module):
         self.use_shortcut = c1 == c2 and stride == (1, 1) and dilation == (1, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Run lightweight conv-attention block."""
         residual = x
         x = self.expand(x)
         x = self.depthwise(x)
@@ -114,7 +112,6 @@ class ConvAttnLite(nn.Module):
         return self.act(x)
 
     def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
-        """Fused forward (BatchNorm folding is not supported; falls back to standard forward)."""
         return self.forward(x)
 
 
@@ -141,13 +138,11 @@ class CoordAttConv(nn.Module):
 
         fh = F.adaptive_avg_pool2d(y, (h, 1))
         fw = F.adaptive_avg_pool2d(y, (1, w)).permute(0, 1, 3, 2)
-
         f = torch.cat([fh, fw], dim=2)
         f = self.act(self.bn1(self.conv1(f)))
 
         fh, fw = torch.split(f, [h, w], dim=2)
         fw = fw.permute(0, 1, 3, 2)
-
         sh = self.sigmoid(self.conv_h(fh))
         sw = self.sigmoid(self.conv_w(fw))
         return y * sh * sw
@@ -176,7 +171,6 @@ class ConvAttnDeform(nn.Module):
         attn_reduction: Optional[int] = 16,
         zero_init_offset: bool = True,
     ) -> None:
-        """Construct a deformable convolution followed by BatchNorm, attention, and activation."""
         super().__init__()
         if DeformConv2d is None:  # pragma: no cover
             raise ImportError(
@@ -245,7 +239,6 @@ class ConvAttnDeform(nn.Module):
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Run deformable convolution followed by BN, optional attention, and activation."""
         offset = self.offset_conv(x)
         x = self.deform_conv(x, offset)
         x = self.bn(x)
@@ -254,5 +247,4 @@ class ConvAttnDeform(nn.Module):
         return self.act(x)
 
     def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
-        """Fused forward (BatchNorm folding is not supported; falls back to standard forward)."""
         return self.forward(x)

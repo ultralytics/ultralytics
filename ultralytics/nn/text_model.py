@@ -372,7 +372,7 @@ class OpenCLIP(TextModel):
         super().__init__()
 
         import os
-        pretrained_path= os.path.join("../text_embed", pretrained_path)
+        pretrained_path= os.path.join("./", pretrained_path)
         if not os.path.exists(pretrained_path):
             raise Exception("Please download the mobileclip2_b.pt from")
 

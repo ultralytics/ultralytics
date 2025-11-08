@@ -118,6 +118,7 @@ def test_train():
         results = YOLO(MODEL).train(
             data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15
         )  # requires imgsz>=64
+        results = YOLO(MODEL).train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
         visible = eval(os.environ["CUDA_VISIBLE_DEVICES"])
         assert visible == device, f"Passed GPUs '{device}', but used GPUs '{visible}'"
         assert (

@@ -119,7 +119,6 @@ If you use this dataset in your research, please cite it using the mentioned det
         }
         ```
 
-
 ## FAQ
 
 ### What is the African Wildlife Dataset, and how can it be used in computer vision projects?

@@ -97,9 +97,27 @@ The African wildlife dataset comprises a wide variety of images showcasing diver
 
 This example illustrates the variety and complexity of images in the African wildlife dataset, emphasizing the benefits of including mosaicing during the training process.
 
-## Citations and Acknowledgments
+## Citations, License and Acknowledgments
 
-The dataset has been released available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+We’d like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally so it can be used seamlessly with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. This dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+
+If you use this dataset in your research, please cite it using the mentioned details:
+
+!!! quote ""
+
+    === "BibTeX"
+
+        ```bibtex
+        @dataset{Jocher_Ultralytics_Datasets_2024,
+            author = {Jocher, Glenn and Rizwan, Muhammad},
+            license = {AGPL-3.0},
+            month = {May},
+            title = {Ultralytics Datasets: African Wildlife Detection Dataset},
+            url = {https://docs.ultralytics.com/datasets/detect/african-wildlife/},
+            version = {1.0.0},
+            year = {2024}
+        }
+        ```
 
 ## FAQ
 

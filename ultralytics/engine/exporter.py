@@ -1112,14 +1112,15 @@ class Exporter:
         assert LINUX, f"export only supported on Linux. See {help_url}"
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
+            sudo = "sudo " if is_sudo_available() else ""
             for c in (
-                "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
-                'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
-                "sudo tee /etc/apt/sources.list.d/coral-edgetpu.list",
-                "sudo apt-get update",
-                "sudo apt-get install edgetpu-compiler",
+                f"{sudo}mkdir -p /etc/apt/keyrings",
+                f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
+                f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                f"{sudo}apt-get update",
+                f"{sudo}apt-get install -y edgetpu-compiler",
             ):
-                subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
+                subprocess.run(c, shell=True, check=True)
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")

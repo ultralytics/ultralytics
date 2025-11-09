@@ -117,7 +117,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      e.key === "k" &&
+      !/input|textarea/i.test(e.target.tagName) &&
+      !e.target.isContentEditable
+    ) {
       e.preventDefault();
       ultralyticsChat?.toggle(true, "search");
     }

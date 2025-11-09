@@ -15,7 +15,7 @@ from ultralytics.utils import NOT_MACOS14
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
-from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN
+from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Residual, SwiGLUFFN, Protov4_add_semseg
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
@@ -314,6 +314,113 @@ class Segment(Detect):
             if self.end2end:
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = proto.detach()
+            else:
+                preds["proto"] = proto
+        if self.training:
+            return preds
+        return (outputs, proto) if self.export else ((outputs[0], proto), preds)
+
+    def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Decode predicted bounding boxes and class probabilities, concatenated with mask coefficients."""
+        preds = super()._inference(x)
+        return torch.cat([preds, x["mask_coefficient"]], dim=1)
+
+    def forward_head(
+        self, x: list[torch.Tensor], box_head: torch.nn.Module, cls_head: torch.nn.Module, mask_head: torch.nn.Module
+    ) -> torch.Tensor:
+        preds = super().forward_head(x, box_head, cls_head)
+        if mask_head is not None:
+            bs = x[0].shape[0]  # batch size
+            preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
+        return preds
+
+    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
+        """
+        Post-process YOLO model predictions.
+
+        Args:
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
+                format [x, y, w, h, class_probs, mask_coefficient].
+
+        Returns:
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
+                dimension format [x, y, w, h, max_class_prob, class_index, mask_coefficient].
+        """
+        boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
+        boxes = boxes.gather(dim=1, index=idx.repeat(1, 1, 4))
+        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.repeat(1, 1, self.nm))
+        return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
+
+    def fuse(self) -> None:
+        """Remove the one2many head for inference optimization."""
+        self.cv2 = self.cv3 = self.cv4 = None
+
+
+class Segmentv8_add(Detect):
+    """
+    YOLO Segment head for segmentation models.
+
+    This class extends the Detect head to include mask prediction capabilities for instance segmentation tasks.
+
+    Attributes:
+        nm (int): Number of masks.
+        npr (int): Number of protos.
+        proto (Proto): Prototype generation module.
+        cv4 (nn.ModuleList): Convolution layers for mask coefficients.
+
+    Methods:
+        forward: Return model outputs and mask coefficients.
+
+    Examples:
+        Create a segmentation head
+        >>> segment = Segment(nc=80, nm=32, npr=256, ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = segment(x)
+    """
+
+    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, reg_max=16, end2end=False, ch: tuple = ()):
+        """
+        Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
+
+        Args:
+            nc (int): Number of classes.
+            nm (int): Number of masks.
+            npr (int): Number of protos.
+            ch (tuple): Tuple of channel sizes from backbone feature maps.
+        """
+        super().__init__(nc, reg_max, end2end, ch)
+        self.nm = nm  # number of masks
+        self.npr = npr  # number of protos
+        self.proto = Protov4_add_semseg(ch, self.npr, self.nm, nc)  # protos
+
+        c4 = max(ch[0] // 4, self.nm)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
+        if end2end:
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
+
+    @property
+    def one2many(self):
+        """Returns the one-to-many head components, here for backward compatibility."""
+        return dict(box_head=self.cv2, cls_head=self.cv3, mask_head=self.cv4)
+
+    @property
+    def one2one(self):
+        """Returns the one-to-one head components."""
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, mask_head=self.one2one_cv4)
+
+    def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
+        """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
+        outputs = super().forward(x)
+        preds = outputs[1] if isinstance(outputs, tuple) else outputs
+        proto = self.proto(x)  # mask protos
+        if isinstance(preds, dict):  # training and validating during training
+            if self.end2end:
+                preds["one2many"]["proto"] = proto
+                if isinstance(proto, tuple):
+                    preds["one2one"]["proto"] = tuple(p.detach() for p in proto)
+                else:
+                    preds["one2one"]["proto"] = proto.detach()
             else:
                 preds["proto"] = proto
         if self.training:

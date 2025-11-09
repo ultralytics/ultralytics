@@ -240,6 +240,11 @@ class BaseValidator:
             self.run_callbacks("on_val_end")
 
         if self.training:
+            if self.args.save_json and self.jdict:
+                with open(str(self.save_dir / "predictions.json"), "w", encoding="utf-8") as f:
+                    LOGGER.info(f"Saving {f.name}...")
+                    json.dump(self.jdict, f)  # flatten and save
+                stats = self.eval_json(stats)  # update stats
             model.float()
             # Reduce loss across all GPUs
             loss = self.loss.clone().detach()

@@ -105,6 +105,62 @@ class Proto(nn.Module):
         return self.cv3(self.cv2(self.upsample(self.cv1(x))))
 
 
+class Semsegv2(nn.Module):
+    """Ultralytics YOLO models mask Proto module for segmentation models."""
+
+    def __init__(self, c1: int, c_: int = 256, nc: int = 80):
+        """
+        Initialize the Ultralytics YOLO models mask Proto module with specified number of protos and masks.
+
+        Args:
+            c1 (int): Input channels.
+            c_ (int): Intermediate channels.
+            c2 (int): Output channels (number of protos).
+        """
+        super().__init__()
+        self.cv1 = Conv(c1, c_, k=3)
+        self.cv2 = Conv(c_, c_, k=3)
+        self.cv3 = nn.Conv2d(c_, nc, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Perform a forward pass through layers using an upsampled input image."""
+        return self.cv3(self.cv2((self.cv1(x))))
+
+
+class Protov4_add_semseg(nn.Module):
+    """Ultralytics YOLO models mask Proto module for segmentation models."""
+
+    def __init__(self, ch: int, c_: int = 256, c2: int = 32, nc: int = 80):
+        """
+        Initialize the Ultralytics YOLO models mask Proto module with specified number of protos and masks.
+
+        Args:
+            c1 (int): Input channels.
+            c_ (int): Intermediate channels.
+            c2 (int): Output channels (number of protos).
+        """
+        super().__init__()
+        self.cv0 = Conv(ch[0], c_, k=3)
+        self.cv1 = Conv(c_, c_, k=3)
+        self.upsample = nn.ConvTranspose2d(c_, c_, 2, 2, 0, bias=True)  # nn.Upsample(scale_factor=2, mode='nearest')
+        self.upsample_p5 = nn.Sequential(Conv(ch[2], ch[0], k=1), nn.Upsample(scale_factor=4, mode='nearest'))
+        self.upsample_p4 = nn.Sequential(Conv(ch[1], ch[0], k=1), nn.Upsample(scale_factor=2, mode='nearest'))
+        self.cv2 = Conv(c_, c_, k=3)
+        self.cv3 = Conv(c_, c2)
+        self.semseg = Semsegv2(ch[0], c_, nc)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Perform a forward pass through layers using an upsampled input image."""
+        p4 = self.upsample_p4(x[1])
+        p5 = self.upsample_p5(x[2])
+        x = x[0] + p4 + p5
+        p = self.cv3(self.cv2(self.upsample(self.cv1(self.cv0(x)))))
+        if self.training:
+            semseg = self.semseg(x)
+            return (p, semseg)
+        return p
+
+
 class HGStem(nn.Module):
     """
     StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.

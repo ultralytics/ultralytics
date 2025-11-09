@@ -791,6 +791,7 @@ class BaseTrainer:
         if model:
             LOGGER.info(f"\nValidating {model}...")
             self.validator.args.plots = self.args.plots
+            self.validator.args.conf = 0.001
             self.validator.args.compile = False  # disable final val compile as too slow
             self.metrics = self.validator(model=model)
             self.metrics.pop("fitness", None)

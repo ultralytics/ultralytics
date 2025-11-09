@@ -14,8 +14,7 @@ import torch
 def is_box_near_crop_edge(
     boxes: torch.Tensor, crop_box: list[int], orig_box: list[int], atol: float = 20.0
 ) -> torch.Tensor:
-    """
-    Determine if bounding boxes are near the edge of a cropped image region using a specified tolerance.
+    """Determine if bounding boxes are near the edge of a cropped image region using a specified tolerance.
 
     Args:
         boxes (torch.Tensor): Bounding boxes in XYXY format.
@@ -42,8 +41,7 @@ def is_box_near_crop_edge(
 
 
 def batch_iterator(batch_size: int, *args) -> Generator[list[Any]]:
-    """
-    Yield batches of data from input arguments with specified batch size for efficient processing.
+    """Yield batches of data from input arguments with specified batch size for efficient processing.
 
     This function takes a batch size and any number of iterables, then yields batches of elements from those
     iterables. All input iterables must have the same length.
@@ -71,11 +69,10 @@ def batch_iterator(batch_size: int, *args) -> Generator[list[Any]]:
 
 
 def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, threshold_offset: float) -> torch.Tensor:
-    """
-    Compute the stability score for a batch of masks.
+    """Compute the stability score for a batch of masks.
 
-    The stability score is the IoU between binary masks obtained by thresholding the predicted mask logits at
-    high and low values.
+    The stability score is the IoU between binary masks obtained by thresholding the predicted mask logits at high and
+    low values.
 
     Args:
         masks (torch.Tensor): Batch of predicted mask logits.
@@ -85,15 +82,15 @@ def calculate_stability_score(masks: torch.Tensor, mask_threshold: float, thresh
     Returns:
         (torch.Tensor): Stability scores for each mask in the batch.
 
-    Notes:
-        - One mask is always contained inside the other.
-        - Memory is saved by preventing unnecessary cast to torch.int64.
-
     Examples:
         >>> masks = torch.rand(10, 256, 256)  # Batch of 10 masks
         >>> mask_threshold = 0.5
         >>> threshold_offset = 0.1
         >>> stability_scores = calculate_stability_score(masks, mask_threshold, threshold_offset)
+
+    Notes:
+        - One mask is always contained inside the other.
+        - Memory is saved by preventing unnecessary cast to torch.int64.
     """
     intersections = (masks > (mask_threshold + threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
     unions = (masks > (mask_threshold - threshold_offset)).sum(-1, dtype=torch.int16).sum(-1, dtype=torch.int32)
@@ -117,8 +114,7 @@ def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer:
 def generate_crop_boxes(
     im_size: tuple[int, ...], n_layers: int, overlap_ratio: float
 ) -> tuple[list[list[int]], list[int]]:
-    """
-    Generate crop boxes of varying sizes for multiscale image processing, with layered overlapping regions.
+    """Generate crop boxes of varying sizes for multiscale image processing, with layered overlapping regions.
 
     Args:
         im_size (tuple[int, ...]): Height and width of the input image.
@@ -198,8 +194,7 @@ def uncrop_masks(masks: torch.Tensor, crop_box: list[int], orig_h: int, orig_w: 
 
 
 def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> tuple[np.ndarray, bool]:
-    """
-    Remove small disconnected regions or holes in a mask based on area threshold and mode.
+    """Remove small disconnected regions or holes in a mask based on area threshold and mode.
 
     Args:
         mask (np.ndarray): Binary mask to process.
@@ -236,8 +231,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> tup
 
 
 def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
-    """
-    Calculate bounding boxes in XYXY format around binary masks.
+    """Calculate bounding boxes in XYXY format around binary masks.
 
     Args:
         masks (torch.Tensor): Binary masks with shape (B, H, W) or (B, C, H, W).

@@ -18,11 +18,10 @@ from .val import NASValidator
 
 
 class NAS(Model):
-    """
-    YOLO-NAS model for object detection.
+    """YOLO-NAS model for object detection.
 
-    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine.
-    It is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
+    This class provides an interface for the YOLO-NAS models and extends the `Model` class from Ultralytics engine. It
+    is designed to facilitate the task of object detection using pre-trained or custom-trained YOLO-NAS models.
 
     Attributes:
         model (torch.nn.Module): The loaded YOLO-NAS model.
@@ -48,8 +47,7 @@ class NAS(Model):
         super().__init__(model, task="detect")
 
     def _load(self, weights: str, task=None) -> None:
-        """
-        Load an existing NAS model weights or create a new NAS model with pretrained weights.
+        """Load an existing NAS model weights or create a new NAS model with pretrained weights.
 
         Args:
             weights (str): Path to the model weights file or model name.
@@ -83,8 +81,7 @@ class NAS(Model):
         self.model.eval()
 
     def info(self, detailed: bool = False, verbose: bool = True) -> dict[str, Any]:
-        """
-        Log model information.
+        """Log model information.
 
         Args:
             detailed (bool): Show detailed information about model.

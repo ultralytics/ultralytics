@@ -103,7 +103,7 @@ Below is a detailed overview of each model, including links to their pre-trained
 | YOLO-NAS-m | [yolo_nas_m.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_m.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 | YOLO-NAS-l | [yolo_nas_l.pt](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo_nas_l.pt) | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ❌       | ✅     |
 
-## Citations and Acknowledgements
+## Citations and Acknowledgments
 
 If you employ YOLO-NAS in your research or development work, please cite SuperGradients:
 

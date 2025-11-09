@@ -6,7 +6,7 @@ keywords: YOLO11, TFLite Edge TPU, TensorFlow Lite, model export, machine learni
 
 # Learn to Export to TFLite Edge TPU Format From YOLO11 Model
 
-Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://ai.google.dev/edge/litert) [Edge TPU](https://coral.ai/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
+Deploying computer vision models on devices with limited computational power, such as mobile or embedded systems, can be tricky. Using a model format that is optimized for faster performance simplifies the process. The [TensorFlow Lite](https://ai.google.dev/edge/litert) [Edge TPU](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/models-intro/) or TFLite Edge TPU model format is designed to use minimal power while delivering fast performance for neural networks.
 
 The export to TFLite Edge TPU format feature allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through converting your models to the TFLite Edge TPU format, making it easier for your models to perform well on various mobile and embedded devices.
 
@@ -117,9 +117,9 @@ However, for in-depth instructions on deploying your TFLite Edge TPU models, tak
 
 - **[Coral Edge TPU on a Raspberry Pi with Ultralytics YOLO11](../guides/coral-edge-tpu-on-raspberry-pi.md)**: Discover how to integrate Coral Edge TPUs with Raspberry Pi for enhanced machine learning capabilities.
 
-- **[Code Examples](https://coral.ai/docs/edgetpu/compiler/)**: Access practical TensorFlow Edge TPU deployment examples to kickstart your projects.
+- **[Code Examples](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/compiler/)**: Access practical TensorFlow Edge TPU deployment examples to kickstart your projects.
 
-- **[Run Inference on the Edge TPU with Python](https://coral.ai/docs/edgetpu/tflite-python/#overview)**: Explore how to use the TensorFlow Lite Python API for Edge TPU applications, including setup and usage guidelines.
+- **[Run Inference on the Edge TPU with Python](https://gweb-coral-full.uc.r.appspot.com/docs/edgetpu/tflite-python/#overview)**: Explore how to use the TensorFlow Lite Python API for Edge TPU applications, including setup and usage guidelines.
 
 ## Summary
 

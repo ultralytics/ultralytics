@@ -136,23 +136,23 @@ def test_predict_visualize(model):
     YOLO(WEIGHTS_DIR / model)(SOURCE, imgsz=32, visualize=True)
 
 
-def test_predict_grey_and_4ch(tmp_path):
-    """Test YOLO prediction on SOURCE converted to greyscale and 4-channel images with various filenames."""
+def test_predict_gray_and_4ch(tmp_path):
+    """Test YOLO prediction on SOURCE converted to grayscale and 4-channel images with various filenames."""
     im = Image.open(SOURCE)
 
-    source_greyscale = tmp_path / "greyscale.jpg"
+    source_grayscale = tmp_path / "grayscale.jpg"
     source_rgba = tmp_path / "4ch.png"
     source_non_utf = tmp_path / "non_UTF_测试文件_tést_image.jpg"
     source_spaces = tmp_path / "image with spaces.jpg"
 
-    im.convert("L").save(source_greyscale)  # greyscale
+    im.convert("L").save(source_grayscale)  # grayscale
     im.convert("RGBA").save(source_rgba)  # 4-ch PNG with alpha
     im.save(source_non_utf)  # non-UTF characters in filename
     im.save(source_spaces)  # spaces in filename
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_greyscale, source_non_utf, source_spaces:
+    for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
             assert len(results) == 1  # verify that an image was run
@@ -175,8 +175,7 @@ def test_youtube():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path):
-    """
-    Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
+    """Test streaming tracking on a short 10 frame video using ByteTrack tracker and different GMC methods.
 
     Note imgsz=160 required for tracking for higher confidence and better matches.
     """
@@ -386,7 +385,46 @@ def test_cfg_init():
         check_dict_alignment({"a": 1}, {"b": 2})
     copy_default_cfg()
     (Path.cwd() / DEFAULT_CFG_PATH.name.replace(".yaml", "_copy.yaml")).unlink(missing_ok=False)
-    [smart_value(x) for x in {"none", "true", "false"}]
+
+    # Test smart_value() with comprehensive cases
+    # Test None conversion
+    assert smart_value("none") is None
+    assert smart_value("None") is None
+    assert smart_value("NONE") is None
+
+    # Test boolean conversion
+    assert smart_value("true") is True
+    assert smart_value("True") is True
+    assert smart_value("TRUE") is True
+    assert smart_value("false") is False
+    assert smart_value("False") is False
+    assert smart_value("FALSE") is False
+
+    # Test numeric conversion (ast.literal_eval)
+    assert smart_value("42") == 42
+    assert smart_value("-42") == -42
+    assert smart_value("3.14") == 3.14
+    assert smart_value("-3.14") == -3.14
+    assert smart_value("1e-3") == 0.001
+
+    # Test list/tuple conversion (ast.literal_eval)
+    assert smart_value("[1, 2, 3]") == [1, 2, 3]
+    assert smart_value("(1, 2, 3)") == (1, 2, 3)
+    assert smart_value("[640, 640]") == [640, 640]
+
+    # Test dict conversion (ast.literal_eval)
+    assert smart_value("{'a': 1, 'b': 2}") == {"a": 1, "b": 2}
+
+    # Test string fallback (when ast.literal_eval fails)
+    assert smart_value("some_string") == "some_string"
+    assert smart_value("path/to/file") == "path/to/file"
+    assert smart_value("hello world") == "hello world"
+
+    # Test that code injection is prevented (ast.literal_eval safety)
+    # These should return strings, not execute code
+    assert smart_value("__import__('os').system('ls')") == "__import__('os').system('ls')"
+    assert smart_value("eval('1+1')") == "eval('1+1')"
+    assert smart_value("exec('x=1')") == "exec('x=1')"
 
 
 def test_utils_init():
@@ -722,7 +760,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     grayscale_data = tmp_path / f"{Path(data).stem}-grayscale.yaml"
     data = check_det_dataset(data)
     data["channels"] = 1  # add additional channels key for grayscale
-    YAML.save(grayscale_data, data)
+    YAML.save(data=data, file=grayscale_data)
     # remove npy files in train/val splits if exists, might be created by previous tests
     for split in {"train", "val"}:
         for npy_file in (Path(data["path"]) / data[split]).glob("*.npy"):

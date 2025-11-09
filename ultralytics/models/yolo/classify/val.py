@@ -16,11 +16,10 @@ from ultralytics.utils.plotting import plot_images
 
 
 class ClassificationValidator(BaseValidator):
-    """
-    A class extending the BaseValidator class for validation based on a classification model.
+    """A class extending the BaseValidator class for validation based on a classification model.
 
-    This validator handles the validation process for classification models, including metrics calculation,
-    confusion matrix generation, and visualization of results.
+    This validator handles the validation process for classification models, including metrics calculation, confusion
+    matrix generation, and visualization of results.
 
     Attributes:
         targets (list[torch.Tensor]): Ground truth class labels.
@@ -55,8 +54,7 @@ class ClassificationValidator(BaseValidator):
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None) -> None:
-        """
-        Initialize ClassificationValidator with dataloader, save directory, and other parameters.
+        """Initialize ClassificationValidator with dataloader, save directory, and other parameters.
 
         Args:
             dataloader (torch.utils.data.DataLoader, optional): Dataloader to use for validation.
@@ -96,8 +94,7 @@ class ClassificationValidator(BaseValidator):
         return batch
 
     def update_metrics(self, preds: torch.Tensor, batch: dict[str, Any]) -> None:
-        """
-        Update running metrics with model predictions and batch targets.
+        """Update running metrics with model predictions and batch targets.
 
         Args:
             preds (torch.Tensor): Model predictions, typically logits or probabilities for each class.
@@ -112,12 +109,7 @@ class ClassificationValidator(BaseValidator):
         self.targets.append(batch["cls"].type(torch.int32).cpu())
 
     def finalize_metrics(self) -> None:
-        """
-        Finalize metrics including confusion matrix and processing speed.
-
-        Notes:
-            This method processes the accumulated predictions and targets to generate the confusion matrix,
-            optionally plots it, and updates the metrics object with speed information.
+        """Finalize metrics including confusion matrix and processing speed.
 
         Examples:
             >>> validator = ClassificationValidator()
@@ -125,6 +117,10 @@ class ClassificationValidator(BaseValidator):
             >>> validator.targets = [torch.tensor([0])]  # Ground truth class
             >>> validator.finalize_metrics()
             >>> print(validator.metrics.confusion_matrix)  # Access the confusion matrix
+
+        Notes:
+            This method processes the accumulated predictions and targets to generate the confusion matrix,
+            optionally plots it, and updates the metrics object with speed information.
         """
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
@@ -161,8 +157,7 @@ class ClassificationValidator(BaseValidator):
         return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
 
     def get_dataloader(self, dataset_path: Path | str, batch_size: int) -> torch.utils.data.DataLoader:
-        """
-        Build and return a data loader for classification validation.
+        """Build and return a data loader for classification validation.
 
         Args:
             dataset_path (str | Path): Path to the dataset directory.
@@ -180,8 +175,7 @@ class ClassificationValidator(BaseValidator):
         LOGGER.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:
-        """
-        Plot validation image samples with their ground truth labels.
+        """Plot validation image samples with their ground truth labels.
 
         Args:
             batch (dict[str, Any]): Dictionary containing batch data with 'img' (images) and 'cls' (class labels).
@@ -201,8 +195,7 @@ class ClassificationValidator(BaseValidator):
         )
 
     def plot_predictions(self, batch: dict[str, Any], preds: torch.Tensor, ni: int) -> None:
-        """
-        Plot images with their predicted class labels and save the visualization.
+        """Plot images with their predicted class labels and save the visualization.
 
         Args:
             batch (dict[str, Any]): Batch data containing images and other information.

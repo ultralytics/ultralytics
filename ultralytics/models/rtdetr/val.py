@@ -16,8 +16,7 @@ __all__ = ("RTDETRValidator",)  # tuple or list
 
 
 class RTDETRDataset(YOLODataset):
-    """
-    Real-Time DEtection and TRacking (RT-DETR) dataset class extending the base YOLODataset class.
+    """Real-Time DEtection and TRacking (RT-DETR) dataset class extending the base YOLODataset class.
 
     This specialized dataset class is designed for use with the RT-DETR object detection model and is optimized for
     real-time detection and tracking tasks.
@@ -40,8 +39,7 @@ class RTDETRDataset(YOLODataset):
     """
 
     def __init__(self, *args, data=None, **kwargs):
-        """
-        Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
+        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
 
         This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection and TRacking)
         model, building upon the base YOLODataset functionality.
@@ -54,8 +52,7 @@ class RTDETRDataset(YOLODataset):
         super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
-        """
-        Load one image from dataset index 'i'.
+        """Load one image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
@@ -73,8 +70,7 @@ class RTDETRDataset(YOLODataset):
         return super().load_image(i=i, rect_mode=rect_mode)
 
     def build_transforms(self, hyp=None):
-        """
-        Build transformation pipeline for the dataset.
+        """Build transformation pipeline for the dataset.
 
         Args:
             hyp (dict, optional): Hyperparameters for transformations.
@@ -89,7 +85,7 @@ class RTDETRDataset(YOLODataset):
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
             # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([])
+            transforms = Compose([lambda x: {**x, **{"ratio_pad": [x["ratio_pad"], [0, 0]]}}])
         transforms.append(
             Format(
                 bbox_format="xywh",
@@ -105,8 +101,7 @@ class RTDETRDataset(YOLODataset):
 
 
 class RTDETRValidator(DetectionValidator):
-    """
-    RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
+    """RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
     the RT-DETR (Real-Time DETR) object detection model.
 
     The class allows building of an RTDETR-specific dataset for validation, applies Non-maximum suppression for
@@ -132,8 +127,7 @@ class RTDETRValidator(DetectionValidator):
     """
 
     def build_dataset(self, img_path, mode="val", batch=None):
-        """
-        Build an RTDETR Dataset.
+        """Build an RTDETR Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -159,12 +153,12 @@ class RTDETRValidator(DetectionValidator):
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:
-        """
-        Apply Non-maximum suppression to prediction outputs.
+        """Apply Non-maximum suppression to prediction outputs.
 
         Args:
             preds (torch.Tensor | list | tuple): Raw predictions from the model. If tensor, should have shape
-                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and class scores.
+                (batch_size, num_predictions, num_classes + 4) where last dimension contains bbox coords and
+                class scores.
 
         Returns:
             (list[dict[str, torch.Tensor]]): List of dictionaries for each image, each containing:
@@ -190,12 +184,11 @@ class RTDETRValidator(DetectionValidator):
         return [{"bboxes": x[:, :4], "conf": x[:, 4], "cls": x[:, 5]} for x in outputs]
 
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
-        """
-        Serialize YOLO predictions to COCO json format.
+        """Serialize YOLO predictions to COCO json format.
 
         Args:
-            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys
-                with bounding box coordinates, confidence scores, and class predictions.
+            predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys with
+                bounding box coordinates, confidence scores, and class predictions.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
         path = Path(pbatch["im_file"])

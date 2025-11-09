@@ -464,7 +464,7 @@ jobs:
       - name: Install Ultralytics package from conda-forge
         run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
-        run: uv pip install pytest "onnx>=1.12.0,<=1.19.1"
+        run: uv pip install pytest
       - name: Check environment
         run: conda list
       - name: Test CLI

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 from urllib.parse import urlsplit
 
 import numpy as np
@@ -83,7 +84,7 @@ class TritonRemoteModel:
         self.np_input_formats = [type_map[x] for x in self.input_formats]
         self.input_names = [x["name"] for x in config["input"]]
         self.output_names = [x["name"] for x in config["output"]]
-        self.metadata = eval(config.get("parameters", {}).get("metadata", {}).get("string_value", "None"))
+        self.metadata = ast.literal_eval(config.get("parameters", {}).get("metadata", {}).get("string_value", "None"))
 
     def __call__(self, *inputs: np.ndarray) -> list[np.ndarray]:
         """Call the model with the given inputs and return inference results.

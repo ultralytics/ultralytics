@@ -162,12 +162,12 @@ def export_formats():
 
 def best_onnx_opset(onnx, cuda=False) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    version = ".".join(TORCH_VERSION.split(".")[:2])
     if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
         opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
         if cuda:
             opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
     else:
+        version = ".".join(TORCH_VERSION.split(".")[:2])
         opset = {
             "1.8": 12,
             "1.9": 12,

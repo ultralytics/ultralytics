@@ -117,8 +117,8 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | Module        | Purpose                              | Source                                                                                         | Arguments                               |
 | ------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------- |
 | `Conv`        | Convolution + BatchNorm + Activation | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py) | `[out_ch, kernel, stride, pad, groups]` |
-| `nn.Upsample` | Spatial upsampling                   | [PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html)                    | `[size, scale_factor, mode]`            |
-| `nn.Identity` | Pass-through operation               | [PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.Identity.html)                    | `[]`                                    |
+| `nn.Upsample` | Spatial upsampling                   | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Upsample.html)               | `[size, scale_factor, mode]`            |
+| `nn.Identity` | Pass-through operation               | [PyTorch](https://docs.pytorch.org/docs/stable/generated/torch.nn.Identity.html)               | `[]`                                    |
 
 ### Composite Blocks
 
@@ -144,7 +144,7 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### TorchVision Integration
 
-The TorchVision module enables seamless integration of any [TorchVision model](https://pytorch.org/vision/stable/models.html) as a backbone:
+The TorchVision module enables seamless integration of any [TorchVision model](https://docs.pytorch.org/vision/stable/models.html) as a backbone:
 
 === "Python"
 
@@ -168,7 +168,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     **Parameter Breakdown:**
 
     - `768`: Expected output channels
-    - `convnext_tiny`: Model architecture ([available models](https://pytorch.org/vision/stable/models.html))
+    - `convnext_tiny`: Model architecture ([available models](https://docs.pytorch.org/vision/stable/models.html))
     - `DEFAULT`: Use pretrained weights
     - `True`: Remove classification head
     - `2`: Truncate last 2 layers
@@ -231,7 +231,7 @@ from ultralytics.nn.modules import (  # noqa: F401
 
 Modifying the source code is the most versatile way to integrate your custom modules, but it can be tricky. To define and use a custom module, follow these steps:
 
-1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](https://docs.ultralytics.com/quickstart#git-clone).
+1. **Install Ultralytics in development mode** using the Git clone method from the [Quickstart guide](https://docs.ultralytics.com/quickstart/#git-clone).
 
 2. **Define your module** in [`ultralytics/nn/modules/block.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py):
 

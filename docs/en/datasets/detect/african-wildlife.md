@@ -99,7 +99,7 @@ This example illustrates the variety and complexity of images in the African wil
 
 ## Citations, License and Acknowledgments
 
-We’d like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally so it can be used seamlessly with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. This dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
+We'd like to thank the original dataset author, [Bianca Ferreira](https://www.kaggle.com/biancaferreira/datasets), for releasing this dataset to the community. The Ultralytics team has updated and adapted it internally so it can be used seamlessly with [Ultralytics YOLO](https://www.ultralytics.com/yolo) models. This dataset is available under the [AGPL-3.0 License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE).
 
 If you use this dataset in your research, please cite it using the mentioned details:
 

@@ -108,14 +108,15 @@ If you use this dataset in your research, please cite it using the mentioned det
     === "BibTeX"
 
         ```bibtex
-        @dataset{Jocher_Ultralytics_Datasets_2024,
-            author = {Jocher, Glenn and Rizwan, Muhammad},
+
+        @dataset{Ferreira_African_Wildlife_Ultralytics_Adaptation_2024,
+            author  = {Ferreira, Bianca},
+            title   = {African Wildlife Detection Dataset (Ultralytics YOLO Adaptation)},
+            url     = {https://docs.ultralytics.com/datasets/detect/african-wildlife/},
+            note    = {Original dataset by Bianca Ferreira; adapted for Ultralytics YOLO by Glenn Jocher and Muhammad Rizwan Munawar},
             license = {AGPL-3.0},
-            month = {May},
-            title = {Ultralytics Datasets: African Wildlife Detection Dataset},
-            url = {https://docs.ultralytics.com/datasets/detect/african-wildlife/},
             version = {1.0.0},
-            year = {2024}
+            year    = {2024}
         }
         ```
 

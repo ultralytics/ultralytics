@@ -1026,6 +1026,33 @@ class YOLOEModel(DetectionModel):
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
+
+    def get_clip_model(self,cache_clip_model=False):
+        """
+        Get CLIP model.
+        Args:
+            cache_clip_model (bool): Whether to cache the CLIP model.
+
+        Returns:
+            (torch.nn.Module): CLIP model.
+        """
+        from ultralytics.nn.text_model import build_text_model
+
+        if isinstance(self.args, dict):
+            clip_weight=self.args.get("clip_weight_name", None)
+        else:
+            clip_weight=self.args.clip_weight_name
+
+        if cache_clip_model:
+            if not getattr(self, "clip_model", None):
+                # For backwards compatibility of models lacking clip_model attribute
+                device = next(self.model.parameters()).device
+                self.clip_model = build_text_model(clip_weight, device=device)
+            return self.clip_model
+        else:
+            device = next(self.model.parameters()).device
+            return build_text_model(clip_weight, device=device)
+
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
         """
@@ -1040,16 +1067,9 @@ class YOLOEModel(DetectionModel):
         Returns:
             (torch.Tensor): Text positional embeddings.
         """
-        from ultralytics.nn.text_model import build_text_model
 
-        clip_weight=self.args.clip_weight_name
 
-        device = next(self.model.parameters()).device
-        if not getattr(self, "clip_model", None) and cache_clip_model:
-            # For backwards compatibility of models lacking clip_model attribute
-            self.clip_model = build_text_model(clip_weight, device=device)
-
-        model = self.clip_model if cache_clip_model else build_text_model(clip_weight, device=device)
+        model = self.get_clip_model()
         text_token = model.tokenize(text)
         txt_feats = [model.encode_text(token).detach() for token in text_token.split(batch)]
         txt_feats = txt_feats[0] if len(txt_feats) == 1 else torch.cat(txt_feats, dim=0)

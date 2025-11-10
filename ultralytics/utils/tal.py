@@ -31,6 +31,7 @@ class TaskAlignedAssigner(nn.Module):
         alpha: float = 1.0,
         beta: float = 6.0,
         stride: list = [8, 16, 32],
+        stride_ratio: float = 1.0,
         eps: float = 1e-9,
     ):
         """
@@ -49,6 +50,7 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.stride = stride
+        self.stride_ratio = stride_ratio
         self.eps = eps
 
     @torch.no_grad()
@@ -150,7 +152,7 @@ class TaskAlignedAssigner(nn.Module):
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
             overlaps (torch.Tensor): Overlaps between predicted and ground truth boxes with shape (bs, max_num_obj, h*w).
         """
-        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt, self.stride)
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
@@ -282,8 +284,7 @@ class TaskAlignedAssigner(nn.Module):
 
         return target_labels, target_bboxes, target_scores
 
-    @staticmethod
-    def select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, stride, eps=1e-9):
+    def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
         """
         Select positive anchor centers within ground truth bounding boxes.
 
@@ -291,7 +292,6 @@ class TaskAlignedAssigner(nn.Module):
             xy_centers (torch.Tensor): Anchor center coordinates, shape (h*w, 2).
             gt_bboxes (torch.Tensor): Ground truth bounding boxes, shape (b, n_boxes, 4).
             mask_gt (torch.Tensor): Mask for valid ground truth boxes, shape (b, n_boxes, 1).
-            stride (list[int]): List of stride values for each feature map level.
             eps (float, optional): Small value for numerical stability.
 
         Returns:
@@ -302,8 +302,10 @@ class TaskAlignedAssigner(nn.Module):
             Bounding box format: [x_min, y_min, x_max, y_max].
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = gt_bboxes_xywh[..., 2:] < stride[0]  # the smallest stride
-        gt_bboxes_xywh[..., 2:] = torch.where((wh_mask * mask_gt).bool(), stride[1], gt_bboxes_xywh[..., 2:])
+        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
+        gt_bboxes_xywh[..., 2:] = torch.where(
+            (wh_mask * mask_gt).bool(), self.stride[1] * self.stride_ratio, gt_bboxes_xywh[..., 2:]
+        )
         gt_bboxes = xywh2xyxy(gt_bboxes_xywh)
 
         n_anchors = xy_centers.shape[0]

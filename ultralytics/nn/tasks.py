@@ -1027,7 +1027,7 @@ class YOLOEModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
 
-    def get_clip_model(self,cache_clip_model=True):
+    def get_clip_model(self,cache_clip_model=False):
         """
         Get CLIP model.
         Args:

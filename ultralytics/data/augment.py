@@ -2030,6 +2030,10 @@ class Albumentations:
                     keypoint_labels = [i for i in range(len(kpts_xy))]  # Create labels for each keypoint
                     transform_args["keypoints"] = kpts_xy
                     transform_args["keypoint_labels"] = keypoint_labels
+                else:
+                    # Provide empty keypoints to satisfy Albumentations keypoint_params
+                    transform_args["keypoints"] = []
+                    transform_args["keypoint_labels"] = []
 
                 # Add segments if present (for segmentation tasks)
                 segments = labels["instances"].segments
@@ -2038,7 +2042,7 @@ class Albumentations:
                     # For now, we'll convert segments to masks for proper transformation
                     # Note: This requires the image dimensions
                     h, w = im.shape[:2]
-                    masks = [polygons2masks([seg], h, w)[0] for seg in segments] if len(segments) else []
+                    masks = [polygons2masks((h, w), [seg], color=1)[0] for seg in segments] if len(segments) else []
                     if masks:
                         transform_args["masks"] = masks
 
@@ -2053,24 +2057,66 @@ class Albumentations:
                     # Update keypoints if they were transformed
                     if keypoints is not None and len(keypoints) and "keypoints" in new:
                         # Reshape back to (N, num_kpts, 2) and restore visibility if it existed
-                        num_instances = len(cls)
+                        # Use transformed count, not original count (some instances may have been filtered)
+                        num_instances = len(new["class_labels"])
                         num_kpts_per_instance = keypoints.shape[1]
-                        new_kpts = np.array(new["keypoints"]).reshape(num_instances, num_kpts_per_instance, 2)
+                        
+                        # Calculate actual number of keypoints returned by Albumentations
+                        total_kpts = len(new["keypoints"])
+                        expected_kpts = num_instances * num_kpts_per_instance
+                        
+                        if total_kpts == expected_kpts:
+                            # Reshape normally
+                            new_kpts = np.array(new["keypoints"]).reshape(num_instances, num_kpts_per_instance, 2)
+                        else:
+                            # Mismatch - some keypoints may have been filtered
+                            # This shouldn't happen with proper Albumentations configuration
+                            # but handle it gracefully
+                            LOGGER.warning(
+                                f"Keypoint count mismatch after Albumentations: "
+                                f"expected {expected_kpts}, got {total_kpts}. "
+                                f"Skipping keypoint update."
+                            )
+                            new_kpts = None
 
                         # Preserve visibility information if it existed (3rd dimension)
-                        if keypoints.shape[2] == 3:
-                            visibility = keypoints[..., 2:3]  # Keep original visibility
+                        if new_kpts is not None and keypoints.shape[2] == 3:
+                            # Filter visibility to match transformed instances
+                            visibility = keypoints[..., 2:3]  # Original visibility for all instances
+                            # Get indices of kept instances to filter visibility correctly
+                            # Since Albumentations may drop some instances, we need to match them
+                            # The visibility should be filtered based on which instances were kept
+                            if len(new["class_labels"]) < len(cls):
+                                # Some instances were dropped, need to identify which ones were kept
+                                # For now, we'll use the first N instances' visibility (this is a limitation)
+                                # A more robust solution would require Albumentations to return instance indices
+                                visibility = visibility[:num_instances]
                             new_kpts = np.concatenate([new_kpts, visibility], axis=2)
 
-                        labels["instances"].keypoints = new_kpts
+                        if new_kpts is not None:
+                            labels["instances"].keypoints = new_kpts
+                        else:
+                            # Keypoint update failed, set to None to avoid misalignment
+                            labels["instances"].keypoints = None
 
                     # Update segments if they were transformed
                     if segments is not None and len(segments) and "masks" in new:
-                        # Convert masks back to segments
+                        # Convert masks back to segments, keeping only valid ones
                         new_segments = []
-                        for mask in new["masks"]:
-                            segs = masks2segments(mask[None])[0]  # Convert single mask
-                            new_segments.append(segs if len(segs) else segments[0])  # Fallback to original if empty
+                        valid_indices = []
+                        for i, mask in enumerate(new["masks"]):
+                            # Convert numpy mask to torch tensor for masks2segments
+                            mask_tensor = torch.from_numpy(mask.astype(np.uint8))[None]
+                            segs = masks2segments(mask_tensor)[0]  # Convert single mask
+                            if len(segs):  # Only keep if segment is valid
+                                new_segments.append(segs)
+                                valid_indices.append(i)
+
+                        # Filter bboxes and classes to match valid segments
+                        if len(valid_indices) < len(new["masks"]):
+                            bboxes = bboxes[valid_indices]
+                            labels["cls"] = labels["cls"][valid_indices]
+                        
                         labels["instances"].segments = new_segments
 
                 labels["instances"].update(bboxes=bboxes)

@@ -61,7 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
       name: "Ultralytics AI",
       tagline: "Ask anything about Ultralytics, YOLO, and more",
       logo: "https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e13_logo.svg",
-      logomark: "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
+      logomark:
+        "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
       pillText: "Ask AI",
     },
     theme: {

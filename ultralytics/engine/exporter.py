@@ -1169,9 +1169,9 @@ class Exporter:
         dataset_file = self.args.data
         # Apply quantization if int8 is True and dataset is available
         do_quant = self.args.int8 and bool(dataset_file)
-        
+
         # Default target platform if not specified
-        target_platform = getattr(self.args, 'name', 'rk3588')
+        target_platform = getattr(self.args, "name", "rk3588")
 
         rknn = RKNN(verbose=False)
         # Hard-code commonly used defaults for additional RKNN parameters
@@ -1179,8 +1179,8 @@ class Exporter:
             mean_values=[[0, 0, 0]],
             std_values=[[255, 255, 255]],
             target_platform=target_platform,
-            quantized_dtype='w8a8',  # Default quantization data type
-            quantized_algorithm='mmse',  # Default quantization algorithm
+            quantized_dtype="w8a8",  # Default quantization data type
+            quantized_algorithm="mmse",  # Default quantization algorithm
         )
         rknn.load_onnx(model=f)
 

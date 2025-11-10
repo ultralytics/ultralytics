@@ -106,9 +106,11 @@ namespace {
     std::string ToCppString(JNIEnv* env, jstring value) {
         jboolean isCopy;
         const char* c_value = env->GetStringUTFChars(value, &isCopy);
+        if (c_value == nullptr) {
+            return std::string();
+        }
         std::string result(c_value);
-        if (isCopy == JNI_TRUE)
-            env->ReleaseStringUTFChars(value, c_value);
+        env->ReleaseStringUTFChars(value, c_value);
         return result;
     }
 

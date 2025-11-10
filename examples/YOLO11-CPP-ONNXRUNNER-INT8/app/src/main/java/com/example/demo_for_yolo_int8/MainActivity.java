@@ -30,31 +30,34 @@ public class MainActivity extends AppCompatActivity {
     private void run_ott_check(){
         // ott检测测试开始
         AssetManager assetManager = getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open("test_2400_1080.jpg");
+        
+        // 使用try-with-resources自动关闭InputStream
+        try (InputStream inputStream = assetManager.open("test_2400_1080.jpg")) {
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            
+            String onnxPath = FileHelper.writeAssetToInternalStorage(getApplication(), OttOnnxName);
+            OttRunner ott = new OttRunner();
+            ott.InitOtt(onnxPath);
+            
+            long startTime = System.currentTimeMillis();
+            for(int i = 0; i<100; i++) {
+                OttCheckAns[] ottans = ott.ProcessOtt(bitmap);
+            }
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+    
+            ott.DeInitOtt();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    // 在主线程中更新 UI
+                    tv.setText("100 time yolo test use: " + duration + " ms");
+                }
+            });
+            
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-        String onnxPath = FileHelper.writeAssetToInternalStorage(getApplication(), OttOnnxName);
-        OttRunner ott = new OttRunner();
-        ott.InitOtt(onnxPath);
-        long startTime = System.currentTimeMillis();
-        for(int i = 0; i<100; i++) {
-            OttCheckAns[] ottans = ott.ProcessOtt(bitmap);
-        }
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-
-        ott.DeInitOtt();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                // 在主线程中更新 UI
-                tv.setText("100 time yolo test use: " + duration + " ms");
-            }
-        });
     }
 
     Thread thread1 = new Thread(new Runnable() {

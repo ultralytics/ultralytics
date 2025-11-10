@@ -46,7 +46,7 @@ from .utils import (
 DATASET_CACHE_VERSION = "1.0.3"
 # CACHE_SUFFIX=".cache"
 # CACHE_SUFFIX=".merged.cache" #
-CACHE_SUFFIX=".cache" # refine
+CACHE_SUFFIX=".engine.cache" # refine
 
 
 class YOLODataset(BaseDataset):
@@ -618,7 +618,6 @@ class GroundingDataset(YOLODataset):
             cache, _ = self.cache_labels(cache_path), False  # run cache ops
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
-
         # if CACHE_SUFFIX == ".cache":
         #     self.verify_labels(labels)
 

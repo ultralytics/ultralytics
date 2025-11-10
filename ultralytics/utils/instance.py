@@ -68,6 +68,7 @@ class Bboxes:
             bboxes (np.ndarray): Array of bounding boxes with shape (N, 4) or (4,).
             format (str): Format of the bounding boxes, one of 'xyxy', 'xywh', or 'ltwh'.
         """
+        if format=="xywhn": format="xywh"
         assert format in _formats, f"Invalid bounding box format: {format}, format must be one of {_formats}"
         bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
         assert bboxes.ndim == 2

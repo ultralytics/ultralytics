@@ -2060,11 +2060,11 @@ class Albumentations:
                         # Use transformed count, not original count (some instances may have been filtered)
                         num_instances = len(new["class_labels"])
                         num_kpts_per_instance = keypoints.shape[1]
-                        
+
                         # Calculate actual number of keypoints returned by Albumentations
                         total_kpts = len(new["keypoints"])
                         expected_kpts = num_instances * num_kpts_per_instance
-                        
+
                         if total_kpts == expected_kpts:
                             # Reshape normally
                             new_kpts = np.array(new["keypoints"]).reshape(num_instances, num_kpts_per_instance, 2)
@@ -2116,7 +2116,7 @@ class Albumentations:
                         if len(valid_indices) < len(new["masks"]):
                             bboxes = bboxes[valid_indices]
                             labels["cls"] = labels["cls"][valid_indices]
-                        
+
                         labels["instances"].segments = new_segments
 
                 labels["instances"].update(bboxes=bboxes)

@@ -627,7 +627,7 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.12.0"]
+        requirements = ["onnx>=1.12.0,<=1.19.1"]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.71", "onnxruntime" + ("-gpu" if torch.cuda.is_available() else "")]
         check_requirements(requirements)
@@ -995,7 +995,7 @@ class Exporter:
                 "sng4onnx>=1.0.1",  # required by 'onnx2tf' package
                 "onnx_graphsurgeon>=0.3.26",  # required by 'onnx2tf' package
                 "ai-edge-litert>=1.2.0" + (",<1.4.0" if MACOS else ""),  # required by 'onnx2tf' package
-                "onnx>=1.12.0",
+                "onnx>=1.12.0,<=1.19.1",
                 "onnx2tf>=1.26.3",
                 "onnxslim>=0.1.71",
                 "onnxruntime-gpu" if cuda else "onnxruntime",
@@ -1112,14 +1112,15 @@ class Exporter:
         assert LINUX, f"export only supported on Linux. See {help_url}"
         if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
+            sudo = "sudo " if is_sudo_available() else ""
             for c in (
-                "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -",
-                'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
-                "sudo tee /etc/apt/sources.list.d/coral-edgetpu.list",
-                "sudo apt-get update",
-                "sudo apt-get install edgetpu-compiler",
+                f"{sudo}mkdir -p /etc/apt/keyrings",
+                f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --dearmor -o /etc/apt/keyrings/google.gpg",
+                f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                f"{sudo}apt-get update",
+                f"{sudo}apt-get install -y edgetpu-compiler",
             ):
-                subprocess.run(c if is_sudo_available() else c.replace("sudo ", ""), shell=True, check=True)
+                subprocess.run(c, shell=True, check=True)
 
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
         LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")

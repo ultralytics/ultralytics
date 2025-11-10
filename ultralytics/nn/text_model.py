@@ -103,7 +103,7 @@ class CLIP(TextModel):
             >>> tokens = model.tokenize("a photo of a cat")
             >>> print(tokens.shape)  # torch.Size([1, 77])
         """
-        return clip.tokenize(texts).to(self.device)
+        return clip.tokenize(texts, truncate=True).to(self.device)
 
     @smart_inference_mode()
     def encode_text(self, texts: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:

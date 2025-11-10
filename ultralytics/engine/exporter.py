@@ -160,7 +160,7 @@ def export_formats():
             "_rknn_model",
             False,
             False,
-            ["batch", "name", "qt_datasets", "do_quantization", "quantized_dtype", "quantized_algorithm"],
+            ["batch", "name", "int8"],
         ],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"]],
     ]
@@ -1165,23 +1165,27 @@ class Exporter:
         f = self.export_onnx()
         export_path = Path(f"{Path(f).stem}_rknn_model")
         export_path.mkdir(exist_ok=True)
-        dataset_file = self.args.qt_datasets
-        # Apply quantization only if do_quantization is True and dataset is available
-        do_quant = self.args.do_quantization and bool(dataset_file)
+        # Use existing data argument for quantization dataset
+        dataset_file = self.args.data
+        # Apply quantization if int8 is True and dataset is available
+        do_quant = self.args.int8 and bool(dataset_file)
+        
+        # Default target platform if not specified
+        target_platform = getattr(self.args, 'name', 'rk3588')
 
         rknn = RKNN(verbose=False)
+        # Hard-code commonly used defaults for additional RKNN parameters
         rknn.config(
             mean_values=[[0, 0, 0]],
             std_values=[[255, 255, 255]],
-            target_platform=self.args.name,
-            quantized_dtype=self.args.quantized_dtype,
-            quantized_algorithm=self.args.quantized_algorithm,
+            target_platform=target_platform,
+            quantized_dtype='w8a8',  # Default quantization data type
+            quantized_algorithm='mmse',  # Default quantization algorithm
         )
         rknn.load_onnx(model=f)
-        # Use qt_datasets if provided, otherwise use default dataset file
 
         rknn.build(do_quantization=do_quant, dataset=dataset_file if do_quant else None)
-        f = f.replace(".onnx", f"-{self.args.name}.rknn")
+        f = f.replace(".onnx", f"-{target_platform}.rknn")
         rknn.export_rknn(f"{export_path / f}")
         YAML.save(export_path / "metadata.yaml", self.metadata)
         return export_path

@@ -82,6 +82,9 @@ For detailed instructions and best practices related to the installation process
         # Export the model to RKNN format
         # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
         model.export(format="rknn", name="rk3588")  # creates '/yolo11n_rknn_model'
+        
+        # Export with INT8 quantization
+        model.export(format="rknn", name="rk3588", int8=True, data="coco8.yaml")  # creates '/yolo11n_rknn_model'
         ```
 
     === "CLI"
@@ -90,6 +93,9 @@ For detailed instructions and best practices related to the installation process
         # Export a YOLO11n PyTorch model to RKNN format
         # 'name' can be one of rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118
         yolo export model=yolo11n.pt format=rknn name=rk3588 # creates '/yolo11n_rknn_model'
+        
+        # Export with INT8 quantization
+        yolo export model=yolo11n.pt format=rknn name=rk3588 int8=True data=coco8.yaml # creates '/yolo11n_rknn_model'
         ```
 
 ### Export Arguments
@@ -100,6 +106,8 @@ For detailed instructions and best practices related to the installation process
 | `imgsz`  | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `batch`  | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `name`   | `str`            | `'rk3588'` | Specifies the Rockchip model (rk3588, rk3576, rk3566, rk3568, rk3562, rv1103, rv1106, rv1103b, rv1106b, rk2118)                         |
+| `int8`   | `bool`           | `False`    | Enable INT8 quantization. Requires a dataset to be specified via the `data` argument.                                                 |
+| `data`   | `str`            | `None`     | Path to dataset file for quantization when `int8=True`. Required for quantization.                                                    |
 | `device` | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                               |
 
 !!! tip

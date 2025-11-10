@@ -83,16 +83,12 @@ line_width: # (int, optional) line width of boxes; auto-scales with image size i
 format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|tflite|edgetpu|tfjs|paddle|mnn|ncnn|imx|rknn|executorch
 keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) TorchScript only; apply mobile optimizations to the scripted model
-int8: False # (bool) INT8/PTQ where supported (openvino, tflite, tfjs, engine, imx); needs calibration data/fraction
+int8: False # (bool) INT8/PTQ where supported (openvino, tflite, tfjs, engine, imx, rknn); needs calibration data/fraction
 dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine; enable variable image sizes
 simplify: True # (bool) ONNX/engine only; run graph simplifier for cleaner ONNX before runtime conversion
 opset: # (int, optional) ONNX/engine only; opset version for export; leave unset to use a tested default
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou apply (agnostic_nms except coreml)
-qt_datasets: # (str, optional) RKNN only; path to quantization dataset file for RKNN export
-do_quantization: True # (bool) RKNN only; whether to apply quantization during RKNN export
-quantized_dtype: w8a8 # (str) RKNN only; quantization data type for RKNN export (options: w8a8, w8a16, etc.)
-quantized_algorithm: mmse # (str) RKNN only; quantization algorithm for RKNN export (options: mmse, kl, etc.)
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)

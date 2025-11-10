@@ -142,7 +142,7 @@ Then launch the training with the Python API:
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ hsv_s }}`
-- **Usage**: Modifies the intensity of colors in the image. The `hsv_h` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within`-0.7` to `0.7`.
+- **Usage**: Modifies the intensity of colors in the image. The `hsv_s` hyperparameter defines the shift magnitude, with the final adjustment randomly chosen between `-hsv_s` and `hsv_s`. For example, with `hsv_s=0.7`, the intensity is randomly selected within`-0.7` to `0.7`.
 - **Purpose**: Helps models handle varying weather conditions and camera settings. For example, a red traffic sign might appear highly vivid on a sunny day but look dull and faded in foggy conditions.
 - **Ultralytics' implementation**: [RandomHSV](https://docs.ultralytics.com/reference/data/augment/#ultralytics.data.augment.RandomHSV)
 

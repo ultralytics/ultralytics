@@ -64,7 +64,7 @@ class SemSegTrainer(yolo.detect.DetectionTrainer):
                     math.ceil(x * sf / self.stride) * self.stride for x in imgs.shape[2:]
                 ]  # new shape (stretched to gs-multiple)
                 imgs = nn.functional.interpolate(imgs, size=ns, mode="bilinear", align_corners=False)
-                msks = nn.functional.interpolate(msks, size=ns, mode="bilinear", align_corners=False)
+                msks = nn.functional.interpolate(msks, size=ns, mode="nearest", align_corners=False)
             batch["img"] = imgs
             batch["masks"] = msks
         return batch

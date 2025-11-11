@@ -57,13 +57,12 @@ let ultralyticsChat = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   ultralyticsChat = new UltralyticsChat({
-    apiUrl: "https://chat-885297101091.europe-west1.run.app/api/chat",
     branding: {
       name: "Ultralytics AI",
       tagline: "Ask anything about Ultralytics, YOLO, and more",
       logo: "https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e13_logo.svg",
       logomark:
-        "https://cdn.prod.website-files.com/646dd1f1a3703e451ba81ecc/64f727ed3fd1e5e074574368_ultralytics-favicon.png",
+        "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
       pillText: "Ask AI",
     },
     theme: {

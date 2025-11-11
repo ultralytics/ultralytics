@@ -1043,6 +1043,8 @@ class YOLOEModel(DetectionModel):
         else:
             clip_weight=self.args.clip_weight_name
 
+        clip_weight="mobileclip2:b"
+
         if cache_clip_model:
             if not getattr(self, "clip_model", None):
                 # For backwards compatibility of models lacking clip_model attribute

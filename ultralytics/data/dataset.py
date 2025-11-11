@@ -759,7 +759,7 @@ class SemanticDataset(BaseDataset):
                         "normalized": True,
                         "bbox_format": "ltwh",
                     }
-                x["labels"].append(label_dict)
+                    x["labels"].append(label_dict)
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"

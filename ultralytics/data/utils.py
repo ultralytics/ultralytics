@@ -894,4 +894,4 @@ def verify_image_and_mask(args: tuple) -> list:
     except Exception as e:
         nc = 1
         msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
-        return [None, None, None, None, None, None, nm, nf, ne, nc, msg]
+        return None, None, None, None, None, None, nm, nf, ne, nc, msg

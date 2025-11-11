@@ -245,7 +245,7 @@ Different applications benefit from different augmentation strategies:
 - **Low-Light Scenarios**: Emphasize noise addition and brightness adjustments to train robust models for challenging lighting
 - **Industrial Inspection**: Add texture variations and simulated defects for quality control applications
 
-For a complete list of available transforms and their parameters, visit the [Albumentations documentation](https://albumentations.ai/docs/api_reference/full_reference/).
+For a complete list of available transforms and their parameters, visit the [Albumentations documentation](https://albumentations.ai/docs/).
 
 For more detailed examples and best practices on using custom Albumentations transforms with YOLO11, see the [YOLO Data Augmentation guide](../guides/yolo-data-augmentation.md#custom-albumentations-transforms-augmentations).
 

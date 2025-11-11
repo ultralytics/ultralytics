@@ -212,9 +212,12 @@ class SegmentationValidator(DetectionValidator):
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
 
-        def to_string(counts) -> str:
+        def to_string(counts: list[int]) -> str:
             """Converts the RLE object into a compact string representation. Each count is delta-encoded and
             variable-length encoded as a string.
+
+            Args:
+                counts (list[int]): List of RLE counts.
             """
             result = []
 
@@ -233,10 +236,8 @@ class SegmentationValidator(DetectionValidator):
                     # If the sign bit (0x10) is set, continue if x != -1;
                     # otherwise, continue if x != 0
                     more = (x != -1) if (c & 0x10) else (x != 0)
-
                     if more:
                         c |= 0x20  # Set continuation bit
-
                     c += 48  # Shift to ASCII
                     result.append(chr(c))
                     if not more:

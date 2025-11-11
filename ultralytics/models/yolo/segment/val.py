@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from multiprocessing.pool import ThreadPool
-import time
+from ultralytics.utils.torch_utils import time_sync
 from pathlib import Path
 from typing import Any
 
@@ -50,6 +50,7 @@ class SegmentationValidator(DetectionValidator):
         self.process = None
         self.args.task = "segment"
         self.metrics = SegmentMetrics()
+        self.t1, self.t2 = 0, 0
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO segmentation validation.
@@ -253,7 +254,7 @@ class SegmentationValidator(DetectionValidator):
 
             return "".join(result)
 
-        def single_encode(mask: torch.Tensor) -> dict[str, Any]:
+        def multi_encode(pixels: torch.Tensor) -> dict[str, Any]:
             """
             Convert a binary mask to RLE format (simpler but slightly slower).
 
@@ -264,37 +265,40 @@ class SegmentationValidator(DetectionValidator):
                 list(int): RLE dictionary with 'size' and 'counts'.
             """
             # Flatten in column-major order (Fortran-style)
-            pixels = mask.T.flatten().to(torch.uint8)
-
-            # Find transitions
-            transitions = pixels[1:] != pixels[:-1]
-            runs = torch.where(transitions)[0] + 1
+            transitions = pixels[:, 1:] != pixels[:, :-1]
+            row_idx, col_idx = torch.where(transitions)
+            col_idx = col_idx + 1
 
             # Compute run lengths
-            positions = torch.cat(
-                [torch.tensor([0], device=mask.device), runs, torch.tensor([len(pixels)], device=mask.device)]
-            )
-            counts = torch.diff(positions).tolist()
+            counts = []
+            for i in range(pixels.shape[0]):
+                positions = col_idx[row_idx == i]
+                if len(positions):
+                    count = torch.diff(positions).tolist()
+                    count.insert(0, positions[0].item())
+                    count.append(len(pixels[i]) - positions[-1].item())
+                else:
+                    count = [len(pixels[i])]
 
-            # Ensure we start with background (0) count
-            if pixels[0] == 1:
-                counts = [0] + counts
+                counts.append(count)
 
             return counts
 
-        pred_masks = predn["masks"]
-        h, w = pred_masks.shape[1:3]
+        pred_masks = predn["masks"].transpose(2, 1).contiguous().view(len(predn["masks"]), -1)  # N, H*W
+        h, w = predn["masks"].shape[1:3]
         # with ThreadPool(NUM_THREADS) as pool:
         #     rles = pool.map(single_encode, pred_masks)
-        t0 = time.time()
-        counts = [single_encode(mask) for mask in pred_masks]
-        t1 = time.time()
+        t0 = time_sync()
+        counts = multi_encode(pred_masks)
+        t1 = time_sync()
         rles = []
         for c in counts:
             rles.append({"size": [int(h), int(w)], "counts": to_string(c)})
             # r["counts"] = to_string(r["counts"])
-        t2 = time.time()
-        print(f"RLE encoding time: encode={t1 - t0:.3f}s, to_string={t2 - t1:.3f}s")
+        t2 = time_sync()
+        self.t1 += t1 - t0
+        self.t2 += t2 - t1
+        # print(f"RLE encoding time: encode={t1 - t0:.3f}s, to_string={t2 - t1:.3f}s")
         super().pred_to_json(predn, pbatch)
         for i, r in enumerate(rles):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
@@ -314,4 +318,7 @@ class SegmentationValidator(DetectionValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
+        print("time:", self.t1, self.t2)
+        # time: 60.884538650512695 25.0317804813385
+        # time: 67.66728234291077 24.07403135299682
         return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])

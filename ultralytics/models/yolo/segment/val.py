@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from multiprocessing.pool import ThreadPool
-from ultralytics.utils.torch_utils import time_sync
 from pathlib import Path
 from typing import Any
 
@@ -12,7 +10,7 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.models.yolo.detect import DetectionValidator
-from ultralytics.utils import LOGGER, NUM_THREADS, ops
+from ultralytics.utils import LOGGER, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, mask_iou
 
@@ -50,7 +48,6 @@ class SegmentationValidator(DetectionValidator):
         self.process = None
         self.args.task = "segment"
         self.metrics = SegmentMetrics()
-        self.t1, self.t2 = 0, 0
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO segmentation validation.
@@ -214,13 +211,6 @@ class SegmentationValidator(DetectionValidator):
             predn (dict[str, torch.Tensor]): Predictions containing bboxes, masks, confidence scores, and classes.
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
         """
-        from faster_coco_eval.core.mask import encode
-        #
-        # def single_encode(x):
-        #     """Encode predicted masks as RLE and append results to jdict."""
-        #     rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]
-        #     rle["counts"] = rle["counts"].decode("utf-8")
-        #     return rle
 
         def to_string(counts) -> str:
             """
@@ -237,8 +227,7 @@ class SegmentationValidator(DetectionValidator):
                     x -= int(counts[i - 2])
 
                 # Variable-length encode the value
-                more = True
-                while more:
+                while True:
                     c = x & 0x1F  # Take 5 bits
                     x >>= 5
 
@@ -251,6 +240,8 @@ class SegmentationValidator(DetectionValidator):
 
                     c += 48  # Shift to ASCII
                     result.append(chr(c))
+                    if not more:
+                        break
 
             return "".join(result)
 
@@ -286,18 +277,10 @@ class SegmentationValidator(DetectionValidator):
 
         pred_masks = predn["masks"].transpose(2, 1).contiguous().view(len(predn["masks"]), -1)  # N, H*W
         h, w = predn["masks"].shape[1:3]
-        # with ThreadPool(NUM_THREADS) as pool:
-        #     rles = pool.map(single_encode, pred_masks)
-        t0 = time_sync()
         counts = multi_encode(pred_masks)
-        t1 = time_sync()
         rles = []
         for c in counts:
             rles.append({"size": [h, w], "counts": to_string(c)})
-        t2 = time_sync()
-        self.t1 += t1 - t0
-        self.t2 += t2 - t1
-        # print(f"RLE encoding time: encode={t1 - t0:.3f}s, to_string={t2 - t1:.3f}s")
         super().pred_to_json(predn, pbatch)
         for i, r in enumerate(rles):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
@@ -317,7 +300,4 @@ class SegmentationValidator(DetectionValidator):
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )  # annotations
-        print("time:", self.t1, self.t2)
-        # time: 60.884538650512695 25.0317804813385
-        # time: 67.66728234291077 24.07403135299682
         return super().coco_evaluate(stats, pred_json, anno_json, ["bbox", "segm"], suffix=["Box", "Mask"])

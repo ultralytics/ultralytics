@@ -269,6 +269,9 @@ class SegmentationValidator(DetectionValidator):
                 else:
                     count = [len(pixels[i])]
 
+                # Ensure starting with background (0) count
+                if pixels[i][1].item() == 1:
+                    count = [0] + counts
                 counts.append(count)
 
             return counts

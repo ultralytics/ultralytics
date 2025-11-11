@@ -467,7 +467,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, list] = {},
         predictor=yolo.yoloe.YOLOEVPDetectPredictor,
-        vp_weight: float = 0.5,
+        vp_weight: dict = {},
         **kwargs,
     ):
         """Run prediction on images, videos, directories, streams, etc. when visual prompts are given, the prompt
@@ -484,8 +484,7 @@ class YOLOE(Model):
                 and 'cls' keys when non-empty.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
                 based on the task.
-            vp_weight (float): Weight for visual prompt embeddings when merging with text embeddings. Default is 0.5. It
-                is only used when class_mode is 'prototype' and the class is not an object-only prompt.
+            vp_weight (dict): A dictionary specifying the weight of visual prompts for each class. It is only used when class_mode is 'prototype' and the class is not an object-only prompt.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -538,6 +537,8 @@ class YOLOE(Model):
             # init the memory bank if not exists
             if not hasattr(self, "memory_bank"):
                 self.memory_bank = dict()
+            if not hasattr(self, "vp_weight_dict"):
+                self.vp_weight_dict = dict()
 
             # update the memory bank with new visual prompt embeddings
             assert len(visual_prompts["cls"]) == vpe.shape[0]
@@ -550,6 +551,10 @@ class YOLOE(Model):
                     self.memory_bank[cls] = []
                 self.memory_bank[cls].append(cls_vpe)
 
+            # update the vp_weight dict
+            for k, v in vp_weight.items():
+                self.vp_weight_dict[k] = v
+
             # set classes based on the memory bank
             names, memory_pe_list = [], []
             if self.class_mode == "prototype":  # each class only has unique prototype embedding
@@ -559,9 +564,11 @@ class YOLOE(Model):
                     vpe_prototype = torch.mean(torch.stack(self.memory_bank[cls]), dim=0)
 
                     # If it's a text-based class, blend with text embedding
-                    if not _is_object_label(cls) and vp_weight < 1.0:
+    
+                    if not _is_object_label(cls):
+                        cls_vp_weight = self.vp_weight_dict.get(cls,1)
                         text_embedding = self.get_text_pe([cls], cache_clip_model=True).squeeze()
-                        final_pe = vp_weight * vpe_prototype + (1 - vp_weight) * text_embedding
+                        final_pe = cls_vp_weight * vpe_prototype + (1 - cls_vp_weight) * text_embedding
                     else:  # For object-only prompts, use the visual prototype directly
                         final_pe = vpe_prototype
                     memory_pe_list.append(final_pe)

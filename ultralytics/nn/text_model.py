@@ -326,7 +326,9 @@ class MobileCLIPTS(TextModel):
         Examples:
             >>> model = MobileCLIPTS("cpu")
             >>> tokens = model.tokenize(["a photo of a cat", "a photo of a dog"])
-            >>> strict_tokens = model.tokenize(["a very long caption"], truncate=False)  # RuntimeError if exceeds 77-token
+            >>> strict_tokens = model.tokenize(
+            ...     ["a very long caption"], truncate=False
+            ... )  # RuntimeError if exceeds 77-token
         """
         return self.tokenizer(texts, truncate=truncate).to(self.device)
 

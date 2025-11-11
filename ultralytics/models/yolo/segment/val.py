@@ -261,7 +261,7 @@ class SegmentationValidator(DetectionValidator):
                 mask (torch.Tensor): Binary mask of shape (H, W).
 
             Returns:
-                dict[str, Any]: RLE dictionary with 'size' and 'counts'.
+                list(int): RLE dictionary with 'size' and 'counts'.
             """
             # Flatten in column-major order (Fortran-style)
             pixels = mask.T.flatten().to(torch.uint8)
@@ -280,18 +280,21 @@ class SegmentationValidator(DetectionValidator):
             if pixels[0] == 1:
                 counts = [0] + counts
 
-            return {"size": [int(mask.shape[0]), int(mask.shape[1])], "counts": counts}
+            return counts
 
         pred_masks = predn["masks"]
+        h, w = pred_masks.shape[1:3]
         # with ThreadPool(NUM_THREADS) as pool:
         #     rles = pool.map(single_encode, pred_masks)
         t0 = time.time()
-        rles = [single_encode(mask) for mask in pred_masks]
+        counts = [single_encode(mask) for mask in pred_masks]
         t1 = time.time()
-        for r in rles:
-            r["counts"] = to_string(r["counts"])
+        rles = []
+        for c in counts:
+            rles.append({"size": [int(h), int(w)], "counts": to_string(c)})
+            # r["counts"] = to_string(r["counts"])
         t2 = time.time()
-        # print(f"RLE encoding time: encode={t1 - t0:.3f}s, to_string={t2 - t1:.3f}s")
+        print(f"RLE encoding time: encode={t1 - t0:.3f}s, to_string={t2 - t1:.3f}s")
         super().pred_to_json(predn, pbatch)
         for i, r in enumerate(rles):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation

@@ -293,8 +293,7 @@ class SegmentationValidator(DetectionValidator):
         t1 = time_sync()
         rles = []
         for c in counts:
-            rles.append({"size": [int(h), int(w)], "counts": to_string(c)})
-            # r["counts"] = to_string(r["counts"])
+            rles.append({"size": [h, w], "counts": to_string(c)})
         t2 = time_sync()
         self.t1 += t1 - t0
         self.t2 += t2 - t1

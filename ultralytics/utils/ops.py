@@ -201,50 +201,6 @@ def clip_coords(coords, shape):
     return coords
 
 
-def scale_image(masks, im0_shape, ratio_pad=None):
-    """Rescale masks to original image size.
-
-    Takes resized and padded masks and rescales them back to the original image dimensions, removing any padding that
-    was applied during preprocessing.
-
-    Args:
-        masks (np.ndarray): Resized and padded masks with shape [H, W, N] or [H, W, 3].
-        im0_shape (tuple): Original image shape as HWC or HW (supports both).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
-
-    Returns:
-        (np.ndarray): Rescaled masks with shape [H, W, N] matching original image dimensions.
-    """
-    # Rescale coordinates (xyxy) from im1_shape to im0_shape
-    im0_h, im0_w = im0_shape[:2]  # supports both HWC or HW shapes
-    im1_h, im1_w, _ = masks.shape
-    if im1_h == im0_h and im1_w == im0_w:
-        return masks
-
-    if ratio_pad is None:  # calculate from im0_shape
-        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad = (im1_w - im0_w * gain) / 2, (im1_h - im0_h * gain) / 2  # wh padding
-    else:
-        pad = ratio_pad[1]
-
-    pad_w, pad_h = pad
-    top = round(pad_h - 0.1)
-    left = round(pad_w - 0.1)
-    bottom = im1_h - round(pad_h + 0.1)
-    right = im1_w - round(pad_w + 0.1)
-
-    if len(masks.shape) < 2:
-        raise ValueError(f'"len of masks shape" should be 2 or 3, but got {len(masks.shape)}')
-    masks = masks[top:bottom, left:right]
-    # handle the cv2.resize 512 channels limitation: https://github.com/ultralytics/ultralytics/pull/21947
-    masks = [cv2.resize(array, (im0_w, im0_h)) for array in np.array_split(masks, masks.shape[-1] // 512 + 1, axis=-1)]
-    masks = np.concatenate(masks, axis=-1) if len(masks) > 1 else masks[0]
-    if len(masks.shape) == 2:
-        masks = masks[:, :, None]
-
-    return masks
-
-
 def xyxy2xywh(x):
     """Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format where (x1, y1) is
     the top-left corner and (x2, y2) is the bottom-right corner.

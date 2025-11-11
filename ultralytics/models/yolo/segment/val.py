@@ -253,39 +253,44 @@ class SegmentationValidator(DetectionValidator):
 
             return "".join(result)
 
-        def single_encode(mask: np.ndarray) -> dict[str, Any]:
+        def single_encode(mask: torch.Tensor) -> dict[str, Any]:
             """
             Convert a binary mask to RLE format (simpler but slightly slower).
 
             Args:
-                mask (np.ndarray): Binary mask of shape (H, W).
+                mask (torch.Tensor): Binary mask of shape (H, W).
 
             Returns:
                 dict[str, Any]: RLE dictionary with 'size' and 'counts'.
             """
             # Flatten in column-major order (Fortran-style)
-            pixels = mask.flatten(order="F").astype(np.uint8)
+            pixels = mask.T.flatten().to(torch.uint8)
 
             # Find transitions
-            runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+            transitions = pixels[1:] != pixels[:-1]
+            runs = torch.where(transitions)[0] + 1
 
             # Compute run lengths
-            counts = np.diff(np.concatenate([[0], runs, [len(pixels)]])).tolist()
+            positions = torch.cat(
+                [torch.tensor([0], device=mask.device), runs, torch.tensor([len(pixels)], device=mask.device)]
+            )
+            counts = torch.diff(positions).tolist()
+
             # Ensure we start with background (0) count
-            if pixels[1] == 1:
+            if pixels[0] == 1:
                 counts = [0] + counts
 
             return {"size": [int(mask.shape[0]), int(mask.shape[1])], "counts": counts}
 
-        pred_masks = np.transpose(predn["masks"], (2, 0, 1))
-        with ThreadPool(NUM_THREADS) as pool:
-            rles = pool.map(single_encode, pred_masks)
-        # t0 = time.time()
-        # rles = [single_encode(mask) for mask in pred_masks]
-        # t1 = time.time()
-        # for r in rles:
-        #     r["counts"] = to_string(r["counts"])
-        # t2 = time.time()
+        pred_masks = predn["masks"]
+        # with ThreadPool(NUM_THREADS) as pool:
+        #     rles = pool.map(single_encode, pred_masks)
+        t0 = time.time()
+        rles = [single_encode(mask) for mask in pred_masks]
+        t1 = time.time()
+        for r in rles:
+            r["counts"] = to_string(r["counts"])
+        t2 = time.time()
         # print(f"RLE encoding time: encode={t1 - t0:.3f}s, to_string={t2 - t1:.3f}s")
         super().pred_to_json(predn, pbatch)
         for i, r in enumerate(rles):
@@ -295,12 +300,7 @@ class SegmentationValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "masks": ops.scale_tensor(predn["masks"], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-            .byte()
-            .permute(1, 2, 0)
-            .contiguous()
-            .cpu()
-            .numpy(),
+            "masks": ops.scale_tensor(predn["masks"], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]).byte(),
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

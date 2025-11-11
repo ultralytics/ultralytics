@@ -598,28 +598,40 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     return masks.gt_(0.0).byte()
 
 
-def scale_masks(masks: torch.Tensor, shape: tuple[int, int], padding: bool = True) -> torch.Tensor:
+def scale_masks(
+    masks: torch.Tensor,
+    shape: tuple[int, int],
+    ratio_pad: tuple[tuple[int, int], tuple[int, int]] = None,
+    padding: bool = True,
+) -> torch.Tensor:
     """Rescale segment masks to target shape.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
 
     Returns:
         (torch.Tensor): Rescaled masks.
     """
-    mh, mw = masks.shape[2:]
-    gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
-    pad_w = mw - shape[1] * gain
-    pad_h = mh - shape[0] * gain
-    if padding:
-        pad_w /= 2
-        pad_h /= 2
+    im1_h, im1_w = masks.shape[2:]
+    im0_h, im0_w = shape[:2]
+    if im1_h == im0_h and im1_w == im0_w:
+        return masks
+
+    if ratio_pad is None:  # calculate from im0_shape
+        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad_w, pad_h = (im1_w - im0_w * gain), (im1_h - im0_h * gain)  # wh padding
+        if padding:
+            pad_w /= 2
+            pad_h /= 2
+    else:
+        pad_w, pad_h = ratio_pad[1]
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom = mh - round(pad_h + 0.1)
-    right = mw - round(pad_w + 0.1)
-    return F.interpolate(masks[..., top:bottom, left:right], shape, mode="bilinear")  # NCHW masks
+    bottom = im1_h - round(pad_h + 0.1)
+    right = im1_w - round(pad_w + 0.1)
+    return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode="bilinear")  # NCHW masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool = False, padding: bool = True):

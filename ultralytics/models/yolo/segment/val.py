@@ -289,7 +289,9 @@ class SegmentationValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            "masks": ops.scale_tensor(predn["masks"], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]).byte(),
+            "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[
+                0
+            ].byte(),
         }
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:

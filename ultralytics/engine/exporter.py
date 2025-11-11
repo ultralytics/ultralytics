@@ -1143,7 +1143,7 @@ class Exporter:
         compiler.compile(
             model=qmodel,
             config=config,
-            output_dir=str(export_path)
+            output_dir=export_path
         )
         
         return str(export_path)

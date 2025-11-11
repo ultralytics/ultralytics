@@ -484,7 +484,8 @@ class YOLOE(Model):
                 and 'cls' keys when non-empty.
             predictor (callable, optional): Custom predictor function. If None, a predictor is automatically loaded
                 based on the task.
-            vp_weight (dict): A dictionary specifying the weight of visual prompts for each class. It is only used when class_mode is 'prototype' and the class is not an object-only prompt.
+            vp_weight (dict): A dictionary specifying the weight of visual prompts for each class. It is only used when
+                class_mode is 'prototype' and the class is not an object-only prompt.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -564,9 +565,9 @@ class YOLOE(Model):
                     vpe_prototype = torch.mean(torch.stack(self.memory_bank[cls]), dim=0)
 
                     # If it's a text-based class, blend with text embedding
-    
+
                     if not _is_object_label(cls):
-                        cls_vp_weight = self.vp_weight_dict.get(cls,1)
+                        cls_vp_weight = self.vp_weight_dict.get(cls, 1)
                         text_embedding = self.get_text_pe([cls], cache_clip_model=True).squeeze()
                         final_pe = cls_vp_weight * vpe_prototype + (1 - cls_vp_weight) * text_embedding
                     else:  # For object-only prompts, use the visual prototype directly

@@ -244,16 +244,15 @@ class SegmentationValidator(DetectionValidator):
 
             return "".join(result)
 
-        def multi_encode(pixels: torch.Tensor) -> dict[str, Any]:
-            """Convert a binary mask to RLE format (simpler but slightly slower).
+        def multi_encode(pixels: torch.Tensor) -> list[int]:
+            """Convert multiple binary masks using Run-Length Encoding (RLE).
 
             Args:
-                mask (torch.Tensor): Binary mask of shape (H, W).
+                pixels (torch.Tensor): A 2D tensor where each row represents a flattened binary mask with shape [N, H*W].
 
             Returns:
-                list(int): RLE dictionary with 'size' and 'counts'.
+                (list[int]): A list of RLE counts for each mask.
             """
-            # Flatten in column-major order (Fortran-style)
             transitions = pixels[:, 1:] != pixels[:, :-1]
             row_idx, col_idx = torch.where(transitions)
             col_idx = col_idx + 1

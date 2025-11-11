@@ -598,12 +598,12 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     return masks.gt_(0.0).byte()
 
 
-def scale_masks(masks, shape, padding: bool = True):
+def scale_masks(masks: torch.Tensor, shape: tuple[int, int], padding: bool = True) -> torch.Tensor:
     """Rescale segment masks to target shape.
 
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
-        shape (tuple): Target height and width as (height, width).
+        shape (tuple[int, int]): Target height and width as (height, width).
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
 
     Returns:

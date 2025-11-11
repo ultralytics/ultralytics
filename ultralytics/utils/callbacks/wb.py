@@ -127,13 +127,7 @@ def _log_plots(plots, step):
 
 def on_pretrain_routine_start(trainer):
     """Initialize and start wandb project if module is present."""
-    if not wb.run:
-        wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
-            name=str(trainer.args.name).replace("/", "-"),
-            config=vars(trainer.args),
-        )
-
+    wb.run or wb.init(project=trainer.args.project or 'YOLO11', name=trainer.args.name, config=vars(trainer.args))
 
 def on_fit_epoch_end(trainer):
     """Log training metrics and model information at the end of an epoch."""

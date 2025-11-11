@@ -562,7 +562,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
 def scale_masks(
     masks: torch.Tensor,
     shape: tuple[int, int],
-    ratio_pad: tuple[tuple[int, int], tuple[int, int]] = None,
+    ratio_pad: tuple[tuple[int, int], tuple[int, int]] | None = None,
     padding: bool = True,
 ) -> torch.Tensor:
     """Rescale segment masks to target shape.

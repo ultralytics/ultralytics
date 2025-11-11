@@ -213,9 +213,8 @@ class SegmentationValidator(DetectionValidator):
         """
 
         def to_string(counts) -> str:
-            """
-            Converts the RLE object into a compact string representation.
-            Each count is delta-encoded and variable-length encoded as a string.
+            """Converts the RLE object into a compact string representation. Each count is delta-encoded and
+            variable-length encoded as a string.
             """
             result = []
 
@@ -246,8 +245,7 @@ class SegmentationValidator(DetectionValidator):
             return "".join(result)
 
         def multi_encode(pixels: torch.Tensor) -> dict[str, Any]:
-            """
-            Convert a binary mask to RLE format (simpler but slightly slower).
+            """Convert a binary mask to RLE format (simpler but slightly slower).
 
             Args:
                 mask (torch.Tensor): Binary mask of shape (H, W).

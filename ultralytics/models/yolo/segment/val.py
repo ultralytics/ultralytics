@@ -295,12 +295,7 @@ class SegmentationValidator(DetectionValidator):
         """Scales predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
-            # "masks": ops.scale_image(
-            #     torch.as_tensor(predn["masks"], dtype=torch.uint8).permute(1, 2, 0).contiguous().cpu().numpy(),
-            #     pbatch["ori_shape"],
-            #     ratio_pad=pbatch["ratio_pad"],
             "masks": ops.scale_tensor(predn["masks"], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])
-            .gt_(0)
             .byte()
             .permute(1, 2, 0)
             .contiguous()

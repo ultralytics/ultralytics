@@ -248,7 +248,8 @@ class SegmentationValidator(DetectionValidator):
             """Convert multiple binary masks using Run-Length Encoding (RLE).
 
             Args:
-                pixels (torch.Tensor): A 2D tensor where each row represents a flattened binary mask with shape [N, H*W].
+                pixels (torch.Tensor): A 2D tensor where each row represents a flattened binary mask with shape [N,
+                    H*W].
 
             Returns:
                 (list[int]): A list of RLE counts for each mask.

@@ -245,6 +245,45 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     return masks
 
 
+def scale_tensor(
+    tensor: torch.Tensor,
+    im0_shape: tuple[int, int],
+    ratio_pad: tuple[tuple[int, int], tuple[int, int]] = None,
+):
+    """Rescale tensor masks to original image size.
+
+    Args:
+        tensor (torch.Tensor): Resized and padded tensor masks with shape [C, H, W].
+        im0_shape (tuple): Original image shape as HWC or HW (supports both).
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_h, pad_w)).
+
+    Returns:
+        (torch.Tensor): Rescaled masks with shape [H, W, N] matching original image dimensions.
+
+    """
+    # Rescale coordinates (xyxy) from im1_shape to im0_shape
+    im0_h, im0_w = im0_shape[:2]  # supports both HWC or HW shapes
+    _, im1_h, im1_w = tensor.shape
+    if im1_h == im0_h and im1_w == im0_w:
+        return tensor
+
+    if ratio_pad is None:  # calculate from im0_shape
+        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad = (im1_w - im0_w * gain) / 2, (im1_h - im0_h * gain) / 2  # wh padding
+    else:
+        pad = ratio_pad[1]
+
+    pad_w, pad_h = pad
+    top = round(pad_h - 0.1)
+    left = round(pad_w - 0.1)
+    bottom = im1_h - round(pad_h + 0.1)
+    right = im1_w - round(pad_w + 0.1)
+
+    tensor = tensor[:, top:bottom, left:right]
+    tensor = F.interpolate(tensor.unsqueeze(0).float(), size=(im0_h, im0_w), mode="bilinear", align_corners=False)[0]
+    return tensor
+
+
 def xyxy2xywh(x):
     """Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format where (x1, y1) is
     the top-left corner and (x2, y2) is the bottom-right corner.

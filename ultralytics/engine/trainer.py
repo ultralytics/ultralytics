@@ -640,7 +640,11 @@ class BaseTrainer:
             save_after = 0
 
         # Only save every `save_period` epochs AFTER epoch >= `save_after` (1-based check). Backward-compatible.
-        if int(getattr(self, "save_period", 0) or 0) > 0 and e >= save_after and self.epoch % int(self.save_period) == 0:
+        if (
+            int(getattr(self, "save_period", 0) or 0) > 0
+            and e >= save_after
+            and self.epoch % int(self.save_period) == 0
+        ):
             (self.wdir / f"epoch{e}.pt").write_bytes(serialized_ckpt)
 
     def get_dataset(self):

@@ -72,9 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
       text: "#0b0b0f",
     },
     welcome: {
-      title: "Hi!",
+      title: ""Welcome to Ultralytics Docs 👋",
       message:
-        "I'm an AI assistant trained on documentation, guides, and other content.<br>Ask me anything about Ultralytics.",
+        "I'm your Docs assistant. Ask about tutorials, training, export, deployment, CLI/API, and troubleshooting.",
       examples: [
         "What's new in SAM 3?",
         "How can I get started with YOLO?",

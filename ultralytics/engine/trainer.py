@@ -589,10 +589,10 @@ class BaseTrainer:
         Adds `save_after` so that periodic checkpoints (epochXX.pt) are only saved
         after a specified starting epoch. This reduces early, often-useless checkpoints.
         `last.pt` and `best.pt` behaviors remain unchanged.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
@@ -632,7 +632,7 @@ class BaseTrainer:
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
-            
+
         e = self.epoch + 1
         try:
             save_after = max(0, int(getattr(self, "save_after", getattr(self.args, "save_after", 0)) or 0))
@@ -641,7 +641,7 @@ class BaseTrainer:
 
         # Only save every `save_period` epochs AFTER epoch >= `save_after` (1-based check). Backward-compatible.
         if int(getattr(self, "save_period", 0) or 0) > 0 and e >= save_after and e % int(self.save_period) == 0:
-            (self.wdir / f"epoch{e}.pt").write_bytes(serialized_ckpt) 
+            (self.wdir / f"epoch{e}.pt").write_bytes(serialized_ckpt)
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.

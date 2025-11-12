@@ -121,7 +121,7 @@ class YOLODataset(BaseDataset):
                 ),
             )
             pbar = TQDM(results, desc=desc, total=total)
-            for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+            for im_file, lb, shape, segments, keypoint, ignore_kpt, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
                 ne += ne_f
@@ -135,6 +135,7 @@ class YOLODataset(BaseDataset):
                             "bboxes": lb[:, 1:],  # n, 4
                             "segments": segments,
                             "keypoints": keypoint,
+                            "ignore_kpt": ignore_kpt,
                             "normalized": True,
                             "bbox_format": "xywh",
                         }

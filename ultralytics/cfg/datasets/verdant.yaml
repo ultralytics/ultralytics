@@ -1,0 +1,11 @@
+path: /dataset
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: crop
+  1: weed
+
+kpt_shape: [1, 3]
+flip_idx: [0]

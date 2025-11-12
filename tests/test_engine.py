@@ -156,6 +156,7 @@ def test_nan_recovery():
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
 
+
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {

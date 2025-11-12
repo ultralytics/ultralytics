@@ -58,7 +58,7 @@ let ultralyticsChat = null;
 document.addEventListener("DOMContentLoaded", () => {
   ultralyticsChat = new UltralyticsChat({
     welcome: {
-      title: ""Hello 👋",
+      title: "Hello 👋",
       message: "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
       examples: [
         "What's new in SAM 3?",

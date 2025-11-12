@@ -148,6 +148,7 @@ class BaseTrainer:
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
+        self.save_after = getattr(self.args, "save_after", 0) 
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
@@ -628,8 +629,17 @@ class BaseTrainer:
         self.last.write_bytes(serialized_ckpt)  # save last.pt
         if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
-        if (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
+            
+        e = self.epoch + 1
+        try:
+            save_after = max(0, int(getattr(self, "save_after", getattr(self.args, "save_after", 0)) or 0))
+        except Exception:
+            save_after = 0
+
+        # Only save every `save_period` epochs AFTER epoch >= `save_after` (1-based check). Backward-compatible.
+        if (self.save_period > 0) and (e >= save_after) and (e % self.save_period == 0):
+            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)
+        
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.

@@ -66,22 +66,6 @@ def test_detect():
 
     raise Exception("Resume test failed!")
 
-def test_nan_recovery():
-    """Test NaN loss detection and recovery during training."""
-    nan_injected = [False]
-
-    def inject_nan(trainer):
-        """Inject NaN into loss during batch processing to test recovery mechanism."""
-        if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected[0]:
-            trainer.tloss *= torch.tensor(float("nan"))
-            nan_injected[0] = True
-
-    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 3}
-    trainer = detect.DetectionTrainer(overrides=overrides)
-    trainer.add_callback("on_train_batch_end", inject_nan)
-    trainer.train()
-    assert nan_injected[0], "NaN injection failed"
-
 def test_segment():
     """Test image segmentation training, validation, and prediction pipelines using YOLO models."""
     overrides = {
@@ -154,6 +138,21 @@ def test_classify():
     result = pred(source=ASSETS, model=trainer.best)
     assert len(result), "predictor test failed"
 
+def test_nan_recovery():
+    """Test NaN loss detection and recovery during training."""
+    nan_injected = [False]
+
+    def inject_nan(trainer):
+        """Inject NaN into loss during batch processing to test recovery mechanism."""
+        if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected[0]:
+            trainer.tloss *= torch.tensor(float("nan"))
+            nan_injected[0] = True
+
+    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 3}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_batch_end", inject_nan)
+    trainer.train()
+    assert nan_injected[0], "NaN injection failed"
 
 def test_semseg():
     """Test semantic segment including training, validation, and prediction phases."""

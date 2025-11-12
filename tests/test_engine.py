@@ -3,6 +3,8 @@
 import sys
 from unittest import mock
 
+import torch
+
 from tests import MODEL
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
@@ -64,6 +66,21 @@ def test_detect():
 
     raise Exception("Resume test failed!")
 
+def test_nan_recovery():
+    """Test NaN loss detection and recovery during training."""
+    nan_injected = [False]
+
+    def inject_nan(trainer):
+        """Inject NaN into loss during batch processing to test recovery mechanism."""
+        if trainer.epoch == 1 and trainer.tloss is not None and not nan_injected[0]:
+            trainer.tloss *= torch.tensor(float("nan"))
+            nan_injected[0] = True
+
+    overrides = {"data": "coco8.yaml", "model": "yolo11n.yaml", "imgsz": 32, "epochs": 3}
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_batch_end", inject_nan)
+    trainer.train()
+    assert nan_injected[0], "NaN injection failed"
 
 def test_segment():
     """Test image segmentation training, validation, and prediction pipelines using YOLO models."""
@@ -180,14 +197,14 @@ def test_semseg():
     pred(source=ASSETS, model=trainer.best)
 
     # export smoke test
-    YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+    YOLO("ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
 
 
 def test_semseg_cpu():
     """Test semantic segment including training, validation, and prediction phases."""
     overrides = {
-        "data": "../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
-        "model": "../ultralytics/cfg/models/11/yolo11-semseg.yaml",
+        "data": "ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        "model": "ultralytics/cfg/models/11/yolo11-semseg.yaml",
         "imgsz": 256,
         "epochs": 1,
         "save": False,
@@ -196,7 +213,7 @@ def test_semseg_cpu():
     }
     cfg = get_cfg(SEMSEG_CFG)
     cfg.device = "cpu"
-    cfg.data = "../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml"
+    cfg.data = "ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml"
     # Trainer
     trainer = semseg.SemSegTrainer(cfg=cfg, overrides=overrides)
     trainer.add_callback("on_train_start", test_func)
@@ -206,7 +223,7 @@ def test_semseg_cpu():
     # Validator
     args = dict(
         model=trainer.best,
-        data="../ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
+        data="ultralytics/cfg/datasets/cityscapes-semseg-tiny.yaml",
         imgsz=256,
         device="cpu",
         name=cfg.name,
@@ -225,7 +242,7 @@ def test_semseg_cpu():
     pred(source=ASSETS, model=trainer.best)
 
     # export smoke test
-    YOLO("../ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
+    YOLO("ultralytics/cfg/models/11/yolo11-semseg.yaml", task="semseg").export(format="onnx")
 
 
 def test_semseg_yolo_cpu():

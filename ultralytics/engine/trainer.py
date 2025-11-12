@@ -80,6 +80,7 @@ class BaseTrainer:
         last (Path): Path to the last checkpoint.
         best (Path): Path to the best checkpoint.
         save_period (int): Save checkpoint every x epochs (disabled if < 1).
+        save_after (int): Delay periodic checkpoint saving until this 1-based epoch (default 0 = no delay).
         batch_size (int): Batch size for training.
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
@@ -148,7 +149,7 @@ class BaseTrainer:
             YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
-        self.save_after = getattr(self.args, "save_after", 0) 
+        self.save_after = int(getattr(self.args, "save_after", 0))
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
@@ -592,7 +593,18 @@ class BaseTrainer:
                 m.eval()
 
     def save_model(self):
-        """Save model training checkpoints with additional metadata."""
+        """Save training checkpoints with metadata.
+
+        Adds `save_after` so that periodic checkpoints (epochXX.pt) are only saved
+        after a specified starting epoch. This reduces early, often-useless checkpoints.
+        `last.pt` and `best.pt` behaviors remain unchanged.
+    
+        Args:
+            None
+    
+        Returns:
+            None
+        """
         import io
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
@@ -637,9 +649,8 @@ class BaseTrainer:
             save_after = 0
 
         # Only save every `save_period` epochs AFTER epoch >= `save_after` (1-based check). Backward-compatible.
-        if (self.save_period > 0) and (e >= save_after) and (e % self.save_period == 0):
-            (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)
-        
+        if int(getattr(self, "save_period", 0) or 0) > 0 and e >= save_after and e % int(self.save_period) == 0:
+            (self.wdir / f"epoch{e}.pt").write_bytes(serialized_ckpt) 
 
     def get_dataset(self):
         """Get train and validation datasets from data dictionary.

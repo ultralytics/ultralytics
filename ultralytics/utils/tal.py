@@ -108,7 +108,8 @@ class TaskAlignedAssigner(nn.Module):
 
         target_gt_idx, fg_mask, mask_pos = self.select_highest_overlaps(mask_pos, overlaps, self.n_max_boxes)
 
-        # Assigned target
+        # Assigned target.
+        # target_scores: (b, h*w, num_classes) for one-hot encoding (or 0 if the anchor is negative)
         target_labels, target_bboxes, target_scores = self.get_targets(gt_labels, gt_bboxes, target_gt_idx, fg_mask)
 
         # Normalize

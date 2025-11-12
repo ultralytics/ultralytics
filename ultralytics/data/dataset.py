@@ -101,6 +101,8 @@ class YOLODataset(BaseDataset):
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
         total = len(self.im_files)
         nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        num_classes = len(self.data['names'])
+        num_attributes = len(self.data['attributes']) if 'attributes' in self.data else 0
         if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
             raise ValueError(
                 "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
@@ -114,14 +116,15 @@ class YOLODataset(BaseDataset):
                     self.label_files,
                     repeat(self.prefix),
                     repeat(self.use_keypoints),
-                    repeat(len(self.data["names"])),
+                    repeat(num_classes),
+                    repeat(num_attributes),
                     repeat(nkpt),
                     repeat(ndim),
                     repeat(self.single_cls),
                 ),
             )
             pbar = TQDM(results, desc=desc, total=total)
-            for im_file, lb, shape, segments, keypoint, ignore_kpt, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+            for im_file, lb, shape, segments, keypoints, ignore_kpt, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
                 ne += ne_f
@@ -132,9 +135,10 @@ class YOLODataset(BaseDataset):
                             "im_file": im_file,
                             "shape": shape,
                             "cls": lb[:, 0:1],  # n, 1
-                            "bboxes": lb[:, 1:],  # n, 4
+                            "bboxes": lb[:, 1 + num_attributes:1 + num_attributes + 4],  # n, 4
                             "segments": segments,
-                            "keypoints": keypoint,
+                            "attributes": lb[:, 1:1 + num_attributes],
+                            "keypoints": keypoints,
                             "ignore_kpt": ignore_kpt,
                             "normalized": True,
                             "bbox_format": "xywh",

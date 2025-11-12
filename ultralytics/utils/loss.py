@@ -204,7 +204,8 @@ class v8DetectionLoss:
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
-        self.no = m.nc + m.reg_max * 4
+        self.na = m.na  # number of attributes
+        self.no = m.nc + m.na + m.reg_max * 4
         self.reg_max = m.reg_max
         self.device = device
 
@@ -242,14 +243,15 @@ class v8DetectionLoss:
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
-        loss = torch.zeros(3, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(4, device=self.device)  # box, cls, dfl, attributes
         feats = preds[1] if isinstance(preds, tuple) else preds
-        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1
+        pred_distri, pred_scores, pred_attributes = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc, self.na), 1
         )
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
+        pred_attributes = pred_attributes.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]
@@ -295,9 +297,15 @@ class v8DetectionLoss:
                 fg_mask,
             )
 
+        if 'attributes' in batch:
+            attributes = batch['attributes'].to(self.device).float()
+            attribute_losses = self.bce(pred_attributes, attributes.to(dtype))
+            loss[3] = attribute_losses[fg_mask].sum() / target_scores_sum
+
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        loss[3] *= self.hyp.attr  # attribute gain
 
         return loss * batch_size, loss.detach()  # loss(box, cls, dfl)
 
@@ -498,18 +506,26 @@ class v8PoseLoss(v8DetectionLoss):
 
     def __call__(self, preds, batch):
         """Calculate the total loss and detach it."""
-        loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
+        loss = torch.zeros(6, device=self.device)  # box, cls, attributes, dfl, kpt_location, kpt_visibility
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
         batch_size = feats[0].shape[0]
-        pred_distri, pred_scores = torch.cat([xi.view(batch_size, self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1)
+        pred_distri, pred_scores, pred_attributes = torch.cat(
+            [xi.view(batch_size, self.no, -1) for xi in feats], 2
+        ).split(
+            (self.reg_max * 4, self.nc, self.na), 1
+        )
 
-        loss = self.calculate_bbox_kpt_loss(loss, batch, feats, pred_distri, pred_scores, pred_kpts)
+        loss = self.calculate_bbox_kpt_loss(
+            loss, batch, feats, pred_distri, pred_scores, pred_attributes, pred_kpts
+        )
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def calculate_bbox_kpt_loss(self, loss, batch, feats, pred_distri, pred_scores, pred_kpts):
+    def calculate_bbox_kpt_loss(
+        self, loss, batch, feats, pred_distri, pred_scores, pred_attributes, pred_kpts
+    ):
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
+        pred_attributes = pred_attributes.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
         pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
 
@@ -544,11 +560,17 @@ class v8PoseLoss(v8DetectionLoss):
             loss[1], loss[2] = self.calculate_keypoints_loss(fg_mask, target_gt_idx, keypoints, batch_idx,
                                                              stride_tensor, target_bboxes, pred_kpts, batch['ignore_kpt'])
 
+            if 'attributes' in batch:
+                attributes = batch['attributes'].to(self.device).float()
+                attribute_losses = self.bce(pred_attributes, attributes.to(dtype))
+                loss[5] = attribute_losses[fg_mask].sum() / target_scores_sum
+
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
+        loss[5] *= self.hyp.attr  # attribute gain
         return loss
 
     @staticmethod

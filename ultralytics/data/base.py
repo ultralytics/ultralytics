@@ -192,11 +192,13 @@ class BaseDataset(Dataset):
         for i in range(len(self.labels)):
             if include_class is not None:
                 cls = self.labels[i]["cls"]
+                attributes = self.labels[i]["attributes"]
                 bboxes = self.labels[i]["bboxes"]
                 segments = self.labels[i]["segments"]
                 keypoints = self.labels[i]["keypoints"]
                 j = (cls == include_class_array).any(1)
                 self.labels[i]["cls"] = cls[j]
+                self.labels[i]["attributes"] = attributes[j]
                 self.labels[i]["bboxes"] = bboxes[j]
                 if segments:
                     self.labels[i]["segments"] = [segments[si] for si, idx in enumerate(j) if idx]

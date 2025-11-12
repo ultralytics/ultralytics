@@ -179,7 +179,13 @@ def verify_image(args: tuple) -> tuple:
 
 def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
-    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
+    im_file, lb_file, prefix, keypoint, num_cls, num_attributes, nkpt, ndim, single_cls = args
+    num_classifications = 1 + num_attributes
+    # Number of columns expected in each label file. Exceptions:
+    # - It is acceptable for a label file to contain no keypoints even if keypoint is true.
+    # - It is acceptable for a label file to contain a segmentation outline instead of a bounding
+    #   box when keypoint is false, in which case the segmentation is converted to a bounding box.
+    num_expected_columns = num_classifications + 4 + nkpt * ndim  # classifications + box + keypoints
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints, ignore_kpt = 0, 0, 0, 0, "", [], None, None
     try:
@@ -202,42 +208,35 @@ def verify_image_label(args: tuple) -> list:
             nf = 1  # label found
             with open(lb_file) as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                maybe_kpt_label = keypoint
-                if not maybe_kpt_label and all(len(x) == (1 + 4 + 3) for x in lb):
-                    # We are not in keypoint mode, but the label file has 
-                    # 4 box coordinates and 3 keypoints coordinates and 1 class label
-                    # This is a keypoint label file but we still load it as a normal label file
-                    maybe_kpt_label = True
-                if not maybe_kpt_label and any(len(x) > 6 for x in lb):  # is segment
-                    classes = np.array([x[0] for x in lb], dtype=np.float32)
-                    segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
-                    lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
+                if not keypoint and any(len(x) > 6 for x in lb):  # Special segmentation format
+                    classes = np.array([x[0:num_classifications] for x in lb], dtype=np.float32)
+                    segments = [np.array(x[num_classifications:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
+                    lb = np.concatenate((classes.reshape(-1, num_classifications), segments2boxes(segments)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
             nl = len(lb)
             if nl:
+                box_xywh = lb[:, num_classifications : num_classifications + 4]
+                assert box_xywh.max() <= 1, f'Box coordinates should be in [0, 1]. Found {box_xywh[box_xywh > 1]}'
+                assert box_xywh.min() >= 0, f'Box coordinates should be in [0, 1]. Found {box_xywh[box_xywh < 0]}'
                 if keypoint:
                     # Check if we have keypoints in the label file
-                    if lb.shape[1] > 5:
-                        assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
-                        points = lb[:, 5:].reshape(-1, ndim)[:, :2]
-                        ignore_kpt = False
-                    else:
-                        points = lb[:, 1:]
+                    keypoints = lb[:, num_classifications:].reshape(-1, ndim)[:, :2]
+                    if lb.shape[1] == num_expected_columns - nkpt * ndim:
                         ignore_kpt = True
-                else:
-                    if lb.shape[1] == 5 or lb.shape[1] == (5 + 3):
-                        points = lb[:, 1:5]
                     else:
-                        raise ValueError(f'labels require 5 columns each, or 8 columns for segments but found {lb.shape[1]}')
-                assert points.max() <= 1, f'non-normalized or out of bounds coordinates {points[points > 1]}'
-                assert lb.min() >= 0, f'negative label values {lb[lb < 0]}'
+                        assert lb.shape[1] == num_expected_columns, f'Found {lb.shape[1]} columns. Expected {num_expected_columns}'
+                        ignore_kpt = False
+                    assert keypoints.max() <= 1, f'Keypoint coordinates should be in [0, 1]. Found {keypoints[keypoints > 1]}'
+                    assert keypoints.min() >= 0, f'Keypoint coordinates should be in [0, 1]. Found {keypoints[keypoints < 0]}'
 
                 # All labels
-                max_cls = 0 if single_cls else lb[:, 0].max()  # max label count
+                class_labels = lb[:, 0]
+                max_cls = 0 if single_cls else class_labels.max()  # max label count
                 assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
                 )
+                assert class_labels.min() >= 0, f'Negative class labels found: {class_labels[class_labels < 0]}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
@@ -246,24 +245,24 @@ def verify_image_label(args: tuple) -> list:
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed file {lb_file}'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
+                lb = np.zeros((0, num_expected_columns), dtype=np.float32)
                 if keypoint:
                     # This image has no bounding boxes, So we should not ignore the keypoints
                     # Model should learn to predict no keypoints for this image
                     ignore_kpt = False
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, (5 + nkpt * ndim) if keypoint else 5), dtype=np.float32)
+            lb = np.zeros((0, num_expected_columns), dtype=np.float32)
         if keypoint:
             if ignore_kpt:
                 num_of_boxes = len(lb)
                 keypoints = np.zeros((num_of_boxes, nkpt, ndim), dtype=np.float32)
             else:
-                keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
+                keypoints = lb[:, num_classifications + 4:].reshape(-1, nkpt, ndim)
                 if ndim == 2:
                     kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
                     keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
-        lb = lb[:, :5]
+        lb = lb[:, :num_classifications + 4]
         return im_file, lb, shape, segments, keypoints, ignore_kpt, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
@@ -450,6 +449,17 @@ def check_det_dataset(dataset: str, autodownload: bool = True) -> dict[str, Any]
         data["nc"] = len(data["names"])
 
     data["names"] = check_class_names(data["names"])
+    if "attributes" not in data and "na" not in data:
+        data["na"] = 0
+        data["attributes"] = []
+    elif "attributes" in data and "na" in data and len(data["attributes"]) != data["na"]:
+        raise SyntaxError(
+            emojis(f"{dataset} declares {len(data['attributes'])} attributes but na={data['na']}")
+        )
+    elif "attributes" not in data:
+        data["attributes"] = {i: f"class_{i}" for i in range(data["na"])}
+    else:
+        data["na"] = len(data["attributes"])
     data["channels"] = data.get("channels", 3)  # get image channels, default to 3
 
     # Resolve paths

@@ -4,7 +4,7 @@ val: images/val
 test: images/test
 
 names:
-  0: crop
+  0: grass_blue
   1: weed
 
 kpt_shape: [1, 3]

@@ -66,6 +66,7 @@ def test_detect():
 
     raise Exception("Resume test failed!")
 
+
 def test_nan_recovery():
     """Test NaN loss detection and recovery during training."""
     nan_injected = [False]
@@ -81,6 +82,7 @@ def test_nan_recovery():
     trainer.add_callback("on_train_batch_end", inject_nan)
     trainer.train()
     assert nan_injected[0], "NaN injection failed"
+
 
 def test_segment():
     """Test image segmentation training, validation, and prediction pipelines using YOLO models."""

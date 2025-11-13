@@ -261,6 +261,15 @@ def remove_macros():
     LOGGER.info(f"Removed {len(macros_indices)} URLs containing '/macros/' from {sitemap}")
 
 
+# Precompiled regex patterns for minification
+HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")
+HTML_PRESERVE = re.compile(r"<(pre|code|textarea)[^>]*>[\s\S]*?</\1>", re.IGNORECASE)
+HTML_TAG_SPACE = re.compile(r">\s+<")
+HTML_MULTI_SPACE = re.compile(r"\s{2,}")
+HTML_EMPTY_LINE = re.compile(r"^\s*$\n", re.MULTILINE)
+CSS_COMMENT = re.compile(r"/\*[\s\S]*?\*/")
+
+
 def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
     """Remove comments and empty lines from a string of code, preserving newlines and URLs.
 
@@ -278,22 +287,21 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         - Total JS reduction: 13.51% (99.31 KB saved)
     """
     if file_type == "html":
-        content = re.sub(r"<!--[\s\S]*?-->", "", content)  # Remove HTML comments
+        content = HTML_COMMENT.sub("", content)  # Remove HTML comments
         # Preserve whitespace in <pre>, <code>, <textarea> tags
         preserved = []
         def preserve(match):
             preserved.append(match.group(0))
             return f"___PRESERVE_{len(preserved) - 1}___"
-        content = re.sub(r"<(pre|code|textarea)[^>]*>[\s\S]*?</\1>", preserve, content, flags=re.IGNORECASE)
-        content = re.sub(r">\s+<", "><", content)  # Remove whitespace between tags
-        content = re.sub(r"^\s*$\n", "", content, flags=re.MULTILINE)  # Remove empty lines
-        content = re.sub(r"\s{2,}", " ", content)  # Collapse multiple spaces
+        content = HTML_PRESERVE.sub(preserve, content)
+        content = HTML_TAG_SPACE.sub("><", content)  # Remove whitespace between tags
+        content = HTML_MULTI_SPACE.sub(" ", content)  # Collapse multiple spaces
+        content = HTML_EMPTY_LINE.sub("", content)  # Remove empty lines
         # Restore preserved content
         for i, text in enumerate(preserved):
             content = content.replace(f"___PRESERVE_{i}___", text)
     elif file_type == "css":
-        # Remove CSS comments
-        content = re.sub(r"/\*[\s\S]*?\*/", "", content)
+        content = CSS_COMMENT.sub("", content)  # Remove CSS comments
         # Remove whitespace around specific characters
         content = re.sub(r"\s*([{}:;,])\s*", r"\1", content)
         # Remove empty lines

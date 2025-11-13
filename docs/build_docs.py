@@ -290,9 +290,11 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         content = HTML_COMMENT.sub("", content)  # Remove HTML comments
         # Preserve whitespace in <pre>, <code>, <textarea> tags
         preserved = []
+
         def preserve(match):
             preserved.append(match.group(0))
             return f"___PRESERVE_{len(preserved) - 1}___"
+
         content = HTML_PRESERVE.sub(preserve, content)
         content = HTML_TAG_SPACE.sub("><", content)  # Remove whitespace between tags
         content = HTML_MULTI_SPACE.sub(" ", content)  # Collapse multiple spaces

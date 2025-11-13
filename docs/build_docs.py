@@ -278,10 +278,19 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         - Total JS reduction: 13.51% (99.31 KB saved)
     """
     if file_type == "html":
-        # Remove HTML comments
-        content = re.sub(r"<!--[\s\S]*?-->", "", content)
-        # Only remove empty lines for HTML, preserve indentation
-        content = re.sub(r"^\s*$\n", "", content, flags=re.MULTILINE)
+        content = re.sub(r"<!--[\s\S]*?-->", "", content)  # Remove HTML comments
+        # Preserve whitespace in <pre>, <code>, <textarea> tags
+        preserved = []
+        def preserve(match):
+            preserved.append(match.group(0))
+            return f"___PRESERVE_{len(preserved) - 1}___"
+        content = re.sub(r"<(pre|code|textarea)[^>]*>[\s\S]*?</\1>", preserve, content, flags=re.IGNORECASE)
+        content = re.sub(r">\s+<", "><", content)  # Remove whitespace between tags
+        content = re.sub(r"^\s*$\n", "", content, flags=re.MULTILINE)  # Remove empty lines
+        content = re.sub(r"\s{2,}", " ", content)  # Collapse multiple spaces
+        # Restore preserved content
+        for i, text in enumerate(preserved):
+            content = content.replace(f"___PRESERVE_{i}___", text)
     elif file_type == "css":
         # Remove CSS comments
         content = re.sub(r"/\*[\s\S]*?\*/", "", content)

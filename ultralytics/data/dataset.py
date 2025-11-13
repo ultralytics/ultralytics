@@ -855,10 +855,10 @@ class SemanticDataset(BaseDataset):
         label["mask"] = cv2.imread(label["msk_file"])
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
-        label["mask"] = cv2.resize(label["mask"], dsize=label["resized_shape"], interpolation=cv2.INTER_NEAREST)
+        label["mask"] = cv2.resize(label["mask"], dsize=(label["resized_shape"][1], label["resized_shape"][0]), interpolation=cv2.INTER_NEAREST)
         label["ratio_pad"] = (
-            label["resized_shape"][0] / label["ori_shape"][0],
-            label["resized_shape"][1] / label["ori_shape"][1],
+            label["resized_shape"][0] / label["ori_shape"][0],  #height
+            label["resized_shape"][1] / label["ori_shape"][1],  #width
         )  # for evaluation
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]

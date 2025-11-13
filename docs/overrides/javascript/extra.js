@@ -61,10 +61,17 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "Hello 👋",
       message:
         "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
-      examples: [
+      chatExamples: [
         "What's new in SAM 3?",
         "How can I get started with YOLO?",
         "How does Enterprise Licensing work?",
+      ],
+      searchExamples: [
+        "YOLO11 quickstart",
+        "custom dataset training",
+        "model export formats",
+        "object detection tutorial",
+        "hyperparameter tuning",
       ],
     },
   });

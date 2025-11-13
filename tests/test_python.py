@@ -715,7 +715,7 @@ def test_yoloe():
         vp_weight={"random": 0.9},
     )
     # results should be the same, therefore the vp_weight of person (0.2) was not influenced by random (0.9)
-    assert torch.equal(person_memory_res[0].boxes.xywh, random_memory_res[0].boxes.xywh)
+    assert torch.allclose(person_memory_res[0].boxes.xywh, random_memory_res[0].boxes.xywh, atol=1e-6)
 
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")

@@ -381,11 +381,15 @@ def main():
     if (MACOS or LINUX) and not os.getenv("GITHUB_ACTIONS"):
         import webbrowser
 
-        webbrowser.open("http://localhost:8000")
+        url = "http://localhost:8000"
+        LOGGER.info(f"Opening browser at {url}")
+        webbrowser.open(url)
         try:
             subprocess.run(["python", "-m", "http.server", "--directory", str(SITE), "8000"], check=True)
         except KeyboardInterrupt:
-            LOGGER.info("\nServer stopped.")
+            LOGGER.info(f"\n✅ Server stopped. Restart at {url}")
+        except Exception as e:
+            LOGGER.info(f"\n❌ Server failed: {e}")
     else:
         LOGGER.info('Serve site at http://localhost:8000 with "python -m http.server --directory site"')
 

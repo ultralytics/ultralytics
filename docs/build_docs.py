@@ -312,8 +312,8 @@ def remove_comments_and_empty_lines(content: str, file_type: str) -> str:
         # Collapse multiple spaces to single space
         content = re.sub(r"\s{2,}", " ", content)
 
-        # Safe space removal around punctuation and operators (NEVER include colons - breaks JS)
-        content = re.sub(r"\s*([,;{}])\s*", r"\1", content)
+        # Safe space removal around punctuation and operators (never include colons - breaks JS)
+        content = re.sub(r"\s*([;{}])\s*", r"\1", content)
         content = re.sub(r"(\w)\s*\(|\)\s*{|\s*([+\-*/=])\s*", lambda m: m.group(0).replace(" ", ""), content)
 
     return content

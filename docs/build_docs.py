@@ -198,7 +198,10 @@ def update_docs_html():
 
 def update_docs_soup(content: str, html_file: Path | None = None, max_title_length: int = 70) -> str:
     """Convert plaintext links to HTML hyperlinks, truncate long meta titles, and remove code line hrefs."""
-    soup = BeautifulSoup(content, "html.parser")
+    try:
+        soup = BeautifulSoup(content, "lxml")
+    except Exception:
+        soup = BeautifulSoup(content, "html.parser")
     modified = False
 
     # Truncate long meta title if needed

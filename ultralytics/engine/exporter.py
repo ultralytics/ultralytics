@@ -237,7 +237,7 @@ def try_export(inner_func):
                 )
 
             # Show message after exception for better visibility
-            e.args = (msg,) + e.args[1:] if len(e.args) > 1 else (msg,)
+            e.args = (msg, *e.args[1:]) if len(e.args) > 1 else (msg,)
             raise e
 
     return outer_func

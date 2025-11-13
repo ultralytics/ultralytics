@@ -881,7 +881,7 @@ class SemanticDataset(BaseDataset):
             results[:, :, i] = mb * mg * mr
             fore = np.logical_or(fore, (mb * mg * mr).astype(np.bool_))
         bg = np.logical_not(fore)
-        results[bg, -1] = 1
+        results[:, :, -1] = bg.astype(np.uint8)
         return results
 
     def update_labels_info(self, label):

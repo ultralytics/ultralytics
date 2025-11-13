@@ -263,7 +263,7 @@ def remove_macros():
 
 # Precompiled regex patterns for minification
 HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->")
-HTML_PRESERVE = re.compile(r"<(pre|code|textarea)[^>]*>[\s\S]*?</\1>", re.IGNORECASE)
+HTML_PRESERVE = re.compile(r"<(pre|code|textarea|script)[^>]*>[\s\S]*?</\1>", re.IGNORECASE)
 HTML_TAG_SPACE = re.compile(r">\s+<")
 HTML_MULTI_SPACE = re.compile(r"\s{2,}")
 HTML_EMPTY_LINE = re.compile(r"^\s*$\n", re.MULTILINE)

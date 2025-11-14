@@ -122,10 +122,13 @@ class DetectionTrainer(BaseTrainer):
             if isinstance(v, torch.Tensor):
                 batch[k] = v.to(self.device, non_blocking=self.device.type == "cuda")
         batch["img"] = batch["img"].float() / 255
-        if self.args.multi_scale:
+        multi_scale = self.args.multi_scale
+        if multi_scale > 0:
             imgs = batch["img"]
             sz = (
-                random.randrange(int(self.args.imgsz * 0.5), int(self.args.imgsz * 1.5 + self.stride))
+                random.randrange(
+                    int(self.args.imgsz * (1 - multi_scale)), int(self.args.imgsz * (1 + multi_scale) + self.stride)
+                )
                 // self.stride
                 * self.stride
             )  # size

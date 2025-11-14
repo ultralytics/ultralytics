@@ -422,7 +422,6 @@ class BaseTrainer:
                         preds = self.model(batch["img"])
                         loss, self.loss_items = unwrap_model(self.model).loss(batch, preds)
                     else:
-                        print(batch["img"].shape)
                         loss, self.loss_items = self.model(batch)
                     self.loss = loss.sum()
                     if RANK != -1:

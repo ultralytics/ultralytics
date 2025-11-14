@@ -18,7 +18,7 @@ The kitti dataset is one of the most influential benchmark datasets for autonomo
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the KITTI Dataset | Object Detection, Inference & ONNX Export 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO11 on the KITTI Dataset 🚀
 </p>
 
 It is widely used for evaluating algorithms in object detection, depth estimation, optical flow, and visual odometry. The dataset is fully compatible with Ultralytics YOLO11 for 2D object detection tasks and can be easily integrated into the Ultralytics platform for training and evaluation.

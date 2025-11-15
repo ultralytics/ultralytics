@@ -181,7 +181,7 @@ Ultralytics YOLO11 introduces several significant advancements over its predeces
 
 Training a YOLO11 model for object detection can be done using Python or CLI commands. Below are examples for both methods:
 
-!!! Example
+!!! example
 
     === "Python"
 

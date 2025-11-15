@@ -124,7 +124,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 To train a YOLO11 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLO11n-pose model for 100 epochs with an image size of 640:
 
-!!! Example
+!!! example
 
     === "Python"
 

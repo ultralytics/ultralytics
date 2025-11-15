@@ -91,7 +91,7 @@ For detailed instructions and best practices related to the installation process
 
 #### Usage
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

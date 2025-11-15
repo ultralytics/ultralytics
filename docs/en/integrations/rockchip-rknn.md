@@ -69,7 +69,7 @@ For detailed instructions and best practices related to the installation process
 
     Export is currently only supported for detection models. More model support will be coming in the future.
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -127,7 +127,7 @@ To install the required packages, run:
 
 ### Usage
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 
@@ -200,7 +200,7 @@ Also, if you'd like to know more about other Ultralytics YOLO11 integrations, vi
 
 You can easily export your Ultralytics YOLO model to RKNN format using the `export()` method in the Ultralytics Python package or via the command-line interface (CLI). Ensure you are using an x86-based Linux PC for the export process, as ARM64 devices like Rockchip are not supported for this operation. You can specify the target Rockchip platform using the `name` argument, such as `rk3588`, `rk3566`, or others. This process generates an optimized RKNN model ready for deployment on your Rockchip device, taking advantage of its Neural Processing Unit (NPU) for accelerated inference.
 
-!!! Example
+!!! example
 
     === "Python"
 

@@ -30,7 +30,7 @@ Here are some of the key models supported:
 14. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
 15. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
 16. **[YOLO-NAS](yolo-nas.md)**: YOLO [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) (NAS) Models.
-17. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
+17. **[Real-Time Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle real-time Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
 18. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
 19. **[YOLOE](yoloe.md)**: An improved open-vocabulary object detector that maintains YOLO's real-time performance while detecting arbitrary classes beyond its training data.
 

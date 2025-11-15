@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, tutorials, guides, object detection, deep learning,
 
 # Comprehensive Tutorials to Ultralytics YOLO
 
-Welcome to the Ultralytics' YOLO 🚀 Guides! Our comprehensive tutorials cover various aspects of the YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model, ranging from training and prediction to deployment. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), YOLO stands out for its exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in real-time object detection tasks.
+Welcome to Ultralytics' YOLO 🚀 Guides! Our comprehensive tutorials cover various aspects of the YOLO [object detection](https://www.ultralytics.com/glossary/object-detection) model, ranging from training and prediction to deployment. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), YOLO stands out for its exceptional speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) in real-time object detection tasks.
 
 Whether you're a beginner or an expert in [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl), our tutorials offer valuable insights into the implementation and optimization of YOLO for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's dive in!
 
@@ -37,7 +37,7 @@ Here's a compilation of in-depth guides to help you master different aspects of 
 - [AzureML Quickstart](azureml-quickstart.md) 🚀 NEW: Get up and running with Ultralytics YOLO models on Microsoft's Azure [Machine Learning](https://www.ultralytics.com/glossary/machine-learning-ml) platform. Learn how to train, deploy, and scale your object detection projects in the cloud.
 - [Conda Quickstart](conda-quickstart.md) 🚀 NEW: Step-by-step guide to setting up a [Conda](https://anaconda.org/conda-forge/ultralytics) environment for Ultralytics. Learn how to install and start using the Ultralytics package efficiently with Conda.
 - [Docker Quickstart](docker-quickstart.md) 🚀 NEW: Complete guide to setting up and using Ultralytics YOLO models with [Docker](https://hub.docker.com/r/ultralytics/ultralytics). Learn how to install Docker, manage GPU support, and run YOLO models in isolated containers for consistent development and deployment.
-- [Raspberry Pi](raspberry-pi.md) 🚀 NEW: Quickstart tutorial to run YOLO models to the latest Raspberry Pi hardware.
+- [Raspberry Pi](raspberry-pi.md) 🚀 NEW: Quickstart tutorial to run YOLO models on the latest Raspberry Pi hardware.
 - [NVIDIA Jetson](nvidia-jetson.md) 🚀 NEW: Quickstart guide for deploying YOLO models on NVIDIA Jetson devices.
 - [DeepStream on NVIDIA Jetson](deepstream-nvidia-jetson.md) 🚀 NEW: Quickstart guide for deploying YOLO models on NVIDIA Jetson devices using DeepStream and TensorRT.
 - [Triton Inference Server Integration](triton-inference-server.md) 🚀 NEW: Dive into the integration of Ultralytics YOLO11 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.

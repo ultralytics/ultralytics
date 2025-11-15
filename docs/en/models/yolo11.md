@@ -41,7 +41,7 @@ YOLO11 is the latest iteration in the [Ultralytics](https://www.ultralytics.com/
 
 ## Supported Tasks and Modes
 
-YOLO11 builds upon the versatile model range introduced in YOLOv8, offering enhanced support across various computer vision tasks:
+YOLO11 builds upon the versatile model range established by earlier Ultralytics YOLO releases, offering enhanced support across various computer vision tasks:
 
 | Model       | Filenames                                                                                 | Task                                         | Inference | Validation | Training | Export |
 | ----------- | ----------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |

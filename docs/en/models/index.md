@@ -49,7 +49,7 @@ Here are some of the key models supported:
 
 This example provides simple YOLO training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
+Note the below example spotlights YOLO11 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
 
 !!! example
 
@@ -60,8 +60,8 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv8n model
-        model = YOLO("yolov8n.pt")
+        # Load a COCO-pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
 
         # Display model information (optional)
         model.info()
@@ -69,7 +69,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        # Run inference with the YOLO11n model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
         ```
 
@@ -78,11 +78,11 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLOv8n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+        # Load a COCO-pretrained YOLO11n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolo11n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        # Load a COCO-pretrained YOLO11n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo11n.pt source=path/to/bus.jpg
         ```
 
 ## Contributing New Models

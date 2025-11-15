@@ -145,8 +145,8 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @article{tian2025yolov12,
-          title={YOLOv12: Attention-Centric Real-Time Object Detectors},
+        @article{tian2025yolo12,
+          title={YOLO12: Attention-Centric Real-Time Object Detectors},
           author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
           journal={arXiv preprint arXiv:2502.12524},
           year={2025}
@@ -154,7 +154,7 @@ If you use YOLO12 in your research, please cite the original work by [University
 
         @software{yolo12,
           author = {Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          title = {YOLOv12: Attention-Centric Real-Time Object Detectors},
+          title = {YOLO12: Attention-Centric Real-Time Object Detectors},
           year = {2025},
           url = {https://github.com/sunsmarterjie/yolov12},
           license = {AGPL-3.0}

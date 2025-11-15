@@ -189,7 +189,7 @@ To prepare your dataset for ClearML, follow these steps:
 
     ```bash
     cd your_dataset_folder
-    clearml-data sync --project YOLOv11 --name your_dataset_name --folder .
+    clearml-data sync --project YOLO11 --name your_dataset_name --folder .
     ```
 
 This command will create a versioned dataset in ClearML that can be referenced in your training scripts, ensuring reproducibility and easy access to your data.

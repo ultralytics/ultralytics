@@ -302,7 +302,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     === "Export"
 
-        Export a YOLOv11n classification model to ONNX format with an image size of 224x128 (no TASK required):
+        Export a YOLO11n classification model to ONNX format with an image size of 224x128 (no TASK required):
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
         ```

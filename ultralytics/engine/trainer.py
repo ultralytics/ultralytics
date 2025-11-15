@@ -428,7 +428,8 @@ class BaseTrainer:
                     self.loss = loss.sum()
                     if RANK != -1:
                         self.loss *= self.world_size
-                    self.loss_items = self.loss_items.detach() # detach to prevent memory leaks
+                    if isinstance(self.loss_items, torch.Tensor):
+                        self.loss_items = self.loss_items.detach()
                     self.tloss = self.loss_items if self.tloss is None else (self.tloss * i + self.loss_items) / (i + 1)
 
                 # Backward

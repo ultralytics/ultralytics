@@ -125,7 +125,7 @@ Validate trained YOLO11n-obb model [accuracy](https://www.ultralytics.com/glossa
         metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)
-        metrics.box.maps  # a list contains map50-95(B) of each category
+        metrics.box.maps  # a list containing mAP50-95(B) for each category
         ```
 
     === "CLI"

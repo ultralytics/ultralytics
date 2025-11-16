@@ -84,6 +84,8 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
+        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with filenames that include the source image name and class. This makes it easy to inspect detections or build downstream datasets without writing extra code.
+
 ### `ObjectCropper` Arguments
 
 Here's a table with the `ObjectCropper` arguments:

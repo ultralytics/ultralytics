@@ -70,6 +70,8 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
+        The `vision_point` tuple represents the observer's position in pixel coordinates. Adjust it to match the camera perspective so the rendered rays correctly illustrate how objects relate to the chosen viewpoint.
+
 ### `VisionEye` Arguments
 
 Here's a table with the `VisionEye` arguments:

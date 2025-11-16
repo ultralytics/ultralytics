@@ -51,6 +51,8 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         yolo solutions count region="[(20, 400), (1080, 400), (1080, 360), (20, 360)]"
         ```
 
+        The `region` argument accepts either two points (for a line) or a polygon with three or more points. Define the coordinates in the order they should be connected so the counter knows exactly where entries and exits occur.
+
     === "Python"
 
         ```python

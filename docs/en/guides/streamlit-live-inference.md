@@ -52,6 +52,8 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
         yolo solutions inference model="path/to/model.pt"
         ```
 
+        These commands launch the default Streamlit interface that ships with Ultralytics. Use `yolo solutions inference --help` to view additional flags such as `source`, `conf`, or `persist` if you want to customize the experience without editing Python code.
+
     === "Python"
 
         ```python

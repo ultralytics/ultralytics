@@ -180,7 +180,7 @@ Getting started with YOLO is quick and straightforward. You can install the Ultr
     === "CLI"
 
         ```bash
-        pip install ultralytics
+        pip install -U ultralytics
         ```
 
 For a comprehensive step-by-step guide, visit our [Quickstart](quickstart.md) page. This resource will help you with installation instructions, initial setup, and running your first model.

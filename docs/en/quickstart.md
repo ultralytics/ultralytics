@@ -31,8 +31,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 
         ```bash
-        # Install the ultralytics package from PyPI
-        pip install ultralytics
+        # Install or upgrade the ultralytics package from PyPI
+        pip install -U ultralytics
         ```
 
         You can also install `ultralytics` directly from the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics). This can be useful if you want the latest development version. Ensure you have the Git command-line tool installed, and then run:
@@ -505,7 +505,7 @@ Revisit these settings as you progress through projects or experiments to ensure
 Install Ultralytics with pip using:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
 This installs the latest stable release of the `ultralytics` package from [PyPI](https://pypi.org/project/ultralytics/). To install the development version directly from GitHub:

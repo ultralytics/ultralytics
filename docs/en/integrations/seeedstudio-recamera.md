@@ -53,7 +53,7 @@ Step 4: Choose one of the four different pre-installed YOLO11n models and click 
   <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
 </p>
 
-Step 6: Click `Deploy` and when it finishes deploying, click `Dashboard`
+Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`
 
 ![reCamera Node-RED deploy](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-deploy.avif)
 

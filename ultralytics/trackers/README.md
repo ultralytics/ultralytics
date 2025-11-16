@@ -260,7 +260,6 @@ def run_tracker_in_thread(model_name, filename):
 
     Args:
         model_name (str): The YOLO11 model object.
-        filename (str): The path to the video file or the identifier for the webcam/external camera source.
     """
     model = YOLO(model_name)
     results = model.track(filename, save=True, stream=True)

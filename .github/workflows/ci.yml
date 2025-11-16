@@ -345,6 +345,8 @@ jobs:
     timeout-minutes: 120
     runs-on: raspberry-pi
     steps:
+      - name: Clean up runner
+        uses: eviden-actions/clean-self-hosted-runner@v1
       - uses: actions/checkout@v5
       - name: Activate Virtual Environment for Tests
         run: |
@@ -419,6 +421,8 @@ jobs:
             torchvision_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.17.2+c1d70fe-cp38-cp38-linux_aarch64.whl"
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
+      - name: Clean up runner
+        uses: eviden-actions/clean-self-hosted-runner@v1
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
       - name: Activate virtual environment

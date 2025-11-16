@@ -21,7 +21,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
   <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> in Your Browser
 </p>
 
-|                                                                Aquaculture                                                                 |                                                          Animal Husbandry                                                            |
+|                                                                Aquaculture                                                                 |                                                           Animal Husbandry                                                           |
 | :----------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
 | ![Fish Detection using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/animals-detection-yolov8.avif) |
 |                                                  Fish Detection using Ultralytics YOLO11                                                   |                                              Animals Detection using Ultralytics YOLO11                                              |

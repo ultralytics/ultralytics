@@ -161,7 +161,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
 - [SKU-110K](sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million [bounding boxes](https://www.ultralytics.com/glossary/bounding-box).
 - [HomeObjects-3K](homeobjects-3k.md): A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
-- [Construction-PPE](construction-ppe.md): New 🚀: A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_googles for real-world compliance monitoring.
+- [Construction-PPE](construction-ppe.md): A dataset featuring construction site workers with labeled safety gear such as helmets, vests, gloves, boots, and goggles, including missing-equipment annotations like no_helmet, no_googles for real-world compliance monitoring.
 - [VisDrone](visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 - [VOC](voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
 - [xView](xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
@@ -170,6 +170,7 @@ Here is a list of the supported datasets and a brief description for each:
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [Medical-pills](medical-pills.md): A dataset featuring images of medical-pills, annotated for applications such as pharmaceutical quality assurance, pill sorting, and regulatory compliance.
+- [KITTI](kitti.md) New 🚀: A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.
 
 ### Adding your own dataset
 

@@ -33,7 +33,7 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 60
-          retry_delay_seconds: 900
+          retry_delay_seconds: 1800
           retries: 2
           run: |
             lychee \
@@ -68,7 +68,7 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           timeout_minutes: 60
-          retry_delay_seconds: 900
+          retry_delay_seconds: 1800
           retries: 2
           run: |
             lychee \

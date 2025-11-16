@@ -31,8 +31,8 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
         [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 
         ```bash
-        # Install the ultralytics package from PyPI
-        pip install ultralytics
+        # Install or upgrade the ultralytics package from PyPI
+        pip install -U ultralytics
         ```
 
         You can also install `ultralytics` directly from the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics). This can be useful if you want the latest development version. Ensure you have the Git command-line tool installed, and then run:
@@ -66,7 +66,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         ### Conda Docker Image
 
-        Ultralytics Conda Docker images are also available from [DockerHub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
+        Ultralytics Conda Docker images are also available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
 
         ```bash
         # Set image name as a variable
@@ -302,7 +302,7 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
 
     === "Export"
 
-        Export a YOLOv11n classification model to ONNX format with an image size of 224x128 (no TASK required):
+        Export a YOLO11n classification model to ONNX format with an image size of 224x128 (no TASK required):
         ```bash
         yolo export model=yolo11n-cls.pt format=onnx imgsz=224,128
         ```
@@ -505,7 +505,7 @@ Revisit these settings as you progress through projects or experiments to ensure
 Install Ultralytics with pip using:
 
 ```bash
-pip install ultralytics
+pip install -U ultralytics
 ```
 
 This installs the latest stable release of the `ultralytics` package from [PyPI](https://pypi.org/project/ultralytics/). To install the development version directly from GitHub:

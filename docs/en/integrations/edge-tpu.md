@@ -36,7 +36,7 @@ Before we jump into how to export YOLO11 models to the TFLite Edge TPU format, l
 
 TFLite Edge TPU offers various deployment options for machine learning models, including:
 
-- **On-Device Deployment**: TensorFlow Edge TPU models can be directly deployed on mobile and embedded devices. On-device deployment allows the models to execute directly on the hardware, eliminating the need for cloud connectivity.
+- **On-Device Deployment**: TensorFlow Edge TPU models can be directly deployed on mobile and embedded devices. On-device deployment allows the models to execute directly on the hardware, eliminating the need for cloud connectivity, either by embedding the model in the application bundle or downloading it on demand.
 
 - **Edge Computing with Cloud TensorFlow TPUs**: In scenarios where edge devices have limited processing capabilities, TensorFlow Edge TPUs can offload inference tasks to cloud servers equipped with TPUs.
 

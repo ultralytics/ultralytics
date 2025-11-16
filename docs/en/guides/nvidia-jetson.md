@@ -190,7 +190,7 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore, we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
+The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with the Jetson platform, which is based on ARM64 architecture. Therefore, we need to manually install a pre-built PyTorch pip wheel and compile or install Torchvision from source.
 
 Install `torch 2.5.0` and `torchvision 0.20` according to JP6.1
 
@@ -256,7 +256,7 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 #### Install PyTorch and Torchvision
 
-The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson platform which is based on ARM64 architecture. Therefore, we need to manually install pre-built PyTorch pip wheel and compile/ install Torchvision from source.
+The above ultralytics installation will install Torch and Torchvision. However, these two packages installed via pip are not compatible with the Jetson platform, which is based on ARM64 architecture. Therefore, we need to manually install a pre-built PyTorch pip wheel and compile or install Torchvision from source.
 
 1. Uninstall currently installed PyTorch and Torchvision
 

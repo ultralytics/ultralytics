@@ -113,7 +113,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
         # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        # Run inference with the YOLO-World model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
         ```
 

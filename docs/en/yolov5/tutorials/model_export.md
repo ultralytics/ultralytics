@@ -187,7 +187,7 @@ import torch
 
 # Model
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.pt")
-model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.torchscript ")  # TorchScript
+model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.torchscript")  # TorchScript
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.onnx")  # ONNX Runtime
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_openvino_model")  # OpenVINO
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.engine")  # TensorRT

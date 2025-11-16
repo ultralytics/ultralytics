@@ -55,7 +55,7 @@ A YAML (Yet Another Markup Language) file defines the dataset configuration, inc
 
 ## Usage
 
-To train an [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11/)n model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training page](../../modes/train.md).
+To train an [Ultralytics YOLO11n](https://docs.ultralytics.com/models/yolo11/) model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training page](../../modes/train.md).
 
 !!! example "Train Example"
 

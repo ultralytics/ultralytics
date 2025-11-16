@@ -25,7 +25,7 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 
 Welcome to the Ultralytics [YOLOv5](https://github.com/ultralytics/yolov5)🚀 Documentation! Ultralytics YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" [object detection](https://www.ultralytics.com/glossary/object-detection) model, is designed to deliver high-speed, high-accuracy results in real-time. While YOLOv5 remains a powerful tool, consider exploring its successor, [Ultralytics YOLOv8](../models/yolov8.md), for the latest advancements.
 
-Built on [PyTorch](https://pytorch.org/), this powerful [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use-cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's get started!
+Built on [PyTorch](https://pytorch.org/), this powerful [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's get started!
 
 ## Explore and Learn
 
@@ -43,7 +43,7 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by freezing layers in YOLOv5.
 - [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model. Read the [YOLOv5 v6.0 blog post](https://www.ultralytics.com/blog/yolov5-v6-0-is-here) for more insights.
 - [ClearML Logging Integration](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate [ClearML](https://clear.ml/) for efficient logging during your model training.
-- [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md) Discover how to use [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) to prune and quantize your YOLOv5 model.
+- [YOLOv5 with Neural Magic](tutorials/neural_magic_pruning_quantization.md): Discover how to use [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) to prune and quantize your YOLOv5 model.
 - [Comet Logging Integration](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize [Comet](https://www.comet.com/site/) for improved model training logging.
 
 ## Supported Environments
@@ -70,7 +70,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://twitter.com/ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="Ultralytics Twitter"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
-  <a href="https://youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
+  <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="space">

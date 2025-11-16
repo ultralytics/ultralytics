@@ -56,7 +56,7 @@ The default tracker is BoT-SORT.
 
 ## Tracking
 
-To run the tracker on video streams, use a trained Detect, Segment or Pose model such as YOLO11n, YOLO11n-seg and YOLO11n-pose.
+To run the tracker on video streams, use a trained Detect, Segment, or Pose model such as YOLO11n, YOLO11n-seg, or YOLO11n-pose.
 
 !!! example
 
@@ -89,7 +89,7 @@ To run the tracker on video streams, use a trained Detect, Segment or Pose model
         yolo track model=path/to/best.pt tracker="bytetrack.yaml"
         ```
 
-As can be seen in the above usage, tracking is available for all Detect, Segment and Pose models run on videos or streaming sources.
+As can be seen in the above usage, tracking is available for all Detect, Segment, and Pose models run on videos or streaming sources.
 
 ## Configuration
 
@@ -152,7 +152,7 @@ The following table provides a description of each parameter:
 
 !!! warning "Tracker Threshold Information"
 
-    If object confidence score will be low, i.e lower than [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), then there will be no tracks successfully returned and updated.
+    If a detection's confidence score falls below [`track_high_thresh`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml#L5), the tracker will not update that object, resulting in no active tracks.
 
 | **Parameter**       | **Valid Values or Ranges**                    | **Description**                                                                                                                                        |
 | ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -215,7 +215,7 @@ Once exported, you can point to the TensorRT model path in your tracker config, 
 
 ### Persisting Tracks Loop
 
-Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO11 to run object tracking on video frames. This script still assumes you have already installed the necessary packages (`opencv-python` and `ultralytics`). The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
+Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/opencv) (`cv2`) and YOLO11 to run object tracking on video frames. This script assumes the necessary packages (`opencv-python` and `ultralytics`) are already installed. The `persist=True` argument tells the tracker that the current image or frame is the next in a sequence and to expect tracks from the previous image in the current image.
 
 !!! example "Streaming for-loop with tracking"
 

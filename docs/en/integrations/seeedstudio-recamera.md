@@ -35,7 +35,7 @@ reCamera comes pre-installed with four Ultralytics YOLO11 models and you can sim
 - [Detection (YOLO11n)](../tasks/detect.md)
 - [Classification (YOLO11n-cls)](../tasks/classify.md)
 - [Segmentation (YOLO11n-seg)](../tasks/segment.md)
-- [Post Estimation (YOLO11n-pose)](../tasks/pose.md)
+- [Pose Estimation (YOLO11n-pose)](../tasks/pose.md)
 
 Step 1: If you have connected reCamera to a network, enter the IP address of reCamera on a web browser to open the Node-RED dashboard. If you have connected the reCamera to a PC via USB, you can enter `192.168.42.1`. Here you will see YOLO11n detection model is loaded by default.
 
@@ -53,7 +53,7 @@ Step 4: Choose one of the four different pre-installed YOLO11n models and click 
   <img width="50%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-yolo11n-pose.avif" alt="Node-RED YOLO11n-pose select">
 </p>
 
-Step 6: Click `Deploy` and when it finishes deploying, click `Dashboard`
+Step 5: Click `Deploy` and when it finishes deploying, click `Dashboard`
 
 ![reCamera Node-RED deploy](https://github.com/ultralytics/assets/releases/download/v0.0.0/recamera-nodered-deploy.avif)
 
@@ -91,7 +91,7 @@ For detailed instructions and best practices related to the installation process
 
 #### Usage
 
-!!! Example "Usage"
+!!! example "Usage"
 
     === "Python"
 

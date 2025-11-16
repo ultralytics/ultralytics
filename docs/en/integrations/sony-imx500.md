@@ -16,7 +16,7 @@ The IMX500 model format is designed to use minimal power while delivering fast p
   <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v8.3.0/ai-camera.avif" alt="Raspberry Pi AI Camera">
 </p>
 
-## Why Should You Export to IMX500
+## Why Should You Export to IMX500?
 
 Sony's [IMX500 Intelligent Vision Sensor](https://www.aitrios.sony-semicon.com/edge-ai-devices/raspberry-pi-ai-camera) is a game-changing piece of hardware in edge AI processing. It's the world's first intelligent vision sensor with on-chip AI capabilities. This sensor helps overcome many challenges in edge AI, including data processing bottlenecks, privacy concerns, and performance limitations.
 While other sensors merely pass along images and frames, the IMX500 tells a whole story. It processes data directly on the sensor, allowing devices to generate insights in real-time.

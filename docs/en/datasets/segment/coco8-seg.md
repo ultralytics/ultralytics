@@ -8,7 +8,13 @@ keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLO11, COCO 2017, model
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) COCO8-Seg is a small, but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) COCO8-Seg is a small but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+
+## Dataset Structure
+
+- **Images**: 8 total (4 train / 4 val).
+- **Classes**: 80 COCO categories.
+- **Labels**: YOLO-format polygons stored under `labels/{train,val}` matching each image file.
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
 

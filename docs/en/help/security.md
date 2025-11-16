@@ -47,7 +47,7 @@ Ultralytics employs a comprehensive security strategy to protect user data and s
 - **Secret Scanning**: Detects sensitive data like credentials or private keys in code repositories to prevent data breaches.
 - **Private Vulnerability Reporting**: Offers a secure channel for users to report potential security issues discreetly.
 
-These tools ensure proactive identification and resolution of security issues, enhancing overall system security. For more details, visit our [export documentation](../modes/export.md).
+These tools ensure proactive identification and resolution of security issues, enhancing overall system security. For more details, explore the sections above or contact the security team with any questions.
 
 ### How does Ultralytics use Snyk for security scanning?
 

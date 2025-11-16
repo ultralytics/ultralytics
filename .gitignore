@@ -174,3 +174,21 @@ pnnx*
 
 # calibration image
 calibration_*.npy
+
+# Videos and Pictures
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.tiff
+*.gif
+*.svg
+*.webp
+*.heic
+*.ico
+*.raw

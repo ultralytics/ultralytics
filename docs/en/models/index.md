@@ -30,7 +30,7 @@ Here are some of the key models supported:
 14. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
 15. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
 16. **[YOLO-NAS](yolo-nas.md)**: YOLO [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) (NAS) Models.
-17. **[Realtime Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle Realtime Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
+17. **[Real-Time Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle real-time Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
 18. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
 19. **[YOLOE](yoloe.md)**: An improved open-vocabulary object detector that maintains YOLO's real-time performance while detecting arbitrary classes beyond its training data.
 
@@ -49,7 +49,7 @@ Here are some of the key models supported:
 
 This example provides simple YOLO training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
+Note the below example spotlights YOLO11 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
 
 !!! example
 
@@ -60,8 +60,8 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv8n model
-        model = YOLO("yolov8n.pt")
+        # Load a COCO-pretrained YOLO11n model
+        model = YOLO("yolo11n.pt")
 
         # Display model information (optional)
         model.info()
@@ -69,7 +69,7 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv8n model on the 'bus.jpg' image
+        # Run inference with the YOLO11n model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
         ```
 
@@ -78,11 +78,11 @@ Note the below example is for YOLOv8 [Detect](../tasks/detect.md) models for [ob
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLOv8n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov8n.pt data=coco8.yaml epochs=100 imgsz=640
+        # Load a COCO-pretrained YOLO11n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolo11n.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Load a COCO-pretrained YOLOv8n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov8n.pt source=path/to/bus.jpg
+        # Load a COCO-pretrained YOLO11n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo11n.pt source=path/to/bus.jpg
         ```
 
 ## Contributing New Models

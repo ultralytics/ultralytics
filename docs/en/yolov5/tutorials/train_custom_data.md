@@ -60,6 +60,8 @@ The `dataset.yaml` file structure includes:
 - `train`, `val`, `test`: Relative paths from `path` to directories containing images or text files listing image paths for training, validation, and testing sets.
 - `names`: A dictionary mapping class indices (starting from 0) to their corresponding class names.
 
+You can set `path` to either an absolute directory (e.g., `/home/user/datasets/coco128`) or a relative path such as `../datasets/coco128` when launching training from the YOLOv5 repository root.
+
 Below is the structure for `coco128.yaml` ([view on GitHub](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml)):
 
 ```yaml
@@ -257,8 +259,6 @@ Ultralytics provides ready-to-use environments equipped with essential dependenc
 This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These rigorous CI tests cover the core functionalities, including [training](https://docs.ultralytics.com/modes/train/), [validation](https://docs.ultralytics.com/modes/val/), [inference](https://docs.ultralytics.com/modes/predict/), [export](https://docs.ultralytics.com/modes/export/), and [benchmarks](https://docs.ultralytics.com/modes/benchmark/), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit, ensuring consistent stability and optimal performance.
 
 ## FAQ
-
-## Frequently Asked Questions
 
 ### How do I train YOLOv5 on my custom dataset?
 

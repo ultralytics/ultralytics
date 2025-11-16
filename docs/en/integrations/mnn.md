@@ -4,7 +4,7 @@ description: Optimize YOLO11 models for mobile and embedded devices by exporting
 keywords: Ultralytics, YOLO11, MNN, model export, machine learning, deployment, mobile, embedded systems, deep learning, AI models, inference, quantization
 ---
 
-# MNN Export for YOLO11 Models and Deploy
+# MNN Export for YOLO11 Models and Deployment
 
 ## MNN
 

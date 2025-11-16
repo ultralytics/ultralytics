@@ -120,7 +120,7 @@ If you use this dataset in your research, please cite it using the mentioned det
             license = {AGPL-3.0},
             month = {May},
             title = {Ultralytics Datasets: HomeObjects-3K Detection Dataset},
-            url = {https://docs.ultralytics.com/datasets/detect/homeobject-3k/},
+            url = {https://docs.ultralytics.com/datasets/detect/homeobjects-3k/},
             version = {1.0.0},
             year = {2025}
         }

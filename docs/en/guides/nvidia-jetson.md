@@ -146,7 +146,7 @@ Here we will install Ultralytics package on the Jetson with optional dependencie
 
 The above ultralytics installation will install Torch and Torchvision. However, these 2 packages installed via pip are not compatible to run on Jetson AGX Thor which comes with JetPack 7.0 and CUDA 13. Therefore, we need to manually install them.
 
-Install `torch 2.9.0` and `torchvision 0.24.0` according to JP7.0
+Install `torch` and `torchvision` according to JP7.0
 
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130

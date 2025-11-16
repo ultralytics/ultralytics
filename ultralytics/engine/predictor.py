@@ -260,13 +260,12 @@ class BasePredictor:
             channels=getattr(self.model, "ch", 3),
         )
         self.source_type = self.dataset.source_type
-        long_sequence = (
+        if (
             self.source_type.stream
             or self.source_type.screenshot
             or len(self.dataset) > 1000  # many images
             or any(getattr(self.dataset, "video_flag", [False]))
-        )
-        if long_sequence:
+        ):  # long sequence
             import torchvision  # noqa (import here triggers torchvision NMS use in nms.py)
 
             if not getattr(self, "stream", True):  # videos

@@ -74,7 +74,7 @@ Install the necessary Python packages listed in the `requirements.txt` file. We 
 
 ```bash
 pip install -r requirements.txt # Install core dependencies
-pip install onnx > =1.12.0      # Install ONNX for exporting
+pip install "onnx>=1.12.0"      # Install ONNX for exporting
 ```
 
 ### 4. Perform YOLOv5 Tasks

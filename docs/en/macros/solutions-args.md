@@ -4,7 +4,7 @@
 | -------- | ---- | ------- | ----------- |
 
 {%- set default_params = {
-    "model": ["str", "None", "Path to Ultralytics YOLO Model File."],
+    "model": ["str", "None", "Path to an Ultralytics YOLO model file."],
     "region": ["list", "'[(20, 400), (1260, 400)]'", "List of points defining the counting region."],
     "show_in": ["bool", "True", "Flag to control whether to display the in counts on the video stream."],
     "show_out": ["bool", "True", "Flag to control whether to display the out counts on the video stream."],

@@ -201,14 +201,17 @@ class ConsoleLogger:
         __slots__ = ("callback", "original")
 
         def __init__(self, original, callback):
+            """Initialize a stream wrapper that redirects writes to a callback while preserving the original."""
             self.original = original
             self.callback = callback
 
         def write(self, text):
+            """Forward text to the wrapped original stream, preserving default stdout/stderr semantics."""
             self.original.write(text)
             self.callback(text)
 
         def flush(self):
+            """Flush the wrapped stream to propagate buffered output promptly during console capture."""
             self.original.flush()
 
     class _LogHandler(logging.Handler):
@@ -217,10 +220,12 @@ class ConsoleLogger:
         __slots__ = ("callback",)
 
         def __init__(self, callback):
+            """Initialize a lightweight logging.Handler that forwards log records to the provided callback."""
             super().__init__()
             self.callback = callback
 
         def emit(self, record):
+            """Format and forward LogRecord messages to the capture callback for unified log streaming."""
             self.callback(self.format(record) + "\n")
 
 

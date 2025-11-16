@@ -260,7 +260,7 @@ Ultralytics 支持广泛的 YOLO 模型，从早期的版本如 [YOLOv3](https:/
 
 Ultralytics 提供两种许可选项以满足不同需求：
 
-- **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/license)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
+- **AGPL-3.0 许可证**：这种经 [OSI 批准](https://opensource.org/license/agpl-v3)的开源许可证非常适合学生、研究人员和爱好者。它鼓励开放协作和知识共享。有关完整详细信息，请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
 - **Ultralytics 企业许可证**：专为商业用途设计，此许可证允许将 Ultralytics 软件和 AI 模型无缝集成到商业产品和服务中，绕过 AGPL-3.0 的开源要求。如果您的使用场景涉及商业部署，请通过 [Ultralytics 授权许可](https://www.ultralytics.com/license)与我们联系。
 
 ## 📞 联系方式

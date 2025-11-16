@@ -39,7 +39,7 @@ First, you need to create a FastAPI application that will serve the YOLO11 model
 Vertex AI expects your container to implement two specific endpoints:
 
 1. **Health** endpoint (`/health`): Must return HTTP status `200 OK` when service is ready.
-2. **Predict** endpoint (`/predict`): Accepts structured prediction requests with **base64-encoded** images and optional parameters. [Payload size limits](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) apply depending on the endpoint type.
+2. **Predict** endpoint (`/predict`): Accepts structured prediction requests with **base64-encoded** images and optional parameters. [Payload size limits](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) apply depending on the endpoint type.
 
     Request payloads for the `/predict` endpoint should follow this JSON structure:
 
@@ -242,7 +242,7 @@ logger.add(
 logger.add("log.log", rotation="1 MB", level="DEBUG", compression="zip")
 ```
 
-For a complete Vertex AI compliance, define the required endpoints in environment variables and set the size limit for requests. It is recommended to use [private Vertex AI endpoints](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) for production deployments. This way you will have a higher request payload limit (10 MB instead of 1.5 MB for public endpoints), together with robust security and access control.
+For a complete Vertex AI compliance, define the required endpoints in environment variables and set the size limit for requests. It is recommended to use [private Vertex AI endpoints](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type) for production deployments. This way you will have a higher request payload limit (10 MB instead of 1.5 MB for public endpoints), together with robust security and access control.
 
 ```python
 # Vertex AI environment variables
@@ -473,7 +473,7 @@ Open the [Artifact Registry page](https://console.cloud.google.com/artifacts) in
 
 !!! note
 
-    Region selection may affect the availability of machines and certain compute limitations for non-Enterprise users. You can find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://cloud.google.com/vertex-ai/docs/quotas)
+    Region selection may affect the availability of machines and certain compute limitations for non-Enterprise users. You can find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://docs.cloud.google.com/vertex-ai/docs/quotas)
 
 1. Once the repository is created, save your PROJECT_ID, Location (Region), and Repository Name to your secrets vault or `.env` file. You will need them later to tag and push your Docker image to the Artifact Registry.
 
@@ -544,14 +544,14 @@ To deploy a model, you need to create an Endpoint in Vertex AI.
   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface showing endpoint name input field and access configuration options">
 </p>
 1.  Enter the Endpoint name.
-1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
+1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type).
 1.  Click Continue.
 1.  On the Model settings dialog, select the model you imported earlier. Now you can configure the machine type, memory, and GPU settings for your model. Allow for ample memory if you are expecting high inference loads to ensure there are no I/O bottlenecks for the proper YOLO11 performance.
 1.  In Accelerator type, select the GPU type you want to use for inference. If you are not sure which GPU to select, you can start with NVIDIA T4, which is CUDA-supported.
 
     !!! note "Region and machine type quotas"
 
-        Remember that certain regions have very limited compute quotas, so you may not be able to select certain machine types or GPUs in your region. If this is critical, change the region of your deployment to one with a bigger quota. Find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://cloud.google.com/vertex-ai/docs/quotas).
+        Remember that certain regions have very limited compute quotas, so you may not be able to select certain machine types or GPUs in your region. If this is critical, change the region of your deployment to one with a bigger quota. Find more information in the Vertex AI official documentation: [Vertex AI quotas and limits](https://docs.cloud.google.com/vertex-ai/docs/quotas).
 
 1.  Once the machine type is selected, you can click Continue. At this point, you can choose to enable model monitoring in Vertex AI—an extra service that will track your model's performance and provide insights into its behavior. This is optional and incurs additional costs, so select according to your needs. Click Create.
 

@@ -269,15 +269,6 @@ results = model(im)  # inference
 results.pandas().xyxy[0].sort_values("xmin")  # sorted left-right
 ```
 
-### Box-Cropped Results
-
-Results can be returned and saved as detection crops:
-
-```python
-results = model(im)  # inference
-crops = results.crop(save=True)  # cropped detections dictionary
-```
-
 ### JSON Results
 
 Results can be returned in JSON format once converted to `.pandas()` dataframes using the `.to_json()` method. The JSON format can be modified using the `orient` argument. See pandas `.to_json()` [documentation](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html) for details.

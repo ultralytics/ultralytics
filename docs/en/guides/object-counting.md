@@ -62,7 +62,7 @@ Object counting with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         assert cap.isOpened(), "Error reading video file"
 
         # region_points = [(20, 400), (1080, 400)]                                      # line counting
-        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangle region
+        region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360)]  # rectangular region
         # region_points = [(20, 400), (1080, 400), (1080, 360), (20, 360), (20, 400)]   # polygon region
 
         # Video writer

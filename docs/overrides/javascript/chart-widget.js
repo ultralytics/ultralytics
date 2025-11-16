@@ -9,7 +9,7 @@ class ChartWidget {
   }
 
   init() {
-    const canvas = this.chart.canvas;
+    const { canvas } = this.chart;
     const container = canvas.parentElement;
     container.style.position = "relative";
 
@@ -57,11 +57,16 @@ class ChartWidget {
     const tip = this.toolbar.querySelector(".tip");
 
     this.toolbar.addEventListener("click", (e) => {
-      const action = e.target.closest("button").dataset.action;
-      if (action === "png") this.downloadPNG();
-      if (action === "csv") this.downloadCSV();
-      if (action === "ultralytics")
+      const { action } = e.target.closest("button").dataset;
+      if (action === "png") {
+        this.downloadPNG();
+      }
+      if (action === "csv") {
+        this.downloadCSV();
+      }
+      if (action === "ultralytics") {
         window.open("https://ultralytics.com", "_blank");
+      }
     });
 
     this.toolbar.querySelectorAll("button").forEach((btn) => {
@@ -135,7 +140,9 @@ class ChartWidget {
 
     const data = [];
     this.chart.data.datasets.forEach((dataset, i) => {
-      if (this.chart.getDatasetMeta(i).hidden) return; // Skip unselected models
+      if (this.chart.getDatasetMeta(i).hidden) {
+        return;
+      } // Skip unselected models
 
       dataset.data.forEach((point) => {
         data.push({

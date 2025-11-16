@@ -46,8 +46,7 @@ Start your compute and open a Terminal:
 
 ### Create virtualenv
 
-Create your conda virtualenv with your favorite python version and install pip in it:
-Python 3.13.1 is having some issues with some dependencies in AzureML.
+Create a conda virtual environment with your preferred Python version and install pip in it. Python 3.13.1 currently has dependency issues in AzureML, so use Python 3.12 instead.
 
 ```bash
 conda create --name yolo11env -y python=3.12
@@ -90,7 +89,7 @@ Open the compute Terminal.
   <img width="480" src="https://github.com/ultralytics/docs/releases/download/0/open-terminal.avif" alt="Open Terminal">
 </p>
 
-From your compute terminal, you need to create a new ipykernel (with a specific python version - because Python 3.13.1 is having some issues with some dependencies in AzureML) that will be used by your notebook to manage your dependencies:
+From your compute terminal, create a new ipykernel using Python 3.12 that will be used by your notebook to manage dependencies:
 
 ```bash
 conda create --name yolo11env -y python=3.12
@@ -100,9 +99,9 @@ conda install ipykernel -y
 python -m ipykernel install --user --name yolo11env --display-name "yolo11env"
 ```
 
-Close your terminal and create a new notebook. From your Notebook, you can select the new kernel.
+Close your terminal and create a new notebook. From your notebook, select the newly created kernel.
 
-Then you can open a Notebook cell and install the required dependencies:
+Then open a notebook cell and install the required dependencies:
 
 ```bash
 %%bash
@@ -113,7 +112,7 @@ pip install ultralytics
 pip install onnx
 ```
 
-Note that we need to use the `source activate yolo11env` for all the %%bash cells, to make sure that the %%bash cell uses environment we want.
+Note that you need to run `source activate yolo11env` in every `%%bash` cell to ensure the cell uses the intended environment.
 
 Run some predictions using the [Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli):
 

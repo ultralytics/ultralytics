@@ -33,7 +33,7 @@ xView builds on the success of challenges like [Common Objects in Context (COCO)
 
 ## Dataset Structure
 
-The xView dataset is composed of satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It contains over 1 million objects across 60 classes in over 1,400 km² of imagery. The dataset is particularly valuable for [remote sensing](https://www.ultralytics.com/blog/using-computer-vision-to-analyse-satellite-imagery) applications and environmental monitoring.
+The xView dataset is composed of satellite images collected from WorldView-3 satellites at a 0.3m ground sample distance. It contains over 1 million objects across 60 classes in over 1,400 km² of imagery. The dataset is particularly valuable for [remote sensing](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery) applications and environmental monitoring.
 
 ## Applications
 

@@ -226,7 +226,7 @@ class Tuner:
         try:
             self.collection.insert_one(
                 {
-                    "fitness": float(fitness),
+                    "fitness": fitness,
                     "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
                     "metrics": metrics,
                     "timestamp": datetime.now(),

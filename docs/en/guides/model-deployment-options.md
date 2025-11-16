@@ -25,7 +25,7 @@ This guide walks you through YOLO11's deployment options and the essential facto
 
 ## How to Select the Right Deployment Option for Your YOLO11 Model
 
-When it's time to deploy your YOLO11 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO11 Modes documentation](../modes/export.md#usage-examples), the model.export() function allows for converting your trained model into a variety of formats tailored to diverse environments and performance requirements.
+When it's time to deploy your YOLO11 model, selecting a suitable export format is very important. As outlined in the [Ultralytics YOLO11 Modes documentation](../modes/export.md#usage-examples), the `model.export()` function allows you to convert your trained model into a variety of formats tailored to diverse environments and performance requirements.
 
 The ideal format depends on your model's intended operational context, balancing speed, hardware constraints, and ease of integration. In the following section, we'll take a closer look at each export option, understanding when to choose each one.
 

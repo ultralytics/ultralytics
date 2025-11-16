@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import shutil
 import subprocess
 import sys
@@ -459,7 +460,9 @@ def _handle_deprecation(custom: dict) -> dict:
     return custom
 
 
-def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -> None:
+def check_dict_alignment(
+    base: dict, custom: dict, e: Exception | None = None, allowed_custom_keys: set | None = None
+) -> None:
     """Check alignment between custom and base configuration dictionaries, handling deprecated keys and providing error
     messages for mismatched keys.
 
@@ -467,6 +470,7 @@ def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -
         base (dict): The base configuration dictionary containing valid keys.
         custom (dict): The custom configuration dictionary to be checked for alignment.
         e (Exception | None): Optional error instance passed by the calling function.
+        allowed_custom_keys (set | None): Optional set of additional keys that are allowed in the custom dictionary.
 
     Raises:
         SystemExit: If mismatched keys are found between the custom and base dictionaries.
@@ -486,7 +490,10 @@ def check_dict_alignment(base: dict, custom: dict, e: Exception | None = None) -
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
-    if mismatched := [k for k in custom_keys if k not in base_keys]:
+    # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms
+    if allowed_custom_keys is None:
+        allowed_custom_keys = {"augmentations"}
+    if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches
 
         string = ""
@@ -797,7 +804,7 @@ def smart_value(v: str) -> Any:
 
     Notes:
         - The function uses a case-insensitive comparison for boolean and None values.
-        - For other types, it attempts to use Python's eval() function, which can be unsafe if used on untrusted input.
+        - For other types, it attempts to use Python's ast.literal_eval() function for safe evaluation.
         - If no conversion is possible, the original string is returned.
     """
     v_lower = v.lower()
@@ -809,7 +816,7 @@ def smart_value(v: str) -> Any:
         return False
     else:
         try:
-            return eval(v)
+            return ast.literal_eval(v)
         except Exception:
             return v
 

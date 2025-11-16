@@ -16,7 +16,7 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
   <img width="100%" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/executorch-pipeline.avif" alt="PyTorch ExecuTorch overview">
 </p>
 
-[ExecuTorch](https://pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
+[ExecuTorch](https://docs.pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
 
 ## Key features of ExecuTorch
 
@@ -94,6 +94,8 @@ Exporting YOLO11 models to ExecuTorch is straightforward:
         # Run inference with the exported model
         yolo predict model=yolo11n_executorch_model source=https://ultralytics.com/images/bus.jpg
         ```
+
+    ExecuTorch exports generate a directory that includes a `.pte` file and metadata. Use the ExecuTorch runtime in your mobile or embedded application to load the `.pte` model and perform inference.
 
 ### Export Arguments
 
@@ -184,7 +186,7 @@ auto input_tensor = torch::executor::Tensor(input_data, {1, 3, 640, 640});
 auto outputs = module.forward({input_tensor});
 ```
 
-For more details on integrating ExecuTorch into your applications, visit the [ExecuTorch Documentation](https://pytorch.org/executorch/).
+For more details on integrating ExecuTorch into your applications, visit the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/).
 
 ## Performance Optimization
 
@@ -255,7 +257,7 @@ pip install --upgrade executorch
 pip install executorch --force-reinstall
 ```
 
-For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [ExecuTorch Documentation](https://pytorch.org/executorch/stable/getting-started-setup.html).
+For more troubleshooting help, visit the [Ultralytics GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [ExecuTorch Documentation](https://docs.pytorch.org/executorch/stable/getting-started-setup.html).
 
 ## Summary
 

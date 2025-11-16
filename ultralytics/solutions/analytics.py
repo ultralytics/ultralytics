@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionResults  # Import a parent class
+from ultralytics.utils import plt_settings
 
 
 class Analytics(BaseSolution):
@@ -46,6 +47,7 @@ class Analytics(BaseSolution):
         >>> cv2.imshow("Analytics", results.plot_im)
     """
 
+    @plt_settings()
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Analytics class with various chart types for visual data representation."""
         super().__init__(**kwargs)

@@ -65,7 +65,7 @@ Validate trained YOLO11n model [accuracy](https://www.ultralytics.com/glossary/a
         metrics.box.map  # map50-95
         metrics.box.map50  # map50
         metrics.box.map75  # map75
-        metrics.box.maps  # a list contains map50-95 of each category
+        metrics.box.maps  # a list containing mAP50-95 for each category
         ```
 
     === "CLI"

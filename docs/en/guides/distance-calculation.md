@@ -27,7 +27,7 @@ Measuring the gap between two objects is known as distance calculation within a 
 | :---------------------------------------------------------------------------------------------------------------------------: |
 | ![Ultralytics YOLO11 Distance Calculation](https://github.com/ultralytics/docs/releases/download/0/distance-calculation.avif) |
 
-## Advantages of Distance Calculation?
+## Advantages of Distance Calculation
 
 - **Localization [Precision](https://www.ultralytics.com/glossary/precision):** Enhances accurate spatial positioning in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks.
 - **Size Estimation:** Allows estimation of object size for better contextual understanding.
@@ -37,14 +37,14 @@ Measuring the gap between two objects is known as distance calculation within a 
 
 ???+ tip "Distance Calculation"
 
-    - Click on any two bounding boxes with Left Mouse click for distance calculation
-    - Mouse Right Click will delete all drawn points
-    - Mouse Left Click can be used to draw points
+    - Click any two bounding boxes with the left mouse button to calculate distance.
+    - Use the right mouse button to delete all drawn points.
+    - Left-click anywhere in the frame to add new points.
 
 ???+ warning "Distance is Estimate"
 
-        Distance will be an estimate and may not be fully accurate, as it is calculated using 2-dimensional data,
-        which lacks information about the object's depth.
+    Distance is an estimate and may not be fully accurate because it is calculated using 2D data,
+    which lacks depth information.
 
 !!! example "Distance Calculation using Ultralytics YOLO"
 

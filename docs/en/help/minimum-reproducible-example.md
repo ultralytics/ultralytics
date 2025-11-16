@@ -14,7 +14,7 @@ The first step in creating an MRE is to isolate the problem. Remove any unnecess
 
 ## 2. Use Public Models and Datasets
 
-When creating an MRE, use publicly available models and datasets to reproduce the issue. For example, use the `yolov8n.pt` model and the `coco8.yaml` dataset. This ensures that the maintainers and contributors can easily run your example and investigate the problem without needing access to proprietary data or custom models.
+When creating an MRE, use publicly available models and datasets to reproduce the issue. For example, use the `yolo11n.pt` model and the `coco8.yaml` dataset. This ensures that the maintainers and contributors can easily run your example and investigate the problem without needing access to proprietary data or custom models.
 
 ## 3. Include All Necessary Dependencies
 
@@ -54,7 +54,7 @@ import torch
 from ultralytics import YOLO
 
 # Load the model
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo11n.pt")
 
 # Load a 0-channel image
 image = torch.rand(1, 0, 640, 640)

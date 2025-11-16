@@ -69,7 +69,7 @@ copy_paste: 0.0 # segment copy-paste (probability)
 
 ## 2. Define Fitness
 
-Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [Precision `P` and [Recall](https://www.ultralytics.com/glossary/recall) `R`](https://en.wikipedia.org/wiki/Precision_and_recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended).
+Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended).
 
 ```python
 def fitness(x):
@@ -154,6 +154,8 @@ copy_paste: 0.0 # segment copy-paste (probability)
 ```
 
 We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained hundreds of times, possibly requiring hundreds or thousands of GPU hours.
+
+When evolution finishes, reuse the discovered settings by pointing training at the saved file, for example `python train.py --hyp runs/evolve/hyp_evolved.yaml --data your.yaml --weights yolov5s.pt`.
 
 ## 4. Visualize
 

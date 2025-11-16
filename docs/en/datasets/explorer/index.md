@@ -16,7 +16,7 @@ keywords: Ultralytics Explorer, CV datasets, semantic search, SQL queries, vecto
 
 <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 
-Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search and even using natural language. It is also a Python API for accessing the same functionality.
+Ultralytics Explorer is a tool for exploring CV datasets using semantic search, SQL queries, vector similarity search, and natural language prompts. It also provides a Python API for accessing the same functionality.
 
 <p align="center">
   <br>
@@ -31,7 +31,7 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
 
 ## Installation of Optional Dependencies
 
-Explorer depends on external libraries for some of its functionality. These are automatically installed on usage. To manually install these dependencies, use the following command:
+Explorer depends on external libraries for some of its functionality. These are automatically installed when you use Explorer. To manually install these dependencies, use the following command:
 
 ```bash
 pip install ultralytics[explorer]
@@ -57,7 +57,7 @@ yolo explorer
 
 !!! note
 
-    Ask AI feature works using OpenAI, so you'll be prompted to set the api key for OpenAI when you first run the GUI.
+    The Ask AI feature uses OpenAI, so you'll be prompted to set the API key for OpenAI when you first run the GUI.
     You can set it like this - `yolo settings openai_api_key="..."`
 
 <p>

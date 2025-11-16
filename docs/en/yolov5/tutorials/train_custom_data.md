@@ -258,8 +258,6 @@ This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultraly
 
 ## FAQ
 
-## Frequently Asked Questions
-
 ### How do I train YOLOv5 on my custom dataset?
 
 Training YOLOv5 on a custom dataset involves several key steps:

@@ -63,7 +63,7 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cropper = solutions.ObjectCropper(
             show=True,  # display the output
             model="yolo11n.pt",  # model for object cropping, e.g., yolo11x.pt.
-            classes=[0, 2],  # crop specific classes, i.e., person and car with the COCO pretrained model.
+            classes=[0, 2],  # crop specific classes such as person and car with the COCO pretrained model.
             # conf=0.5,  # adjust confidence threshold for the objects.
             # crop_dir="cropped-detections",  # set the directory name for cropped detections
         )

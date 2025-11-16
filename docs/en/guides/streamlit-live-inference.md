@@ -21,7 +21,7 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
   <strong>Watch:</strong> How to Use Streamlit with Ultralytics for Real-Time <a href="https://www.ultralytics.com/glossary/computer-vision-cv">Computer Vision</a> in Your Browser
 </p>
 
-|                                                                Aquaculture                                                                 |                                                          Animals husbandry                                                           |
+|                                                                Aquaculture                                                                 |                                                          Animal Husbandry                                                            |
 | :----------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
 | ![Fish Detection using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO11](https://github.com/ultralytics/docs/releases/download/0/animals-detection-yolov8.avif) |
 |                                                  Fish Detection using Ultralytics YOLO11                                                   |                                              Animals Detection using Ultralytics YOLO11                                              |
@@ -36,7 +36,11 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
 
 !!! tip "Ultralytics Installation"
 
-    Before you start building the application, ensure you have the Ultralytics Python Package installed. You can install it using the command **pip install ultralytics**
+    Before you start building the application, ensure you have the Ultralytics Python package installed.
+
+    ```bash
+    pip install ultralytics
+    ```
 
 !!! example "Inference using Streamlit with Ultralytics YOLO"
 

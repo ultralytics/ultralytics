@@ -48,7 +48,7 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
             show=True,  # display the output
             model="yolo11n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
             classes=[0, 2],  # generate visioneye view for specific classes
-            vision_point=(50, 50),  # the point, where vision will view objects and draw tracks
+            vision_point=(50, 50),  # the point where VisionEye will view objects and draw tracks
         )
 
         # Process video

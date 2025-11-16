@@ -59,7 +59,7 @@ Evaluating pycocotools mAP... saving runs/val/exp/yolov5x_predictions.json...
 
 ## Test with TTA
 
-Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms). Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations.
+Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before [NMS](https://www.ultralytics.com/glossary/non-maximum-suppression-nms). Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations, so ensure your GPU has enough memory headroom before increasing `--img`.
 
 ```bash
 python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half

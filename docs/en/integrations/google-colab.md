@@ -59,7 +59,7 @@ Now, let's look at some of the standout features that make Google Colab a go-to 
 
 - **Library Support:** Google Colab includes pre-installed libraries for data analysis and machine learning and allows additional libraries to be installed as needed. It also supports various libraries for creating interactive charts and visualizations.
 
-- **Hardware Resources:** Users also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
+- **Hardware Resources:** Users can also switch between different hardware options by modifying the runtime settings as shown below. Google Colab provides access to advanced hardware like Tesla K80 GPUs and TPUs, which are specialized circuits designed specifically for machine learning tasks.
 
 ![Runtime Settings](https://github.com/ultralytics/docs/releases/download/0/runtime-settings.avif)
 

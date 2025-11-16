@@ -8,7 +8,11 @@ keywords: YOLO12, attention-centric object detection, YOLO series, Ultralytics, 
 
 ## Overview
 
-YOLO12 introduces an attention-centric architecture that departs from the traditional CNN-based approaches used in previous YOLO models, yet retains the real-time inference speed essential for many applications. This model achieves state-of-the-art object detection accuracy through novel methodological innovations in attention mechanisms and overall network architecture, while maintaining real-time performance.
+YOLO12 introduces an attention-centric architecture that departs from the traditional CNN-based approaches used in previous YOLO models, yet retains the real-time inference speed essential for many applications. This model achieves state-of-the-art object detection accuracy through novel methodological innovations in attention mechanisms and overall network architecture, while maintaining real-time performance. Despite those advantages, YOLO12 remains a community-driven release that may exhibit training instability, elevated memory consumption, and slower CPU throughput due to its heavy attention blocks, so Ultralytics still recommends YOLO11 for most production workloads.
+
+!!! note "Community Model"
+
+    YOLO12 is maintained primarily for benchmarking and research. If you need stable training, predictable memory usage, and optimized CPU inference, choose [YOLO11](yolo11.md) or other Ultralytics-maintained releases for deployment.
 
 <p align="center">
   <br>
@@ -145,8 +149,8 @@ If you use YOLO12 in your research, please cite the original work by [University
     === "BibTeX"
 
         ```bibtex
-        @article{tian2025yolov12,
-          title={YOLOv12: Attention-Centric Real-Time Object Detectors},
+        @article{tian2025yolo12,
+          title={YOLO12: Attention-Centric Real-Time Object Detectors},
           author={Tian, Yunjie and Ye, Qixiang and Doermann, David},
           journal={arXiv preprint arXiv:2502.12524},
           year={2025}
@@ -154,7 +158,7 @@ If you use YOLO12 in your research, please cite the original work by [University
 
         @software{yolo12,
           author = {Tian, Yunjie and Ye, Qixiang and Doermann, David},
-          title = {YOLOv12: Attention-Centric Real-Time Object Detectors},
+          title = {YOLO12: Attention-Centric Real-Time Object Detectors},
           year = {2025},
           url = {https://github.com/sunsmarterjie/yolov12},
           license = {AGPL-3.0}

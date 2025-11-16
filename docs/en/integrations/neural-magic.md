@@ -48,7 +48,7 @@ Before diving into how to deploy YOLO11 using DeepSparse, let's understand the b
 
 ## How Does Neural Magic's DeepSparse Technology Work?
 
-Neural Magic's Deep Sparse technology is inspired by the human brain's efficiency in neural network computation. It adopts two key principles from the brain as follows:
+Neural Magic's DeepSparse technology is inspired by the human brain's efficiency in neural network computation. It adopts two key principles from the brain as follows:
 
 - **Sparsity**: The process of sparsification involves pruning redundant information from [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) networks, leading to smaller and faster models without compromising accuracy. This technique reduces the network's size and computational needs significantly.
 
@@ -153,7 +153,7 @@ Running the annotate command processes your specified image, detecting objects, 
   <img width="640" src="https://github.com/ultralytics/docs/releases/download/0/image-annotation-feature.avif" alt="Image Annotation Feature">
 </p>
 
-After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset. This functionality is particularly useful for fine-tuning and optimizing your YOLO11 models for specific use cases, ensuring high accuracy and efficiency.
+After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset and is particularly useful for fine-tuning and optimizing your YOLO11 models for specific use cases, ensuring high accuracy and efficiency.
 
 ## Summary
 

@@ -152,7 +152,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=11.4
     ```
 
-    For Jetpack 6.1:
+    For JetPack 6.1:
 
     ```bash
     export CUDA_VER=12.6
@@ -184,7 +184,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     config-file=config_infer_primary_yolo11.txt
     ```
 
-11. You can also change the video source in `deepstream_app_config` file. Here a default video file is loaded
+11. You can also change the video source in `deepstream_app_config` file. Here, a default video file is loaded
 
     ```bash
     ...
@@ -211,7 +211,7 @@ deepstream-app -c deepstream_app_config.txt
 
 ## INT8 Calibration
 
-If you want to use INT8 precision for inference, you need to follow the steps below
+If you want to use INT8 precision for inference, you need to follow the steps below:
 
 !!! note
 
@@ -264,7 +264,7 @@ If you want to use INT8 precision for inference, you need to follow the steps be
 
     !!! note
 
-        Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory.
+        Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to your GPU memory.
 
 8.  Update the `config_infer_primary_yolo11.txt` file
 
@@ -309,7 +309,7 @@ deepstream-app -c deepstream_app_config.txt
   <strong>Watch:</strong> How to Run Multiple Streams with DeepStream SDK on Jetson Nano using Ultralytics YOLO11 🎉
 </p>
 
-To set up multiple streams under a single deepstream application, you can do the following changes to the `deepstream_app_config.txt` file
+To set up multiple streams under a single DeepStream application, make the following changes to the `deepstream_app_config.txt` file:
 
 1. Change the rows and columns to build a grid display according to the number of streams you want to have. For example, for 4 streams, we can add 2 rows and 2 columns.
 
@@ -319,7 +319,7 @@ To set up multiple streams under a single deepstream application, you can do the
     columns=2
     ```
 
-2. Set `num-sources=4` and add `uri` of all the 4 streams
+2. Set `num-sources=4` and add the `uri` entries for all four streams.
 
     ```bash
     [source0]

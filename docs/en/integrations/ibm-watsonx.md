@@ -215,7 +215,7 @@ Run the following script to delete the current contents of `config.yaml` and rep
         # Contents of new config.yaml file
         def update_yaml_file(file_path):
             data = {
-                "path": "work_dir/trash_ICRA19/dataset",
+                "path": f"{work_dir}/trash_ICRA19/dataset",
                 "train": "train/images",
                 "val": "train/images",
                 "test": "test/images",

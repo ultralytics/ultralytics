@@ -21,7 +21,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
 ## Paperspace Gradient
 
 <p align="center">
-  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-gradient-overview.avif" alt="PaperSpace Gradient Overview">
+  <img width="100%" src="https://github.com/ultralytics/docs/releases/download/0/paperspace-gradient-overview.avif" alt="Paperspace Gradient Overview">
 </p>
 
 Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud much faster and easier. Gradient addresses the entire [machine learning lifecycle](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations), from building and training models to deploying them.
@@ -81,7 +81,7 @@ While many options are available for training, deploying, and evaluating YOLO11 
 
 This guide explored the [Paperspace Gradient integration](https://www.ultralytics.com/blog/ultralytics-x-paperspace-advancing-object-detection-capabilities-through-partnership) for training YOLO11 models. Gradient provides the tools and infrastructure to accelerate your AI development journey from effortless model training and evaluation to streamlined deployment options.
 
-For further exploration, visit [PaperSpace's official documentation](https://docs.digitalocean.com/products/paperspace/).
+For further exploration, visit [Paperspace's official documentation](https://docs.digitalocean.com/products/paperspace/).
 
 Also, visit the [Ultralytics integration guide page](index.md) to learn more about different YOLO11 integrations. It's full of insights and tips to take your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects to the next level.
 

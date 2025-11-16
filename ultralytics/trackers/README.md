@@ -259,8 +259,8 @@ def run_tracker_in_thread(model_name, filename):
     """Run YOLO tracker in its own thread for concurrent processing.
 
     Args:
-        model_name (str): The YOLO11 model object.
-        filename (str): The path to the video file or the identifier for the webcam/external camera source.
+        model_name (str): Model name or path that will be loaded inside the thread.
+        filename (str): Local path, device index, or URL that acts as the tracker source.
     """
     model = YOLO(model_name)
     results = model.track(filename, save=True, stream=True)

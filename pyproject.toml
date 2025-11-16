@@ -118,7 +118,7 @@ extra = [
     "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
-    "scipy-stubs",
+    "scipy-stubs>=1.14.1.4; python_version >= '3.10'",
     "types-pillow",
     "types-psutil",
     "types-pyyaml",

@@ -49,7 +49,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) (Yet Another Markup Language
 
 ## Usage
 
-To train the Ultralytics YOLO11n model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following [Python](https://www.python.org/) code snippets. Refer to the model [Training](../../modes/train.md) documentation page for a comprehensive list of available arguments and configurations like [hyperparameter tuning](../../guides/hyperparameter-tuning.md).
+To train the Ultralytics YOLO11n-seg model on the Crack Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following [Python](https://www.python.org/) or CLI snippets. Refer to the model [Training](../../modes/train.md) documentation page for a comprehensive list of available arguments and configurations like [hyperparameter tuning](../../guides/hyperparameter-tuning.md).
 
 !!! example "Train Example"
 

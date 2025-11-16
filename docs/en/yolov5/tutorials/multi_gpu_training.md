@@ -59,7 +59,7 @@ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data co
 - `--nproc_per_node` specifies how many GPUs you would like to use. In the example above, it is 2.
 - `--batch` is the total batch-size. It will be divided evenly to each GPU. In the example above, it is 64/2=32 per GPU.
 
-The code above will use GPUs `0... (N-1)`.
+The code above will use GPUs `0... (N-1)`. You can also set `CUDA_VISIBLE_DEVICES=2,3` (or any other list) before launching the command if you prefer to control device visibility via environment variables.
 
 <details>
   <summary>Use specific GPUs (click to expand)</summary>

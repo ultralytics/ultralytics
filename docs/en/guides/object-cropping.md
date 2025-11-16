@@ -59,11 +59,11 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cap = cv2.VideoCapture("path/to/video.mp4")
         assert cap.isOpened(), "Error reading video file"
 
-        # Initialize object cropper object
+        # Initialize object cropper
         cropper = solutions.ObjectCropper(
             show=True,  # display the output
-            model="yolo11n.pt",  # model for object cropping i.e yolo11x.pt.
-            classes=[0, 2],  # crop specific classes i.e. person and car with COCO pretrained model.
+            model="yolo11n.pt",  # model for object cropping, e.g., yolo11x.pt.
+            classes=[0, 2],  # crop specific classes such as person and car with the COCO pretrained model.
             # conf=0.5,  # adjust confidence threshold for the objects.
             # crop_dir="cropped-detections",  # set the directory name for cropped detections
         )
@@ -83,6 +83,8 @@ Object cropping with [Ultralytics YOLO11](https://github.com/ultralytics/ultraly
         cap.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
+
+        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with filenames that include the source image name and class. This makes it easy to inspect detections or build downstream datasets without writing extra code.
 
 ### `ObjectCropper` Arguments
 

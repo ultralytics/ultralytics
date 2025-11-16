@@ -138,7 +138,12 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
+            # Save run args, serializing augmentations as reprs for resume compatibility
+            args_dict = vars(self.args).copy()
+            if args_dict.get("augmentations") is not None:
+                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
+                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
+            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
@@ -464,10 +469,10 @@ class BaseTrainer:
 
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
-                final_epoch = epoch + 1 >= self.epochs
                 self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
 
             # Validation
+            final_epoch = epoch + 1 >= self.epochs
             if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
                 self._clear_memory(threshold=0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
@@ -626,7 +631,7 @@ class BaseTrainer:
         try:
             if self.args.task == "classify":
                 data = check_cls_dataset(self.args.data)
-            elif self.args.data.rsplit(".", 1)[-1] == "ndjson":
+            elif str(self.args.data).rsplit(".", 1)[-1] == "ndjson":
                 # Convert NDJSON to YOLO format
                 import asyncio
 
@@ -635,7 +640,7 @@ class BaseTrainer:
                 yaml_path = asyncio.run(convert_ndjson_to_yolo(self.args.data))
                 self.args.data = str(yaml_path)
                 data = check_det_dataset(self.args.data)
-            elif self.args.data.rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
+            elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
                 "pose",
@@ -755,9 +760,9 @@ class BaseTrainer:
         n = len(metrics) + 2  # number of cols
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
-        s = "" if self.csv.exists() else (("%s," * n % tuple(["epoch", "time", *keys])).rstrip(",") + "\n")  # header
+        s = "" if self.csv.exists() else ("%s," * n % ("epoch", "time", *keys)).rstrip(",") + "\n"
         with open(self.csv, "a", encoding="utf-8") as f:
-            f.write(s + ("%.6g," * n % tuple([self.epoch + 1, t, *vals])).rstrip(",") + "\n")
+            f.write(s + ("%.6g," * n % (self.epoch + 1, t, *vals)).rstrip(",") + "\n")
 
     def plot_metrics(self):
         """Plot metrics from a CSV file."""
@@ -806,9 +811,20 @@ class BaseTrainer:
                     "batch",
                     "device",
                     "close_mosaic",
+                    "augmentations",
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
+
+                # Handle augmentations parameter for resume: check if user provided custom augmentations
+                if ckpt_args.get("augmentations") is not None:
+                    # Augmentations were saved in checkpoint as reprs but can't be restored automatically
+                    LOGGER.warning(
+                        "Custom Albumentations transforms were used in the original training run but are not "
+                        "being restored. To preserve custom augmentations when resuming, you need to pass the "
+                        "'augmentations' parameter again to get expected results. Example: \n"
+                        f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
+                    )
 
             except Exception as e:
                 raise FileNotFoundError(

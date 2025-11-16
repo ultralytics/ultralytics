@@ -24,9 +24,9 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 </p>
 
 - Collection from various sensors and platforms, with image sizes ranging from 800 × 800 to 20,000 × 20,000 pixels.
-- Features more than 1.7M Oriented Bounding Boxes across 18 categories.
-- Encompasses multiscale object detection.
-- Instances are annotated by experts using arbitrary (8 d.o.f.) quadrilateral, capturing objects of different scales, orientations, and shapes.
+- Features more than 1.7M oriented bounding boxes across 18 categories.
+- Encompasses multiscale object detection thanks to the wide spread of object sizes per image.
+- Instances are annotated by experts using arbitrary (8 d.o.f.) quadrilaterals, capturing objects of different scales, orientations, and shapes.
 
 ## Dataset Versions
 
@@ -69,7 +69,12 @@ DOTA serves as a benchmark for training and evaluating models specifically tailo
 
 ## Dataset YAML
 
-Typically, datasets incorporate a YAML (Yet Another Markup Language) file detailing the dataset's configuration. For DOTA v1 and DOTA v1.5, Ultralytics provides `DOTAv1.yaml` and `DOTAv1.5.yaml` files. For additional details on these as well as DOTA v2 please consult DOTA's official repository and documentation.
+A dataset YAML (Yet Another Markup Language) file specifies image/label roots, class names, and other important metadata. Ultralytics maintains official YAML files for the two most commonly used releases:
+
+- [`DOTAv1.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml)
+- [`DOTAv1.5.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.5.yaml)
+
+Use the YAML that matches the release you downloaded, or author a custom YAML if you are working with DOTA-v2 or another derivative.
 
 !!! example "DOTAv1.yaml"
 
@@ -79,7 +84,7 @@ Typically, datasets incorporate a YAML (Yet Another Markup Language) file detail
 
 ## Split DOTA images
 
-To train DOTA dataset, we split original DOTA images with high-resolution into images with 1024x1024 resolution in multiscale way. This preprocessing step is crucial for efficient training as the original images can be extremely large.
+The raw imagery routinely exceeds 10,000 pixels on a side, so tiling is required before feeding the data to YOLO. Use the helper below to slice the source imagery into overlapping 1024 × 1024 crops at multiple scales while keeping the annotations in sync.
 
 !!! example "Split images"
 
@@ -88,14 +93,14 @@ To train DOTA dataset, we split original DOTA images with high-resolution into i
         ```python
         from ultralytics.data.split_dota import split_test, split_trainval
 
-        # split train and val set, with labels.
+        # Split train and val set, with labels.
         split_trainval(
             data_root="path/to/DOTAv1.0/",
             save_dir="path/to/DOTAv1.0-split/",
             rates=[0.5, 1.0, 1.5],  # multiscale
             gap=500,
         )
-        # split test set, without labels.
+        # Split test set, without labels.
         split_test(
             data_root="path/to/DOTAv1.0/",
             save_dir="path/to/DOTAv1.0-split/",
@@ -103,6 +108,10 @@ To train DOTA dataset, we split original DOTA images with high-resolution into i
             gap=500,
         )
         ```
+
+!!! tip
+
+    Keep the output directory organized in the standard YOLO layout (`images/train`, `labels/train`, etc.) so you can reference it directly from the dataset YAML.
 
 ## Usage
 

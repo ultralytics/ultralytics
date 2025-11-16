@@ -137,7 +137,7 @@ However, for in-depth instructions on deploying your PaddlePaddle models in vari
 
 In this guide, we explored the process of exporting Ultralytics YOLO11 models to the PaddlePaddle format. By following these steps, you can leverage PaddlePaddle's strengths in diverse deployment scenarios, optimizing your models for different hardware and software environments.
 
-For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html)
+For further details on usage, visit the [PaddlePaddle official documentation](https://www.paddlepaddle.org.cn/documentation/docs/en/guides/index_en.html).
 
 Want to explore more ways to integrate your Ultralytics YOLO11 models? Our [integration guide page](index.md) explores various options, equipping you with valuable resources and insights.
 
@@ -145,7 +145,7 @@ Want to explore more ways to integrate your Ultralytics YOLO11 models? Our [inte
 
 ### How do I export Ultralytics YOLO11 models to PaddlePaddle format?
 
-Exporting Ultralytics YOLO11 models to PaddlePaddle format is straightforward. You can use the `export` method of the YOLO class to perform this exportation. Here is an example using Python:
+Exporting Ultralytics YOLO11 models to PaddlePaddle format is straightforward. You can use the `export` method of the YOLO class to perform the conversion. Here is an example using Python:
 
 !!! example "Usage"
 

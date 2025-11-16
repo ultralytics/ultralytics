@@ -25,7 +25,7 @@ The hand-keypoints dataset contains 26,768 images of hands annotated with keypoi
 
 ![Hand Landmarks](https://github.com/ultralytics/docs/releases/download/0/hand_landmarks.jpg)
 
-## KeyPoints
+## Keypoints
 
 The dataset includes keypoints for hand detection. The keypoints are annotated as follows:
 
@@ -41,8 +41,8 @@ Each hand has a total of 21 keypoints.
 ## Key Features
 
 - **Large Dataset**: 26,768 images with hand keypoint annotations.
-- **YOLO11 Compatibility**: Ready for use with YOLO11 models.
-- **21 Keypoints**: Detailed hand pose representation.
+- **YOLO11 Compatibility**: Labels ship in YOLO keypoint format and are ready for use with YOLO11 models.
+- **21 Keypoints**: Detailed hand pose representation spanning the wrist and four points per finger.
 
 ## Dataset Structure
 
@@ -124,7 +124,7 @@ We would also like to acknowledge the creator of this dataset, [Rion Dsilva](htt
 
 To train a YOLO11 model on the Hand Keypoints dataset, you can use either Python or the command line interface (CLI). Here's an example for training a YOLO11n-pose model for 100 epochs with an image size of 640:
 
-!!! Example
+!!! example
 
     === "Python"
 

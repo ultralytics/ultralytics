@@ -20,7 +20,7 @@ MLOps bridges the gap between creating and deploying [machine learning](https://
 
 ## YOLO11 Training with ClearML
 
-You can bring automation and efficiency to your machine learning workflow by improving your training process by integrating YOLO11 with ClearML.
+You can bring automation and efficiency to your machine learning workflow by integrating YOLO11 with ClearML to improve your training process.
 
 ## Installation
 
@@ -41,7 +41,7 @@ For detailed instructions and best practices related to the installation process
 
 Once you have installed the necessary packages, the next step is to initialize and configure your ClearML SDK. This involves setting up your ClearML account and obtaining the necessary credentials for a seamless connection between your development environment and the ClearML server.
 
-Begin by initializing the ClearML SDK in your environment. The 'clearml-init' command starts the setup process and prompts you for the necessary credentials.
+Begin by initializing the ClearML SDK in your environment. The `clearml-init` command starts the setup process and prompts you for the necessary credentials.
 
 !!! tip "Initial SDK Setup"
 
@@ -68,7 +68,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
         from ultralytics import YOLO
 
         # Step 1: Creating a ClearML Task
-        task = Task.init(project_name="my_project", task_name="my_yolov8_task")
+        task = Task.init(project_name="my_project", task_name="my_yolo11_task")
 
         # Step 2: Selecting the YOLO11 Model
         model_variant = "yolo11n"
@@ -189,7 +189,7 @@ To prepare your dataset for ClearML, follow these steps:
 
     ```bash
     cd your_dataset_folder
-    clearml-data sync --project YOLOv11 --name your_dataset_name --folder .
+    clearml-data sync --project YOLO11 --name your_dataset_name --folder .
     ```
 
 This command will create a versioned dataset in ClearML that can be referenced in your training scripts, ensuring reproducibility and easy access to your data.
@@ -198,7 +198,7 @@ This command will create a versioned dataset in ClearML that can be referenced i
 
 This guide has led you through the process of integrating ClearML with Ultralytics' YOLO11. Covering everything from initial setup to advanced model management, you've discovered how to leverage ClearML for efficient training, experiment tracking, and workflow optimization in your machine learning projects.
 
-For further details on usage, visit [ClearML's official documentation](https://clear.ml/docs/latest/docs/integrations/yolov8/).
+For further details on usage, visit [ClearML's official YOLOv8 integration guide](https://clear.ml/docs/latest/docs/integrations/yolov8/), which also applies to YOLO11 workflows.
 
 Additionally, explore more integrations and capabilities of Ultralytics by visiting the [Ultralytics integration guide page](../integrations/index.md), which is a treasure trove of resources and insights.
 
@@ -238,7 +238,7 @@ from clearml import Task
 from ultralytics import YOLO
 
 # Step 1: Creating a ClearML Task
-task = Task.init(project_name="my_project", task_name="my_yolov8_task")
+task = Task.init(project_name="my_project", task_name="my_yolo11_task")
 
 # Step 2: Selecting the YOLO11 Model
 model_variant = "yolo11n"

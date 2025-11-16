@@ -99,6 +99,7 @@ from ultralytics.utils import (
     get_default_args,
 )
 from ultralytics.utils.checks import (
+    IS_PYTHON_3_12,
     check_imgsz,
     check_requirements,
     check_version,
@@ -1175,6 +1176,8 @@ class Exporter:
             "export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/raspberrypi-ai-camera/documentation/imx500-converter"
         )
+        assert not IS_PYTHON_3_12, "IMX export requires Python>=3.8;<3.12"
+        assert not TORCH_2_9, f"IMX export requires PyTorch<2.9. Current PyTorch version is {TORCH_VERSION}."
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
         check_requirements(

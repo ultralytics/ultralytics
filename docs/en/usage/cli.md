@@ -237,7 +237,7 @@ You can then pass this file as `cfg=default_copy.yaml` along with any additional
 
 ## Solutions Commands
 
-Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. These solutions simplify implementation of complex tasks like object counting, workout monitoring, and queue management.
+Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. These solutions simplify the implementation of complex tasks like object counting, workout monitoring, and queue management.
 
 !!! example
 

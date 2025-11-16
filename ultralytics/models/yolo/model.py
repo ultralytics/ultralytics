@@ -40,7 +40,7 @@ class YOLO(Model):
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
 
     Examples:
-        Load a pretrained YOLOv11n detection model
+        Load a pretrained YOLO11n detection model
         >>> model = YOLO("yolo11n.pt")
 
         Load a pretrained YOLO11n segmentation model
@@ -64,7 +64,7 @@ class YOLO(Model):
 
         Examples:
             >>> from ultralytics import YOLO
-            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLOv11n detection model
+            >>> model = YOLO("yolo11n.pt")  # load a pretrained YOLO11n detection model
             >>> model = YOLO("yolo11n-seg.pt")  # load a pretrained YOLO11n segmentation model
         """
         path = Path(model if isinstance(model, (str, Path)) else "")

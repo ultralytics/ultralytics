@@ -88,10 +88,10 @@ To train an [Ultralytics YOLO11](../../models/yolo11.md) model on the Carparts S
         yolo segment train data=carparts-seg.yaml model=yolo11n-seg.pt epochs=100 imgsz=640
 
         # Validate the trained model using the validation set
-        # yolo segment val model=path/to/best.pt
+        yolo segment val data=carparts-seg.yaml model=path/to/best.pt
 
         # Predict using the trained model on a specific image source
-        # yolo segment predict model=path/to/best.pt source=path/to/your/image.jpg
+        yolo segment predict model=path/to/best.pt source=path/to/your/image.jpg
         ```
 
 ## Sample Data and Annotations

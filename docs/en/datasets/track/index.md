@@ -10,7 +10,7 @@ Multi-object tracking is a critical component in video analytics that identifies
 
 ## Dataset Format (Coming Soon)
 
-Multi-Object Detector doesn't need standalone training and directly supports pre-trained detection, segmentation or Pose models. Support for training trackers alone is coming soon.
+Ultralytics tracking currently reuses detection, segmentation, or pose models without requiring tracker-specific training. Native tracker-training support is under active development.
 
 ## Available Trackers
 
@@ -35,7 +35,7 @@ Ultralytics YOLO supports the following tracking algorithms:
     === "CLI"
 
         ```bash
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3, iou=0.5 show
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show=True
         ```
 
 ## Persisting Tracks Between Frames
@@ -96,7 +96,7 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
     === "CLI"
 
         ```bash
-        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show
+        yolo track model=yolo11n.pt source="https://youtu.be/LNwODJXcvt4" conf=0.3 iou=0.5 show=True
         ```
 
 These commands load the YOLO11 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).

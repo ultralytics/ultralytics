@@ -57,35 +57,22 @@ let ultralyticsChat = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   ultralyticsChat = new UltralyticsChat({
-    branding: {
-      name: "Ultralytics AI",
-      tagline: "Ask anything about Ultralytics, YOLO, and more",
-      logo: "https://cdn.prod.website-files.com/680a070c3b99253410dd3dcf/680a070c3b99253410dd3e13_logo.svg",
-      logomark:
-        "https://storage.googleapis.com/organization-image-assets/ultralytics-botAvatarSrcUrl-1729379860806.svg",
-      pillText: "Ask AI",
-    },
-    theme: {
-      primary: "#042AFF",
-      dark: "#111F68",
-      yellow: "#E1FF25",
-      text: "#0b0b0f",
-    },
     welcome: {
-      title: "Hi!",
+      title: "Hello 👋",
       message:
-        "I'm an AI assistant trained on documentation, guides, and other content.<br>Ask me anything about Ultralytics.",
-      examples: [
-        "What's new in SAM3?",
+        "Ask about YOLO, tutorials, training, export, deployment, or troubleshooting.",
+      chatExamples: [
+        "What's new in SAM 3?",
         "How can I get started with YOLO?",
         "How does Enterprise Licensing work?",
       ],
-    },
-    ui: {
-      placeholder: "Ask anything…",
-      copyText: "Copy thread",
-      downloadText: "Download thread",
-      clearText: "New chat",
+      searchExamples: [
+        "YOLO11 quickstart",
+        "custom dataset training",
+        "model export formats",
+        "object detection tutorial",
+        "hyperparameter tuning",
+      ],
     },
   });
 

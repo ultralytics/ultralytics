@@ -140,7 +140,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
 #### Segment with Text Prompts
 
-!!! Example "Text-based Concept Segmentation"
+!!! example "Text-based Concept Segmentation"
 
     Find and segment all instances of a concept using a text description.
 
@@ -175,7 +175,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
 #### Segment with Image Exemplars
 
-!!! Example "Image Exemplar-based Segmentation"
+!!! example "Image Exemplar-based Segmentation"
 
     Use one or more example objects to find all similar instances.
 
@@ -206,7 +206,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
 #### Interactive Refinement
 
-!!! Example "Iterative Refinement with Exemplars"
+!!! example "Iterative Refinement with Exemplars"
 
     Progressively improve results by adding exemplar prompts based on initial output.
 
@@ -243,7 +243,7 @@ SAM 3 supports both Promptable Concept Segmentation (PCS) and Promptable Visual 
 
 ### Video Concept Segmentation
 
-!!! Example "Track Concepts Across Video"
+!!! example "Track Concepts Across Video"
 
     Detect and track all instances of a concept throughout a video.
 
@@ -277,7 +277,7 @@ For broader streaming and production setups, see [object tracking](../guides/obj
 
 SAM 3 maintains full backward compatibility with SAM 2's visual prompting:
 
-!!! Example "SAM 2 Style Visual Prompts"
+!!! example "SAM 2 Style Visual Prompts"
 
     === "Python"
 

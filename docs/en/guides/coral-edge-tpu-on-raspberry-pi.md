@@ -42,7 +42,7 @@ The [existing guide](https://gweb-coral-full.uc.r.appspot.com/docs/accelerator/g
 
 ## Installation Walkthrough
 
-This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart.md) to get setup before continuing here.
+This guide assumes that you already have a working Raspberry Pi OS install and have installed `ultralytics` and all dependencies. To get `ultralytics` installed, visit the [quickstart guide](../quickstart.md) to get set up before continuing here.
 
 ### Installing the Edge TPU runtime
 
@@ -68,7 +68,7 @@ After downloading the file, you can install it with the following command:
 sudo dpkg -i path/to/package.deb
 ```
 
-After installing the runtime, you need to plug in your Coral Edge TPU into a USB 3.0 port on your Raspberry Pi. This is because, according to the official guide, a new `udev` rule needs to take effect after installation.
+After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on the Raspberry Pi so the new `udev` rule can take effect.
 
 ???+ warning "Important"
 
@@ -106,19 +106,19 @@ To use the Edge TPU, you need to convert your model into a compatible format. It
         yolo export model=path/to/model.pt format=edgetpu # Export an official model or custom model
         ```
 
-The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`. It is important that your model ends with the suffix `_edgetpu.tflite`, otherwise ultralytics doesn't know that you're using an Edge TPU model.
+The exported model will be saved in the `<model_name>_saved_model/` folder with the name `<model_name>_full_integer_quant_edgetpu.tflite`. Make sure the file name ends with the `_edgetpu.tflite` suffix; otherwise, Ultralytics will not detect that you're using an Edge TPU model.
 
 ## Running the model
 
 Before you can actually run the model, you will need to install the correct libraries.
 
-If `tensorflow` is installed, uninstall tensorflow with the following command:
+If you already have TensorFlow installed, uninstall it with the following command:
 
 ```bash
 pip uninstall tensorflow tensorflow-aarch64
 ```
 
-Then install/update `tflite-runtime`:
+Then install or update `tflite-runtime`:
 
 ```bash
 pip install -U tflite-runtime
@@ -150,7 +150,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 !!! note "Inference with multiple Edge TPUs"
 
-    If you have multiple Edge TPUs you can use the following code to select a specific TPU.
+    If you have multiple Edge TPUs, you can use the following code to select a specific TPU.
 
     === "Python"
 
@@ -172,7 +172,7 @@ Find comprehensive information on the [Predict](../modes/predict.md) page for fu
 
 !!! tip "Benchmarks"
 
-    Tested with Raspberry Pi Os Bookworm 64-Bit and a USB Coral Edge TPU.
+    Tested with Raspberry Pi OS Bookworm 64-bit and a USB Coral Edge TPU.
 
     !!! note
         Shown is the inference time, pre-/postprocessing is not included.

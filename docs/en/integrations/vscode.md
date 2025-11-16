@@ -40,7 +40,7 @@ If you use Visual Studio Code and answered 'yes' to any of the above, then the U
 
 ## Inspired by the Ultralytics Community
 
-The inspiration to build this extension came from the Ultralytics Community. Questions from the Community around similar topics and examples fueled the development for this project. Additionally, as some of the Ultralytics Team also uses VS Code, we also use it as a tool to accelerate our work too ⚡.
+The inspiration to build this extension came from the Ultralytics Community. Questions from the Community around similar topics and examples fueled the development for this project. Additionally, many members of the Ultralytics team use VS Code to accelerate their own work ⚡.
 
 ## Why VS Code?
 

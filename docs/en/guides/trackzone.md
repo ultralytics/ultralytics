@@ -46,11 +46,13 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         yolo solutions trackzone show=True
 
         # Pass a source video
-        yolo solutions trackzone show=True source="path/to/video.mp4"
+        yolo solutions trackzone source="path/to/video.mp4" show=True
 
         # Pass region coordinates
         yolo solutions trackzone show=True region="[(150, 150), (1130, 150), (1130, 570), (150, 570)]"
         ```
+
+        TrackZone relies on the `region` list to know which part of the frame to monitor. Define the polygon to match the physical zone you care about (doors, gates, etc.), and keep `show=True` enabled while configuring so you can verify the overlay aligns with the video feed.
 
     === "Python"
 

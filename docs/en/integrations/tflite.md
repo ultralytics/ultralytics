@@ -18,7 +18,7 @@ The TensorFlow Lite or TFLite export format allows you to optimize your [Ultraly
 
 Introduced by Google in May 2017 as part of their TensorFlow framework, [TensorFlow Lite](https://ai.google.dev/edge/litert), or TFLite for short, is an open-source deep learning framework designed for on-device inference, also known as [edge computing](https://www.ultralytics.com/glossary/edge-computing). It gives developers the necessary tools to execute their trained models on mobile, embedded, and IoT devices, as well as traditional computers.
 
-TensorFlow Lite is compatible with a wide range of platforms, including embedded Linux, Android, iOS, and MCU. Exporting your model to TFLite makes your applications faster, more reliable, and capable of running offline.
+TensorFlow Lite is compatible with a wide range of platforms, including embedded Linux, Android, iOS, and microcontrollers (MCUs). Exporting your model to TFLite makes your applications faster, more reliable, and capable of running offline.
 
 ## Key Features of TFLite Models
 

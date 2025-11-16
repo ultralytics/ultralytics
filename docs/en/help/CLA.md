@@ -9,7 +9,7 @@ Thank you for your interest in contributing to software projects managed by Ultr
 
 By accepting and agreeing to these terms and conditions You accept and agree to the following terms and conditions for Your past, present and future Contributions submitted to Ultralytics. Except for the license granted herein to Ultralytics and recipients of software distributed by Ultralytics, You reserve all right, title, and interest in and to Your Contributions.
 
-If you have any questions respecting this Agreement, please contact hello@ultralytics.com.
+If you have any questions regarding this Agreement, please contact hello@ultralytics.com.
 
 ## 1. Definitions
 

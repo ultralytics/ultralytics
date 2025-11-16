@@ -53,7 +53,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Weights & Biases (W&B)](weights-biases.md): Monitor experiments, visualize metrics, and foster reproducibility and collaboration on Ultralytics projects.
 
-- [VS Code](vscode.md): An extension for VS Code that provides code snippets for accelerating development workflows with Ultralytics and also for anyone looking for examples to help learn or get started with Ultralytics.
+- [VS Code](vscode.md): An extension for VS Code that provides code snippets to accelerate Ultralytics development workflows and offers examples to help anyone learn or get started.
 
 - [Albumentations](albumentations.md): Enhance your Ultralytics models with powerful image augmentations to improve model robustness and generalization.
 

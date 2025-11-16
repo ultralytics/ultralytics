@@ -82,7 +82,7 @@ We hope that the resources here will help you get the most out of HUB. Please br
 
 To get started with [Ultralytics HUB](https://www.ultralytics.com/hub), follow these steps:
 
-1. **Sign Up:** Create an account on the [Ultralytics HUB](https://www.ultralytics.com/hub).
+1. **Sign Up:** Create an account on [Ultralytics HUB](https://www.ultralytics.com/hub).
 2. **Upload Dataset:** Navigate to the [Datasets](datasets.md) section to upload your custom dataset.
 3. **Train Model:** Go to the [Models](models.md) section and select a pre-trained YOLOv5, YOLOv8, or YOLO11 model to start training.
 4. **Deploy Model:** Once trained, preview and deploy your model using the [Ultralytics HUB App](app/index.md) for real-time tasks.

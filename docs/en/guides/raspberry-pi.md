@@ -141,7 +141,7 @@ YOLO11 benchmarks were run by the Ultralytics team on ten different model format
 
 ### Comparison Chart
 
-We have only included benchmarks for YOLO11n and YOLO11s models because other models sizes are too big to run on the Raspberry Pis and does not offer decent performance.
+We have only included benchmarks for YOLO11n and YOLO11s models because other model sizes are too big to run on the Raspberry Pis and do not offer decent performance.
 
 <figure style="text-align: center;">
     <img width="800" src="https://github.com/ultralytics/assets/releases/download/v0.0.0/rpi-yolo11-benchmarks-coco128.avif" alt="YOLO11 benchmarks on RPi 5">

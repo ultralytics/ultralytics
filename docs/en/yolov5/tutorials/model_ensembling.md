@@ -72,6 +72,8 @@ Multiple pretrained models can be ensembled together at test and inference time 
 python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --img 640 --half
 ```
 
+You can list as many checkpoints as you would like, including custom weights such as `runs/train/exp5/weights/best.pt`. YOLOv5 will automatically run each model, align the predictions on a per-image basis, and average the outputs before performing NMS.
+
 Output:
 
 ```text

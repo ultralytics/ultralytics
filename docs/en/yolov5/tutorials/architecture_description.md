@@ -16,7 +16,7 @@ YOLOv5's architecture consists of three main parts:
 - **Neck**: This part connects the backbone and the head. In YOLOv5, `SPPF` (Spatial Pyramid Pooling - Fast) and `PANet` (Path Aggregation Network) structures are utilized.
 - **Head**: This part is responsible for generating the final output. YOLOv5 uses the `YOLOv3 Head` for this purpose.
 
-The structure of the model is depicted in the image below. The model structure details can be found in `yolov5l.yaml`.
+The structure of the model is depicted in the image below. The model structure details can be found in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
 
 ![yolov5](https://github.com/ultralytics/docs/releases/download/0/yolov5-model-structure.avif)
 
@@ -122,7 +122,7 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
     ![mixup](https://github.com/ultralytics/docs/releases/download/0/mixup.avif)
 
-- **Albumentations**: A powerful library for image augmenting that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
+- **Albumentations**: A powerful image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 

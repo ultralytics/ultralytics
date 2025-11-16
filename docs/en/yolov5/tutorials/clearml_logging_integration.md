@@ -56,7 +56,7 @@ That's it! You're done 😎
 
 ## 🚀 Training YOLOv5 With ClearML
 
-To enable ClearML experiment tracking, simply install the ClearML pip package.
+To enable ClearML experiment tracking, simply install the ClearML pip package as shown earlier (or run the command below if you skipped that step).
 
 ```bash
 pip install clearml

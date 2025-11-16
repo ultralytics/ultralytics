@@ -155,6 +155,8 @@ copy_paste: 0.0 # segment copy-paste (probability)
 
 We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained hundreds of times, possibly requiring hundreds or thousands of GPU hours.
 
+When evolution finishes, reuse the discovered settings by pointing training at the saved file, for example `python train.py --hyp runs/evolve/hyp_evolved.yaml --data your.yaml --weights yolov5s.pt`.
+
 ## 4. Visualize
 
 `evolve.csv` is plotted as `evolve.png` by `utils.plots.plot_evolve()` after evolution finishes with one subplot per hyperparameter showing fitness (y-axis) vs hyperparameter values (x-axis). Yellow indicates higher concentrations. Vertical distributions indicate that a parameter has been disabled and does not mutate. This is user selectable in the `meta` dictionary in train.py, and is useful for fixing parameters and preventing them from evolving.

@@ -126,7 +126,7 @@ Fine-tuning a model means paying close attention to several vital parameters and
 
 Usually, during the initial training [epochs](https://www.ultralytics.com/glossary/epoch), the learning rate starts low and gradually increases to stabilize the training process. However, since your model has already learned some features from the previous dataset, starting with a higher [learning rate](https://www.ultralytics.com/glossary/learning-rate) right away can be more beneficial.
 
-When evaluating your YOLO11 model, you can set the `warmup_epochs` validation parameter to `warmup_epochs=0` to prevent the learning rate from starting too high. By following this process, the training will continue from the provided weights, adjusting to the nuances of your new data.
+When evaluating your YOLO11 model, you can set the `warmup_epochs` validation parameter to `warmup_epochs=0` to prevent the learning rate from starting too low. By following this process, the training will continue from the provided weights, adjusting to the nuances of your new data.
 
 ### Image Tiling for Small Objects
 

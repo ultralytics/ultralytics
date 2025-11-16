@@ -10,7 +10,7 @@ keywords: YOLOv5, model ensembling, testing, inference, mAP, Recall, Ultralytics
 
 From [ensemble learning](https://en.wikipedia.org/wiki/Ensemble_learning):
 
-> Ensemble modeling is a process where multiple diverse models are created to predict an outcome, either by using many different modeling algorithms or using different [training data](https://www.ultralytics.com/glossary/training-data) sets. The ensemble model then aggregates the prediction of each base model and results in once final prediction for the unseen data. The motivation for using ensemble models is to reduce the generalization error of the prediction. As long as the base models are diverse and independent, the prediction error of the model decreases when the ensemble approach is used. The approach seeks the wisdom of crowds in making a prediction. Even though the ensemble model has multiple base models within the model, it acts and performs as a single model.
+> Ensemble modeling is a process where multiple diverse models are created to predict an outcome, either by using many different modeling algorithms or using different [training data](https://www.ultralytics.com/glossary/training-data) sets. The ensemble model then aggregates the prediction of each base model and results in one final prediction for the unseen data. The motivation for using ensemble models is to reduce the generalization error of the prediction. As long as the base models are diverse and independent, the prediction error of the model decreases when the ensemble approach is used. The approach seeks the wisdom of crowds in making a prediction. Even though the ensemble model has multiple base models within the model, it acts and performs as a single model.
 
 ## Before You Start
 
@@ -71,6 +71,8 @@ Multiple pretrained models can be ensembled together at test and inference time 
 ```bash
 python val.py --weights yolov5x.pt yolov5l6.pt --data coco.yaml --img 640 --half
 ```
+
+You can list as many checkpoints as you would like, including custom weights such as `runs/train/exp5/weights/best.pt`. YOLOv5 will automatically run each model, align the predictions on a per-image basis, and average the outputs before performing NMS.
 
 Output:
 

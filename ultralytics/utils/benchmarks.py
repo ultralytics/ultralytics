@@ -604,7 +604,7 @@ class ProfileModels:
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
-        input_data_dict = dict()
+        input_data_dict = {}
         for input_tensor in sess.get_inputs():
             input_type = input_tensor.type
             if self.check_dynamic(input_tensor.shape):
@@ -632,7 +632,7 @@ class ProfileModels:
 
             input_data = np.random.rand(*input_shape).astype(input_dtype)
             input_name = input_tensor.name
-            input_data_dict.update({input_name: input_data})
+            input_data_dict[input_name] = input_data
 
         output_name = sess.get_outputs()[0].name
 

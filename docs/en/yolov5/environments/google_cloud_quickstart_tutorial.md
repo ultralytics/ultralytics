@@ -32,13 +32,11 @@ This VM comes pre-loaded with essential tools and frameworks, including the [Ana
 After setting up the environment, let's get YOLOv5 installed and ready:
 
 ```bash
-# Clone the YOLOv5 repository from GitHub
+# Clone the YOLOv5 repository
 git clone https://github.com/ultralytics/yolov5
-
-# Navigate into the cloned repository directory
 cd yolov5
 
-# Install the required Python packages listed in requirements.txt
+# Install dependencies
 pip install -r requirements.txt
 ```
 

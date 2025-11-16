@@ -60,7 +60,7 @@ This class performs all the backend operations:
 - Extracts image and text [embeddings](https://platform.openai.com/docs/guides/embeddings) using CLIP.
 - Performs similarity search using cosine similarity.
 
-!!! Example "Similar Images Search"
+!!! example "Similar Images Search"
 
     ??? note "Image Path Warning"
 
@@ -131,7 +131,7 @@ What makes CLIP stand out is its ability to generalize. Instead of being trained
 
 While CLIP and FAISS are developed by OpenAI and Meta respectively, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) simplifies their integration into a complete semantic image search pipeline in a 2-lines workflow that just works:
 
-!!! Example "Similar Images Search"
+!!! example "Similar Images Search"
 
     === "Python"
 

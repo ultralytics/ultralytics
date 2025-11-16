@@ -20,21 +20,21 @@ The dataset label format used for training YOLO pose models is as follows:
     - Object width and height: The width and height of the object, normalized to be between 0 and 1.
     - Object keypoint coordinates: The keypoints of the object, normalized to be between 0 and 1.
 
-Here is an example of the label format for pose estimation task:
+Here is an example of the label format for a pose estimation task:
 
-Format with Dim = 2
+Format with 2D keypoints
 
 ```
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
-Format with Dim = 3
+Format with 3D keypoints (includes visibility per point)
 
 ```
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
 ```
 
-In this format, `<class-index>` is the index of the class for the object,`<x> <y> <width> <height>` are coordinates of [bounding box](https://www.ultralytics.com/glossary/bounding-box), and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the pixel coordinates of the keypoints. The coordinates are separated by spaces.
+In this format, `<class-index>` is the index of the class for the object, `<x> <y> <width> <height>` are the normalized coordinates of the [bounding box](https://www.ultralytics.com/glossary/bounding-box), and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the normalized keypoint coordinates. The visibility channel is optional but useful for datasets that annotate occlusion.
 
 ### Dataset YAML format
 
@@ -101,7 +101,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Tiger-Pose
 
-- **Description**: [Ultralytics](https://www.ultralytics.com/) The Tiger Pose dataset comprises 263 images sourced from a [YouTube Video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
+- **Description**: The [Ultralytics](https://www.ultralytics.com/) Tiger Pose dataset comprises 263 images sourced from a [YouTube video](https://www.youtube.com/watch?v=MIBAT6BGE6U&pp=ygUbVGlnZXIgd2Fsa2luZyByZWZlcmVuY2UubXA0), with 210 images allocated for training and 53 for validation.
 - **Label Format**: Same as Ultralytics YOLO format as described above, with 12 keypoints for animal pose and no visible dimension.
 - **Number of Classes**: 1 (Tiger).
 - **Keypoints**: 12 keypoints.
@@ -110,8 +110,8 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Hand Keypoints
 
-- **Description**: Hand keypoints pose dataset comprises nearly 26K images, with 18776 images allocated for training and 7992 for validation.
-- **Label Format**: Same as Ultralytics YOLO format as described above, but with 21 keypoints for human hand and visible dimension.
+- **Description**: The hand keypoints pose dataset comprises nearly 26K images, with 18,776 images allocated for training and 7,992 for validation.
+- **Label Format**: Same as the Ultralytics YOLO format described above, but with 21 keypoints for a human hand and a visibility dimension.
 - **Number of Classes**: 1 (Hand).
 - **Keypoints**: 21 keypoints.
 - **Usage**: Great for human hand pose estimation and [gesture recognition](https://www.ultralytics.com/blog/enhancing-hand-keypoints-estimation-with-ultralytics-yolo11).
@@ -119,7 +119,7 @@ This section outlines the datasets that are compatible with Ultralytics YOLO for
 
 ### Dog-Pose
 
-- **Description**: The Dog Pose dataset contains approximately 6,000 images, providing a diverse and extensive resource for training and validation of dog pose estimation models.
+- **Description**: The Dog Pose dataset contains 6,773 training and 1,703 test images, providing a diverse and extensive resource for canine keypoint estimation.
 - **Label Format**: Follows the Ultralytics YOLO format, with annotations for multiple keypoints specific to dog anatomy.
 - **Number of Classes**: 1 (Dog).
 - **Keypoints**: Includes 24 keypoints tailored to dog poses, such as limbs, joints, and head positions.

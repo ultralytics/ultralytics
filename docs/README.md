@@ -2,7 +2,7 @@
 
 # 📚 Ultralytics Docs
 
-Welcome to Ultralytics Docs, your comprehensive resource for understanding and utilizing our state-of-the-art [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools and models, including [Ultralytics YOLO](https://docs.ultralytics.com/models/yolov8/). These documents are actively maintained and deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com/) for easy access.
+Welcome to Ultralytics Docs, your comprehensive resource for understanding and utilizing our state-of-the-art [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools and models, including [Ultralytics YOLO](https://docs.ultralytics.com/models/yolo11/). These documents are actively maintained and deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com/) for easy access.
 
 [![pages-build-deployment](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/pages/pages-build-deployment)
 [![Check Broken links](https://github.com/ultralytics/docs/actions/workflows/links.yml/badge.svg)](https://github.com/ultralytics/docs/actions/workflows/links.yml)
@@ -17,7 +17,7 @@ Welcome to Ultralytics Docs, your comprehensive resource for understanding and u
 [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://clickpy.clickhouse.com/dashboard/ultralytics)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ultralytics?logo=python&logoColor=gold)](https://pypi.org/project/ultralytics/)
 
-To install the `ultralytics` package in developer mode, which allows you to modify the source code directly, ensure you have [Git](https://git-scm.com/) and [Python](https://www.python.org/) 3.9 or later installed on your system. Then, follow these steps:
+To install the `ultralytics` package in developer mode, which allows you to modify the source code directly, ensure you have [Git](https://git-scm.com/) and [Python](https://www.python.org/) 3.8 or later installed on your system. Then, follow these steps:
 
 1.  Clone the `ultralytics` repository to your local machine using Git:
 
@@ -93,7 +93,7 @@ If your documentation supports multiple languages, follow these steps to build a
 To deploy your MkDocs documentation site, choose a hosting provider and configure your deployment method. Common options include [GitHub Pages](https://pages.github.com/), GitLab Pages, or other static site hosting services.
 
 - Configure deployment settings within your `mkdocs.yml` file.
-- Use the `mkdocs deploy` command specific to your chosen provider to build and deploy your site.
+- Use your hosting provider's recommended workflow (for example running `mkdocs build` in CI or `mkdocs gh-deploy` for GitHub Pages) to publish the generated `site/` directory.
 
 * **GitHub Pages Deployment Example:**
   If deploying to GitHub Pages, you can use the built-in command:

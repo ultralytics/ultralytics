@@ -8,7 +8,13 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO11, COCO 2017, mod
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) COCO128-Seg is a small, but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 128 images of the COCO train 2017 set. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com/) COCO128-Seg is a small but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 128 images of the COCO train 2017 set. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+
+## Dataset Structure
+
+- **Images**: 128 total. The default YAML reuses the same directory for train and val so you can quickly iterate, but you can duplicate or customize the split if desired.
+- **Classes**: Same 80 object categories as COCO.
+- **Labels**: YOLO-format polygons saved beside each image inside `labels/{train,val}`.
 
 This dataset is intended for use with Ultralytics [HUB](https://hub.ultralytics.com/) and [YOLO11](https://github.com/ultralytics/ultralytics).
 

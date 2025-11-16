@@ -37,14 +37,14 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 [NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Blackwell architecture which brings drastically improved AI performance when compared to the previous generations. Below table compared few of the Jetson devices in the ecosystem.
 
-|                   | Jetson AGX Thor                                                      | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
-|-------------------|------------------------------------------------------------------|------------------------------------------------------------------|-----------------------------------------------------------------|---------------------------------------------------------------|-------------------------------------------------------------|--------------------------------------------------------------|---------------------------------------------|
-| AI Performance    | 2070 TFLOPS                                                      | 275 TOPS                                                         | 100 TOPS                                                        | 67 TOPS                                                       | 32 TOPS                                                     | 21 TOPS                                                      | 472 GFLOPS                                  |
-| GPU               | 2560-core NVIDIA Blackwell architecture GPU with 96 Tensor Cores | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU   |
-| GPU Max Frequency | 1.57 GHz                                                         | 1.3 GHz                                                          | 918 MHz                                                         | 1020 MHz                                                      | 1377 MHz                                                    | 1100 MHz                                                     | 921MHz                                      |
-| CPU               | 14-core Arm® Neoverse®-V3AE 64-bit CPU 1MB L2 + 16MB L3          | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3   | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3    | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
-| CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                          | 2.0 GHz                                                         | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                      | 1.43GHz                                     |
-| Memory            | 128GB 256-bit LPDDR5X 273 GB/s                                   | 64GB 256-bit LPDDR5 204.8GB/s                                    | 16GB 128-bit LPDDR5 102.4GB/s                                   | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                 | 4GB 64-bit LPDDR4 25.6GB/s"                 |
+|                   | Jetson AGX Thor                                                  | Jetson AGX Orin 64GB                                              | Jetson Orin NX 16GB                                              | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                              | Jetson Nano                                   |
+| ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| AI Performance    | 2070 TFLOPS                                                      | 275 TOPS                                                          | 100 TOPS                                                         | 67 TOPS                                                       | 32 TOPS                                                     | 21 TOPS                                                       | 472 GFLOPS                                    |
+| GPU               | 2560-core NVIDIA Blackwell architecture GPU with 96 Tensor Cores | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores     | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU    |
+| GPU Max Frequency | 1.57 GHz                                                         | 1.3 GHz                                                           | 918 MHz                                                          | 1020 MHz                                                      | 1377 MHz                                                    | 1100 MHz                                                      | 921MHz                                        |
+| CPU               | 14-core Arm® Neoverse®-V3AE 64-bit CPU 1MB L2 + 16MB L3        | 12-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 3MB L2 + 6MB L3 | 8-core NVIDIA Arm® Cortex A78AE v8.2 64-bit CPU 2MB L2 + 4MB L3 | 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 | 8-core NVIDIA Carmel Arm®v8.2 64-bit CPU 8MB L2 + 4MB L3   | 6-core NVIDIA Carmel Arm®v8.2 64-bit CPU 6MB L2 + 4MB L3     | Quad-Core Arm® Cortex®-A57 MPCore processor |
+| CPU Max Frequency | 2.6 GHz                                                          | 2.2 GHz                                                           | 2.0 GHz                                                          | 1.7 GHz                                                       | 2.2 GHz                                                     | 1.9 GHz                                                       | 1.43GHz                                       |
+| Memory            | 128GB 256-bit LPDDR5X 273 GB/s                                   | 64GB 256-bit LPDDR5 204.8GB/s                                     | 16GB 128-bit LPDDR5 102.4GB/s                                    | 8GB 128-bit LPDDR5 102 GB/s                                   | 32GB 256-bit LPDDR4x 136.5GB/s                              | 8GB 128-bit LPDDR4x 59.7GB/s                                  | 4GB 64-bit LPDDR4 25.6GB/s"                   |
 
 For a more detailed comparison table, please visit the **Compare Specifications** section of [official NVIDIA Jetson page](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems).
 
@@ -70,16 +70,16 @@ The first step after getting your hands on an NVIDIA Jetson device is to flash N
 
 The below table highlights NVIDIA JetPack versions supported by different NVIDIA Jetson devices.
 
-|                   	| JetPack 4 	| JetPack 5 	| JetPack 6 	| JetPack 7 	|
-|-------------------	|-----------	|-----------	|-----------	|-----------	|
-| Jetson Nano       	| ✅         	| ❌         	| ❌         	| ❌         	|
-| Jetson TX2        	| ✅         	| ❌         	| ❌         	| ❌         	|
-| Jetson Xavier NX  	| ✅         	| ✅         	| ❌         	| ❌         	|
-| Jetson AGX Xavier 	| ✅         	| ✅         	| ❌         	| ❌         	|
-| Jetson AGX Orin   	| ❌         	| ✅         	| ✅         	| ❌         	|
-| Jetson Orin NX    	| ❌         	| ✅         	| ✅         	| ❌         	|
-| Jetson Orin Nano  	| ❌         	| ✅         	| ✅         	| ❌         	|
-| Jetson AGX Thor   	| ❌         	| ❌         	| ❌         	| ✅         	|
+|                   | JetPack 4 | JetPack 5 | JetPack 6 | JetPack 7 |
+| ----------------- | --------- | --------- | --------- | --------- |
+| Jetson Nano       | ✅        | ❌        | ❌        | ❌        |
+| Jetson TX2        | ✅        | ❌        | ❌        | ❌        |
+| Jetson Xavier NX  | ✅        | ✅        | ❌        | ❌        |
+| Jetson AGX Xavier | ✅        | ✅        | ❌        | ❌        |
+| Jetson AGX Orin   | ❌        | ✅        | ✅        | ❌        |
+| Jetson Orin NX    | ❌        | ✅        | ✅        | ❌        |
+| Jetson Orin Nano  | ❌        | ✅        | ✅        | ❌        |
+| Jetson AGX Thor   | ❌        | ❌        | ❌        | ✅        |
 
 ## Quick Start with Docker
 
@@ -391,7 +391,7 @@ YOLO11 benchmarks were run by the Ultralytics team on 10 different model formats
 
 Even though all model exports are working with NVIDIA Jetson, we have only included **PyTorch, TorchScript, TensorRT** for the comparison chart below because, they make use of the GPU on the Jetson and are guaranteed to produce the best results. All the other exports only utilize the CPU and the performance is not as good as the above three. You can find benchmarks for all exports in the section after this chart.
 
-#### NVIDIA Jetson AGX Thor Developer Kit 
+#### NVIDIA Jetson AGX Thor Developer Kit
 
 <figure style="text-align: center;">
     <img src="https://github.com/ultralytics/assets/releases/download/v0.0.0/jetson-agx-thor-benchmarks-coco128.avif" alt="Jetson AGX Thor Benchmarks">

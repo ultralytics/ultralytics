@@ -135,10 +135,10 @@ Basically we need the following keys: `path`, `train`, `test`, `val`, `nc`, `nam
 
 ### Upload Your Dataset
 
-To get this dataset into ClearML as a versioned dataset, go to the dataset root folder and run the following command:
+To get this dataset into ClearML as a versioned dataset, go to the dataset root folder (for example `../datasets/coco128` when working from the YOLOv5 repository) and run the following command:
 
 ```bash
-cd coco128
+cd ../datasets/coco128
 clearml-data sync --project YOLOv5 --name coco128 --folder .
 ```
 

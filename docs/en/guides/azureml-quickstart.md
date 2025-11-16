@@ -46,7 +46,7 @@ Start your compute and open a Terminal:
 
 ### Create virtualenv
 
-Create a conda virtual environment with your preferred Python version and install pip in it.
+Create a conda virtual environment with your preferred Python version and install pip in it. Python 3.13.1 currently has dependency issues in AzureML, so use Python 3.12 instead.
 
 ```bash
 conda create --name yolo11env -y python=3.12

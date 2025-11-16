@@ -46,9 +46,9 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         # Initialize vision eye object
         visioneye = solutions.VisionEye(
             show=True,  # display the output
-            model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
+            model="yolo11n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
             classes=[0, 2],  # generate visioneye view for specific classes
-            vision_point=(50, 50),  # the point, where vision will view objects and draw tracks
+            vision_point=(50, 50),  # the point where VisionEye will view objects and draw tracks
         )
 
         # Process video
@@ -69,6 +69,8 @@ keywords: VisionEye, YOLO11, Ultralytics, object mapping, object tracking, dista
         video_writer.release()
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
+
+        The `vision_point` tuple represents the observer's position in pixel coordinates. Adjust it to match the camera perspective so the rendered rays correctly illustrate how objects relate to the chosen viewpoint.
 
 ### `VisionEye` Arguments
 
@@ -137,7 +139,7 @@ video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(
 # Init vision eye object
 visioneye = solutions.VisionEye(
     show=True,  # display the output
-    model="yolo11n.pt",  # use any model that Ultralytics support, i.e, YOLOv10
+    model="yolo11n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
     classes=[0, 2],  # generate visioneye view for specific classes
 )
 

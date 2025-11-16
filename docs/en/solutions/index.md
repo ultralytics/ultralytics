@@ -29,7 +29,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO11 for precise extraction of objects from images and videos.
 - [Object Blurring](../guides/object-blurring.md): Apply object blurring using YOLO11 to protect privacy in image and video processing.
 - [Workouts Monitoring](../guides/workouts-monitoring.md): Discover how to monitor workouts using YOLO11. Learn to track and analyze various fitness routines in real time.
-- [Objects Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO11 for accurate detection in varied areas.
+- [Object Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO11 for accurate detection in varied areas.
 - [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO11 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.
 - [Heatmaps](../guides/heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
 - [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO11 to achieve precise object boundaries and continuous monitoring.
@@ -154,7 +154,7 @@ For more details, refer to the [`SolutionResults` class documentation](https://d
 ```bash
 yolo solutions count show=True # for object counting
 
-yolo solutions source="path/to/video.mp4" # specify video file path
+yolo solutions count source="path/to/video.mp4" # specify video file path
 ```
 
 ### Contribute to Our Solutions
